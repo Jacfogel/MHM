@@ -1,0 +1,836 @@
+{
+  "messages": [
+    {
+      "message": "Reminder: Stretch your legs and take a quick walk. It's good for your heart and mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "231db913-cff8-4a19-a412-e704183e323a"
+    },
+    {
+      "message": "Time to check your posture! Sitting up straight can reduce back pain and boost your mood.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "bb4f54cc-fe80-47e5-809f-abcd9f6b0e79"
+    },
+    {
+      "message": "Reminder: Apply sunscreen if you're going out. Protecting your skin is essential!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c3cd5305-a2dc-4291-b696-20548d8b933b"
+    },
+    {
+      "message": "Time to unplug. Spend an hour away from screens to rest your eyes and clear your mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "34a0e865-73c6-4b88-8402-49c56eca1941"
+    },
+    {
+      "message": "Don't forget to take a deep breath and relax your shoulders. It helps release tension.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "14a3ec60-1ffc-43e9-b362-3e0b493ea7e2"
+    },
+    {
+      "message": "Midday hydration check! Have you had enough water today? Keep a bottle nearby.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "64cd74fd-bba3-4abc-8221-360750c55ef3"
+    },
+    {
+      "message": "How about a fruit snack? It's a sweet way to boost your vitamin intake.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5cbb1fda-5917-450a-8277-b9210ac0775f"
+    },
+    {
+      "message": "Time for your daily stretch! Keeping flexible helps maintain your physical health.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ca733505-ce39-4a4e-9821-db6c01c96637"
+    },
+    {
+      "message": "A gentle reminder to check in with your emotions. How are you feeling today?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e8716eae-29b6-4b9f-b7e5-6817f373797d"
+    },
+    {
+      "message": "How long have you been sitting? Stand up and take a short walk around your space.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "bd0d0272-662b-4be4-8821-fa90b89475c8"
+    },
+    {
+      "message": "Reminder to take any medications you have. Staying on schedule is important.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e8545a48-056a-412c-b483-07ff2a158d77"
+    },
+    {
+      "message": "Plan a small exercise session for the day. Even a little activity is better than none!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b62c15df-152a-422b-b7e8-7ac2349d1f23"
+    },
+    {
+      "message": "Time to reconnect. Call a friend or family member and catch up.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "94a62b10-d198-4d9d-a9dc-1f24c92d0a39"
+    },
+    {
+      "message": "Try a new healthy recipe tonight. Cooking at home is fun and good for your well-being.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "dba3d6c7-e0a8-47d8-b3d0-71c37b78d229"
+    },
+    {
+      "message": "Take a moment to stretch and breathe deeply. It's a quick way to energize your afternoon.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "317fe68f-ff90-4ce7-8f72-6b3b8b49f2b6"
+    },
+    {
+      "message": "Snack time! Choose something healthy like nuts or yogurt to keep your energy levels up.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "948a8c85-3a6f-4cef-a6e5-a284dae7a3e1"
+    },
+    {
+      "message": "It's a great day to plan your meals for the week. Healthy eating starts with good planning!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "cdf46c92-c151-4e7c-a03e-c624f334852e"
+    },
+    {
+      "message": "Have you stood up recently? Take five minutes to walk around and stretch your legs.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "6e4eea2c-62d6-4b7c-a8a9-5cb9e502ee4c"
+    },
+    {
+      "message": "Reflect on your physical activity this week. Could you add more movement into your routine?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "eb7c664d-17d8-40bb-a1fd-023f7b7a7007"
+    },
+    {
+      "message": "Take a moment to appreciate your efforts in taking care of your health. You're doing great!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e4f0e5fa-b677-4004-b609-016d5398cd25"
+    },
+    {
+      "message": "How about trying a new healthy recipe for supper tonight? Cooking can be a great way to unwind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "557e04a0-3f25-4998-95fc-0ea5d7b8944e"
+    },
+    {
+      "message": "Don't forget to take your medication today. Your health is a priority, and we're in this together.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4d3af845-fc31-4d7d-96b4-e62e41005164"
+    },
+    {
+      "message": "Time for a quick stretch or a short walk! Moving your body is a great way to boost mood and energy.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c47b7dc5-b434-410a-aa4c-718efb3c2818"
+    },
+    {
+      "message": "Did you smile at yourself in the mirror today? Your smile is your best accessory!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "edfb9790-6bc3-4a87-a970-d6fbb0b24b04"
+    },
+    {
+      "message": "Quick! Pretend you're on the moon and do a slow-motion walk to lunch. Low gravity style!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4b0efce8-1fa0-4a05-850c-bb0a0ea73818"
+    },
+    {
+      "message": "Take a moment to plan the rest of your day. A little planning can help manage anxiety and boost productivity.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5662c93e-0678-4fcb-97c5-3ac55297e0df"
+    },
+    {
+      "message": "Are you sitting comfortably? Adjust your chair and screen to protect your posture.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4ebf3b40-accf-49f1-a015-b1a7bf00f15a"
+    },
+    {
+      "message": "Check in with your breathing. Are you breathing shallow? Take a few deep breaths to calm your mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d00e06ab-3ba0-4333-93b4-bd1ae5bd56f6"
+    },
+    {
+      "message": "Take a mental health break. Just five minutes of meditation can reduce stress.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "86909fe9-9cf6-4c4a-8f26-2950a8a93489"
+    },
+    {
+      "message": "Power off your screens for 10 minutes to give your eyes a rest. Eye strain can cause headaches and fatigue.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "96a92e7e-dde7-4572-9d6d-d81401870302"
+    },
+    {
+      "message": "Dinner tip: Aim for a colorful plate. More colors usually mean a healthier meal!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "874b4f0a-4ef5-46c6-aa61-5c9939d4ed41"
+    },
+    {
+      "message": "Spend some quality time with family or friends this evening. Social connections are key to mental health.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "28b1edf9-64e9-4145-b2e6-bad4ce7af2c9"
+    },
+    {
+      "message": "Prepare for tomorrow by setting out clothes and essentials tonight. It's a stress-reducer for morning.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7daf37b1-95c8-4659-a999-ec7bbf05d8b8"
+    },
+    {
+      "message": "Science fact: Did you know that laughing can boost your immune system? Find a joke and test the theory!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a3e9c863-48eb-49d2-a159-e189d59b7caf"
+    },
+    {
+      "message": "Pretend you're a balloon: Take a deep breath in, hold, now release and make a silly noise as you deflate!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3d53f76d-0775-4aa5-b31d-72c92a170f06"
+    },
+    {
+      "message": "If you haven't yet today, brush your teeth. You'll thank yourself!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a535155b-0163-4d69-a9b5-bb7e39e4e538"
+    },
+    {
+      "message": "Feeling peckish? Have an apple, some grapes or another healthy snack.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ce6812b6-3f24-45fa-8127-152e4e2e9952"
+    },
+    {
+      "message": "Another friendly reminder to drink some water. Hydration is key for your body and mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0f853c0a-a3d8-493d-8ae2-dcd6c8a2d5b3"
+    },
+    {
+      "message": "Take a 5-minute break to do some light stretching or walking. It's good for your physical and mental health.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1c93586f-af00-4bdd-94b9-038acacea57b"
+    },
+    {
+      "message": "Reminder: Take a deep breath and grab a glass of water. Staying hydrated helps with concentration and health.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "11cf1c75-8c87-4e87-8eba-ea4867f9f719"
+    },
+    {
+      "message": "Did you take your medication today? Remember it's one of the best ways to take care of yourself!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7451c627-0ab2-4873-8c88-31fc3e6d4d0b"
+    },
+    {
+      "message": "Planning a healthy dinner can boost your mood and keep you fit. Consider a meal rich in veggies tonight!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "cc10b96e-bc87-4fbb-99f2-43cbc7318400"
+    },
+    {
+      "message": "Pause for a mindfulness moment. Reflect on what you're grateful for today to cultivate positivity.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "13f0769c-082c-48b3-9f13-acd938efab88"
+    },
+    {
+      "message": "Time for a weekly health review. Reflect on what went well and what you can improve next week.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7a81443f-b061-498a-b706-c07b7611bdc1"
+    },
+    {
+      "message": "What are three things you're grateful for today? Taking a moment to acknowledge them can improve your mental health.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "23b2c634-162f-478b-a5e0-add414ef836a"
+    },
+    {
+      "message": "Prepare for a restful sleep tonight by dimming the lights and turning off electronic devices at least an hour before bed.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4ba8321e-e182-422a-b26b-093a7fc2054b"
+    },
+    {
+      "message": "Take five minutes to declutter your workspace or mind. A clear space can lead to a clear mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "fb43643a-ab70-4f19-b843-e13feb7aad99"
+    },
+    {
+      "message": "Time for a stretch session. Keep your muscles relaxed and your body happy.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a36f3ccc-0e8d-4241-9fba-68219955b37d"
+    },
+    {
+      "message": "Avoid sugary snacks before bed to help with better sleep quality. Opt for a healthier snack if you're hungry.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "835c4bc1-a087-46b1-b132-1acf861ed3cd"
+    },
+    {
+      "message": "Give yourself a positive affirmation. Remember, you are capable and deserving of a healthy life.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "79555ee1-7c04-437c-b106-968cbe29eebc"
+    },
+    {
+      "message": "Stretch time! How about taking a moment to loosen up?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5d6c15f5-432b-422b-b7e8-7ac2349d1f28"
+    },
+    {
+      "message": "How about a break to stretch and relax?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8u3c15h2-l22b-422b-b7e8-7ac2349d1f45"
+    }
+  ]
+}

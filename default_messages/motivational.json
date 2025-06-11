@@ -1,0 +1,3348 @@
+{
+  "messages": [
+    {
+      "message": "Don't forget to be awesome today! Let's make some epic things happen!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f2856704-56cd-4f91-ab6c-abce07bfc604"
+    },
+    {
+      "message": "Time to seize the day with a big smile! Let your positivity shine bright!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "880d7b85-a990-429f-8b2d-8b2ab59d6a79"
+    },
+    {
+      "message": "Stretch those legs! Even a short walk can recharge your brain and body.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f31a9464-af62-4382-8932-380c4037e3ae"
+    },
+    {
+      "message": "Remember, every little star shines bright in the sky. You're one of them tonight!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1abe4884-5678-4e80-92dd-772b47a49d36"
+    },
+    {
+      "message": "Did you know: Gaming can improve problem-solving skills. Time for a quick game break?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "84177ba7-2ffe-4f70-ae88-93e0f3e9cad4"
+    },
+    {
+      "message": "Fun fact: Reading can lower stress by 68%! Got a good book for bedtime tonight?",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "51d6a327-8401-4e57-a229-5cbb68bec17a"
+    },
+    {
+      "message": "Imagine your stress as a balloon. Now let it go and watch it float away!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "70eec710-d08b-45ef-916d-6c5d4ce2fa21"
+    },
+    {
+      "message": "Today could be the day for something magical to happen! Keep your eyes peeled!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9a5476ee-74e2-4924-8b39-0cc1eb8b69eb"
+    },
+    {
+      "message": "Stay strong! Each step today builds a stairway to your goals.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "6c62dee4-df71-45e2-a0b9-eb3614275a17"
+    },
+    {
+      "message": "It's snack time! Healthy choices fuel great achievements.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a4239374-eb6f-4164-bdca-e7be5ac5910f"
+    },
+    {
+      "message": "Look around! Appreciate the little things-they make big days.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "83b62531-4a0d-47fb-bbb2-0c2cd326ff87"
+    },
+    {
+      "message": "Every day is a chance to bloom into your best self.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "590cec63-8bd4-4e30-bb49-9672e49620b1"
+    },
+    {
+      "message": "Dance it out! A little boogie can boost your mood instantly.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "79cbc864-ab08-4b6a-9a67-48e15c0dc64f"
+    },
+    {
+      "message": "Tea time! A moment of calm can recharge your soul.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0cd8b2c1-e274-47f3-b941-c376fcb8ce5e"
+    },
+    {
+      "message": "Remember to hydrate! A little water goes a long way to keep you sparkling.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "46152cab-0d79-4a26-9b6c-4b8f50707ed2"
+    },
+    {
+      "message": "Keep pushing, even if it's cloudy. The sun is just behind those clouds.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3fa8d51d-4887-44aa-84eb-c6d75603e58f"
+    },
+    {
+      "message": "You're crushing it! Keep the momentum going and conquer the day!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c8206680-6026-4eb1-808d-dce37e45c282"
+    },
+    {
+      "message": "Time for a quick walk. Fresh air equals fresh ideas!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a15ddd71-524d-4ac4-8acd-a7b0e8a5845f"
+    },
+    {
+      "message": "Keep the fire burning within. Every day is a chance to be better!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0b8ca416-136c-4ad4-9619-7f9dcac412ea"
+    },
+    {
+      "message": "You are made of stardust, so shine brightly today and always.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "49034298-bc7e-4dc8-8f71-47c06d2fc157"
+    },
+    {
+      "message": "Breathe in nature, breathe out stress. Even a small plant can remind us to grow.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a9001667-31e5-4328-ae88-57b6b41b2104"
+    },
+    {
+      "message": "Be as busy as a bee but remember to sip the sweet moments of life.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7e820710-b646-44e7-ad0c-9466150b5764"
+    },
+    {
+      "message": "Treat yourself! A little treat can be a big mood booster.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ec2850c5-807a-4c69-b330-8cd95b7acdd0"
+    },
+    {
+      "message": "Feel the waves of positivity wash over you. You're doing great!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "03ac4038-2e74-4e3c-b33c-5a93eab6d7b8"
+    },
+    {
+      "message": "Celebrate every small victory today. Each one is a step towards success!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1445ee96-56fc-4345-beea-a3bbfc5034d3"
+    },
+    {
+      "message": "Let your true colors shine through today. Be as bright as the sun!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "59e577a1-4403-4196-a775-688320a97ad3"
+    },
+    {
+      "message": "Slow and steady wins the race. Pace yourself and enjoy the journey.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "2b0864eb-48f6-4edf-a0d2-3174f7e2e838"
+    },
+    {
+      "message": "Each day is a fresh bloom, an opportunity to start anew. Make it count!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c10c2892-e42a-41e5-9000-4f874a6a7cf8"
+    },
+    {
+      "message": "You have the strength to face the challenges of today. Take a moment to celebrate one small achievement!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7858c128-f09c-438e-911a-02449a82b83a"
+    },
+    {
+      "message": "Every effort you make counts, even the small ones. Keep pushing forward and be proud of yourself.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "35501ddf-8a04-4ccc-9e03-3a839688e542"
+    },
+    {
+      "message": "Remember, it's okay to take breaks and care for yourself. You are doing the best you can, and that's enough.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "05268892-824f-4cb0-bb14-34efe0bc636c"
+    },
+    {
+      "message": "Your goals are important, and so is the journey. Embrace the progress, no matter the pace.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b0e5a8f3-16d4-4cc8-8740-291668a6f461"
+    },
+    {
+      "message": "Cherish the moments of clarity and productivity when they come, and be gentle with yourself when things are tougher.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "dd695ead-e42f-4570-a9e3-addb77e91190"
+    },
+    {
+      "message": "You are loved <3",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7183c865-408d-4014-8548-0d17f139f7eb"
+    },
+    {
+      "message": "Believe in yourself, you have everything it takes to make today great!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1ee84dee-9a61-4472-b889-8b412cf3c525"
+    },
+    {
+      "message": "You've overcome challenges before, and you can do it again. Trust your journey!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "fbf0c6f5-2e9a-40ca-ae90-d79346e74a5b"
+    },
+    {
+      "message": "Take pride in how far you've come and have faith in how far you can go.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7a99d948-9a4b-48e9-95c7-153e374cd00f"
+    },
+    {
+      "message": "Your potential is limitless, and today is a great day to explore it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "dcf552d6-20e4-48ef-b1de-c0ff23d18d93"
+    },
+    {
+      "message": "Don't wait for opportunity. Create it. Make today yours.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c8414422-13d7-4045-bd7e-ca2771aa022d"
+    },
+    {
+      "message": "Every day is a fresh start. Embrace it and move forward with confidence.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d70b3620-b6a9-497d-8f27-45022c4369cf"
+    },
+    {
+      "message": "You are capable of more than you know. Today's a good day to prove it to yourself!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "43caf4af-74ba-4982-a00c-b0f993582740"
+    },
+    {
+      "message": "Positivity, persistence, and patience are here to empower you today. You've got this!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d002a3de-6024-4572-966b-b439ef856bf4"
+    },
+    {
+      "message": "Just keep moving forward and don't give a second thought to what could hold you back.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "48081c7a-e1f6-4e82-87cc-a2fd3c21ae9e"
+    },
+    {
+      "message": "Success doesn't come from what you do occasionally, it comes from what you do consistently.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9b461d74-1a46-4fca-89f6-e94eab4724b1"
+    },
+    {
+      "message": "You don't have to be perfect to be amazing. Remember that today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ca8587bf-7914-422b-bff9-32a0188df42b"
+    },
+    {
+      "message": "Make today so awesome that yesterday gets jealous.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e9b151fa-a21e-433e-8624-86d636a4732e"
+    },
+    {
+      "message": "Focus on the progress, not perfection. You are doing better than you think!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8ee3a7cb-ff67-4304-a033-b04e4fda5207"
+    },
+    {
+      "message": "Small steps every day lead to big results over time. Keep going!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f387b9c1-9ddf-46fe-b401-d8360178d1d7"
+    },
+    {
+      "message": "Start where you are, use what you have, do what you can. Astonishing things will happen.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "762742cc-1b2e-4c0e-9d10-6045a480ea97"
+    },
+    {
+      "message": "You are braver than you believe, stronger than you seem, and smarter than you think.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d6a1c465-a163-44a9-a3ce-97431521b05e"
+    },
+    {
+      "message": "The only way to achieve the impossible is to believe it is possible.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3c04108d-4ab7-433c-9f91-4f53e385c55d"
+    },
+    {
+      "message": "It's a good day to have a good day!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "2fa317a3-4c25-45cf-b5f4-8f891e3c8726"
+    },
+    {
+      "message": "You are enough just as you are. Let this day reflect your worth.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "751e6d3a-7b93-4177-9c86-9d924578e94c"
+    },
+    {
+      "message": "Take action! An inch of movement will bring you closer to your goals than a mile of intention.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9f5a9575-6dc8-4bf7-8563-d24c1a2f78e6"
+    },
+    {
+      "message": "Every day may not be good, but there is something good in every day. Find it!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "96a872aa-5822-4f93-85ba-355622800abe"
+    },
+    {
+      "message": "Remember why you started. Hold onto that thought as you push through today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c31f8539-fe6e-481e-ac66-f79ed3989adb"
+    },
+    {
+      "message": "Let your faith be bigger than your fears. You've got all it takes!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "37abd682-2945-43ed-8dce-b3435eeb120f"
+    },
+    {
+      "message": "Be the energy you want to attract. Positivity breeds positivity.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "30fc5c99-b38c-4a11-a768-996c6f58afe5"
+    },
+    {
+      "message": "You don't get the same moment twice in life. Make the most of every one.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e151fc25-f90c-4c70-ac06-94945779a6d2"
+    },
+    {
+      "message": "Your only limit is your mind. Push it to think bigger today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "780bc08b-89ec-4b01-8294-5bef352546a2"
+    },
+    {
+      "message": "You're grrreat!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "74e0b694-3e2a-45a2-a69b-a3fe616223ae"
+    },
+    {
+      "message": "Channel your inner Tigger today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "6e295d1f-1265-449d-a798-ccf4d481fd27"
+    },
+    {
+      "message": "You are valid.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b66b1938-f305-452e-bb04-9054ee56f9ae"
+    },
+    {
+      "message": "You've got this! Believe in yourself and conquer the day with confidence.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ca1b7f5b-7e36-4609-b9d8-20d703c2c4bb"
+    },
+    {
+      "message": "Stay focused, stay determined. You're unstoppable today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "00ac9702-b34e-4d3b-a2d4-4607fe28ae24"
+    },
+    {
+      "message": "Take a moment to breathe and appreciate the beauty around you. It's all worth it!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "33f94db9-ad4b-439d-8e5c-b40e939114e9"
+    },
+    {
+      "message": "Remember, every challenge is an opportunity to grow stronger. Keep pushing!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "22bd3e1c-9bf9-4d31-a137-e1c4563a9382"
+    },
+    {
+      "message": "Unleash your creativity! Let's make something awesome happen today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0f9115bc-fff3-40c4-81f4-22a67df32f1a"
+    },
+    {
+      "message": "A little kindness goes a long way. Spread the love and watch it grow!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "37eb6391-d9f7-4b2f-8341-ede12e63d7ac"
+    },
+    {
+      "message": "You are capable of amazing things. Don't let self-doubt hold you back.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f57e9dc8-259e-465b-b176-c36133076b69"
+    },
+    {
+      "message": "Let your dreams be your wings. Fly high today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "627cd4b5-5cfd-40d1-a26f-f85a4b70d426"
+    },
+    {
+      "message": "The only limit to your impact is your imagination and commitment.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b9e67449-24bd-4555-94c5-8b560a1b7fb2"
+    },
+    {
+      "message": "Success is the sum of small efforts repeated day in and day out.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "727a0afa-19a9-44dd-936a-657b83f2ab74"
+    },
+    {
+      "message": "Your journey is unique, and so is your strength. Keep going!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "185588da-9c99-4dd5-82b0-a5cb3a201c67"
+    },
+    {
+      "message": "Difficult roads often lead to beautiful destinations. Stay the course.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "58aa2716-dc83-48cf-a4d8-47476f9da40e"
+    },
+    {
+      "message": "You are your best investment. Spend your time and energy wisely.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3a8c896d-0284-4c73-b0cf-e0f34d68d394"
+    },
+    {
+      "message": "Even the darkest night will end, and the sun will rise. Keep faith.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "724b7265-5a04-49fd-9a77-11f199299c3d"
+    },
+    {
+      "message": "Be the reason someone smiles today. You have that power.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c7317a03-15ed-438e-adac-59d22e3bf7db"
+    },
+    {
+      "message": "Believe you can, and you're halfway there. The rest is just effort.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d677f209-26b2-4c57-a357-8008eac25c6c"
+    },
+    {
+      "message": "It's not about having time; it's about making time. Prioritize yourself.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4dc8071a-8ed7-435b-9da9-7da620951ac5"
+    },
+    {
+      "message": "You are the artist of your life. Paint it with bold, vibrant colors.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "54cb2ed5-f4f1-4bab-8568-c21a7d981979"
+    },
+    {
+      "message": "Turn your can'ts into cans and your dreams into plans.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1be8e5c4-a092-4d73-8d19-1f09a7428bbc"
+    },
+    {
+      "message": "The secret of getting ahead is getting started. Begin today!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f912c512-43d1-41c6-afa6-5e2bde081575"
+    },
+    {
+      "message": "You don't need to be perfect to be proud of yourself.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "cac31bac-49ce-4c95-a90b-5a92c6a11c4c"
+    },
+    {
+      "message": "When you focus on the good, the good gets better. Keep your focus sharp.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9cadc9c0-b613-49d2-af4a-d2b83b6263ff"
+    },
+    {
+      "message": "You are stronger than you know. Keep pushing through.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "eca5cb12-4729-4917-aa36-ba5d6ebcb7d2"
+    },
+    {
+      "message": "Be kind to yourself today. You deserve your own love and care.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "145e9d9e-1124-414b-bc1d-05de9ebb3e6b"
+    },
+    {
+      "message": "Make yourself a priority. At the end of the day, you're your longest commitment.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4243a5b4-9d65-4bb9-9cf6-1e648c6f3423"
+    },
+    {
+      "message": "When you feel like quitting, remember why you started.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "891acae3-53f6-476d-a0e3-83f2fdb28d56"
+    },
+    {
+      "message": "Your only limit is you. Break your own boundaries.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e9039e81-d7b3-4d54-a7b1-b0c02c72f243"
+    },
+    {
+      "message": "Every accomplishment starts with the decision to try.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9fe38c50-7c5e-46f6-93dd-62f6e8cf9ff6"
+    },
+    {
+      "message": "The difference between ordinary and extraordinary is that little extra.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9e58a786-a949-4fee-af5e-57f9addfe97b"
+    },
+    {
+      "message": "Focus on progress, not perfection. You're getting there!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b0e45a6e-c263-4f57-bd91-b2c4476101e8"
+    },
+    {
+      "message": "Start each day with a positive thought and a grateful heart.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "30104be2-078a-4084-9f37-265081f1ec73"
+    },
+    {
+      "message": "Keep going, because you did not come this far just to come this far.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "fc1dd298-b7b1-46c6-87c4-69ed5e503955"
+    },
+    {
+      "message": "Your mind is a powerful thing. When you fill it with positive thoughts, your life will start to change.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8c9a6f0d-0f94-4722-a92c-51384937d2ab"
+    },
+    {
+      "message": "The best way to predict your future is to create it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5a9e4ed2-ef01-4a36-bbe2-ae8ad5724734"
+    },
+    {
+      "message": "Every small step forward is a step in the right direction.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "70afde76-8e54-4ae3-8392-fab8ebbe31ab"
+    },
+    {
+      "message": "You are worthy of all the good things life has to offer.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "84012c21-7875-4981-9129-e0af82487b4b"
+    },
+    {
+      "message": "When you can't find the sunshine, be the sunshine.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5f226f8f-ed82-4213-a5bb-91c4c559e6f4"
+    },
+    {
+      "message": "You have the power to create the life you desire.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "058b4001-6877-43cd-989b-1bf7b506b55b"
+    },
+    {
+      "message": "Make today so awesome that yesterday gets jealous.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8fa5c57d-8e30-4026-9b19-c2d5fa29efd8"
+    },
+    {
+      "message": "The harder you work for something, the greater you'll feel when you achieve it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8bc130f1-f065-4f95-a1e2-24326d2fe53a"
+    },
+    {
+      "message": "Your life is your message to the world. Make it inspiring.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ec7f5d22-8e0b-4d27-ac78-f9e5f5bb29a9"
+    },
+    {
+      "message": "Every day is a new beginning. Take a deep breath and start again.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c4dfbf1f-c280-4187-9fab-1dde6f88c6aa"
+    },
+    {
+      "message": "The future depends on what you do today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4060e64d-f428-4b2a-aa66-0045c6ae8933"
+    },
+    {
+      "message": "Do something today that your future self will thank you for.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "02dc952d-c59c-41b3-a97f-8fc0f261f39c"
+    },
+    {
+      "message": "Believe in the power of yet. You haven't achieved it yet, but you will.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c3244347-f9c3-4a99-9a2c-6410665b8625"
+    },
+    {
+      "message": "You are the author of your own story. Make it a bestseller.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5a15e34e-b198-4083-8b66-d558fc27dbdf"
+    },
+    {
+      "message": "Your vibe attracts your tribe. Keep your energy positive.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "45ad2934-070a-40f1-9cee-2c48536f323a"
+    },
+    {
+      "message": "The best time for new beginnings is now.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8991a549-716a-4b2d-966b-4205323b2a21"
+    },
+    {
+      "message": "Happiness is not by chance, but by choice. Choose it every day.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "cf04d032-a6c5-46f4-8213-dfc1d43366d0"
+    },
+    {
+      "message": "You don't have to see the whole staircase, just take the first step.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e72bd846-6ef8-4617-a0ae-cee2520c9c11"
+    },
+    {
+      "message": "When life gets tough, dare to be tougher.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "698d9f3f-7f86-4116-8d31-f1c38e31a965"
+    },
+    {
+      "message": "You are enough, just as you are. Remember that today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "537b045e-ebbf-4298-8576-7ccb60071f3c"
+    },
+    {
+      "message": "Your potential is endless. Go do what you were created to do.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7434a23d-4516-425c-9840-7da96c88c800"
+    },
+    {
+      "message": "The sun is a daily reminder that we too can rise again from the darkness.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5f691cfb-1703-4e7a-9423-eb2e12f599e1"
+    },
+    {
+      "message": "Growth is growth, no matter how small. Celebrate every victory.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "30cbfb46-8ff7-4865-87c5-22a562f4c493"
+    },
+    {
+      "message": "Take a deep breath, stay positive, and keep pushing forward.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "680cbfda-dda1-4b33-a7b2-81adfaf81d93"
+    },
+    {
+      "message": "Every day is a chance to be better than you were yesterday.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "19893846-4ff6-416e-948b-1996752159dc"
+    },
+    {
+      "message": "You are capable of amazing things, believe in yourself!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "cc13a257-7652-4ea1-b046-5f86cbd5e85a"
+    },
+    {
+      "message": "Small steps every day lead to big results.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f133056c-165c-49be-a903-693c9f409685"
+    },
+    {
+      "message": "Keep your face always toward the sunshine, and shadows will fall behind you.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c54cff05-8374-4067-94f6-83a1e63e2546"
+    },
+    {
+      "message": "Your only limit is you. Dream big, work hard, make it happen.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "f1af3f80-af11-47b5-8082-4d5a19ed50fd"
+    },
+    {
+      "message": "Strive for progress, not perfection.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "27e19368-3755-4db2-ac6d-3fcb9afc51a5"
+    },
+    {
+      "message": "Believe you can, and you're halfway there.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ae3e0e44-3c39-4681-b017-779e56e1bb23"
+    },
+    {
+      "message": "You are stronger than you think.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a8565f29-8855-4b6e-a5c2-9e3a72793ddb"
+    },
+    {
+      "message": "Difficult roads often lead to beautiful destinations.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "13c56d68-2403-4799-8741-659d59a5c885"
+    },
+    {
+      "message": "You are your best investment, take time to care for yourself.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c7c840bb-5e55-45e3-a770-bc2eb094d060"
+    },
+    {
+      "message": "Believe in yourself and all that you are.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b8b75125-0649-4e2c-be81-a57d06e21a3d"
+    },
+    {
+      "message": "Push yourself, because no one else is going to do it for you.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "62753521-6841-476e-a73a-16ad1bf501fc"
+    },
+    {
+      "message": "Success is not how high you have climbed, but how you make a positive difference to the world.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0544c5d4-760f-4a56-99f8-6df84ceb37af"
+    },
+    {
+      "message": "You are enough just as you are.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "972dfd4f-c6f8-422b-b609-9fad257077ac"
+    },
+    {
+      "message": "You don't need to have it all figured out to move forward.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7075d77a-f1bf-488c-a18c-8d960efd51da"
+    },
+    {
+      "message": "Success is the sum of small efforts, repeated day in and day out.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0ec8bf27-9e64-4a2a-bcea-3fc95d90ab76"
+    },
+    {
+      "message": "Your potential is endless.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "890a902a-329d-407c-8428-9d4affb9a297"
+    },
+    {
+      "message": "Don't be afraid to give up the good to go for the great.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "60a60c49-86b8-460a-933f-178f969a51c7"
+    },
+    {
+      "message": "Keep going, because you did not come this far just to come this far.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5e595379-fc97-4371-94ed-9a9a2e422e31"
+    },
+    {
+      "message": "Your only limit is your mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5332d853-992f-4782-a2c2-433f34075187"
+    },
+    {
+      "message": "You are capable of achieving great things.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "bb2b0402-ef85-44a5-9162-3ffac09e4e44"
+    },
+    {
+      "message": "Your life does not get better by chance, it gets better by change.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "adc4efb3-65fc-4f51-8734-08ddb0925c23"
+    },
+    {
+      "message": "Start each day with a positive thought.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e574e90d-910a-4437-89d0-3de27b5860cf"
+    },
+    {
+      "message": "Do something today that your future self will thank you for.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "489adc98-c655-40af-9b7d-fa63d56beef6"
+    },
+    {
+      "message": "It\u2019s not about perfect. It\u2019s about effort.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1972b524-5d6f-4534-a12a-7a2c1f412385"
+    },
+    {
+      "message": "The key to success is to start before you are ready.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "40e4b8d9-ffb8-4bb7-a203-0f864246f81c"
+    },
+    {
+      "message": "You have the power to change your story.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3b12ad27-93d8-40ca-bdea-0a6ba0e42a14"
+    },
+    {
+      "message": "Don\u2019t wait for the perfect moment, take the moment and make it perfect.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "fba0fa61-0514-4d0c-a18b-b3a84877e64f"
+    },
+    {
+      "message": "The only way to achieve the impossible is to believe it is possible.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "edbc849d-5e58-4365-9e4b-f2a9381f875b"
+    },
+    {
+      "message": "You are braver than you believe, stronger than you seem, and smarter than you think.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "191fcd90-48cc-432d-b338-a77d3bfe871a"
+    },
+    {
+      "message": "Act as if what you do makes a difference. It does.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8c81fe58-ee26-4262-8aa1-96d0b0e0328f"
+    },
+    {
+      "message": "Success usually comes to those who are too busy to be looking for it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "98e65488-07b3-4665-b339-f8b0f8fd9280"
+    },
+    {
+      "message": "Your time is limited, don\u2019t waste it living someone else\u2019s life.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "78f1dd3a-c742-4427-bb00-48e4656f0f23"
+    },
+    {
+      "message": "Don\u2019t let yesterday take up too much of today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9c1c402b-7ff0-4682-8d61-fe1733391daf"
+    },
+    {
+      "message": "Don\u2019t watch the clock; do what it does. Keep going.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "febc02e2-f73d-429f-a27e-1706b473c46c"
+    },
+    {
+      "message": "The future depends on what you do today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "56017091-0504-45e3-8a79-d4632e56c794"
+    },
+    {
+      "message": "Don\u2019t wait for opportunity. Create it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b32d0c55-9ff3-449f-b966-973dcab7f377"
+    },
+    {
+      "message": "Sometimes later becomes never. Do it now.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d6657b6c-ddf7-4e67-a6fb-21b3049e23f2"
+    },
+    {
+      "message": "Success is what happens after you have survived all your mistakes.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "d8383955-e98b-4430-9156-8c96da7e66cd"
+    },
+    {
+      "message": "Believe you can and you're halfway there.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "58369b6f-07fb-49f7-81a2-6dea422f6eb8"
+    },
+    {
+      "message": "Success is the result of preparation, hard work, and learning from failure.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "da0f8be7-5d12-4cd0-a2e2-f0e637f8bca4"
+    },
+    {
+      "message": "The only place where success comes before work is in the dictionary.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "bb991a42-00aa-4f5a-b783-28d0a5f7f4cb"
+    },
+    {
+      "message": "Your limitation\u2014it\u2019s only your imagination.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c3a206bd-a3df-46db-a3cd-da13f1f1a1c0"
+    },
+    {
+      "message": "Push yourself, because no one else is going to do it for you.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1d3623bd-a95c-451e-8c94-4fe9881b7654"
+    },
+    {
+      "message": "Great things never come from comfort zones.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1f86248c-2eed-4ec3-bae0-68fa93a1902b"
+    },
+    {
+      "message": "Dream it. Wish it. Do it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4922012e-0a8a-4b88-89fd-a4c772cffa5e"
+    },
+    {
+      "message": "Success doesn\u2019t just find you. You have to go out and get it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "c7109624-b61b-4234-a262-e7edd404c6ce"
+    },
+    {
+      "message": "The harder you work for something, the greater you\u2019ll feel when you achieve it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "36eb3c9f-3146-426b-ad73-42c3cdbb5c99"
+    },
+    {
+      "message": "Don\u2019t stop when you\u2019re tired. Stop when you\u2019re done.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ff08f9e9-9a9b-43ed-8b28-385b11a5ba17"
+    },
+    {
+      "message": "Wake up with determination. Go to bed with satisfaction.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "17c64cf6-3f69-4dcd-8297-abf6cd723d5b"
+    },
+    {
+      "message": "Take a deep breath, stay positive, and keep pushing forward.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b7d97c8d-e34c-401c-88d2-e6e7259fd369"
+    },
+    {
+      "message": "Every day is a chance to be better than you were yesterday.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "bf48ad64-c46f-4149-9fb2-fca95f580611"
+    },
+    {
+      "message": "You are capable of amazing things, believe in yourself!",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a7e83b69-308b-4c3c-a046-7417d814c0fb"
+    },
+    {
+      "message": "Small steps every day lead to big results.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "2e504cd4-cf22-4218-bdaa-55db62dcfa46"
+    },
+    {
+      "message": "Keep your face always toward the sunshine, and shadows will fall behind you.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "da2a2b74-9ec4-46e0-955f-c01e1f17d446"
+    },
+    {
+      "message": "Your only limit is you. Dream big, work hard, make it happen.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4ec000b0-349a-4b64-a8ef-850d3162fde2"
+    },
+    {
+      "message": "Strive for progress, not perfection.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "83926b48-a35e-4db6-9463-c055e6e86b59"
+    },
+    {
+      "message": "Believe you can, and you're halfway there.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "6e98a79e-a6c1-4391-9851-cee211e406ae"
+    },
+    {
+      "message": "You are stronger than you think.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "08bd80f1-3a38-4dbe-8b36-a2352af42ab1"
+    },
+    {
+      "message": "Difficult roads often lead to beautiful destinations.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "28ea552b-f17f-408c-ae79-f15fbcc91bbf"
+    },
+    {
+      "message": "You are your best investment, take time to care for yourself.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "b2f195d3-5c17-4d86-9e19-ad472b71c58c"
+    },
+    {
+      "message": "Believe in yourself and all that you are.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "a416daaf-c4de-4a3a-b9ed-55ad35b50e1a"
+    },
+    {
+      "message": "Push yourself, because no one else is going to do it for you.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "1ba096f8-a251-41a7-b4ec-b58bbe555691"
+    },
+    {
+      "message": "Success is not how high you have climbed, but how you make a positive difference to the world.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e5e0e596-7dfa-4803-9315-a32dd84be49a"
+    },
+    {
+      "message": "You are enough just as you are.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "4df36e7a-13ee-48ca-94b2-b86c16391e6c"
+    },
+    {
+      "message": "You don't need to have it all figured out to move forward.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "06a69ba5-fc42-48b7-af59-d23aa24c1c3f"
+    },
+    {
+      "message": "Success is the sum of small efforts, repeated day in and day out.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "9b1cd3f4-689d-4f82-8d31-3ac04f7aff3e"
+    },
+    {
+      "message": "Your potential is endless.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "87e2d038-c473-4111-b344-42bf286c1821"
+    },
+    {
+      "message": "Don't be afraid to give up the good to go for the great.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "80e98c82-25ef-4b63-ab65-a767c6594741"
+    },
+    {
+      "message": "Keep going, because you did not come this far just to come this far.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "36298d17-4be3-43e6-8f93-2193d28b265c"
+    },
+    {
+      "message": "Your only limit is your mind.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "78024691-0b18-48f4-891f-0937d62070ea"
+    },
+    {
+      "message": "You are capable of achieving great things.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5e07beb4-773a-413b-a5e6-b69c79d6f39a"
+    },
+    {
+      "message": "Your life does not get better by chance, it gets better by change.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8f14871e-c557-4dc4-8f60-9ec8ba0d856c"
+    },
+    {
+      "message": "Start each day with a positive thought.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "6c67ba96-a8c0-4aaa-b9d6-b1e1181f3c00"
+    },
+    {
+      "message": "Do something today that your future self will thank you for.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "7b341fa7-9e48-45ff-9037-9abc031834e1"
+    },
+    {
+      "message": "It\u2019s not about perfect. It\u2019s about effort.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0d51b995-31bf-4b66-928b-031bf90a66f1"
+    },
+    {
+      "message": "The key to success is to start before you are ready.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "08d852c7-75c4-4d33-80c8-6137771b2ada"
+    },
+    {
+      "message": "You have the power to change your story.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "3f1e8f80-6150-41df-8d02-8ccfd1a60869"
+    },
+    {
+      "message": "Don\u2019t wait for the perfect moment, take the moment and make it perfect.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "8bbe8565-f37c-4ed6-a72b-4376e03591c3"
+    },
+    {
+      "message": "The only way to achieve the impossible is to believe it is possible.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "e26d5cc8-ce66-4dc7-acc8-47a9c6654d19"
+    },
+    {
+      "message": "You are braver than you believe, stronger than you seem, and smarter than you think.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "5127bb1e-e85c-4505-b87e-7e2aa89a7db7"
+    },
+    {
+      "message": "Act as if what you do makes a difference. It does.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "24e803f6-557d-4885-b12b-18d498b41d12"
+    },
+    {
+      "message": "Success usually comes to those who are too busy to be looking for it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "718a549a-00ef-431a-9cab-9a03a9a7d411"
+    },
+    {
+      "message": "Your time is limited, don\u2019t waste it living someone else\u2019s life.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "2e61eb94-f3a6-491d-82da-322d80b7776b"
+    },
+    {
+      "message": "Don\u2019t let yesterday take up too much of today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "ff5ea282-c97b-41b2-b3f6-fbb6d854d1b3"
+    },
+    {
+      "message": "Don\u2019t watch the clock; do what it does. Keep going.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "36d98e24-a2e4-46fd-86cf-b46d3f4deecc"
+    },
+    {
+      "message": "The future depends on what you do today.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "97abde0b-0d34-425c-9fe1-58589a8b7072"
+    },
+    {
+      "message": "Don\u2019t wait for opportunity. Create it.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "0b703071-68e8-4d45-8a25-8415f3f21434"
+    },
+    {
+      "message": "Sometimes later becomes never. Do it now.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "679ee6be-3377-41ed-8dc9-27c7e9cbc79b"
+    },
+    {
+      "message": "Success is what happens after you have survived all your mistakes.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "default"
+      ],
+      "message_id": "70a2fb45-a024-48ff-95fa-3ceababb6cb9"
+    }
+  ]
+}

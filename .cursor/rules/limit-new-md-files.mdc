@@ -1,0 +1,9 @@
+---
+description: limit creation of new md files
+globs: 
+alwaysApply: false
+---
+Generally there should be no more than a couple in the main project folder, no more than 1 each of it's first level subfolders, and none below that.
+
+
+It's generally preferable to add or incorporate new information into the existing md files, while only storing key information concisely 

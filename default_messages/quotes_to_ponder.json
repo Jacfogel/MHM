@@ -1,0 +1,68 @@
+{
+    "messages": [
+        {
+            "message": "The only way to do great work is to love what you do. - Steve Jobs",
+            "days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            ],
+            "time_periods": [
+                "default"
+            ],
+            "message_id": "g7h8i9j0-789a-bcde-f012-345678901234"
+        },
+        {
+            "message": "In the end, we will remember not the words of our enemies, but the silence of our friends. - Martin Luther King Jr.",
+            "days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            ],
+            "time_periods": [
+                "default"
+            ],
+            "message_id": "h8i9j0k1-89ab-cdef-0123-456789012345"
+        },
+        {
+            "message": "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment. - Ralph Waldo Emerson",
+            "days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            ],
+            "time_periods": [
+                "default"
+            ],
+            "message_id": "i9j0k1l2-9abc-def0-1234-567890123456"
+        },
+        {
+            "message": "Success is not final, failure is not fatal: It is the courage to continue that counts. - Winston Churchill",
+            "days": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+            ],
+            "time_periods": [
+                "default"
+            ],
+            "message_id": "ad6b7666-2de1-4e3b-afe8-d5552e947d75"
+        }
+    ]
+}

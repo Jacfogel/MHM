@@ -1,0 +1,30 @@
+# Core dependencies
+# python-telegram-bot[job-queue]>=20.0  # For Telegram bot functionality and job queue (Deactivated)
+discord.py>=2.3.0  # For Discord bot functionality
+schedule>=1.2.0  # For task scheduling
+python-dotenv>=1.0.0  # For environment variable management
+pytz>=2023.3  # For timezone handling (used in scheduler.py)
+psutil>=5.9.0  # For process management in UI application
+
+# AI/ML dependencies  
+requests>=2.31.0  # For LM Studio HTTP API calls
+# gpt4all  # Deprecated - replaced with LM Studio API
+
+# Optional but recommended for development
+pytest>=7.0.0  # For testing
+black>=23.0.0  # For code formatting
+pylint>=2.17.0  # For code linting
+
+# Note: The following are part of Python's standard library and don't need to be installed:
+# - tkinter (comes with Python installation)
+# - json
+# - datetime
+# - pathlib
+# - logging
+# - smtplib
+# - email
+# - threading
+# - uuid
+# - re (regex)
+# - os
+# - time 
