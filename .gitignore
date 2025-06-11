@@ -129,6 +129,7 @@ desktop.ini
 
 # Project specific
 data/
+scripts/
 app.log
 *.log
 .last_cache_cleanup 

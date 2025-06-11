@@ -1,24 +1,43 @@
 # Mental Health Management (MHM) System
 
-A comprehensive personal mental health and wellness assistant designed to support individuals with ADHD, depression, anxiety, and other mental health challenges through automated check-ins, personalized messaging, and task management support.
+A personal mental health and wellness assistant designed to support individuals with ADHD, depression, anxiety, and other mental health challenges through automated messaging, basic check-ins, and AI-powered contextual chat responses.
 
-## 🌟 Features
+## 🌟 Current Features
 
+### ✅ Fully Implemented
 - **Multi-Channel Communication**: Discord, Email, and Telegram support
-- **AI-Powered Responses**: Contextual mental health support using local LLM
-- **Automated Check-ins**: Daily wellness monitoring and progress tracking
-- **Personalized Messaging**: Custom motivational, health, and fun fact messages
-- **Task & Schedule Management**: ADHD-friendly reminders and executive function support
+- **AI-Powered Chat Responses**: Contextual mental health support using local LLM (LM Studio integration)
+- **Automated Messaging**: Scheduled delivery of pre-written messages across categories
+- **Basic Daily Check-ins**: Simple mood, energy, and wellness tracking
 - **Privacy-First Design**: All personal data stays on your local machine
 - **Multi-User Support**: Manage multiple users from a single admin interface
 - **Service Architecture**: Background service with comprehensive admin panel
+
+### ✅ Message Categories (Implemented)
+- **Motivational**: Encouraging daily messages (3,000+ messages)
+- **Health**: Wellness tips and reminders (800+ messages)  
+- **Fun Facts**: Educational and entertaining content (3,300+ messages)
+- **Word of the Day**: Vocabulary building (basic implementation)
+- **Quotes to Ponder**: Inspirational quotes for reflection (basic implementation)
+
+### ⚠️ Partially Implemented / Basic
+- **Task & Schedule Management**: Framework exists but limited functionality
+- **Reminder System**: Basic structure in place, not fully functional
+- **AI Personalization**: Works when LM Studio is running, with intelligent fallbacks
+
+### ❌ Planned / Not Yet Implemented
+- **Advanced Task Management**: Full ADHD-friendly task tracking and reminders
+- **Comprehensive Progress Tracking**: Detailed wellness analytics and insights
+- **Advanced Scheduling**: Complex time-based task and reminder systems
+- **Crisis Detection**: Automated detection of mental health crisis keywords
+- **Integration APIs**: External service integrations beyond current chat platforms
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
 - Python 3.8+
-- LM Studio (for AI functionality)
+- LM Studio (optional, for AI functionality)
 - Communication channel accounts (Discord, Email, Telegram - optional)
 
 ### Installation
@@ -77,7 +96,7 @@ MHM uses a **separated service architecture** with two main components:
 ### Backend Service (`core/service.py`)
 - Runs independently as a background service
 - Handles message scheduling and delivery
-- Manages AI message generation
+- Manages AI message generation (when available)
 - Processes user data and communications
 - Operates 24/7 without GUI dependencies
 
@@ -88,9 +107,9 @@ MHM uses a **separated service architecture** with two main components:
 - Content and schedule management
 - System monitoring and debug tools
 
-## 🤖 AI Integration
+## 🤖 AI Integration (Optional)
 
-MHM integrates with **LM Studio** using the **DeepSeek LLM 7B Chat** model for personalized mental health support.
+MHM can integrate with **LM Studio** using the **DeepSeek LLM 7B Chat** model for personalized mental health support.
 
 ### Setup Instructions:
 
@@ -98,25 +117,26 @@ MHM integrates with **LM Studio** using the **DeepSeek LLM 7B Chat** model for p
 2. **Download the model**: `TheBloke/deepseek-llm-7B-chat-GGUF/deepseek-llm-7b-chat.Q4_K_M.gguf`
 3. **Configure the system prompt** (specialized for mental health support)
 4. **Start the local server** on localhost:1234
-5. **Test connection** using `python scripts/testing/test_lm_studio.py`
+5. **Test connection** using the admin panel or direct API calls
 
-### Features:
-- **Contextual responses** tailored for neurodivergent individuals
-- **Crisis detection** for urgent mental health keywords
-- **Intelligent fallbacks** when AI is unavailable
+### AI Features:
+- **Contextual chat responses** tailored for neurodivergent individuals
+- **Intelligent fallbacks** when AI is unavailable (system works without AI)
 - **Privacy-focused** - all AI processing happens locally
+- **Optional functionality** - system operates fully without AI
+
+**Note**: AI functionality is completely optional. The system works fully without LM Studio installed.
 
 ## 📁 Project Structure
 
 ```
 MHM/
 ├── core/                   # Backend service and core functionality
-├── ui/                     # Admin panel and user interfaces
+├── ui/                     # Admin panel and user interfaces  
 ├── bot/                    # Communication channel handlers
 ├── user/                   # User management and preferences
-├── tasks/                  # Task and reminder management
+├── tasks/                  # Task and reminder management (basic)
 ├── default_messages/       # Pre-written message templates
-├── scripts/               # Utility and testing scripts
 ├── data/                  # User data (gitignored for privacy)
 └── run_mhm.py            # Main entry point
 ```
@@ -130,25 +150,33 @@ Configure your communication preferences in the Admin Panel:
 - **Telegram**: Bot token and chat settings
 
 ### Message Categories
-Customize message types per user:
-- **Motivational**: Encouraging daily messages
-- **Health**: Wellness tips and reminders
-- **Fun Facts**: Educational and entertaining content
-- **Quotes**: Inspirational quotes for reflection
-- **Word of the Day**: Vocabulary building
+All message categories have extensive pre-written content:
+- **Motivational**: 3,000+ encouraging messages
+- **Health**: 800+ wellness tips and reminders
+- **Fun Facts**: 3,300+ educational and entertaining facts
+- **Quotes**: Inspirational quotes for reflection  
+- **Word of the Day**: Vocabulary building messages
 
 ### Scheduling
 Set up automated message delivery:
 - Custom time periods for different message types
 - Flexible scheduling based on user preferences
-- Automated daily check-in prompts
+- Basic daily check-in prompts
 
 ## 🛡️ Privacy & Security
 
 - **Local Data Storage**: All personal data stays on your machine
 - **No Cloud Dependencies**: Core functionality works offline
+- **Optional AI**: AI features are completely optional
 - **Private Repository**: Keep your fork private for personal use
 - **Configurable Logging**: Control what information is logged
+
+## ⚠️ Current Limitations
+
+- **Task Management**: Basic framework exists but not fully functional
+- **Advanced Reminders**: Complex reminder system not yet implemented
+- **Progress Analytics**: Limited wellness tracking and insights
+- **AI Dependency**: Best features require LM Studio setup (though system works without it)
 
 ## 🤝 Contributing
 
@@ -162,7 +190,7 @@ This is a personal mental health management system. While the code is available 
 See `requirements.txt` for full dependencies. Key requirements:
 - `discord.py` - Discord bot functionality
 - `python-telegram-bot` - Telegram integration
-- `requests` - HTTP communications
+- `requests` - HTTP communications and LM Studio API
 - `schedule` - Task scheduling
 - `tkinter` - GUI components (usually included with Python)
 
