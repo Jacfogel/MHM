@@ -128,6 +128,7 @@ Thumbs.db
 desktop.ini
 
 # Project specific
+data/
 app.log
 *.log
 .last_cache_cleanup 
