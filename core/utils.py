@@ -22,6 +22,67 @@ import core.scheduler
 
 logger = get_logger(__name__)
 
+def create_reschedule_request(user_id, category):
+    """Create a reschedule request flag file for the service to pick up"""
+    try:
+        # First check if service is running - if not, no need to reschedule
+        # The service will pick up changes on next startup
+        if not is_service_running():
+            logger.debug(f"Service not running - schedule changes will be picked up on next startup")
+            return
+            
+        import json
+        import time
+        import os
+        
+        # Create request data
+        request_data = {
+            'user_id': user_id,
+            'category': category,
+            'timestamp': time.time(),
+            'source': 'ui_schedule_editor'
+        }
+        
+        # Create unique filename
+        timestamp = int(time.time() * 1000)  # milliseconds for uniqueness
+        filename = f"reschedule_request_{user_id}_{category}_{timestamp}.flag"
+        
+        # Get the base directory (where the service looks for flag files)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        request_file = os.path.join(base_dir, filename)
+        
+        # Write the request file
+        with open(request_file, 'w') as f:
+            json.dump(request_data, f)
+        
+        logger.info(f"Created reschedule request: {filename}")
+        
+    except Exception as e:
+        logger.error(f"Failed to create reschedule request for user {user_id}, category {category}: {e}")
+
+def is_service_running():
+    """Check if the MHM service is currently running"""
+    try:
+        import psutil
+        
+        # Look for python processes running service.py
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if not proc.info['name'] or 'python' not in proc.info['name'].lower():
+                    continue
+                
+                cmdline = proc.info.get('cmdline', [])
+                if cmdline and any('service.py' in arg for arg in cmdline):
+                    if proc.is_running():
+                        return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                continue
+        
+        return False
+    except Exception as e:
+        logger.debug(f"Error checking service status: {e}")
+        return False  # Assume not running if we can't check
+
 # Throttler class
 class Throttler:
     def __init__(self, interval):
@@ -197,7 +258,7 @@ def load_user_info_data(user_id):
             if preferences_data.get('discord_user_id'):
                 profile_data['discord_user_id'] = preferences_data['discord_user_id']
             
-            logger.debug(f"User info loaded for user ID {user_id} (new structure)")
+            logger.debug(f"User info loaded for user ID {user_id}")
             return profile_data if profile_data else None
         else:
             # Legacy structure
@@ -206,7 +267,7 @@ def load_user_info_data(user_id):
             if user_info is None:
                 logger.info(f"User file not found for user ID: {user_id} at path: {user_info_file_path}")
             else:
-                logger.debug(f"User info loaded for user ID {user_id} (legacy structure)")
+                logger.debug(f"User info loaded for user ID {user_id}")
             return user_info
     except Exception as e:
         logger.error(f"Error loading user info data for user {user_id}: {e}", exc_info=True)
@@ -265,7 +326,7 @@ def save_user_info_data(user_info, user_id):
             save_json_data(preferences_data, preferences_file)
             save_json_data(schedules_data, schedules_file)
             
-            logger.debug(f"User info saved to new structure for user {user_id} (no duplication)")
+            logger.debug(f"User info saved for user {user_id}")
         else:
             # Legacy structure
             file_path = determine_file_path('users', user_id)
@@ -812,6 +873,8 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
             scheduler_manager.reset_and_reschedule_daily_messages(category)
         else:
             logger.debug("No scheduler manager available for rescheduling")
+            # Create a reschedule request for the service to pick up
+            create_reschedule_request(user_id, category)
     except Exception as e:
         logger.error(f"Error adding schedule period: {e}", exc_info=True)
         raise
@@ -852,6 +915,8 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
             scheduler_manager.reset_and_reschedule_daily_messages(category)
         else:
             logger.debug("No scheduler manager available for rescheduling")
+            # Create a reschedule request for the service to pick up
+            create_reschedule_request(user_id, category)
     except Exception as e:
         logger.error(f"Error editing schedule period: {e}", exc_info=True)
         raise
@@ -889,6 +954,8 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
             scheduler_manager.reset_and_reschedule_daily_messages(category)
         else:
             logger.debug("No scheduler manager available for rescheduling")
+            # Create a reschedule request for the service to pick up
+            create_reschedule_request(user_id, category)
     except Exception as e:
         logger.error(f"Error deleting schedule period: {e}", exc_info=True)
         raise

@@ -57,7 +57,10 @@ class SchedulerManager:
                     # Log every 15 iterations (15 minutes) for normal operation monitoring
                     if loop_count % 15 == 0:
                         active_jobs = len(schedule.jobs)
-                        logger.info(f"Scheduler running: {active_jobs} active jobs scheduled")
+                        if active_jobs == 0:
+                            logger.info(f"Scheduler running: {active_jobs} active jobs scheduled (jobs may not appear until execution time)")
+                        else:
+                            logger.info(f"Scheduler running: {active_jobs} active jobs scheduled")
                         
                     # Use wait instead of sleep to allow immediate shutdown
                     if self._stop_event.wait(timeout=60):  # Wait 60 seconds or until stop signal

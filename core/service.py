@@ -6,6 +6,7 @@ import time
 import logging
 import os
 import atexit
+from datetime import datetime
 
 # Add parent directory to path so we can import from other modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -76,52 +77,81 @@ class MHMService:
         global logger
         
         try:
-            # Test if logging is actually working by checking the file size before/after
-            from core.config import LOG_FILE_PATH
-            
-            # Get current file size
-            initial_size = 0
-            if os.path.exists(LOG_FILE_PATH):
-                initial_size = os.path.getsize(LOG_FILE_PATH)
-            
-            # Write a test message
-            import time
+            # Simple test: try to log a message and see if it works
             test_timestamp = int(time.time())
             test_message = f"Logging system test - {test_timestamp}"
-            logger.info(test_message)
             
-            # Force flush all handlers
-            root_logger = logging.getLogger()
-            for handler in root_logger.handlers:
-                handler.flush()
+            # Try logging at different levels to test all handlers
+            try:
+                logger.info(test_message)
+                logger.debug("Logging debug test")
+                
+                # Force flush all handlers to ensure messages are written
+                root_logger = logging.getLogger()
+                for handler in root_logger.handlers:
+                    if hasattr(handler, 'flush'):
+                        handler.flush()
+                
+                # Give more time for file operations and buffering
+                time.sleep(0.5)
+                
+                # Check if log file exists and is accessible
+                from core.config import LOG_FILE_PATH
+                if not os.path.exists(LOG_FILE_PATH):
+                    logger.warning("Log file does not exist - logging may have issues")
+                    raise Exception("Log file missing")
+                
+                # Try to read the last few lines to verify logging is working
+                try:
+                    with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+                        # Read last 1000 characters to check for recent activity
+                        f.seek(0, 2)  # Go to end
+                        file_size = f.tell()
+                        if file_size > 1000:
+                            f.seek(file_size - 1000)
+                        else:
+                            f.seek(0)
+                        recent_content = f.read()
+                        
+                        # Look for our test message or recent timestamp patterns
+                        if (test_message in recent_content or 
+                            any(str(test_timestamp - i) in recent_content for i in range(60))):
+                            logger.info("Logging system verified and working properly")
+                            return
+                        else:
+                            # Check if there's any recent activity (within last 5 minutes)
+                            import re
+                            current_time = datetime.now()
+                            recent_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+                            matches = re.findall(recent_pattern, recent_content)
+                            
+                            if matches:
+                                try:
+                                    latest_log_time = datetime.strptime(matches[-1], '%Y-%m-%d %H:%M:%S')
+                                    time_diff = (current_time - latest_log_time).total_seconds()
+                                    
+                                    if time_diff < 300:  # Less than 5 minutes
+                                        logger.info("Logging system appears healthy based on recent activity")
+                                        return
+                                except ValueError:
+                                    pass  # Failed to parse timestamp, continue to restart check
+                            
+                            logger.warning("No recent logging activity detected, may need restart")
+                
+                except Exception as file_error:
+                    logger.warning(f"Could not verify log file contents: {file_error}")
+                    # Don't force restart just because we can't read the file
+                    # The fact that logger.info() and logger.warning() worked above is sufficient
+                    logger.info("Logging system working despite file read issues")
+                    return
+                
+            except Exception as log_error:
+                # If we can't even log, then we definitely have a problem
+                print(f"Logging system is not working - cannot write log messages: {log_error}")
+                # Fall through to restart logic
             
-            # Small delay to ensure write completes
-            time.sleep(0.2)
-            
-            # Check if file size increased or if we can find our test message
-            logging_working = False
-            
-            if os.path.exists(LOG_FILE_PATH):
-                new_size = os.path.getsize(LOG_FILE_PATH)
-                if new_size > initial_size:
-                    # File grew, likely working
-                    logging_working = True
-                else:
-                    # Check if we can find our test message in the file
-                    try:
-                        with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
-                            content = f.read()
-                            if test_message in content:
-                                logging_working = True
-                    except Exception:
-                        pass
-            
-            if logging_working:
-                logger.info("Logging system verified and working properly")
-                return
-            
-            # If we get here, logging is broken
-            print("Logging system is not working properly - attempting force restart...")
+            # Only restart if we have clear evidence of logging failure
+            print("Logging system verification failed - attempting force restart...")
             
             # Force restart logging
             from core.logger import force_restart_logging
@@ -132,12 +162,15 @@ class MHMService:
                 print("Failed to restart logging system")
                 
         except Exception as e:
-            print(f"Logging system error: {e}")
+            print(f"Logging system check error: {e}")
+            # Try to restart as a last resort
             try:
                 from core.logger import force_restart_logging
                 if force_restart_logging():
                     logger = get_logger(__name__)
                     logger.info("Logging system recovered from error")
+                else:
+                    print("Failed to recover logging system")
             except Exception as restart_error:
                 print(f"Failed to restart logging: {restart_error}")
 
@@ -246,6 +279,9 @@ class MHMService:
                     # Check for test message request files
                     self.check_test_message_requests()
                     
+                    # Check for reschedule request files
+                    self.check_reschedule_requests()
+                    
                     time.sleep(2)  # Sleep for 2 seconds
                 
                 # Log heartbeat every 2 minutes (every 2 loop iterations)
@@ -271,6 +307,9 @@ class MHMService:
             
             # Clean up any remaining test message request files
             self.cleanup_test_message_requests()
+            
+            # Clean up any remaining reschedule request files  
+            self.cleanup_reschedule_requests()
     
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
@@ -336,6 +375,81 @@ class MHMService:
                         
         except Exception as e:
             logger.warning(f"Error during test message request cleanup: {e}")
+
+    def check_reschedule_requests(self):
+        """Check for and process reschedule request files from UI"""
+        try:
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            
+            # Look for reschedule request files
+            for filename in os.listdir(base_dir):
+                if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
+                    request_file = os.path.join(base_dir, filename)
+                    
+                    try:
+                        # Read and process the request
+                        with open(request_file, 'r') as f:
+                            import json
+                            request_data = json.load(f)
+                        
+                        user_id = request_data.get('user_id')
+                        category = request_data.get('category')
+                        source = request_data.get('source', 'unknown')
+                        
+                        if user_id and category:
+                            logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
+                            
+                            # Use the scheduler manager to reschedule
+                            if self.scheduler_manager:
+                                # Set the user context for the reschedule operation
+                                from user.user_context import UserContext
+                                original_user = UserContext().get_user_id()
+                                UserContext().set_user_id(user_id)
+                                
+                                try:
+                                    self.scheduler_manager.reset_and_reschedule_daily_messages(category)
+                                    logger.info(f"Successfully rescheduled messages for user {user_id}, category={category}")
+                                finally:
+                                    # Restore original user context
+                                    if original_user:
+                                        UserContext().set_user_id(original_user)
+                            else:
+                                logger.error("Scheduler manager not available for reschedule request")
+                        else:
+                            logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
+                        
+                        # Remove the processed request file
+                        os.remove(request_file)
+                        logger.info(f"Processed reschedule request: {filename}")
+                        
+                    except Exception as e:
+                        logger.error(f"Error processing reschedule request {filename}: {e}")
+                        # Try to remove the problematic file
+                        try:
+                            os.remove(request_file)
+                            logger.debug(f"Removed problematic reschedule request file: {filename}")
+                        except Exception as cleanup_error:
+                            logger.warning(f"Could not remove problematic reschedule request file {filename}: {cleanup_error}")
+                        
+        except Exception as e:
+            logger.debug(f"Error checking for reschedule requests: {e}")  # Debug level since this runs frequently
+
+    def cleanup_reschedule_requests(self):
+        """Clean up any remaining reschedule request files"""
+        try:
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            
+            for filename in os.listdir(base_dir):
+                if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
+                    request_file = os.path.join(base_dir, filename)
+                    try:
+                        os.remove(request_file)
+                        logger.info(f"Cleanup: Removed reschedule request file: {filename}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove reschedule request file {filename}: {e}")
+                        
+        except Exception as e:
+            logger.warning(f"Error during reschedule request cleanup: {e}")
 
     def shutdown(self):
         """Shutdown the service gracefully"""

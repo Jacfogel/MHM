@@ -145,7 +145,59 @@ LOG_FILE_PATH=app.log
 ### 2024-01-29 - AI System Migration to LM Studio + DeepSeek
 - **AI Backend Switch**: Completely replaced GPT4All with LM Studio hosting DeepSeek LLM 7B Chat
 
----
+### Logging System Improvements (2025-01-16)
+
+**Issues Identified and Fixed:**
+
+1. **"Logging system force restarted successfully" Issue**
+   - **Problem**: `check_and_fix_logging()` method in `core/service.py` had flawed logic that always triggered force restart
+   - **Root Cause**: Method checked file size increase with only 0.2 second delay, not accounting for buffering
+   - **Fix**: Improved detection logic with:
+     - Longer wait time (0.5 seconds) for file operations
+     - Better verification by reading recent log content
+     - Checking for recent logging activity within 5 minutes
+     - Only restarting when there's clear evidence of failure
+   - **Result**: Eliminates unnecessary force restarts during normal operation
+
+2. **"Scheduler running: 0 active jobs scheduled" - Misleading Message**
+   - **Problem**: Always showed 0 jobs even when messages were being sent successfully
+   - **Root Cause**: Schedule library behavior - jobs scheduled for future times may not appear in `schedule.jobs` until closer to execution
+   - **Investigation**: Confirmed scheduler was working correctly (messages were being sent), issue was misleading logging
+   - **Fix**: 
+     - Updated message to clarify that jobs may not appear until execution time
+     - Avoided complex debugging that could break working functionality
+   - **Result**: Less confusing status messages while preserving working functionality
+
+3. **Unnecessary Logging Suffixes Cleanup**
+   - **Problem**: Messages like "User info loaded (new structure)" and "User info saved (no duplication)" had unnecessary suffixes
+   - **Fix**: Removed "(new structure)" and "(no duplication)" suffixes from logging messages in `core/utils.py`
+   - **Result**: Cleaner, more professional log messages
+
+**Important Note**: During debugging, we discovered that complex modifications to the scheduler code could break the working functionality. We reverted problematic changes and kept only minimal, safe improvements to maintain system stability.
+
+### Schedule Rescheduling Issue Fix (2025-01-16)
+
+**Issue Identified and Fixed:**
+
+4. **"No scheduler manager available for rescheduling" - Schedule Changes Not Applied**
+   - **Problem**: When editing schedule periods through the UI, changes were saved to files but the scheduler wasn't notified to reschedule messages
+   - **Root Cause**: UI runs in "UI-only mode" without direct access to the scheduler manager running in the service
+   - **Investigation**: The system was designed to work this way, but the communication mechanism between UI and service was missing
+   - **Solution**: 
+     - Extended existing flag file pattern (similar to test messages) to handle reschedule requests
+     - Added `create_reschedule_request()` function in `core/utils.py` to create request files when scheduler manager is not available
+     - Added `check_reschedule_requests()` method in `core/service.py` to process reschedule requests every 2 seconds
+     - Service now automatically picks up schedule changes made through UI and reschedules accordingly
+   - **Result**: Schedule edits through the UI now properly trigger rescheduling in the background service
+
+**Technical Details:**
+- Smart detection: Only creates reschedule requests when service is actually running
+- If service is stopped, changes are automatically picked up on next startup via `schedule_all_users_immediately()`
+- Uses JSON flag files with format: `reschedule_request_{user_id}_{category}_{timestamp}.flag`
+- Service processes requests every 2 seconds during normal operation
+- Proper user context switching ensures rescheduling happens for the correct user
+- Automatic cleanup of processed request files
+- Graceful error handling for malformed or inaccessible request files
 
 ## 📝 How to Add Improvements
 

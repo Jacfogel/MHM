@@ -18,7 +18,25 @@ def setup_logging():
     """
     Set up logging with file and console handlers. Ensure it is called only once.
     """
-    if not logging.getLogger().hasHandlers():
+    root_logger = logging.getLogger()
+    
+    # Check if logging is already set up properly
+    if root_logger.hasHandlers():
+        # Verify we have both file and console handlers
+        has_file_handler = any(isinstance(h, RotatingFileHandler) for h in root_logger.handlers)
+        has_console_handler = any(isinstance(h, logging.StreamHandler) and 
+                                not isinstance(h, RotatingFileHandler) for h in root_logger.handlers)
+        
+        if has_file_handler and has_console_handler:
+            # Logging is already properly set up
+            return
+        else:
+            # Incomplete setup, clear and reinitialize
+            for handler in root_logger.handlers[:]:
+                handler.close()
+                root_logger.removeHandler(handler)
+    
+    try:
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always logs everything)
@@ -35,7 +53,6 @@ def setup_logging():
         stream_handler.setLevel(console_level)
 
         # Add handlers to the root logger
-        root_logger = logging.getLogger()
         root_logger.setLevel(logging.DEBUG)  # Root logger captures everything
         root_logger.addHandler(file_handler)
         root_logger.addHandler(stream_handler)
@@ -45,6 +62,12 @@ def setup_logging():
 
         print(f"Logging initialized - Console level: {logging.getLevelName(console_level)}, File level: DEBUG")
         print("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
+        
+    except Exception as e:
+        print(f"Failed to set up logging: {e}")
+        # Fallback to basic logging
+        logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+        print("Using fallback logging configuration")
 
 
 def get_logger(name):
