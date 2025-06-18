@@ -36,6 +36,7 @@ class MHMService:
         self.communication_manager = None
         self.scheduler_manager = None
         self.running = False
+        self.reschedule_dedup = {}  # Track recent reschedules to prevent duplicates
         # Register atexit handler as backup shutdown method
         atexit.register(self.emergency_shutdown)
         
@@ -79,12 +80,11 @@ class MHMService:
         try:
             # Simple test: try to log a message and see if it works
             test_timestamp = int(time.time())
-            test_message = f"Logging system test - {test_timestamp}"
+            test_message = f"Logging verification - {test_timestamp}"
             
             # Try logging at different levels to test all handlers
             try:
-                logger.info(test_message)
-                logger.debug("Logging debug test")
+                logger.debug(test_message)
                 
                 # Force flush all handlers to ensure messages are written
                 root_logger = logging.getLogger()
@@ -116,7 +116,7 @@ class MHMService:
                         # Look for our test message or recent timestamp patterns
                         if (test_message in recent_content or 
                             any(str(test_timestamp - i) in recent_content for i in range(60))):
-                            logger.info("Logging system verified and working properly")
+                            logger.debug("Logging system verified")
                             return
                         else:
                             # Check if there's any recent activity (within last 5 minutes)
@@ -131,7 +131,7 @@ class MHMService:
                                     time_diff = (current_time - latest_log_time).total_seconds()
                                     
                                     if time_diff < 300:  # Less than 5 minutes
-                                        logger.info("Logging system appears healthy based on recent activity")
+                                        logger.debug("Logging system healthy")
                                         return
                                 except ValueError:
                                     pass  # Failed to parse timestamp, continue to restart check
@@ -141,8 +141,8 @@ class MHMService:
                 except Exception as file_error:
                     logger.warning(f"Could not verify log file contents: {file_error}")
                     # Don't force restart just because we can't read the file
-                    # The fact that logger.info() and logger.warning() worked above is sufficient
-                    logger.info("Logging system working despite file read issues")
+                    # The fact that logger.debug() and logger.warning() worked above is sufficient
+                    logger.debug("Logging system working despite file read issues")
                     return
                 
             except Exception as log_error:
@@ -184,7 +184,6 @@ class MHMService:
 
             # Check and fix logging BEFORE any async operations
             self.check_and_fix_logging()
-            logger.info("Logging system verified before channel initialization")
 
             # Automatic cache cleanup (only if needed)
             try:
@@ -228,9 +227,8 @@ class MHMService:
             self.communication_manager.start_all()
             
             # Start scheduler for all users
-            logger.info("Starting scheduler for all users...")
+            logger.info("Starting scheduler...")
             self.scheduler_manager.run_daily_scheduler()
-            logger.info("Scheduler started and running for all users")
 
             logger.info("MHM Backend Service initialized successfully and running.")
             
@@ -377,17 +375,25 @@ class MHMService:
             logger.warning(f"Error during test message request cleanup: {e}")
 
     def check_reschedule_requests(self):
-        """Check for and process reschedule request files from UI"""
+        """Check for and process reschedule request files from UI with deduplication"""
         try:
             base_dir = os.path.dirname(os.path.dirname(__file__))
+            current_time = time.time()
             
-            # Look for reschedule request files
+            # Clean up old deduplication entries (older than 30 seconds)
+            expired_keys = [key for key, timestamp in self.reschedule_dedup.items() 
+                          if current_time - timestamp > 30]
+            for key in expired_keys:
+                del self.reschedule_dedup[key]
+            
+            # Collect all reschedule requests first
+            reschedule_requests = []
             for filename in os.listdir(base_dir):
                 if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
                     request_file = os.path.join(base_dir, filename)
                     
                     try:
-                        # Read and process the request
+                        # Read the request
                         with open(request_file, 'r') as f:
                             import json
                             request_data = json.load(f)
@@ -397,39 +403,93 @@ class MHMService:
                         source = request_data.get('source', 'unknown')
                         
                         if user_id and category:
-                            logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
-                            
-                            # Use the scheduler manager to reschedule
-                            if self.scheduler_manager:
-                                # Set the user context for the reschedule operation
-                                from user.user_context import UserContext
-                                original_user = UserContext().get_user_id()
-                                UserContext().set_user_id(user_id)
-                                
-                                try:
-                                    self.scheduler_manager.reset_and_reschedule_daily_messages(category)
-                                    logger.info(f"Successfully rescheduled messages for user {user_id}, category={category}")
-                                finally:
-                                    # Restore original user context
-                                    if original_user:
-                                        UserContext().set_user_id(original_user)
-                            else:
-                                logger.error("Scheduler manager not available for reschedule request")
+                            reschedule_requests.append({
+                                'filename': filename,
+                                'request_file': request_file,
+                                'user_id': user_id,
+                                'category': category,
+                                'source': source
+                            })
                         else:
                             logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
-                        
-                        # Remove the processed request file
-                        os.remove(request_file)
-                        logger.info(f"Processed reschedule request: {filename}")
+                            # Remove invalid request file
+                            os.remove(request_file)
                         
                     except Exception as e:
-                        logger.error(f"Error processing reschedule request {filename}: {e}")
+                        logger.error(f"Error reading reschedule request {filename}: {e}")
                         # Try to remove the problematic file
                         try:
                             os.remove(request_file)
                             logger.debug(f"Removed problematic reschedule request file: {filename}")
                         except Exception as cleanup_error:
                             logger.warning(f"Could not remove problematic reschedule request file {filename}: {cleanup_error}")
+            
+            # Process deduplicated requests
+            processed_keys = set()
+            for request in reschedule_requests:
+                user_id = request['user_id']
+                category = request['category']
+                dedup_key = f"{user_id}_{category}"
+                
+                # Check if we've already processed this user/category recently
+                if dedup_key in self.reschedule_dedup:
+                    logger.debug(f"Skipping duplicate reschedule request for user={user_id}, category={category} (processed {current_time - self.reschedule_dedup[dedup_key]:.1f}s ago)")
+                    # Remove the duplicate request file
+                    try:
+                        os.remove(request['request_file'])
+                        logger.debug(f"Removed duplicate reschedule request: {request['filename']}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove duplicate request file {request['filename']}: {e}")
+                    continue
+                
+                # Skip if we've already processed this combination in this batch
+                if dedup_key in processed_keys:
+                    logger.debug(f"Skipping duplicate reschedule request in batch for user={user_id}, category={category}")
+                    try:
+                        os.remove(request['request_file'])
+                        logger.debug(f"Removed batch duplicate reschedule request: {request['filename']}")
+                    except Exception as e:
+                        logger.warning(f"Could not remove batch duplicate request file {request['filename']}: {e}")
+                    continue
+                
+                # Process the request
+                try:
+                    logger.info(f"Processing reschedule request from {request['source']}: user={user_id}, category={category}")
+                    
+                    # Use the scheduler manager to reschedule
+                    if self.scheduler_manager:
+                        # Set the user context for the reschedule operation
+                        from user.user_context import UserContext
+                        original_user = UserContext().get_user_id()
+                        UserContext().set_user_id(user_id)
+                        
+                        try:
+                            self.scheduler_manager.reset_and_reschedule_daily_messages(category)
+                            logger.info(f"Successfully rescheduled messages for user {user_id}, category={category}")
+                            
+                            # Mark as processed in deduplication tracker
+                            self.reschedule_dedup[dedup_key] = current_time
+                            processed_keys.add(dedup_key)
+                            
+                        finally:
+                            # Restore original user context
+                            if original_user:
+                                UserContext().set_user_id(original_user)
+                    else:
+                        logger.error("Scheduler manager not available for reschedule request")
+                    
+                    # Remove the processed request file
+                    os.remove(request['request_file'])
+                    logger.info(f"Processed reschedule request: {request['filename']}")
+                    
+                except Exception as e:
+                    logger.error(f"Error processing reschedule request {request['filename']}: {e}")
+                    # Try to remove the problematic file
+                    try:
+                        os.remove(request['request_file'])
+                        logger.debug(f"Removed problematic reschedule request file: {request['filename']}")
+                    except Exception as cleanup_error:
+                        logger.warning(f"Could not remove problematic reschedule request file {request['filename']}: {cleanup_error}")
                         
         except Exception as e:
             logger.debug(f"Error checking for reschedule requests: {e}")  # Debug level since this runs frequently

@@ -52,9 +52,9 @@ class ServiceManager:
             
             if service_pids:
                 if len(service_pids) > 1:
-                    logger.info(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
+                    logger.debug(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
                 else:
-                    logger.debug(f"Single service process found: {service_pids[0]}")
+                    logger.debug(f"Service process found: {service_pids[0]}")
                 return True, service_pids[0]  # Return first PID
             return False, None
         except Exception as e:
@@ -64,17 +64,16 @@ class ServiceManager:
     def start_service(self):
         """Start the MHM backend service"""
         try:
-            logger.info("Start service requested")
             is_running, pid = self.is_service_running()
             if is_running:
-                logger.info(f"Service is already running with PID {pid}")
+                logger.debug(f"Service already running with PID {pid}")
                 messagebox.showinfo("Service Status", f"MHM Service is already running (PID: {pid})")
                 return True
             
             # Start the service - updated path
             service_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'service.py')
             
-            logger.info(f"Starting service from: {service_path}")
+            logger.debug(f"Service path: {service_path}")
             
             # Run the service in the background without showing a console window
             if os.name == 'nt':  # Windows
@@ -88,13 +87,13 @@ class ServiceManager:
                     sys.executable, service_path
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
-            logger.info(f"Service process started, waiting for initialization...")
+            logger.debug("Service process started, waiting for initialization...")
             # Give it a moment to start
             time.sleep(2)
             
             is_running, pid = self.is_service_running()
             if is_running:
-                logger.info(f"Service started successfully with PID {pid}")
+                logger.info(f"Service started with PID {pid}")
                 messagebox.showinfo("Service Status", f"MHM Service started successfully (PID: {pid})")
                 return True
             else:
@@ -640,9 +639,8 @@ class MHMManagerUI:
     
     def start_service(self):
         """Start the service"""
-        logger.info("Admin Panel: Start service requested")
+        logger.info("Admin Panel: Starting service...")
         if self.service_manager.start_service():
-            logger.info("Admin Panel: Service started successfully")
             self.update_service_status()
         else:
             logger.warning("Admin Panel: Service start failed")

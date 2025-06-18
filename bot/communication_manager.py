@@ -41,7 +41,7 @@ class CommunicationManager:
             return
             
         try:
-            logger.debug("Initializing CommunicationManager with new modular architecture.")
+            logger.debug("CommunicationManager initializing...")
             self.channels: Dict[str, BaseChannel] = {}
             self.channel_configs: Dict[str, ChannelConfig] = {}
             self.scheduler_manager = None
@@ -56,7 +56,7 @@ class CommunicationManager:
             self._legacy_channels = {}
             
             self._initialized = True
-            logger.info("CommunicationManager initialized successfully.")
+            logger.info("CommunicationManager ready")
         except Exception as e:
             logger.error(f"Error during CommunicationManager initialization: {e}", exc_info=True)
             raise
@@ -136,7 +136,7 @@ class CommunicationManager:
             success = await self._initialize_channel_with_retry(channel, config)
             if success:
                 self.channels[name] = channel
-                logger.info(f"Channel {name} initialized successfully")
+                logger.debug(f"Channel {name} ready")
             else:
                 logger.error(f"Failed to initialize channel {name} after retries")
         
@@ -157,7 +157,7 @@ class CommunicationManager:
                         timeout=30.0  # 30 second timeout per attempt
                     )
                     if success:
-                        logger.info(f"Channel {channel.config.name} initialized successfully on attempt {attempt + 1}")
+                        logger.info(f"Channel {channel.config.name} initialized on attempt {attempt + 1}")
                         return True
                     else:
                         logger.warning(f"Channel {channel.config.name} initialization returned False on attempt {attempt + 1}")
@@ -234,7 +234,7 @@ class CommunicationManager:
             self._create_legacy_channel_access()
             
             self._running = True
-            logger.info("All communication channels started successfully")
+            logger.info(f"Communication channels ready ({len(self.channels)} active)")
             return True
             
         except Exception as e:

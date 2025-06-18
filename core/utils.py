@@ -8,6 +8,7 @@ import uuid
 import time
 import socket
 import calendar
+import logging
 from datetime import datetime, timedelta
 from threading import Lock
 import pytz
@@ -21,6 +22,13 @@ from user.user_context import UserContext
 import core.scheduler
 
 logger = get_logger(__name__)
+
+# Add a simple cache for user profile loading
+_user_profile_cache = {}
+_cache_timeout = 30  # Cache for 30 seconds to reduce repeated loads
+
+# Add cache for schedule time periods as well
+_schedule_periods_cache = {}
 
 def create_reschedule_request(user_id, category):
     """Create a reschedule request flag file for the service to pick up"""
@@ -234,6 +242,16 @@ def load_user_info_data(user_id):
         return None
 
     try:
+        # Check cache first
+        current_time = time.time()
+        cache_key = f"load_{user_id}"
+        
+        if cache_key in _user_profile_cache:
+            cached_data, cache_time = _user_profile_cache[cache_key]
+            if current_time - cache_time < _cache_timeout:
+                # Use cached data without logging every access
+                return cached_data
+        
         if USE_USER_SUBDIRECTORIES:
             # New structure: load from profile file
             ensure_user_directory(user_id)
@@ -258,16 +276,25 @@ def load_user_info_data(user_id):
             if preferences_data.get('discord_user_id'):
                 profile_data['discord_user_id'] = preferences_data['discord_user_id']
             
-            logger.debug(f"User info loaded for user ID {user_id}")
+            # Cache the data
+            _user_profile_cache[cache_key] = (profile_data, current_time)
+            
+            # Only log if data was actually loaded (avoid spam)
+            if profile_data:
+                logger.debug(f"User profile loaded: {user_id}")
             return profile_data if profile_data else None
         else:
             # Legacy structure
             user_info_file_path = determine_file_path('users', user_id)
             user_info = load_json_data(user_info_file_path)
+            
+            # Cache the data
+            _user_profile_cache[cache_key] = (user_info, current_time)
+            
             if user_info is None:
                 logger.info(f"User file not found for user ID: {user_id} at path: {user_info_file_path}")
             else:
-                logger.debug(f"User info loaded for user ID {user_id}")
+                logger.debug(f"User profile loaded: {user_id}")
             return user_info
     except Exception as e:
         logger.error(f"Error loading user info data for user {user_id}: {e}", exc_info=True)
@@ -337,28 +364,57 @@ def save_user_info_data(user_info, user_id):
         raise
 
 def get_user_info(user_id, field=None):
+    """Get user info for a specific user and optionally a specific field."""
     if user_id is None:
         logger.error("get_user_info called with None user_id")
         return None
 
     try:
-        user_data = load_user_info_data(user_id)
-        if not user_data:
-            return None
+        # Check cache first
+        current_time = time.time()
+        cache_key = user_id
         
-        if field:
-            field_value = user_data
-            try:
-                for key in field:
-                    field_value = field_value[key]
-                return field_value
-            except KeyError:
-                logger.warning(f"Field path {field} not found in user data for user_id {user_id}")
-                return None
+        if cache_key in _user_profile_cache:
+            cached_data, cache_time = _user_profile_cache[cache_key]
+            if current_time - cache_time < _cache_timeout:
+                # Use cached data without logging every access
+                if field:
+                    return cached_data.get(field)
+                return cached_data
+        
+        # Check for new JSON structure first (profile data)
+        user_info_file_path = determine_file_path('users', user_id)
+        profile_data = load_json_data(user_info_file_path)
+        
+        if profile_data and 'profile' in profile_data:
+            # Cache the data
+            _user_profile_cache[cache_key] = (profile_data['profile'], current_time)
+            
+            # Only log if data was actually loaded (avoid spam)
+            if profile_data:
+                logger.debug(f"User profile loaded: {user_id}")
+            
+            if field:
+                return profile_data['profile'].get(field)
+            return profile_data['profile']
         else:
-            return user_data
+            # Legacy structure
+            user_info_file_path = determine_file_path('users', user_id)
+            user_info = load_json_data(user_info_file_path)
+            
+            if user_info:
+                # Cache the data
+                _user_profile_cache[cache_key] = (user_info, current_time)
+                # Only log if data was actually loaded (avoid spam)
+                logger.debug(f"User profile loaded: {user_id}")
+            else:
+                logger.info(f"User file not found for user ID: {user_id} at path: {user_info_file_path}")
+            
+            if field:
+                return user_info.get(field) if user_info else None
+            return user_info
     except Exception as e:
-        logger.error(f"Error getting user info for user {user_id}, field {field}: {e}", exc_info=True)
+        logger.error(f"Error getting user info for user {user_id}: {e}", exc_info=True)
         raise
 
 def get_user_preferences(user_id, field=None):
@@ -395,7 +451,9 @@ def get_user_preferences(user_id, field=None):
                 logger.warning(f"Field path {field} not found in preferences for user_id {user_id}")
                 return None
         else:
-            logger.debug(f"Retrieved preferences for user {user_id}: {preferences}")
+            # Only log if preferences exist and debug level verbosity is high
+            if preferences and logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"User preferences loaded: {user_id}")
             return preferences
     except Exception as e:
         logger.error(f"Error getting user preferences for user {user_id}, field {field}: {e}", exc_info=True)
@@ -440,18 +498,41 @@ def load_and_ensure_ids(user_id):
         raise
 
 def get_schedule_time_periods(user_id, category):
+    """Get schedule time periods for a specific user and category."""
     if user_id is None:
         logger.error("get_schedule_time_periods called with None user_id")
         return {}
 
     try:
-        schedule_data = get_user_info(user_id, ['schedules', category]) or {}
+        # Check cache first
+        current_time = time.time()
+        cache_key = f"{user_id}_{category}"
         
-        if schedule_data:
-            periods = schedule_data
+        if cache_key in _schedule_periods_cache:
+            cached_data, cache_time = _schedule_periods_cache[cache_key]
+            if current_time - cache_time < _cache_timeout:
+                # Use cached data without logging every access
+                return cached_data
+        
+        user_info = load_user_info_data(user_id)
+        if not user_info:
+            logger.error(f"User {user_id} not found.")
+            return {}
+
+        schedules = user_info.get('schedules', {})
+        periods = schedules.get(category, {})
+
+        if periods:
             for period in periods:
-                start_time_str = periods[period]['start']
-                start_time_obj = datetime.strptime(start_time_str, "%H:%M").time()
+                try:
+                    start_time_str = periods[period]['start']
+                    start_time_obj = datetime.strptime(start_time_str, "%H:%M")
+                    periods[period]['start_time_obj'] = start_time_obj
+                except (KeyError, ValueError) as e:
+                    logger.warning(f"Error parsing start time for period {period} in category {category}: {e}")
+                    continue
+
+            if periods:
                 periods[period]['start_time_obj'] = start_time_obj
 
             sorted_periods = dict(sorted(periods.items(), key=lambda item: item[1]['start_time_obj']))
@@ -459,6 +540,10 @@ def get_schedule_time_periods(user_id, category):
             for period in sorted_periods:
                 del sorted_periods[period]['start_time_obj']
 
+            # Cache the results
+            _schedule_periods_cache[cache_key] = (sorted_periods, current_time)
+            
+            # Only log once per cache refresh instead of every access
             logger.debug(f"Retrieved and sorted schedule time periods for user {user_id}, category {category}")
             return sorted_periods
         else:

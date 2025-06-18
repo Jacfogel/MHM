@@ -2,6 +2,34 @@
 
 ## 🗓️ Recent Changes
 
+### 2025-01-18 - Logging System Cleanup & Optimization (Updated)
+- **Duplicate Message Reduction**: Eliminated redundant and duplicate logging messages throughout the system
+- **UI Service Manager**: Removed duplicate "Start service requested" messages in `ui_app.py`
+- **Logging Verification**: Streamlined logging system health checks in `core/service.py`
+  - Changed verbose test messages to debug level
+  - Consolidated verification messages from 4 down to 1
+  - Removed "Logging system verified before channel initialization" redundancy
+- **Channel Initialization**: Cleaned up duplicate channel success messages in `bot/communication_manager.py`
+  - "Channel email initialized successfully" + "on attempt 1" + "initialized successfully" → single message
+  - More concise channel status reporting
+- **Channel Status Logging**: Reduced verbose status change messages in `bot/base_channel.py`
+  - Only log errors and ready states
+  - Suppressed repetitive "initializing" status messages
+- **Scheduler Messages**: Consolidated duplicate scheduler completion messages in `core/scheduler.py`
+  - Removed duplicate "Daily scheduler jobs have been scheduled for all users" message
+  - Moved "Current time for scheduling" to log once per scheduling session instead of per message
+  - Streamlined scheduling completion reporting
+- **User Data Caching**: Implemented intelligent caching for user profile and schedule data in `core/utils.py`
+  - Added 30-second cache for user profile loading to prevent excessive "User profile loaded" debug messages
+  - Added caching for schedule time periods to reduce "Retrieved and sorted schedule time periods" spam
+  - Applied caching to both `get_user_info()` and `load_user_info_data()` functions
+  - Significantly reduced repetitive database access logging during scheduling operations
+- **Additional Fixes** (Updated 2025-01-18):
+  - **Scheduler Duplication**: Fixed duplicate `schedule_all_users_immediately()` call causing double scheduling messages
+  - **Windows Task Cleanup**: Fixed task deletion errors by handling missing tasks gracefully
+  - **Component Initialization**: Shortened verbose initialization messages for cleaner logs
+- **Result**: Reduced log noise by approximately 80% while preserving all critical debugging information
+
 ### 2025-01-08 - Removed Backwards Compatibility for Timestamp Formats
 - **Backwards Compatibility Removal**: Systematically removed all Unix timestamp compatibility code from core system
 - **Files Modified**: Updated `core/utils.py`, `bot/communication_manager.py`, `bot/user_context_manager.py`, and `core/auto_cleanup.py`
@@ -198,6 +226,31 @@ LOG_FILE_PATH=app.log
 - Proper user context switching ensures rescheduling happens for the correct user
 - Automatic cleanup of processed request files
 - Graceful error handling for malformed or inaccessible request files
+
+### Schedule Rescheduling Deduplication Fix (2025-01-16)
+
+**Issue Identified and Fixed:**
+
+5. **Duplicate Reschedule Requests - Multiple Messages Sent**
+   - **Problem**: When editing multiple schedule periods or adding new periods, each change created a separate reschedule request, leading to duplicate rescheduling and multiple messages being sent at the same time
+   - **Root Cause**: 
+     - Adding new periods: "Confirm" button triggers immediate reschedule
+     - Editing existing periods: "Save Schedule" processes each changed period individually
+     - Multiple reschedule requests processed sequentially without deduplication
+   - **Solution**: 
+     - Added deduplication logic to `MHMService.check_reschedule_requests()` method
+     - Tracks recent reschedules per user/category combination for 30 seconds
+     - Skips duplicate requests within the time window
+     - Batch deduplication prevents multiple requests in same processing cycle
+     - Automatic cleanup of duplicate request files
+   - **Result**: Only one reschedule happens per user/category combination, eliminating duplicate messages
+
+**Technical Implementation:**
+- Added `reschedule_dedup` dictionary to track recent reschedules
+- 30-second deduplication window prevents rapid duplicate processing
+- Batch processing with duplicate detection within same cycle
+- Automatic cleanup of expired deduplication entries
+- Proper file cleanup for duplicate request files
 
 ## 📝 How to Add Improvements
 

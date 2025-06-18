@@ -89,5 +89,10 @@ class BaseChannel(ABC):
         """Internal method to update status"""
         self.status = status
         self.error_message = error_message
-        self.logger.debug(f"Channel status changed to {status.value}" + 
-                         (f" with error: {error_message}" if error_message else "")) 
+        # Only log status changes that are important (errors or startup completion)
+        if status == ChannelStatus.ERROR:
+            self.logger.warning(f"Channel status: {status.value}" + 
+                               (f" - {error_message}" if error_message else ""))
+        elif status == ChannelStatus.READY:
+            self.logger.debug(f"Channel ready")
+        # Suppress other status changes to reduce log spam 

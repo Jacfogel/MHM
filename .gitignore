@@ -131,5 +131,7 @@ desktop.ini
 data/
 scripts/
 app.log
+app.log.*
 *.log
+*.log.*
 .last_cache_cleanup 

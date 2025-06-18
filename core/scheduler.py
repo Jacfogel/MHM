@@ -21,7 +21,7 @@ class SchedulerManager:
             self.communication_manager = communication_manager
             self.scheduler_thread = None
             self._stop_event = threading.Event()  # Add stop event for proper thread management
-            logger.info("SchedulerManager initialized successfully.")
+            logger.info("SchedulerManager ready")
         except Exception as e:
             logger.error(f"Error initializing SchedulerManager: {e}", exc_info=True)
             raise
@@ -43,7 +43,6 @@ class SchedulerManager:
                         # Check if a job already exists for this user and category before scheduling
                         if not self.is_job_for_category(None, user_id, category):
                             schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category=category)
-                logger.info("Daily scheduler jobs have been scheduled for all users.")
             except Exception as e:
                 logger.error(f"Error scheduling daily jobs: {e}", exc_info=True)
                 raise
@@ -75,7 +74,11 @@ class SchedulerManager:
             self.scheduler_thread = threading.Thread(target=scheduler_loop)
             self.scheduler_thread.daemon = True
             self.scheduler_thread.start()
-            logger.info("Daily scheduler started for all users.")
+            logger.info("Scheduler thread started")
+            
+            # Update last run time after successful scheduling
+            self.last_run_time = time.time()
+            
         except Exception as e:
             logger.error(f"Failed to start scheduler thread: {e}", exc_info=True)
             raise
@@ -139,14 +142,20 @@ class SchedulerManager:
             raise
     
     def schedule_all_users_immediately(self):
-        """
-        Schedule messages for all users immediately when the service starts.
-        """
+        """Schedule daily messages immediately for all users"""
         try:
             user_ids = utils.get_all_user_ids()
-            total_scheduled = 0
+            if not user_ids:
+                logger.warning("No users found for scheduling")
+                return
             
+            total_scheduled = 0
             logger.info(f"Starting immediate scheduling for {len(user_ids)} users")
+            
+            # Log current time once at the start
+            tz = pytz.timezone('America/Regina')
+            now_datetime = datetime.now(tz)
+            logger.info(f"Current time for scheduling: {now_datetime.strftime('%Y-%m-%d %H:%M')}")
             
             for user_id in user_ids:
                 try:
@@ -162,12 +171,11 @@ class SchedulerManager:
                     else:
                         logger.warning(f"No valid categories found for user {user_id}")
                 except Exception as e:
-                    logger.error(f"Failed to get preferences for user {user_id}: {e}")
+                    logger.error(f"Failed to get categories for user {user_id}: {e}")
             
-            logger.info(f"Immediate scheduling completed: {total_scheduled} user/category combinations scheduled")
-            
+            logger.info(f"Scheduling complete: {total_scheduled} user/category combinations scheduled")
         except Exception as e:
-            logger.error(f"Error in schedule_all_users_immediately: {e}", exc_info=True)
+            logger.error(f"Critical error in schedule_all_users_immediately: {e}", exc_info=True)
             raise
 
     def schedule_daily_message_job(self, user_id, category):
@@ -248,7 +256,6 @@ class SchedulerManager:
         try:
             tz = pytz.timezone(timezone_str)
             now_datetime = datetime.now(tz)
-            logger.info(f"Current time for scheduling: {now_datetime.strftime('%Y-%m-%d %H:%M')}")    
             
             time_periods = utils.get_schedule_time_periods(user_id, category)
             period_start_time = datetime.strptime(time_periods[period]['start'], "%H:%M").time()
@@ -363,16 +370,43 @@ class SchedulerManager:
 
             # Cleanup system tasks using schtasks command (Windows-specific)
             task_prefix = f"Wake_{user_id}_{category}_"
-            result = subprocess.run(['schtasks', '/query', '/fo', 'LIST', '/v'], stdout=subprocess.PIPE, text=True)
-            tasks = result.stdout.splitlines()
+            try:
+                result = subprocess.run(['schtasks', '/query', '/fo', 'LIST', '/v'], 
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                if result.returncode != 0:
+                    logger.debug(f"Could not query system tasks: {result.stderr}")
+                    logger.info(f"System task cleanup completed for user {user_id}, category {category} (no tasks to clean).")
+                    return
+                
+                tasks = result.stdout.splitlines()
+                tasks_deleted = 0
 
-            for i, line in enumerate(tasks):
-                if line.startswith("TaskName:") and task_prefix in line:
-                    task_name = line.split(":")[1].strip()
-                    logger.info(f"Deleting old system task: {task_name}")
-                    subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], check=True)
+                for i, line in enumerate(tasks):
+                    if line.startswith("TaskName:") and task_prefix in line:
+                        task_name = line.split(":")[1].strip()
+                        logger.info(f"Deleting old system task: {task_name}")
+                        try:
+                            # Use check=False to prevent exceptions on missing tasks
+                            del_result = subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
+                                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+                            if del_result.returncode == 0:
+                                tasks_deleted += 1
+                                logger.debug(f"Successfully deleted task: {task_name}")
+                            else:
+                                # Task probably doesn't exist anymore - this is fine
+                                logger.debug(f"Task {task_name} may already be deleted: {del_result.stderr}")
+                        except Exception as del_error:
+                            logger.debug(f"Error deleting task {task_name}: {del_error}")
 
-            logger.info(f"System task cleanup completed for user {user_id}, category {category}.")
+                logger.info(f"System task cleanup completed for user {user_id}, category {category}.")
+                if tasks_deleted > 0:
+                    logger.debug(f"Deleted {tasks_deleted} old system tasks")
+                    
+            except Exception as query_error:
+                logger.debug(f"Error querying system tasks for cleanup: {query_error}")
+                logger.info(f"System task cleanup skipped for user {user_id}, category {category} (query failed).")
+                
         except Exception as e:
             logger.error(f"Failed to clean up old tasks for user {user_id}, category {category}: {e}", exc_info=True)
-            raise
+            # Don't re-raise - allow scheduling to continue even if cleanup fails
+            logger.warning(f"Continuing with scheduling despite cleanup failure for user {user_id}, category {category}")
