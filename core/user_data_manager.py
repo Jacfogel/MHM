@@ -14,7 +14,13 @@ from typing import Dict, List, Optional, Any
 from pathlib import Path
 
 from core.logger import get_logger
-from core.config import USE_USER_SUBDIRECTORIES, get_user_file_path
+from core.config import (
+    USE_USER_SUBDIRECTORIES,
+    get_user_file_path,
+    get_user_data_dir,
+    BASE_DATA_DIR,
+    MESSAGES_BY_CATEGORY_DIR_PATH,
+)
 from core.utils import load_json_data, save_json_data, get_user_preferences, load_user_info_data, save_user_info_data
 
 logger = get_logger(__name__)
@@ -23,8 +29,8 @@ class UserDataManager:
     """Enhanced user data management with references, backup, and indexing capabilities"""
     
     def __init__(self):
-        self.index_file = "data/user_index.json"
-        self.backup_dir = "data/backups"
+        self.index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
+        self.backup_dir = os.path.join(BASE_DATA_DIR, "backups")
         os.makedirs(self.backup_dir, exist_ok=True)
     
     def update_message_references(self, user_id: str) -> bool:
@@ -49,7 +55,7 @@ class UserDataManager:
             # Build message references
             message_refs = {}
             for category in categories:
-                message_file = f"data/messages/{category}/{user_id}.json"
+                message_file = os.path.join(MESSAGES_BY_CATEGORY_DIR_PATH, category, f"{user_id}.json")
                 if os.path.exists(message_file):
                     message_refs[category] = {
                         "path": message_file,
@@ -95,7 +101,7 @@ class UserDataManager:
             
             message_files = {}
             for category in categories:
-                message_file = f"data/messages/{category}/{user_id}.json"
+                message_file = os.path.join(MESSAGES_BY_CATEGORY_DIR_PATH, category, f"{user_id}.json")
                 if os.path.exists(message_file):
                     message_files[category] = message_file
             
@@ -114,12 +120,12 @@ class UserDataManager:
             
             with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
                 # Backup user directory (profile, preferences, schedules, etc.)
-                user_dir = f"data/users/{user_id}"
+                user_dir = get_user_data_dir(user_id)
                 if os.path.exists(user_dir):
                     for root, dirs, files in os.walk(user_dir):
                         for file in files:
                             file_path = os.path.join(root, file)
-                            arcname = os.path.relpath(file_path, "data")
+                            arcname = os.path.relpath(file_path, BASE_DATA_DIR)
                             zipf.write(file_path, arcname)
                 
                 # Backup message files if requested
@@ -127,7 +133,7 @@ class UserDataManager:
                     message_files = self.get_user_message_files(user_id)
                     for category, file_path in message_files.items():
                         if os.path.exists(file_path):
-                            arcname = os.path.relpath(file_path, "data")
+                            arcname = os.path.relpath(file_path, BASE_DATA_DIR)
                             zipf.write(file_path, arcname)
                 
                 # Add metadata
@@ -209,7 +215,7 @@ class UserDataManager:
                 logger.info(f"Backup created before deletion: {backup_path}")
             
             # Delete user directory
-            user_dir = f"data/users/{user_id}"
+            user_dir = get_user_data_dir(user_id)
             if os.path.exists(user_dir):
                 shutil.rmtree(user_dir)
                 logger.info(f"Deleted user directory: {user_dir}")
@@ -247,7 +253,7 @@ class UserDataManager:
             }
             
             # Check user directory files
-            user_dir = f"data/users/{user_id}"
+            user_dir = get_user_data_dir(user_id)
             if os.path.exists(user_dir):
                 for file_type in ["profile", "preferences", "schedules", "sent_messages"]:
                     file_path = get_user_file_path(user_id, file_type)

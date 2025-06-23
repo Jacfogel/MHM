@@ -715,9 +715,10 @@ def get_message_categories():
         raise
 
 def load_default_messages(category):
-    default_messages_file = os.path.join("C:/Users/Julie/projects/MHM/MHM/default_messages", f"{category}.json")
+    """Load default messages for the given category."""
+    default_messages_file = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{category}.json")
     try:
-        with open(default_messages_file, 'r') as file:
+        with open(default_messages_file, 'r', encoding='utf-8') as file:
             default_messages = json.load(file)
             logger.debug(f"Loaded default messages for category {category}")
             return default_messages
@@ -895,7 +896,7 @@ def get_last_10_messages(user_id, category):
             return []
 
         # Return most recent responses (sorted by timestamp descending)
-        if data:
+        if messages:
             def get_timestamp_for_sorting(item):
                 """Convert timestamp to float for consistent sorting"""
                 # Handle case where item might be a string instead of a dictionary
@@ -915,8 +916,8 @@ def get_last_10_messages(user_id, category):
                 except (ValueError, TypeError):
                     # If parsing fails, use 0
                     return 0.0
-            
-            sorted_data = sorted(data, key=get_timestamp_for_sorting, reverse=True)
+
+            sorted_data = sorted(messages, key=get_timestamp_for_sorting, reverse=True)
             last_10_messages = sorted_data[:10]
 
             logger.debug(f"Retrieved last 10 messages for user {user_id} in category {category}.")

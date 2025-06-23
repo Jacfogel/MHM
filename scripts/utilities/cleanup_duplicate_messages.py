@@ -2,7 +2,7 @@
 """
 Duplicate Message Cleanup Utility
 
-This script scans all message files in the data/messages directory and removes
+This script scans all message files in the configured messages directory and removes
 duplicate messages based on identical message content. It preserves the first
 occurrence of each unique message and creates backups before making changes.
 
@@ -16,10 +16,13 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-def find_message_files(base_dir):
-    """Find all JSON message files in the data/messages directory."""
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from core.config import MESSAGES_BY_CATEGORY_DIR_PATH
+
+def find_message_files():
+    """Find all JSON message files in the configured messages directory."""
     message_files = []
-    base_path = Path(base_dir) / "data" / "messages"
+    base_path = Path(MESSAGES_BY_CATEGORY_DIR_PATH)
     
     if not base_path.exists():
         print(f"Error: Message directory not found: {base_path}")
@@ -93,13 +96,10 @@ def create_backup(filepath):
 
 def clean_duplicates(args):
     """Main function to clean duplicates from all message files."""
-    # Get the script directory and find the project root
-    script_dir = Path(__file__).parent
-    project_root = script_dir.parent.parent  # Go up two levels from scripts/utilities
-    
-    print(f"Scanning for message files in: {project_root}")
-    
-    message_files = find_message_files(project_root)
+    print(f"Scanning for message files in: {MESSAGES_BY_CATEGORY_DIR_PATH}")
+
+    message_files = find_message_files()
+    messages_base = Path(MESSAGES_BY_CATEGORY_DIR_PATH).resolve()
     
     if not message_files:
         print("No message files found.")
@@ -113,7 +113,7 @@ def clean_duplicates(args):
     total_duplicates_removed = 0
     
     for filepath in message_files:
-        print(f"Checking: {filepath.relative_to(project_root)}")
+        print(f"Checking: {filepath.relative_to(messages_base)}")
         
         has_duplicates, total_count, duplicate_count, cleaned_data = check_duplicates_in_file(filepath)
         
