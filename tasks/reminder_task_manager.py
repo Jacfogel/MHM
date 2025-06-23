@@ -79,7 +79,7 @@ class ReminderTaskManager:
 
     def list_tasks(self, user_id: str) -> list:
         """
-        Returns a list of the user�s tasks/reminders.
+        Returns a list of the user’s tasks/reminders.
         """
         tasks = self.load_tasks_for_user(user_id)
         return tasks.get("tasks", [])
