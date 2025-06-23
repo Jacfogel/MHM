@@ -66,44 +66,14 @@ class UserPreferences:
         """Get all preferences."""
         return self.preferences.copy()
 
+    @staticmethod
     def set_schedule_period_active(user_id: str, category: str, period_name: str, is_active: bool) -> bool:
-        """
-        Sets the active status of a specific schedule period for a user.
-        """
-        user_info = core.utils.load_user_info_data(user_id)
-        if user_info is None:
-            logger.error(f"User {user_id} not found.")
-            return False
-    
-        schedules = user_info.get('schedules', {})
-        category_schedule = schedules.get(category, {})
-        period = category_schedule.get(period_name)
-    
-        if period is None:
-            logger.error(f"Schedule period '{period_name}' not found in category '{category}' for user {user_id}.")
-            return False
-    
-        period['active'] = is_active
-        core.utils.save_user_info_data(user_info, user_id)
-        status = "activated" if is_active else "deactivated"
-        logger.info(f"Schedule period '{period_name}' in category '{category}' for user {user_id} has been {status}.")
-        return True
+        """Wrapper for :func:`core.utils.set_schedule_period_active`."""
+        return core.utils.set_schedule_period_active(
+            user_id, category, period_name, active=is_active
+        )
 
+    @staticmethod
     def is_schedule_period_active(user_id: str, category: str, period_name: str) -> bool:
-        """
-        Checks if a specific schedule period is active for a user.
-        """
-        user_info = core.utils.load_user_info_data(user_id)
-        if user_info is None:
-            logger.error(f"User {user_id} not found.")
-            return False
-    
-        schedules = user_info.get('schedules', {})
-        category_schedule = schedules.get(category, {})
-        period = category_schedule.get(period_name)
-    
-        if period is None:
-            logger.error(f"Schedule period '{period_name}' not found in category '{category}' for user {user_id}.")
-            return False
-    
-        return period.get('active', True)
+        """Wrapper for :func:`core.utils.is_schedule_period_active`."""
+        return core.utils.is_schedule_period_active(user_id, category, period_name)
