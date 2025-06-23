@@ -677,7 +677,6 @@ class CommunicationManager:
     def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
         """Send a pre-defined message from the user's message library"""
         try:
-            core.utils.load_and_ensure_ids(user_id)
             matching_periods, valid_periods = core.utils.get_current_time_periods_with_validation(user_id, category)
             file_path = core.utils.determine_file_path('messages', f'{category}/{user_id}')
             data = core.utils.load_json_data(file_path)
@@ -704,7 +703,6 @@ class CommunicationManager:
                 
                 if success:
                     core.utils.store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
-                    logger.info(f"Successfully sent predefined message for user {user_id}, category {category}")
                 else:
                     logger.warning(f"Message send returned False but may have still been delivered for user {user_id}, category {category}")
                     # Still store it since the message might have gone through

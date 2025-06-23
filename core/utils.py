@@ -169,8 +169,9 @@ def determine_file_path(file_type, identifier):
             logger.error(f"Unknown file type: {file_type}")
             raise ValueError(f"Unknown file type: {file_type}")
 
-        # Log the path that will be returned
-        logger.debug(f"Determined file path for {file_type}: {path}")
+        # Only log file paths for non-routine operations (not messages or user data operations)
+        if file_type not in ['messages', 'users', 'sent_messages']:
+            logger.debug(f"Determined file path for {file_type}: {path}")
         return path
         
     except Exception as e:
@@ -201,7 +202,6 @@ def save_json_data(data, file_path):
     try:
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
-            logger.debug(f"Data saved to {file_path}")
     except Exception as e:
         logger.error(f"Failed to save data to {file_path}: {e}")
         raise
@@ -460,42 +460,39 @@ def get_user_preferences(user_id, field=None):
         raise
     
 def ensure_unique_ids(data):
-    try:
-        existing_ids = set()
-        for message in data['messages']:
-            if 'message_id' not in message or message['message_id'] in existing_ids:
-                message['message_id'] = str(uuid.uuid4())
-            existing_ids.add(message['message_id'])
+    """Ensure all messages have unique IDs."""
+    if not data or 'messages' not in data:
         return data
-    except Exception as e:
-        logger.error(f"Error ensuring unique IDs in data: {e}", exc_info=True)
-        raise
+    
+    existing_ids = set()
+    for message in data['messages']:
+        if 'message_id' not in message or message['message_id'] in existing_ids:
+            message['message_id'] = str(uuid.uuid4())
+        existing_ids.add(message['message_id'])
+    
+    return data
 
 def load_and_ensure_ids(user_id):
-    if user_id is None:
-        logger.error("load_and_ensure_ids called with None user_id")
+    """Load messages for all categories and ensure IDs are unique for a user."""
+    user_info = get_user_info(user_id)
+    if not user_info:
+        logger.warning(f"User info not found for user_id: {user_id}")
         return
 
-    try:
-        categories = get_user_preferences(user_id, ['categories'])
-        if categories is not None and isinstance(categories, list):
-            for category in categories:
-                try:
-                    file_path = determine_file_path('messages', f'{category}/{user_id}')
-                    data = load_json_data(file_path)
-                    if data is None:
-                        logger.info(f"No data found for category '{category}' and user '{user_id}', creating new data structure.")
-                        data = {'messages': []}
-                    data = ensure_unique_ids(data)
-                    save_json_data(data, file_path)
-                    logger.debug(f"Ensured message ids are unique for user '{user_id}'")
-                except Exception as e:
-                    logger.error(f"Error processing category '{category}' for user '{user_id}': {e}", exc_info=True)
-        else:
-            logger.error(f"Expected list for categories, got {type(categories)} for user '{user_id}'")
-    except Exception as e:
-        logger.error(f"Error loading and ensuring IDs for user {user_id}: {e}", exc_info=True)
-        raise
+    categories = user_info.get('preferences', {}).get('categories', [])
+    if not categories:
+        logger.debug(f"No categories found for user {user_id}")
+        return
+
+    for category in categories:
+        file_path = determine_file_path('messages', f'{category}/{user_id}')
+        data = load_json_data(file_path)
+        if data:
+            data = ensure_unique_ids(data)
+            save_json_data(data, file_path)
+    
+    # Reduced logging to avoid spam - only log once per user instead of per category
+    logger.debug(f"Ensured message ids are unique for user '{user_id}'")
 
 def get_schedule_time_periods(user_id, category):
     """Get schedule time periods for a specific user and category."""
@@ -560,12 +557,16 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
         return False
     
     schedules = user_info.get('schedules', {})
-    category_schedule = schedules.get(category, {})
-    period = category_schedule.get(period_name)
+    category_schedules = schedules.get(category, {})
+    period = category_schedules.get(period_name)
 
     if period:
         period['active'] = active
         save_user_info_data(user_info, user_id)
+        
+        # Clear the cache for this user/category
+        clear_schedule_periods_cache(user_id, category)
+        
         status = "enabled" if active else "disabled"
         logger.info(f"Period {period_name} in category {category} for user {user_id} has been {status}.")
     else:
@@ -579,8 +580,8 @@ def is_schedule_period_active(user_id, category, period_name):
         return False
 
     schedules = user_info.get('schedules', {})
-    category_schedule = schedules.get(category, {})
-    period = category_schedule.get(period_name, {})
+    category_schedules = schedules.get(category, {})
+    period = category_schedules.get(period_name, {})
     
     return period.get('active', True)  # Defaults to active if the field is missing
 
@@ -929,14 +930,14 @@ def get_last_10_messages(user_id, category):
 def add_schedule_period(category, period_name, start_time, end_time, scheduler_manager=None):
     try:
         user_id = UserContext().get_user_id()
-        internal_username = UserContext().get_internal_username()
-        logger.debug(f"Retrieved user_id: {user_id}, internal_username: {internal_username}")
         
         if not user_id:
             logger.error("User ID is not set in UserContext (add_schedule_period).")
             return
         
         user_info = load_user_info_data(user_id) or {}
+        internal_username = user_info.get('internal_username', 'Unknown')
+        logger.debug(f"Retrieved user_id: {user_id}, internal_username: {internal_username}")
 
         if user_info.get("user_id") != user_id:
             logger.error(f"Mismatch in user_id for user info data: expected {user_id}, found {user_info.get('user_id')}")
@@ -951,6 +952,10 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
         category_schedules[period_name.lower()] = {'start': formatted_start_time, 'end': formatted_end_time}
 
         save_user_info_data(user_info, user_id)
+        
+        # Clear the cache for this user/category
+        clear_schedule_periods_cache(user_id, category)
+        
         logger.info(f"Added schedule period for user {internal_username}, category {category}: {category_schedules[period_name.lower()]}")
         
         # Only reset scheduler if available
@@ -967,7 +972,6 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
 def edit_schedule_period(category, period_name, new_start_time, new_end_time, scheduler_manager=None):
     try:
         user_id = UserContext().get_user_id()
-        internal_username = UserContext().get_internal_username()
         
         if not user_id:
             logger.error("User ID is not set in UserContext (edit_schedule_period).")
@@ -975,6 +979,7 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
         
         logger.debug(f"Attempting to edit period {period_name} for user {user_id} in category {category}")
         user_info = load_user_info_data(user_id) or {}
+        internal_username = user_info.get('internal_username', 'Unknown')
 
         if user_info.get("user_id") != user_id:
             logger.error(f"User ID {user_id} not found in user info data. Loaded user ID: {user_info.get('user_id')}")
@@ -993,6 +998,10 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
         category_schedules[period_name] = {'start': formatted_new_start_time, 'end': formatted_new_end_time}
 
         save_user_info_data(user_info, user_id)
+        
+        # Clear the cache for this user/category
+        clear_schedule_periods_cache(user_id, category)
+        
         logger.info(f"Edited schedule period for user {internal_username}, category {category}, period {period_name}: {category_schedules[period_name]}")
         
         # Only reset scheduler if available
@@ -1009,7 +1018,6 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
 def delete_schedule_period(category, period_name, scheduler_manager=None):
     try:
         user_id = UserContext().get_user_id()
-        internal_username = UserContext().get_internal_username()
         
         if not user_id:
             logger.error("User ID is not set in UserContext (delete_schedule_period).")
@@ -1017,6 +1025,7 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
         
         logger.debug(f"Attempting to delete period {period_name} for user {user_id} in category {category}")
         user_info = load_user_info_data(user_id) or {}
+        internal_username = user_info.get('internal_username', 'Unknown')
 
         if user_info.get("user_id") != user_id:
             logger.error(f"User ID {user_id} not found in user info data. Loaded user ID: {user_info.get('user_id')}")
@@ -1032,6 +1041,10 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
         del category_schedules[period_name]
 
         save_user_info_data(user_info, user_id)
+        
+        # Clear the cache for this user/category
+        clear_schedule_periods_cache(user_id, category)
+        
         logger.info(f"Deleted schedule period for user {internal_username}, category {category}, period {period_name}")
         
         # Only reset scheduler if available
@@ -1446,3 +1459,24 @@ def get_user_checkin_questions(user_id: str) -> dict:
     except Exception as e:
         logger.error(f"Error getting check-in questions for user {user_id}: {e}")
         return {}
+
+def clear_schedule_periods_cache(user_id=None, category=None):
+    """Clear the schedule periods cache for a specific user/category or all."""
+    global _schedule_periods_cache
+    
+    if user_id is None and category is None:
+        # Clear all cache
+        _schedule_periods_cache.clear()
+        logger.debug("Cleared all schedule periods cache")
+    elif user_id is not None and category is not None:
+        # Clear specific user/category cache
+        cache_key = f"{user_id}_{category}"
+        if cache_key in _schedule_periods_cache:
+            del _schedule_periods_cache[cache_key]
+            logger.debug(f"Cleared schedule periods cache for user {user_id}, category {category}")
+    elif user_id is not None:
+        # Clear all cache entries for a specific user
+        keys_to_remove = [key for key in _schedule_periods_cache.keys() if key.startswith(f"{user_id}_")]
+        for key in keys_to_remove:
+            del _schedule_periods_cache[key]
+        logger.debug(f"Cleared all schedule periods cache for user {user_id}")

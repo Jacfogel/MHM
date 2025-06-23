@@ -8,10 +8,15 @@ import random
 import subprocess
 import os
 from datetime import datetime, timedelta
+import logging
 
 from core import utils
 from core.logger import get_logger
 from user.user_context import UserContext
+
+# Suppress debug logging from the schedule library to reduce log spam
+schedule_logger = logging.getLogger('schedule')
+schedule_logger.setLevel(logging.WARNING)
 
 logger = get_logger(__name__)
 
@@ -53,12 +58,11 @@ class SchedulerManager:
                     schedule.run_pending()
                     loop_count += 1
                     
-                    # Log every 15 iterations (15 minutes) for normal operation monitoring
-                    if loop_count % 15 == 0:
+                    # Log every 60 iterations (60 minutes / 1 hour) instead of every 15 to reduce log spam
+                    if loop_count % 60 == 0:
                         active_jobs = len(schedule.jobs)
-                        if active_jobs == 0:
-                            logger.info(f"Scheduler running: {active_jobs} active jobs scheduled (jobs may not appear until execution time)")
-                        else:
+                        # Only log if there are actually jobs scheduled - don't log 0 jobs
+                        if active_jobs > 0:
                             logger.info(f"Scheduler running: {active_jobs} active jobs scheduled")
                         
                     # Use wait instead of sleep to allow immediate shutdown

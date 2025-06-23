@@ -92,6 +92,8 @@ def suppress_noisy_logging():
     logging.getLogger("discord").setLevel(logging.WARNING)
     logging.getLogger("discord.client").setLevel(logging.WARNING)
     logging.getLogger("discord.gateway").setLevel(logging.WARNING)
+    # Suppress debug logging from schedule library to reduce "Running job" spam
+    logging.getLogger("schedule").setLevel(logging.WARNING)
 
 def set_console_log_level(level):
     """

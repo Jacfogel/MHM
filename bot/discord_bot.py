@@ -274,7 +274,6 @@ class DiscordBot(BaseChannel):
             while time.time() - start_time < timeout:
                 try:
                     result = self._result_queue.get_nowait()
-                    logger.info(f"Discord message sent successfully to {recipient}")
                     return result
                 except queue.Empty:
                     time.sleep(0.1)

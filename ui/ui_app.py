@@ -802,6 +802,14 @@ class MHMManagerUI:
             original_user = UserContext().get_user_id()
             UserContext().set_user_id(self.current_user_id)
             
+            # Load the user's full data to get internal_username and other details
+            user_info = core.utils.get_user_info(self.current_user_id)
+            if user_info:
+                UserContext().set_internal_username(user_info.get('internal_username', ''))
+                UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+                # Load the full user data into UserContext
+                UserContext().load_user_data(self.current_user_id)
+            
             # Get user categories
             categories = core.utils.get_user_preferences(self.current_user_id).get('categories', [])
             
@@ -828,6 +836,7 @@ class MHMManagerUI:
             # Restore original user context
             if 'original_user' in locals() and original_user:
                 UserContext().set_user_id(original_user)
+                UserContext().load_user_data(original_user)
     
     def open_message_editor(self, parent_window, category):
         """Open the message editing window for a specific category"""
@@ -850,6 +859,14 @@ class MHMManagerUI:
             # Temporarily set the user context for editing
             original_user = UserContext().get_user_id()
             UserContext().set_user_id(self.current_user_id)
+            
+            # Load the user's full data to get internal_username and other details
+            user_info = core.utils.get_user_info(self.current_user_id)
+            if user_info:
+                UserContext().set_internal_username(user_info.get('internal_username', ''))
+                UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+                # Load the full user data into UserContext
+                UserContext().load_user_data(self.current_user_id)
             
             # Get user categories
             categories = core.utils.get_user_preferences(self.current_user_id).get('categories', [])
@@ -877,6 +894,7 @@ class MHMManagerUI:
             # Restore original user context
             if 'original_user' in locals() and original_user:
                 UserContext().set_user_id(original_user)
+                UserContext().load_user_data(original_user)
     
     def open_schedule_editor(self, parent_window, category):
         """Open the schedule editing window for a specific category"""

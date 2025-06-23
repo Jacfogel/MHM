@@ -282,9 +282,9 @@ class MHMService:
                     
                     time.sleep(2)  # Sleep for 2 seconds
                 
-                # Log heartbeat every 2 minutes (every 2 loop iterations)
+                # Log heartbeat every 10 minutes instead of every 2 minutes to reduce log spam
                 loop_minutes += 1
-                if loop_minutes % 2 == 0:
+                if loop_minutes % 10 == 0:
                     logger.info(f"Service running normally ({loop_minutes} minutes uptime)")
                     
         except KeyboardInterrupt:

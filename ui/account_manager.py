@@ -98,8 +98,26 @@ def save_geometry_and_close(window, parent, window_attr_name):
     window.destroy()
 
 def refresh_window(window, setup_func, parent, category, scheduler_manager):
-    """Refreshes the given window by re-running the setup function."""
-    setup_func(parent, category, scheduler_manager)
+    """Refreshes the given window by clearing and rebuilding the content."""
+    try:
+        # Clear all existing widgets in the window
+        for widget in window.winfo_children():
+            widget.destroy()
+        
+        # Rebuild the window content by calling the display function directly
+        if setup_func == setup_view_edit_schedule_window:
+            load_and_display_schedule(window, parent, category, scheduler_manager)
+        elif setup_func == setup_view_edit_messages_window:
+            load_and_display_messages(window, category)
+        else:
+            # Fallback to the original method
+            setup_func(parent, category, scheduler_manager)
+            
+        logger.debug(f"Successfully refreshed window for category {category}")
+    except Exception as e:
+        logger.error(f"Error refreshing window: {e}", exc_info=True)
+        # Fallback to the original method if refresh fails
+        setup_func(parent, category, scheduler_manager)
 
 # Initialize stacks for storing deleted items
 deleted_message_stacks = {}
@@ -586,12 +604,19 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
 
     def delete_period(period):
         """Deletes a schedule period and updates the data file."""
-        if period in schedule_data:
+        user_id = UserContext().get_user_id()
+        
+        # Get fresh schedule data instead of relying on captured data from closure
+        current_schedule_data = core.utils.get_schedule_time_periods(user_id, category)
+        
+        if period in current_schedule_data:
             # First, update the active status explicitly before deletion
-            period_data = schedule_data[period]
-            period_data['active'] = entries[period]['active_var'].get() == 1  # Update the internal status
+            period_data = current_schedule_data[period]
+            # Get the active status from the UI entry if it exists
+            if period in entries:
+                period_data['active'] = entries[period]['active_var'].get() == 1
 
-            if len(schedule_data) <= 1:
+            if len(current_schedule_data) <= 1:
                 messagebox.showerror("Error", "You must have at least one schedule period.")
                 return
 
@@ -610,6 +635,9 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             except Exception as e:
                 logger.error(f"Error deleting schedule period: {e}", exc_info=True)
                 messagebox.showerror("Error", f"Failed to delete schedule period: {e}")
+        else:
+            logger.error(f"Period '{period}' not found in category '{category}' for user {user_id}.")
+            messagebox.showerror("Error", f"Period '{period}' not found. The schedule may have been modified.")
 
     def update_period_active_status(period, var, category):
         """Updates the active status of a schedule period."""
@@ -617,9 +645,14 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
         is_active = var.get() == 1
 
         try:
-            # Update the status in the schedule_data directly
-            if period in schedule_data:
-                schedule_data[period]['active'] = is_active
+            # Get fresh schedule data instead of relying on captured data from closure
+            current_schedule_data = core.utils.get_schedule_time_periods(user_id, category)
+            
+            # Check if the period still exists in the current data
+            if period not in current_schedule_data:
+                logger.error(f"Period '{period}' not found in category '{category}' for user {user_id}.")
+                messagebox.showerror("Error", f"Period '{period}' not found. The schedule may have been modified.")
+                return
 
             core.utils.set_schedule_period_active(user_id, category, period, is_active)
             logger.info(f"Period '{period}' in category '{category}' set to {'active' if is_active else 'inactive'}.")
@@ -657,6 +690,10 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
                 category_schedules[period] = times  # Use the data from the stack
 
                 core.utils.save_user_info_data(user_info, user_id)
+                
+                # Clear the cache for this user/category
+                core.utils.clear_schedule_periods_cache(user_id, category)
+                
                 logger.info(f"Restored schedule period for user {user_id}, category {category}, period {period} with data: {times}")
 
                 # Refresh the schedule window to reflect the restored period
@@ -682,10 +719,15 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
         else:
             parent.undo_button['state'] = 'disabled'
 
-    def validate_and_save_period(category, name, start, end, schedule_data, scheduler_manager, refresh=True):
+    def validate_and_save_period(category, name, start, end, scheduler_manager, refresh=True):
         """Validates and saves a schedule period."""
+        user_id = UserContext().get_user_id()
+        
         try:
-            if name in schedule_data:
+            # Get fresh schedule data to check if period exists
+            current_schedule_data = core.utils.get_schedule_time_periods(user_id, category)
+            
+            if name in current_schedule_data:
                 core.utils.edit_schedule_period(category, name, start, end, scheduler_manager)
             else:
                 core.utils.add_schedule_period(category, name, start, end, scheduler_manager)
@@ -764,18 +806,22 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             start = new_start_entry.get()
             end = new_end_entry.get()
 
+            # Get fresh schedule data to check if period exists
+            user_id = UserContext().get_user_id()
+            current_schedule_data = core.utils.get_schedule_time_periods(user_id, category)
+
             # Check if the period name already exists in the schedule
-            if name in schedule_data:
+            if name in current_schedule_data:
                 response = messagebox.askyesno("Name Exists", f"A period named '{name}' already exists. Would you like to edit it?")
                 if response:
-                    if validate_and_save_period(category, name, start, end, schedule_data, scheduler_manager):
+                    if validate_and_save_period(category, name, start, end, scheduler_manager):
                         messagebox.showinfo("Updated", "Period updated successfully.")
                         new_period_frame.destroy()
                 else:
                     messagebox.showinfo("Change Name", "Please change the name of the period.")
             else:
                 # Proceed to validate and save the new period
-                if validate_and_save_period(category, name, start, end, schedule_data, scheduler_manager):
+                if validate_and_save_period(category, name, start, end, scheduler_manager):
                     messagebox.showinfo("Added", "New period added successfully.")
                     new_period_frame.destroy()
 
@@ -798,7 +844,7 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             # Check if the current period data has changed from the original
             if start_time_str != original_times[period]['start'] or end_time_str != original_times[period]['end']:
                 # Use the validate_and_save_period function to process each changed period
-                if validate_and_save_period(category, period, start_time_str, end_time_str, schedule_data, scheduler_manager, refresh=False):
+                if validate_and_save_period(category, period, start_time_str, end_time_str, scheduler_manager, refresh=False):
                     updated = True  # Mark as updated if any period was successfully processed
 
         if updated:
@@ -1140,14 +1186,16 @@ def setup_category_management_window(parent, user_id):
         messagebox.showerror("Error", f"Failed to load category management: {e}")
         category_window.destroy()
 
-def setup_checkin_management_window(parent, user_id):
-    """Opens a window to manage user's check-in preferences."""
-    logger.info(f"Opening check-in management for user {user_id}")
+def setup_checkin_management_window(root, user_id):
+    """Set up the check-in management window for a specific user"""
+    # Removed duplicate logging - ui_app.py already logs this action
     
-    checkin_window = Toplevel(parent)
+    # Create a new window
+    checkin_window = tk.Toplevel(root)
     checkin_window.title(f"Check-in Settings - {user_id}")
-    checkin_window.geometry("650x650")
-    
+    checkin_window.geometry("500x400")
+    checkin_window.resizable(True, True)
+
     try:
         user_info = core.utils.get_user_info(user_id)
         current_checkin_prefs = user_info.get('preferences', {}).get('checkins', {})
