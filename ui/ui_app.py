@@ -23,6 +23,7 @@ from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_
 from user.user_context import UserContext
 import core.utils
 from tkinter import ttk
+from core.config import BASE_DATA_DIR, MESSAGES_BY_CATEGORY_DIR_PATH, USER_INFO_DIR_PATH
 
 class ServiceManager:
     """Manages the MHM backend service process"""
@@ -484,7 +485,7 @@ class MHMManagerUI:
             text_widget.insert('end', f"✓ Total Users: {len(user_ids)}\n")
             
             # Check data directories
-            required_dirs = ['data', 'data/messages', 'data/user_info']
+            required_dirs = [BASE_DATA_DIR, MESSAGES_BY_CATEGORY_DIR_PATH, USER_INFO_DIR_PATH]
             for dir_path in required_dirs:
                 exists = os.path.exists(dir_path)
                 status = "✓" if exists else "✗"
@@ -494,9 +495,9 @@ class MHMManagerUI:
             text_widget.insert('end', "\nChecking for common issues...\n")
             
             # Check for orphaned message files
-            if os.path.exists('data/messages'):
+            if os.path.exists(MESSAGES_BY_CATEGORY_DIR_PATH):
                 orphaned_files = 0
-                for root, dirs, files in os.walk('data/messages'):
+                for root, dirs, files in os.walk(MESSAGES_BY_CATEGORY_DIR_PATH):
                     for file in files:
                         if file.endswith('.json'):
                             # Extract user_id from filename

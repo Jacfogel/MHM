@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
 from core.logger import get_logger
+from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
 logger = get_logger(__name__)
 
@@ -22,7 +23,7 @@ def get_script_dir():
 
 def cleanup_test_users():
     """Remove test user directories"""
-    users_dir = get_script_dir() / "data" / "users"
+    users_dir = Path(USER_INFO_DIR_PATH)
     
     # Test users to remove (based on the names in your list)
     test_users = [
@@ -64,7 +65,7 @@ def cleanup_backup_files():
     
     # Directories to search
     search_dirs = [
-        root_dir / "data",
+        Path(BASE_DATA_DIR),
         root_dir / "scripts"
     ]
     
@@ -167,7 +168,7 @@ def main():
         
         print("\n✅ Cleanup completed successfully!")
         print("\nYour MHM installation is now cleaner:")
-        print("• Test users removed from data/users/")
+        print(f"• Test users removed from {USER_INFO_DIR_PATH}/")
         print("• Migration and testing backup files removed")
         print("• Obsolete scripts removed from scripts/")
         print("\nOnly your real user data and active scripts remain.")
