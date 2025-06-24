@@ -8,7 +8,7 @@ A personal mental health and wellness assistant designed to support individuals 
 - **Multi-Channel Communication**: Discord, Email, and Telegram support
 - **AI-Powered Chat Responses**: Contextual mental health support using local LLM (LM Studio integration)
 - **Automated Messaging**: Scheduled delivery of pre-written messages across categories
-- **Basic Daily Check-ins**: Simple mood, energy, and wellness tracking
+- **Discord Daily Check-ins**: Guided prompts for mood, breakfast, energy, and basic self-care (use `!dailycheckin`)
 - **Privacy-First Design**: All personal data stays on your local machine
 - **Multi-User Support**: Manage multiple users from a single admin interface
 - **Service Architecture**: Background service with comprehensive admin panel
@@ -178,6 +178,10 @@ Set up automated message delivery:
 - **Progress Analytics**: Limited wellness tracking and insights
 - **AI Dependency**: Best features require LM Studio setup (though system works without it)
 
+## ➡️ Project Direction
+
+The immediate goal is a dependable Discord assistant that prompts daily check-ins and provides encouraging AI chat. Long term plans include a richer task and reminder system, deeper AI integration, and easier mobile/voice access — all while keeping personal data private and the setup lightweight.
+
 ## 🤝 Contributing
 
 This is a personal mental health management system. While the code is available for reference, please:
@@ -204,9 +208,12 @@ See `requirements.txt` for full dependencies. Key requirements:
 
 This project is for personal use. Please respect privacy and mental health data sensitivity when forking or adapting this code.
 
-## �� To Do / Consider
+## To Do / Consider
 
 - Refactor user preference handling to consistently use the `UserPreferences` class for all preference operations, rather than direct utility function calls. This would improve encapsulation and future maintainability.
+- Expand Discord check-ins with additional prompts (sleep, hydration, daily goals).
+- Improve the task/reminder framework for better scheduling and follow-up support.
+- Experiment with deeper AI assistant features and explore voice or mobile access.
 
 ---
 

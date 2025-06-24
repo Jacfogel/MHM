@@ -1,4 +1,6 @@
 # Codex Agent Guidelines
 
 - If you add new Python dependencies, update `requirements.txt`.
-- When adding new features or making changes, briefly document them in `README.md` or other relevant documentation.
+- Document feature changes or bug fixes in `README.md` or other relevant docs.
+- Record notable development milestones in `IMPROVEMENTS.md` using the existing format.
+- Keep instructions focused on the current primary workflow (Discord daily check-ins and local AI chat).
