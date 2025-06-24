@@ -870,13 +870,13 @@ def setup_communication_settings_window(parent, user_id):
     settings_window.geometry("450x500")
     
     try:
-        user_info = core.utils.get_user_info(user_id)
-        current_service = user_info.get('preferences', {}).get('messaging_service', 'email')
-        
-        # Get existing contact info
-        current_email = user_info.get('email', '')
-        current_phone = user_info.get('phone', '')
-        current_discord_id = user_info.get('preferences', {}).get('discord_user_id', '')
+        # Load preferences and profile separately for accuracy
+        preferences = core.utils.get_user_preferences(user_id)
+        profile = core.utils.load_user_info_data(user_id)
+        current_service = preferences.get('messaging_service', 'email')
+        current_email = profile.get('email', '')
+        current_phone = profile.get('phone', '')
+        current_discord_id = preferences.get('discord_user_id', '')
         
         tk.Label(settings_window, text="Communication Channel Settings", font=("Arial", 14, "bold")).pack(pady=10)
         
@@ -997,12 +997,13 @@ def setup_communication_settings_window(parent, user_id):
             
             try:
                 # Update user preferences and contact info
-                user_info['preferences']['messaging_service'] = new_service
-                user_info['email'] = new_email
-                user_info['phone'] = new_phone
-                user_info['preferences']['discord_user_id'] = new_discord_id
-                
-                core.utils.save_user_info_data(user_info, user_id)
+                preferences['messaging_service'] = new_service
+                preferences['discord_user_id'] = new_discord_id
+                profile['email'] = new_email
+                profile['phone'] = new_phone
+                # Save both preferences and profile
+                core.utils.save_json_data(preferences, core.utils.get_user_file_path(user_id, 'preferences'))
+                core.utils.save_json_data(profile, core.utils.get_user_file_path(user_id, 'profile'))
                 logger.info(f"Updated communication settings for user {user_id}: service={new_service}, email={bool(new_email)}, phone={bool(new_phone)}, discord={bool(new_discord_id)}")
                 
                 # Show detailed feedback about what changed
@@ -1034,8 +1035,8 @@ def setup_category_management_window(parent, user_id):
     category_window.geometry("500x400")
     
     try:
-        user_info = core.utils.get_user_info(user_id)
-        current_categories = user_info.get('preferences', {}).get('categories', [])
+        preferences = core.utils.get_user_preferences(user_id)
+        current_categories = preferences.get('categories', [])
         available_categories = core.utils.get_message_categories()
         
         tk.Label(category_window, text="Manage Categories", font=("Arial", 14, "bold")).pack(pady=10)
@@ -1145,12 +1146,12 @@ def setup_category_management_window(parent, user_id):
                 removed_categories = original_set - new_set
                 
                 # Update user preferences
-                if 'preferences' not in user_info:
-                    user_info['preferences'] = {}
-                user_info['preferences']['categories'] = selected_categories
+                if 'preferences' not in preferences:
+                    preferences['preferences'] = {}
+                preferences['preferences']['categories'] = selected_categories
                 
                 # Save changes
-                core.utils.save_user_info_data(user_info, user_id)
+                core.utils.save_user_info_data(preferences, user_id)
                 
                 # Create message files for new categories
                 for category in added_categories:
@@ -1197,9 +1198,8 @@ def setup_checkin_management_window(root, user_id):
     checkin_window.resizable(True, True)
 
     try:
-        user_info = core.utils.get_user_info(user_id)
-        current_checkin_prefs = user_info.get('preferences', {}).get('checkins', {})
-        
+        preferences = core.utils.get_user_preferences(user_id)
+        current_checkin_prefs = preferences.get('checkins', {})
         # Default check-in preferences if none exist
         if not current_checkin_prefs:
             current_checkin_prefs = {
@@ -1445,12 +1445,12 @@ def setup_checkin_management_window(root, user_id):
                     return
                 
                 # Update user preferences
-                if 'preferences' not in user_info:
-                    user_info['preferences'] = {}
-                user_info['preferences']['checkins'] = new_checkin_prefs
+                if 'preferences' not in preferences:
+                    preferences['preferences'] = {}
+                preferences['preferences']['checkins'] = new_checkin_prefs
                 
                 # Save changes
-                core.utils.save_user_info_data(user_info, user_id)
+                core.utils.save_user_info_data(preferences, user_id)
                 
                 # Show confirmation with details of what changed
                 enabled_count = sum(1 for var in question_vars.values() if var.get() == 1)

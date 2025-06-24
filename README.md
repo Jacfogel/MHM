@@ -204,6 +204,10 @@ See `requirements.txt` for full dependencies. Key requirements:
 
 This project is for personal use. Please respect privacy and mental health data sensitivity when forking or adapting this code.
 
+## �� To Do / Consider
+
+- Refactor user preference handling to consistently use the `UserPreferences` class for all preference operations, rather than direct utility function calls. This would improve encapsulation and future maintainability.
+
 ---
 
 **Note**: This system is designed to supplement, not replace, professional mental health care. Always consult with healthcare providers for serious mental health concerns. 
