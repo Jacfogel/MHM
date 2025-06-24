@@ -1,11 +1,12 @@
 # Mental Health Management (MHM) System
 
+This project began as a beginner programming exercise with help from ChatGPT and Cursor. It is mainly for the author's personal use to encourage self-care and task switching. Discord is the primary communication channel, and future versions aim to become a more capable assistant.
 A personal mental health and wellness assistant designed to support individuals with ADHD, depression, anxiety, and other mental health challenges through automated messaging, basic check-ins, and AI-powered contextual chat responses.
 
 ## 🌟 Current Features
 
 ### ✅ Fully Implemented
-- **Multi-Channel Communication**: Discord, Email, and Telegram support
+- **Multi-Channel Communication**: Discord is the main active channel, with optional Email and Telegram support
 - **AI-Powered Chat Responses**: Contextual mental health support using local LLM (LM Studio integration)
 - **Automated Messaging**: Scheduled delivery of pre-written messages across categories
 - **Basic Daily Check-ins**: Simple mood, energy, and wellness tracking
@@ -204,10 +205,11 @@ See `requirements.txt` for full dependencies. Key requirements:
 
 This project is for personal use. Please respect privacy and mental health data sensitivity when forking or adapting this code.
 
-## �� To Do / Consider
+## 💡 Future Improvements
 
-- Refactor user preference handling to consistently use the `UserPreferences` class for all preference operations, rather than direct utility function calls. This would improve encapsulation and future maintainability.
-
+- Refactor user preference handling to consistently use the `UserPreferences` class for all preference operations.
+- Expand Discord check-ins with more interactive prompts and scheduling features.
+- Explore deeper AI integration for personalized assistance.
 ---
 
 **Note**: This system is designed to supplement, not replace, professional mental health care. Always consult with healthcare providers for serious mental health concerns. 
