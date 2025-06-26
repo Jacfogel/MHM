@@ -1,4 +1,6 @@
 # MHM System Improvements
+This log tracks recent updates. See README.md for planned features.
+
 
 ## 🗓️ Recent Changes
 
