@@ -44,6 +44,7 @@ class UserContext:
     def save_user_data(self, user_id):
         """
         Saves user data using the updated utils functions that support new file structure.
+        WARNING: Only the flat preferences dict is saved to preferences.json. Always load, update, and save the full dict to avoid data loss.
         
         Args:
             user_id (str): The user ID whose data needs to be saved.
@@ -126,6 +127,7 @@ class UserContext:
     def set_preference(self, key, value):
         """
         Sets a user preference in the user_data dictionary.
+        WARNING: Always update the full preferences dict and save the whole thing, not just a single key, to avoid overwriting other preferences.
         
         Args:
             key (str): The preference key to be set.

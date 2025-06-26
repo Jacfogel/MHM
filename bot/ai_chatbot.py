@@ -230,15 +230,6 @@ class AIChatBotSingleton:
         
         name_prefix = f"{user_name}, " if user_name else ""
         
-        # Mental health and crisis keywords
-        crisis_keywords = ['suicide', 'kill myself', 'end it all', 'want to die', 'no point living']
-        urgent_keywords = ['crisis', 'emergency', 'help me', 'desperate', 'can\'t cope']
-        
-        if any(keyword in prompt_lower for keyword in crisis_keywords + urgent_keywords):
-            return (f"{name_prefix}I'm concerned about what you're sharing. Please reach out to a mental health professional, "
-                   f"crisis hotline, or emergency services immediately. You don't have to go through this alone. "
-                   f"In the US: 988 Suicide & Crisis Lifeline. Your wellbeing matters.")
-        
         # Mood and mental health inquiries
         mood_keywords = ['depressed', 'anxious', 'sad', 'worried', 'stressed', 'overwhelmed']
         if any(keyword in prompt_lower for keyword in mood_keywords):

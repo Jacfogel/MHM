@@ -301,7 +301,15 @@ def load_user_info_data(user_id):
         raise
 
 def save_user_info_data(user_info, user_id):
-    """Save user info data to appropriate file structure."""
+    """
+    Save user info data to appropriate file structure.
+    - profile.json: core info only (no preferences/schedules inside)
+    - preferences.json: FLAT dict of preferences (do NOT nest under 'preferences' key)
+    - schedules.json: schedules dict
+    
+    WARNING: Only save the FLAT preferences dict to preferences.json. Do NOT save the whole user_data or nest under 'preferences'.
+    This prevents data loss and ensures compatibility with all code that loads preferences.
+    """
     if user_id is None:
         logger.error("save_user_info_data called with None user_id")
         return

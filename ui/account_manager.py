@@ -3,10 +3,12 @@
 import tkinter as tk
 from tkinter import messagebox, Toplevel, Button, Entry, Checkbutton, IntVar, Frame, font, ttk
 import uuid
+from datetime import datetime
 
 import core.utils
 from core.logger import get_logger
 from user.user_context import UserContext
+from core.checkin_analytics import checkin_analytics
 
 logger = get_logger(__name__)
 
@@ -871,7 +873,15 @@ def setup_communication_settings_window(parent, user_id):
     
     try:
         # Load preferences and profile separately for accuracy
-        preferences = core.utils.get_user_preferences(user_id)
+        user_data = core.utils.load_user_info_data(user_id)
+        if not user_data:
+            user_data = {}
+        
+        # Ensure preferences structure exists
+        if 'preferences' not in user_data:
+            user_data['preferences'] = {}
+        
+        preferences = user_data.get('preferences', {})
         profile = core.utils.load_user_info_data(user_id)
         current_service = preferences.get('messaging_service', 'email')
         current_email = profile.get('email', '')
@@ -1035,7 +1045,15 @@ def setup_category_management_window(parent, user_id):
     category_window.geometry("500x400")
     
     try:
-        preferences = core.utils.get_user_preferences(user_id)
+        user_data = core.utils.load_user_info_data(user_id)
+        if not user_data:
+            user_data = {}
+        
+        # Ensure preferences structure exists
+        if 'preferences' not in user_data:
+            user_data['preferences'] = {}
+        
+        preferences = user_data.get('preferences', {})
         current_categories = preferences.get('categories', [])
         available_categories = core.utils.get_message_categories()
         
@@ -1198,7 +1216,15 @@ def setup_checkin_management_window(root, user_id):
     checkin_window.resizable(True, True)
 
     try:
-        preferences = core.utils.get_user_preferences(user_id)
+        user_data = core.utils.load_user_info_data(user_id)
+        if not user_data:
+            user_data = {}
+        
+        # Ensure preferences structure exists
+        if 'preferences' not in user_data:
+            user_data['preferences'] = {}
+        
+        preferences = user_data.get('preferences', {})
         current_checkin_prefs = preferences.get('checkins', {})
         # Default check-in preferences if none exist
         if not current_checkin_prefs:
@@ -1444,13 +1470,20 @@ def setup_checkin_management_window(root, user_id):
                     checkin_window.destroy()
                     return
                 
-                # Update user preferences
-                if 'preferences' not in preferences:
-                    preferences['preferences'] = {}
-                preferences['preferences']['checkins'] = new_checkin_prefs
+                # Load full user data to preserve categories and schedules
+                user_data = core.utils.load_user_info_data(user_id)
+                if not user_data:
+                    user_data = {}
+                
+                # Ensure preferences structure exists
+                if 'preferences' not in user_data:
+                    user_data['preferences'] = {}
+                
+                # Update only the check-in preferences
+                user_data['preferences']['checkins'] = new_checkin_prefs
                 
                 # Save changes
-                core.utils.save_user_info_data(preferences, user_id)
+                core.utils.save_user_info_data(user_data, user_id)
                 
                 # Show confirmation with details of what changed
                 enabled_count = sum(1 for var in question_vars.values() if var.get() == 1)
@@ -1495,4 +1528,187 @@ def setup_checkin_management_window(root, user_id):
     except Exception as e:
         logger.error(f"Error loading check-in management: {e}")
         messagebox.showerror("Error", f"Failed to load check-in management: {e}")
-        checkin_window.destroy() 
+        checkin_window.destroy()
+
+def setup_checkin_analytics_window(root, user_id):
+    """Set up the check-in analytics window for a specific user"""
+    # Create a new window
+    analytics_window = tk.Toplevel(root)
+    analytics_window.title(f"Check-in Analytics - {user_id}")
+    analytics_window.geometry("800x600")
+    analytics_window.resizable(True, True)
+
+    try:
+        # Create main frame with scrollbar
+        main_frame = tk.Frame(analytics_window)
+        main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # Add scrollbar
+        canvas = tk.Canvas(main_frame)
+        scrollbar = tk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Title
+        title_label = tk.Label(scrollable_frame, text="Check-in Analytics & Insights", 
+                              font=("Arial", 16, "bold"))
+        title_label.pack(pady=(0, 20))
+        
+        # Period selection
+        period_frame = tk.LabelFrame(scrollable_frame, text="Analysis Period", font=("Arial", 10, "bold"))
+        period_frame.pack(fill="x", pady=(0, 20))
+        
+        period_var = tk.StringVar(value="30")
+        tk.Label(period_frame, text="Days to analyze:").pack(side="left", padx=10, pady=5)
+        for days in ["7", "14", "30", "60"]:
+            tk.Radiobutton(period_frame, text=f"{days} days", variable=period_var, 
+                          value=days).pack(side="left", padx=10, pady=5)
+        
+        # Results area
+        results_frame = tk.LabelFrame(scrollable_frame, text="Analytics Results", font=("Arial", 10, "bold"))
+        results_frame.pack(fill="both", expand=True, pady=(0, 20))
+        
+        # Create text widget for results
+        results_text = tk.Text(results_frame, wrap="word", height=20, font=("Consolas", 9))
+        results_scrollbar = tk.Scrollbar(results_frame, orient="vertical", command=results_text.yview)
+        results_text.configure(yscrollcommand=results_scrollbar.set)
+        
+        results_text.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        results_scrollbar.pack(side="right", fill="y")
+        
+        def run_analytics():
+            """Run analytics and display results"""
+            try:
+                days = int(period_var.get())
+                results_text.delete(1.0, tk.END)
+                results_text.insert(tk.END, f"Running analytics for {days} days...\n\n")
+                analytics_window.update()
+                
+                # Run all analytics
+                analyses = {}
+                
+                # Mood trends
+                results_text.insert(tk.END, "📊 Analyzing mood trends...\n")
+                mood_analysis = checkin_analytics.get_mood_trends(user_id, days)
+                analyses['mood'] = mood_analysis
+                
+                # Habit analysis
+                results_text.insert(tk.END, "📈 Analyzing habits...\n")
+                habit_analysis = checkin_analytics.get_habit_analysis(user_id, days)
+                analyses['habits'] = habit_analysis
+                
+                # Sleep analysis
+                results_text.insert(tk.END, "😴 Analyzing sleep patterns...\n")
+                sleep_analysis = checkin_analytics.get_sleep_analysis(user_id, days)
+                analyses['sleep'] = sleep_analysis
+                
+                # Wellness score
+                results_text.insert(tk.END, "🌟 Calculating wellness score...\n")
+                wellness_score = checkin_analytics.get_wellness_score(user_id, min(days, 7))
+                analyses['wellness'] = wellness_score
+                
+                # Clear and display results
+                results_text.delete(1.0, tk.END)
+                display_analytics_results(results_text, analyses, days)
+                
+            except Exception as e:
+                logger.error(f"Error running analytics for user {user_id}: {e}")
+                results_text.delete(1.0, tk.END)
+                results_text.insert(tk.END, f"Error running analytics: {e}")
+        
+        def display_analytics_results(text_widget, analyses, days):
+            """Display formatted analytics results"""
+            text_widget.insert(tk.END, f"📊 CHECK-IN ANALYTICS REPORT\n")
+            text_widget.insert(tk.END, f"Period: Last {days} days\n")
+            text_widget.insert(tk.END, f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            text_widget.insert(tk.END, "=" * 60 + "\n\n")
+            
+            # Wellness Score (most important)
+            wellness = analyses.get('wellness', {})
+            if 'error' not in wellness:
+                text_widget.insert(tk.END, "🌟 WELLNESS SCORE\n")
+                text_widget.insert(tk.END, f"Overall Score: {wellness.get('overall_score', 'N/A')}/100 ({wellness.get('score_level', 'N/A')})\n")
+                text_widget.insert(tk.END, f"Mood Score: {wellness.get('mood_score', 'N/A')}/100\n")
+                text_widget.insert(tk.END, f"Habit Score: {wellness.get('habit_score', 'N/A')}/100\n")
+                text_widget.insert(tk.END, f"Sleep Score: {wellness.get('sleep_score', 'N/A')}/100\n")
+                
+                recommendations = wellness.get('recommendations', [])
+                if recommendations:
+                    text_widget.insert(tk.END, "\n💡 Recommendations:\n")
+                    for rec in recommendations:
+                        text_widget.insert(tk.END, f"• {rec}\n")
+                text_widget.insert(tk.END, "\n")
+            
+            # Mood Trends
+            mood = analyses.get('mood', {})
+            if 'error' not in mood:
+                text_widget.insert(tk.END, "😊 MOOD TRENDS\n")
+                text_widget.insert(tk.END, f"Average Mood: {mood.get('average_mood', 'N/A')}/5\n")
+                text_widget.insert(tk.END, f"Mood Trend: {mood.get('trend', 'N/A').title()}\n")
+                text_widget.insert(tk.END, f"Best Day: {mood.get('best_day', {}).get('date', 'N/A')} (Mood: {mood.get('best_day', {}).get('mood', 'N/A')})\n")
+                text_widget.insert(tk.END, f"Worst Day: {mood.get('worst_day', {}).get('date', 'N/A')} (Mood: {mood.get('worst_day', {}).get('mood', 'N/A')})\n")
+                text_widget.insert(tk.END, "\n")
+            
+            # Habit Analysis
+            habits = analyses.get('habits', {})
+            if 'error' not in habits:
+                text_widget.insert(tk.END, "📈 HABIT ANALYSIS\n")
+                text_widget.insert(tk.END, f"Overall Completion: {habits.get('overall_completion', 'N/A')}%\n\n")
+                
+                habit_stats = habits.get('habits', {})
+                for habit_key, habit_data in habit_stats.items():
+                    text_widget.insert(tk.END, f"{habit_data['name']}:\n")
+                    text_widget.insert(tk.END, f"  Completion: {habit_data['completion_rate']}% ({habit_data['status']})\n")
+                    text_widget.insert(tk.END, f"  Current Streak: {habit_data['current_streak']} days\n")
+                    text_widget.insert(tk.END, f"  Best Streak: {habit_data['best_streak']} days\n")
+                text_widget.insert(tk.END, "\n")
+            
+            # Sleep Analysis
+            sleep = analyses.get('sleep', {})
+            if 'error' not in sleep:
+                text_widget.insert(tk.END, "😴 SLEEP ANALYSIS\n")
+                text_widget.insert(tk.END, f"Average Hours: {sleep.get('average_hours', 'N/A')}\n")
+                text_widget.insert(tk.END, f"Average Quality: {sleep.get('average_quality', 'N/A')}/5\n")
+                text_widget.insert(tk.END, f"Good Sleep Days: {sleep.get('good_sleep_days', 'N/A')}\n")
+                text_widget.insert(tk.END, f"Poor Sleep Days: {sleep.get('poor_sleep_days', 'N/A')}\n")
+                text_widget.insert(tk.END, f"Sleep Consistency: {sleep.get('sleep_consistency', 'N/A')}%\n")
+                
+                recommendations = sleep.get('recommendations', [])
+                if recommendations:
+                    text_widget.insert(tk.END, "\n💡 Sleep Recommendations:\n")
+                    for rec in recommendations:
+                        text_widget.insert(tk.END, f"• {rec}\n")
+                text_widget.insert(tk.END, "\n")
+            
+            # Error handling
+            for analysis_name, analysis_data in analyses.items():
+                if 'error' in analysis_data:
+                    text_widget.insert(tk.END, f"❌ {analysis_name.upper()} ANALYSIS ERROR\n")
+                    text_widget.insert(tk.END, f"{analysis_data['error']}\n\n")
+        
+        # Buttons
+        button_frame = tk.Frame(scrollable_frame)
+        button_frame.pack(pady=10)
+        
+        tk.Button(button_frame, text="Run Analytics", command=run_analytics, 
+                 font=("Arial", 10, "bold")).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Close", command=analytics_window.destroy).pack(side="left", padx=5)
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Run initial analytics
+        run_analytics()
+        
+    except Exception as e:
+        logger.error(f"Error setting up analytics window for user {user_id}: {e}")
+        messagebox.showerror("Error", f"Failed to load analytics: {e}")
+        analytics_window.destroy() 

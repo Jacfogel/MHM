@@ -2,6 +2,21 @@
 
 ## 🗓️ Recent Changes
 
+### 2025-01-18 - Fixed Check-in Data Loss Issue
+- **Critical Bug Fix**: Fixed issue where updating check-in settings would erase user categories and schedules
+- **Root Cause**: `setup_checkin_management_window()` in `ui/account_manager.py` was loading only preferences instead of full user data
+- **Problem**: When saving check-in changes, the system would overwrite the entire user data with just preferences, losing categories and schedules
+- **Fix Applied**:
+  - Changed loading from `get_user_preferences()` to `load_user_info_data()` to preserve full user data
+  - Modified save logic to load full user data first, then update only check-in preferences
+  - Added proper data structure validation to ensure preferences exist before updating
+- **Data Restoration**: Manually restored user data for affected user (me581649-4533-4f13-9aeb-da8cb64b8342):
+  - Restored categories: `["health", "motivational"]`
+  - Restored check-in settings with 5 enabled questions
+  - Restored basic schedule periods for both categories
+- **Prevention**: Fixed the underlying code issue to prevent future data loss
+- **Impact**: Users can now safely update check-in settings without losing their message categories and schedules
+
 ### 2025-01-18 - Logging System Cleanup & Optimization (Updated)
 - **Duplicate Message Reduction**: Eliminated redundant and duplicate logging messages throughout the system
 - **UI Service Manager**: Removed duplicate "Start service requested" messages in `ui_app.py`
