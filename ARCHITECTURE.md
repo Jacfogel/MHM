@@ -1,8 +1,5 @@
 # MHM System Architecture
 
-## Overview
-MHM (Mental Health Management) is a modular, user-centric assistant for managing executive functioning, health, and motivation. The system is designed for extensibility, clarity, and robust data handling.
-
 ---
 
 ## Directory Structure & Key Modules
@@ -65,8 +62,3 @@ MHM (Mental Health Management) is a modular, user-centric assistant for managing
 - Always use the provided load/save functions for user data.
 - When adding new preferences, update the full dict and save it, never just a single key.
 - Document new data fields and update this file as needed.
-
----
-
-## Contact & Contribution
-- For questions or contributions, see the README or contact the project maintainer. 
