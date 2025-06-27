@@ -19,6 +19,9 @@ from core.logger import setup_logging, get_logger
 setup_logging()
 logger = get_logger(__name__)
 
+# Import configuration validation
+from core.config import validate_all_configuration, ConfigValidationError
+
 from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog
 from user.user_context import UserContext
 import core.utils
@@ -30,6 +33,41 @@ class ServiceManager:
     
     def __init__(self):
         self.service_process = None
+        
+    def validate_configuration_before_start(self):
+        """Validate configuration before attempting to start the service."""
+        try:
+            result = validate_all_configuration()
+            
+            if not result['valid']:
+                error_message = "Configuration validation failed:\n\n"
+                for error in result['errors']:
+                    error_message += f"• {error}\n"
+                
+                if result['warnings']:
+                    error_message += "\nWarnings:\n"
+                    for warning in result['warnings']:
+                        error_message += f"• {warning}\n"
+                
+                messagebox.showerror("Configuration Error", error_message)
+                return False
+            
+            if result['warnings']:
+                warning_message = "Configuration warnings:\n\n"
+                for warning in result['warnings']:
+                    warning_message += f"• {warning}\n"
+                warning_message += "\nThe service will start, but you may want to address these warnings."
+                messagebox.showwarning("Configuration Warnings", warning_message)
+            
+            if not result['available_channels']:
+                messagebox.showwarning("No Communication Channels", 
+                                     "No communication channels are configured. The service will start but won't be able to send messages.")
+            
+            return True
+            
+        except Exception as e:
+            messagebox.showerror("Configuration Error", f"Error validating configuration: {e}")
+            return False
         
     def is_service_running(self):
         """Check if the MHM service is running"""
@@ -65,6 +103,10 @@ class ServiceManager:
     def start_service(self):
         """Start the MHM backend service"""
         try:
+            # Validate configuration before starting
+            if not self.validate_configuration_before_start():
+                return False
+            
             is_running, pid = self.is_service_running()
             if is_running:
                 logger.debug(f"Service already running with PID {pid}")
@@ -298,6 +340,8 @@ class MHMManagerUI:
         # Admin menu
         admin_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Admin", menu=admin_menu)
+        admin_menu.add_command(label="Validate Configuration", command=self.validate_configuration)
+        admin_menu.add_separator()
         admin_menu.add_command(label="View All Users", command=self.view_all_users_summary)
         admin_menu.add_command(label="System Health Check", command=self.system_health_check)
     
@@ -395,6 +439,218 @@ class MHMManagerUI:
         except Exception as e:
             logger.error(f"Failed to force clean cache: {e}")
             messagebox.showerror("Error", f"Failed to clean cache: {e}")
+
+    def validate_configuration(self):
+        """Show detailed configuration validation report."""
+        try:
+            from core.config import validate_all_configuration
+            
+            result = validate_all_configuration()
+            
+            # Create validation report window
+            report_window = tk.Toplevel(self.root)
+            report_window.title("Configuration Validation Report")
+            report_window.geometry("700x600")
+            
+            # Main frame
+            main_frame = tk.Frame(report_window)
+            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+            
+            # Title
+            title_label = tk.Label(main_frame, text="Configuration Validation Report", 
+                                  font=('Arial', 16, 'bold'))
+            title_label.pack(pady=(0, 20))
+            
+            # Summary
+            summary_frame = tk.Frame(main_frame)
+            summary_frame.pack(fill='x', pady=(0, 20))
+            
+            summary_text = result['summary']
+            if result['valid']:
+                summary_color = 'green'
+                summary_icon = "✓"
+            else:
+                summary_color = 'red'
+                summary_icon = "✗"
+            
+            tk.Label(summary_frame, text=f"{summary_icon} {summary_text}", 
+                    font=('Arial', 12, 'bold'), fg=summary_color).pack()
+            
+            # Available channels
+            if result['available_channels']:
+                tk.Label(summary_frame, text=f"Available Channels: {', '.join(result['available_channels'])}", 
+                        font=('Arial', 10), fg='blue').pack(pady=(5, 0))
+            else:
+                tk.Label(summary_frame, text="No communication channels available", 
+                        font=('Arial', 10), fg='orange').pack(pady=(5, 0))
+            
+            # Create notebook for tabs
+            notebook = ttk.Notebook(main_frame)
+            notebook.pack(fill='both', expand=True)
+            
+            # Errors tab
+            if result['errors']:
+                errors_frame = tk.Frame(notebook)
+                notebook.add(errors_frame, text=f"Errors ({len(result['errors'])})")
+                
+                errors_text = tk.Text(errors_frame, wrap='word', height=10)
+                errors_scrollbar = tk.Scrollbar(errors_frame, orient='vertical', command=errors_text.yview)
+                errors_text.configure(yscrollcommand=errors_scrollbar.set)
+                
+                errors_text.pack(side='left', fill='both', expand=True)
+                errors_scrollbar.pack(side='right', fill='y')
+                
+                for i, error in enumerate(result['errors'], 1):
+                    errors_text.insert('end', f"{i}. {error}\n\n")
+                errors_text.config(state='disabled')
+            
+            # Warnings tab
+            if result['warnings']:
+                warnings_frame = tk.Frame(notebook)
+                notebook.add(warnings_frame, text=f"Warnings ({len(result['warnings'])})")
+                
+                warnings_text = tk.Text(warnings_frame, wrap='word', height=10)
+                warnings_scrollbar = tk.Scrollbar(warnings_frame, orient='vertical', command=warnings_text.yview)
+                warnings_text.configure(yscrollcommand=warnings_scrollbar.set)
+                
+                warnings_text.pack(side='left', fill='both', expand=True)
+                warnings_scrollbar.pack(side='right', fill='y')
+                
+                for i, warning in enumerate(result['warnings'], 1):
+                    warnings_text.insert('end', f"{i}. {warning}\n\n")
+                warnings_text.config(state='disabled')
+            
+            # Current Configuration tab
+            config_frame = tk.Frame(notebook)
+            notebook.add(config_frame, text="Current Configuration")
+            
+            config_text = tk.Text(config_frame, wrap='word', height=10)
+            config_scrollbar = tk.Scrollbar(config_frame, orient='vertical', command=config_text.yview)
+            config_text.configure(yscrollcommand=config_scrollbar.set)
+            
+            config_text.pack(side='left', fill='both', expand=True)
+            config_scrollbar.pack(side='right', fill='y')
+            
+            # Add current configuration values
+            from core.config import (
+                BASE_DATA_DIR, LOG_FILE_PATH, LOG_LEVEL, LM_STUDIO_BASE_URL, 
+                AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, USE_USER_SUBDIRECTORIES, 
+                AUTO_CREATE_USER_DIRS, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
+                EMAIL_SMTP_USERNAME, DISCORD_BOT_TOKEN
+            )
+            
+            config_values = [
+                ("Base Data Directory", BASE_DATA_DIR),
+                ("Log File", LOG_FILE_PATH),
+                ("Log Level", LOG_LEVEL),
+                ("LM Studio URL", LM_STUDIO_BASE_URL),
+                ("AI Timeout", f"{AI_TIMEOUT_SECONDS}s"),
+                ("Scheduler Interval", f"{SCHEDULER_INTERVAL}s"),
+                ("Use User Subdirectories", str(USE_USER_SUBDIRECTORIES)),
+                ("Auto Create User Dirs", str(AUTO_CREATE_USER_DIRS)),
+                ("Email SMTP Server", EMAIL_SMTP_SERVER or "Not configured"),
+                ("Email IMAP Server", EMAIL_IMAP_SERVER or "Not configured"),
+                ("Email Username", EMAIL_SMTP_USERNAME or "Not configured"),
+                ("Discord Bot Token", "Configured" if DISCORD_BOT_TOKEN else "Not configured"),
+            ]
+            
+            for name, value in config_values:
+                config_text.insert('end', f"{name}: {value}\n")
+            
+            config_text.config(state='disabled')
+            
+            # Buttons
+            button_frame = tk.Frame(main_frame)
+            button_frame.pack(fill='x', pady=(20, 0))
+            
+            if not result['valid']:
+                tk.Button(button_frame, text="Fix Configuration", 
+                         command=lambda: self.show_configuration_help(report_window)).pack(side='left', padx=5)
+            
+            tk.Button(button_frame, text="Close", 
+                     command=report_window.destroy).pack(side='right', padx=5)
+            
+        except Exception as e:
+            logger.error(f"Failed to show configuration validation: {e}")
+            messagebox.showerror("Error", f"Failed to validate configuration: {e}")
+
+    def show_configuration_help(self, parent_window):
+        """Show help for fixing configuration issues."""
+        help_window = tk.Toplevel(parent_window)
+        help_window.title("Configuration Help")
+        help_window.geometry("600x500")
+        
+        help_text = tk.Text(help_window, wrap='word', padx=20, pady=20)
+        help_scrollbar = tk.Scrollbar(help_window, orient='vertical', command=help_text.yview)
+        help_text.configure(yscrollcommand=help_scrollbar.set)
+        
+        help_text.pack(side='left', fill='both', expand=True)
+        help_scrollbar.pack(side='right', fill='y')
+        
+        help_content = """
+CONFIGURATION HELP
+
+To fix configuration issues, you need to set up environment variables. Create a .env file in the MHM root directory with the following variables:
+
+REQUIRED SETTINGS:
+=================
+
+1. COMMUNICATION CHANNELS (at least one required):
+   - For Email: EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
+   - For Discord: DISCORD_BOT_TOKEN
+
+2. AI CONFIGURATION:
+   - LM_STUDIO_BASE_URL (default: http://localhost:1234/v1)
+   - LM_STUDIO_API_KEY (default: lm-studio)
+   - LM_STUDIO_MODEL (default: deepseek-llm-7b-chat)
+
+OPTIONAL SETTINGS:
+=================
+
+- BASE_DATA_DIR (default: data)
+- LOG_FILE_PATH (default: app.log)
+- LOG_LEVEL (default: WARNING)
+- AI_TIMEOUT_SECONDS (default: 15)
+- SCHEDULER_INTERVAL (default: 60)
+- USE_USER_SUBDIRECTORIES (default: true)
+- AUTO_CREATE_USER_DIRS (default: true)
+
+EXAMPLE .env FILE:
+=================
+
+EMAIL_SMTP_SERVER=smtp.gmail.com
+EMAIL_IMAP_SERVER=imap.gmail.com
+EMAIL_SMTP_USERNAME=your-email@gmail.com
+EMAIL_SMTP_PASSWORD=your-app-password
+
+# OR for Discord:
+DISCORD_BOT_TOKEN=your-discord-bot-token
+
+# AI Configuration:
+LM_STUDIO_BASE_URL=http://localhost:1234/v1
+LM_STUDIO_API_KEY=lm-studio
+LM_STUDIO_MODEL=deepseek-llm-7b-chat
+
+# Optional settings:
+LOG_LEVEL=INFO
+AI_TIMEOUT_SECONDS=30
+SCHEDULER_INTERVAL=60
+
+SETUP INSTRUCTIONS:
+==================
+
+1. Create a .env file in the MHM root directory
+2. Add the required environment variables
+3. Restart the MHM application
+4. Run "Validate Configuration" again to check
+
+For detailed setup instructions, see the README.md file.
+"""
+        
+        help_text.insert('1.0', help_content)
+        help_text.config(state='disabled')
+        
+        tk.Button(help_window, text="Close", command=help_window.destroy).pack(pady=10)
 
     def view_all_users_summary(self):
         """Show a summary of all users in the system."""

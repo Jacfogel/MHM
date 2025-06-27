@@ -17,6 +17,9 @@ setup_logging()
 logger = get_logger(__name__)
 logger.debug("Logging setup successfully.")
 
+# Import configuration validation
+from core.config import validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError
+
 # Register channels BEFORE importing CommunicationManager
 from bot.channel_registry import register_all_channels
 register_all_channels()
@@ -39,6 +42,32 @@ class MHMService:
         self.reschedule_dedup = {}  # Track recent reschedules to prevent duplicates
         # Register atexit handler as backup shutdown method
         atexit.register(self.emergency_shutdown)
+        
+    def validate_configuration(self):
+        """Validate all configuration settings before starting the service."""
+        logger.info("Validating configuration...")
+        
+        try:
+            # Print configuration report for debugging
+            print_configuration_report()
+            
+            # Validate configuration and get available channels
+            available_channels = validate_and_raise_if_invalid()
+            
+            logger.info(f"Configuration validation passed. Available channels: {', '.join(available_channels)}")
+            return available_channels
+            
+        except ConfigValidationError as e:
+            logger.error("Configuration validation failed:")
+            for error in e.missing_configs:
+                logger.error(f"  ERROR: {error}")
+            for warning in e.warnings:
+                logger.warning(f"  WARNING: {warning}")
+            
+            raise InitializationError(f"Configuration validation failed: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error during configuration validation: {e}")
+            raise InitializationError(f"Configuration validation error: {e}")
         
     def initialize_paths(self):
         paths = [
@@ -185,6 +214,13 @@ class MHMService:
             # Check and fix logging BEFORE any async operations
             self.check_and_fix_logging()
 
+            # Step 0: Validate configuration BEFORE anything else
+            logger.info("Step 0: Validating configuration...")
+            available_channels = self.validate_configuration()
+            
+            if not available_channels:
+                raise InitializationError("No communication channels are available. Service cannot start without at least one configured channel.")
+
             # Automatic cache cleanup (only if needed)
             try:
                 from core.auto_cleanup import auto_cleanup_if_needed
@@ -195,6 +231,7 @@ class MHMService:
                 logger.warning(f"Automatic cache cleanup failed (non-critical): {e}")
 
             # Step 1: Initialize paths and check file access
+            logger.info("Step 1: Initializing paths and checking file access...")
             paths = self.initialize_paths()
             verify_file_access(paths)
 
