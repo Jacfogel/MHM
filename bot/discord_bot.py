@@ -13,7 +13,7 @@ from core.config import DISCORD_BOT_TOKEN
 from core.logger import get_logger
 from bot.conversation_manager import conversation_manager
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
-import core.utils
+from core.user_management import get_user_id_by_discord_user_id
 
 logger = get_logger(__name__)
 
@@ -184,7 +184,7 @@ class DiscordBot(BaseChannel):
 
             # Map Discord user ID to internal user ID
             discord_user_id = str(message.author.id)
-            internal_user_id = core.utils.get_user_id_by_discord_user_id(discord_user_id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
             if not internal_user_id:
                 await message.channel.send(
@@ -210,7 +210,7 @@ class DiscordBot(BaseChannel):
         async def dailycheckin_cmd(ctx):
             """Manually start the daily check-in flow (normally prompted automatically)."""
             discord_user_id = str(ctx.author.id)
-            internal_user_id = core.utils.get_user_id_by_discord_user_id(discord_user_id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
             if not internal_user_id:
                 await ctx.send(
@@ -228,7 +228,7 @@ class DiscordBot(BaseChannel):
         async def cancel_cmd(ctx):
             """Cancel the current flow (like daily check-in)."""
             discord_user_id = str(ctx.author.id)
-            internal_user_id = core.utils.get_user_id_by_discord_user_id(discord_user_id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
             if not internal_user_id:
                 await ctx.send("You don't have an active conversation to cancel.")

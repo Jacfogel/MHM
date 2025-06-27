@@ -7,10 +7,15 @@ from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelT
 from bot.channel_factory import ChannelFactory
 from core.logger import get_logger
 from user.user_context import UserContext
-import core.utils
 import random
 import time
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
+from core.service_utilities import wait_for_network
+from core.user_management import get_user_preferences
+from core.response_tracking import get_recent_daily_checkins
+from core.message_management import store_sent_message
+from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
+from core.file_operations import determine_file_path, load_json_data
 
 logger = get_logger(__name__)
 
@@ -290,7 +295,7 @@ class CommunicationManager:
             return False
 
         # Check network connectivity
-        if not core.utils.wait_for_network():
+        if not wait_for_network():
             logger.error("Network not available. Aborting message send.")
             raise MessageSendError("Network not available.")
         
@@ -516,7 +521,7 @@ class CommunicationManager:
             logger.error("User ID is not provided.")
             return
 
-        preferences = core.utils.get_user_preferences(user_id)
+        preferences = get_user_preferences(user_id)
         if not preferences:
             logger.error(f"User preferences not found for user {user_id}.")
             return
@@ -575,7 +580,7 @@ class CommunicationManager:
                 return False
             
             # Get the most recent check-in
-            recent_checkins = core.utils.get_recent_daily_checkins(user_id, limit=1)
+            recent_checkins = get_recent_daily_checkins(user_id, limit=1)
             
             if not recent_checkins:
                 # No previous check-ins, so it's time for one
@@ -666,7 +671,7 @@ class CommunicationManager:
 
             success = self.send_message_sync(messaging_service, recipient, message_to_send)
             if success:
-                core.utils.store_sent_message(user_id, category, message_id, message_to_send)
+                store_sent_message(user_id, category, message_id, message_to_send)
                 logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category}")
             else:
                 logger.error(f"Failed to send AI-generated message for user {user_id}")
@@ -677,9 +682,9 @@ class CommunicationManager:
     def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
         """Send a pre-defined message from the user's message library"""
         try:
-            matching_periods, valid_periods = core.utils.get_current_time_periods_with_validation(user_id, category)
-            file_path = core.utils.determine_file_path('messages', f'{category}/{user_id}')
-            data = core.utils.load_json_data(file_path)
+            matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
+            file_path = determine_file_path('messages', f'{category}/{user_id}')
+            data = load_json_data(file_path)
 
             if not data or 'messages' not in data:
                 logger.error(f"No messages found for category {category} and user {user_id}.")
@@ -687,7 +692,7 @@ class CommunicationManager:
 
             messages_to_send = [
                 msg for msg in data['messages']
-                if any(day in msg['days'] for day in core.utils.get_current_day_names())
+                if any(day in msg['days'] for day in get_current_day_names())
                 and any(period in msg['time_periods'] for period in matching_periods)
             ]
             
@@ -702,11 +707,11 @@ class CommunicationManager:
                 success = self.send_message_sync(messaging_service, recipient, message_to_send['message'])
                 
                 if success:
-                    core.utils.store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
+                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
                 else:
                     logger.warning(f"Message send returned False but may have still been delivered for user {user_id}, category {category}")
                     # Still store it since the message might have gone through
-                    core.utils.store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
+                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
                     
             except Exception as send_error:
                 logger.error(f"Exception during message send for user {user_id}, category {category}: {send_error}")

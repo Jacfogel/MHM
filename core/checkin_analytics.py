@@ -12,7 +12,7 @@ import statistics
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from core.logger import get_logger
-import core.utils
+from core.response_tracking import get_recent_daily_checkins
 
 logger = get_logger(__name__)
 
@@ -23,7 +23,7 @@ class CheckinAnalytics:
     def get_mood_trends(self, user_id: str, days: int = 30) -> Dict:
         """Analyze mood trends over the specified period"""
         try:
-            checkins = core.utils.get_recent_daily_checkins(user_id, limit=days)
+            checkins = get_recent_daily_checkins(user_id, limit=days)
             if not checkins:
                 return {"error": "No check-in data available"}
             
@@ -91,7 +91,7 @@ class CheckinAnalytics:
     def get_habit_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze habit patterns from check-in data"""
         try:
-            checkins = core.utils.get_recent_daily_checkins(user_id, limit=days)
+            checkins = get_recent_daily_checkins(user_id, limit=days)
             if not checkins:
                 return {"error": "No check-in data available"}
             
@@ -139,7 +139,7 @@ class CheckinAnalytics:
     def get_sleep_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze sleep patterns from check-in data"""
         try:
-            checkins = core.utils.get_recent_daily_checkins(user_id, limit=days)
+            checkins = get_recent_daily_checkins(user_id, limit=days)
             if not checkins:
                 return {"error": "No check-in data available"}
             
@@ -190,7 +190,7 @@ class CheckinAnalytics:
     def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
         """Calculate a comprehensive wellness score based on recent check-ins"""
         try:
-            checkins = core.utils.get_recent_daily_checkins(user_id, limit=days)
+            checkins = get_recent_daily_checkins(user_id, limit=days)
             if not checkins:
                 return {"error": "No check-in data available"}
             

@@ -21,7 +21,8 @@ from core.config import (
     BASE_DATA_DIR,
     MESSAGES_BY_CATEGORY_DIR_PATH,
 )
-from core.utils import load_json_data, save_json_data, get_user_preferences, load_user_info_data, save_user_info_data
+from core.file_operations import load_json_data, save_json_data
+from core.user_management import get_user_preferences, load_user_info_data, save_user_info_data
 
 logger = get_logger(__name__)
 
@@ -359,7 +360,7 @@ class UserDataManager:
     def rebuild_full_index(self) -> bool:
         """Rebuild the complete user index from scratch"""
         try:
-            from core.utils import get_all_user_ids
+            from core.user_management import get_all_user_ids
             
             index_data = {}
             user_ids = get_all_user_ids()

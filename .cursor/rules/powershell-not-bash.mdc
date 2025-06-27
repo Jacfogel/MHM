@@ -1,6 +1,0 @@
----
-description: 
-globs: 
-alwaysApply: true
----
-Use proper PowerShell syntax instead of bash-style commands (like &&)

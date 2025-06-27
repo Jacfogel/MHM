@@ -1,7 +1,7 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
 I'm still mostly a beginner. I'm using my own Windows 11 PC.
 
@@ -9,7 +9,7 @@ I will miss things, and fail to consider things. I rely on you to help me with t
 
 Always be thorough and check that any changes we make are made consistently throughout the code base: if we change a function or move a file, make sure to check for anywhere it may be being called or used and update those places appropriately too, repeat as needed.
 
-I'm biulding this program primarily for my own personal use. I struggle with ADHD and depression and I'm hopeful that together we can build me an assistant that helps me manage my executive functioning deficits and other health needs in addition to helping me stay connected to my life, priorities and goals, to help motivate me and remind me to be hopeful about the future.  
+I'm building this program primarily for my own personal use. I struggle with ADHD and depression and I'm hopeful that together we can build me an assistant that helps me manage my executive functioning deficits and other health needs in addition to helping me stay connected to my life, priorities and goals, to help motivate me and remind me to be hopeful about the future.  
 
 
 You can always ask if you think deviating from a rule would be a better option.

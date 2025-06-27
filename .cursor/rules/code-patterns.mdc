@@ -1,0 +1,56 @@
+---
+description: # Code Patterns for MHM
+globs: 
+alwaysApply: false
+---
+## Error Handling Pattern
+```python
+try:
+    # Operation that might fail
+    result = some_operation()
+except FileNotFoundError:
+    logger.error(f"Required file not found: {file_path}")
+    return None
+except Exception as e:
+    logger.error(f"Unexpected error: {e}")
+    return None
+```
+
+## File Operations Pattern
+```python
+def safe_file_operation(file_path):
+    if not os.path.exists(file_path):
+        logger.warning(f"File not found: {file_path}")
+        return None
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading {file_path}: {e}")
+        return None
+```
+
+## Configuration Validation Pattern
+```python
+def validate_config():
+    required_vars = ['DISCORD_BOT_TOKEN']
+    missing = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing:
+        raise ConfigError(f"Missing required environment variables: {missing}")
+```
+
+## Testing Pattern
+```python
+# Always test after changes
+def test_changes():
+    try:
+        subprocess.run([sys.executable, 'run_mhm.py'], 
+                      capture_output=True, timeout=30)
+        return True
+    except Exception as e:
+        logger.error(f"Test failed: {e}")
+        return False
+```
+

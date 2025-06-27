@@ -4,7 +4,8 @@
 import json
 import os
 
-import core.utils
+from core.user_management import get_user_preferences, load_user_info_data, save_user_info_data
+from core.schedule_management import set_schedule_period_active, is_schedule_period_active
 from core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -18,7 +19,7 @@ class UserPreferences:
         """Load user preferences using the updated utils functions."""
         try:
             # Use the updated utils function that supports new structure
-            preferences = core.utils.get_user_preferences(self.user_id)
+            preferences = get_user_preferences(self.user_id)
             return preferences or {}
         except Exception as e:
             logger.error(f"Error loading preferences for user {self.user_id}: {e}")
@@ -28,13 +29,13 @@ class UserPreferences:
         """Save user preferences using the updated utils functions."""
         try:
             # Load current user data
-            user_data = core.utils.load_user_info_data(self.user_id) or {}
+            user_data = load_user_info_data(self.user_id) or {}
             
             # Update preferences
             user_data['preferences'] = self.preferences
             
             # Save updated user data
-            core.utils.save_user_info_data(user_data, self.user_id)
+            save_user_info_data(user_data, self.user_id)
             logger.info(f"User preferences saved for {self.user_id}")
         except Exception as e:
             logger.error(f"Error saving preferences for user {self.user_id}: {e}")
@@ -68,12 +69,12 @@ class UserPreferences:
 
     @staticmethod
     def set_schedule_period_active(user_id: str, category: str, period_name: str, is_active: bool) -> bool:
-        """Wrapper for :func:`core.utils.set_schedule_period_active`."""
-        return core.utils.set_schedule_period_active(
+        """Wrapper for :func:`core.schedule_management.set_schedule_period_active`."""
+        return set_schedule_period_active(
             user_id, category, period_name, active=is_active
         )
 
     @staticmethod
     def is_schedule_period_active(user_id: str, category: str, period_name: str) -> bool:
-        """Wrapper for :func:`core.utils.is_schedule_period_active`."""
-        return core.utils.is_schedule_period_active(user_id, category, period_name)
+        """Wrapper for :func:`core.schedule_management.is_schedule_period_active`."""
+        return is_schedule_period_active(user_id, category, period_name)

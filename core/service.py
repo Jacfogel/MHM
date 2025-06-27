@@ -28,7 +28,9 @@ register_all_channels()
 from bot.communication_manager import CommunicationManager
 from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH
 from core.scheduler import SchedulerManager
-from core.utils import verify_file_access, get_all_user_ids, load_and_ensure_ids, determine_file_path, get_user_preferences
+from core.file_operations import verify_file_access, determine_file_path
+from core.user_management import get_all_user_ids, get_user_preferences
+from core.user_management import load_and_ensure_ids
 
 class InitializationError(Exception):
     """Custom exception for initialization errors."""

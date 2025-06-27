@@ -1,6 +1,0 @@
----
-description: update requirements.txt to include any new or changed imports
-globs: 
-alwaysApply: false
----
-[requirements.txt](mdc:requirements.txt)

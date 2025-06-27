@@ -47,10 +47,10 @@
 
 ## Key Modules & Responsibilities
 
-- **core/utils.py**: Data loading/saving, user info management, file path logic, and utility functions. Handles splitting/merging user data across files.
+- **core/file_operations.py, core/user_management.py, core/message_management.py, core/schedule_management.py, core/response_tracking.py, core/service_utilities.py, core/validation.py**: Data loading/saving, user info management, file path logic, and utility functions. Handles splitting/merging user data across files.
 - **user/user_context.py**: Singleton for managing the current user's context in memory. Provides methods to get/set preferences and save/load user data.
 - **user/user_preferences.py**: (Planned) Class-based interface for managing user preferences.
-- **ui/account_manager.py**: UI logic for managing user accounts, categories, check-ins, and schedules. Uses core.utils for all data operations.
+- **ui/account_manager.py**: UI logic for managing user accounts, categories, check-ins, and schedules. Uses the focused utility modules for all data operations.
 - **ui/ui_app.py**: Main Tkinter UI application, user selection, and admin panel.
 - **bot/**: Messaging bots for different platforms, using user data for personalized interactions.
 - **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery.

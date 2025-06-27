@@ -15,10 +15,12 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
-import core.utils
 from core.logger import get_logger
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
+from core.user_management import load_user_info_data, get_user_preferences
+from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
+from core.message_management import get_last_10_messages
 
 logger = get_logger(__name__)
 
@@ -89,7 +91,7 @@ class UserContextManager:
             user_preferences = UserPreferences(user_id)
             
             # Also get additional data from utils for completeness
-            user_info = core.utils.load_user_info_data(user_id)
+            user_info = load_user_info_data(user_id)
             if not user_info:
                 return {}
                 
@@ -106,7 +108,7 @@ class UserContextManager:
     def _get_recent_activity(self, user_id: str) -> Dict[str, Any]:
         """Get recent user activity and responses."""
         try:
-            recent_responses = core.utils.get_recent_daily_checkins(user_id, limit=7)
+            recent_responses = get_recent_daily_checkins(user_id, limit=7)
             
             activity_summary = {
                 'recent_responses_count': len(recent_responses),
@@ -124,7 +126,7 @@ class UserContextManager:
             
             # Get recent message activity from all categories
             try:
-                user_preferences = core.utils.get_user_preferences(user_id)
+                user_preferences = get_user_preferences(user_id)
                 categories = user_preferences.get('categories', [])
                 
                 total_recent_messages = 0
@@ -132,7 +134,7 @@ class UserContextManager:
                 
                 for category in categories:
                     try:
-                        category_messages = core.utils.get_last_10_messages(user_id, category)
+                        category_messages = get_last_10_messages(user_id, category)
                         total_recent_messages += len(category_messages)
                         
                         if category_messages:
@@ -159,7 +161,7 @@ class UserContextManager:
     def _get_conversation_insights(self, user_id: str) -> Dict[str, Any]:
         """Get insights from recent chat interactions."""
         try:
-            recent_chats = core.utils.get_recent_chat_interactions(user_id, limit=5)
+            recent_chats = get_recent_chat_interactions(user_id, limit=5)
             
             if not recent_chats:
                 return {"recent_topics": [], "interaction_count": 0}
@@ -205,7 +207,7 @@ class UserContextManager:
             user_preferences = UserPreferences(user_id)
             
             # Also get from utils as fallback
-            preferences = core.utils.get_user_preferences(user_id)
+            preferences = get_user_preferences(user_id)
             
             return {
                 'categories': user_preferences.get_preference('categories') or preferences.get('categories', []),
@@ -219,7 +221,7 @@ class UserContextManager:
     def _get_mood_trends(self, user_id: str) -> Dict[str, Any]:
         """Analyze recent mood and energy trends."""
         try:
-            recent_responses = core.utils.get_recent_daily_checkins(user_id, limit=5)
+            recent_responses = get_recent_daily_checkins(user_id, limit=5)
             
             if not recent_responses:
                 return {'trend': 'no_data'}
@@ -287,7 +289,7 @@ class UserContextManager:
     def _get_minimal_context(self, user_id: str) -> Dict[str, Any]:
         """Fallback minimal context if full context generation fails."""
         try:
-            user_info = core.utils.load_user_info_data(user_id)
+            user_info = load_user_info_data(user_id)
             preferred_name = user_info.get('preferred_name', '') if user_info else ''
             
             return {

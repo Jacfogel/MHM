@@ -3,7 +3,13 @@ description: limit creation of new md files
 globs: 
 alwaysApply: false
 ---
-Generally there should be no more than a couple in the main project folder, no more than 1 each of it's first level subfolders, and none below that.
+The existing md files located in the main project directory are:
+  - `README.md` for the overview, features, and plans
+  - `AGENTS.md` for AI Agent Guidelines (For Cursor, Codex, etc.)
+  - `ARCHITECTURE.md` for directory and module structure
+  - `HOW_TO_RUN.md` for setup instructions
+  - `IMPROVEMENTS.md` for the change log
 
+It's generally preferable to add or incorporate new information into these existing md files, while only storing key information concisely 
 
-It's generally preferable to add or incorporate new information into the existing md files, while only storing key information concisely 
+It is acceptable to create up to 1 md file in any given subdirectory that does not already contain an md file.

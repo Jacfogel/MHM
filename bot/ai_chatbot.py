@@ -22,7 +22,8 @@ from core.config import (
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
     HERMES_FILE_PATH  # Keep for fallback compatibility
 )
-import core.utils  # for user data / recent responses
+from core.user_management import load_user_info_data
+from core.response_tracking import get_recent_responses, store_chat_interaction
 from bot.user_context_manager import user_context_manager
 from datetime import datetime
 
@@ -222,7 +223,7 @@ class AIChatBotSingleton:
         user_name = ""
         if user_id:
             try:
-                user_info = core.utils.load_user_info_data(user_id)
+                user_info = load_user_info_data(user_id)
                 if user_info:
                     user_name = user_info.get('preferred_name', '').strip()
             except Exception:
@@ -286,8 +287,8 @@ class AIChatBotSingleton:
         """
         # Try to get recent user data for basic personalization
         try:
-            recent_data = core.utils.get_recent_responses(user_id, limit=5)
-            user_info = core.utils.load_user_info_data(user_id)
+            recent_data = get_recent_responses(user_id, limit=5)
+            user_info = load_user_info_data(user_id)
             user_name = user_info.get('preferred_name', '') if user_info else ''
             name_prefix = f"{user_name}, " if user_name else ""
             
@@ -449,7 +450,7 @@ class AIChatBotSingleton:
             return self._get_fallback_personalized_message(user_id)
 
         try:
-            recent_data = core.utils.get_recent_responses(user_id, limit=3)  # Reduced for performance
+            recent_data = get_recent_responses(user_id, limit=3)  # Reduced for performance
             summary_lines = []
             for entry in recent_data:
                 line_parts = []
@@ -539,7 +540,7 @@ class AIChatBotSingleton:
                 
                 # Store the chat interaction
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                core.utils.store_chat_interaction(user_id, user_prompt, fallback_response, context_used=True)
+                store_chat_interaction(user_id, user_prompt, fallback_response, context_used=True)
                 user_context_manager.add_conversation_exchange(user_id, user_prompt, fallback_response)
                 return fallback_response
             
@@ -560,7 +561,7 @@ class AIChatBotSingleton:
             if cached_response:
                 # Still store and add to conversation for tracking
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                core.utils.store_chat_interaction(user_id, user_prompt, cached_response, context_used=True)
+                store_chat_interaction(user_id, user_prompt, cached_response, context_used=True)
                 user_context_manager.add_conversation_exchange(user_id, user_prompt, cached_response)
                 return cached_response
             
@@ -569,7 +570,7 @@ class AIChatBotSingleton:
                 logger.warning("API is busy, using contextual fallback")
                 fallback_response = self._get_contextual_fallback(user_prompt, user_id)
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                core.utils.store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
+                store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
                 return fallback_response
 
             try:
@@ -593,7 +594,7 @@ class AIChatBotSingleton:
                     
                     # Cache successful responses
                     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    core.utils.store_chat_interaction(user_id, user_prompt, response, context_used=True)
+                    store_chat_interaction(user_id, user_prompt, response, context_used=True)
                 else:
                     response = self._get_contextual_fallback(user_prompt, user_id)
                         
@@ -602,7 +603,7 @@ class AIChatBotSingleton:
             
             # Store the chat interaction and add to conversation history
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            core.utils.store_chat_interaction(user_id, user_prompt, response, context_used=True)
+            store_chat_interaction(user_id, user_prompt, response, context_used=True)
             user_context_manager.add_conversation_exchange(user_id, user_prompt, response)
             
             return response
@@ -612,7 +613,7 @@ class AIChatBotSingleton:
             fallback_response = self._get_contextual_fallback(user_prompt, user_id)
             # Store even failed attempts for analysis
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            core.utils.store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
+            store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
             return fallback_response
 
 def get_ai_chatbot():

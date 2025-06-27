@@ -15,7 +15,7 @@ Possible expansions:
 """
 
 from core.logger import get_logger
-from core import utils
+from core.file_operations import determine_file_path, load_json_data, save_json_data
 from user.user_context import UserContext
 
 logger = get_logger(__name__)
@@ -49,21 +49,20 @@ class ReminderTaskManager:
         Returns:
             A dictionary structure of tasks, e.g. { "tasks": [ {...}, {...} ] }
         """
-        # Placeholder logic. In future, you might do something like:
-        # file_path = utils.determine_file_path('tasks', user_id)
-        # data = utils.load_json_data(file_path) or {}
-        # return data
+        # The following code uses functions from core.file_operations
+        file_path = determine_file_path('tasks', user_id)
+        data = load_json_data(file_path) or {}
         logger.debug(f"Loading tasks for user: {user_id}")
-        return {}
+        return data
 
     def save_tasks_for_user(self, user_id: str, data: dict) -> None:
         """
         Saves tasks/reminders for the specified user to JSON or other storage.
         """
         logger.debug(f"Saving tasks for user: {user_id}")
-        # Placeholder logic. For example:
-        # file_path = utils.determine_file_path('tasks', user_id)
-        # utils.save_json_data(data, file_path)
+        # Save tasks to file
+        file_path = determine_file_path('tasks', user_id)
+        save_json_data(data, file_path)
 
     def create_task(self, user_id: str, task_data: dict) -> None:
         """
@@ -79,7 +78,7 @@ class ReminderTaskManager:
 
     def list_tasks(self, user_id: str) -> list:
         """
-        Returns a list of the user’s tasks/reminders.
+        Returns a list of the user's tasks/reminders.
         """
         tasks = self.load_tasks_for_user(user_id)
         return tasks.get("tasks", [])

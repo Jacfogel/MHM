@@ -4,7 +4,7 @@ import json
 import os
 import threading
 from core.logger import get_logger
-import core.utils
+from core.user_management import load_user_info_data, save_user_info_data
 
 logger = get_logger(__name__)
 
@@ -31,7 +31,7 @@ class UserContext:
             return
         try:
             # Use the updated utils function that handles both old and new structures
-            user_data = core.utils.load_user_info_data(user_id)
+            user_data = load_user_info_data(user_id)
             if user_data:
                 self.user_data = user_data
                 logger.info(f"User data loaded for user_id {user_id}")
@@ -54,7 +54,7 @@ class UserContext:
             return
         try:
             # Use the updated utils function that handles both old and new structures
-            core.utils.save_user_info_data(self.user_data, user_id)
+            save_user_info_data(self.user_data, user_id)
             logger.info(f"User data saved for user_id {user_id}")
         except Exception as e:
             logger.error(f"Failed to save user data for user_id {user_id}: {e}")

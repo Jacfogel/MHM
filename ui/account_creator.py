@@ -5,7 +5,10 @@ from tkinter import messagebox
 from tkinter import ttk
 from core.logger import get_logger
 from user.user_context import UserContext
-import core.utils
+from core.message_management import get_message_categories
+from core.validation import title_case
+from core.user_management import get_user_id_by_internal_username, add_user_info
+from core.file_operations import create_user_files
 import uuid
 
 logger = get_logger(__name__)
@@ -181,7 +184,7 @@ class CreateAccountScreen:
         categories_frame.grid(row=current_row, column=0, columnspan=4, padx=15, pady=5, sticky=tk.W)
         categories_frame.bind("<MouseWheel>", on_main_mouse_wheel)
         
-        self.categories = core.utils.get_message_categories()
+        self.categories = get_message_categories()
         self.category_vars = {category: tk.IntVar() for category in self.categories}
 
         # Arrange categories in columns
@@ -190,7 +193,7 @@ class CreateAccountScreen:
         max_cols = 2
         
         for category, var in self.category_vars.items():
-            checkbox = tk.Checkbutton(categories_frame, text=core.utils.title_case(category), variable=var)
+            checkbox = tk.Checkbutton(categories_frame, text=title_case(category), variable=var)
             checkbox.grid(row=row_in_frame, column=col, sticky=tk.W, padx=(0, 20), pady=1)
             checkbox.bind("<MouseWheel>", on_main_mouse_wheel)
             col += 1
@@ -420,7 +423,7 @@ class CreateAccountScreen:
                 return
 
             # Check if username is already taken
-            if core.utils.get_user_id_by_internal_username(internal_username):
+            if get_user_id_by_internal_username(internal_username):
                 messagebox.showerror("Account Creation Failed", "Username is already taken. Please choose another.")
                 return
 
@@ -502,8 +505,8 @@ class CreateAccountScreen:
             if messaging_service == "discord":
                 user_info["preferences"]["discord_user_id"] = discord_user_id
 
-            core.utils.add_user_info(user_id, user_info)
-            core.utils.create_user_files(user_id, selected_categories)  # Ensure message files are created
+            add_user_info(user_id, user_info)
+            create_user_files(user_id, selected_categories)  # Ensure message files are created
 
             logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
             messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")

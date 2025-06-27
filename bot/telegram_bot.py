@@ -8,7 +8,8 @@ import asyncio
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton, Bot
 from telegram.constants import ParseMode
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackContext, CallbackQueryHandler, ConversationHandler, filters
-import core.utils
+import os
+import json
 import core.scheduler
 from core.logger import get_logger
 from core.config import TELEGRAM_BOT_TOKEN
@@ -18,6 +19,11 @@ from threading import Lock
 from typing import List, Dict, Any
 import warnings
 from telegram.warnings import PTBUserWarning
+from core.service_utilities import wait_for_network, title_case
+from core.user_management import get_user_preferences, get_user_id_by_chat_id, add_user_info, load_user_info_data
+from core.schedule_management import get_schedule_time_periods, add_schedule_period
+from core.message_management import add_message
+from core.validation import InvalidTimeFormatError
 
 # Import the new base classes
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
@@ -76,7 +82,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         """Initialize the Telegram bot - replaces the old start() method"""
         self._set_status(ChannelStatus.INITIALIZING)
         
-        if not core.utils.wait_for_network():
+        if not wait_for_network():
             error_msg = "Network not available after wake-up. Please check your connection."
             self._set_status(ChannelStatus.ERROR, error_msg)
             return False
@@ -309,9 +315,9 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         context.user_data['category_prompt'] = True
 
         user_id = UserContext().get_user_id()
-        categories = core.utils.get_user_preferences(user_id, ['categories']) or []
+        categories = get_user_preferences(user_id, ['categories']) or []
 
-        buttons = [[InlineKeyboardButton(core.utils.title_case(category), callback_data=f'category_{category}')] for category in categories]
+        buttons = [[InlineKeyboardButton(title_case(category), callback_data=f'category_{category}')] for category in categories]
         reply_markup = InlineKeyboardMarkup(buttons)
 
         if is_message:
@@ -364,10 +370,10 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         user_id = UserContext().get_user_id()
         selected_periods = self.selected_time_periods.get(user_id, [])
         category = context.user_data.get('category')
-        available_periods = core.utils.get_schedule_time_periods(user_id, category)
+        available_periods = get_schedule_time_periods(user_id, category)
 
         period_buttons = [
-            [InlineKeyboardButton(f"{'✔️ ' if period in selected_periods else ''}{core.utils.title_case(period)}", callback_data=period)]
+            [InlineKeyboardButton(f"{'✔️ ' if period in selected_periods else ''}{title_case(period)}", callback_data=period)]
             for period in available_periods.keys()
         ]
         period_buttons.append([InlineKeyboardButton('Submit', callback_data='submit_time_periods')])
@@ -385,10 +391,10 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     def update_time_periods_keyboard(self, update: Update, context: CallbackContext, selected: list) -> None:
         user_id = UserContext().get_user_id()  
         category = context.user_data.get('category')
-        available_periods = core.utils.get_schedule_time_periods(user_id, category)
+        available_periods = get_schedule_time_periods(user_id, category)
 
         period_buttons = [
-            [InlineKeyboardButton(f"{'✔️ ' if period in selected else ''}{core.utils.title_case(period)}", callback_data=period)]
+            [InlineKeyboardButton(f"{'✔️ ' if period in selected else ''}{title_case(period)}", callback_data=period)]
             for period in available_periods.keys()
         ]
         period_buttons.append([InlineKeyboardButton('Submit', callback_data='submit_time_periods')])
@@ -415,7 +421,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             "time_periods": selected_time_periods_list
         }
 
-        core.utils.add_message(user_id, category, message_data)
+        add_message(user_id, category, message_data)
         update.message.reply_text("Message added successfully.")
         self.selected_days[user_id] = []
         self.selected_time_periods[user_id] = []
@@ -433,14 +439,14 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     def show_schedule(self, update: Update, context: CallbackContext, category: str) -> int:
         user_id = UserContext().get_user_id()
-        schedule_data = core.utils.get_schedule_time_periods(user_id, category)
+        schedule_data = get_schedule_time_periods(user_id, category)
         
         if not schedule_data:
-            update.callback_query.message.reply_text(f"No schedule times data available for {core.utils.title_case(category)}.")
+            update.callback_query.message.reply_text(f"No schedule times data available for {title_case(category)}.")
             return ConversationHandler.END
 
         buttons = [
-            [InlineKeyboardButton(f"{core.utils.title_case(period)}: {times['start']} - {times['end']}", callback_data=f"edit_period_{period}")]
+            [InlineKeyboardButton(f"{title_case(period)}: {times['start']} - {times['end']}", callback_data=f"edit_period_{period}")]
             for period, times in schedule_data.items()
         ]
         buttons.append([InlineKeyboardButton("➕ Add New Period", callback_data="add_period")])
@@ -469,14 +475,14 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         end_time = update.message.text.strip()
 
         try:
-            core.utils.add_schedule_period(category, period_name, start_time, end_time)
+            add_schedule_period(category, period_name, start_time, end_time)
             update.message.reply_text(f"New period '{period_name}' added successfully.")
             return self.show_schedule(update, context, category)
-        except core.utils.InvalidTimeFormatError:
+        except InvalidTimeFormatError:
             update.message.reply_text("Invalid time format. Please use HH:MM format (e.g., 09:00).")
             return EDIT_PERIOD
         except Exception as e:
-            update.message.reply_text(f"Error adding new period for category {core.utils.title_case(category)}. Please try again.")
+            update.message.reply_text(f"Error adding new period for category {title_case(category)}. Please try again.")
             return VIEW_EDIT_SCHEDULE
 
     def add_message_conv_handler(self):
@@ -576,16 +582,16 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         telegram_username = update.message.from_user.username if update.message else update.callback_query.from_user.username
         user_context = UserContext()
 
-        user_id = core.utils.get_user_id_by_chat_id(chat_id)
+        user_id = get_user_id_by_chat_id(chat_id)
         if user_id:
-            user_info = core.utils.load_user_info_data(user_id)
+            user_info = load_user_info_data(user_id)
             user_context.set_user_id(user_id)
             user_context.set_internal_username(user_info.get('internal_username'))
             user_context.set_preferred_name(user_info.get('preferred_name'))
             return True
 
         new_user_id = str(uuid.uuid4())
-        core.utils.add_user_info(new_user_id, {
+        add_user_info(new_user_id, {
             "user_id": new_user_id,
             "internal_username": telegram_username,
             "preferred_name": telegram_username,

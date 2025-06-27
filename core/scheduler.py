@@ -10,7 +10,9 @@ import os
 from datetime import datetime, timedelta
 import logging
 
-from core import utils
+from core.user_management import get_all_user_ids, get_user_preferences
+from core.schedule_management import get_schedule_time_periods, is_schedule_period_active
+from core.service_utilities import load_and_localize_datetime
 from core.logger import get_logger
 from user.user_context import UserContext
 
@@ -41,9 +43,9 @@ class SchedulerManager:
                 self.schedule_all_users_immediately()
                 
                 # Then set up recurring daily scheduling at 01:00 for all users
-                user_ids = utils.get_all_user_ids()
+                user_ids = get_all_user_ids()
                 for user_id in user_ids:
-                    categories = utils.get_user_preferences(user_id, ['categories'])
+                    categories = get_user_preferences(user_id, ['categories'])
                     for category in categories:
                         # Check if a job already exists for this user and category before scheduling
                         if not self.is_job_for_category(None, user_id, category):
@@ -148,7 +150,7 @@ class SchedulerManager:
     def schedule_all_users_immediately(self):
         """Schedule daily messages immediately for all users"""
         try:
-            user_ids = utils.get_all_user_ids()
+            user_ids = get_all_user_ids()
             if not user_ids:
                 logger.warning("No users found for scheduling")
                 return
@@ -163,7 +165,7 @@ class SchedulerManager:
             
             for user_id in user_ids:
                 try:
-                    categories = utils.get_user_preferences(user_id, ['categories'])
+                    categories = get_user_preferences(user_id, ['categories'])
                     if categories and isinstance(categories, list):
                         for category in categories:
                             try:
@@ -203,9 +205,9 @@ class SchedulerManager:
         Schedule a message at a random time within each active period for a specific category and user.
         """
         try:
-            time_periods = utils.get_schedule_time_periods(user_id, category)
+            time_periods = get_schedule_time_periods(user_id, category)
             for period in time_periods:
-                if utils.is_schedule_period_active(user_id, category, period):
+                if is_schedule_period_active(user_id, category, period):
                     retry_count = 0
                     max_retries = 10  # Set a limit on retries to avoid infinite loops
 
@@ -215,7 +217,7 @@ class SchedulerManager:
                             logger.error(f"Failed to get a valid time for {category} messages during {period}. Check configuration for user {user_id}.")
                             continue
 
-                        schedule_datetime = utils.load_and_localize_datetime(datetime_str, 'America/Regina')
+                        schedule_datetime = load_and_localize_datetime(datetime_str, 'America/Regina')
                         now = datetime.now(pytz.timezone('America/Regina'))
 
                         logger.info(f"Attempting to schedule message for user {user_id}, category {category} at {schedule_datetime} (now is {now})")
@@ -261,7 +263,7 @@ class SchedulerManager:
             tz = pytz.timezone(timezone_str)
             now_datetime = datetime.now(tz)
             
-            time_periods = utils.get_schedule_time_periods(user_id, category)
+            time_periods = get_schedule_time_periods(user_id, category)
             period_start_time = datetime.strptime(time_periods[period]['start'], "%H:%M").time()
             period_end_time = datetime.strptime(time_periods[period]['end'], "%H:%M").time()
 

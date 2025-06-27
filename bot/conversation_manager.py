@@ -16,9 +16,11 @@ Usage:
   4) If completed == True, the flow is done, so we remove them from user_states.
 """
 
-import core.utils
+import os
+import json
 from bot.ai_chatbot import get_ai_chatbot
 from core.logger import get_logger
+from core.response_tracking import is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins, store_daily_checkin_response
 
 logger = get_logger(__name__)
 
@@ -81,7 +83,7 @@ class ConversationManager:
             # Handle special commands that start specific flows
             if message_text.lower().startswith("/dailycheckin"):
                 # Check if check-ins are enabled for this user
-                if not core.utils.is_user_checkins_enabled(user_id):
+                if not is_user_checkins_enabled(user_id):
                     # Clear any existing state for this user
                     self.user_states.pop(user_id, None)
                     return (
@@ -125,7 +127,7 @@ class ConversationManager:
         """Start a dynamic check-in flow based on user preferences"""
         try:
             # Get user's check-in preferences
-            checkin_prefs = core.utils.get_user_checkin_preferences(user_id)
+            checkin_prefs = get_user_checkin_preferences(user_id)
             enabled_questions = checkin_prefs.get('questions', {})
             
             # Build ordered list of enabled questions
@@ -161,7 +163,7 @@ class ConversationManager:
         """Generate a personalized welcome message based on user history"""
         try:
             # Get recent check-ins for context
-            recent_checkins = core.utils.get_recent_daily_checkins(user_id, limit=3)
+            recent_checkins = get_recent_daily_checkins(user_id, limit=3)
             
             if recent_checkins:
                 # Analyze recent mood trends
@@ -351,7 +353,7 @@ class ConversationManager:
             data = user_state["data"]
             
             # Store the check-in data
-            core.utils.store_daily_checkin_response(user_id, data)
+            store_daily_checkin_response(user_id, data)
             
             # Generate personalized completion message
             completion_message = self._generate_completion_message(user_id, data)

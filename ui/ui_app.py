@@ -24,7 +24,8 @@ from core.config import validate_all_configuration, ConfigValidationError
 
 from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog
 from user.user_context import UserContext
-import core.utils
+from core.user_management import get_all_user_ids, get_user_info, get_user_preferences
+from core.validation import title_case
 from tkinter import ttk
 from core.config import BASE_DATA_DIR, MESSAGES_BY_CATEGORY_DIR_PATH, USER_INFO_DIR_PATH
 
@@ -655,7 +656,7 @@ For detailed setup instructions, see the README.md file.
     def view_all_users_summary(self):
         """Show a summary of all users in the system."""
         try:
-            user_ids = core.utils.get_all_user_ids()
+            user_ids = get_all_user_ids()
             
             # Create summary window
             summary_window = tk.Toplevel(self.root)
@@ -681,12 +682,12 @@ For detailed setup instructions, see the README.md file.
                 text_widget.insert('end', f"Total users: {len(user_ids)}\n\n")
                 
                 for user_id in user_ids:
-                    user_info = core.utils.get_user_info(user_id)
+                    user_info = get_user_info(user_id)
                     if user_info:
                         username = user_info.get('internal_username', 'Unknown')
                         preferred_name = user_info.get('preferred_name', '')
-                        categories = user_info.get('preferences', {}).get('categories', [])
-                        messaging_service = user_info.get('preferences', {}).get('messaging_service', 'Unknown')
+                        categories = get_user_preferences(user_id).get('categories', [])
+                        messaging_service = get_user_preferences(user_id).get('messaging_service', 'Unknown')
                         
                         text_widget.insert('end', f"User: {username}")
                         if preferred_name:
@@ -737,7 +738,7 @@ For detailed setup instructions, see the README.md file.
             text_widget.insert('end', "\n")
             
             # Check user count
-            user_ids = core.utils.get_all_user_ids()
+            user_ids = get_all_user_ids()
             text_widget.insert('end', f"✓ Total Users: {len(user_ids)}\n")
             
             # Check data directories
@@ -923,11 +924,11 @@ For detailed setup instructions, see the README.md file.
     def refresh_user_list(self):
         """Refresh the user dropdown list"""
         try:
-            user_ids = core.utils.get_all_user_ids()
+            user_ids = get_all_user_ids()
             user_display_names = []
             
             for user_id in user_ids:
-                user_info = core.utils.get_user_info(user_id)
+                user_info = get_user_info(user_id)
                 internal_username = user_info.get('internal_username', 'Unknown')
                 preferred_name = user_info.get('preferred_name', '')
                 
@@ -968,7 +969,7 @@ For detailed setup instructions, see the README.md file.
                 self.current_user_id = user_id
                 
                 # Update user info display
-                user_info = core.utils.get_user_info(user_id)
+                user_info = get_user_info(user_id)
                 if not user_info:
                     logger.error(f"Admin Panel: Could not load user info for user_id: {user_id}")
                     self.disable_content_management()
@@ -1060,7 +1061,7 @@ For detailed setup instructions, see the README.md file.
             UserContext().set_user_id(self.current_user_id)
             
             # Load the user's full data to get internal_username and other details
-            user_info = core.utils.get_user_info(self.current_user_id)
+            user_info = get_user_info(self.current_user_id)
             if user_info:
                 UserContext().set_internal_username(user_info.get('internal_username', ''))
                 UserContext().set_preferred_name(user_info.get('preferred_name', ''))
@@ -1068,7 +1069,7 @@ For detailed setup instructions, see the README.md file.
                 UserContext().load_user_data(self.current_user_id)
             
             # Get user categories
-            categories = core.utils.get_user_preferences(self.current_user_id).get('categories', [])
+            categories = get_user_preferences(self.current_user_id).get('categories', [])
             
             if not categories:
                 logger.info(f"Admin Panel: User {self.current_user_id} has no message categories configured")
@@ -1083,7 +1084,7 @@ For detailed setup instructions, see the README.md file.
             tk.Label(category_window, text="Select message category to edit:", font=("Arial", 12)).pack(pady=10)
             
             for category in categories:
-                tk.Button(category_window, text=core.utils.title_case(category), 
+                tk.Button(category_window, text=title_case(category), 
                          command=lambda c=category: self.open_message_editor(category_window, c),
                          width=20).pack(pady=5)
             
@@ -1118,7 +1119,7 @@ For detailed setup instructions, see the README.md file.
             UserContext().set_user_id(self.current_user_id)
             
             # Load the user's full data to get internal_username and other details
-            user_info = core.utils.get_user_info(self.current_user_id)
+            user_info = get_user_info(self.current_user_id)
             if user_info:
                 UserContext().set_internal_username(user_info.get('internal_username', ''))
                 UserContext().set_preferred_name(user_info.get('preferred_name', ''))
@@ -1126,7 +1127,7 @@ For detailed setup instructions, see the README.md file.
                 UserContext().load_user_data(self.current_user_id)
             
             # Get user categories
-            categories = core.utils.get_user_preferences(self.current_user_id).get('categories', [])
+            categories = get_user_preferences(self.current_user_id).get('categories', [])
             
             if not categories:
                 logger.info(f"Admin Panel: User {self.current_user_id} has no schedule categories configured")
@@ -1141,7 +1142,7 @@ For detailed setup instructions, see the README.md file.
             tk.Label(category_window, text="Select category to edit schedule:", font=("Arial", 12)).pack(pady=10)
             
             for category in categories:
-                tk.Button(category_window, text=core.utils.title_case(category), 
+                tk.Button(category_window, text=title_case(category), 
                          command=lambda c=category: self.open_schedule_editor(category_window, c),
                          width=20).pack(pady=5)
             
@@ -1185,7 +1186,7 @@ For detailed setup instructions, see the README.md file.
         try:
             logger.info(f"Admin Panel: Preparing test message for user {self.current_user_id}")
             # Get user categories
-            categories = core.utils.get_user_preferences(self.current_user_id).get('categories', [])
+            categories = get_user_preferences(self.current_user_id).get('categories', [])
             
             if not categories:
                 logger.info(f"Admin Panel: User {self.current_user_id} has no message categories for test")
@@ -1200,7 +1201,7 @@ For detailed setup instructions, see the README.md file.
             tk.Label(category_window, text="Select category for test message:", font=("Arial", 12)).pack(pady=10)
             
             for category in categories:
-                tk.Button(category_window, text=core.utils.title_case(category), 
+                tk.Button(category_window, text=title_case(category), 
                          command=lambda c=category: self.confirm_test_message(category_window, c),
                          width=20).pack(pady=5)
             
