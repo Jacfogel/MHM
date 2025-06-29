@@ -5,9 +5,13 @@ Contains functions for validating data formats and text processing.
 
 import re
 from core.logger import get_logger
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
+@handle_errors("validating email", default_return=False)
 def is_valid_email(email):
     """Validate email format"""
     if not email:
@@ -17,6 +21,7 @@ def is_valid_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, email))
 
+@handle_errors("validating phone", default_return=False)
 def is_valid_phone(phone):
     """Validate phone number format"""
     if not phone:
@@ -26,6 +31,7 @@ def is_valid_phone(phone):
     cleaned = re.sub(r'[\s\-\(\)\.]', '', phone)
     return cleaned.isdigit() and len(cleaned) >= 10
 
+@handle_errors("converting to title case", default_return="")
 def title_case(text: str) -> str:
     """Convert text to title case, handling special cases"""
     if not text:

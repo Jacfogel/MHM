@@ -17,6 +17,9 @@ Possible expansions:
 from core.logger import get_logger
 from core.file_operations import determine_file_path, load_json_data, save_json_data
 from user.user_context import UserContext
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -42,6 +45,7 @@ class ReminderTaskManager:
         # If you want in-memory caching, you could do that here
         self.tasks_cache = {}  # Example placeholder
 
+    @handle_errors("loading tasks for user", default_return={})
     def load_tasks_for_user(self, user_id: str) -> dict:
         """
         Loads tasks/reminders for the specified user from JSON or other storage.
@@ -55,6 +59,7 @@ class ReminderTaskManager:
         logger.debug(f"Loading tasks for user: {user_id}")
         return data
 
+    @handle_errors("saving tasks for user")
     def save_tasks_for_user(self, user_id: str, data: dict) -> None:
         """
         Saves tasks/reminders for the specified user to JSON or other storage.
@@ -64,6 +69,7 @@ class ReminderTaskManager:
         file_path = determine_file_path('tasks', user_id)
         save_json_data(data, file_path)
 
+    @handle_errors("creating task")
     def create_task(self, user_id: str, task_data: dict) -> None:
         """
         Creates a new task or reminder for the user.
@@ -76,6 +82,7 @@ class ReminderTaskManager:
         tasks["tasks"].append(task_data)
         self.save_tasks_for_user(user_id, tasks)
 
+    @handle_errors("listing tasks", default_return=[])
     def list_tasks(self, user_id: str) -> list:
         """
         Returns a list of the user's tasks/reminders.
@@ -83,6 +90,7 @@ class ReminderTaskManager:
         tasks = self.load_tasks_for_user(user_id)
         return tasks.get("tasks", [])
 
+    @handle_errors("deleting task", default_return=False)
     def delete_task(self, user_id: str, task_id: str) -> bool:
         """
         Deletes a task from the user's list by matching an ID or similar field.

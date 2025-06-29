@@ -1,9 +1,0 @@
----
-description: put testing, single use, and other debug/temp scripts in \scripts
-globs: 
-alwaysApply: false
----
-testing
-migration
-
-etc.

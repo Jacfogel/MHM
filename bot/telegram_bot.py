@@ -24,6 +24,9 @@ from core.user_management import get_user_preferences, get_user_id_by_chat_id, a
 from core.schedule_management import get_schedule_time_periods, add_schedule_period
 from core.message_management import add_message
 from core.validation import InvalidTimeFormatError
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 # Import the new base classes
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
@@ -68,16 +71,15 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     def channel_type(self) -> ChannelType:
         return ChannelType.ASYNC
 
+    @handle_errors("running Telegram polling")
     def run_polling(self):
         """Run Telegram polling safely in a separate thread with an event loop."""
-        try:
-            logger.info("Starting Telegram polling in a background thread...")
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.application.run_polling())
-        except Exception as e:
-            logger.error(f"Error in Telegram polling loop: {e}", exc_info=True)
+        logger.info("Starting Telegram polling in a background thread...")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(self.application.run_polling())
 
+    @handle_errors("initializing Telegram bot", default_return=False)
     async def initialize(self) -> bool:
         """Initialize the Telegram bot - replaces the old start() method"""
         self._set_status(ChannelStatus.INITIALIZING)
@@ -136,6 +138,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         self._set_status(ChannelStatus.ERROR, error_msg)
         return False
 
+    @handle_errors("registering handlers")
     async def _register_handlers(self):
         """Register all command and conversation handlers"""
         self.application.add_handler(CommandHandler("start", self.start_command))
@@ -149,99 +152,88 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         self.application.add_handler(self.schedule_conv_handler())
         self.application.add_handler(self.daily_checkin_conv_handler())
 
+    @handle_errors("shutting down Telegram bot", default_return=False)
     async def shutdown(self) -> bool:
         """Shutdown the Telegram bot"""
-        try:
-            if self.application:
-                # Stop the application first, then shutdown
-                if self.application.running:
-                    await self.application.stop()
-                await self.application.shutdown()
-            self._set_status(ChannelStatus.STOPPED)
-            logger.info("Telegram bot shutdown successfully")
-            return True
-        except Exception as e:
-            logger.error(f"Error shutting down Telegram bot: {e}")
-            return False
+        if self.application:
+            # Stop the application first, then shutdown
+            if self.application.running:
+                await self.application.stop()
+            await self.application.shutdown()
+        self._set_status(ChannelStatus.STOPPED)
+        logger.info("Telegram bot shutdown successfully")
+        return True
 
+    @handle_errors("sending Telegram message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
         """Send a message via Telegram - conforms to BaseChannel interface"""
         if not self.is_ready():
             logger.error("Telegram bot is not ready to send messages")
             return False
 
-        try:
-            bot = Bot(token=TELEGRAM_BOT_TOKEN)
-            parse_mode = kwargs.get('parse_mode', ParseMode.MARKDOWN)
-            
-            await bot.send_message(
-                chat_id=recipient, 
-                text=message, 
-                parse_mode=parse_mode
-            )
-            
-            logger.info(f"Message sent to chat_id: {recipient}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to send Telegram message: {e}")
-            return False
+        bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        parse_mode = kwargs.get('parse_mode', ParseMode.MARKDOWN)
+        
+        await bot.send_message(
+            chat_id=recipient, 
+            text=message, 
+            parse_mode=parse_mode
+        )
+        
+        logger.info(f"Message sent to chat_id: {recipient}")
+        return True
 
+    @handle_errors("receiving Telegram messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from Telegram"""
         # For Telegram, this is handled via webhooks/polling in the background
         # Return empty list as messages are processed via handlers
         return []
 
+    @handle_errors("performing Telegram health check", default_return=False)
     async def health_check(self) -> bool:
         """Perform health check on Telegram bot"""
-        try:
-            if not self.application:
-                return False
-            bot = Bot(token=TELEGRAM_BOT_TOKEN)
-            await bot.get_me()
-            return True
-        except Exception as e:
-            logger.error(f"Telegram health check failed: {e}")
+        if not self.application:
             return False
+        bot = Bot(token=TELEGRAM_BOT_TOKEN)
+        await bot.get_me()
+        return True
 
     # Legacy method for backward compatibility
+    @handle_errors("starting Telegram bot")
     def start(self):
         """Legacy start method - calls the new async initialize"""
-        try:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            success = loop.run_until_complete(self.initialize())
-            if not success:
-                raise TelegramBotError("Failed to initialize Telegram bot")
-            return success
-        except Exception as e:
-            raise TelegramBotError(f"Failed to initialize Telegram bot: {e}")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        success = loop.run_until_complete(self.initialize())
+        if not success:
+            raise TelegramBotError("Failed to initialize Telegram bot")
+        return success
 
     # Legacy method for backward compatibility  
+    @handle_errors("stopping Telegram bot")
     def stop(self):
         """Legacy stop method - calls the new async shutdown"""
-        try:
-            if asyncio.get_event_loop().is_running():
-                # If we're in an async context, schedule the shutdown
-                asyncio.create_task(self.shutdown())
-            else:
-                # If not in async context, run it
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(self.shutdown())
-        except Exception as e:
-            logger.error(f"Error in legacy stop: {e}")
+        if asyncio.get_event_loop().is_running():
+            # If we're in an async context, schedule the shutdown
+            asyncio.create_task(self.shutdown())
+        else:
+            # If not in async context, run it
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(self.shutdown())
 
     def is_initialized(self):
         """Legacy method for backward compatibility"""
         return self.is_ready()
 
+    @handle_errors("handling start command")
     async def start_command(self, update: Update, context: CallbackContext) -> None:
         chat_id = update.message.chat_id
         logger.info(f"Received /start command from chat ID: {chat_id}")
         await update.message.reply_text('Hello! I am your personal assistant bot.')
 
+    @handle_errors("handling help command")
     async def help_command(self, update: Update, context: CallbackContext) -> None:
         logger.info("Received /help command")
         if not self.ensure_user_exists(update):
@@ -261,16 +253,19 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         )
         await update.message.reply_text(help_text)
 
+    @handle_errors("handling scream command")
     def scream_command(self, update: Update, context: CallbackContext) -> None:
         self.screaming = True
         logger.info("Received /scream command")
         self.ensure_user_exists(update)
 
+    @handle_errors("handling whisper command")
     def whisper_command(self, update: Update, context: CallbackContext) -> None:
         self.screaming = False
         logger.info("Received /whisper command")
         self.ensure_user_exists(update)
 
+    @handle_errors("handling menu command")
     async def menu_command(self, update: Update, context: CallbackContext) -> None:
         logger.info("Received /menu command")
         self.ensure_user_exists(update)
@@ -285,6 +280,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         
         await update.message.reply_text("Please choose an option:", reply_markup=reply_markup)
 
+    @handle_errors("handling send command")
     async def send_command(self, update: Update, context: CallbackContext) -> None:
         if not self.ensure_user_exists(update):
             return
@@ -300,14 +296,17 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         else:
             await update.message.reply_text("Failed to send message.")
 
+    @handle_errors("canceling operation")
     def cancel(self, update: Update, context: CallbackContext) -> int:
         update.message.reply_text('Operation canceled.')
         return ConversationHandler.END
 
+    @handle_errors("adding message command")
     def add_message_command(self, update: Update, context: CallbackContext) -> int:
         self.ensure_user_exists(update)
         return self.prompt_category_selection(update, context, 'add_message')
 
+    @handle_errors("prompting category selection")
     def prompt_category_selection(self, update: Update, context: CallbackContext, action: str, prompt_message: str = "Please choose a category:", is_message: bool = False) -> int:
         """Prompt user to select a category"""
         self.ensure_user_exists(update)
@@ -326,6 +325,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             update.callback_query.message.reply_text(prompt_message, reply_markup=reply_markup)
         return CATEGORY
 
+    @handle_errors("handling category selection")
     def handle_category_selection(self, update: Update, context: CallbackContext) -> int:
         """Handle category selection"""
         self.ensure_user_exists(update)
@@ -334,12 +334,14 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         context.user_data['category'] = category
         return self.prompt_for_message(update, context, category)
 
+    @handle_errors("prompting for message")
     def prompt_for_message(self, update: Update, context: CallbackContext, category: str) -> int:
         """Prompt user to enter a message"""
         self.ensure_user_exists(update)
         update.callback_query.message.reply_text("Please enter the message you want to add:")
         return MESSAGE
 
+    @handle_errors("handling message received")
     def message_received(self, update: Update, context: CallbackContext) -> int:
         """Handle received message text"""
         self.ensure_user_exists(update)
@@ -349,23 +351,27 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         update.message.reply_text("Message received. (Days selection not implemented yet)")
         return ConversationHandler.END
 
+    @handle_errors("getting base days keyboard")
     def get_base_days_keyboard(self) -> InlineKeyboardMarkup:
         days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         buttons = [[InlineKeyboardButton(day, callback_data=day)] for day in days_of_week]
         buttons.append([InlineKeyboardButton('Submit', callback_data='submit_days')])
         return InlineKeyboardMarkup(buttons)
 
+    @handle_errors("prompting for days")
     def prompt_for_days(self, update: Update, context: CallbackContext) -> int:
         reply_markup = self.get_base_days_keyboard()
         update.message.reply_text("Please select the days for the message:", reply_markup=reply_markup)
         return DAYS
 
+    @handle_errors("handling days selection")
     def days_selected(self, update: Update, context: CallbackContext) -> int:
         """Handle days selection"""
         # Implementation needed
         update.callback_query.message.reply_text("Days selection not implemented yet")
         return ConversationHandler.END
 
+    @handle_errors("prompting for time periods")
     def prompt_for_time_periods(self, update: Update, context: CallbackContext) -> int:
         user_id = UserContext().get_user_id()
         selected_periods = self.selected_time_periods.get(user_id, [])
@@ -382,12 +388,14 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         update.callback_query.message.reply_text("Please select the time periods for the message:", reply_markup=reply_markup)
         return TIME_PERIODS
 
+    @handle_errors("handling time periods selection")
     def time_periods_selected(self, update: Update, context: CallbackContext) -> int:
         """Handle time periods selection"""
         # Implementation needed
         update.callback_query.message.reply_text("Time periods selection not implemented yet")
         return ConversationHandler.END
 
+    @handle_errors("updating time periods keyboard")
     def update_time_periods_keyboard(self, update: Update, context: CallbackContext, selected: list) -> None:
         user_id = UserContext().get_user_id()  
         category = context.user_data.get('category')
@@ -402,6 +410,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         reply_markup = InlineKeyboardMarkup(period_buttons)
         update.callback_query.edit_message_reply_markup(reply_markup=reply_markup)
 
+    @handle_errors("saving new message")
     def save_new_message(self, update: Update, context: CallbackContext) -> None:
         self.ensure_user_exists(update)
         user_id = UserContext().get_user_id()
@@ -426,17 +435,20 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         self.selected_days[user_id] = []
         self.selected_time_periods[user_id] = []
 
+    @handle_errors("viewing/editing schedule command")
     def view_edit_schedule_command(self, update: Update, context: CallbackContext) -> int:
         """View/edit schedule command"""
         # Implementation needed
         update.callback_query.message.reply_text("Schedule editing not implemented yet")
         return ConversationHandler.END
 
+    @handle_errors("handling schedule category selection")
     def handle_schedule_category_selection(self, update: Update, context: CallbackContext) -> int:
         """Handle schedule category selection"""
         # Implementation needed
         return ConversationHandler.END
 
+    @handle_errors("showing schedule")
     def show_schedule(self, update: Update, context: CallbackContext, category: str) -> int:
         user_id = UserContext().get_user_id()
         schedule_data = get_schedule_time_periods(user_id, category)
@@ -457,17 +469,20 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         
         return VIEW_EDIT_SCHEDULE
 
+    @handle_errors("handling period selection")
     def handle_period_selection(self, update: Update, context: CallbackContext) -> int:
         """Handle period selection"""
         # Implementation needed
         return ConversationHandler.END
 
+    @handle_errors("editing schedule period")
     def edit_schedule_period(self, update: Update, context: CallbackContext) -> int:
         """Edit schedule period"""
         # Implementation needed
         update.message.reply_text("Schedule period editing not implemented yet")
         return ConversationHandler.END
 
+    @handle_errors("adding new period")
     def add_new_period(self, update: Update, context: CallbackContext) -> int:
         category = context.user_data['category']
         period_name = context.user_data['new_period_name']
@@ -485,6 +500,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             update.message.reply_text(f"Error adding new period for category {title_case(category)}. Please try again.")
             return VIEW_EDIT_SCHEDULE
 
+    @handle_errors("creating add message conversation handler")
     def add_message_conv_handler(self):
         conv_handler = ConversationHandler(
             entry_points=[CallbackQueryHandler(self.add_message_command, pattern='^add_message$')],
@@ -502,6 +518,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         )
         return conv_handler
 
+    @handle_errors("creating schedule conversation handler")
     def schedule_conv_handler(self):
         conv_handler = ConversationHandler(
             entry_points=[CallbackQueryHandler(self.view_edit_schedule_command, pattern='^view_edit_schedule$')],
@@ -523,6 +540,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     # -------------------------------------------------------------------------------------------
     # NEW: Daily Check-In Flow
+    @handle_errors("creating daily checkin conversation handler")
     def daily_checkin_conv_handler(self):
         return ConversationHandler(
             entry_points=[CommandHandler("dailycheckin", self.start_daily_checkin),
@@ -540,6 +558,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             allow_reentry=False
         )
 
+    @handle_errors("starting daily checkin")
     async def start_daily_checkin(self, update: Update, context: CallbackContext):
         """Start daily check-in"""
         if not self.ensure_user_exists(update):
@@ -551,32 +570,38 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         )
         return CHECKIN_MOOD
 
+    @handle_errors("capturing mood")
     async def capture_mood(self, update: Update, context: CallbackContext):
         """Capture mood"""
         # Implementation needed
         await update.message.reply_text("Mood captured (not fully implemented)")
         return ConversationHandler.END
 
+    @handle_errors("capturing breakfast")
     async def capture_breakfast(self, update: Update, context: CallbackContext):
         """Capture breakfast"""
         # Implementation needed
         return ConversationHandler.END
 
+    @handle_errors("capturing energy")
     async def capture_energy(self, update: Update, context: CallbackContext):
         """Capture energy"""
         # Implementation needed
         return ConversationHandler.END
 
+    @handle_errors("capturing teeth")
     async def capture_teeth(self, update: Update, context: CallbackContext):
         """Capture teeth"""
         # Implementation needed
         return ConversationHandler.END
 
+    @handle_errors("canceling checkin")
     async def cancel_checkin(self, update: Update, context: CallbackContext):
         """Cancel check-in"""
         await update.message.reply_text("Daily check-in canceled.")
         return ConversationHandler.END
 
+    @handle_errors("ensuring user exists", default_return=False)
     def ensure_user_exists(self, update: Update) -> bool:
         chat_id = update.message.chat_id if update.message else update.callback_query.message.chat_id
         telegram_username = update.message.from_user.username if update.message else update.callback_query.from_user.username
@@ -607,5 +632,6 @@ telegram_bot = TelegramBot()
 
 # Running the bot
 
+@handle_errors("running Telegram bot in background")
 def run_telegram_bot_in_background():
     telegram_bot.start()

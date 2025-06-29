@@ -17,9 +17,13 @@ from core.service_utilities import InvalidTimeFormatError
 from core.logger import get_logger
 from user.user_context import UserContext
 from core.checkin_analytics import checkin_analytics
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
+@handle_errors("setting up view edit messages window")
 def setup_view_edit_messages_window(parent, category):
     """Opens a window for viewing and editing messages in a given category."""
     user_id = UserContext().get_user_id()
@@ -41,7 +45,8 @@ def setup_view_edit_messages_window(parent, category):
 
     load_and_display_messages(view_messages_window, category)
 
-def setup_view_edit_schedule_window(parent, category, scheduler_manager):
+@handle_errors("setting up view edit schedule window")
+def setup_view_edit_schedule_window(parent, category, scheduler_manager=None):
     """Opens a window to view and edit the schedule for a given category."""
     user_id = UserContext().get_user_id()
     if not user_id:
@@ -79,27 +84,20 @@ def setup_view_edit_schedule_window(parent, category, scheduler_manager):
 
     load_and_display_schedule(view_schedule_window, parent, category, scheduler_manager)
 
+@handle_errors("adding message dialog")
 def add_message_dialog(parent, category):
     """Opens a dialog to add a message to the specified category."""
     user_id = UserContext().get_user_id()
-    try:
-        data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
-        if data is None:
-            raise ValueError("Failed to load message data.")
-    except Exception as e:
-        logger.error(f"Error loading message data for category {category}: {e}", exc_info=True)
-        messagebox.showerror("Error", "Failed to load message data. Please check the data source.")
-        return
+    data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+    if data is None:
+        raise ValueError("Failed to load message data.")
 
-    try:
-        dialog = MessageDialog(parent, category, data=data)
-        dialog.grab_set()
-        dialog.geometry("304x521+100+100")
-        dialog.mainloop()
-    except Exception as e:
-        logger.error(f"Error opening message dialog for category {category}: {e}", exc_info=True)
-        messagebox.showerror("Error", "Failed to open the message dialog. Please try again.")
+    dialog = MessageDialog(parent, category, data=data)
+    dialog.grab_set()
+    dialog.geometry("304x521+100+100")
+    dialog.mainloop()
 
+@handle_errors("saving geometry and closing window")
 def save_geometry_and_close(window, parent, window_attr_name):
     """Save the window's geometry and then close it."""
     geometry = window.geometry()
@@ -107,27 +105,23 @@ def save_geometry_and_close(window, parent, window_attr_name):
     logger.debug(f"Saving geometry for {window_attr_name}: {geometry}")
     window.destroy()
 
+@handle_errors("refreshing window")
 def refresh_window(window, setup_func, parent, category, scheduler_manager):
     """Refreshes the given window by clearing and rebuilding the content."""
-    try:
-        # Clear all existing widgets in the window
-        for widget in window.winfo_children():
-            widget.destroy()
-        
-        # Rebuild the window content by calling the display function directly
-        if setup_func == setup_view_edit_schedule_window:
-            load_and_display_schedule(window, parent, category, scheduler_manager)
-        elif setup_func == setup_view_edit_messages_window:
-            load_and_display_messages(window, category)
-        else:
-            # Fallback to the original method
-            setup_func(parent, category, scheduler_manager)
-            
-        logger.debug(f"Successfully refreshed window for category {category}")
-    except Exception as e:
-        logger.error(f"Error refreshing window: {e}", exc_info=True)
-        # Fallback to the original method if refresh fails
+    # Clear all existing widgets in the window
+    for widget in window.winfo_children():
+        widget.destroy()
+    
+    # Rebuild the window content by calling the display function directly
+    if setup_func == setup_view_edit_schedule_window:
+        load_and_display_schedule(window, parent, category, scheduler_manager)
+    elif setup_func == setup_view_edit_messages_window:
+        load_and_display_messages(window, category)
+    else:
+        # Fallback to the original method
         setup_func(parent, category, scheduler_manager)
+        
+    logger.debug(f"Successfully refreshed window for category {category}")
 
 # Initialize stacks for storing deleted items
 deleted_message_stacks = {}
@@ -149,6 +143,10 @@ class MessageDialog(tk.Toplevel):
             self.destroy()
             return
         
+        self.data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+        if not self.data:
+            self.data = {"messages": []}
+
         try:
             self.data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
             if not self.data:
@@ -214,6 +212,7 @@ class MessageDialog(tk.Toplevel):
         for var in self.time_period_vars.values():
             var.set(is_selected)
             
+    @handle_errors("saving message")
     def save_message(self):
         """Saves the message to the JSON file."""
         selected_days = [day for day, var in self.days_vars.items() if var.get() == 1]
@@ -236,26 +235,20 @@ class MessageDialog(tk.Toplevel):
             messagebox.showerror("Error", "User ID is not set. Please ensure you are logged in.")
             return
 
-        try:
-            if self.index is not None:
-                # Editing existing message
-                self.data['messages'][self.index] = message_data
-                edit_message(user_id, self.category, self.index, message_data)
-                target_index = self.index
-                logger.debug(f"Edited message at index {self.index} for category {self.category}")
-            else:
-                # Adding new message
-                add_message(user_id, self.category, message_data)
-                # Don't manually update self.data here - let the refresh handle it
-                # Get the new target index by reloading the data
-                updated_data = load_json_data(determine_file_path('messages', f'{self.category}/{user_id}'))
-                target_index = len(updated_data.get('messages', [])) - 1 if updated_data else 0
-                logger.debug(f"Added new message for category {self.category}, target index: {target_index}")
-
-        except Exception as e:
-            logger.error(f"Error saving message: {e}", exc_info=True)
-            messagebox.showerror("Error", f"Failed to save message: {e}")
-            return
+        if self.index is not None:
+            # Editing existing message
+            self.data['messages'][self.index] = message_data
+            edit_message(user_id, self.category, self.index, message_data)
+            target_index = self.index
+            logger.debug(f"Edited message at index {self.index} for category {self.category}")
+        else:
+            # Adding new message
+            add_message(user_id, self.category, message_data)
+            # Don't manually update self.data here - let the refresh handle it
+            # Get the new target index by reloading the data
+            updated_data = load_json_data(determine_file_path('messages', f'{self.category}/{user_id}'))
+            target_index = len(updated_data.get('messages', [])) - 1 if updated_data else 0
+            logger.debug(f"Added new message for category {self.category}, target index: {target_index}")
 
         messagebox.showinfo("Message Saved", "Your message has been saved successfully.")
         self.refresh_open_treeviews(self.category, target_index)

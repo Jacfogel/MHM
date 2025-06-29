@@ -21,6 +21,9 @@ import json
 from bot.ai_chatbot import get_ai_chatbot
 from core.logger import get_logger
 from core.response_tracking import is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins, store_daily_checkin_response
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -69,6 +72,7 @@ class ConversationManager:
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
         self.user_states = {}
 
+    @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))
     def handle_inbound_message(self, user_id: str, message_text: str) -> tuple[str, bool]:
         """
         Primary entry point. Takes user's message and returns a (reply_text, completed).
@@ -100,13 +104,9 @@ class ConversationManager:
             else:
                 # Default to contextual chat for all other messages
                 # This provides rich, personalized responses using the user's context
-                try:
-                    ai_bot = get_ai_chatbot()
-                    reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
-                    return (reply, True)  # Single response, no ongoing flow
-                except Exception as e:
-                    logger.error(f"Error in default contextual chat for user {user_id}: {e}")
-                    return ("I'm having trouble processing your message right now. Please try again in a moment.", True)
+                ai_bot = get_ai_chatbot()
+                reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
+                return (reply, True)  # Single response, no ongoing flow
 
         # If user is mid-flow, continue the appropriate flow
         flow = user_state["flow"]
@@ -115,14 +115,11 @@ class ConversationManager:
         else:
             # Unknown flow - reset to default contextual chat
             self.user_states.pop(user_id, None)
-            try:
-                ai_bot = get_ai_chatbot()
-                reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
-                return (reply, True)
-            except Exception as e:
-                logger.error(f"Error in fallback contextual chat for user {user_id}: {e}")
-                return ("I encountered an issue. Let's start fresh - what can I help you with?", True)
+            ai_bot = get_ai_chatbot()
+            reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
+            return (reply, True)
 
+    @handle_errors("starting daily checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def start_daily_checkin(self, user_id: str) -> tuple[str, bool]:
         """
         Public method to start a daily check-in flow for a user.
@@ -140,93 +137,82 @@ class ConversationManager:
         # Initialize dynamic check-in flow based on user preferences
         return self._start_dynamic_checkin(user_id)
 
+    @handle_errors("starting dynamic checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
         """Start a dynamic check-in flow based on user preferences"""
-        try:
-            # Get user's check-in preferences
-            checkin_prefs = get_user_checkin_preferences(user_id)
-            enabled_questions = checkin_prefs.get('questions', {})
-            
-            # Build ordered list of enabled questions
-            question_order = []
-            for question_key, question_data in enabled_questions.items():
-                if question_data.get('enabled', False):
-                    question_order.append(question_key)
-            
-            if not question_order:
-                return ("No check-in questions are enabled. Please configure your check-in settings.", True)
-            
-            # Initialize user state with dynamic question order
-            user_state = {
-                "flow": FLOW_DAILY_CHECKIN,
-                "state": CHECKIN_START,
-                "data": {},
-                "question_order": question_order,
-                "current_question_index": 0
-            }
-            self.user_states[user_id] = user_state
-            
-            # Get personalized welcome message
-            welcome_msg = self._get_personalized_welcome(user_id, len(question_order))
-            
-            # Start with first question
-            return self._get_next_question(user_id, user_state)
-            
-        except Exception as e:
-            logger.error(f"Error starting dynamic check-in for user {user_id}: {e}")
-            return ("I'm having trouble starting your check-in. Please try again.", True)
+        # Get user's check-in preferences
+        checkin_prefs = get_user_checkin_preferences(user_id)
+        enabled_questions = checkin_prefs.get('questions', {})
+        
+        # Build ordered list of enabled questions
+        question_order = []
+        for question_key, question_data in enabled_questions.items():
+            if question_data.get('enabled', False):
+                question_order.append(question_key)
+        
+        if not question_order:
+            return ("No check-in questions are enabled. Please configure your check-in settings.", True)
+        
+        # Initialize user state with dynamic question order
+        user_state = {
+            "flow": FLOW_DAILY_CHECKIN,
+            "state": CHECKIN_START,
+            "data": {},
+            "question_order": question_order,
+            "current_question_index": 0
+        }
+        self.user_states[user_id] = user_state
+        
+        # Get personalized welcome message
+        welcome_msg = self._get_personalized_welcome(user_id, len(question_order))
+        
+        # Start with first question
+        return self._get_next_question(user_id, user_state)
 
+    @handle_errors("getting personalized welcome", default_return="🌟 Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.")
     def _get_personalized_welcome(self, user_id: str, question_count: int) -> str:
         """Generate a personalized welcome message based on user history"""
-        try:
-            # Get recent check-ins for context
-            recent_checkins = get_recent_daily_checkins(user_id, limit=3)
+        # Get recent check-ins for context
+        recent_checkins = get_recent_daily_checkins(user_id, limit=3)
+        
+        if recent_checkins:
+            # Analyze recent mood trends
+            recent_moods = [c.get('mood', 3) for c in recent_checkins if c.get('mood')]
+            avg_mood = sum(recent_moods) / len(recent_moods) if recent_moods else 3
             
-            if recent_checkins:
-                # Analyze recent mood trends
-                recent_moods = [c.get('mood', 3) for c in recent_checkins if c.get('mood')]
-                avg_mood = sum(recent_moods) / len(recent_moods) if recent_moods else 3
-                
-                if avg_mood >= 4:
-                    welcome = "🌟 Great to see you again! I've noticed you've been feeling pretty good lately."
-                elif avg_mood <= 2:
-                    welcome = "🌟 Hi there! I'm here to support you. Let's check in on how you're doing today."
-                else:
-                    welcome = "🌟 Hello! Let's take a moment to check in on how you're feeling today."
+            if avg_mood >= 4:
+                welcome = "🌟 Great to see you again! I've noticed you've been feeling pretty good lately."
+            elif avg_mood <= 2:
+                welcome = "🌟 Hi there! I'm here to support you. Let's check in on how you're doing today."
             else:
-                welcome = "🌟 Welcome to your first check-in! Let's get to know how you're doing."
-            
-            return f"{welcome}\n\nI have {question_count} quick questions for you today. Type /cancel anytime to skip."
-            
-        except Exception as e:
-            logger.error(f"Error generating personalized welcome for user {user_id}: {e}")
-            return f"🌟 Daily Check-in Time! 🌟\n\nI have {question_count} quick questions for you today. Type /cancel anytime to skip."
+                welcome = "🌟 Hello! Let's take a moment to check in on how you're feeling today."
+        else:
+            welcome = "🌟 Welcome to your first check-in! Let's get to know how you're doing."
+        
+        return f"{welcome}\n\nI have {question_count} quick questions for you today. Type /cancel anytime to skip."
 
+    @handle_errors("getting next question", default_return=("I'm having trouble with the check-in flow. Let's start over.", True))
     def _get_next_question(self, user_id: str, user_state: dict) -> tuple[str, bool]:
-        """Get the next question in the dynamic check-in flow"""
-        try:
-            question_order = user_state.get('question_order', [])
-            current_index = user_state.get('current_question_index', 0)
-            
-            if current_index >= len(question_order):
-                # All questions completed
-                return self._complete_checkin(user_id, user_state)
-            
-            question_key = question_order[current_index]
-            question_data = user_state.get('data', {})
-            
-            # Get question text based on type
-            question_text = self._get_question_text(question_key, question_data)
-            
-            # Update state to current question
-            user_state['state'] = QUESTION_STATES.get(question_key, CHECKIN_START)
-            
-            return (question_text, False)
-            
-        except Exception as e:
-            logger.error(f"Error getting next question for user {user_id}: {e}")
-            return ("I'm having trouble with the check-in flow. Let's start over.", True)
+        """Get the next question in the check-in flow"""
+        question_order = user_state.get('question_order', [])
+        current_index = user_state.get('current_question_index', 0)
+        
+        if current_index >= len(question_order):
+            # All questions completed
+            return self._complete_checkin(user_id, user_state)
+        
+        question_key = question_order[current_index]
+        question_data = user_state.get('data', {})
+        
+        # Get question text based on type
+        question_text = self._get_question_text(question_key, question_data)
+        
+        # Update state to current question
+        user_state['state'] = QUESTION_STATES.get(question_key, CHECKIN_START)
+        
+        return (question_text, False)
 
+    @handle_errors("getting question text", default_return="Please answer this question:")
     def _get_question_text(self, question_key: str, previous_data: dict) -> str:
         """Get appropriate question text based on question type and previous responses"""
         question_texts = {
@@ -256,6 +242,7 @@ class ConversationManager:
         
         return question_texts.get(question_key, "Please answer this question:")
 
+    @handle_errors("handling daily checkin", default_return=("I'm having trouble with the check-in. Let's start over.", True))
     def _handle_daily_checkin(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
         """
         Enhanced daily check-in flow with dynamic questions and better validation
@@ -288,6 +275,7 @@ class ConversationManager:
         # Get next question or complete
         return self._get_next_question(user_id, user_state)
 
+    @handle_errors("validating response", default_return={'valid': False, 'value': None, 'message': "I didn't understand that response. Please try again."})
     def _validate_response(self, question_key: str, response: str) -> dict:
         """Validate user response based on question type"""
         response = response.strip()
@@ -364,83 +352,71 @@ class ConversationManager:
             'message': None
         }
 
+    @handle_errors("completing checkin", default_return=("Thanks for completing your check-in! There was an issue saving your responses, but I've recorded what I could.", True))
     def _complete_checkin(self, user_id: str, user_state: dict) -> tuple[str, bool]:
         """Complete the check-in and provide personalized feedback"""
-        try:
-            data = user_state["data"]
-            
-            # Store the check-in data
-            store_daily_checkin_response(user_id, data)
-            
-            # Generate personalized completion message
-            completion_message = self._generate_completion_message(user_id, data)
-            
-            # Clear the user state
-            self.user_states.pop(user_id, None)
-            
-            return (completion_message, True)
-            
-        except Exception as e:
-            logger.error(f"Error completing check-in for user {user_id}: {e}")
-            self.user_states.pop(user_id, None)
-            return ("Thanks for completing your check-in! There was an issue saving your responses, but I've recorded what I could.", True)
+        data = user_state["data"]
+        
+        # Store the check-in data
+        store_daily_checkin_response(user_id, data)
+        
+        # Generate personalized completion message
+        completion_message = self._generate_completion_message(user_id, data)
+        
+        # Clear the user state
+        self.user_states.pop(user_id, None)
+        
+        return (completion_message, True)
 
+    @handle_errors("generating completion message", default_return="✅ Check-in complete! Thanks for taking the time. See you next time! 🌟")
     def _generate_completion_message(self, user_id: str, data: dict) -> str:
         """Generate a personalized completion message based on responses"""
-        try:
-            # Base completion message
-            message = "✅ Check-in complete! Thanks for taking the time.\n\n"
-            
-            # Add personalized insights
-            insights = []
-            
-            # Mood insights
-            mood = data.get('mood')
-            if mood is not None:
-                if mood >= 4:
-                    insights.append("🌟 Great mood today!")
-                elif mood <= 2:
-                    insights.append("💙 I hope tomorrow is better. Remember, it's okay to not be okay.")
-                else:
-                    insights.append("😊 Solid mood today!")
-            
-            # Energy insights
-            energy = data.get('energy')
-            if energy is not None and energy <= 2:
-                insights.append("⚡ Low energy - maybe try a short walk or some gentle stretching?")
-            
-            # Sleep insights
-            sleep_hours = data.get('sleep_hours')
-            sleep_quality = data.get('sleep_quality')
-            if sleep_hours is not None and sleep_hours < 6:
-                insights.append("😴 You might need more sleep tonight.")
-            elif sleep_quality is not None and sleep_quality <= 2:
-                insights.append("😴 Sleep quality could be better - consider a bedtime routine.")
-                      
-            # Add insights
-            if insights:
-                message += "💭 " + " ".join(insights) + "\n\n"
-            
-            # Encouragement
-            message += "You're doing great by checking in with yourself. See you next time! 🌟"
-            
-            return message
-            
-        except Exception as e:
-            logger.error(f"Error generating completion message for user {user_id}: {e}")
-            return "✅ Check-in complete! Thanks for taking the time. See you next time! 🌟"
+        # Base completion message
+        message = "✅ Check-in complete! Thanks for taking the time.\n\n"
+        
+        # Add personalized insights
+        insights = []
+        
+        # Mood insights
+        mood = data.get('mood')
+        if mood is not None:
+            if mood >= 4:
+                insights.append("🌟 Great mood today!")
+            elif mood <= 2:
+                insights.append("💙 I hope tomorrow is better. Remember, it's okay to not be okay.")
+            else:
+                insights.append("😊 Solid mood today!")
+        
+        # Energy insights
+        energy = data.get('energy')
+        if energy is not None and energy <= 2:
+            insights.append("⚡ Low energy - maybe try a short walk or some gentle stretching?")
+        
+        # Sleep insights
+        sleep_hours = data.get('sleep_hours')
+        sleep_quality = data.get('sleep_quality')
+        if sleep_hours is not None and sleep_hours < 6:
+            insights.append("😴 You might need more sleep tonight.")
+        elif sleep_quality is not None and sleep_quality <= 2:
+            insights.append("😴 Sleep quality could be better - consider a bedtime routine.")
+                  
+        # Add insights
+        if insights:
+            message += "💭 " + " ".join(insights) + "\n\n"
+        
+        # Encouragement
+        message += "You're doing great by checking in with yourself. See you next time! 🌟"
+        
+        return message
 
+    @handle_errors("handling contextual question", default_return="I'm having trouble accessing your context right now. Please try again later.")
     def handle_contextual_question(self, user_id: str, message_text: str) -> str:
         """
         Handle a single contextual question without entering a conversation flow.
         Perfect for one-off questions that benefit from user context.
         """
-        try:
-            ai_bot = get_ai_chatbot()
-            return ai_bot.generate_contextual_response(user_id, message_text, timeout=8)
-        except Exception as e:
-            logger.error(f"Error in contextual question handling: {e}")
-            return "I'm having trouble accessing your context right now. Please try again later."
+        ai_bot = get_ai_chatbot()
+        return ai_bot.generate_contextual_response(user_id, message_text, timeout=8)
 
 # Create a global instance for convenience:
 conversation_manager = ConversationManager()

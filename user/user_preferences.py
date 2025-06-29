@@ -7,6 +7,9 @@ import os
 from core.user_management import get_user_preferences, load_user_info_data, save_user_info_data
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active
 from core.logger import get_logger
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -15,45 +18,44 @@ class UserPreferences:
         self.user_id = user_id
         self.preferences = self.load_preferences()
 
+    @handle_errors("loading preferences", default_return={})
     def load_preferences(self):
         """Load user preferences using the updated utils functions."""
-        try:
-            # Use the updated utils function that supports new structure
-            preferences = get_user_preferences(self.user_id)
-            return preferences or {}
-        except Exception as e:
-            logger.error(f"Error loading preferences for user {self.user_id}: {e}")
-            return {}
+        # Use the updated utils function that supports new structure
+        preferences = get_user_preferences(self.user_id)
+        return preferences or {}
 
+    @handle_errors("saving preferences")
     def save_preferences(self):
         """Save user preferences using the updated utils functions."""
-        try:
-            # Load current user data
-            user_data = load_user_info_data(self.user_id) or {}
-            
-            # Update preferences
-            user_data['preferences'] = self.preferences
-            
-            # Save updated user data
-            save_user_info_data(user_data, self.user_id)
-            logger.info(f"User preferences saved for {self.user_id}")
-        except Exception as e:
-            logger.error(f"Error saving preferences for user {self.user_id}: {e}")
+        # Load current user data
+        user_data = load_user_info_data(self.user_id) or {}
+        
+        # Update preferences
+        user_data['preferences'] = self.preferences
+        
+        # Save updated user data
+        save_user_info_data(user_data, self.user_id)
+        logger.info(f"User preferences saved for {self.user_id}")
 
+    @handle_errors("setting preference")
     def set_preference(self, key, value):
         """Set a preference and save it."""
         self.preferences[key] = value
         self.save_preferences()
         logger.debug(f"Preference set for user {self.user_id}: {key} = {value}")
 
+    @handle_errors("getting preference", default_return=None)
     def get_preference(self, key):
         """Get a preference value."""
         return self.preferences.get(key)
     
+    @handle_errors("updating preference")
     def update_preference(self, key, value):
         """Update a preference (alias for set_preference for consistency)."""
         self.set_preference(key, value)
     
+    @handle_errors("removing preference")
     def remove_preference(self, key):
         """Remove a preference."""
         if key in self.preferences:
@@ -63,11 +65,13 @@ class UserPreferences:
         else:
             logger.warning(f"Preference {key} not found for user {self.user_id}")
     
+    @handle_errors("getting all preferences", default_return={})
     def get_all_preferences(self):
         """Get all preferences."""
         return self.preferences.copy()
 
     @staticmethod
+    @handle_errors("setting schedule period active", default_return=False)
     def set_schedule_period_active(user_id: str, category: str, period_name: str, is_active: bool) -> bool:
         """Wrapper for :func:`core.schedule_management.set_schedule_period_active`."""
         return set_schedule_period_active(
@@ -75,6 +79,7 @@ class UserPreferences:
         )
 
     @staticmethod
+    @handle_errors("checking if schedule period active", default_return=False)
     def is_schedule_period_active(user_id: str, category: str, period_name: str) -> bool:
         """Wrapper for :func:`core.schedule_management.is_schedule_period_active`."""
         return is_schedule_period_active(user_id, category, period_name)

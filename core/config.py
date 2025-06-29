@@ -1,4 +1,8 @@
 # config.py
+"""
+Configuration management for MHM.
+Handles environment variables, validation, and system settings.
+"""
 
 import os
 from dotenv import load_dotenv
@@ -6,13 +10,14 @@ import logging
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 
+from core.error_handling import (
+    ConfigurationError, ValidationError, handle_configuration_error,
+    handle_errors, error_handler
+)
+
 # Set up basic logging for config issues
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
-
-class ConfigError(Exception):
-    """Custom exception for configuration-related errors."""
-    pass
 
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
@@ -84,6 +89,7 @@ if not DISCORD_BOT_TOKEN:
 SCHEDULER_INTERVAL = int(os.getenv('SCHEDULER_INTERVAL', '60'))
 
 # Configuration Validation Functions
+@handle_errors("validating core paths", user_friendly=False)
 def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
     """Validate that all core paths are accessible and can be created if needed."""
     errors = []
@@ -106,13 +112,21 @@ def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
                     path_obj.mkdir(parents=True, exist_ok=True)
                     warnings.append(f"Created missing directory: {name} ({path})")
                 except Exception as e:
-                    errors.append(f"Cannot create directory {name} ({path}): {e}")
+                    error_msg = f"Cannot create directory {name} ({path}): {e}"
+                    errors.append(error_msg)
+                    # Use our error handling for this specific error
+                    handle_configuration_error(e, name, f"creating directory {path}")
             elif not path_obj.is_dir():
-                errors.append(f"Path {name} exists but is not a directory: {path}")
+                error_msg = f"Path {name} exists but is not a directory: {path}"
+                errors.append(error_msg)
             elif not os.access(path, os.W_OK):
-                errors.append(f"No write access to directory {name}: {path}")
+                error_msg = f"No write access to directory {name}: {path}"
+                errors.append(error_msg)
         except Exception as e:
-            errors.append(f"Error validating path {name} ({path}): {e}")
+            error_msg = f"Error validating path {name} ({path}): {e}"
+            errors.append(error_msg)
+            # Use our error handling for this specific error
+            handle_configuration_error(e, name, f"validating path {path}")
     
     return len(errors) == 0, errors, warnings
 
@@ -444,42 +458,45 @@ def ensure_user_directory(user_id: str) -> bool:
 # Legacy validation functions (kept for backward compatibility)
 def validate_telegram_config():
     # Deactivated - Telegram channel is disabled
-    raise ConfigError("Telegram channel has been deactivated.")
+    raise ConfigurationError("Telegram channel has been deactivated.")
     # if not TELEGRAM_BOT_TOKEN:
     #     raise ConfigError("TELEGRAM_BOT_TOKEN is missing from environment configuration.")
     # return True
 
+@handle_errors("validating email configuration", user_friendly=False)
 def validate_email_config():
     required_vars = [EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]
     if not all(required_vars):
         missing = [var for var in ['EMAIL_SMTP_SERVER', 'EMAIL_IMAP_SERVER', 'EMAIL_SMTP_USERNAME', 'EMAIL_SMTP_PASSWORD'] 
                   if not globals()[var]]
-        raise ConfigError(f"Missing email configuration variables: {', '.join(missing)}")
+        raise ConfigurationError(f"Missing email configuration variables: {', '.join(missing)}")
     return True
 
+@handle_errors("validating Discord configuration", user_friendly=False)
 def validate_discord_config():
     if not DISCORD_BOT_TOKEN:
-        raise ConfigError("DISCORD_BOT_TOKEN is missing from environment configuration.")
+        raise ConfigurationError("DISCORD_BOT_TOKEN is missing from environment configuration.")
     return True
 
+@handle_errors("getting available channels", user_friendly=False)
 def get_available_channels():
-    """Return list of channels that have complete configuration"""
-    available = []
+    """Get list of available communication channels based on configuration."""
+    available_channels = []
     
-    # if TELEGRAM_BOT_TOKEN:  # Deactivated
-    #     available.append('telegram')
-    
+    # Check email configuration
     if all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
-        available.append('email')
+        available_channels.append('email')
     
+    # Check Discord configuration
     if DISCORD_BOT_TOKEN:
-        available.append('discord')
+        available_channels.append('discord')
     
-    return available
+    return available_channels
 
+@handle_errors("validating minimum configuration", user_friendly=False)
 def validate_minimum_config():
     """Ensure at least one communication channel is configured"""
     available = get_available_channels()
     if not available:
-        raise ConfigError("No communication channels are properly configured. Please set up at least one channel (Telegram, Email, or Discord).")
+        raise ConfigurationError("No communication channels are properly configured. Please set up at least one channel (Telegram, Email, or Discord).")
     return available

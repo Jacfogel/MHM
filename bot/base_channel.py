@@ -4,6 +4,9 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import asyncio
 from core.logger import get_logger
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -73,18 +76,22 @@ class BaseChannel(ABC):
         """Perform a health check. Returns True if healthy."""
         pass
     
+    @handle_errors("checking if channel is ready", default_return=False)
     def is_ready(self) -> bool:
         """Check if channel is ready to send/receive messages"""
         return self.status == ChannelStatus.READY
     
+    @handle_errors("getting channel status", default_return=ChannelStatus.ERROR)
     def get_status(self) -> ChannelStatus:
         """Get current channel status"""
         return self.status
     
+    @handle_errors("getting channel error", default_return=None)
     def get_error(self) -> Optional[str]:
         """Get last error message"""
         return self.error_message
     
+    @handle_errors("setting channel status")
     def _set_status(self, status: ChannelStatus, error_message: Optional[str] = None):
         """Internal method to update status"""
         self.status = status

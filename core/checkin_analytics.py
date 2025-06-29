@@ -13,6 +13,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from core.logger import get_logger
 from core.response_tracking import get_recent_daily_checkins
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -20,201 +23,185 @@ class CheckinAnalytics:
     def __init__(self):
         pass
     
+    @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
     def get_mood_trends(self, user_id: str, days: int = 30) -> Dict:
         """Analyze mood trends over the specified period"""
-        try:
-            checkins = get_recent_daily_checkins(user_id, limit=days)
-            if not checkins:
-                return {"error": "No check-in data available"}
-            
-            # Extract mood data with timestamps
-            mood_data = []
-            for checkin in checkins:
-                if 'mood' in checkin and 'timestamp' in checkin:
-                    try:
-                        timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
-                        mood_data.append({
-                            'date': timestamp.date(),
-                            'mood': checkin['mood'],
-                            'timestamp': checkin['timestamp']
-                        })
-                    except (ValueError, TypeError):
-                        continue
-            
-            if not mood_data:
-                return {"error": "No valid mood data found"}
-            
-            # Calculate statistics
-            moods = [d['mood'] for d in mood_data]
-            avg_mood = statistics.mean(moods)
-            mood_std = statistics.stdev(moods) if len(moods) > 1 else 0
-            
-            # Identify trends
-            recent_moods = moods[:7] if len(moods) >= 7 else moods
-            older_moods = moods[7:14] if len(moods) >= 14 else []
-            
-            trend = "stable"
-            if len(older_moods) > 0:
-                recent_avg = statistics.mean(recent_moods)
-                older_avg = statistics.mean(older_moods)
-                if recent_avg > older_avg + 0.5:
-                    trend = "improving"
-                elif recent_avg < older_avg - 0.5:
-                    trend = "declining"
-            
-            # Find best and worst days
-            best_day = max(mood_data, key=lambda x: x['mood'])
-            worst_day = min(mood_data, key=lambda x: x['mood'])
-            
-            return {
-                "period_days": days,
-                "total_checkins": len(mood_data),
-                "average_mood": round(avg_mood, 2),
-                "mood_volatility": round(mood_std, 2),
-                "trend": trend,
-                "best_day": {
-                    "date": best_day['date'].strftime('%Y-%m-%d'),
-                    "mood": best_day['mood']
-                },
-                "worst_day": {
-                    "date": worst_day['date'].strftime('%Y-%m-%d'),
-                    "mood": worst_day['mood']
-                },
-                "mood_distribution": self._get_mood_distribution(moods),
-                "recent_data": mood_data[:7]  # Last 7 days
-            }
-            
-        except Exception as e:
-            logger.error(f"Error analyzing mood trends for user {user_id}: {e}")
-            return {"error": f"Analysis failed: {str(e)}"}
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Extract mood data with timestamps
+        mood_data = []
+        for checkin in checkins:
+            if 'mood' in checkin and 'timestamp' in checkin:
+                try:
+                    timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
+                    mood_data.append({
+                        'date': timestamp.date(),
+                        'mood': checkin['mood'],
+                        'timestamp': checkin['timestamp']
+                    })
+                except (ValueError, TypeError):
+                    continue
+        
+        if not mood_data:
+            return {"error": "No valid mood data found"}
+        
+        # Calculate statistics
+        moods = [d['mood'] for d in mood_data]
+        avg_mood = statistics.mean(moods)
+        mood_std = statistics.stdev(moods) if len(moods) > 1 else 0
+        
+        # Identify trends
+        recent_moods = moods[:7] if len(moods) >= 7 else moods
+        older_moods = moods[7:14] if len(moods) >= 14 else []
+        
+        trend = "stable"
+        if len(older_moods) > 0:
+            recent_avg = statistics.mean(recent_moods)
+            older_avg = statistics.mean(older_moods)
+            if recent_avg > older_avg + 0.5:
+                trend = "improving"
+            elif recent_avg < older_avg - 0.5:
+                trend = "declining"
+        
+        # Find best and worst days
+        best_day = max(mood_data, key=lambda x: x['mood'])
+        worst_day = min(mood_data, key=lambda x: x['mood'])
+        
+        return {
+            "period_days": days,
+            "total_checkins": len(mood_data),
+            "average_mood": round(avg_mood, 2),
+            "mood_volatility": round(mood_std, 2),
+            "trend": trend,
+            "best_day": {
+                "date": best_day['date'].strftime('%Y-%m-%d'),
+                "mood": best_day['mood']
+            },
+            "worst_day": {
+                "date": worst_day['date'].strftime('%Y-%m-%d'),
+                "mood": worst_day['mood']
+            },
+            "mood_distribution": self._get_mood_distribution(moods),
+            "recent_data": mood_data[:7]  # Last 7 days
+        }
     
+    @handle_errors("analyzing habits", default_return={"error": "Analysis failed"})
     def get_habit_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze habit patterns from check-in data"""
-        try:
-            checkins = get_recent_daily_checkins(user_id, limit=days)
-            if not checkins:
-                return {"error": "No check-in data available"}
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Define habits to track
+        habits = {
+            'ate_breakfast': 'Breakfast',
+            'brushed_teeth': 'Teeth Brushing',
+            'medication_taken': 'Medication',
+            'exercise': 'Exercise',
+            'hydration': 'Hydration',
+            'social_interaction': 'Social Interaction'
+        }
+        
+        habit_stats = {}
+        for habit_key, habit_name in habits.items():
+            habit_data = []
+            for checkin in checkins:
+                if habit_key in checkin:
+                    habit_data.append(checkin[habit_key])
             
-            # Define habits to track
-            habits = {
-                'ate_breakfast': 'Breakfast',
-                'brushed_teeth': 'Teeth Brushing',
-                'medication_taken': 'Medication',
-                'exercise': 'Exercise',
-                'hydration': 'Hydration',
-                'social_interaction': 'Social Interaction'
-            }
-            
-            habit_stats = {}
-            for habit_key, habit_name in habits.items():
-                habit_data = []
-                for checkin in checkins:
-                    if habit_key in checkin:
-                        habit_data.append(checkin[habit_key])
+            if habit_data:
+                completion_rate = sum(habit_data) / len(habit_data) * 100
+                streak_info = self._calculate_streak(checkins, habit_key)
                 
-                if habit_data:
-                    completion_rate = sum(habit_data) / len(habit_data) * 100
-                    streak_info = self._calculate_streak(checkins, habit_key)
-                    
-                    habit_stats[habit_key] = {
-                        "name": habit_name,
-                        "completion_rate": round(completion_rate, 1),
-                        "total_days": len(habit_data),
-                        "completed_days": sum(habit_data),
-                        "current_streak": streak_info['current'],
-                        "best_streak": streak_info['best'],
-                        "status": self._get_habit_status(completion_rate)
-                    }
-            
-            return {
-                "period_days": days,
-                "habits": habit_stats,
-                "overall_completion": self._calculate_overall_completion(habit_stats)
-            }
-            
-        except Exception as e:
-            logger.error(f"Error analyzing habits for user {user_id}: {e}")
-            return {"error": f"Analysis failed: {str(e)}"}
+                habit_stats[habit_key] = {
+                    "name": habit_name,
+                    "completion_rate": round(completion_rate, 1),
+                    "total_days": len(habit_data),
+                    "completed_days": sum(habit_data),
+                    "current_streak": streak_info['current'],
+                    "best_streak": streak_info['best'],
+                    "status": self._get_habit_status(completion_rate)
+                }
+        
+        return {
+            "period_days": days,
+            "habits": habit_stats,
+            "overall_completion": self._calculate_overall_completion(habit_stats)
+        }
     
+    @handle_errors("analyzing sleep", default_return={"error": "Analysis failed"})
     def get_sleep_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze sleep patterns from check-in data"""
-        try:
-            checkins = get_recent_daily_checkins(user_id, limit=days)
-            if not checkins:
-                return {"error": "No check-in data available"}
-            
-            sleep_data = []
-            for checkin in checkins:
-                if 'sleep_hours' in checkin and 'sleep_quality' in checkin:
-                    try:
-                        timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
-                        sleep_data.append({
-                            'date': timestamp.date(),
-                            'hours': checkin['sleep_hours'],
-                            'quality': checkin['sleep_quality'],
-                            'timestamp': checkin['timestamp']
-                        })
-                    except (ValueError, TypeError):
-                        continue
-            
-            if not sleep_data:
-                return {"error": "No valid sleep data found"}
-            
-            # Calculate sleep statistics
-            hours = [d['hours'] for d in sleep_data]
-            quality = [d['quality'] for d in sleep_data]
-            
-            avg_hours = statistics.mean(hours)
-            avg_quality = statistics.mean(quality)
-            
-            # Identify sleep patterns
-            good_sleep_days = [d for d in sleep_data if d['hours'] >= 7 and d['quality'] >= 4]
-            poor_sleep_days = [d for d in sleep_data if d['hours'] < 6 or d['quality'] <= 2]
-            
-            return {
-                "period_days": days,
-                "total_sleep_records": len(sleep_data),
-                "average_hours": round(avg_hours, 1),
-                "average_quality": round(avg_quality, 1),
-                "good_sleep_days": len(good_sleep_days),
-                "poor_sleep_days": len(poor_sleep_days),
-                "sleep_consistency": self._calculate_sleep_consistency(hours),
-                "recommendations": self._get_sleep_recommendations(avg_hours, avg_quality, len(poor_sleep_days)),
-                "recent_data": sleep_data[:7]  # Last 7 days
-            }
-            
-        except Exception as e:
-            logger.error(f"Error analyzing sleep for user {user_id}: {e}")
-            return {"error": f"Analysis failed: {str(e)}"}
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        sleep_data = []
+        for checkin in checkins:
+            if 'sleep_hours' in checkin and 'sleep_quality' in checkin:
+                try:
+                    timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
+                    sleep_data.append({
+                        'date': timestamp.date(),
+                        'hours': checkin['sleep_hours'],
+                        'quality': checkin['sleep_quality'],
+                        'timestamp': checkin['timestamp']
+                    })
+                except (ValueError, TypeError):
+                    continue
+        
+        if not sleep_data:
+            return {"error": "No valid sleep data found"}
+        
+        # Calculate sleep statistics
+        hours = [d['hours'] for d in sleep_data]
+        quality = [d['quality'] for d in sleep_data]
+        
+        avg_hours = statistics.mean(hours)
+        avg_quality = statistics.mean(quality)
+        
+        # Identify sleep patterns
+        good_sleep_days = [d for d in sleep_data if d['hours'] >= 7 and d['quality'] >= 4]
+        poor_sleep_days = [d for d in sleep_data if d['hours'] < 6 or d['quality'] <= 2]
+        
+        return {
+            "period_days": days,
+            "total_sleep_records": len(sleep_data),
+            "average_hours": round(avg_hours, 1),
+            "average_quality": round(avg_quality, 1),
+            "good_sleep_days": len(good_sleep_days),
+            "poor_sleep_days": len(poor_sleep_days),
+            "sleep_consistency": self._calculate_sleep_consistency(hours),
+            "recommendations": self._get_sleep_recommendations(avg_hours, avg_quality, len(poor_sleep_days)),
+            "recent_data": sleep_data[:7]  # Last 7 days
+        }
     
+    @handle_errors("calculating wellness score", default_return={"error": "Calculation failed"})
     def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
         """Calculate a comprehensive wellness score based on recent check-ins"""
-        try:
-            checkins = get_recent_daily_checkins(user_id, limit=days)
-            if not checkins:
-                return {"error": "No check-in data available"}
-            
-            # Calculate component scores
-            mood_score = self._calculate_mood_score(checkins)
-            habit_score = self._calculate_habit_score(checkins)
-            sleep_score = self._calculate_sleep_score(checkins)
-            
-            # Weight the components
-            overall_score = (mood_score * 0.4 + habit_score * 0.3 + sleep_score * 0.3)
-            
-            return {
-                "overall_score": round(overall_score, 1),
-                "mood_score": round(mood_score, 1),
-                "habit_score": round(habit_score, 1),
-                "sleep_score": round(sleep_score, 1),
-                "period_days": days,
-                "score_level": self._get_score_level(overall_score),
-                "recommendations": self._get_wellness_recommendations(mood_score, habit_score, sleep_score)
-            }
-            
-        except Exception as e:
-            logger.error(f"Error calculating wellness score for user {user_id}: {e}")
-            return {"error": f"Calculation failed: {str(e)}"}
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Calculate component scores
+        mood_score = self._calculate_mood_score(checkins)
+        habit_score = self._calculate_habit_score(checkins)
+        sleep_score = self._calculate_sleep_score(checkins)
+        
+        # Weight the components
+        overall_score = (mood_score * 0.4 + habit_score * 0.3 + sleep_score * 0.3)
+        
+        return {
+            "overall_score": round(overall_score, 1),
+            "mood_score": round(mood_score, 1),
+            "habit_score": round(habit_score, 1),
+            "sleep_score": round(sleep_score, 1),
+            "period_days": days,
+            "score_level": self._get_score_level(overall_score),
+            "recommendations": self._get_wellness_recommendations(mood_score, habit_score, sleep_score)
+        }
     
     def _get_mood_distribution(self, moods: List[int]) -> Dict:
         """Calculate distribution of mood scores"""

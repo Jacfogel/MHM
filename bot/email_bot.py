@@ -11,6 +11,9 @@ from typing import List, Dict, Any
 from core.config import EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
 from core.logger import get_logger
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 logger = get_logger(__name__)
 
@@ -34,75 +37,65 @@ class EmailBot(BaseChannel):
     def channel_type(self) -> ChannelType:
         return ChannelType.SYNC  # Email operations are synchronous
 
+    @handle_errors("initializing email bot", default_return=False)
     async def initialize(self) -> bool:
         """Initialize the email bot"""
         self._set_status(ChannelStatus.INITIALIZING)
         
-        try:
-            # Validate configuration
-            if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
-                error_msg = "Email configuration incomplete. Missing required settings."
-                self._set_status(ChannelStatus.ERROR, error_msg)
-                return False
-
-            # Test SMTP connection
-            await asyncio.get_event_loop().run_in_executor(
-                None, self._test_smtp_connection
-            )
-            
-            # Test IMAP connection
-            await asyncio.get_event_loop().run_in_executor(
-                None, self._test_imap_connection
-            )
-            
-            self._set_status(ChannelStatus.READY)
-            logger.info("EmailBot initialized successfully.")
-            return True
-            
-        except Exception as e:
-            error_msg = f"Failed to initialize EmailBot: {e}"
+        # Validate configuration
+        if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
+            error_msg = "Email configuration incomplete. Missing required settings."
             self._set_status(ChannelStatus.ERROR, error_msg)
-            logger.error(error_msg)
             return False
 
+        # Test SMTP connection
+        await asyncio.get_event_loop().run_in_executor(
+            None, self._test_smtp_connection
+        )
+        
+        # Test IMAP connection
+        await asyncio.get_event_loop().run_in_executor(
+            None, self._test_imap_connection
+        )
+        
+        self._set_status(ChannelStatus.READY)
+        logger.info("EmailBot initialized successfully.")
+        return True
+
+    @handle_errors("testing SMTP connection")
     def _test_smtp_connection(self):
         """Test SMTP connection synchronously"""
         with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465) as server:
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
 
+    @handle_errors("testing IMAP connection")
     def _test_imap_connection(self):
         """Test IMAP connection synchronously"""
         with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER) as mail:
             mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
 
+    @handle_errors("shutting down email bot", default_return=False)
     async def shutdown(self) -> bool:
         """Shutdown the email bot"""
-        try:
-            self._set_status(ChannelStatus.STOPPED)
-            logger.info("EmailBot stopped.")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to stop EmailBot: {e}")
-            return False
+        self._set_status(ChannelStatus.STOPPED)
+        logger.info("EmailBot stopped.")
+        return True
 
+    @handle_errors("sending email message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
         """Send message via email"""
         if not self.is_ready():
             logger.error("EmailBot is not ready to send messages.")
             return False
 
-        try:
-            # Run the synchronous email sending in a thread pool
-            await asyncio.get_event_loop().run_in_executor(
-                None, self._send_email_sync, recipient, message, kwargs
-            )
-            logger.info(f"Email sent to {recipient}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-            return False
+        # Run the synchronous email sending in a thread pool
+        await asyncio.get_event_loop().run_in_executor(
+            None, self._send_email_sync, recipient, message, kwargs
+        )
+        logger.info(f"Email sent to {recipient}")
+        return True
 
+    @handle_errors("sending email synchronously")
     def _send_email_sync(self, recipient: str, message: str, kwargs: dict):
         """Send email synchronously"""
         subject = kwargs.get('subject', 'Personal Assistant Message')
@@ -116,24 +109,21 @@ class EmailBot(BaseChannel):
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
             server.sendmail(EMAIL_SMTP_USERNAME, recipient, msg.as_string())
 
+    @handle_errors("receiving email messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from email"""
         if not self.is_ready():
             logger.error("EmailBot is not ready to receive messages.")
             return []
 
-        try:
-            # Run the synchronous email receiving in a thread pool
-            messages = await asyncio.get_event_loop().run_in_executor(
-                None, self._receive_emails_sync
-            )
-            logger.info(f"Received {len(messages)} emails.")
-            return messages
-            
-        except Exception as e:
-            logger.error(f"Failed to receive emails: {e}")
-            return []
+        # Run the synchronous email receiving in a thread pool
+        messages = await asyncio.get_event_loop().run_in_executor(
+            None, self._receive_emails_sync
+        )
+        logger.info(f"Received {len(messages)} emails.")
+        return messages
 
+    @handle_errors("receiving emails synchronously", default_return=[])
     def _receive_emails_sync(self) -> List[Dict[str, Any]]:
         """Receive emails synchronously"""
         messages = []
@@ -161,22 +151,20 @@ class EmailBot(BaseChannel):
         
         return messages
 
+    @handle_errors("performing email health check", default_return=False)
     async def health_check(self) -> bool:
         """Perform health check on email connections"""
-        try:
-            # Test both SMTP and IMAP connections
-            await asyncio.get_event_loop().run_in_executor(
-                None, self._test_smtp_connection
-            )
-            await asyncio.get_event_loop().run_in_executor(
-                None, self._test_imap_connection
-            )
-            return True
-        except Exception as e:
-            logger.error(f"Email health check failed: {e}")
-            return False
+        # Test both SMTP and IMAP connections
+        await asyncio.get_event_loop().run_in_executor(
+            None, self._test_smtp_connection
+        )
+        await asyncio.get_event_loop().run_in_executor(
+            None, self._test_imap_connection
+        )
+        return True
 
     # Legacy methods for backward compatibility
+    @handle_errors("starting email bot")
     def start(self):
         """Legacy start method"""
         loop = asyncio.new_event_loop()
@@ -185,6 +173,7 @@ class EmailBot(BaseChannel):
         if not success:
             raise EmailBotError("Failed to initialize EmailBot")
 
+    @handle_errors("stopping email bot")
     def stop(self):
         """Legacy stop method"""
         if asyncio.get_event_loop().is_running():

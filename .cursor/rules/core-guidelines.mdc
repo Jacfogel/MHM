@@ -1,0 +1,90 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Core MHM Guidelines
+
+## User Context
+- Beginner programmer with ADHD/depression
+- Windows 11 environment, PowerShell syntax preferred
+- Building personal mental health assistant
+- Values learning and efficiency over being right
+- Will miss things and fail to consider things
+- Relies on AI to help with thoroughness
+
+## Core Development Rules
+- Test: `python run_mhm.py` must work after changes
+- Backup before major changes
+- Update `requirements.txt` for new dependencies
+- Document in `IMPROVEMENTS.md`
+- Use PowerShell syntax (see development-tasks.mdc)
+
+## Key Files
+- `run_mhm.py` (entry point)
+- `core/service.py` (background service)
+- `ui/ui_app.py` (admin interface)
+- `core/config.py` (configuration)
+- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py` (formerly in utils.py, now refactored for clarity and maintainability)
+
+## Development Workflow
+1. **Test current state**: `python run_mhm.py`
+2. **Create backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
+3. **Make incremental changes**
+4. **Test after each change**
+5. **Update documentation**: `IMPROVEMENTS.md`
+
+## Error Handling
+- Check file existence before reading
+- Clear error messages
+- Handle missing data gracefully
+- Log appropriately
+- Always verify command success with exit codes
+
+## Communication Guidelines
+- Be encouraging and patient
+- Explain WHY changes are needed
+- Break complex tasks into steps
+- Acknowledge progress and successes
+- Provide clear error messages
+- Keep explanations simple and clear
+- Focus on one concept at a time
+
+## Beginner Programmer Support
+**CRITICAL**: User prefers correction over inefficient approaches.
+
+### When User Suggests Something:
+- Question their goals and reasoning
+- Suggest better alternatives if you see them
+- Educate about relevant concepts they might not know
+- Point out potential problems or inefficiencies
+- Ask clarifying questions when unsure
+
+### Key Questions to Ask:
+- "What's your goal with this approach?"
+- "Are you aware of [alternative]?"
+- "What's driving this decision?"
+- "Have you considered [potential issue]?"
+- "Would you like me to explain [concept]?"
+
+## Development Approach
+- Always be thorough and check for consistency
+- If changing a function or moving a file, check all references
+- Update all related places appropriately
+- Repeat as needed to ensure consistency
+- You can always ask if deviating from a rule would be better
+
+## Safety First
+- Backup before major changes
+- Test incrementally
+- Make small, tested changes
+- Explain the reasoning behind suggestions
+- Prioritize reliability over cleverness
+
+---
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the core-guidelines.mdc rule"
+
+
+
+

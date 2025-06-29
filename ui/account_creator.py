@@ -9,6 +9,9 @@ from core.message_management import get_message_categories
 from core.validation import title_case
 from core.user_management import get_user_id_by_internal_username, add_user_info
 from core.file_operations import create_user_files
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 import uuid
 
 logger = get_logger(__name__)
@@ -405,6 +408,7 @@ class CreateAccountScreen:
             self.explanation.bind("<MouseWheel>", self.on_main_mouse_wheel)
         # If disabled, content frame is destroyed and not recreated, allowing proper collapsing
 
+    @handle_errors("creating account")
     def create_account(self):
         """
         Handles the account creation process, including validation and saving user data.
@@ -417,105 +421,101 @@ class CreateAccountScreen:
         discord_user_id = self.discord_id_entry.get().strip()
         selected_categories = [category for category, var in self.category_vars.items() if var.get() == 1]
 
-        try:
-            if not internal_username:
-                messagebox.showerror("Account Creation Failed", "Username is required.")
+        if not internal_username:
+            messagebox.showerror("Account Creation Failed", "Username is required.")
+            return
+
+        # Check if username is already taken
+        if get_user_id_by_internal_username(internal_username):
+            messagebox.showerror("Account Creation Failed", "Username is already taken. Please choose another.")
+            return
+
+        messaging_service = self.service_var.get()
+        if not messaging_service or messaging_service == "NONE_SELECTED":
+            messagebox.showerror("Account Creation Failed", "Please select a message service.")
+            return
+
+        # Validate based on which service
+        if messaging_service == "email":
+            if not email:
+                messagebox.showerror("Account Creation Failed", "Email is required for Email service.")
+                return
+        elif messaging_service == "telegram":
+            if not phone:
+                messagebox.showerror("Account Creation Failed", "Phone number is required for Telegram service.")
+                return
+        elif messaging_service == "discord":
+            if not discord_user_id:
+                messagebox.showerror("Account Creation Failed", "Discord user ID is required for Discord service.")
                 return
 
-            # Check if username is already taken
-            if get_user_id_by_internal_username(internal_username):
-                messagebox.showerror("Account Creation Failed", "Username is already taken. Please choose another.")
-                return
+        if not selected_categories:
+            messagebox.showerror("Account Creation Failed", "At least one category must be selected.")
+            return
 
-            messaging_service = self.service_var.get()
-            if not messaging_service or messaging_service == "NONE_SELECTED":
-                messagebox.showerror("Account Creation Failed", "Please select a message service.")
-                return
+        user_id = str(uuid.uuid4())
+        UserContext().set_user_id(user_id)
+        UserContext().set_internal_username(internal_username)
 
-            # Validate based on which service
-            if messaging_service == "email":
-                if not email:
-                    messagebox.showerror("Account Creation Failed", "Email is required for Email service.")
-                    return
-            elif messaging_service == "telegram":
-                if not phone:
-                    messagebox.showerror("Account Creation Failed", "Phone number is required for Telegram service.")
-                    return
-            elif messaging_service == "discord":
-                if not discord_user_id:
-                    messagebox.showerror("Account Creation Failed", "Discord user ID is required for Discord service.")
-                    return
-
-            if not selected_categories:
-                messagebox.showerror("Account Creation Failed", "At least one category must be selected.")
-                return
-
-            user_id = str(uuid.uuid4())
-            UserContext().set_user_id(user_id)
-            UserContext().set_internal_username(internal_username)
-
-            schedules = {
-                category: {
-                    "default": {
-                        "start": "17:30",
-                        "end": "18:30"
-                    }
-                } for category in selected_categories
-            }
-
-            # Collect check-in preferences
-            checkin_preferences = {}
-            if self.checkin_enabled_var.get() == 1:
-                checkin_preferences = {
-                    "enabled": True,
-                    "frequency": self.checkin_frequency_var.get(),
-                    "questions": {}
+        schedules = {
+            category: {
+                "default": {
+                    "start": "17:30",
+                    "end": "18:30"
                 }
-                
-                # Collect enabled questions
-                for question_key, question_data in self.checkin_questions.items():
-                    checkin_preferences["questions"][question_key] = {
-                        "enabled": question_data['var'].get() == 1,
-                        "label": question_data['label']
-                    }
-            else:
-                checkin_preferences = {
-                    "enabled": False,
-                    "frequency": "daily",
-                    "questions": {}
-                }
+            } for category in selected_categories
+        }
 
-            # Build user_info dictionary
-            user_info = {
-                "user_id": user_id,
-                "internal_username": internal_username,
-                "preferred_name": preferred_name,
-                "chat_id": "",  # For Telegram
-                "phone": f"{country_code} {phone}" if messaging_service == "telegram" else "",
-                "email": email if messaging_service == "email" else "",
-                "preferences": {
-                    "categories": selected_categories,
-                    "messaging_service": messaging_service,
-                    "checkins": checkin_preferences
-                },
-                "schedules": schedules
+        # Collect check-in preferences
+        checkin_preferences = {}
+        if self.checkin_enabled_var.get() == 1:
+            checkin_preferences = {
+                "enabled": True,
+                "frequency": self.checkin_frequency_var.get(),
+                "questions": {}
             }
-
-            # If Discord, store the user's Discord ID in preferences
-            if messaging_service == "discord":
-                user_info["preferences"]["discord_user_id"] = discord_user_id
-
-            add_user_info(user_id, user_info)
-            create_user_files(user_id, selected_categories)  # Ensure message files are created
-
-            logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
-            messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")
-            self.master.destroy()
             
-        except Exception as e:
-            logger.error(f"Failed to create account for username {internal_username}: {e}", exc_info=True)
-            messagebox.showerror("Account Creation Failed", f"An unexpected error occurred: {str(e)}")
+            # Collect enabled questions
+            for question_key, question_data in self.checkin_questions.items():
+                checkin_preferences["questions"][question_key] = {
+                    "enabled": question_data['var'].get() == 1,
+                    "label": question_data['label']
+                }
+        else:
+            checkin_preferences = {
+                "enabled": False,
+                "frequency": "daily",
+                "questions": {}
+            }
 
+        # Build user_info dictionary
+        user_info = {
+            "user_id": user_id,
+            "internal_username": internal_username,
+            "preferred_name": preferred_name,
+            "chat_id": "",  # For Telegram
+            "phone": f"{country_code} {phone}" if messaging_service == "telegram" else "",
+            "email": email if messaging_service == "email" else "",
+            "preferences": {
+                "categories": selected_categories,
+                "messaging_service": messaging_service,
+                "checkins": checkin_preferences
+            },
+            "schedules": schedules
+        }
+
+        # If Discord, store the user's Discord ID in preferences
+        if messaging_service == "discord":
+            user_info["preferences"]["discord_user_id"] = discord_user_id
+
+        add_user_info(user_id, user_info)
+        create_user_files(user_id, selected_categories)  # Ensure message files are created
+
+        logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
+        messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")
+        self.master.destroy()
+
+    @handle_errors("closing account creator")
     def on_closing(self):
         """Handles the window close event for the account creation screen."""
         logger.info("CreateAccountScreen is closing.")

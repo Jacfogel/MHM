@@ -22,6 +22,11 @@ logger = get_logger(__name__)
 # Import configuration validation
 from core.config import validate_all_configuration, ConfigValidationError
 
+# Import comprehensive error handling
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
+
 from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog
 from user.user_context import UserContext
 from core.user_management import get_all_user_ids, get_user_info, get_user_preferences
@@ -35,170 +40,154 @@ class ServiceManager:
     def __init__(self):
         self.service_process = None
         
+    @handle_errors("validating configuration before start", default_return=False)
     def validate_configuration_before_start(self):
         """Validate configuration before attempting to start the service."""
-        try:
-            result = validate_all_configuration()
-            
-            if not result['valid']:
-                error_message = "Configuration validation failed:\n\n"
-                for error in result['errors']:
-                    error_message += f"• {error}\n"
-                
-                if result['warnings']:
-                    error_message += "\nWarnings:\n"
-                    for warning in result['warnings']:
-                        error_message += f"• {warning}\n"
-                
-                messagebox.showerror("Configuration Error", error_message)
-                return False
+        result = validate_all_configuration()
+        
+        if not result['valid']:
+            error_message = "Configuration validation failed:\n\n"
+            for error in result['errors']:
+                error_message += f"• {error}\n"
             
             if result['warnings']:
-                warning_message = "Configuration warnings:\n\n"
+                error_message += "\nWarnings:\n"
                 for warning in result['warnings']:
-                    warning_message += f"• {warning}\n"
-                warning_message += "\nThe service will start, but you may want to address these warnings."
-                messagebox.showwarning("Configuration Warnings", warning_message)
+                    error_message += f"• {warning}\n"
             
-            if not result['available_channels']:
-                messagebox.showwarning("No Communication Channels", 
-                                     "No communication channels are configured. The service will start but won't be able to send messages.")
-            
-            return True
-            
-        except Exception as e:
-            messagebox.showerror("Configuration Error", f"Error validating configuration: {e}")
+            messagebox.showerror("Configuration Error", error_message)
             return False
         
+        if result['warnings']:
+            warning_message = "Configuration warnings:\n\n"
+            for warning in result['warnings']:
+                warning_message += f"• {warning}\n"
+            warning_message += "\nThe service will start, but you may want to address these warnings."
+            messagebox.showwarning("Configuration Warnings", warning_message)
+        
+        if not result['available_channels']:
+            messagebox.showwarning("No Communication Channels", 
+                                 "No communication channels are configured. The service will start but won't be able to send messages.")
+        
+        return True
+        
+    @handle_errors("checking service status", default_return=(False, None))
     def is_service_running(self):
         """Check if the MHM service is running"""
-        try:
-            # Look for python processes running service.py
-            service_pids = []
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                try:
-                    # Skip if process info is not accessible (already terminated)
-                    if not proc.info['name'] or 'python' not in proc.info['name'].lower():
-                        continue
-                    
-                    cmdline = proc.info.get('cmdline', [])
-                    if cmdline and any('service.py' in arg for arg in cmdline):
-                        # Double-check process is still running
-                        if proc.is_running():
-                            service_pids.append(proc.info['pid'])
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                    # Process terminated while we were checking it - skip it
-                    continue
+        # Look for python processes running service.py
+        service_pids = []
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            # Skip if process info is not accessible (already terminated)
+            if not proc.info['name'] or 'python' not in proc.info['name'].lower():
+                continue
             
-            if service_pids:
-                if len(service_pids) > 1:
-                    logger.debug(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
-                else:
-                    logger.debug(f"Service process found: {service_pids[0]}")
-                return True, service_pids[0]  # Return first PID
-            return False, None
-        except Exception as e:
-            logger.error(f"Error checking service status: {e}")
-            return False, None
+            cmdline = proc.info.get('cmdline', [])
+            if cmdline and any('service.py' in arg for arg in cmdline):
+                # Double-check process is still running
+                if proc.is_running():
+                    service_pids.append(proc.info['pid'])
+        
+        if service_pids:
+            if len(service_pids) > 1:
+                logger.debug(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
+            else:
+                logger.debug(f"Service process found: {service_pids[0]}")
+            return True, service_pids[0]  # Return first PID
+        return False, None
     
+    @handle_errors("starting service", default_return=False)
     def start_service(self):
         """Start the MHM backend service"""
-        try:
-            # Validate configuration before starting
-            if not self.validate_configuration_before_start():
-                return False
-            
-            is_running, pid = self.is_service_running()
-            if is_running:
-                logger.debug(f"Service already running with PID {pid}")
-                messagebox.showinfo("Service Status", f"MHM Service is already running (PID: {pid})")
-                return True
-            
-            # Start the service - updated path
-            service_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'service.py')
-            
-            logger.debug(f"Service path: {service_path}")
-            
-            # Run the service in the background without showing a console window
-            if os.name == 'nt':  # Windows
-                # Run without showing console window
-                self.service_process = subprocess.Popen([
-                    sys.executable, service_path
-                ], creationflags=subprocess.CREATE_NO_WINDOW)
-            else:  # Unix/Linux/Mac
-                # Run in background
-                self.service_process = subprocess.Popen([
-                    sys.executable, service_path
-                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            
-            logger.debug("Service process started, waiting for initialization...")
-            # Give it a moment to start
-            time.sleep(2)
-            
-            is_running, pid = self.is_service_running()
-            if is_running:
-                logger.info(f"Service started with PID {pid}")
-                messagebox.showinfo("Service Status", f"MHM Service started successfully (PID: {pid})")
-                return True
-            else:
-                logger.error("Failed to start service")
-                messagebox.showerror("Service Error", "Failed to start MHM Service")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error starting service: {e}")
-            messagebox.showerror("Service Error", f"Error starting service: {str(e)}")
+        # Validate configuration before starting
+        if not self.validate_configuration_before_start():
+            return False
+        
+        is_running, pid = self.is_service_running()
+        if is_running:
+            logger.debug(f"Service already running with PID {pid}")
+            messagebox.showinfo("Service Status", f"MHM Service is already running (PID: {pid})")
+            return True
+        
+        # Start the service - updated path
+        service_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'service.py')
+        
+        logger.debug(f"Service path: {service_path}")
+        
+        # Run the service in the background without showing a console window
+        if os.name == 'nt':  # Windows
+            # Run without showing console window
+            self.service_process = subprocess.Popen([
+                sys.executable, service_path
+            ], creationflags=subprocess.CREATE_NO_WINDOW)
+        else:  # Unix/Linux/Mac
+            # Run in background
+            self.service_process = subprocess.Popen([
+                sys.executable, service_path
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        logger.debug("Service process started, waiting for initialization...")
+        # Give it a moment to start
+        time.sleep(2)
+        
+        is_running, pid = self.is_service_running()
+        if is_running:
+            logger.info(f"Service started with PID {pid}")
+            messagebox.showinfo("Service Status", f"MHM Service started successfully (PID: {pid})")
+            return True
+        else:
+            logger.error("Failed to start service")
+            messagebox.showerror("Service Error", "Failed to start MHM Service")
             return False
     
+    @handle_errors("stopping service", default_return=False)
     def stop_service(self):
         """Stop the MHM backend service"""
+        is_running, pid = self.is_service_running()
+        if not is_running:
+            logger.info("Stop service requested but service is not running")
+            messagebox.showinfo("Service Status", "MHM Service is not running")
+            return True
+        
+        logger.info(f"Stop service requested for PID: {pid}")
+        
+        # Create shutdown request file
+        shutdown_file = os.path.join(os.path.dirname(__file__), '..', 'shutdown_request.flag')
         try:
-            is_running, pid = self.is_service_running()
-            if not is_running:
-                logger.info("Stop service requested but service is not running")
-                messagebox.showinfo("Service Status", "MHM Service is not running")
-                return True
-            
-            logger.info(f"Stop service requested for PID: {pid}")
-            
-            # Create shutdown request file
-            shutdown_file = os.path.join(os.path.dirname(__file__), '..', 'shutdown_request.flag')
+            with open(shutdown_file, 'w') as f:
+                f.write(f"SHUTDOWN_REQUESTED_BY_UI_{time.time()}")
+            logger.info(f"Created shutdown request file: {shutdown_file}")
+        except Exception as e:
+            logger.warning(f"Could not create shutdown file: {e}")
+        
+        # Try to terminate ALL service processes
+        found_processes = []
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             try:
-                with open(shutdown_file, 'w') as f:
-                    f.write(f"SHUTDOWN_REQUESTED_BY_UI_{time.time()}")
-                logger.info(f"Created shutdown request file: {shutdown_file}")
-            except Exception as e:
-                logger.warning(f"Could not create shutdown file: {e}")
-            
-            # Try to terminate ALL service processes
-            found_processes = []
-            for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-                try:
-                    if not proc.info['name'] or 'python' not in proc.info['name'].lower():
-                        continue
-                        
-                    cmdline = proc.info.get('cmdline', [])
-                    if cmdline and any('service.py' in arg for arg in cmdline):
-                        # Only add if process is still running
-                        if proc.is_running():
-                            found_processes.append(proc)
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                    # Process terminated while we were checking it - skip it
+                if not proc.info['name'] or 'python' not in proc.info['name'].lower():
                     continue
-            
-            if not found_processes:
-                logger.info(f"No service processes found (reported PID {pid} may have already terminated)")
-                # Double-check if any service is actually running
-                is_running, current_pid = self.is_service_running()
-                if not is_running:
-                    logger.info("Service is not running - stop operation successful")
-                    messagebox.showinfo("Service Status", "Service is already stopped")
-                    return True
-                else:
-                    logger.info(f"Service still detected with different PID {current_pid} - considering stop successful")
-                    messagebox.showinfo("Service Status", "Service processes cleaned up successfully")
-                    return True
-            
+                    
+                cmdline = proc.info.get('cmdline', [])
+                if cmdline and any('service.py' in arg for arg in cmdline):
+                    # Only add if process is still running
+                    if proc.is_running():
+                        found_processes.append(proc)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                # Process terminated while we were checking it - skip it
+                continue
+        
+        if not found_processes:
+            logger.info(f"No service processes found (reported PID {pid} may have already terminated)")
+            # Double-check if any service is actually running
+            is_running, current_pid = self.is_service_running()
+            if not is_running:
+                logger.info("Service is not running - stop operation successful")
+                messagebox.showinfo("Service Status", "Service is already stopped")
+                return True
+            else:
+                logger.info(f"Service still detected with different PID {current_pid} - considering stop successful")
+                messagebox.showinfo("Service Status", "Service processes cleaned up successfully")
+                return True
+        else:
             logger.info(f"Found {len(found_processes)} service process(es), terminating all")
             all_terminated = True
             
@@ -271,25 +260,30 @@ class ServiceManager:
             else:
                 messagebox.showwarning("Service Status", "Some MHM Service processes may still be running")
                 return False
-            
-        except Exception as e:
-            logger.error(f"Error stopping service: {e}")
-            messagebox.showerror("Service Error", f"Error stopping service: {str(e)}")
-            return False
-
+        
+    @handle_errors("restarting service", default_return=False)
     def restart_service(self):
         """Restart the MHM backend service"""
-        try:
-            logger.info("Restarting MHM service...")
-            if self.stop_service():
-                time.sleep(3)  # Give it time to fully stop
-                if self.start_service():
-                    return True
+        logger.info("Restart service requested")
+        
+        # Stop the service
+        if not self.stop_service():
+            logger.error("Failed to stop service during restart")
+            messagebox.showerror("Service Error", "Failed to stop service during restart")
             return False
-        except Exception as e:
-            logger.error(f"Error restarting service: {e}")
-            messagebox.showerror("Service Error", f"Error restarting service: {str(e)}")
+        
+        # Wait a moment for cleanup
+        time.sleep(2)
+        
+        # Start the service
+        if not self.start_service():
+            logger.error("Failed to start service during restart")
+            messagebox.showerror("Service Error", "Failed to start service during restart")
             return False
+        
+        logger.info("Service restart completed successfully")
+        messagebox.showinfo("Service Status", "MHM Service restarted successfully")
+        return True
 
 class MHMManagerUI:
     """Main management UI for MHM - Comprehensive Admin Panel"""
@@ -361,219 +355,204 @@ class MHMManagerUI:
         status = "enabled" if is_verbose else "disabled"
         messagebox.showinfo("Logging", f"Verbose logging has been {status}")
 
+    @handle_errors("viewing log file")
     def view_log_file(self):
         """Open the log file in the default text editor."""
-        try:
-            import webbrowser
-            from core.config import LOG_FILE_PATH
-            webbrowser.open(LOG_FILE_PATH)
-        except Exception as e:
-            logger.error(f"Failed to open log file: {e}")
-            messagebox.showerror("Error", f"Failed to open log file: {e}")
+        import webbrowser
+        from core.config import LOG_FILE_PATH
+        webbrowser.open(LOG_FILE_PATH)
 
+    @handle_errors("viewing cache status")
     def view_cache_status(self):
         """Show cache cleanup status and information."""
-        try:
-            from core.auto_cleanup import get_cleanup_status, find_pycache_dirs, find_pyc_files, calculate_cache_size
-            import os
-            
-            # Get cleanup status
-            status = get_cleanup_status()
-            
-            # Get current cache size
-            pycache_dirs = find_pycache_dirs('.')
-            pyc_files = find_pyc_files('.')
-            current_size = calculate_cache_size(pycache_dirs, pyc_files)
-            
-            # Create status window
-            status_window = tk.Toplevel(self.root)
-            status_window.title("Cache Cleanup Status")
-            status_window.geometry("450x350")
-            status_window.resizable(False, False)
-            
-            # Status information
-            tk.Label(status_window, text="Cache Cleanup Status", font=('Arial', 14, 'bold')).pack(pady=10)
-            
-            status_frame = tk.Frame(status_window)
-            status_frame.pack(fill='both', expand=True, padx=20, pady=10)
-            
-            tk.Label(status_frame, text=f"Last cleanup: {status['last_cleanup']}", anchor='w').pack(fill='x', pady=2)
-            tk.Label(status_frame, text=f"Days since cleanup: {status['days_since']}", anchor='w').pack(fill='x', pady=2)
-            tk.Label(status_frame, text=f"Next cleanup: {status['next_cleanup']}", anchor='w').pack(fill='x', pady=2)
-            
-            tk.Label(status_frame, text="", anchor='w').pack(fill='x', pady=5)  # Spacer
-            
-            tk.Label(status_frame, text=f"Current cache files found:", anchor='w', font=('Arial', 10, 'bold')).pack(fill='x', pady=2)
-            tk.Label(status_frame, text=f"• {len(pycache_dirs)} __pycache__ directories", anchor='w').pack(fill='x', pady=1)
-            tk.Label(status_frame, text=f"• {len(pyc_files)} standalone .pyc files", anchor='w').pack(fill='x', pady=1)
-            tk.Label(status_frame, text=f"• Total size: {current_size / 1024:.1f} KB ({current_size / (1024*1024):.2f} MB)", anchor='w').pack(fill='x', pady=1)
-            
-            # Buttons
-            button_frame = tk.Frame(status_window)
-            button_frame.pack(fill='x', padx=20, pady=10)
-            
-            tk.Button(button_frame, text="Force Clean", command=lambda: [self.force_clean_cache(), status_window.destroy()]).pack(side='left', padx=5)
-            tk.Button(button_frame, text="Close", command=status_window.destroy).pack(side='right', padx=5)
-            
-        except Exception as e:
-            logger.error(f"Failed to show cache status: {e}")
-            messagebox.showerror("Error", f"Failed to retrieve cache status: {e}")
+        from core.auto_cleanup import get_cleanup_status, find_pycache_dirs, find_pyc_files, calculate_cache_size
+        import os
+        
+        # Get cleanup status
+        status = get_cleanup_status()
+        
+        # Get current cache size
+        pycache_dirs = find_pycache_dirs('.')
+        pyc_files = find_pyc_files('.')
+        current_size = calculate_cache_size(pycache_dirs, pyc_files)
+        
+        # Create status window
+        status_window = tk.Toplevel(self.root)
+        status_window.title("Cache Cleanup Status")
+        status_window.geometry("450x350")
+        status_window.resizable(False, False)
+        
+        # Status information
+        tk.Label(status_window, text="Cache Cleanup Status", font=('Arial', 14, 'bold')).pack(pady=10)
+        
+        status_frame = tk.Frame(status_window)
+        status_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        
+        tk.Label(status_frame, text=f"Last cleanup: {status['last_cleanup']}", anchor='w').pack(fill='x', pady=2)
+        tk.Label(status_frame, text=f"Days since cleanup: {status['days_since']}", anchor='w').pack(fill='x', pady=2)
+        tk.Label(status_frame, text=f"Next cleanup: {status['next_cleanup']}", anchor='w').pack(fill='x', pady=2)
+        
+        tk.Label(status_frame, text="", anchor='w').pack(fill='x', pady=5)  # Spacer
+        
+        tk.Label(status_frame, text=f"Current cache files found:", anchor='w', font=('Arial', 10, 'bold')).pack(fill='x', pady=2)
+        tk.Label(status_frame, text=f"• {len(pycache_dirs)} __pycache__ directories", anchor='w').pack(fill='x', pady=1)
+        tk.Label(status_frame, text=f"• {len(pyc_files)} standalone .pyc files", anchor='w').pack(fill='x', pady=1)
+        tk.Label(status_frame, text=f"• Total size: {current_size / 1024:.1f} KB ({current_size / (1024*1024):.2f} MB)", anchor='w').pack(fill='x', pady=1)
+        
+        # Buttons
+        button_frame = tk.Frame(status_window)
+        button_frame.pack(fill='x', padx=20, pady=10)
+        
+        tk.Button(button_frame, text="Force Clean", command=lambda: [self.force_clean_cache(), status_window.destroy()]).pack(side='left', padx=5)
+        tk.Button(button_frame, text="Close", command=status_window.destroy).pack(side='right', padx=5)
 
+    @handle_errors("forcing cache cleanup")
     def force_clean_cache(self):
         """Force cache cleanup regardless of schedule."""
-        try:
-            from core.auto_cleanup import perform_cleanup, update_cleanup_timestamp
-            
-            # Ask for confirmation
-            if not messagebox.askyesno("Force Cache Cleanup", 
-                                     "This will force cleanup of all Python cache files regardless of when they were last cleaned.\n\nAre you sure you want to continue?"):
-                return
-            
-            success = perform_cleanup()
-            if success:
-                update_cleanup_timestamp()
-                messagebox.showinfo("Cache Cleanup", "Force cache cleanup completed successfully!")
-                logger.info("Force cache cleanup completed successfully")
-            else:
-                messagebox.showerror("Error", "Cache cleanup failed")
-                
-        except Exception as e:
-            logger.error(f"Failed to force clean cache: {e}")
-            messagebox.showerror("Error", f"Failed to clean cache: {e}")
+        from core.auto_cleanup import perform_cleanup, update_cleanup_timestamp
+        
+        # Ask for confirmation
+        if not messagebox.askyesno("Force Cache Cleanup", 
+                                 "This will force cleanup of all Python cache files regardless of when they were last cleaned.\n\nAre you sure you want to continue?"):
+            return
+        
+        success = perform_cleanup()
+        if success:
+            update_cleanup_timestamp()
+            messagebox.showinfo("Cache Cleanup", "Force cache cleanup completed successfully!")
+            logger.info("Force cache cleanup completed successfully")
+        else:
+            messagebox.showerror("Error", "Cache cleanup failed")
 
+    @handle_errors("validating configuration")
     def validate_configuration(self):
         """Show detailed configuration validation report."""
-        try:
-            from core.config import validate_all_configuration
+        from core.config import validate_all_configuration
+        
+        result = validate_all_configuration()
+        
+        # Create validation report window
+        report_window = tk.Toplevel(self.root)
+        report_window.title("Configuration Validation Report")
+        report_window.geometry("700x600")
+        
+        # Main frame
+        main_frame = tk.Frame(report_window)
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # Title
+        title_label = tk.Label(main_frame, text="Configuration Validation Report", 
+                              font=('Arial', 16, 'bold'))
+        title_label.pack(pady=(0, 20))
+        
+        # Summary
+        summary_frame = tk.Frame(main_frame)
+        summary_frame.pack(fill='x', pady=(0, 20))
+        
+        summary_text = result['summary']
+        if result['valid']:
+            summary_color = 'green'
+            summary_icon = "✓"
+        else:
+            summary_color = 'red'
+            summary_icon = "✗"
+        
+        tk.Label(summary_frame, text=f"{summary_icon} {summary_text}", 
+                font=('Arial', 12, 'bold'), fg=summary_color).pack()
+        
+        # Available channels
+        if result['available_channels']:
+            tk.Label(summary_frame, text=f"Available Channels: {', '.join(result['available_channels'])}", 
+                    font=('Arial', 10), fg='blue').pack(pady=(5, 0))
+        else:
+            tk.Label(summary_frame, text="No communication channels available", 
+                    font=('Arial', 10), fg='orange').pack(pady=(5, 0))
+        
+        # Create notebook for tabs
+        notebook = ttk.Notebook(main_frame)
+        notebook.pack(fill='both', expand=True)
+        
+        # Errors tab
+        if result['errors']:
+            errors_frame = tk.Frame(notebook)
+            notebook.add(errors_frame, text=f"Errors ({len(result['errors'])})")
             
-            result = validate_all_configuration()
+            errors_text = tk.Text(errors_frame, wrap='word', height=10)
+            errors_scrollbar = tk.Scrollbar(errors_frame, orient='vertical', command=errors_text.yview)
+            errors_text.configure(yscrollcommand=errors_scrollbar.set)
             
-            # Create validation report window
-            report_window = tk.Toplevel(self.root)
-            report_window.title("Configuration Validation Report")
-            report_window.geometry("700x600")
+            errors_text.pack(side='left', fill='both', expand=True)
+            errors_scrollbar.pack(side='right', fill='y')
             
-            # Main frame
-            main_frame = tk.Frame(report_window)
-            main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+            for i, error in enumerate(result['errors'], 1):
+                errors_text.insert('end', f"{i}. {error}\n\n")
+            errors_text.config(state='disabled')
+        
+        # Warnings tab
+        if result['warnings']:
+            warnings_frame = tk.Frame(notebook)
+            notebook.add(warnings_frame, text=f"Warnings ({len(result['warnings'])})")
             
-            # Title
-            title_label = tk.Label(main_frame, text="Configuration Validation Report", 
-                                  font=('Arial', 16, 'bold'))
-            title_label.pack(pady=(0, 20))
+            warnings_text = tk.Text(warnings_frame, wrap='word', height=10)
+            warnings_scrollbar = tk.Scrollbar(warnings_frame, orient='vertical', command=warnings_text.yview)
+            warnings_text.configure(yscrollcommand=warnings_scrollbar.set)
             
-            # Summary
-            summary_frame = tk.Frame(main_frame)
-            summary_frame.pack(fill='x', pady=(0, 20))
+            warnings_text.pack(side='left', fill='both', expand=True)
+            warnings_scrollbar.pack(side='right', fill='y')
             
-            summary_text = result['summary']
-            if result['valid']:
-                summary_color = 'green'
-                summary_icon = "✓"
-            else:
-                summary_color = 'red'
-                summary_icon = "✗"
-            
-            tk.Label(summary_frame, text=f"{summary_icon} {summary_text}", 
-                    font=('Arial', 12, 'bold'), fg=summary_color).pack()
-            
-            # Available channels
-            if result['available_channels']:
-                tk.Label(summary_frame, text=f"Available Channels: {', '.join(result['available_channels'])}", 
-                        font=('Arial', 10), fg='blue').pack(pady=(5, 0))
-            else:
-                tk.Label(summary_frame, text="No communication channels available", 
-                        font=('Arial', 10), fg='orange').pack(pady=(5, 0))
-            
-            # Create notebook for tabs
-            notebook = ttk.Notebook(main_frame)
-            notebook.pack(fill='both', expand=True)
-            
-            # Errors tab
-            if result['errors']:
-                errors_frame = tk.Frame(notebook)
-                notebook.add(errors_frame, text=f"Errors ({len(result['errors'])})")
-                
-                errors_text = tk.Text(errors_frame, wrap='word', height=10)
-                errors_scrollbar = tk.Scrollbar(errors_frame, orient='vertical', command=errors_text.yview)
-                errors_text.configure(yscrollcommand=errors_scrollbar.set)
-                
-                errors_text.pack(side='left', fill='both', expand=True)
-                errors_scrollbar.pack(side='right', fill='y')
-                
-                for i, error in enumerate(result['errors'], 1):
-                    errors_text.insert('end', f"{i}. {error}\n\n")
-                errors_text.config(state='disabled')
-            
-            # Warnings tab
-            if result['warnings']:
-                warnings_frame = tk.Frame(notebook)
-                notebook.add(warnings_frame, text=f"Warnings ({len(result['warnings'])})")
-                
-                warnings_text = tk.Text(warnings_frame, wrap='word', height=10)
-                warnings_scrollbar = tk.Scrollbar(warnings_frame, orient='vertical', command=warnings_text.yview)
-                warnings_text.configure(yscrollcommand=warnings_scrollbar.set)
-                
-                warnings_text.pack(side='left', fill='both', expand=True)
-                warnings_scrollbar.pack(side='right', fill='y')
-                
-                for i, warning in enumerate(result['warnings'], 1):
-                    warnings_text.insert('end', f"{i}. {warning}\n\n")
-                warnings_text.config(state='disabled')
-            
-            # Current Configuration tab
-            config_frame = tk.Frame(notebook)
-            notebook.add(config_frame, text="Current Configuration")
-            
-            config_text = tk.Text(config_frame, wrap='word', height=10)
-            config_scrollbar = tk.Scrollbar(config_frame, orient='vertical', command=config_text.yview)
-            config_text.configure(yscrollcommand=config_scrollbar.set)
-            
-            config_text.pack(side='left', fill='both', expand=True)
-            config_scrollbar.pack(side='right', fill='y')
-            
-            # Add current configuration values
-            from core.config import (
-                BASE_DATA_DIR, LOG_FILE_PATH, LOG_LEVEL, LM_STUDIO_BASE_URL, 
-                AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, USE_USER_SUBDIRECTORIES, 
-                AUTO_CREATE_USER_DIRS, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
-                EMAIL_SMTP_USERNAME, DISCORD_BOT_TOKEN
-            )
-            
-            config_values = [
-                ("Base Data Directory", BASE_DATA_DIR),
-                ("Log File", LOG_FILE_PATH),
-                ("Log Level", LOG_LEVEL),
-                ("LM Studio URL", LM_STUDIO_BASE_URL),
-                ("AI Timeout", f"{AI_TIMEOUT_SECONDS}s"),
-                ("Scheduler Interval", f"{SCHEDULER_INTERVAL}s"),
-                ("Use User Subdirectories", str(USE_USER_SUBDIRECTORIES)),
-                ("Auto Create User Dirs", str(AUTO_CREATE_USER_DIRS)),
-                ("Email SMTP Server", EMAIL_SMTP_SERVER or "Not configured"),
-                ("Email IMAP Server", EMAIL_IMAP_SERVER or "Not configured"),
-                ("Email Username", EMAIL_SMTP_USERNAME or "Not configured"),
-                ("Discord Bot Token", "Configured" if DISCORD_BOT_TOKEN else "Not configured"),
-            ]
-            
-            for name, value in config_values:
-                config_text.insert('end', f"{name}: {value}\n")
-            
-            config_text.config(state='disabled')
-            
-            # Buttons
-            button_frame = tk.Frame(main_frame)
-            button_frame.pack(fill='x', pady=(20, 0))
-            
-            if not result['valid']:
-                tk.Button(button_frame, text="Fix Configuration", 
-                         command=lambda: self.show_configuration_help(report_window)).pack(side='left', padx=5)
-            
-            tk.Button(button_frame, text="Close", 
-                     command=report_window.destroy).pack(side='right', padx=5)
-            
-        except Exception as e:
-            logger.error(f"Failed to show configuration validation: {e}")
-            messagebox.showerror("Error", f"Failed to validate configuration: {e}")
+            for i, warning in enumerate(result['warnings'], 1):
+                warnings_text.insert('end', f"{i}. {warning}\n\n")
+            warnings_text.config(state='disabled')
+        
+        # Current Configuration tab
+        config_frame = tk.Frame(notebook)
+        notebook.add(config_frame, text="Current Configuration")
+        
+        config_text = tk.Text(config_frame, wrap='word', height=10)
+        config_scrollbar = tk.Scrollbar(config_frame, orient='vertical', command=config_text.yview)
+        config_text.configure(yscrollcommand=config_scrollbar.set)
+        
+        config_text.pack(side='left', fill='both', expand=True)
+        config_scrollbar.pack(side='right', fill='y')
+        
+        # Add current configuration values
+        from core.config import (
+            BASE_DATA_DIR, LOG_FILE_PATH, LOG_LEVEL, LM_STUDIO_BASE_URL, 
+            AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, USE_USER_SUBDIRECTORIES, 
+            AUTO_CREATE_USER_DIRS, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
+            EMAIL_SMTP_USERNAME, DISCORD_BOT_TOKEN
+        )
+        
+        config_values = [
+            ("Base Data Directory", BASE_DATA_DIR),
+            ("Log File", LOG_FILE_PATH),
+            ("Log Level", LOG_LEVEL),
+            ("LM Studio URL", LM_STUDIO_BASE_URL),
+            ("AI Timeout", f"{AI_TIMEOUT_SECONDS}s"),
+            ("Scheduler Interval", f"{SCHEDULER_INTERVAL}s"),
+            ("Use User Subdirectories", str(USE_USER_SUBDIRECTORIES)),
+            ("Auto Create User Dirs", str(AUTO_CREATE_USER_DIRS)),
+            ("Email SMTP Server", EMAIL_SMTP_SERVER or "Not configured"),
+            ("Email IMAP Server", EMAIL_IMAP_SERVER or "Not configured"),
+            ("Email Username", EMAIL_SMTP_USERNAME or "Not configured"),
+            ("Discord Bot Token", "Configured" if DISCORD_BOT_TOKEN else "Not configured"),
+        ]
+        
+        for name, value in config_values:
+            config_text.insert('end', f"{name}: {value}\n")
+        
+        config_text.config(state='disabled')
+        
+        # Buttons
+        button_frame = tk.Frame(main_frame)
+        button_frame.pack(fill='x', pady=(20, 0))
+        
+        if not result['valid']:
+            tk.Button(button_frame, text="Fix Configuration", 
+                     command=lambda: self.show_configuration_help(report_window)).pack(side='left', padx=5)
+        
+        tk.Button(button_frame, text="Close", 
+                 command=report_window.destroy).pack(side='right', padx=5)
 
     def show_configuration_help(self, parent_window):
         """Show help for fixing configuration issues."""
@@ -921,89 +900,79 @@ For detailed setup instructions, see the README.md file.
         else:
             logger.warning("Admin Panel: Service restart failed")
     
+    @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):
         """Refresh the user dropdown list"""
-        try:
-            user_ids = get_all_user_ids()
-            user_display_names = []
+        user_ids = get_all_user_ids()
+        user_display_names = []
+        
+        for user_id in user_ids:
+            user_info = get_user_info(user_id)
+            internal_username = user_info.get('internal_username', 'Unknown')
+            preferred_name = user_info.get('preferred_name', '')
             
-            for user_id in user_ids:
-                user_info = get_user_info(user_id)
-                internal_username = user_info.get('internal_username', 'Unknown')
-                preferred_name = user_info.get('preferred_name', '')
-                
-                if preferred_name:
-                    display_name = f"{preferred_name} ({internal_username}) - {user_id}"
-                else:
-                    display_name = f"{internal_username} - {user_id}"
-                user_display_names.append(display_name)
-            
-            # Add blank option at the beginning
-            dropdown_values = [""] + user_display_names
-            self.user_dropdown['values'] = dropdown_values
-            
-            # Set to blank by default
-            self.selected_user_id.set("")
-            
-            if user_display_names:
-                logger.info(f"Found {len(user_display_names)} users")
+            if preferred_name:
+                display_name = f"{preferred_name} ({internal_username}) - {user_id}"
             else:
-                logger.info("No users found")
-                
-        except Exception as e:
-            logger.error(f"Error refreshing user list: {e}")
-            self.user_dropdown['values'] = []
-    
+                display_name = f"{internal_username} - {user_id}"
+            user_display_names.append(display_name)
+        
+        # Add blank option at the beginning
+        dropdown_values = [""] + user_display_names
+        self.user_dropdown['values'] = dropdown_values
+        
+        # Set to blank by default
+        self.selected_user_id.set("")
+        
+        if user_display_names:
+            logger.info(f"Found {len(user_display_names)} users")
+        else:
+            logger.info("No users found")
+
+    @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, event=None):
         """Handle user selection from dropdown"""
-        try:
-            selected_display = self.selected_user_id.get()
+        selected_display = self.selected_user_id.get()
+        
+        if not selected_display or selected_display == "":
+            self.disable_content_management()
+            return
             
-            if not selected_display or selected_display == "":
+        # Extract user_id from display name (format: "Name - user_id")
+        if " - " in selected_display:
+            user_id = selected_display.split(" - ")[-1]
+            self.current_user_id = user_id
+            
+            # Update user info display
+            user_info = get_user_info(user_id)
+            if not user_info:
+                logger.error(f"Admin Panel: Could not load user info for user_id: {user_id}")
                 self.disable_content_management()
                 return
-                
-            # Extract user_id from display name (format: "Name - user_id")
-            if " - " in selected_display:
-                user_id = selected_display.split(" - ")[-1]
-                self.current_user_id = user_id
-                
-                # Update user info display
-                user_info = get_user_info(user_id)
-                if not user_info:
-                    logger.error(f"Admin Panel: Could not load user info for user_id: {user_id}")
-                    self.disable_content_management()
-                    return
-                
-                internal_username = user_info.get('internal_username', 'Unknown')
-                info_text = f"Managing: {internal_username} ({user_id})"
-                self.user_info_label.config(text=info_text, fg="black", font=("Arial", 9, "normal"))
-                
-                # Enable content management buttons
-                self.enable_content_management()
-                
-                logger.info(f"Admin Panel: User selected for management: {user_id} ({internal_username})")
-            else:
-                logger.warning(f"Admin Panel: Could not parse user_id from selected_display: '{selected_display}'")
-                self.disable_content_management()
-                
-        except Exception as e:
-            logger.error(f"Admin Panel: Error handling user selection: {e}", exc_info=True)
+            
+            internal_username = user_info.get('internal_username', 'Unknown')
+            info_text = f"Managing: {internal_username} ({user_id})"
+            self.user_info_label.config(text=info_text, fg="black", font=("Arial", 9, "normal"))
+            
+            # Enable content management buttons
+            self.enable_content_management()
+            
+            logger.info(f"Admin Panel: User selected for management: {user_id} ({internal_username})")
+        else:
+            logger.warning(f"Admin Panel: Could not parse user_id from selected_display: '{selected_display}'")
             self.disable_content_management()
-    
+
+    @handle_errors("enabling content management")
     def enable_content_management(self):
         """Enable content management buttons"""
-        try:
-            self.edit_messages_button.config(state=tk.NORMAL)
-            self.edit_schedules_button.config(state=tk.NORMAL)
-            self.send_test_button.config(state=tk.NORMAL)
-            self.comm_settings_button.config(state=tk.NORMAL)
-            self.category_settings_button.config(state=tk.NORMAL)
-            self.checkin_settings_button.config(state=tk.NORMAL)
-            logger.debug("Admin Panel: Content management buttons enabled successfully")
-        except Exception as e:
-            logger.error(f"Admin Panel: Error enabling content management buttons: {e}", exc_info=True)
-    
+        self.edit_messages_button.config(state=tk.NORMAL)
+        self.edit_schedules_button.config(state=tk.NORMAL)
+        self.send_test_button.config(state=tk.NORMAL)
+        self.comm_settings_button.config(state=tk.NORMAL)
+        self.category_settings_button.config(state=tk.NORMAL)
+        self.checkin_settings_button.config(state=tk.NORMAL)
+        logger.debug("Admin Panel: Content management buttons enabled successfully")
+
     def disable_content_management(self):
         """Disable content management buttons"""
         self.edit_messages_button.config(state=tk.DISABLED)
@@ -1015,365 +984,301 @@ For detailed setup instructions, see the README.md file.
         self.user_info_label.config(text="Select a user to manage content", 
                                    fg="gray", font=("Arial", 9, "italic"))
         self.current_user_id = None
-    
+
+    @handle_errors("creating new user")
     def create_new_user(self):
         """Open dialog to create a new user"""
+        logger.info("Admin Panel: Opening create new user dialog")
+        from ui.account_creator import CreateAccountScreen
+        from bot.communication_manager import CommunicationManager
+        from bot.channel_registry import register_all_channels
+        
+        # Create a temporary communication manager for the create account screen
+        register_all_channels()
+        temp_comm_manager = CommunicationManager()
+        
+        # Open create account dialog
+        create_window = tk.Toplevel(self.root)
+        create_window.title("Create New User")
+        create_account_app = CreateAccountScreen(create_window, temp_comm_manager)
+        
+        # Wait for create window to close, then refresh user list
+        self.root.wait_window(create_window)
+        self.refresh_user_list()
+        logger.info("Admin Panel: Create user dialog closed, user list refreshed")
+        
+        # Clean up temporary communication manager
         try:
-            logger.info("Admin Panel: Opening create new user dialog")
-            from ui.account_creator import CreateAccountScreen
-            from bot.communication_manager import CommunicationManager
-            from bot.channel_registry import register_all_channels
-            
-            # Create a temporary communication manager for the create account screen
-            register_all_channels()
-            temp_comm_manager = CommunicationManager()
-            
-            # Open create account dialog
-            create_window = tk.Toplevel(self.root)
-            create_window.title("Create New User")
-            create_account_app = CreateAccountScreen(create_window, temp_comm_manager)
-            
-            # Wait for create window to close, then refresh user list
-            self.root.wait_window(create_window)
-            self.refresh_user_list()
-            logger.info("Admin Panel: Create user dialog closed, user list refreshed")
-            
-            # Clean up temporary communication manager
-            try:
-                temp_comm_manager.stop_all()
-            except Exception as cleanup_error:
-                logger.warning(f"Error cleaning up temporary communication manager: {cleanup_error}")
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error creating new user: {e}")
-            messagebox.showerror("Error", f"Failed to open create user dialog: {str(e)}")
-    
+            temp_comm_manager.stop_all()
+        except Exception as cleanup_error:
+            logger.warning(f"Error cleaning up temporary communication manager: {cleanup_error}")
+
+    @handle_errors("editing user messages")
     def edit_user_messages(self):
         """Open message editing interface for selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
             
-        try:
-            logger.info(f"Admin Panel: Opening message editor for user {self.current_user_id}")
-            # Temporarily set the user context for editing
-            original_user = UserContext().get_user_id()
-            UserContext().set_user_id(self.current_user_id)
-            
-            # Load the user's full data to get internal_username and other details
-            user_info = get_user_info(self.current_user_id)
-            if user_info:
-                UserContext().set_internal_username(user_info.get('internal_username', ''))
-                UserContext().set_preferred_name(user_info.get('preferred_name', ''))
-                # Load the full user data into UserContext
-                UserContext().load_user_data(self.current_user_id)
-            
-            # Get user categories
-            categories = get_user_preferences(self.current_user_id).get('categories', [])
-            
-            if not categories:
-                logger.info(f"Admin Panel: User {self.current_user_id} has no message categories configured")
-                messagebox.showinfo("No Categories", "This user has no message categories configured.")
-                return
-            
-            # Open category selection dialog
-            category_window = tk.Toplevel(self.root)
-            category_window.title(f"Select Category - {self.current_user_id}")
-            category_window.geometry("300x200")
-            
-            tk.Label(category_window, text="Select message category to edit:", font=("Arial", 12)).pack(pady=10)
-            
-            for category in categories:
-                tk.Button(category_window, text=title_case(category), 
-                         command=lambda c=category: self.open_message_editor(category_window, c),
-                         width=20).pack(pady=5)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening message editor for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to open message editor: {str(e)}")
-            # Restore original user context
-            if 'original_user' in locals() and original_user:
-                UserContext().set_user_id(original_user)
-                UserContext().load_user_data(original_user)
-    
+        logger.info(f"Admin Panel: Opening message editor for user {self.current_user_id}")
+        # Temporarily set the user context for editing
+        original_user = UserContext().get_user_id()
+        UserContext().set_user_id(self.current_user_id)
+        
+        # Load the user's full data to get internal_username and other details
+        user_info = get_user_info(self.current_user_id)
+        if user_info:
+            UserContext().set_internal_username(user_info.get('internal_username', ''))
+            UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+            # Load the full user data into UserContext
+            UserContext().load_user_data(self.current_user_id)
+        
+        # Get user categories
+        categories = get_user_preferences(self.current_user_id).get('categories', [])
+        
+        if not categories:
+            logger.info(f"Admin Panel: User {self.current_user_id} has no message categories configured")
+            messagebox.showinfo("No Categories", "This user has no message categories configured.")
+            return
+        
+        # Open category selection dialog
+        category_window = tk.Toplevel(self.root)
+        category_window.title(f"Select Category - {self.current_user_id}")
+        category_window.geometry("300x200")
+        
+        tk.Label(category_window, text="Select message category to edit:", font=("Arial", 12)).pack(pady=10)
+        
+        for category in categories:
+            tk.Button(category_window, text=title_case(category), 
+                     command=lambda c=category: self.open_message_editor(category_window, c),
+                     width=20).pack(pady=5)
+
+    @handle_errors("opening message editor")
     def open_message_editor(self, parent_window, category):
         """Open the message editing window for a specific category"""
-        try:
-            logger.info(f"Admin Panel: Opening message editor for user {self.current_user_id}, category {category}")
-            parent_window.destroy()
-            setup_view_edit_messages_window(self.root, category)
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening message editor for user {self.current_user_id}, category {category}: {e}")
-            messagebox.showerror("Error", f"Failed to open message editor: {str(e)}")
-    
+        logger.info(f"Admin Panel: Opening message editor for user {self.current_user_id}, category {category}")
+        parent_window.destroy()
+        setup_view_edit_messages_window(self.root, category)
+
+    @handle_errors("editing user schedules")
     def edit_user_schedules(self):
         """Open schedule editing interface for selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
             
-        try:
-            logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}")
-            # Temporarily set the user context for editing
-            original_user = UserContext().get_user_id()
-            UserContext().set_user_id(self.current_user_id)
-            
-            # Load the user's full data to get internal_username and other details
-            user_info = get_user_info(self.current_user_id)
-            if user_info:
-                UserContext().set_internal_username(user_info.get('internal_username', ''))
-                UserContext().set_preferred_name(user_info.get('preferred_name', ''))
-                # Load the full user data into UserContext
-                UserContext().load_user_data(self.current_user_id)
-            
-            # Get user categories
-            categories = get_user_preferences(self.current_user_id).get('categories', [])
-            
-            if not categories:
-                logger.info(f"Admin Panel: User {self.current_user_id} has no schedule categories configured")
-                messagebox.showinfo("No Categories", "This user has no message categories configured.")
-                return
-            
-            # Open category selection dialog
-            category_window = tk.Toplevel(self.root)
-            category_window.title(f"Select Category - {self.current_user_id}")
-            category_window.geometry("300x200")
-            
-            tk.Label(category_window, text="Select category to edit schedule:", font=("Arial", 12)).pack(pady=10)
-            
-            for category in categories:
-                tk.Button(category_window, text=title_case(category), 
-                         command=lambda c=category: self.open_schedule_editor(category_window, c),
-                         width=20).pack(pady=5)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening schedule editor for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to open schedule editor: {str(e)}")
-            # Restore original user context
-            if 'original_user' in locals() and original_user:
-                UserContext().set_user_id(original_user)
-                UserContext().load_user_data(original_user)
-    
+        logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}")
+        # Temporarily set the user context for editing
+        original_user = UserContext().get_user_id()
+        UserContext().set_user_id(self.current_user_id)
+        
+        # Load the user's full data to get internal_username and other details
+        user_info = get_user_info(self.current_user_id)
+        if user_info:
+            UserContext().set_internal_username(user_info.get('internal_username', ''))
+            UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+            # Load the full user data into UserContext
+            UserContext().load_user_data(self.current_user_id)
+        
+        # Get user categories
+        categories = get_user_preferences(self.current_user_id).get('categories', [])
+        
+        if not categories:
+            logger.info(f"Admin Panel: User {self.current_user_id} has no schedule categories configured")
+            messagebox.showinfo("No Categories", "This user has no message categories configured.")
+            return
+        
+        # Open category selection dialog
+        category_window = tk.Toplevel(self.root)
+        category_window.title(f"Select Category - {self.current_user_id}")
+        category_window.geometry("300x200")
+        
+        tk.Label(category_window, text="Select category to edit schedule:", font=("Arial", 12)).pack(pady=10)
+        
+        for category in categories:
+            tk.Button(category_window, text=title_case(category), 
+                     command=lambda c=category: self.open_schedule_editor(category_window, c),
+                     width=20).pack(pady=5)
+
+    @handle_errors("opening schedule editor")
     def open_schedule_editor(self, parent_window, category):
         """Open the schedule editing window for a specific category"""
-        try:
-            logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}, category {category}")
-            parent_window.destroy()
-            setup_view_edit_schedule_window(self.root, category, None)  # None = no scheduler manager (UI-only mode)
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening schedule editor for user {self.current_user_id}, category {category}: {e}")
-            messagebox.showerror("Error", f"Failed to open schedule editor: {str(e)}")
-    
+        logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}, category {category}")
+        parent_window.destroy()
+        setup_view_edit_schedule_window(self.root, category)
+
+    @handle_errors("sending test message")
     def send_test_message(self):
-        """Send a test message for the selected user"""
+        """Send a test message to the selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
-            
-        # Check if service is running - required for test messages
+        
+        # Check if service is running
         is_running, pid = self.service_manager.is_service_running()
         if not is_running:
-            logger.warning(f"Admin Panel: Test message request failed - service not running for user {self.current_user_id}")
-            messagebox.showerror("Service Required", 
-                               "The MHM service must be running to send test messages.\n\n"
-                               "The service manages all communication channels. Please:\n"
-                               "1. Click 'Start Service' above\n"
-                               "2. Wait for service to initialize\n"
-                               "3. Try sending the test message again\n\n"
-                               "The admin panel does not create its own communication channels.")
+            messagebox.showwarning("Service Not Running", 
+                                 "MHM Service is not running. Test messages require the service to be active.\n\n"
+                                 "To send a test message:\n"
+                                 "1. Click 'Start Service' above\n"
+                                 "2. Wait for service to initialize\n"
+                                 "3. Try sending the test message again\n\n"
+                                 "The admin panel does not create its own communication channels.")
             return
         
-        try:
-            logger.info(f"Admin Panel: Preparing test message for user {self.current_user_id}")
-            # Get user categories
-            categories = get_user_preferences(self.current_user_id).get('categories', [])
-            
-            if not categories:
-                logger.info(f"Admin Panel: User {self.current_user_id} has no message categories for test")
-                messagebox.showinfo("No Categories", "This user has no message categories configured.")
-                return
-            
-            # Open category selection dialog for test message
-            category_window = tk.Toplevel(self.root)
-            category_window.title(f"Send Test Message - {self.current_user_id}")
-            category_window.geometry("300x200")
-            
-            tk.Label(category_window, text="Select category for test message:", font=("Arial", 12)).pack(pady=10)
-            
-            for category in categories:
-                tk.Button(category_window, text=title_case(category), 
-                         command=lambda c=category: self.confirm_test_message(category_window, c),
-                         width=20).pack(pady=5)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error preparing test message for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to prepare test message: {str(e)}")
-    
+        logger.info(f"Admin Panel: Preparing test message for user {self.current_user_id}")
+        # Get user categories
+        categories = get_user_preferences(self.current_user_id).get('categories', [])
+        
+        if not categories:
+            logger.info(f"Admin Panel: User {self.current_user_id} has no message categories for test")
+            messagebox.showinfo("No Categories", "This user has no message categories configured.")
+            return
+        
+        # Open category selection dialog for test message
+        category_window = tk.Toplevel(self.root)
+        category_window.title(f"Send Test Message - {self.current_user_id}")
+        category_window.geometry("300x200")
+        
+        tk.Label(category_window, text="Select category for test message:", font=("Arial", 12)).pack(pady=10)
+        
+        for category in categories:
+            tk.Button(category_window, text=title_case(category), 
+                     command=lambda c=category: self.confirm_test_message(category_window, c),
+                     width=20).pack(pady=5)
+
+    @handle_errors("confirming test message")
     def confirm_test_message(self, parent_window, category):
         """Confirm and send test message"""
-        try:
-            parent_window.destroy()
-            
-            result = messagebox.askyesno("Confirm Test Message", 
-                                       f"Send a test {category} message to {self.current_user_id}?\n\n"
-                                       f"This will send a random message from their {category} collection.")
-            
-            if result:
-                logger.info(f"Admin Panel: Test message confirmed for user {self.current_user_id}, category {category}")
-                # Actually send the test message using communication manager
-                self.send_actual_test_message(category)
-            else:
-                logger.info(f"Admin Panel: Test message cancelled for user {self.current_user_id}, category {category}")
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error sending test message for user {self.current_user_id}, category {category}: {e}")
-            messagebox.showerror("Error", f"Failed to send test message: {str(e)}")
-    
+        parent_window.destroy()
+        
+        result = messagebox.askyesno("Confirm Test Message", 
+                                   f"Send a test {category} message to {self.current_user_id}?\n\n"
+                                   f"This will send a random message from their {category} collection.")
+        
+        if result:
+            logger.info(f"Admin Panel: Test message confirmed for user {self.current_user_id}, category {category}")
+            # Actually send the test message using communication manager
+            self.send_actual_test_message(category)
+        else:
+            logger.info(f"Admin Panel: Test message cancelled for user {self.current_user_id}, category {category}")
+
+    @handle_errors("sending actual test message")
     def send_actual_test_message(self, category):
         """Send a test message via the running service"""
-        try:
-            # Since service is running, we'll create a minimal communication to the service
-            # For now, we'll use a simple approach: create a test message file that the service can pick up
-            # This is safer than trying to inject into the running service's communication channels
-            
-            # Store original user context and set to selected user
-            original_user = UserContext().get_user_id()
-            UserContext().set_user_id(self.current_user_id)
-            
+        # Since service is running, we'll create a minimal communication to the service
+        # For now, we'll use a simple approach: create a test message file that the service can pick up
+        # This is safer than trying to inject into the running service's communication channels
+        
+        # Store original user context and set to selected user
+        original_user = UserContext().get_user_id()
+        UserContext().set_user_id(self.current_user_id)
+        
+        logger.info(f"Admin Panel: Creating test message request for user {self.current_user_id}, category {category}")
+        
+        # Create a test message request using the same pattern as shutdown requests
+        from datetime import datetime
+        import json
+        
+        # Use the same directory structure as the shutdown flag
+        base_dir = os.path.dirname(os.path.dirname(__file__))  # Go up to MHM root
+        request_file = os.path.join(base_dir, f'test_message_request_{self.current_user_id}_{category}.flag')
+        
+        test_request = {
+            "user_id": self.current_user_id,
+            "category": category,
+            "timestamp": datetime.now().isoformat(),
+            "source": "admin_panel"
+        }
+        
+        with open(request_file, 'w') as f:
+            json.dump(test_request, f, indent=2)
+        
+        messagebox.showinfo("Test Message Requested", 
+                          f"Test {category} message request created for {self.current_user_id}.\n\n"
+                          f"The running service will check for this request and send the message.\n\n"
+                          f"Note: Current implementation creates a request file.\n"
+                          f"Future versions will have direct service communication.\n\n"
+                          f"Request file: {os.path.basename(request_file)}")
+        
+        logger.info(f"Admin Panel: Test message request file created: {request_file}")
+        
+        # Optional: Clean up old request files after a short delay
+        import threading
+        def cleanup_old_requests():
+            import time
+            time.sleep(300)  # Wait 5 minutes
             try:
-                logger.info(f"Admin Panel: Creating test message request for user {self.current_user_id}, category {category}")
-                
-                # Create a test message request using the same pattern as shutdown requests
-                from datetime import datetime
-                import json
-                
-                # Use the same directory structure as the shutdown flag
-                base_dir = os.path.dirname(os.path.dirname(__file__))  # Go up to MHM root
-                request_file = os.path.join(base_dir, f'test_message_request_{self.current_user_id}_{category}.flag')
-                
-                test_request = {
-                    "user_id": self.current_user_id,
-                    "category": category,
-                    "timestamp": datetime.now().isoformat(),
-                    "source": "admin_panel"
-                }
-                
-                with open(request_file, 'w') as f:
-                    json.dump(test_request, f, indent=2)
-                
-                messagebox.showinfo("Test Message Requested", 
-                                  f"Test {category} message request created for {self.current_user_id}.\n\n"
-                                  f"The running service will check for this request and send the message.\n\n"
-                                  f"Note: Current implementation creates a request file.\n"
-                                  f"Future versions will have direct service communication.\n\n"
-                                  f"Request file: {os.path.basename(request_file)}")
-                
-                logger.info(f"Admin Panel: Test message request file created: {request_file}")
-                
-                # Optional: Clean up old request files after a short delay
-                import threading
-                def cleanup_old_requests():
-                    import time
-                    time.sleep(300)  # Wait 5 minutes
-                    try:
-                        if os.path.exists(request_file):
-                            os.remove(request_file)
-                            logger.debug(f"Cleaned up old request file: {request_file}")
-                    except Exception as cleanup_error:
-                        logger.warning(f"Could not clean up request file: {cleanup_error}")
-                
-                cleanup_thread = threading.Thread(target=cleanup_old_requests, daemon=True)
-                cleanup_thread.start()
-                
-            finally:
-                # Restore original user context
-                if original_user:
-                    UserContext().set_user_id(original_user)
-                else:
-                    UserContext().set_user_id(None)
-            
-        except Exception as e:
-            logger.error(f"Error creating test message request: {e}")
-            messagebox.showerror("Test Message Request Failed", 
-                f"Failed to create test message request: {str(e)}\n\n"
-                f"Make sure the user has:\n"
-                f"• A configured messaging service\n"
-                f"• Valid recipient information\n"
-                f"• Messages in the {category} category")
-    
+                if os.path.exists(request_file):
+                    os.remove(request_file)
+                    logger.debug(f"Cleaned up old request file: {request_file}")
+            except Exception as cleanup_error:
+                logger.warning(f"Could not clean up request file: {cleanup_error}")
+        
+        cleanup_thread = threading.Thread(target=cleanup_old_requests, daemon=True)
+        cleanup_thread.start()
+        
+        # Restore original user context
+        if original_user:
+            UserContext().set_user_id(original_user)
+        else:
+            UserContext().set_user_id(None)
+
+    @handle_errors("managing communication settings")
     def manage_communication_settings(self):
         """Open communication settings management for selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
             
-        try:
-            logger.info(f"Admin Panel: Opening communication settings for user {self.current_user_id}")
-            from ui.account_manager import setup_communication_settings_window
-            setup_communication_settings_window(self.root, self.current_user_id)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening communication settings for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to open communication settings: {str(e)}")
-    
+        logger.info(f"Admin Panel: Opening communication settings for user {self.current_user_id}")
+        from ui.account_manager import setup_communication_settings_window
+        setup_communication_settings_window(self.root, self.current_user_id)
+
+    @handle_errors("managing categories")
     def manage_categories(self):
         """Open category management for selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
             
-        try:
-            logger.info(f"Admin Panel: Opening category management for user {self.current_user_id}")
-            from ui.account_manager import setup_category_management_window
-            setup_category_management_window(self.root, self.current_user_id)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening category management for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to open category management: {str(e)}")
+        logger.info(f"Admin Panel: Opening category management for user {self.current_user_id}")
+        from ui.account_manager import setup_category_management_window
+        setup_category_management_window(self.root, self.current_user_id)
 
+    @handle_errors("managing checkins")
     def manage_checkins(self):
         """Open check-in settings management for selected user"""
         if not hasattr(self, 'current_user_id') or not self.current_user_id:
             messagebox.showwarning("No User Selected", "Please select a user first.")
             return
             
-        try:
-            logger.info(f"Admin Panel: Opening check-in management for user {self.current_user_id}")
-            from ui.account_manager import setup_checkin_management_window
-            setup_checkin_management_window(self.root, self.current_user_id)
-            
-        except Exception as e:
-            logger.error(f"Admin Panel: Error opening check-in management for user {self.current_user_id}: {e}")
-            messagebox.showerror("Error", f"Failed to open check-in management: {str(e)}")
+        logger.info(f"Admin Panel: Opening check-in management for user {self.current_user_id}")
+        from ui.account_manager import setup_checkin_management_window
+        setup_checkin_management_window(self.root, self.current_user_id)
     
+    @handle_errors("shutting down UI components")
     def shutdown_ui_components(self, communication_manager=None):
         """Shutdown any UI-created components gracefully"""
         logger.info("Shutting down admin panel.")
-        try:
-            if communication_manager:
-                logger.debug("Stopping communication manager (legacy UI instance).")
-                communication_manager.stop_all()
-            # Admin panel no longer creates its own communication manager
-            logger.debug("Admin panel cleanup complete - no communication channels to stop.")
-        except Exception as e:
-            logger.error(f"Error during admin panel shutdown: {e}", exc_info=True)
-        finally:
-            logger.info("Admin panel shutdown complete.")
+        if communication_manager:
+            logger.debug("Stopping communication manager (legacy UI instance).")
+            communication_manager.stop_all()
+        # Admin panel no longer creates its own communication manager
+        logger.debug("Admin panel cleanup complete - no communication channels to stop.")
+        logger.info("Admin panel shutdown complete.")
     
     def on_closing(self):
         """Handle window close event"""
         self.shutdown_ui_components()
         self.root.destroy()
 
+@handle_errors("starting UI application")
 def main():
     """Main entry point for the UI application"""
-    try:
-        root = tk.Tk()
-        app = MHMManagerUI(root)
-        root.mainloop()
-    except Exception as e:
-        logger.error(f"Error starting UI application: {e}")
-        messagebox.showerror("Error", f"Failed to start application: {str(e)}")
+    root = tk.Tk()
+    app = MHMManagerUI(root)
+    root.mainloop()
 
 if __name__ == "__main__":
     main() 

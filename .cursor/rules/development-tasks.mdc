@@ -1,0 +1,119 @@
+---
+description: Development task workflows, PowerShell operations, and common procedures
+globs: *.py, *.md, *.txt
+alwaysApply: false
+---
+# Development Tasks & PowerShell Operations
+
+## PowerShell Critical Rules
+- **ALWAYS check exit codes**: `$LASTEXITCODE` after commands
+- **Use PowerShell syntax**: `;` for chaining, `-and`/`-or` for logic, `$env:VARIABLE` for environment variables
+- **Never assume success**: Check both exit codes and error patterns in output
+- **Handle boolean returns**: Many PowerShell cmdlets return True/False without printing
+
+## Common Mistakes to Avoid
+- ❌ `command1 && command2` (bash syntax)
+- ✅ `command1; command2` (PowerShell syntax)
+- ❌ `$PATH` (bash syntax)
+- ✅ `$env:PATH` (PowerShell syntax)
+- ❌ Assuming empty output means failure
+- ✅ Check `$LASTEXITCODE` for actual success/failure
+
+## File Operations
+```powershell
+# Check if file exists (returns True/False, doesn't print)
+if (Test-Path "filename.txt") { Write-Host "File exists" }
+
+# Check if directory exists
+if (Test-Path "dirname" -PathType Container) { Write-Host "Directory exists" }
+
+# List files
+Get-ChildItem
+ls  # alias
+
+# Copy files
+Copy-Item "source" "destination"
+cp  # alias
+
+# Move files
+Move-Item "source" "destination"
+mv  # alias
+```
+
+## Git Operations
+```powershell
+# Check status
+git status
+git status --porcelain  # machine-readable format
+
+# Add and commit
+git add .
+git commit -m "message"
+
+# Push changes
+git push
+
+# Always verify success
+if ($LASTEXITCODE -ne 0) { Write-Host "Git command failed" -ForegroundColor Red }
+```
+
+## Process Management
+```powershell
+# Check if process is running
+Get-Process "processname" -ErrorAction SilentlyContinue
+
+# Kill process
+Stop-Process "processname" -Force
+
+# Start process
+Start-Process "command"
+```
+
+## Common Development Tasks
+
+### Adding New Feature
+1. Plan the feature
+2. Create backup: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
+3. Implement incrementally
+4. Test: `python run_mhm.py`
+5. Update `IMPROVEMENTS.md`
+
+### Fixing Bug
+1. Reproduce the bug
+2. Identify root cause
+3. Make minimal fix
+4. Test fix works
+5. Test nothing else broke
+
+### Refactoring Code
+1. Understand current code
+2. Plan refactoring steps
+3. Make one change at a time
+4. Test after each change
+5. Update all references
+
+### Adding Dependencies
+1. Add to `requirements.txt`
+2. Update `IMPROVEMENTS.md`
+3. Test installation: `pip install -r requirements.txt`
+4. Test functionality
+
+### Configuration Changes
+1. Update `core/config.py`
+2. Test configuration loading
+3. Update documentation if needed
+4. Test affected features
+
+## Error Detection
+- Always check `$LASTEXITCODE` after commands
+- Look for error keywords: "error", "exception", "failed", "not found"
+- Don't assume success from empty output
+- Handle PowerShell exceptions with try-catch
+
+---
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the development-tasks.mdc rule"
+
+
+
+

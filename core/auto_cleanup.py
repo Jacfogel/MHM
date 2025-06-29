@@ -12,6 +12,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import logging
 import core.config
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 # Get logger for this module
 logger = logging.getLogger(__name__)
@@ -20,30 +23,28 @@ logger = logging.getLogger(__name__)
 CLEANUP_TRACKER_FILE = ".last_cache_cleanup"
 DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 
+@handle_errors("getting last cleanup timestamp", default_return=0)
 def get_last_cleanup_timestamp():
     """Get the timestamp of the last cleanup from tracker file."""
-    try:
-        if os.path.exists(CLEANUP_TRACKER_FILE):
-            with open(CLEANUP_TRACKER_FILE, 'r') as f:
-                data = json.load(f)
-                return data.get('last_cleanup_timestamp', 0)
-    except (json.JSONDecodeError, FileNotFoundError, KeyError):
-        logger.debug("No valid cleanup tracker file found")
+    if os.path.exists(CLEANUP_TRACKER_FILE):
+        with open(CLEANUP_TRACKER_FILE, 'r') as f:
+            data = json.load(f)
+            return data.get('last_cleanup_timestamp', 0)
+    logger.debug("No valid cleanup tracker file found")
     return 0
 
+@handle_errors("updating cleanup timestamp")
 def update_cleanup_timestamp():
     """Update the cleanup tracker file with current timestamp."""
-    try:
-        data = {
-            'last_cleanup_timestamp': time.time(),
-            'last_cleanup_date': datetime.now().isoformat()
-        }
-        with open(CLEANUP_TRACKER_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
-        logger.debug(f"Updated cleanup timestamp: {data['last_cleanup_date']}")
-    except Exception as e:
-        logger.error(f"Failed to update cleanup timestamp: {e}")
+    data = {
+        'last_cleanup_timestamp': time.time(),
+        'last_cleanup_date': datetime.now().isoformat()
+    }
+    with open(CLEANUP_TRACKER_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
+    logger.debug(f"Updated cleanup timestamp: {data['last_cleanup_date']}")
 
+@handle_errors("checking if cleanup should run", default_return=False)
 def should_run_cleanup(interval_days=DEFAULT_CLEANUP_INTERVAL_DAYS):
     """Check if cleanup should run based on last cleanup time."""
     last_cleanup = get_last_cleanup_timestamp()
@@ -63,30 +64,27 @@ def should_run_cleanup(interval_days=DEFAULT_CLEANUP_INTERVAL_DAYS):
     
     return should_cleanup
 
+@handle_errors("finding pycache directories", default_return=[])
 def find_pycache_dirs(root_path):
     """Find all __pycache__ directories recursively."""
     pycache_dirs = []
-    try:
-        for root, dirs, files in os.walk(root_path):
-            if '__pycache__' in dirs:
-                pycache_path = os.path.join(root, '__pycache__')
-                pycache_dirs.append(pycache_path)
-    except Exception as e:
-        logger.error(f"Error finding __pycache__ directories: {e}")
+    for root, dirs, files in os.walk(root_path):
+        if '__pycache__' in dirs:
+            pycache_path = os.path.join(root, '__pycache__')
+            pycache_dirs.append(pycache_path)
     return pycache_dirs
 
+@handle_errors("finding pyc files", default_return=[])
 def find_pyc_files(root_path):
     """Find all .pyc files recursively."""
     pyc_files = []
-    try:
-        for root, dirs, files in os.walk(root_path):
-            for file in files:
-                if file.endswith('.pyc') or file.endswith('.pyo'):
-                    pyc_files.append(os.path.join(root, file))
-    except Exception as e:
-        logger.error(f"Error finding .pyc files: {e}")
+    for root, dirs, files in os.walk(root_path):
+        for file in files:
+            if file.endswith('.pyc') or file.endswith('.pyo'):
+                pyc_files.append(os.path.join(root, file))
     return pyc_files
 
+@handle_errors("calculating cache size", default_return=0)
 def calculate_cache_size(pycache_dirs, pyc_files):
     """Calculate total size of cache files."""
     total_size = 0
@@ -113,6 +111,7 @@ def calculate_cache_size(pycache_dirs, pyc_files):
     
     return total_size
 
+@handle_errors("performing cleanup", default_return=False)
 def perform_cleanup(root_path='.'):
     """Perform the actual cleanup of cache files."""
     root_path = Path(root_path).resolve()
@@ -159,27 +158,24 @@ def perform_cleanup(root_path='.'):
     
     return True
 
+@handle_errors("auto cleanup if needed", default_return=False)
 def auto_cleanup_if_needed(root_path='.', interval_days=DEFAULT_CLEANUP_INTERVAL_DAYS):
     """
     Main function to check if cleanup is needed and perform it if so.
     Returns True if cleanup was performed, False if not needed.
     """
-    try:
-        if not should_run_cleanup(interval_days):
-            return False
-        
-        success = perform_cleanup(root_path)
-        if success:
-            update_cleanup_timestamp()
-            return True
-        else:
-            logger.error("Cleanup failed")
-            return False
-            
-    except Exception as e:
-        logger.error(f"Error during auto cleanup: {e}")
+    if not should_run_cleanup(interval_days):
+        return False
+    
+    success = perform_cleanup(root_path)
+    if success:
+        update_cleanup_timestamp()
+        return True
+    else:
+        logger.error("Cleanup failed")
         return False
 
+@handle_errors("getting cleanup status", default_return={"error": "Failed to get status"})
 def get_cleanup_status():
     """Get information about the cleanup status."""
     last_cleanup_timestamp = get_last_cleanup_timestamp()

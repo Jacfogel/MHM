@@ -31,6 +31,9 @@ from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
 from core.user_management import get_all_user_ids, get_user_preferences
 from core.user_management import load_and_ensure_ids
+from core.error_handling import (
+    error_handler, DataError, FileOperationError, handle_errors
+)
 
 class InitializationError(Exception):
     """Custom exception for initialization errors."""
@@ -45,32 +48,21 @@ class MHMService:
         # Register atexit handler as backup shutdown method
         atexit.register(self.emergency_shutdown)
         
+    @handle_errors("validating configuration")
     def validate_configuration(self):
         """Validate all configuration settings before starting the service."""
         logger.info("Validating configuration...")
         
-        try:
-            # Print configuration report for debugging
-            print_configuration_report()
-            
-            # Validate configuration and get available channels
-            available_channels = validate_and_raise_if_invalid()
-            
-            logger.info(f"Configuration validation passed. Available channels: {', '.join(available_channels)}")
-            return available_channels
-            
-        except ConfigValidationError as e:
-            logger.error("Configuration validation failed:")
-            for error in e.missing_configs:
-                logger.error(f"  ERROR: {error}")
-            for warning in e.warnings:
-                logger.warning(f"  WARNING: {warning}")
-            
-            raise InitializationError(f"Configuration validation failed: {e}")
-        except Exception as e:
-            logger.error(f"Unexpected error during configuration validation: {e}")
-            raise InitializationError(f"Configuration validation error: {e}")
+        # Print configuration report for debugging
+        print_configuration_report()
         
+        # Validate configuration and get available channels
+        available_channels = validate_and_raise_if_invalid()
+        
+        logger.info(f"Configuration validation passed. Available channels: {', '.join(available_channels)}")
+        return available_channels
+        
+    @handle_errors("initializing paths")
     def initialize_paths(self):
         paths = [
             LOG_FILE_PATH,
@@ -78,151 +70,137 @@ class MHMService:
             USER_INFO_DIR_PATH
         ]
         
-        try:
-            user_ids = get_all_user_ids()
-            logger.debug(f"User IDs retrieved: {user_ids}")
-            for user_id in user_ids:
-                if user_id is None:
-                    logger.warning("Encountered None user_id in get_all_user_ids()")
-                    continue
-                categories = get_user_preferences(user_id, ['categories'])
-                if categories and isinstance(categories, list):
-                    for category in categories:
-                        try:
-                            path = determine_file_path('messages', f'{category}/{user_id}')
-                            paths.append(path)
-                        except ValueError as e:
-                            logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
-                else:
-                    logger.warning(
-                        f"Expected list for categories, got {type(categories)} for user '{user_id}'"
-                    )
-        except Exception as e:
-            logger.error(f"Error initializing paths: {e}", exc_info=True)
-            raise
+        user_ids = get_all_user_ids()
+        logger.debug(f"User IDs retrieved: {user_ids}")
+        for user_id in user_ids:
+            if user_id is None:
+                logger.warning("Encountered None user_id in get_all_user_ids()")
+                continue
+            categories = get_user_preferences(user_id, ['categories'])
+            if categories and isinstance(categories, list):
+                for category in categories:
+                    try:
+                        path = determine_file_path('messages', f'{category}/{user_id}')
+                        paths.append(path)
+                    except ValueError as e:
+                        logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
+            else:
+                logger.warning(
+                    f"Expected list for categories, got {type(categories)} for user '{user_id}'"
+                )
 
         logger.debug(f"Paths initialized: {paths}")
         return paths
 
+    @handle_errors("checking and fixing logging")
     def check_and_fix_logging(self):
         """Check if logging is working and restart if needed"""
         global logger
         
+        # Simple test: try to log a message and see if it works
+        test_timestamp = int(time.time())
+        test_message = f"Logging verification - {test_timestamp}"
+        
+        # Try logging at different levels to test all handlers
         try:
-            # Simple test: try to log a message and see if it works
-            test_timestamp = int(time.time())
-            test_message = f"Logging verification - {test_timestamp}"
+            logger.debug(test_message)
             
-            # Try logging at different levels to test all handlers
+            # Force flush all handlers to ensure messages are written
+            root_logger = logging.getLogger()
+            for handler in root_logger.handlers:
+                if hasattr(handler, 'flush'):
+                    handler.flush()
+            
+            # Give more time for file operations and buffering
+            time.sleep(0.5)
+            
+            # Check if log file exists and is accessible
+            from core.config import LOG_FILE_PATH
+            if not os.path.exists(LOG_FILE_PATH):
+                logger.warning("Log file does not exist - logging may have issues")
+                raise Exception("Log file missing")
+            
+            # Try to read the last few lines to verify logging is working
             try:
-                logger.debug(test_message)
-                
-                # Force flush all handlers to ensure messages are written
-                root_logger = logging.getLogger()
-                for handler in root_logger.handlers:
-                    if hasattr(handler, 'flush'):
-                        handler.flush()
-                
-                # Give more time for file operations and buffering
-                time.sleep(0.5)
-                
-                # Check if log file exists and is accessible
-                from core.config import LOG_FILE_PATH
-                if not os.path.exists(LOG_FILE_PATH):
-                    logger.warning("Log file does not exist - logging may have issues")
-                    raise Exception("Log file missing")
-                
-                # Try to read the last few lines to verify logging is working
-                try:
-                    with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
-                        # Read last 1000 characters to check for recent activity
-                        f.seek(0, 2)  # Go to end
-                        file_size = f.tell()
-                        if file_size > 1000:
-                            f.seek(file_size - 1000)
-                        else:
-                            f.seek(0)
-                        recent_content = f.read()
+                with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+                    # Read last 1000 characters to check for recent activity
+                    f.seek(0, 2)  # Go to end
+                    file_size = f.tell()
+                    if file_size > 1000:
+                        f.seek(file_size - 1000)
+                    else:
+                        f.seek(0)
+                    recent_content = f.read()
+                    
+                    # Look for our test message or recent timestamp patterns
+                    if (test_message in recent_content or 
+                        any(str(test_timestamp - i) in recent_content for i in range(60))):
+                        logger.debug("Logging system verified")
+                        return
+                    else:
+                        # Check if there's any recent activity (within last 5 minutes)
+                        import re
+                        current_time = datetime.now()
+                        recent_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+                        matches = re.findall(recent_pattern, recent_content)
                         
-                        # Look for our test message or recent timestamp patterns
-                        if (test_message in recent_content or 
-                            any(str(test_timestamp - i) in recent_content for i in range(60))):
-                            logger.debug("Logging system verified")
-                            return
-                        else:
-                            # Check if there's any recent activity (within last 5 minutes)
-                            import re
-                            current_time = datetime.now()
-                            recent_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-                            matches = re.findall(recent_pattern, recent_content)
-                            
-                            if matches:
-                                try:
-                                    latest_log_time = datetime.strptime(matches[-1], '%Y-%m-%d %H:%M:%S')
-                                    time_diff = (current_time - latest_log_time).total_seconds()
-                                    
-                                    if time_diff < 300:  # Less than 5 minutes
-                                        logger.debug("Logging system healthy")
-                                        return
-                                except ValueError:
-                                    pass  # Failed to parse timestamp, continue to restart check
-                            
-                            logger.warning("No recent logging activity detected, may need restart")
-                
-                except Exception as file_error:
-                    logger.warning(f"Could not verify log file contents: {file_error}")
-                    # Don't force restart just because we can't read the file
-                    # The fact that logger.debug() and logger.warning() worked above is sufficient
-                    logger.debug("Logging system working despite file read issues")
-                    return
-                
-            except Exception as log_error:
-                # If we can't even log, then we definitely have a problem
-                print(f"Logging system is not working - cannot write log messages: {log_error}")
-                # Fall through to restart logic
+                        if matches:
+                            try:
+                                latest_log_time = datetime.strptime(matches[-1], '%Y-%m-%d %H:%M:%S')
+                                time_diff = (current_time - latest_log_time).total_seconds()
+                                
+                                if time_diff < 300:  # Less than 5 minutes
+                                    logger.debug("Logging system healthy")
+                                    return
+                            except ValueError:
+                                pass  # Failed to parse timestamp, continue to restart check
+                        
+                        logger.warning("No recent logging activity detected, may need restart")
             
-            # Only restart if we have clear evidence of logging failure
-            print("Logging system verification failed - attempting force restart...")
+            except Exception as file_error:
+                logger.warning(f"Could not verify log file contents: {file_error}")
+                # Don't force restart just because we can't read the file
+                # The fact that logger.debug() and logger.warning() worked above is sufficient
+                logger.debug("Logging system working despite file read issues")
+                return
             
-            # Force restart logging
-            from core.logger import force_restart_logging
-            if force_restart_logging():
-                logger = get_logger(__name__)
-                logger.info("Logging system force restarted successfully")
-            else:
-                print("Failed to restart logging system")
-                
-        except Exception as e:
-            print(f"Logging system check error: {e}")
-            # Try to restart as a last resort
-            try:
-                from core.logger import force_restart_logging
-                if force_restart_logging():
-                    logger = get_logger(__name__)
-                    logger.info("Logging system recovered from error")
-                else:
-                    print("Failed to recover logging system")
-            except Exception as restart_error:
-                print(f"Failed to restart logging: {restart_error}")
+        except Exception as log_error:
+            # If we can't even log, then we definitely have a problem
+            print(f"Logging system is not working - cannot write log messages: {log_error}")
+            # Fall through to restart logic
+        
+        # Only restart if we have clear evidence of logging failure
+        print("Logging system verification failed - attempting force restart...")
+        
+        # Force restart logging
+        from core.logger import force_restart_logging
+        if force_restart_logging():
+            logger = get_logger(__name__)
+            logger.info("Logging system force restarted successfully")
+        else:
+            print("Failed to restart logging system")
 
+    @handle_errors("starting service")
     def start(self):
-        """Start the MHM service"""
+        """Start the MHM backend service"""
+        logger.info("Starting MHM Backend Service...")
+        self.running = True
+        
+        # Set up signal handlers for graceful shutdown
+        signal.signal(signal.SIGINT, self.signal_handler)
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        
         max_retries = 3
         
         try:
-            logger.info("Starting MHM Backend Service.")
-            self.running = True
-
-            # Check and fix logging BEFORE any async operations
-            self.check_and_fix_logging()
-
-            # Step 0: Validate configuration BEFORE anything else
+            # Step 0: Validate configuration
             logger.info("Step 0: Validating configuration...")
-            available_channels = self.validate_configuration()
+            self.validate_configuration()
             
-            if not available_channels:
-                raise InitializationError("No communication channels are available. Service cannot start without at least one configured channel.")
-
+            # Step 0.5: Check and fix logging if needed
+            logger.info("Step 0.5: Checking logging system...")
+            self.check_and_fix_logging()
+            
             # Automatic cache cleanup (only if needed)
             try:
                 from core.auto_cleanup import auto_cleanup_if_needed
@@ -286,6 +264,7 @@ class MHMService:
         finally:
             self.shutdown()
 
+    @handle_errors("running service loop")
     def run_service_loop(self):
         """Keep the service running until shutdown is requested"""
         logger.info("Service is now running. Press Ctrl+C to stop.")
@@ -294,328 +273,247 @@ class MHMService:
         # Initialize loop counter outside the main loop
         loop_minutes = 0
         
-        try:
-            while self.running:
-                # Check for shutdown file every 2 seconds for faster response
-                for i in range(30):  # 30 * 2 = 60 seconds total
-                    if not self.running:
-                        break
-                    
-                    # Check for shutdown request file every iteration
-                    if os.path.exists(shutdown_file):
-                        logger.info("Shutdown request file detected - initiating graceful shutdown")
-                        try:
-                            with open(shutdown_file, 'r') as f:
-                                content = f.read().strip()
-                            logger.info(f"Shutdown request details: {content}")
-                        except Exception as e:
-                            logger.warning(f"Could not read shutdown file: {e}")
-                        self.running = False
-                        break
-                    
-                    # Check for test message request files
-                    self.check_test_message_requests()
-                    
-                    # Check for reschedule request files
-                    self.check_reschedule_requests()
-                    
-                    time.sleep(2)  # Sleep for 2 seconds
+        while self.running:
+            # Check for shutdown file every 2 seconds for faster response
+            for i in range(30):  # 30 * 2 = 60 seconds total
+                if not self.running:
+                    break
                 
-                # Log heartbeat every 10 minutes instead of every 2 minutes to reduce log spam
-                loop_minutes += 1
-                if loop_minutes % 10 == 0:
-                    logger.info(f"Service running normally ({loop_minutes} minutes uptime)")
-                    
-        except KeyboardInterrupt:
-            logger.info("Received keyboard interrupt (Ctrl+C).")
-            self.running = False
-        except Exception as e:
-            logger.error(f"Unexpected error in service loop: {e}", exc_info=True)
-            self.running = False
-        finally:
-            logger.info("Service loop ended.")
-            # Clean up shutdown file if it exists
-            try:
+                # Check for shutdown request file every iteration
                 if os.path.exists(shutdown_file):
-                    os.remove(shutdown_file)
-                    logger.info("Cleanup: Removed shutdown request file")
-            except Exception as e:
-                logger.warning(f"Could not remove shutdown file: {e}")
+                    logger.info("Shutdown request file detected - initiating graceful shutdown")
+                    try:
+                        with open(shutdown_file, 'r') as f:
+                            content = f.read().strip()
+                        logger.info(f"Shutdown request details: {content}")
+                    except Exception as e:
+                        logger.warning(f"Could not read shutdown file: {e}")
+                    self.running = False
+                    break
+                
+                # Check for test message request files
+                self.check_test_message_requests()
+                
+                # Check for reschedule request files
+                self.check_reschedule_requests()
+                
+                time.sleep(2)  # Sleep for 2 seconds
             
-            # Clean up any remaining test message request files
-            self.cleanup_test_message_requests()
-            
-            # Clean up any remaining reschedule request files  
-            self.cleanup_reschedule_requests()
+            # Log heartbeat every 10 minutes instead of every 2 minutes to reduce log spam
+            loop_minutes += 1
+            if loop_minutes % 10 == 0:
+                logger.info(f"Service running normally ({loop_minutes} minutes uptime)")
+                
+        logger.info("Service loop ended.")
+        # Clean up shutdown file if it exists
+        try:
+            if os.path.exists(shutdown_file):
+                os.remove(shutdown_file)
+                logger.info("Cleanup: Removed shutdown request file")
+        except Exception as e:
+            logger.warning(f"Could not remove shutdown file: {e}")
+        
+        # Clean up any remaining test message request files
+        self.cleanup_test_message_requests()
+        
+        # Clean up any remaining reschedule request files  
+        self.cleanup_reschedule_requests()
     
+    @handle_errors("checking test message requests")
     def check_test_message_requests(self):
         """Check for and process test message request files from admin panel"""
-        try:
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            
-            # Look for test message request files
-            for filename in os.listdir(base_dir):
-                if filename.startswith('test_message_request_') and filename.endswith('.flag'):
-                    request_file = os.path.join(base_dir, filename)
-                    
-                    try:
-                        # Read and process the request
-                        with open(request_file, 'r') as f:
-                            import json
-                            request_data = json.load(f)
-                        
-                        user_id = request_data.get('user_id')
-                        category = request_data.get('category')
-                        source = request_data.get('source', 'unknown')
-                        
-                        if user_id and category:
-                            logger.info(f"Processing test message request from {source}: user={user_id}, category={category}")
-                            
-                            # Use the communication manager to send the message
-                            if self.communication_manager:
-                                self.communication_manager.handle_message_sending(user_id, category)
-                                logger.info(f"Test message sent successfully for {user_id}, category={category}")
-                            else:
-                                logger.error("Communication manager not available for test message")
-                        else:
-                            logger.warning(f"Invalid test message request in {filename}: missing user_id or category")
-                        
-                        # Remove the processed request file
-                        os.remove(request_file)
-                        logger.info(f"Processed test message request: {filename}")
-                        
-                    except Exception as e:
-                        logger.error(f"Error processing test message request {filename}: {e}")
-                        # Try to remove the problematic file
-                        try:
-                            os.remove(request_file)
-                            logger.debug(f"Removed problematic request file: {filename}")
-                        except Exception as cleanup_error:
-                            logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
-                        
-        except Exception as e:
-            logger.debug(f"Error checking for test message requests: {e}")  # Debug level since this runs frequently
-    
-    def cleanup_test_message_requests(self):
-        """Clean up any remaining test message request files"""
-        try:
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            
-            for filename in os.listdir(base_dir):
-                if filename.startswith('test_message_request_') and filename.endswith('.flag'):
-                    request_file = os.path.join(base_dir, filename)
-                    try:
-                        os.remove(request_file)
-                        logger.info(f"Cleanup: Removed test message request file: {filename}")
-                    except Exception as e:
-                        logger.warning(f"Could not remove test message request file {filename}: {e}")
-                        
-        except Exception as e:
-            logger.warning(f"Error during test message request cleanup: {e}")
-
-    def check_reschedule_requests(self):
-        """Check for and process reschedule request files from UI with deduplication"""
-        try:
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            current_time = time.time()
-            
-            # Clean up old deduplication entries (older than 30 seconds)
-            expired_keys = [key for key, timestamp in self.reschedule_dedup.items() 
-                          if current_time - timestamp > 30]
-            for key in expired_keys:
-                del self.reschedule_dedup[key]
-            
-            # Collect all reschedule requests first
-            reschedule_requests = []
-            for filename in os.listdir(base_dir):
-                if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
-                    request_file = os.path.join(base_dir, filename)
-                    
-                    try:
-                        # Read the request
-                        with open(request_file, 'r') as f:
-                            import json
-                            request_data = json.load(f)
-                        
-                        user_id = request_data.get('user_id')
-                        category = request_data.get('category')
-                        source = request_data.get('source', 'unknown')
-                        
-                        if user_id and category:
-                            reschedule_requests.append({
-                                'filename': filename,
-                                'request_file': request_file,
-                                'user_id': user_id,
-                                'category': category,
-                                'source': source
-                            })
-                        else:
-                            logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
-                            # Remove invalid request file
-                            os.remove(request_file)
-                        
-                    except Exception as e:
-                        logger.error(f"Error reading reschedule request {filename}: {e}")
-                        # Try to remove the problematic file
-                        try:
-                            os.remove(request_file)
-                            logger.debug(f"Removed problematic reschedule request file: {filename}")
-                        except Exception as cleanup_error:
-                            logger.warning(f"Could not remove problematic reschedule request file {filename}: {cleanup_error}")
-            
-            # Process deduplicated requests
-            processed_keys = set()
-            for request in reschedule_requests:
-                user_id = request['user_id']
-                category = request['category']
-                dedup_key = f"{user_id}_{category}"
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        
+        # Look for test message request files
+        for filename in os.listdir(base_dir):
+            if filename.startswith('test_message_request_') and filename.endswith('.flag'):
+                request_file = os.path.join(base_dir, filename)
                 
-                # Check if we've already processed this user/category recently
-                if dedup_key in self.reschedule_dedup:
-                    logger.debug(f"Skipping duplicate reschedule request for user={user_id}, category={category} (processed {current_time - self.reschedule_dedup[dedup_key]:.1f}s ago)")
-                    # Remove the duplicate request file
-                    try:
-                        os.remove(request['request_file'])
-                        logger.debug(f"Removed duplicate reschedule request: {request['filename']}")
-                    except Exception as e:
-                        logger.warning(f"Could not remove duplicate request file {request['filename']}: {e}")
-                    continue
-                
-                # Skip if we've already processed this combination in this batch
-                if dedup_key in processed_keys:
-                    logger.debug(f"Skipping duplicate reschedule request in batch for user={user_id}, category={category}")
-                    try:
-                        os.remove(request['request_file'])
-                        logger.debug(f"Removed batch duplicate reschedule request: {request['filename']}")
-                    except Exception as e:
-                        logger.warning(f"Could not remove batch duplicate request file {request['filename']}: {e}")
-                    continue
-                
-                # Process the request
                 try:
-                    logger.info(f"Processing reschedule request from {request['source']}: user={user_id}, category={category}")
+                    # Read and process the request
+                    with open(request_file, 'r') as f:
+                        import json
+                        request_data = json.load(f)
                     
-                    # Use the scheduler manager to reschedule
-                    if self.scheduler_manager:
-                        # Set the user context for the reschedule operation
-                        from user.user_context import UserContext
-                        original_user = UserContext().get_user_id()
-                        UserContext().set_user_id(user_id)
+                    user_id = request_data.get('user_id')
+                    category = request_data.get('category')
+                    source = request_data.get('source', 'unknown')
+                    
+                    if user_id and category:
+                        logger.info(f"Processing test message request from {source}: user={user_id}, category={category}")
                         
-                        try:
-                            self.scheduler_manager.reset_and_reschedule_daily_messages(category)
-                            logger.info(f"Successfully rescheduled messages for user {user_id}, category={category}")
-                            
-                            # Mark as processed in deduplication tracker
-                            self.reschedule_dedup[dedup_key] = current_time
-                            processed_keys.add(dedup_key)
-                            
-                        finally:
-                            # Restore original user context
-                            if original_user:
-                                UserContext().set_user_id(original_user)
+                        # Use the communication manager to send the message
+                        if self.communication_manager:
+                            self.communication_manager.handle_message_sending(user_id, category)
+                            logger.info(f"Test message sent successfully for {user_id}, category={category}")
+                        else:
+                            logger.error("Communication manager not available for test message")
                     else:
-                        logger.error("Scheduler manager not available for reschedule request")
+                        logger.warning(f"Invalid test message request in {filename}: missing user_id or category")
                     
                     # Remove the processed request file
-                    os.remove(request['request_file'])
-                    logger.info(f"Processed reschedule request: {request['filename']}")
+                    os.remove(request_file)
+                    logger.info(f"Processed test message request: {filename}")
                     
                 except Exception as e:
-                    logger.error(f"Error processing reschedule request {request['filename']}: {e}")
+                    logger.error(f"Error processing test message request {filename}: {e}")
                     # Try to remove the problematic file
                     try:
-                        os.remove(request['request_file'])
-                        logger.debug(f"Removed problematic reschedule request file: {request['filename']}")
+                        os.remove(request_file)
+                        logger.debug(f"Removed problematic request file: {filename}")
                     except Exception as cleanup_error:
-                        logger.warning(f"Could not remove problematic reschedule request file {request['filename']}: {cleanup_error}")
-                        
-        except Exception as e:
-            logger.debug(f"Error checking for reschedule requests: {e}")  # Debug level since this runs frequently
+                        logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+    
+    @handle_errors("cleaning up test message requests")
+    def cleanup_test_message_requests(self):
+        """Clean up any remaining test message request files"""
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        
+        for filename in os.listdir(base_dir):
+            if filename.startswith('test_message_request_') and filename.endswith('.flag'):
+                request_file = os.path.join(base_dir, filename)
+                try:
+                    os.remove(request_file)
+                    logger.info(f"Cleanup: Removed test message request file: {filename}")
+                except Exception as e:
+                    logger.warning(f"Could not remove test message request file {filename}: {e}")
 
-    def cleanup_reschedule_requests(self):
-        """Clean up any remaining reschedule request files"""
-        try:
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            
-            for filename in os.listdir(base_dir):
-                if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
-                    request_file = os.path.join(base_dir, filename)
+    @handle_errors("checking reschedule requests")
+    def check_reschedule_requests(self):
+        """Check for and process reschedule request files from UI with deduplication"""
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        current_time = time.time()
+        
+        # Clean up old deduplication entries (older than 30 seconds)
+        expired_keys = [key for key, timestamp in self.reschedule_dedup.items() 
+                      if current_time - timestamp > 30]
+        for key in expired_keys:
+            del self.reschedule_dedup[key]
+        
+        # Look for reschedule request files
+        for filename in os.listdir(base_dir):
+            if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
+                request_file = os.path.join(base_dir, filename)
+                
+                try:
+                    # Read and process the request
+                    with open(request_file, 'r') as f:
+                        import json
+                        request_data = json.load(f)
+                    
+                    user_id = request_data.get('user_id')
+                    category = request_data.get('category')
+                    source = request_data.get('source', 'unknown')
+                    timestamp = request_data.get('timestamp', 0)
+                    
+                    if user_id and category:
+                        # Create deduplication key
+                        dedup_key = f"{user_id}_{category}"
+                        
+                        # Check if this is a duplicate request
+                        if dedup_key in self.reschedule_dedup:
+                            last_timestamp = self.reschedule_dedup[dedup_key]
+                            if current_time - last_timestamp < 30:  # Within 30 seconds
+                                logger.debug(f"Ignoring duplicate reschedule request: {dedup_key}")
+                                os.remove(request_file)
+                                continue
+                        
+                        # Process the reschedule request
+                        logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
+                        
+                        if self.scheduler_manager:
+                            # Reset and reschedule for this user/category
+                            self.scheduler_manager.reset_and_reschedule_daily_messages(category, user_id)
+                            logger.info(f"Reschedule completed for {user_id}, category={category}")
+                            
+                            # Update deduplication tracking
+                            self.reschedule_dedup[dedup_key] = current_time
+                        else:
+                            logger.error("Scheduler manager not available for reschedule")
+                    else:
+                        logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
+                    
+                    # Remove the processed request file
+                    os.remove(request_file)
+                    logger.info(f"Processed reschedule request: {filename}")
+                    
+                except Exception as e:
+                    logger.error(f"Error processing reschedule request {filename}: {e}")
+                    # Try to remove the problematic file
                     try:
                         os.remove(request_file)
-                        logger.info(f"Cleanup: Removed reschedule request file: {filename}")
-                    except Exception as e:
-                        logger.warning(f"Could not remove reschedule request file {filename}: {e}")
-                        
-        except Exception as e:
-            logger.warning(f"Error during reschedule request cleanup: {e}")
+                        logger.debug(f"Removed problematic request file: {filename}")
+                    except Exception as cleanup_error:
+                        logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
 
+    @handle_errors("cleaning up reschedule requests")
+    def cleanup_reschedule_requests(self):
+        """Clean up any remaining reschedule request files"""
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+        
+        for filename in os.listdir(base_dir):
+            if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
+                request_file = os.path.join(base_dir, filename)
+                try:
+                    os.remove(request_file)
+                    logger.info(f"Cleanup: Removed reschedule request file: {filename}")
+                except Exception as e:
+                    logger.warning(f"Could not remove reschedule request file {filename}: {e}")
+
+    @handle_errors("shutting down service")
     def shutdown(self):
-        """Shutdown the service gracefully"""
-        logger.info("Shutting down MHM Backend Service.")
+        """Gracefully shutdown the service"""
+        logger.info("Shutting down MHM Backend Service...")
         self.running = False
         
         try:
             if self.communication_manager:
-                logger.info("Stopping communication manager...")
                 self.communication_manager.stop_all()
-                logger.info("Communication manager stopped successfully.")
-            if self.scheduler_manager:
-                logger.info("Stopping scheduler manager...")
-                self.scheduler_manager.stop_scheduler()
-                logger.info("Scheduler manager stopped successfully.")
+                logger.info("Communication manager stopped")
         except Exception as e:
-            logger.error(f"Error during shutdown: {e}", exc_info=True)
-        finally:
-            logger.info("MHM Backend Service shutdown complete.")
-            # Force flush all logging before exit
-            import logging
-            logging.shutdown()
+            logger.error(f"Error stopping communication manager: {e}")
+        
+        try:
+            if self.scheduler_manager:
+                self.scheduler_manager.stop()
+                logger.info("Scheduler manager stopped")
+        except Exception as e:
+            logger.error(f"Error stopping scheduler manager: {e}")
+        
+        logger.info("MHM Backend Service shutdown complete")
 
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
-        logger.info(f"Received signal {signum}. Initiating shutdown...")
+        logger.info(f"Received signal {signum}. Initiating graceful shutdown...")
         self.running = False
-        self.shutdown()
 
+    @handle_errors("emergency shutdown")
     def emergency_shutdown(self):
-        """Emergency shutdown called by atexit - ensures logging even if terminated abruptly"""
-        if self.running:  # Only log if we haven't already shut down gracefully
-            logger.info("Emergency shutdown triggered (process terminating)")
-            self.running = False
+        """Emergency shutdown handler registered with atexit"""
+        if self.running:
+            logger.critical("Emergency shutdown triggered!")
             try:
-                if self.communication_manager:
-                    logger.info("Emergency stop: communication manager")
-                    self.communication_manager.stop_all()
-                if self.scheduler_manager:
-                    logger.info("Emergency stop: scheduler manager")
-                    self.scheduler_manager.stop_scheduler()
+                self.shutdown()
             except Exception as e:
-                logger.error(f"Error during emergency shutdown: {e}")
-            finally:
-                logger.info("Emergency shutdown complete")
-                # Force flush logs
-                for handler in logger.handlers:
-                    handler.flush()
-                logging.shutdown()
+                logger.critical(f"Error during emergency shutdown: {e}")
+                # Force stop communication manager
+                try:
+                    if self.communication_manager:
+                        self.communication_manager.stop_all()
+                except:
+                    pass
+                # Force stop scheduler manager
+                try:
+                    if self.scheduler_manager:
+                        self.scheduler_manager.stop()
+                except:
+                    pass
 
+@handle_errors("main service function")
 def main():
     """Main entry point for the service"""
     service = MHMService()
-    
-    # Set up signal handlers for graceful shutdown
-    signal.signal(signal.SIGINT, service.signal_handler)
-    signal.signal(signal.SIGTERM, service.signal_handler)
-    
-    # On Windows, also handle SIGBREAK (Ctrl+Break)
-    if hasattr(signal, 'SIGBREAK'):
-        signal.signal(signal.SIGBREAK, service.signal_handler)
-    
-    try:
-        service.start()
-    except Exception as e:
-        logger.error(f"Service failed to start: {e}", exc_info=True)
-        sys.exit(1)
+    service.start()
 
 if __name__ == "__main__":
     main() 

@@ -1,0 +1,25 @@
+---
+description: Documentation and script organization guidelines
+globs: *.md
+alwaysApply: false
+---
+# Organization Guidelines
+
+## Documentation
+- Add new information to existing md files when possible
+- Only create new md files in subdirectories that don't already have one
+- Keep documentation concise and scannable
+
+## Scripts
+- Place testing, migration, debug, and utility scripts in `scripts/` directory
+- Use descriptive filenames and include comments
+- Remove obsolete scripts when no longer needed
+- Document significant scripts in `IMPROVEMENTS.md`
+
+---
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the organization.mdc rule"
+
+
+
+
