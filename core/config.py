@@ -48,7 +48,7 @@ LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'deepseek-llm-7b-chat')  # Model 
 HERMES_FILE_PATH = os.getenv('HERMES_FILE_PATH', os.path.expanduser('~/AppData/Local/nomic.ai/GPT4All/Nous-Hermes-2-Mistral-7B-DPO.Q4_0.gguf'))
 
 # AI Performance Configuration
-AI_TIMEOUT_SECONDS = int(os.getenv('AI_TIMEOUT_SECONDS', '15'))  # Increased timeout
+AI_TIMEOUT_SECONDS = int(os.getenv('AI_TIMEOUT_SECONDS', '30'))  # Increased timeout for resource-constrained systems
 AI_BATCH_SIZE = int(os.getenv('AI_BATCH_SIZE', '4'))  # For batch processing
 AI_CUDA_WARMUP = os.getenv('AI_CUDA_WARMUP', 'false').lower() == 'true'  # Disabled for LM Studio
 AI_CACHE_RESPONSES = os.getenv('AI_CACHE_RESPONSES', 'true').lower() == 'true'

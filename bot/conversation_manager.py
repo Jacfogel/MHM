@@ -123,6 +123,23 @@ class ConversationManager:
                 logger.error(f"Error in fallback contextual chat for user {user_id}: {e}")
                 return ("I encountered an issue. Let's start fresh - what can I help you with?", True)
 
+    def start_daily_checkin(self, user_id: str) -> tuple[str, bool]:
+        """
+        Public method to start a daily check-in flow for a user.
+        This is the proper way to initiate check-ins from external modules.
+        """
+        # Check if check-ins are enabled for this user
+        if not is_user_checkins_enabled(user_id):
+            # Clear any existing state for this user
+            self.user_states.pop(user_id, None)
+            return (
+                "Check-ins are not enabled for your account. Please contact an administrator to enable daily check-ins.",
+                True
+            )
+        
+        # Initialize dynamic check-in flow based on user preferences
+        return self._start_dynamic_checkin(user_id)
+
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
         """Start a dynamic check-in flow based on user preferences"""
         try:

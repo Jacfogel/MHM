@@ -18,7 +18,7 @@ Beginner programmer with ADHD/depression. Windows 11, PowerShell syntax. Safety-
 - `core/service.py` (background service)
 - `ui/ui_app.py` (admin interface)
 - `core/config.py` (configuration)
-- `core/utils.py` (1492 lines, needs refactoring)
+- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py` (formerly in utils.py, now refactored for clarity and maintainability)
 
 ## Error Handling
 - Check file existence before reading

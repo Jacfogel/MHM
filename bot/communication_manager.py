@@ -625,31 +625,27 @@ class CommunicationManager:
         Send a check-in prompt message to start the daily check-in flow.
         """
         try:
-            # Create a friendly check-in prompt message
-            prompt_message = (
-                "🌟 Daily Check-in Time! 🌟\n\n"
-                "Hi! It's time for your daily check-in. This helps me understand how you're doing "
-                "and provide better support.\n\n"
-                "Let's start: How are you feeling today on a scale of 1 to 5? (1=terrible, 5=great)\n"
-                "Type /cancel anytime to skip."
-            )
+            # Initialize the dynamic check-in flow properly
+            from bot.conversation_manager import conversation_manager
             
-            success = self.send_message_sync(messaging_service, recipient, prompt_message)
+            # Use the dynamic check-in initialization instead of hardcoded values
+            reply_text, completed = conversation_manager.start_daily_checkin(user_id)
+            
+            # Send the initial message to the user
+            success = self.send_message_sync(messaging_service, recipient, reply_text)
             
             if success:
-                # Initialize the conversation flow for this user
-                from bot.conversation_manager import conversation_manager
-                conversation_manager.user_states[user_id] = {
-                    "flow": 1,  # FLOW_DAILY_CHECKIN
-                    "state": 100,  # CHECKIN_MOOD
-                    "data": {}
-                }
                 logger.info(f"Successfully sent check-in prompt to user {user_id} and initialized flow")
             else:
                 logger.warning(f"Failed to send check-in prompt to user {user_id}")
+                # Clean up the conversation state if message failed
+                conversation_manager.user_states.pop(user_id, None)
                 
         except Exception as e:
             logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
+            # Clean up the conversation state if there was an error
+            from bot.conversation_manager import conversation_manager
+            conversation_manager.user_states.pop(user_id, None)
 
     def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
         """Send an AI-generated personalized message using contextual AI"""

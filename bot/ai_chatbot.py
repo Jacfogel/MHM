@@ -216,6 +216,7 @@ class AIChatBotSingleton:
     def _get_contextual_fallback(self, user_prompt: str, user_id: Optional[str] = None) -> str:
         """
         Provide contextually aware fallback responses based on user data and prompt analysis.
+        Now actually analyzes user's check-in data for meaningful responses.
         """
         prompt_lower = user_prompt.lower()
         
@@ -231,6 +232,86 @@ class AIChatBotSingleton:
         
         name_prefix = f"{user_name}, " if user_name else ""
         
+        # Analyze user's actual check-in data for meaningful responses
+        if user_id:
+            try:
+                recent_data = get_recent_responses(user_id, limit=10)  # Get more data for analysis
+                
+                if recent_data:
+                    # Analyze breakfast patterns
+                    breakfast_count = sum(1 for entry in recent_data if entry.get('ate_breakfast') is True)
+                    total_entries = len(recent_data)
+                    breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries > 0 else 0
+                    
+                    # Analyze mood trends
+                    moods = [entry.get('mood') for entry in recent_data if entry.get('mood') is not None]
+                    avg_mood = sum(moods) / len(moods) if moods else None
+                    
+                    # Analyze energy trends
+                    energies = [entry.get('energy') for entry in recent_data if entry.get('energy') is not None]
+                    avg_energy = sum(energies) / len(energies) if energies else None
+                    
+                    # Check for specific questions about data
+                    if any(word in prompt_lower for word in ['breakfast', 'eat', 'ate']):
+                        if breakfast_rate >= 80:
+                            return (f"{name_prefix}Great news! You've been eating breakfast {breakfast_rate:.0f}% of the time in your recent check-ins. "
+                                   f"That's a really healthy habit to maintain!")
+                        elif breakfast_rate >= 50:
+                            return (f"{name_prefix}You've been eating breakfast {breakfast_rate:.0f}% of the time recently. "
+                                   f"Breakfast can really help with energy and focus throughout the day!")
+                        else:
+                            return (f"{name_prefix}I notice you've been eating breakfast {breakfast_rate:.0f}% of the time in your recent check-ins. "
+                                   f"Starting the day with a good breakfast can help with energy and mood!")
+                    
+                    # Check for questions about mood/energy
+                    if any(word in prompt_lower for word in ['mood', 'feeling', 'how have i been', 'lately']):
+                        if avg_mood and avg_energy:
+                            if avg_mood >= 4 and avg_energy >= 4:
+                                return (f"{name_prefix}Looking at your recent check-ins, you've been doing really well! "
+                                       f"Your average mood has been {avg_mood:.1f}/5 and energy {avg_energy:.1f}/5. "
+                                       f"Keep up those positive patterns!")
+                            elif avg_mood <= 2 or avg_energy <= 2:
+                                return (f"{name_prefix}I've noticed from your recent check-ins that things might be challenging lately. "
+                                       f"Your average mood is {avg_mood:.1f}/5 and energy {avg_energy:.1f}/5. "
+                                       f"Remember that tough periods are temporary, and it's okay to take things one step at a time.")
+                            else:
+                                return (f"{name_prefix}Based on your recent check-ins, you're doing okay! "
+                                       f"Your average mood is {avg_mood:.1f}/5 and energy {avg_energy:.1f}/5. "
+                                       f"Small improvements each day add up to big changes over time.")
+                    
+                    # Check for general "how am I doing" questions
+                    if any(word in prompt_lower for word in ['how am i', 'how have i been', 'doing lately', 'progress']):
+                        insights = []
+                        if breakfast_rate >= 70:
+                            insights.append("great breakfast habits")
+                        if avg_mood and avg_mood >= 3.5:
+                            insights.append("generally positive mood")
+                        if avg_energy and avg_energy >= 3:
+                            insights.append("decent energy levels")
+                        
+                        if insights:
+                            return (f"{name_prefix}Looking at your recent check-ins, you're doing well in several areas: {', '.join(insights)}. "
+                                   f"Keep up the good work!")
+                        else:
+                            return (f"{name_prefix}Based on your recent check-ins, there's room for improvement, but that's totally normal! "
+                                   f"Every small step toward better habits counts. What area would you like to focus on?")
+                    
+                    # Check for specific data requests
+                    if any(word in prompt_lower for word in ['how many', 'times', 'count', 'frequency']):
+                        if 'breakfast' in prompt_lower:
+                            return (f"{name_prefix}In your last {total_entries} check-ins, you ate breakfast {breakfast_count} times. "
+                                   f"That's {breakfast_rate:.0f}% of the time!")
+                        elif 'mood' in prompt_lower:
+                            return (f"{name_prefix}In your last {total_entries} check-ins, your average mood was {avg_mood:.1f}/5. "
+                                   f"Your mood has been {'positive' if avg_mood >= 4 else 'neutral' if avg_mood >= 3 else 'challenging'} overall.")
+                        elif 'energy' in prompt_lower:
+                            return (f"{name_prefix}In your last {total_entries} check-ins, your average energy level was {avg_energy:.1f}/5. "
+                                   f"Your energy has been {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'} overall.")
+                
+            except Exception as e:
+                logger.debug(f"Error analyzing user data in fallback: {e}")
+        
+        # Fall back to keyword-based responses if no data analysis possible
         # Mood and mental health inquiries
         mood_keywords = ['depressed', 'anxious', 'sad', 'worried', 'stressed', 'overwhelmed']
         if any(keyword in prompt_lower for keyword in mood_keywords):
@@ -340,13 +421,131 @@ class AIChatBotSingleton:
         
         return [system_message, user_message]
 
+    def _create_comprehensive_context_prompt(self, user_id: str, user_prompt: str) -> list:
+        """Create a comprehensive context prompt with all user data for LM Studio."""
+        try:
+            # Get comprehensive user context
+            context = user_context_manager.get_user_context(user_id, include_conversation_history=True)
+            
+            # Build detailed context string with all available data
+            context_parts = []
+            
+            # User profile information
+            profile = context.get('user_profile', {})
+            if profile.get('preferred_name'):
+                context_parts.append(f"User's name: {profile['preferred_name']}")
+            if profile.get('active_categories'):
+                context_parts.append(f"Interests: {', '.join(profile['active_categories'])}")
+            
+            # Recent check-in data analysis
+            try:
+                recent_checkins = get_recent_responses(user_id, limit=10)
+                if recent_checkins:
+                    # Analyze breakfast patterns
+                    breakfast_count = sum(1 for entry in recent_checkins if entry.get('ate_breakfast') is True)
+                    total_entries = len(recent_checkins)
+                    breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries > 0 else 0
+                    
+                    # Analyze mood and energy trends
+                    moods = [entry.get('mood') for entry in recent_checkins if entry.get('mood') is not None]
+                    energies = [entry.get('energy') for entry in recent_checkins if entry.get('energy') is not None]
+                    avg_mood = sum(moods) / len(moods) if moods else None
+                    avg_energy = sum(energies) / len(energies) if energies else None
+                    
+                    # Analyze other habits
+                    teeth_brushed_count = sum(1 for entry in recent_checkins if entry.get('brushed_teeth') is True)
+                    teeth_rate = (teeth_brushed_count / total_entries) * 100 if total_entries > 0 else 0
+                    
+                    context_parts.append(f"Recent check-in data (last {total_entries} entries):")
+                    context_parts.append(f"- Breakfast eaten: {breakfast_count}/{total_entries} times ({breakfast_rate:.0f}%)")
+                    if avg_mood:
+                        context_parts.append(f"- Average mood: {avg_mood:.1f}/5")
+                    if avg_energy:
+                        context_parts.append(f"- Average energy: {avg_energy:.1f}/5")
+                    context_parts.append(f"- Teeth brushed: {teeth_brushed_count}/{total_entries} times ({teeth_rate:.0f}%)")
+                    
+                    # Add specific recent entries for context
+                    recent_summary = []
+                    for i, entry in enumerate(recent_checkins[:3]):  # Last 3 entries
+                        entry_parts = []
+                        if entry.get('mood'):
+                            entry_parts.append(f"mood={entry['mood']}")
+                        if entry.get('energy'):
+                            entry_parts.append(f"energy={entry['energy']}")
+                        if entry.get('ate_breakfast') is not None:
+                            entry_parts.append(f"breakfast={'yes' if entry['ate_breakfast'] else 'no'}")
+                        if entry.get('brushed_teeth') is not None:
+                            entry_parts.append(f"teeth={'yes' if entry['brushed_teeth'] else 'no'}")
+                        if entry_parts:
+                            recent_summary.append(f"Entry {i+1}: {', '.join(entry_parts)}")
+                    
+                    if recent_summary:
+                        context_parts.append(f"Recent entries: {'; '.join(recent_summary)}")
+                        
+            except Exception as e:
+                logger.debug(f"Error analyzing check-in data: {e}")
+            
+            # Recent activity summary
+            recent_activity = context.get('recent_activity', {})
+            if recent_activity.get('recent_responses_count', 0) > 0:
+                context_parts.append(f"Activity: {recent_activity['recent_responses_count']} recent check-ins")
+            
+            # Mood trends
+            mood_trends = context.get('mood_trends', {})
+            if mood_trends.get('average_mood') is not None:
+                avg_mood = mood_trends['average_mood']
+                trend = mood_trends.get('trend', 'stable')
+                context_parts.append(f"Mood trend: {avg_mood:.1f}/5 ({trend})")
+            
+            # Recent conversation history
+            conversation_history = context.get('conversation_history', [])
+            if conversation_history:
+                context_parts.append("Recent conversation topics:")
+                for exchange in conversation_history[-3:]:  # Last 3 exchanges
+                    user_msg = exchange.get('user_message', '')[:50]
+                    if user_msg:
+                        context_parts.append(f"- User asked about: {user_msg}...")
+            
+            # Create comprehensive context string
+            context_str = "\n".join(context_parts) if context_parts else "New user with no data"
+            
+            # Create system message with comprehensive context
+            system_message = {
+                "role": "system",
+                "content": f"""You are a supportive wellness assistant with access to the user's comprehensive data. 
+
+User Context:
+{context_str}
+
+Instructions:
+- Use the user's actual data to provide personalized, specific responses
+- Reference specific numbers, percentages, and trends from their check-in data
+- Be encouraging and supportive while being honest about their patterns
+- Keep responses under 150 words
+- If they ask about their data, provide specific insights from their check-ins
+- If they ask about habits, reference their actual performance (e.g., "You've been eating breakfast 90% of the time")
+- For health advice, be general and recommend professional help for serious concerns"""
+            }
+            
+            user_message = {
+                "role": "user",
+                "content": user_prompt
+            }
+            
+            return [system_message, user_message]
+            
+        except Exception as e:
+            logger.error(f"Error creating comprehensive context prompt: {e}")
+            # Fallback to simple context
+            return self._optimize_prompt(user_prompt)
+
     def generate_response(self, user_prompt: str, timeout: Optional[int] = None, user_id: Optional[str] = None) -> str:
         """
         Generate a basic AI response from user_prompt, using LM Studio API.
-        Uses timeout to prevent blocking for too long with improved performance optimizations.
+        Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
         """
         if timeout is None:
-            timeout = AI_TIMEOUT_SECONDS
+            timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
             
         # Check cache first
         cached_response = self.response_cache.get(user_prompt, user_id)
@@ -365,7 +564,7 @@ class AIChatBotSingleton:
 
         # Prevent concurrent API calls which can cause rate limiting
         if not self._generation_lock.acquire(blocking=False):
-            logger.warning("API is busy, using contextual fallback")
+            logger.warning("API is busy, using enhanced contextual fallback")
             response = self._get_contextual_fallback(user_prompt, user_id)
             self.response_cache.set(user_prompt, response, user_id)
             return response
@@ -374,12 +573,12 @@ class AIChatBotSingleton:
             logger.debug(f"AIChatBot generating response via LM Studio for prompt: {user_prompt[:60]}...")
             
             # Optimize prompt for LM Studio API
-            messages = self._optimize_prompt(user_prompt)
+            messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
             
             # Use shorter token count for faster responses
             max_tokens = min(120, max(50, len(user_prompt) // 2))
             
-            # Call LM Studio API
+            # Call LM Studio API with adaptive timeout
             result = self._call_lm_studio_api(
                 messages=messages,
                 max_tokens=max_tokens,
@@ -496,7 +695,7 @@ class AIChatBotSingleton:
         Integrates with existing UserContext and UserPreferences systems.
         """
         if timeout is None:
-            timeout = AI_TIMEOUT_SECONDS + 5  # Slightly longer for contextual responses
+            timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS + 5)  # Slightly longer for contextual responses
             
         try:
             # Get comprehensive context 
@@ -529,10 +728,11 @@ class AIChatBotSingleton:
             context_str = ". ".join(context_summary) if context_summary else "New user"
             
             if not self.lm_studio_available:
-                # Use contextual fallback with user information
+                # Use enhanced contextual fallback with user information and data analysis
                 fallback_response = self._get_contextual_fallback(user_prompt, user_id)
+                
+                # Enhance fallback with context if available
                 if context_summary:
-                    # Enhance fallback with context
                     user_name = profile.get('preferred_name', '')
                     if user_name and not user_name in fallback_response:
                         fallback_response = fallback_response.replace("Hello!", f"Hello {user_name}!")
@@ -544,33 +744,30 @@ class AIChatBotSingleton:
                 user_context_manager.add_conversation_exchange(user_id, user_prompt, fallback_response)
                 return fallback_response
             
-            # Create context-aware messages for LM Studio
-            system_message = {
-                "role": "system",
-                "content": f"You are a wellness assistant. Context about user: {context_str}. Give personalized, supportive responses (max 100 words)."
-            }
-            user_message = {
-                "role": "user",
-                "content": user_prompt
-            }
-            messages = [system_message, user_message]
+            # Create comprehensive context-aware messages for LM Studio with all user data
+            messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
             
-            # Check cache with contextual prompt
-            cache_key = f"contextual:{context_str}:{user_prompt}"
-            cached_response = self.response_cache.get(cache_key, user_id)
-            if cached_response:
-                # Still store and add to conversation for tracking
-                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                store_chat_interaction(user_id, user_prompt, cached_response, context_used=True)
-                user_context_manager.add_conversation_exchange(user_id, user_prompt, cached_response)
-                return cached_response
+            # For data analysis questions, skip cache to ensure fresh responses
+            data_analysis_keywords = ['how often', 'how many', 'check', 'frequency', 'times', 'average', 'lately', 'recent']
+            is_data_question = any(keyword in user_prompt.lower() for keyword in data_analysis_keywords)
             
+            if not is_data_question:
+                # Check cache using the cache's own key generation method
+                cached_response = self.response_cache.get(user_prompt, user_id)
+                if cached_response:
+                    # Still store and add to conversation for tracking
+                    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    store_chat_interaction(user_id, user_prompt, cached_response, context_used=True)
+                    user_context_manager.add_conversation_exchange(user_id, user_prompt, cached_response)
+                    return cached_response
+
             # Generate AI response with context
             if not self._generation_lock.acquire(blocking=False):
-                logger.warning("API is busy, using contextual fallback")
+                logger.warning("API is busy, using enhanced contextual fallback")
                 fallback_response = self._get_contextual_fallback(user_prompt, user_id)
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
+                user_context_manager.add_conversation_exchange(user_id, user_prompt, fallback_response)
                 return fallback_response
 
             try:
@@ -614,7 +811,44 @@ class AIChatBotSingleton:
             # Store even failed attempts for analysis
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             store_chat_interaction(user_id, user_prompt, fallback_response, context_used=False)
+            user_context_manager.add_conversation_exchange(user_id, user_prompt, fallback_response)
             return fallback_response
+
+    def _detect_resource_constraints(self) -> bool:
+        """Detect if system is resource-constrained."""
+        try:
+            import psutil
+            memory = psutil.virtual_memory()
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            
+            # Consider system constrained if:
+            # - Memory usage > 90%
+            # - Available memory < 2 GB
+            # - CPU usage > 80%
+            is_constrained = (
+                memory.percent > 90 or 
+                memory.available < (2 * 1024**3) or  # 2 GB
+                cpu_percent > 80
+            )
+            
+            if is_constrained:
+                logger.warning(f"System resource constraints detected: Memory {memory.percent}%, CPU {cpu_percent}%, Available RAM {memory.available / (1024**3):.1f}GB")
+            
+            return is_constrained
+            
+        except ImportError:
+            # If psutil not available, assume not constrained
+            return False
+        except Exception as e:
+            logger.debug(f"Error detecting resource constraints: {e}")
+            return False
+
+    def _get_adaptive_timeout(self, base_timeout: int) -> int:
+        """Get adaptive timeout based on system resources."""
+        if self._detect_resource_constraints():
+            # Increase timeout for resource-constrained systems
+            return min(base_timeout * 2, 60)  # Cap at 60 seconds
+        return base_timeout
 
 def get_ai_chatbot():
     """
