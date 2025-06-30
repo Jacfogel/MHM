@@ -77,13 +77,15 @@ class MHMService:
                 logger.warning("Encountered None user_id in get_all_user_ids()")
                 continue
             categories = get_user_preferences(user_id, ['categories'])
-            if categories and isinstance(categories, list):
-                for category in categories:
-                    try:
-                        path = determine_file_path('messages', f'{category}/{user_id}')
-                        paths.append(path)
-                    except ValueError as e:
-                        logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
+            if isinstance(categories, list):
+                if categories:  # Only process if list is not empty
+                    for category in categories:
+                        try:
+                            path = determine_file_path('messages', f'{category}/{user_id}')
+                            paths.append(path)
+                        except ValueError as e:
+                            logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
+                # Empty list is fine - no warning needed
             else:
                 logger.warning(
                     f"Expected list for categories, got {type(categories)} for user '{user_id}'"
@@ -463,7 +465,7 @@ class MHMService:
         
         try:
             if self.scheduler_manager:
-                self.scheduler_manager.stop()
+                self.scheduler_manager.stop_scheduler()
                 logger.info("Scheduler manager stopped")
         except Exception as e:
             logger.error(f"Error stopping scheduler manager: {e}")
@@ -493,7 +495,7 @@ class MHMService:
                 # Force stop scheduler manager
                 try:
                     if self.scheduler_manager:
-                        self.scheduler_manager.stop()
+                        self.scheduler_manager.stop_scheduler()
                 except:
                     pass
 

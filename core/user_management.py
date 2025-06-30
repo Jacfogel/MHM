@@ -213,9 +213,24 @@ def get_user_preferences(user_id, field=None):
         try:
             for key in field:
                 field_value = field_value[key]
+            
+            # Special handling for categories - always return a list
+            if field == ['categories']:
+                if field_value is None:
+                    logger.warning(f"Categories field is None for user_id {user_id}, returning empty list")
+                    return []
+                elif not isinstance(field_value, list):
+                    logger.warning(f"Expected list for categories, got {type(field_value)} for user '{user_id}', returning empty list")
+                    return []
+                # If we get here, field_value is a valid list - return it without warning
+                return field_value
+            
             return field_value
         except KeyError:
             logger.warning(f"Field path {field} not found in preferences for user_id {user_id}")
+            # Special handling for categories - return empty list instead of None
+            if field == ['categories']:
+                return []
             return None
     else:
         # Only log if preferences exist and debug level verbosity is high

@@ -12,6 +12,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "231db913-cff8-4a19-a412-e704183e323a"
@@ -28,6 +29,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "bb4f54cc-fe80-47e5-809f-abcd9f6b0e79"
@@ -44,6 +46,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "c3cd5305-a2dc-4291-b696-20548d8b933b"
@@ -60,6 +63,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "34a0e865-73c6-4b88-8402-49c56eca1941"
@@ -76,6 +80,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "14a3ec60-1ffc-43e9-b362-3e0b493ea7e2"
@@ -92,6 +97,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "64cd74fd-bba3-4abc-8221-360750c55ef3"
@@ -108,6 +114,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "5cbb1fda-5917-450a-8277-b9210ac0775f"
@@ -124,6 +131,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "ca733505-ce39-4a4e-9821-db6c01c96637"
@@ -140,6 +148,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "e8716eae-29b6-4b9f-b7e5-6817f373797d"
@@ -156,6 +165,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "bd0d0272-662b-4be4-8821-fa90b89475c8"
@@ -172,6 +182,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "e8545a48-056a-412c-b483-07ff2a158d77"
@@ -188,6 +199,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "b62c15df-152a-422b-b7e8-7ac2349d1f23"
@@ -204,6 +216,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "94a62b10-d198-4d9d-a9dc-1f24c92d0a39"
@@ -220,6 +233,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "dba3d6c7-e0a8-47d8-b3d0-71c37b78d229"
@@ -236,6 +250,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "317fe68f-ff90-4ce7-8f72-6b3b8b49f2b6"
@@ -252,6 +267,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "948a8c85-3a6f-4cef-a6e5-a284dae7a3e1"
@@ -268,6 +284,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "cdf46c92-c151-4e7c-a03e-c624f334852e"
@@ -284,6 +301,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "6e4eea2c-62d6-4b7c-a8a9-5cb9e502ee4c"
@@ -300,6 +318,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "eb7c664d-17d8-40bb-a1fd-023f7b7a7007"
@@ -316,6 +335,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "e4f0e5fa-b677-4004-b609-016d5398cd25"
@@ -332,6 +352,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "557e04a0-3f25-4998-95fc-0ea5d7b8944e"
@@ -348,6 +369,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "4d3af845-fc31-4d7d-96b4-e62e41005164"
@@ -364,6 +386,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "c47b7dc5-b434-410a-aa4c-718efb3c2818"
@@ -380,6 +403,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "edfb9790-6bc3-4a87-a970-d6fbb0b24b04"
@@ -396,6 +420,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "4b0efce8-1fa0-4a05-850c-bb0a0ea73818"
@@ -412,6 +437,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "5662c93e-0678-4fcb-97c5-3ac55297e0df"
@@ -428,6 +454,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "4ebf3b40-accf-49f1-a015-b1a7bf00f15a"
@@ -444,6 +471,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "d00e06ab-3ba0-4333-93b4-bd1ae5bd56f6"
@@ -460,6 +488,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "86909fe9-9cf6-4c4a-8f26-2950a8a93489"
@@ -476,6 +505,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "96a92e7e-dde7-4572-9d6d-d81401870302"
@@ -492,6 +522,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "874b4f0a-4ef5-46c6-aa61-5c9939d4ed41"
@@ -508,6 +539,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "28b1edf9-64e9-4145-b2e6-bad4ce7af2c9"
@@ -524,6 +556,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "7daf37b1-95c8-4659-a999-ec7bbf05d8b8"
@@ -540,6 +573,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "a3e9c863-48eb-49d2-a159-e189d59b7caf"
@@ -556,6 +590,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "3d53f76d-0775-4aa5-b31d-72c92a170f06"
@@ -572,6 +607,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "a535155b-0163-4d69-a9b5-bb7e39e4e538"
@@ -588,6 +624,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "ce6812b6-3f24-45fa-8127-152e4e2e9952"
@@ -604,6 +641,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "0f853c0a-a3d8-493d-8ae2-dcd6c8a2d5b3"
@@ -620,6 +658,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "1c93586f-af00-4bdd-94b9-038acacea57b"
@@ -636,6 +675,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "11cf1c75-8c87-4e87-8eba-ea4867f9f719"
@@ -652,6 +692,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "7451c627-0ab2-4873-8c88-31fc3e6d4d0b"
@@ -668,6 +709,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "cc10b96e-bc87-4fbb-99f2-43cbc7318400"
@@ -684,6 +726,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "13f0769c-082c-48b3-9f13-acd938efab88"
@@ -700,6 +743,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "7a81443f-b061-498a-b706-c07b7611bdc1"
@@ -716,6 +760,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "23b2c634-162f-478b-a5e0-add414ef836a"
@@ -732,6 +777,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "4ba8321e-e182-422a-b26b-093a7fc2054b"
@@ -748,6 +794,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "fb43643a-ab70-4f19-b843-e13feb7aad99"
@@ -764,6 +811,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "a36f3ccc-0e8d-4241-9fba-68219955b37d"
@@ -780,6 +828,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "835c4bc1-a087-46b1-b132-1acf861ed3cd"
@@ -796,6 +845,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "79555ee1-7c04-437c-b106-968cbe29eebc"
@@ -812,6 +862,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "5d6c15f5-432b-422b-b7e8-7ac2349d1f28"
@@ -828,6 +879,7 @@
         "Sunday"
       ],
       "time_periods": [
+        "ALL",
         "default"
       ],
       "message_id": "8u3c15h2-l22b-422b-b7e8-7ac2349d1f45"

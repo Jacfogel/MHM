@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import messagebox, Toplevel, Button, Entry, Checkbutton, IntVar, Frame, font, ttk
 import uuid
 from datetime import datetime
+import re
 
 from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path
 from core.user_management import load_user_info_data, save_user_info_data
@@ -22,6 +23,16 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+
+def time_to_minutes(t):
+    """Convert a time string 'HH:MM' to minutes since midnight."""
+    if not isinstance(t, str):
+        return 0
+    match = re.match(r"(\d{1,2}):(\d{2})", t)
+    if not match:
+        return 0
+    h, m = map(int, match.groups())
+    return h * 60 + m
 
 @handle_errors("setting up view edit messages window")
 def setup_view_edit_messages_window(parent, category):
@@ -157,66 +168,91 @@ class MessageDialog(tk.Toplevel):
             self.destroy()
             return
 
-        self.days_vars = {day: IntVar(value=day in self.message_data.get('days', [])) for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']}
-        self.time_periods = get_schedule_time_periods(user_id, self.category)
-        self.time_period_vars = {period: IntVar(value=period in self.message_data.get('time_periods', [])) for period in self.time_periods}
-        self.select_all_font = font.Font(weight="normal")
-        self.select_all_color = "#555555"
-       
-        self.build_ui()  
-        
+        # Days order (Sunday first)
+        self.days_order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        # Prefill days: True if in message_data['days'] or if 'ALL' in message_data['days']
+        self.days_vars = {day: IntVar(value=(('ALL' in self.message_data.get('days', [])) or (day in self.message_data.get('days', [])))) for day in self.days_order}
+        user_time_periods = get_schedule_time_periods(user_id, self.category)
+        # Sort periods by true chronological order (minutes since midnight)
+        self.ordered_time_periods = sorted(
+            [p for p in user_time_periods if p != 'ALL'],
+            key=lambda p: time_to_minutes(user_time_periods[p]['start'])
+        )
+        self.time_periods = user_time_periods
+        # Prefill time periods: True if in message_data['time_periods'] or if 'ALL' in message_data['time_periods']
+        self.time_period_vars = {period: IntVar(value=(('ALL' in self.message_data.get('time_periods', [])) or (period in self.message_data.get('time_periods', [])))) for period in self.ordered_time_periods}
+        self.select_all_font = font.Font(weight="bold", size=10)
+        self.select_all_color = "black"
+
+        self.build_ui()
+
     def build_ui(self):
-        """Build the UI for the message dialog."""
-        tk.Label(self, text="Message:").pack()
-        self.message_entry = Entry(self, width=50)
+        for widget in self.winfo_children():
+            widget.destroy()
+        tk.Label(self, text="Message:").pack(anchor='w')
+        self.message_entry = tk.Entry(self, width=40)
+        self.message_entry.pack(fill='x', padx=5, pady=2)
         self.message_entry.insert(0, self.message_data.get('message', ''))
-        self.message_entry.pack(pady=5)
 
-        self.build_day_checkboxes()
-        self.build_time_period_checkboxes()
-
-        save_button = Button(self, text="Save Message", command=self.save_message)
-        save_button.pack(pady=10)
-
-        self.message_entry.bind("<Return>", lambda event: self.save_message())
+        # --- Days section (Sunday first) ---
+        days_frame = tk.LabelFrame(self, text="Days:", font=("Arial", 10, "bold"))
+        days_frame.pack(fill='x', padx=5, pady=(8, 0))
         
-    def build_day_checkboxes(self):
-        """Build checkboxes for selecting days."""
-        tk.Label(self, text="Select days:").pack()
-        self.all_days_var = IntVar(value=all(var.get() for var in self.days_vars.values()))
-        self.all_days_label = Checkbutton(self, text="Select All Days", variable=self.all_days_var, command=self.toggle_all_days, font=self.select_all_font, fg=self.select_all_color)
-        self.all_days_label.pack(anchor='w')        
-        for day, var in self.days_vars.items():
-            Checkbutton(self, text=day, variable=var).pack(anchor='w')
+        # Check if all days are selected (either 'ALL' is present or all individual days are selected)
+        all_days_selected = ('ALL' in self.message_data.get('days', [])) or all(day in self.message_data.get('days', []) for day in self.days_order)
+        self.all_days_var = IntVar(value=all_days_selected)
+        
+        self.all_days_label = Checkbutton(days_frame, text="Select All", variable=self.all_days_var, command=self.handle_all_days_toggle, font=self.select_all_font, fg=self.select_all_color, activeforeground=self.select_all_color, selectcolor="white")
+        self.all_days_label.pack(anchor='w')
+        self.day_checkboxes = {}
+        day_font = font.Font(size=10)
+        for day in self.days_order:
+            var = self.days_vars[day]
+            cb = Checkbutton(days_frame, text=day, variable=var, font=day_font, fg="black", activeforeground="black", selectcolor="white")
+            cb.pack(anchor='w')
+            self.day_checkboxes[day] = cb
+        
+        # Apply the correct state based on whether all days are selected
+        if all_days_selected:
+            self.handle_all_days_toggle()
 
-    def build_time_period_checkboxes(self):
-        """Build checkboxes for selecting time periods."""
-        tk.Label(self, text="Select time periods:").pack()
-        self.all_periods_var = IntVar(value=all(var.get() for var in self.time_period_vars.values()))
-        self.all_periods_label = Checkbutton(self, text="Select All Periods", variable=self.all_periods_var, command=self.toggle_all_periods, font=self.select_all_font, fg=self.select_all_color)
-        self.all_periods_label.pack(anchor='w')        
-        for period, var in self.time_period_vars.items():
-            frame = Frame(self)
-            frame.pack(fill='x', expand=True)
-            Checkbutton(frame, text=f"{title_case(period)} ({self.time_periods[period]['start']} - {self.time_periods[period]['end']})", variable=var).pack(side='left')
-            
-    def toggle_all_days(self):
-        """Toggle the selection of all days."""
-        is_selected = self.all_days_var.get()
-        for var in self.days_vars.values():
-            var.set(is_selected)
+        # --- Time periods section (chronological order) ---
+        periods_frame = tk.LabelFrame(self, text="Time Periods:", font=("Arial", 10, "bold"))
+        periods_frame.pack(fill='x', padx=5, pady=(8, 0))
+        
+        # Check if all time periods are selected (either 'ALL' is present or all individual periods are selected)
+        all_periods_selected = ('ALL' in self.message_data.get('time_periods', [])) or all(period in self.message_data.get('time_periods', []) for period in self.ordered_time_periods)
+        self.all_periods_var = IntVar(value=all_periods_selected)
+        
+        self.all_periods_label = Checkbutton(periods_frame, text="Select All", variable=self.all_periods_var, command=self.handle_all_periods_toggle, font=self.select_all_font, fg=self.select_all_color, activeforeground=self.select_all_color, selectcolor="white")
+        self.all_periods_label.pack(anchor='w')
+        self.period_checkboxes = {}
+        period_font = font.Font(size=10)
+        for period in self.ordered_time_periods:
+            var = self.time_period_vars[period]
+            checkbox = Checkbutton(periods_frame, text=f"{title_case(period)} ({self.time_periods[period]['start']} - {self.time_periods[period]['end']})", variable=var, font=period_font, fg="black", activeforeground="black", selectcolor="white")
+            checkbox.pack(anchor='w')
+            self.period_checkboxes[period] = checkbox
+        
+        # Apply the correct state based on whether all periods are selected
+        if all_periods_selected:
+            self.handle_all_periods_toggle()
 
-    def toggle_all_periods(self):
-        """Toggle the selection of all periods."""
-        is_selected = self.all_periods_var.get()
-        for var in self.time_period_vars.values():
-            var.set(is_selected)
-            
+        tk.Button(self, text="Save Message", command=self.save_message).pack(pady=8)
+
     @handle_errors("saving message")
     def save_message(self):
         """Saves the message to the JSON file."""
-        selected_days = [day for day, var in self.days_vars.items() if var.get() == 1]
-        selected_periods = [period for period, var in self.time_period_vars.items() if var.get() == 1]
+        # Days
+        if self.all_days_var.get() == 1:
+            selected_days = ['ALL']
+        else:
+            selected_days = [day for day, var in self.days_vars.items() if var.get() == 1]
+        # Periods
+        if self.all_periods_var.get() == 1:
+            selected_periods = ['ALL']
+        else:
+            selected_periods = [period for period, var in self.time_period_vars.items() if var.get() == 1]
 
         if not selected_days or not selected_periods:
             messagebox.showerror("Validation Error", "Please select at least one day and one time period.")
@@ -229,107 +265,39 @@ class MessageDialog(tk.Toplevel):
             "time_periods": selected_periods
         }
 
-        user_id = UserContext().get_user_id()
-        if not user_id:
-            logger.error("save_message called with None user_id")
-            messagebox.showerror("Error", "User ID is not set. Please ensure you are logged in.")
-            return
-
-        if self.index is not None:
+        if self.index is not None and self.tree is not None:
             # Editing existing message
             self.data['messages'][self.index] = message_data
-            edit_message(user_id, self.category, self.index, message_data)
-            target_index = self.index
-            logger.debug(f"Edited message at index {self.index} for category {self.category}")
         else:
             # Adding new message
-            add_message(user_id, self.category, message_data)
-            # Don't manually update self.data here - let the refresh handle it
-            # Get the new target index by reloading the data
-            updated_data = load_json_data(determine_file_path('messages', f'{self.category}/{user_id}'))
-            target_index = len(updated_data.get('messages', [])) - 1 if updated_data else 0
-            logger.debug(f"Added new message for category {self.category}, target index: {target_index}")
+            self.data['messages'].append(message_data)
 
-        messagebox.showinfo("Message Saved", "Your message has been saved successfully.")
-        self.refresh_open_treeviews(self.category, target_index)
+        save_json_data(self.data, determine_file_path('messages', f'{self.category}/{UserContext().get_user_id()}'))
+        if self.tree:
+            self.tree.event_generate('<<DataUpdated>>')
+            # Refresh the treeview after saving
+            self.tree.update_idletasks()
         self.destroy()
         
-    def refresh_open_treeviews(self, category, target_index=None):
-        """Refresh all open treeviews showing messages for the given category."""
-        user_id = UserContext().get_user_id()
-        if not user_id:
-            logger.error("refresh_open_treeviews called with None user_id")
-            return
-        
-        logger.debug(f"Refreshing treeviews for category {category}, target_index: {target_index}")
-        
-        # Check if the parent window itself has a tree and category (direct case)
-        if hasattr(self.parent, 'category') and self.parent.category == category:
-            if hasattr(self.parent, 'tree') and self.parent.tree is not None:
-                try:
-                    if self.parent.tree.winfo_exists():
-                        logger.debug(f"Found direct parent treeview for category {category}")
-                        self._refresh_single_treeview(self.parent, category, user_id, target_index)
-                except tk.TclError:
-                    logger.debug("Parent tree widget no longer exists")
-        
-        # Also check children of the parent (for cases where dialog is opened from a different parent)
-        for window in self.parent.winfo_children():
-            if isinstance(window, tk.Toplevel) and hasattr(window, 'category') and window.category == category:
-                if hasattr(window, 'tree') and window.tree is not None:
-                    try:
-                        if window.tree.winfo_exists():
-                            logger.debug(f"Found child treeview for category {category}")
-                            self._refresh_single_treeview(window, category, user_id, target_index)
-                    except tk.TclError:
-                        logger.debug("Child tree widget no longer exists")
-        
-        # Finally, check if the parent's parent has any relevant windows (for nested cases)
-        if hasattr(self.parent, 'master') and self.parent.master:
-            for window in self.parent.master.winfo_children():
-                if isinstance(window, tk.Toplevel) and hasattr(window, 'category') and window.category == category:
-                    if hasattr(window, 'tree') and window.tree is not None:
-                        try:
-                            if window.tree.winfo_exists():
-                                logger.debug(f"Found master's child treeview for category {category}")
-                                self._refresh_single_treeview(window, category, user_id, target_index)
-                        except tk.TclError:
-                            logger.debug("Master's child tree widget no longer exists")
-    
-    def _refresh_single_treeview(self, window, category, user_id, target_index):
-        """Helper method to refresh a single treeview window."""
-        try:
-            # Clear existing items
-            for item in window.tree.get_children():
-                window.tree.delete(item)
-            
-            # Reload data from file to ensure we have the latest version
-            data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
-            if data is not None:
-                messages = data.get('messages', [])
-                window.messages = messages  # Update the messages list
-                
-                days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-                periods = list(get_schedule_time_periods(user_id, category).keys())
-                
-                for i, msg in enumerate(messages):
-                    values = [msg.get('message', 'N/A'), msg['message_id']]
-                    for day in days:
-                        values.append('✔' if day in msg.get('days', []) else '')
-                    for period in periods:
-                        values.append('✔' if period in msg.get('time_periods', []) else '')
-                    item = window.tree.insert("", tk.END, values=values)
-                    
-                    # Highlight and scroll to the target message if specified
-                    if target_index is not None and i == target_index:
-                        window.tree.selection_set(item)
-                        window.tree.see(item)
-                        
-                logger.debug(f"Successfully refreshed treeview for category {category} with {len(messages)} messages")
+    def handle_all_days_toggle(self):
+        all_selected = self.all_days_var.get() == 1
+        for day, cb in self.day_checkboxes.items():
+            if all_selected:
+                self.days_vars[day].set(1)
+                cb.config(state='disabled')
             else:
-                logger.warning(f"No data found for category {category}")
-        except Exception as e:
-            logger.error(f"Error refreshing treeview: {e}", exc_info=True)
+                self.days_vars[day].set(0)
+                cb.config(state='normal')
+
+    def handle_all_periods_toggle(self):
+        all_selected = self.all_periods_var.get() == 1
+        for period, cb in self.period_checkboxes.items():
+            if all_selected:
+                self.time_period_vars[period].set(1)
+                cb.config(state='disabled')
+            else:
+                self.time_period_vars[period].set(0)
+                cb.config(state='normal')
 
 def load_and_display_messages(view_messages_window, category):
     """
@@ -353,41 +321,92 @@ def load_and_display_messages(view_messages_window, category):
     if category not in deleted_message_stacks:
         deleted_message_stacks[category] = []
 
-    # Create the Treeview widget with additional columns for days and periods
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    periods = list(get_schedule_time_periods(user_id, category).keys())
-    columns = ["message", "message_id"] + days + periods
+    # Get periods in chronological order (excluding ALL), then add ALL at the end if present
+    periods_dict = get_schedule_time_periods(user_id, category)
+    regular_periods = [p for p in periods_dict if p != 'ALL']
+    # Sort periods by true chronological order (minutes since midnight)
+    periods = sorted(regular_periods, key=lambda p: time_to_minutes(periods_dict[p]['start']))
+
+    # Days order
+    days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+    # Columns: Message, message_id (hidden), All Days, days, All Times, periods
+    columns = ['Message', 'message_id', 'All Days'] + days + ['All Times'] + periods
     tree = ttk.Treeview(view_messages_window, columns=columns, show="headings")
     tree.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # Define the column headings
-    tree.heading("message", text="Message", command=lambda: sort_treeview_column(tree, "message", category))
-    tree.heading("message_id", text="message_id", command=lambda: sort_treeview_column(tree, "message_id", category))
-    for day in days:
-        tree.heading(day, text=day, command=lambda c=day: sort_treeview_column(tree, c, category))
-    for period in periods:
-        tree.heading(period, text=title_case(period), command=lambda c=period: sort_treeview_column(tree, c, category))
-
-    # Define the column widths
-    tree.column("message", width=300)
-    tree.column("message_id", width=0, stretch=False)
-    for day in days:
-        tree.column(day, width=50)
-    for period in periods:
-        tree.column(period, width=50)
+    # Define the column headings and widths
+    for col in columns:
+        if col == 'Message':
+            tree.heading(col, text=col, anchor='w', command=lambda c=col: sort_treeview_column(tree, c, category))
+            tree.column(col, width=300, anchor='w')
+        elif col == 'message_id':
+            tree.heading(col, text=col)
+            tree.column(col, width=0, stretch=False)
+        elif col == 'All Days':
+            tree.heading(col, text='ALL DAYS', anchor='center', command=lambda c=col: sort_treeview_column(tree, c, category))
+            tree.column(col, width=90, anchor='center')
+        elif col == 'All Times':
+            tree.heading(col, text='ALL TIMES', anchor='center', command=lambda c=col: sort_treeview_column(tree, c, category))
+            tree.column(col, width=90, anchor='center')
+        elif col in days:
+            tree.heading(col, text=col, anchor='center', command=lambda c=col: sort_treeview_column(tree, c, category))
+            tree.column(col, width=60, anchor='center')
+        else:
+            tree.heading(col, text=title_case(col), anchor='center', command=lambda c=col: sort_treeview_column(tree, c, category))
+            tree.column(col, width=60, anchor='center')
 
     # Set the tree and messages as attributes of the window for refreshing later
     view_messages_window.tree = tree
     view_messages_window.messages = messages
-    
+
+    # Helper for checkmark (✅ for All Days/Times columns, ✔ for others)
+    def checkmark(big=False):
+        return '✅' if big else '✔'
+
     # Populate the Treeview with messages from the specified category
     for msg in messages:
-        values = [msg.get('message', 'N/A'), msg['message_id']]
+        row = []
+        row.append(msg.get('message', 'N/A'))  # Message
+        row.append(msg['message_id'])           # message_id (hidden)
+        # All Days
+        all_days = 'ALL' in msg.get('days', [])
+        row.append(checkmark(big=True) if all_days else '')
+        # Days
         for day in days:
-            values.append('✔' if day in msg.get('days', []) else '')
+            if all_days or day in msg.get('days', []):
+                row.append(checkmark())
+            else:
+                row.append('')
+        # All Times
+        all_times = 'ALL' in msg.get('time_periods', [])
+        row.append(checkmark(big=True) if all_times else '')
+        # Periods
         for period in periods:
-            values.append('✔' if period in msg.get('time_periods', []) else '')
-        tree.insert("", tk.END, values=values)
+            if all_times or period in msg.get('time_periods', []):
+                row.append(checkmark())
+            else:
+                row.append('')
+        tree.insert("", tk.END, values=row)
+
+    # Restore column sorting for all columns
+    def treeview_sort_column(tv, col, category, reverse):
+        l = [(tv.set(k, col), k) for k in tv.get_children('')]
+        # For checkmark columns, sort by presence of checkmark
+        if col in ['All Days', 'All Times'] + days + periods:
+            l.sort(key=lambda t: t[0] == '', reverse=reverse)
+        elif col == 'Message':
+            l.sort(key=lambda t: t[0].lower(), reverse=reverse)  # Case-insensitive sort
+        else:
+            l.sort(reverse=reverse)
+        for index, (val, k) in enumerate(l):
+            tv.move(k, '', index)
+        tv.heading(col, command=lambda: treeview_sort_column(tv, col, category, not reverse))
+
+    # Set up sorting for all columns
+    for col in columns:
+        if col != 'message_id':
+            tree.heading(col, command=lambda c=col: treeview_sort_column(tree, c, category, False))
 
     def delete_message_local():
         """Deletes the selected message from the Treeview and data file."""
@@ -600,35 +619,26 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
     parent.undo_button.pack(pady=5)
 
     def delete_period(period):
-        """Deletes a schedule period and updates the data file."""
+        if period == 'ALL':
+            return  # Do nothing for ALL
         user_id = UserContext().get_user_id()
-        
-        # Get fresh schedule data instead of relying on captured data from closure
         current_schedule_data = get_schedule_time_periods(user_id, category)
-        
         if period in current_schedule_data:
-            # First, update the active status explicitly before deletion
             period_data = current_schedule_data[period]
-            # Get the active status from the UI entry if it exists
             if period in entries:
                 period_data['active'] = entries[period]['active_var'].get() == 1
-
             if len(current_schedule_data) <= 1:
                 messagebox.showerror("Error", "You must have at least one schedule period.")
                 return
-
             try:
-                # Store the deleted period and its full data, including the active status
                 deleted_period_info = {'period': period, 'data': period_data}
                 if category not in deleted_period_stacks:
                     deleted_period_stacks[category] = []
                 deleted_period_stacks[category].append(deleted_period_info)
-
                 delete_schedule_period(category, period, scheduler_manager)
                 logger.debug(f"Current undo stack for {category}: {deleted_period_stacks[category]}")
-
                 refresh_window(view_schedule_window, setup_view_edit_schedule_window, parent, category, scheduler_manager)
-                update_undo_delete_period_button_state()  # Ensure the button state is updated after deletion
+                update_undo_delete_period_button_state()
             except Exception as e:
                 logger.error(f"Error deleting schedule period: {e}", exc_info=True)
                 messagebox.showerror("Error", f"Failed to delete schedule period: {e}")
@@ -637,24 +647,18 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             messagebox.showerror("Error", f"Period '{period}' not found. The schedule may have been modified.")
 
     def update_period_active_status(period, var, category):
-        """Updates the active status of a schedule period."""
+        if period == 'ALL':
+            return  # Do nothing for ALL
         user_id = UserContext().get_user_id()
         is_active = var.get() == 1
-
         try:
-            # Get fresh schedule data instead of relying on captured data from closure
             current_schedule_data = get_schedule_time_periods(user_id, category)
-            
-            # Check if the period still exists in the current data
             if period not in current_schedule_data:
                 logger.error(f"Period '{period}' not found in category '{category}' for user {user_id}.")
                 messagebox.showerror("Error", f"Period '{period}' not found. The schedule may have been modified.")
                 return
-
             set_schedule_period_active(user_id, category, period, is_active)
             logger.info(f"Period '{period}' in category '{category}' set to {'active' if is_active else 'inactive'}.")
-
-            # Call rescheduling if the period is set to active (only if scheduler is available)
             if is_active and scheduler_manager:
                 scheduler_manager.reset_and_reschedule_daily_messages(category)
             elif is_active and not scheduler_manager:
@@ -663,67 +667,12 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             logger.error(f"Error updating period active status for '{period}': {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to update period status: {e}")
 
-    def undo_last_period_deletion(view_schedule_window, parent, category, scheduler_manager):
-        """Restores the most recently deleted period."""
-        if category in deleted_period_stacks and deleted_period_stacks[category]:
-            user_id = UserContext().get_user_id()
-            if not user_id:
-                logger.error("undo_last_period_deletion called with None user_id")
-                messagebox.showerror("Error", "User ID is not set. Please ensure you are logged in.")
-                return
-
-            try:
-                # Restore the most recently deleted period from the stack
-                last_deleted_period_info = deleted_period_stacks[category].pop()
-                period = last_deleted_period_info['period']
-                times = last_deleted_period_info['data']
-
-                # Load user data to ensure the period is restored in the correct state
-                user_info = load_user_info_data(user_id) or {}
-                schedules = user_info.setdefault('schedules', {})
-                category_schedules = schedules.setdefault(category, {})
-
-                # Restore the period with its original data, including active status
-                category_schedules[period] = times  # Use the data from the stack
-
-                save_user_info_data(user_info, user_id)
-                
-                # Clear the cache for this user/category
-                clear_schedule_periods_cache(user_id, category)
-                
-                logger.info(f"Restored schedule period for user {user_id}, category {category}, period {period} with data: {times}")
-
-                # Refresh the schedule window to reflect the restored period
-                refresh_window(view_schedule_window, setup_view_edit_schedule_window, parent, category, scheduler_manager)
-
-                # Reschedule if the restored period is active (only if scheduler is available)
-                if times.get('active', False) and scheduler_manager:
-                    scheduler_manager.reset_and_reschedule_daily_messages(category)
-                elif times.get('active', False) and not scheduler_manager:
-                    logger.info(f"Period '{period}' restored as active, but no scheduler manager available (UI-only mode)")
-
-                # Update the undo button state
-                update_undo_delete_period_button_state()
-
-            except Exception as e:
-                logger.error(f"Error undoing schedule period deletion: {e}", exc_info=True)
-                messagebox.showerror("Error", f"Failed to undo delete: {e}")
-
-    def update_undo_delete_period_button_state():
-        """Update the state of the undo delete button for periods."""
-        if category in deleted_period_stacks and deleted_period_stacks[category]:
-            parent.undo_button['state'] = 'normal'
-        else:
-            parent.undo_button['state'] = 'disabled'
-
     def validate_and_save_period(category, name, start, end, scheduler_manager, refresh=True):
-        """Validates and saves a schedule period."""
+        if name == 'ALL':
+            return False  # Do nothing for ALL
         user_id = UserContext().get_user_id()
-        
         try:
-            # Get fresh schedule data to check if period exists
             current_schedule_data = get_schedule_time_periods(user_id, category)
-            
             if name in current_schedule_data:
                 edit_schedule_period(category, name, start, end, scheduler_manager)
             else:
@@ -735,10 +684,8 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
             logger.error(f"Error saving schedule period '{name}' in category '{category}': {e}", exc_info=True)
             messagebox.showerror("Error", f"Failed to save schedule period: {e}")
             return False
-
         if refresh:
             refresh_window(view_schedule_window, setup_view_edit_schedule_window, parent, category, scheduler_manager)
-
         return True
 
     # Displaying existing schedule periods
@@ -750,64 +697,51 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
     for period, times in schedule_data.items():
         frame = Frame(view_schedule_window)
         frame.pack(fill='x', padx=10, pady=5)
-
         tk.Label(frame, text=f"{title_case(period)} Start:").pack(side='left')
         start_entry = Entry(frame, width=10)
         start_entry.insert(0, times['start'])
         start_entry.pack(side='left', padx=5)
-
         tk.Label(frame, text="End:").pack(side='left')
         end_entry = Entry(frame, width=10)
         end_entry.insert(0, times['end'])
         end_entry.pack(side='left', padx=5)
-
-        # Add a Checkbutton to toggle the active status of the period
         active_var = IntVar(value=1 if times.get('active', True) else 0)
         active_checkbutton = Checkbutton(frame, text="Active", variable=active_var, command=lambda p=period, v=active_var, c=category: update_period_active_status(p, v, c))
         active_checkbutton.pack(side='left', padx=5)
-
         delete_button = Button(frame, text="Delete", command=lambda p=period: delete_period(p))
         delete_button.pack(side='right')
-
+        # Special handling for ALL period
+        if period == 'ALL':
+            start_entry.config(state='disabled')
+            end_entry.config(state='disabled')
+            active_var.set(1)
+            active_checkbutton.config(state='disabled')
+            delete_button.config(state='disabled')
         entries[period] = {'start': start_entry, 'end': end_entry, 'active_var': active_var}
         original_times[period] = {'start': times['start'], 'end': times['end']}
 
     def add_edit_period():
-        """Add a new schedule period or update an existing one."""
         new_period_frame = Frame(view_schedule_window)
         new_period_frame.pack(fill='x', padx=10, pady=5)
-
-        # Period Name
         period_name_frame = Frame(new_period_frame)
         period_name_frame.pack(fill='x', padx=5, pady=2)
         tk.Label(period_name_frame, text="Period Name:").pack(anchor='w')
         new_period_name = Entry(period_name_frame, width=20)
         new_period_name.pack(anchor='w', padx=5)
-
-        # Start and End Time
         time_frame = Frame(new_period_frame)
         time_frame.pack(fill='x', padx=5, pady=2)
-
         tk.Label(time_frame, text="Start Time:").grid(row=0, column=0, sticky='w', padx=5)
         tk.Label(time_frame, text="End Time:").grid(row=0, column=1, sticky='w', padx=5)
-
         new_start_entry = Entry(time_frame, width=10)
         new_start_entry.grid(row=1, column=0, padx=5)
-
         new_end_entry = Entry(time_frame, width=10)
         new_end_entry.grid(row=1, column=1, padx=5)
-
         def confirm():
-            """Confirm the addition or editing of a period."""
             name = new_period_name.get().lower()
             start = new_start_entry.get()
             end = new_end_entry.get()
-
-            # Get fresh schedule data to check if period exists
             user_id = UserContext().get_user_id()
             current_schedule_data = get_schedule_time_periods(user_id, category)
-
-            # Check if the period name already exists in the schedule
             if name in current_schedule_data:
                 response = messagebox.askyesno("Name Exists", f"A period named '{name}' already exists. Would you like to edit it?")
                 if response:
@@ -817,45 +751,83 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
                 else:
                     messagebox.showinfo("Change Name", "Please change the name of the period.")
             else:
-                # Proceed to validate and save the new period
                 if validate_and_save_period(category, name, start, end, scheduler_manager):
                     messagebox.showinfo("Added", "New period added successfully.")
                     new_period_frame.destroy()
-
         confirm_button = Button(new_period_frame, text="Confirm", command=confirm)
         confirm_button.pack(pady=10)
-
-        # Bind Enter key to confirm
         new_period_name.bind("<Return>", lambda event: confirm())
         new_start_entry.bind("<Return>", lambda event: confirm())
         new_end_entry.bind("<Return>", lambda event: confirm())
 
     def save_schedule():
-        """Save changes to the schedule based on user inputs using the validate_and_save_period function."""
-        updated = False  # To track if any periods were updated
+        updated = False
         for period, entry_controls in entries.items():
-            # Retrieve the start and end times from the entry controls
+            if period == 'ALL':
+                continue  # Do not allow editing ALL
             start_time_str = entry_controls['start'].get()
             end_time_str = entry_controls['end'].get()
-
-            # Check if the current period data has changed from the original
             if start_time_str != original_times[period]['start'] or end_time_str != original_times[period]['end']:
-                # Use the validate_and_save_period function to process each changed period
                 if validate_and_save_period(category, period, start_time_str, end_time_str, scheduler_manager, refresh=False):
-                    updated = True  # Mark as updated if any period was successfully processed
-
+                    updated = True
         if updated:
             messagebox.showinfo("Schedule Saved", "The schedule has been updated successfully.")
             refresh_window(view_schedule_window, setup_view_edit_schedule_window, parent, category, scheduler_manager)
         else:
             messagebox.showinfo("No Changes", "No changes were made to the schedule.")
 
-    # Buttons for adding new periods and saving changes
     add_button = Button(view_schedule_window, text="Add New Period", command=add_edit_period)
     add_button.pack(pady=10)
-
     save_button = Button(view_schedule_window, text="Save Schedule", command=save_schedule)
     save_button.pack(pady=10)
+
+    def undo_last_period_deletion(view_schedule_window, parent, category, scheduler_manager):
+        """Restores the most recently deleted period, skipping 'ALL' if present."""
+        while category in deleted_period_stacks and deleted_period_stacks[category]:
+            user_id = UserContext().get_user_id()
+            if not user_id:
+                logger.error("undo_last_period_deletion called with None user_id")
+                messagebox.showerror("Error", "User ID is not set. Please ensure you are logged in.")
+                return
+            try:
+                # Restore the most recently deleted period from the stack
+                last_deleted_period_info = deleted_period_stacks[category].pop()
+                period = last_deleted_period_info['period']
+                times = last_deleted_period_info['data']
+                if period == 'ALL':
+                    # Skip restoring ALL, try next
+                    continue
+                # Load user data to ensure the period is restored in the correct state
+                user_info = load_user_info_data(user_id) or {}
+                schedules = user_info.setdefault('schedules', {})
+                category_schedules = schedules.setdefault(category, {})
+                # Restore the period with its original data, including active status
+                category_schedules[period] = times  # Use the data from the stack
+                save_user_info_data(user_info, user_id)
+                # Clear the cache for this user/category
+                clear_schedule_periods_cache(user_id, category)
+                logger.info(f"Restored schedule period for user {user_id}, category {category}, period {period} with data: {times}")
+                # Refresh the schedule window to reflect the restored period
+                refresh_window(view_schedule_window, setup_view_edit_schedule_window, parent, category, scheduler_manager)
+                # Reschedule if the restored period is active (only if scheduler is available)
+                if times.get('active', False) and scheduler_manager:
+                    scheduler_manager.reset_and_reschedule_daily_messages(category)
+                elif times.get('active', False) and not scheduler_manager:
+                    logger.info(f"Period '{period}' restored as active, but no scheduler manager available (UI-only mode)")
+                # Update the undo button state
+                update_undo_delete_period_button_state()
+                break  # Only restore one period per undo
+            except Exception as e:
+                logger.error(f"Error undoing schedule period deletion: {e}", exc_info=True)
+                messagebox.showerror("Error", f"Failed to undo delete: {e}")
+                break
+
+    def update_undo_delete_period_button_state():
+        """Update the state of the undo delete button for periods."""
+        if category in deleted_period_stacks and deleted_period_stacks[category]:
+            parent.undo_button['state'] = 'normal'
+        else:
+            parent.undo_button['state'] = 'disabled'
 
 # Communication channel and category management functions
 def setup_communication_settings_window(parent, user_id):

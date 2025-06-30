@@ -679,6 +679,13 @@ class CommunicationManager:
         """Send a pre-defined message from the user's message library"""
         try:
             matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
+            # Remove 'ALL' from matching_periods if there are other periods
+            if 'ALL' in matching_periods and len(matching_periods) > 1:
+                matching_periods = [p for p in matching_periods if p != 'ALL']
+            # If no periods match (other than ALL), use ALL as fallback
+            if not matching_periods and 'ALL' in valid_periods:
+                matching_periods = ['ALL']
+
             file_path = determine_file_path('messages', f'{category}/{user_id}')
             data = load_json_data(file_path)
 

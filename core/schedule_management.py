@@ -58,13 +58,18 @@ def get_schedule_time_periods(user_id, category):
                 logger.warning(f"Error parsing start time for period {period} in category {category}: {e}")
                 continue
 
-        if periods:
-            periods[period]['start_time_obj'] = start_time_obj
-
         sorted_periods = dict(sorted(periods.items(), key=lambda item: item[1]['start_time_obj']))
 
         for period in sorted_periods:
             del sorted_periods[period]['start_time_obj']
+
+        # Add the persistent "ALL" time period
+        sorted_periods["ALL"] = {
+            "start": "00:00",
+            "end": "23:59",
+            "active": True,
+            "description": "Messages sent regardless of time of day"
+        }
 
         # Cache the results
         _schedule_periods_cache[cache_key] = (sorted_periods, current_time)
@@ -73,8 +78,18 @@ def get_schedule_time_periods(user_id, category):
         logger.debug(f"Retrieved and sorted schedule time periods for user {user_id}, category {category}")
         return sorted_periods
     else:
-        logger.error(f"No schedule data found for category: {category}.")
-        return {}
+        # Even if no periods exist, return the "ALL" period
+        all_period = {
+            "ALL": {
+                "start": "00:00",
+                "end": "23:59",
+                "active": True,
+                "description": "Messages sent regardless of time of day"
+            }
+        }
+        _schedule_periods_cache[cache_key] = (all_period, current_time)
+        logger.debug(f"No schedule periods found for user {user_id}, category {category}, returning ALL period")
+        return all_period
 
 @handle_errors("setting schedule period active", default_return=False)
 def set_schedule_period_active(user_id, category, period_name, active=True):
@@ -130,11 +145,19 @@ def get_current_time_periods_with_validation(user_id, category):
     valid_periods = list(time_periods.keys())
     matching_periods = []
 
-    # Check if current time falls within any defined periods
+    # Always include "ALL" period if it exists and is active
+    if "ALL" in time_periods and time_periods["ALL"].get('active', True):
+        matching_periods.append("ALL")
+
+    # Check if current time falls within any defined periods (excluding "ALL")
     for period, times in time_periods.items():
-        start_time, end_time = times['start'], times['end']
-        if start_time <= current_time_str <= end_time:
-            matching_periods.append(period)
+        if period == "ALL":
+            continue  # Skip "ALL" as it's already handled above
+        
+        if times.get('active', True):  # Check if period is active
+            start_time, end_time = times['start'], times['end']
+            if start_time <= current_time_str <= end_time:
+                matching_periods.append(period)
 
     if not matching_periods:
         # Defaulting to the first available period if no match is found

@@ -41,11 +41,12 @@ These improvements will make the code more reliable and easier to work with:
    - *Priority*: High
    - *Estimated effort*: Medium
 
-7. **Create persistent "ALL" time period for messages**
-   - *What it means*: Add a fixed time period called "ALL" that can be used to designate messages as applicable to all time periods
-   - *Why it helps*: Allows for messages that should be sent regardless of time of day
-   - *Priority*: High
-   - *Estimated effort*: Small
+- [ ] fix/implement treeview refresh
+- [ ] fix ui window sizing
+- [ ] make check boxes in edit messages window treeview selectable
+- [ ] Advanced task management and progress tracking
+- [ ] Advanced scheduling
+- [ ] Integration with additional services
 
 ## 🔧 System Reliability & Maintenance
 

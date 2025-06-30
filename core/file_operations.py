@@ -68,13 +68,42 @@ def determine_file_path(file_type, identifier):
 
 @handle_errors("loading JSON data", default_return=None)
 def load_json_data(file_path):
-    """Load data from a JSON file with comprehensive error handling"""
+    """Load data from a JSON file with comprehensive error handling and auto-create user files if missing."""
     context = {'file_path': file_path}
     
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError as e:
+        # Try to auto-create user files if this is a user file
+        # Detect user files by path
+        if 'users' in file_path:
+            # Try to extract user_id from the path
+            import re
+            match = re.search(r'users[\\/](.*?)[\\/]', file_path)
+            user_id = None
+            if match:
+                user_id = match.group(1)
+            else:
+                # Try legacy structure
+                match = re.search(r'users[\\/](.*?)(?:\\|/|\.|$)', file_path)
+                if match:
+                    user_id = match.group(1)
+            if user_id:
+                # Try to guess categories if possible (for schedules/messages)
+                categories = []
+                if 'schedules' in file_path or 'messages' in file_path:
+                    # Try to find categories from existing files or default to ['motivational']
+                    categories = ['motivational']
+                create_user_files(user_id, categories)
+                logger.info(f"Auto-created missing user files for user_id {user_id}")
+                # Try loading again
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as file:
+                        return json.load(file)
+                except Exception as e2:
+                    logger.error(f"Failed to load file after auto-creation: {e2}")
+                    return None
         if handle_file_error(e, file_path, "loading JSON data"):
             # Recovery was successful, try loading again
             try:
@@ -152,7 +181,11 @@ def create_user_files(user_id, categories):
     # Create preferences file if it doesn't exist
     preferences_file = get_user_file_path(user_id, 'preferences')
     if not os.path.exists(preferences_file):
-        save_json_data({}, preferences_file)
+        default_preferences = {
+            "categories": [],  # Initialize with empty list instead of missing field
+            "messaging_service": "email"
+        }
+        save_json_data(default_preferences, preferences_file)
         logger.debug(f"Created preferences file for user {user_id}")
     
     # Create schedules file if it doesn't exist

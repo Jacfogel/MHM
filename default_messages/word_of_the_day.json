@@ -1,68 +1,72 @@
 {
-    "messages": [
-        {
-            "message": "Word of the Day: Serendipity: The occurrence and development of events by chance in a happy or beneficial way.",
-            "days": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday"
-            ],
-            "time_periods": [
-                "default"
-            ],
-            "message_id": "d4e5f6g7-4567-89ab-cdef-012345678901"
-        },
-        {
-            "message": "Word of the Day: Ethereal: Extremely delicate and light in a way that seems too perfect for this world.",
-            "days": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday"
-            ],
-            "time_periods": [
-                "default"
-            ],
-            "message_id": "e5f6g7h8-5678-9abc-def0-123456789012"
-        },
-        {
-            "message": "Word of the Day: Quintessential: Representing the most perfect or typical example of a quality or class.",
-            "days": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday"
-            ],
-            "time_periods": [
-                "default"
-            ],
-            "message_id": "f6g7h8i9-6789-abcd-ef01-234567890123"
-        },
-        {
-            "message_id": "d8d6d58c-31b8-467b-a830-b21671f7dd83",
-            "message": "test532",
-            "days": [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday"
-            ],
-            "time_periods": [
-                "default"
-            ]
-        }
-    ]
+  "messages": [
+    {
+      "message": "Word of the Day: Serendipity: The occurrence and development of events by chance in a happy or beneficial way.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "ALL",
+        "default"
+      ],
+      "message_id": "d4e5f6g7-4567-89ab-cdef-012345678901"
+    },
+    {
+      "message": "Word of the Day: Ethereal: Extremely delicate and light in a way that seems too perfect for this world.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "ALL",
+        "default"
+      ],
+      "message_id": "e5f6g7h8-5678-9abc-def0-123456789012"
+    },
+    {
+      "message": "Word of the Day: Quintessential: Representing the most perfect or typical example of a quality or class.",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "ALL",
+        "default"
+      ],
+      "message_id": "f6g7h8i9-6789-abcd-ef01-234567890123"
+    },
+    {
+      "message_id": "d8d6d58c-31b8-467b-a830-b21671f7dd83",
+      "message": "test532",
+      "days": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday"
+      ],
+      "time_periods": [
+        "ALL",
+        "default"
+      ]
+    }
+  ]
 }

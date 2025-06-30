@@ -158,16 +158,18 @@ class SchedulerManager:
         for user_id in user_ids:
             try:
                 categories = get_user_preferences(user_id, ['categories'])
-                if categories and isinstance(categories, list):
-                    for category in categories:
-                        try:
-                            self.schedule_daily_message_job(user_id, category)
-                            total_scheduled += 1
-                            logger.debug(f"Scheduled messages for user {user_id}, category {category}")
-                        except Exception as e:
-                            logger.error(f"Failed to schedule for user {user_id}, category {category}: {e}")
+                if isinstance(categories, list):
+                    if categories:  # Only process if list is not empty
+                        for category in categories:
+                            try:
+                                self.schedule_daily_message_job(user_id, category)
+                                total_scheduled += 1
+                                logger.debug(f"Scheduled messages for user {user_id}, category {category}")
+                            except Exception as e:
+                                logger.error(f"Failed to schedule for user {user_id}, category {category}: {e}")
+                    # Empty list is fine - no warning needed
                 else:
-                    logger.warning(f"No valid categories found for user {user_id}")
+                    logger.warning(f"Expected list for categories, got {type(categories)} for user '{user_id}'")
             except Exception as e:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
         
@@ -193,6 +195,11 @@ class SchedulerManager:
         # Schedule a message for each active period
         scheduled_count = 0
         for period_name, period_data in time_periods.items():
+            # Skip the "ALL" period - it should not be scheduled, only used as fallback
+            if period_name == "ALL":
+                logger.debug(f"Skipping ALL period scheduling for user {user_id}, category {category} - ALL is fallback only")
+                continue
+                
             # Check if this period is active (default to active if not specified)
             if period_data.get('active', True):
                 try:

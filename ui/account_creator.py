@@ -459,9 +459,11 @@ class CreateAccountScreen:
 
         schedules = {
             category: {
-                "default": {
-                    "start": "17:30",
-                    "end": "18:30"
+                "ALL": {
+                    "start": "00:00",
+                    "end": "23:59",
+                    "active": True,
+                    "description": "Messages sent regardless of time of day"
                 }
             } for category in selected_categories
         }
