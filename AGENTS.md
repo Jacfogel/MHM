@@ -36,7 +36,7 @@
 2. **Create backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. **Make incremental changes**
 4. **Test after each change**
-5. **Update documentation**: `IMPROVEMENTS.md`
+5. **Update documentation**: `CHANGELOG.md`
 
 ## Error Handling
 - Check file existence before reading

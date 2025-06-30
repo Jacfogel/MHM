@@ -44,7 +44,7 @@ class MHMService:
         self.communication_manager = None
         self.scheduler_manager = None
         self.running = False
-        self.reschedule_dedup = {}  # Track recent reschedules to prevent duplicates
+        self.startup_time = None  # Track when service started
         # Register atexit handler as backup shutdown method
         atexit.register(self.emergency_shutdown)
         
@@ -247,6 +247,9 @@ class MHMService:
             logger.info("Starting scheduler...")
             self.scheduler_manager.run_daily_scheduler()
 
+            # Set startup time to prevent processing reschedule requests during startup
+            self.startup_time = time.time()
+
             logger.info("MHM Backend Service initialized successfully and running.")
             
             # Keep the service running
@@ -380,15 +383,8 @@ class MHMService:
 
     @handle_errors("checking reschedule requests")
     def check_reschedule_requests(self):
-        """Check for and process reschedule request files from UI with deduplication"""
+        """Check for and process reschedule request files from UI"""
         base_dir = os.path.dirname(os.path.dirname(__file__))
-        current_time = time.time()
-        
-        # Clean up old deduplication entries (older than 30 seconds)
-        expired_keys = [key for key, timestamp in self.reschedule_dedup.items() 
-                      if current_time - timestamp > 30]
-        for key in expired_keys:
-            del self.reschedule_dedup[key]
         
         # Look for reschedule request files
         for filename in os.listdir(base_dir):
@@ -404,20 +400,15 @@ class MHMService:
                     user_id = request_data.get('user_id')
                     category = request_data.get('category')
                     source = request_data.get('source', 'unknown')
-                    timestamp = request_data.get('timestamp', 0)
+                    request_timestamp = request_data.get('timestamp', 0)
+                    
+                    # Skip old requests that were created before service startup
+                    if self.startup_time and request_timestamp < self.startup_time:
+                        logger.debug(f"Ignoring old reschedule request from before service startup: {filename}")
+                        os.remove(request_file)
+                        continue
                     
                     if user_id and category:
-                        # Create deduplication key
-                        dedup_key = f"{user_id}_{category}"
-                        
-                        # Check if this is a duplicate request
-                        if dedup_key in self.reschedule_dedup:
-                            last_timestamp = self.reschedule_dedup[dedup_key]
-                            if current_time - last_timestamp < 30:  # Within 30 seconds
-                                logger.debug(f"Ignoring duplicate reschedule request: {dedup_key}")
-                                os.remove(request_file)
-                                continue
-                        
                         # Process the reschedule request
                         logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
                         
@@ -425,9 +416,6 @@ class MHMService:
                             # Reset and reschedule for this user/category
                             self.scheduler_manager.reset_and_reschedule_daily_messages(category, user_id)
                             logger.info(f"Reschedule completed for {user_id}, category={category}")
-                            
-                            # Update deduplication tracking
-                            self.reschedule_dedup[dedup_key] = current_time
                         else:
                             logger.error("Scheduler manager not available for reschedule")
                     else:

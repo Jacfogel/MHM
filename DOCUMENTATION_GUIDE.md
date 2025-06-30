@@ -31,7 +31,8 @@ This guide defines the audience and purpose of each documentation file in the MH
 
 #### Technical Reference
 - **`ARCHITECTURE.md`** - System structure and data organization
-- **`IMPROVEMENTS.md`** - Change log and recent updates
+- **`CHANGELOG.md`** - Change log and recent updates
+- **`TODO.md`** - Current development priorities
 
 ### 🔧 Configuration Files
 *Used by both AI and human developers*

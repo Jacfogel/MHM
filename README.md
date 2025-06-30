@@ -51,7 +51,8 @@ See **HOW_TO_RUN.md** for more details.
 - **ARCHITECTURE.md** - System structure and data organization
 - **DEVELOPMENT_WORKFLOW.md** - Safe development practices for beginners
 - **QUICK_REFERENCE.md** - Essential commands and troubleshooting
-- **IMPROVEMENTS.md** - Change log and recent updates
+- **CHANGELOG.md** - Change log and recent updates
+- **TODO.md** - Current development priorities
 - **DOCUMENTATION_GUIDE.md** - Documentation organization and standards
 
 ### Documentation Categories
@@ -102,18 +103,4 @@ This project is personal. Keep forks private and respect mental health data.
 
 **Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This now covers ALL 22 modules across the entire application stack!**
 
-For current development priorities and completed improvements, see **IMPROVEMENTS.md**.
-
-## Future Improvements (Legacy)
-- Refactor user preference handling through `UserPreferences`
-- Expand Discord check-ins with more interactive prompts
-- Explore deeper AI integration
-- Develop a simple task list with reminders sent via the scheduler, then expand into mood- and context-aware systems
-- Add charts showing trends in mood and tasks using Matplotlib or Plotly, later providing detailed wellness analytics
-- Use the AI backend to deliver motivational messages or coping strategies
-- Break large modules into smaller files
-- Introduce consistent snake_case naming
-- Centralize configuration in a single module
-- Add unit tests for utilities and basic integration tests
-- Standardize logging levels and improve dependency error messages
-- Build a more interactive Discord bot with quick reactions or forms
+For current development priorities and completed improvements, see **TODO.md** and **CHANGELOG.md**.

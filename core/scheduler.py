@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import logging
 
 from core.user_management import get_all_user_ids, get_user_preferences
-from core.schedule_management import get_schedule_time_periods, is_schedule_period_active
+from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation
 from core.service_utilities import load_and_localize_datetime
 from core.logger import get_logger
 from user.user_context import UserContext
@@ -30,6 +30,7 @@ class SchedulerManager:
     def __init__(self, communication_manager):
         self.communication_manager = communication_manager
         self.scheduler_thread = None
+        self.running = False
         self._stop_event = threading.Event()  # Add stop event for proper thread management
         logger.info("SchedulerManager ready")
 
@@ -101,12 +102,16 @@ class SchedulerManager:
             logger.warning("No active scheduler thread to stop.")
 
     @handle_errors("resetting and rescheduling daily messages")
-    def reset_and_reschedule_daily_messages(self, category):
+    def reset_and_reschedule_daily_messages(self, category, user_id=None):
         """
         Resets scheduled tasks for a specific category and reschedules daily messages for that category.
         """
-        # Get the active user ID
-        active_user_id = UserContext().get_user_id()
+        # Get the active user ID - either from parameter or UserContext
+        if user_id is None:
+            active_user_id = UserContext().get_user_id()
+        else:
+            active_user_id = user_id
+            
         if not active_user_id:
             logger.error("No active user found during reset and reschedule.")
             return
@@ -172,14 +177,82 @@ class SchedulerManager:
     def schedule_daily_message_job(self, user_id, category):
         """
         Schedules daily messages immediately for the specified user and category.
+        Schedules one message per active period in the category.
         """
         logger.info(f"Scheduling daily messages immediately for user {user_id}, category {category}.")
 
         # Clean up old jobs for this user and category
         self.cleanup_old_tasks(user_id, category)
 
-        # Schedule a message at a random time for the user and category
-        self.schedule_message_at_random_time(user_id=user_id, category=category)
+        # Get all time periods for this user and category
+        time_periods = get_schedule_time_periods(user_id, category)
+        if not time_periods:
+            logger.error(f"No time periods found for user {user_id}, category {category}.")
+            return
+
+        # Schedule a message for each active period
+        scheduled_count = 0
+        for period_name, period_data in time_periods.items():
+            # Check if this period is active (default to active if not specified)
+            if period_data.get('active', True):
+                try:
+                    self.schedule_message_for_period(user_id, category, period_name)
+                    scheduled_count += 1
+                    logger.debug(f"Scheduled message for user {user_id}, category {category}, period {period_name}")
+                except Exception as e:
+                    logger.error(f"Failed to schedule message for user {user_id}, category {category}, period {period_name}: {e}")
+            else:
+                logger.debug(f"Skipping inactive period {period_name} for user {user_id}, category {category}")
+
+        logger.info(f"Scheduled {scheduled_count} messages for user {user_id}, category {category}")
+
+    @handle_errors("scheduling message for specific period")
+    def schedule_message_for_period(self, user_id, category, period_name):
+        """
+        Schedules a message at a random time within a specific period for a user and category.
+        """
+        logger.info(f"Scheduling message for period '{period_name}' for user {user_id}, category {category}.")
+
+        max_retries = 10
+        retry_count = 0
+
+        while retry_count < max_retries:
+            # Get a random time within the specified period
+            random_time_str = self.get_random_time_within_period(user_id, category, period_name)
+            if not random_time_str:
+                logger.error(f"Could not generate random time for user {user_id}, category {category}, period {period_name}.")
+                return
+
+            # Try to schedule the message
+            try:
+                datetime_str = random_time_str
+                schedule_datetime = load_and_localize_datetime(datetime_str, 'America/Regina')
+                now = datetime.now(pytz.timezone('America/Regina'))
+
+                logger.info(f"Attempting to schedule message for user {user_id}, category {category}, period {period_name} at {schedule_datetime} (now is {now})")
+
+                if not self.is_time_conflict(user_id, schedule_datetime):
+                    if schedule_datetime <= now:
+                        schedule_datetime += timedelta(days=1)
+                        logger.info(f"Adjusted scheduling time to future for user {user_id}: {schedule_datetime}")
+
+                    time_part = schedule_datetime.strftime('%H:%M')
+                    schedule.every().day.at(time_part).do(self.handle_sending_scheduled_message, user_id=user_id, category=category)
+                    logger.info(f"Successfully scheduled {category} message for user {user_id}, period {period_name} at {time_part} on {schedule_datetime.strftime('%Y-%m-%d')}.")
+
+                    # Set the wake timer for the scheduled time
+                    self.set_wake_timer(schedule_datetime, user_id, category, period_name)
+                    break  # Exit the loop after successfully scheduling the message
+                else:
+                    logger.info(f"Conflict detected for user {user_id}, category {category}, period {period_name} at {schedule_datetime}. Retrying...")
+                    retry_count += 1
+
+            except Exception as e:
+                logger.error(f"Error while scheduling {category} message for user {user_id}, period {period_name}: {str(e)}")
+                retry_count += 1
+
+        if retry_count == max_retries:
+            logger.warning(f"Max retries reached. Could not find a suitable time for user {user_id}, category {category}, period {period_name}.")
 
     @handle_errors("scheduling message at random time")
     def schedule_message_at_random_time(self, user_id, category):
@@ -188,12 +261,28 @@ class SchedulerManager:
         """
         logger.info(f"Scheduling message at random time for user {user_id}, category {category}.")
 
+        # Get all available time periods for this user and category
+        time_periods = get_schedule_time_periods(user_id, category)
+        if not time_periods:
+            logger.error(f"No time periods found for user {user_id}, category {category}.")
+            return
+
+        # Use the first available period (they're already sorted by start time)
+        available_periods = list(time_periods.keys())
+        if not available_periods:
+            logger.error(f"No available periods for user {user_id}, category {category}.")
+            return
+
+        # Use the first period (they're already sorted by start time)
+        selected_period = available_periods[0]
+        logger.info(f"Using period '{selected_period}' for user {user_id}, category {category}")
+
         max_retries = 10
         retry_count = 0
 
         while retry_count < max_retries:
-            # Get a random time within a period
-            random_time_str = self.get_random_time_within_period(user_id, category, 'morning')
+            # Get a random time within the selected period
+            random_time_str = self.get_random_time_within_period(user_id, category, selected_period)
             if not random_time_str:
                 logger.error(f"Could not generate random time for user {user_id}, category {category}.")
                 return
@@ -216,7 +305,7 @@ class SchedulerManager:
                     logger.info(f"Successfully scheduled {category} message for user {user_id} at {time_part} on {schedule_datetime.strftime('%Y-%m-%d')}.")
 
                     # Set the wake timer for the scheduled time
-                    self.set_wake_timer(schedule_datetime, user_id, category, 'morning')
+                    self.set_wake_timer(schedule_datetime, user_id, category, selected_period)
                     break  # Exit the loop after successfully scheduling the message
                 else:
                     logger.info(f"Conflict detected for user {user_id}, category {category} at {schedule_datetime}. Retrying...")
@@ -235,7 +324,8 @@ class SchedulerManager:
         for job in schedule.jobs:
             if job.job_func.args and job.job_func.args[0] == user_id:
                 job_time = job.next_run
-                if abs((job_time - schedule_datetime).total_seconds()) < 1800:  # 30 minutes = 1800 seconds
+                # Increase conflict window to 2 hours to prevent multiple messages at similar times
+                if abs((job_time - schedule_datetime).total_seconds()) < 7200:  # 2 hours = 7200 seconds
                     return True
         return False
 
@@ -246,14 +336,25 @@ class SchedulerManager:
         now_datetime = datetime.now(tz)
         
         time_periods = get_schedule_time_periods(user_id, category)
+        
+        # Add validation for period existence
+        if period not in time_periods:
+            logger.error(f"Period '{period}' not found in time periods for user {user_id}, category {category}. Available periods: {list(time_periods.keys())}")
+            return None
+            
         period_start_time = datetime.strptime(time_periods[period]['start'], "%H:%M").time()
         period_end_time = datetime.strptime(time_periods[period]['end'], "%H:%M").time()
 
+        # Create datetime objects for today
         start_datetime = datetime.combine(now_datetime.date(), period_start_time, tzinfo=tz)
         end_datetime = datetime.combine(now_datetime.date(), period_end_time, tzinfo=tz)
 
-        # Adjust the next day logic for periods that start after the current time
-        if start_datetime < now_datetime:
+        # If the period has already ended today, schedule for tomorrow
+        if end_datetime <= now_datetime:
+            start_datetime += timedelta(days=1)
+            end_datetime += timedelta(days=1)
+        # If the period is currently active or about to start within the next 30 minutes, schedule for tomorrow
+        elif start_datetime <= now_datetime + timedelta(minutes=30):
             start_datetime += timedelta(days=1)
             end_datetime += timedelta(days=1)
 
@@ -265,7 +366,7 @@ class SchedulerManager:
         random_seconds = random.randint(0, int(total_seconds))
         random_datetime = start_datetime + timedelta(seconds=random_seconds)
 
-        # Check if the randomly determined time has already passed and adjust if necessary
+        # Final safety check - ensure the time is in the future
         if random_datetime <= now_datetime:
             random_datetime += timedelta(days=1)
 
@@ -340,8 +441,40 @@ class SchedulerManager:
     @handle_errors("cleaning up old tasks")
     def cleanup_old_tasks(self, user_id, category):
         """Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category."""
-        # Cleanup in-memory scheduled jobs for the given user and category
-        schedule.jobs = [job for job in schedule.jobs if not self.is_job_for_category(job, user_id, category)]
+        # Store jobs we want to keep (not for this user/category)
+        jobs_to_keep = []
+        for job in schedule.jobs:
+            if not self.is_job_for_category(job, user_id, category):
+                jobs_to_keep.append(job)
+        
+        # Clear all jobs and reschedule only the ones we want to keep
+        schedule.clear()
+        for job in jobs_to_keep:
+            # Re-add the job with its original schedule
+            if hasattr(job, 'at_time') and job.at_time:
+                # Ensure at_time is a string and in the correct format
+                at_time_str = str(job.at_time)
+                # Extract just the time part if it's a full datetime string
+                if ' ' in at_time_str:
+                    at_time_str = at_time_str.split(' ')[1]  # Get time part only
+                # Handle times with seconds (HH:MM:SS) by extracting just HH:MM
+                if ':' in at_time_str:
+                    time_parts = at_time_str.split(':')
+                    if len(time_parts) >= 2:
+                        # Take just HH:MM part
+                        at_time_str = f"{time_parts[0]}:{time_parts[1]}"
+                        try:
+                            schedule.every().day.at(at_time_str).do(job.job_func, *job.job_func.args)
+                            logger.debug(f"Re-added job with time: {at_time_str}")
+                        except Exception as e:
+                            logger.warning(f"Could not re-add job with time {at_time_str}: {e}")
+                    else:
+                        logger.warning(f"Invalid time format for job: {at_time_str}")
+                else:
+                    logger.warning(f"Invalid time format for job: {at_time_str}")
+            else:
+                logger.debug(f"Skipping job without valid at_time: {getattr(job, 'at_time', 'None')}")
+        
         logger.info(f"In-memory scheduler cleanup completed for user {user_id}, category {category}.")
 
         # Cleanup system tasks using schtasks command (Windows-specific)

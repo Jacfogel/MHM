@@ -117,7 +117,7 @@ def is_schedule_period_active(user_id, category, period_name):
 def get_current_time_periods_with_validation(user_id, category):
     """
     Returns the current active time periods for a user and category.
-    If no active period is found, defaults to all periods.
+    If no active period is found, defaults to the first available period.
     """
     if user_id is None:
         logger.error("get_current_time_periods_with_validation called with None user_id")
@@ -137,11 +137,17 @@ def get_current_time_periods_with_validation(user_id, category):
             matching_periods.append(period)
 
     if not matching_periods:
-        # Defaulting to all periods if no match is found
-        logger.info("Current time is not within any defined period, defaulting to all periods.")
-        return valid_periods, valid_periods
+        # Defaulting to the first available period if no match is found
+        # This prevents multiple messages from being sent
+        if valid_periods:
+            logger.info(f"Current time is not within any defined period, defaulting to first period: {valid_periods[0]}. Available periods: {valid_periods}")
+            return [valid_periods[0]], valid_periods
+        else:
+            logger.warning("No valid periods found for user and category")
+            return [], []
 
-    logger.debug(f"Current time periods: {matching_periods}, Valid periods: {valid_periods}")
+    # Only log current time periods when everything is working normally
+    logger.debug(f"Current time periods: {matching_periods}")
     return matching_periods, valid_periods
 
 @handle_errors("adding schedule period")

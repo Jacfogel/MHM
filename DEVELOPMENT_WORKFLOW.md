@@ -47,7 +47,7 @@ This guide explains how to work safely and effectively on the MHM project, espec
 - Test the full application workflow
 
 ### Step 4: Document
-- Update `IMPROVEMENTS.md` with what you changed
+- Update `CHANGELOG.md` with what you changed
 - Update any relevant documentation
 - Note any new dependencies in `requirements.txt`
 

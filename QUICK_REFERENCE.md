@@ -154,14 +154,14 @@ LM_STUDIO_BASE_URL=http://localhost:1234/v1
 ## 🔄 Update Process
 
 ### When Adding New Features
-1. Update `IMPROVEMENTS.md` with change details
+1. Update `CHANGELOG.md` with change details
 2. Update `README.md` if needed
 3. Update `requirements.txt` if adding dependencies
 4. Test thoroughly
 5. Create backup if it's a major change
 
 ### When Fixing Bugs
-1. Document the bug in `IMPROVEMENTS.md`
+1. Document the bug in `CHANGELOG.md`
 2. Test the fix
 3. Test that you didn't break anything else
 4. Update documentation if needed
