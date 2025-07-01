@@ -91,3 +91,8 @@ This project is personal. Keep forks private and respect mental health data.
 **Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This now covers ALL 22 modules across the entire application stack!**
 
 For current development priorities and completed improvements, see **TODO.md** and **CHANGELOG.md**.
+
+## Troubleshooting
+
+### Double Service Process Issue in VS Code/Cursor
+If you see two service processes when using the play/debug button in VS Code or Cursor, this is due to IDE/debugger quirks, not a problem with the project code. For the most reliable experience, run the app from a terminal with your virtual environment activated.

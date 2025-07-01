@@ -17,7 +17,7 @@ alwaysApply: true
 - Test: `python run_mhm.py` must work after changes
 - Backup before major changes
 - Update `requirements.txt` for new dependencies
-- Document in `IMPROVEMENTS.md`
+- Document in `CHANGELOG.md`
 - Use PowerShell syntax (see development-tasks.mdc)
 
 ## Key Files
@@ -32,7 +32,7 @@ alwaysApply: true
 2. **Create backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. **Make incremental changes**
 4. **Test after each change**
-5. **Update documentation**: `IMPROVEMENTS.md`
+5. **Update documentation**: `CHANGELOG.md`
 
 ## Error Handling
 - Check file existence before reading

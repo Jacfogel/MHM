@@ -41,9 +41,8 @@ These improvements will make the code more reliable and easier to work with:
    - *Priority*: High
    - *Estimated effort*: Medium
 
-- [ ] fix/implement treeview refresh
+- [ ] fix treeview refresh - should refresh reflecting the changes, while maintaining current sorting, on message add, edit, delete, and undo delete. should also scroll window to added, edited or undeleted message
 - [ ] fix ui window sizing
-- [ ] make check boxes in edit messages window treeview selectable
 - [ ] Advanced task management and progress tracking
 - [ ] Advanced scheduling
 - [ ] Integration with additional services
@@ -56,14 +55,6 @@ These improvements will make the code more reliable and easier to work with:
   - *Why it helps*: Easier debugging, better performance, and prevents disk space issues
   - *Priority*: High
   - *Estimated effort*: Medium
-
-### Service Management
-- **Fix multiple service process detection and shutdown**
-  - *What it means*: Investigate why the system finds more than one service process and fails to shut them down properly
-  - *Why it helps*: Prevents service conflicts and ensures clean startup/shutdown
-  - *Priority*: High
-  - *Estimated effort*: Medium
-
 - **Fix "process already stopped" notification issue**
   - *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
   - *Why it helps*: Cleaner service management and better user experience
@@ -71,6 +62,13 @@ These improvements will make the code more reliable and easier to work with:
   - *Estimated effort*: Small
 
 ## 🚀 Planned Feature Improvements
+
+### Data Organization & File Structure
+- **Reorganize message file structure for better organization**
+  - *What it means*: Move from current `data/messages/{category}/{user_id}.json` to `data/messages/{user_id}/{messages}/{category}.json` and also move `sent_messages.json` into the same messages folder for each user
+  - *Why it helps*: More intuitive file structure where all user data is organized by user first, then by type, making it easier to manage and understand
+  - *Priority*: Medium
+  - *Estimated effort*: Medium
 
 ### User Experience & Interface
 - **Refactor user preference handling through `UserPreferences`**
@@ -205,4 +203,6 @@ Keep entries **concise** and **actionable**. Focus on **what needs to be done** 
 4. **Update this file** - mark completed items and add new priorities
 5. **Ask for help** - don't get stuck on any single task
 
-Remember: This is your personal mental health assistant. Every improvement makes it better for you! 
+Remember: This is your personal mental health assistant. Every improvement makes it better for you!
+
+- Note: The double service process issue when using the play/debug button in VS Code/Cursor is due to IDE/debugger quirks, not project code. Running from the terminal with venv activated is recommended. 

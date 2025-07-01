@@ -62,3 +62,7 @@
 - Always use the provided load/save functions for user data.
 - When adding new preferences, update the full dict and save it, never just a single key.
 - Document new data fields and update this file as needed.
+
+## IDE/Debugger Double Process Note
+
+When using the play/debug button in VS Code or Cursor, you may see two service processes due to IDE/debugger quirks. This does not affect the core architecture. For best results, run the app from a terminal with the venv activated.

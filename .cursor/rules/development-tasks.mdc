@@ -76,7 +76,7 @@ Start-Process "command"
 2. Create backup: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. Implement incrementally
 4. Test: `python run_mhm.py`
-5. Update `IMPROVEMENTS.md`
+5. Update `CHANGELOG.md`
 
 ### Fixing Bug
 1. Reproduce the bug
@@ -94,7 +94,7 @@ Start-Process "command"
 
 ### Adding Dependencies
 1. Add to `requirements.txt`
-2. Update `IMPROVEMENTS.md`
+2. Update `CHANGELOG.md`
 3. Test installation: `pip install -r requirements.txt`
 4. Test functionality
 

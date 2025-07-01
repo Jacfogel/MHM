@@ -1,14 +1,14 @@
 # account_manager.py - User account content and settings management
 
 import tkinter as tk
-from tkinter import messagebox, Toplevel, Button, Entry, Checkbutton, IntVar, Frame, font, ttk
+from tkinter import messagebox, Toplevel, Button, Entry, Checkbutton, IntVar, Frame, font, ttk, Label
 import uuid
 from datetime import datetime
 import re
 
 from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path
 from core.user_management import load_user_info_data, save_user_info_data
-from core.message_management import edit_message, add_message, delete_message, get_message_categories
+from core.message_management import edit_message, add_message, delete_message, get_message_categories, update_message
 from core.schedule_management import (
     get_schedule_time_periods, delete_schedule_period, set_schedule_period_active,
     edit_schedule_period, add_schedule_period, clear_schedule_periods_cache
@@ -50,6 +50,23 @@ def setup_view_edit_messages_window(parent, category):
         view_messages_window.title(f"Edit Messages for {title_case(category)}")
         view_messages_window.category = category
         setattr(parent, window_attr_name, view_messages_window)
+        
+        # Set a better default size for the messages window
+        default_geometry = "800x600"
+        
+        # Apply saved geometry if it exists, otherwise use default
+        if hasattr(parent, f"{window_attr_name}_window_geometry"):
+            geometry = getattr(parent, f"{window_attr_name}_window_geometry")
+            logger.debug(f"Applying saved geometry: {geometry}")
+            view_messages_window.geometry(geometry)
+        else:
+            view_messages_window.geometry(default_geometry)
+            
+        # Set minimum size to prevent content from being cut off
+        view_messages_window.minsize(600, 400)
+        
+        # Define what happens when the window is closed using the custom function
+        view_messages_window.protocol("WM_DELETE_WINDOW", lambda: save_geometry_and_close(view_messages_window, parent, window_attr_name))
     else:
         for widget in view_messages_window.winfo_children():
             widget.destroy()
@@ -73,19 +90,18 @@ def setup_view_edit_schedule_window(parent, category, scheduler_manager=None):
         view_schedule_window.category = category
         setattr(parent, window_attr_name, view_schedule_window)
         
-        # Set a better default size for the schedule window
-        default_geometry = "600x500"
+        # --- Dynamic window sizing for schedule ---
+        user_periods = get_schedule_time_periods(user_id, category)
+        n_periods = len(user_periods)
+        base_height = 180
+        row_height = 38
+        win_height = min(max(base_height + n_periods * row_height, 320), 700)
+        win_width = 500
+        view_schedule_window.geometry(f"{win_width}x{win_height}")
+        view_schedule_window.minsize(400, 250)
         
-        # Apply saved geometry if it exists, otherwise use default
-        if hasattr(parent, f"{window_attr_name}_window_geometry"):
-            geometry = getattr(parent, f"{window_attr_name}_window_geometry")
-            logger.debug(f"Applying saved geometry: {geometry}")
-            view_schedule_window.geometry(geometry)
-        else:
-            view_schedule_window.geometry(default_geometry)
-            
         # Set minimum size to prevent content from being cut off
-        view_schedule_window.minsize(500, 400)
+        #view_schedule_window.minsize(500, 400)
     
         # Define what happens when the window is closed using the custom function
         view_schedule_window.protocol("WM_DELETE_WINDOW", lambda: save_geometry_and_close(view_schedule_window, parent, window_attr_name))
@@ -184,18 +200,47 @@ class MessageDialog(tk.Toplevel):
         self.select_all_font = font.Font(weight="bold", size=10)
         self.select_all_color = "black"
 
+        # --- Dynamic window sizing ---
+        base_height = 220
+        row_height = 32
+        n_rows = len(self.days_order) + len(self.ordered_time_periods) + 8  # 8 for labels/buttons/extra
+        win_height = min(max(base_height + n_rows * row_height, 420), 900)
+        # Width: base or based on longest period label
+        base_width = 350
+        max_period_label = max([len(f"{title_case(p)} ({self.time_periods[p]['start']} - {self.time_periods[p]['end']})") for p in self.ordered_time_periods], default=0)
+        win_width = max(base_width, 250 + max_period_label * 7)
+        self.geometry(f"{win_width}x{win_height}")
+        self.minsize(350, 420)
+        self.maxsize(700, 1000)
+
+        # Add vertical scrollbar if content is tall
+        if win_height >= 700:
+            canvas = tk.Canvas(self, borderwidth=0, background="#f0f0f0")
+            frame = tk.Frame(canvas, background="#f0f0f0")
+            vsb = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
+            canvas.configure(yscrollcommand=vsb.set)
+            vsb.pack(side="right", fill="y")
+            canvas.pack(side="left", fill="both", expand=True)
+            canvas.create_window((0, 0), window=frame, anchor="nw")
+            def on_frame_configure(event):
+                canvas.configure(scrollregion=canvas.bbox("all"))
+            frame.bind("<Configure>", on_frame_configure)
+            self.content_frame = frame
+        else:
+            self.content_frame = self
+
         self.build_ui()
 
     def build_ui(self):
-        for widget in self.winfo_children():
+        for widget in self.content_frame.winfo_children():
             widget.destroy()
-        tk.Label(self, text="Message:").pack(anchor='w')
-        self.message_entry = tk.Entry(self, width=40)
+        tk.Label(self.content_frame, text="Message:").pack(anchor='w')
+        self.message_entry = tk.Entry(self.content_frame, width=40)
         self.message_entry.pack(fill='x', padx=5, pady=2)
         self.message_entry.insert(0, self.message_data.get('message', ''))
 
         # --- Days section (Sunday first) ---
-        days_frame = tk.LabelFrame(self, text="Days:", font=("Arial", 10, "bold"))
+        days_frame = tk.LabelFrame(self.content_frame, text="Days:", font=("Arial", 10, "bold"))
         days_frame.pack(fill='x', padx=5, pady=(8, 0))
         
         # Check if all days are selected (either 'ALL' is present or all individual days are selected)
@@ -208,7 +253,7 @@ class MessageDialog(tk.Toplevel):
         day_font = font.Font(size=10)
         for day in self.days_order:
             var = self.days_vars[day]
-            cb = Checkbutton(days_frame, text=day, variable=var, font=day_font, fg="black", activeforeground="black", selectcolor="white")
+            cb = Checkbutton(days_frame, text=day, variable=var, font=day_font, fg="black", activeforeground="black", selectcolor="white", command=self.check_days_all_selected)
             cb.pack(anchor='w')
             self.day_checkboxes[day] = cb
         
@@ -217,7 +262,7 @@ class MessageDialog(tk.Toplevel):
             self.handle_all_days_toggle()
 
         # --- Time periods section (chronological order) ---
-        periods_frame = tk.LabelFrame(self, text="Time Periods:", font=("Arial", 10, "bold"))
+        periods_frame = tk.LabelFrame(self.content_frame, text="Time Periods:", font=("Arial", 10, "bold"))
         periods_frame.pack(fill='x', padx=5, pady=(8, 0))
         
         # Check if all time periods are selected (either 'ALL' is present or all individual periods are selected)
@@ -230,7 +275,7 @@ class MessageDialog(tk.Toplevel):
         period_font = font.Font(size=10)
         for period in self.ordered_time_periods:
             var = self.time_period_vars[period]
-            checkbox = Checkbutton(periods_frame, text=f"{title_case(period)} ({self.time_periods[period]['start']} - {self.time_periods[period]['end']})", variable=var, font=period_font, fg="black", activeforeground="black", selectcolor="white")
+            checkbox = Checkbutton(periods_frame, text=f"{title_case(period)} ({self.time_periods[period]['start']} - {self.time_periods[period]['end']})", variable=var, font=period_font, fg="black", activeforeground="black", selectcolor="white", command=self.check_periods_all_selected)
             checkbox.pack(anchor='w')
             self.period_checkboxes[period] = checkbox
         
@@ -238,21 +283,30 @@ class MessageDialog(tk.Toplevel):
         if all_periods_selected:
             self.handle_all_periods_toggle()
 
-        tk.Button(self, text="Save Message", command=self.save_message).pack(pady=8)
+        tk.Button(self.content_frame, text="Save Message", command=self.save_message).pack(pady=8)
 
     @handle_errors("saving message")
     def save_message(self):
         """Saves the message to the JSON file."""
-        # Days
-        if self.all_days_var.get() == 1:
+        # Days - check if all individual days are selected and convert to ALL
+        individual_selected_days = [day for day, var in self.days_vars.items() if var.get() == 1]
+        if len(individual_selected_days) == len(self.days_order):
+            # All individual days are selected, use ALL
+            selected_days = ['ALL']
+        elif self.all_days_var.get() == 1:
             selected_days = ['ALL']
         else:
-            selected_days = [day for day, var in self.days_vars.items() if var.get() == 1]
-        # Periods
-        if self.all_periods_var.get() == 1:
+            selected_days = individual_selected_days
+            
+        # Periods - check if all individual periods are selected and convert to ALL
+        individual_selected_periods = [period for period, var in self.time_period_vars.items() if var.get() == 1]
+        if len(individual_selected_periods) == len(self.ordered_time_periods):
+            # All individual periods are selected, use ALL
+            selected_periods = ['ALL']
+        elif self.all_periods_var.get() == 1:
             selected_periods = ['ALL']
         else:
-            selected_periods = [period for period, var in self.time_period_vars.items() if var.get() == 1]
+            selected_periods = individual_selected_periods
 
         if not selected_days or not selected_periods:
             messagebox.showerror("Validation Error", "Please select at least one day and one time period.")
@@ -284,20 +338,42 @@ class MessageDialog(tk.Toplevel):
         for day, cb in self.day_checkboxes.items():
             if all_selected:
                 self.days_vars[day].set(1)
-                cb.config(state='disabled')
             else:
                 self.days_vars[day].set(0)
-                cb.config(state='normal')
 
     def handle_all_periods_toggle(self):
         all_selected = self.all_periods_var.get() == 1
         for period, cb in self.period_checkboxes.items():
             if all_selected:
                 self.time_period_vars[period].set(1)
-                cb.config(state='disabled')
             else:
                 self.time_period_vars[period].set(0)
-                cb.config(state='normal')
+
+    def check_days_all_selected(self):
+        """Check if all individual days are selected and update the Select All checkbox accordingly"""
+        individual_selected_count = sum(1 for var in self.days_vars.values() if var.get() == 1)
+        if individual_selected_count == len(self.days_order):
+            # All individual days are selected, check the Select All box
+            self.all_days_var.set(1)
+        elif individual_selected_count == 0:
+            # No individual days are selected, uncheck the Select All box
+            self.all_days_var.set(0)
+        else:
+            # Some but not all days are selected, uncheck the Select All box
+            self.all_days_var.set(0)
+
+    def check_periods_all_selected(self):
+        """Check if all individual periods are selected and update the Select All checkbox accordingly"""
+        individual_selected_count = sum(1 for var in self.time_period_vars.values() if var.get() == 1)
+        if individual_selected_count == len(self.ordered_time_periods):
+            # All individual periods are selected, check the Select All box
+            self.all_periods_var.set(1)
+        elif individual_selected_count == 0:
+            # No individual periods are selected, uncheck the Select All box
+            self.all_periods_var.set(0)
+        else:
+            # Some but not all periods are selected, uncheck the Select All box
+            self.all_periods_var.set(0)
 
 def load_and_display_messages(view_messages_window, category):
     """
@@ -332,8 +408,26 @@ def load_and_display_messages(view_messages_window, category):
 
     # Columns: Message, message_id (hidden), All Days, days, All Times, periods
     columns = ['Message', 'message_id', 'All Days'] + days + ['All Times'] + periods
-    tree = ttk.Treeview(view_messages_window, columns=columns, show="headings")
-    tree.pack(fill="both", expand=True, padx=20, pady=20)
+    # --- Scrollbars ---
+    tree_frame = Frame(view_messages_window)
+    tree_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    v_scroll = ttk.Scrollbar(tree_frame, orient="vertical")
+    h_scroll = ttk.Scrollbar(tree_frame, orient="horizontal")
+    tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="extended",
+                       yscrollcommand=v_scroll.set, xscrollcommand=h_scroll.set)
+    v_scroll.config(command=tree.yview)
+    h_scroll.config(command=tree.xview)
+    v_scroll.pack(side="right", fill="y")
+    h_scroll.pack(side="bottom", fill="x")
+    tree.pack(fill="both", expand=True, side="left")
+
+    # --- Dynamic window width ---
+    col_widths = [300 if col == 'Message' else 90 if col in ['All Days', 'All Times'] else 60 for col in columns]
+    total_width = sum(col_widths) + 80  # Add some padding
+    min_width = 800
+    win_width = max(total_width, min_width)
+    win_height = 600
+    view_messages_window.geometry(f"{win_width}x{win_height}")
 
     # Define the column headings and widths
     for col in columns:
@@ -359,6 +453,107 @@ def load_and_display_messages(view_messages_window, category):
     # Set the tree and messages as attributes of the window for refreshing later
     view_messages_window.tree = tree
     view_messages_window.messages = messages
+
+    def on_treeview_click(event):
+        """Handle clicks on the treeview to toggle checkmarks, but allow normal selection everywhere."""
+        region = tree.identify("region", event.x, event.y)
+        column = tree.identify_column(event.x)
+        item = tree.identify_row(event.y)
+        if region == "cell" and item and column:
+            col_idx = int(column[1:]) - 1
+            col_name = columns[col_idx]
+            if col_name in days or col_name in periods or col_name in ['All Days', 'All Times']:
+                toggle_checkmark(item, col_name, col_idx)
+                return "break"  # Prevent selection from being overridden
+        # Otherwise, allow normal selection
+
+    def toggle_checkmark(item, col_name, col_idx):
+        """Toggle the checkmark for a specific cell, fixing ALL DAYS/ALL TIMES logic."""
+        user_id = UserContext().get_user_id()
+        if not user_id:
+            return
+        try:
+            values = tree.item(item)["values"]
+            message_id = values[1]
+            message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
+            if not message_data:
+                return
+            changed = False
+            if col_name == 'All Days':
+                current_days = message_data.get('days', [])
+                if 'ALL' in current_days:
+                    current_days.remove('ALL')
+                else:
+                    current_days = ['ALL']
+                message_data['days'] = current_days
+                changed = True
+            elif col_name in days:
+                current_days = message_data.get('days', [])
+                if 'ALL' in current_days:
+                    # Replace 'ALL' with all days except the one being unchecked
+                    current_days = [d for d in days if d != col_name]
+                elif col_name in current_days:
+                    # Uncheck: just remove this day (leave others)
+                    current_days.remove(col_name)
+                else:
+                    # Check: add this day
+                    current_days.append(col_name)
+                # If all days are checked, switch to ALL
+                if len(current_days) == len(days):
+                    current_days = ['ALL']
+                message_data['days'] = current_days
+                changed = True
+            elif col_name == 'All Times':
+                current_periods = message_data.get('time_periods', [])
+                if 'ALL' in current_periods:
+                    current_periods.remove('ALL')
+                else:
+                    current_periods = ['ALL']
+                message_data['time_periods'] = current_periods
+                changed = True
+            elif col_name in periods:
+                current_periods = message_data.get('time_periods', [])
+                if 'ALL' in current_periods:
+                    # Replace 'ALL' with all periods except the one being unchecked
+                    current_periods = [p for p in periods if p != col_name]
+                elif col_name in current_periods:
+                    current_periods.remove(col_name)
+                else:
+                    current_periods.append(col_name)
+                # If all periods are checked, switch to ALL
+                if len(current_periods) == len(periods):
+                    current_periods = ['ALL']
+                message_data['time_periods'] = current_periods
+                changed = True
+            if changed:
+                update_message(user_id, category, message_id, message_data)
+                # Instead of full refresh, just update the row to preserve order/selection
+                update_treeview_row(item, message_data)
+        except Exception as e:
+            logger.error(f"Error toggling checkmark: {e}", exc_info=True)
+
+    def update_treeview_row(item, message_data):
+        # Rebuild the row values for this message
+        row = []
+        row.append(message_data.get('message', 'N/A'))
+        row.append(message_data['message_id'])
+        all_days = 'ALL' in message_data.get('days', [])
+        row.append(checkmark(big=True) if all_days else '')
+        for day in days:
+            if all_days or day in message_data.get('days', []):
+                row.append(checkmark())
+            else:
+                row.append('')
+        all_times = 'ALL' in message_data.get('time_periods', [])
+        row.append(checkmark(big=True) if all_times else '')
+        for period in periods:
+            if all_times or period in message_data.get('time_periods', []):
+                row.append(checkmark())
+            else:
+                row.append('')
+        tree.item(item, values=row)
+
+    tree.bind("<Button-1>", on_treeview_click)
 
     # Helper for checkmark (✅ for All Days/Times columns, ✔ for others)
     def checkmark(big=False):
@@ -409,7 +604,7 @@ def load_and_display_messages(view_messages_window, category):
             tree.heading(col, command=lambda c=col: treeview_sort_column(tree, c, category, False))
 
     def delete_message_local():
-        """Deletes the selected message from the Treeview and data file."""
+        """Deletes the selected message(s) from the Treeview and data file."""
         user_id = UserContext().get_user_id()
         if not user_id:
             logger.error("delete_message_local called with None user_id")
@@ -417,35 +612,54 @@ def load_and_display_messages(view_messages_window, category):
             return
 
         try:
-            selected_item = tree.selection()
-            if not selected_item:
-                messagebox.showerror("Error", "Please select a message to delete.")
+            selected_items = tree.selection()
+            if not selected_items:
+                messagebox.showerror("Error", "Please select at least one message to delete.")
                 return
 
-            message_id = tree.item(selected_item)["values"][1]
-            if message_id:
-                current_message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
-                if current_message_data:
-                    # Store the current (possibly edited) version for undo
-                    deleted_message_stacks[category].append(current_message_data.copy())
-                    
-                    # Remove from local messages list
-                    local_message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
-                    if local_message_data:
-                        messages.remove(local_message_data)
-                    
-                    # Delete from file
-                    delete_message(user_id, category, message_id)
-                    tree.delete(selected_item)
-                    update_undo_delete_message_button_state()
-                    messagebox.showinfo("Success", "Message deleted successfully.")
-                else:
-                    messagebox.showerror("Error", "Message not found in current data.")
+            # Confirm deletion
+            if len(selected_items) == 1:
+                confirm_message = "Are you sure you want to delete this message?"
             else:
-                messagebox.showerror("Error", "Invalid message ID.")
+                confirm_message = f"Are you sure you want to delete {len(selected_items)} messages?"
+            
+            if not messagebox.askyesno("Confirm Deletion", confirm_message):
+                return
+
+            deleted_count = 0
+            for selected_item in selected_items:
+                message_id = tree.item(selected_item)["values"][1]
+                if message_id:
+                    current_message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
+                    if current_message_data:
+                        # Store the current (possibly edited) version for undo
+                        deleted_message_stacks[category].append(current_message_data.copy())
+                        
+                        # Remove from local messages list
+                        local_message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
+                        if local_message_data:
+                            messages.remove(local_message_data)
+                        
+                        # Delete from file
+                        delete_message(user_id, category, message_id)
+                        deleted_count += 1
+                    else:
+                        logger.warning(f"Message not found in current data for ID: {message_id}")
+                else:
+                    logger.warning("Invalid message ID found in selection")
+
+            # Refresh the treeview to reflect all changes
+            refresh_treeview()
+            update_undo_delete_message_button_state()
+            
+            if deleted_count == 1:
+                messagebox.showinfo("Success", "Message deleted successfully.")
+            else:
+                messagebox.showinfo("Success", f"{deleted_count} messages deleted successfully.")
+                
         except Exception as e:
-            logger.error(f"Error deleting message: {e}", exc_info=True)
-            messagebox.showerror("Error", f"Failed to delete message: {e}")
+            logger.error(f"Error deleting message(s): {e}", exc_info=True)
+            messagebox.showerror("Error", f"Failed to delete message(s): {e}")
 
     def edit_message_local():
         """Edits the selected message in the Treeview and updates the data file."""
@@ -456,11 +670,16 @@ def load_and_display_messages(view_messages_window, category):
             return
 
         try:
-            selected_item = tree.selection()
-            if not selected_item:
+            selected_items = tree.selection()
+            if not selected_items:
                 messagebox.showerror("Error", "Please select a message to edit.")
                 return
 
+            # If multiple items are selected, use the first one
+            if len(selected_items) > 1:
+                messagebox.showinfo("Multiple Selection", "Multiple messages selected. Only the first message will be edited.")
+
+            selected_item = selected_items[0]
             message_id = tree.item(selected_item)["values"][1]
             message_data = next((msg for msg in messages if msg['message_id'] == message_id), None)
             if not message_data:
@@ -505,12 +724,28 @@ def load_and_display_messages(view_messages_window, category):
         for item in tree.get_children():
             tree.delete(item)
         for msg in messages:
-            values = [msg.get('message', 'N/A'), msg['message_id']]
+            row = []
+            row.append(msg.get('message', 'N/A'))  # Message
+            row.append(msg['message_id'])           # message_id (hidden)
+            # All Days
+            all_days = 'ALL' in msg.get('days', [])
+            row.append(checkmark(big=True) if all_days else '')
+            # Days
             for day in days:
-                values.append('✔' if day in msg.get('days', []) else '')
+                if all_days or day in msg.get('days', []):
+                    row.append(checkmark())
+                else:
+                    row.append('')
+            # All Times
+            all_times = 'ALL' in msg.get('time_periods', [])
+            row.append(checkmark(big=True) if all_times else '')
+            # Periods
             for period in periods:
-                values.append('✔' if period in msg.get('time_periods', []) else '')
-            tree.insert("", tk.END, values=values)
+                if all_times or period in msg.get('time_periods', []):
+                    row.append(checkmark())
+                else:
+                    row.append('')
+            tree.insert("", tk.END, values=row)
 
     def update_undo_delete_message_button_state():
         """Update the state of the undo delete button."""
@@ -533,11 +768,57 @@ def load_and_display_messages(view_messages_window, category):
     edit_button = Button(left_button_frame, text="Edit Message", command=edit_message_local)
     edit_button.pack(side="left", padx=5)
 
+    def select_all_messages():
+        """Select all messages in the treeview."""
+        for item in tree.get_children():
+            tree.selection_add(item)
+    
+    def clear_selection():
+        """Clear all selections in the treeview."""
+        tree.selection_remove(tree.selection())
+    
+    select_all_button = Button(left_button_frame, text="Select All", command=select_all_messages)
+    select_all_button.pack(side="left", padx=5)
+    
+    clear_selection_button = Button(left_button_frame, text="Clear Selection", command=clear_selection)
+    clear_selection_button.pack(side="left", padx=5)
+    
+    refresh_button = Button(left_button_frame, text="Refresh", command=refresh_treeview)
+    refresh_button.pack(side="left", padx=5)
+
+    # Status bar
+    status_frame = Frame(view_messages_window)
+    status_frame.pack(fill="x", side="bottom", padx=10, pady=5)
+    
+    def update_status_bar():
+        """Update the status bar with current selection and total counts."""
+        total_items = len(tree.get_children())
+        selected_items = len(tree.selection())
+        if selected_items == 0:
+            status_text = f"Total messages: {total_items}"
+        elif selected_items == 1:
+            status_text = f"1 of {total_items} messages selected"
+        else:
+            status_text = f"{selected_items} of {total_items} messages selected"
+        status_label.config(text=status_text)
+    
+    status_label = Label(status_frame, text="", anchor="w")
+    status_label.pack(side="left")
+    
+    # Update status when selection changes
+    def on_selection_change(event):
+        update_status_bar()
+    
+    tree.bind("<<TreeviewSelect>>", on_selection_change)
+    
+    # Initial status update
+    update_status_bar()
+
     # Right side buttons
     right_button_frame = Frame(button_frame)
     right_button_frame.pack(side="right", padx=5)
 
-    delete_button = Button(right_button_frame, text="Delete Message", command=delete_message_local)
+    delete_button = Button(right_button_frame, text="Delete Selected", command=delete_message_local)
     delete_button.pack(side="left", padx=5)
 
     undo_delete_message_button = Button(right_button_frame, text="Undo Last Delete", command=undo_message_deletion)
@@ -836,7 +1117,7 @@ def setup_communication_settings_window(parent, user_id):
     
     settings_window = Toplevel(parent)
     settings_window.title(f"Communication Settings - {user_id}")
-    settings_window.geometry("450x500")
+    settings_window.geometry("450x300")
     
     try:
         # Load preferences and profile separately for accuracy
@@ -1181,7 +1462,13 @@ def setup_checkin_management_window(root, user_id):
     # Create a new window
     checkin_window = tk.Toplevel(root)
     checkin_window.title(f"Check-in Settings - {user_id}")
-    checkin_window.geometry("500x400")
+    # Dynamic: base + 30 per question, clamp 500-900
+    n_questions = 14  # If you add more, update this
+    base_height = 260
+    row_height = 32
+    win_height = min(max(base_height + n_questions * row_height, 600), 900)
+    checkin_window.geometry(f"600x{win_height}")
+    checkin_window.minsize(500, 600)
     checkin_window.resizable(True, True)
 
     try:
@@ -1493,6 +1780,11 @@ def setup_checkin_management_window(root, user_id):
                 status_label.config(text="○ Will be Inactive", fg="orange")
         
         checkin_enabled_var.trace('w', update_main_status)
+        
+        # Add extra padding below buttons if present
+        for child in checkin_window.winfo_children():
+            if isinstance(child, tk.Frame):
+                child.pack_configure(pady=(0, 10))
         
     except Exception as e:
         logger.error(f"Error loading check-in management: {e}")

@@ -14,7 +14,7 @@ alwaysApply: false
 - Place testing, migration, debug, and utility scripts in `scripts/` directory
 - Use descriptive filenames and include comments
 - Remove obsolete scripts when no longer needed
-- Document significant scripts in `IMPROVEMENTS.md`
+- Document significant scripts in `CHANGELOG.md`
 
 ---
 

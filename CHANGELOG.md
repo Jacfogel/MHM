@@ -3,6 +3,20 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-01 - Debug/IDE Config Cleanup & Service Process Investigation
+- **Investigated double service process issue**: Confirmed that VS Code/Cursor debug/play button launches an extra service process due to IDE/debugger quirks, not project code.
+- **Temporary debug code removed**: Cleaned up print statements and debug logging from `run_mhm.py` and `core/service.py`.
+- **Removed .vscode/launch.json and .vscode/settings.json**: Debug/IDE config files added for troubleshooting were deleted after confirming they did not resolve the issue.
+- **Impact**: Project is now clean and back to its original state; running from the terminal with venv activated is the recommended workflow for now.
+
+### 2025-06-30 - Enhanced Message Dialog UX
+- **Improved Checkbox Behavior**: Removed disabled state from individual checkboxes when "Select All" is selected
+- **Better User Control**: Users can now modify individual selections even when "Select All" is checked
+- **Automatic "ALL" Conversion**: Enhanced logic to automatically convert all selected items to "ALL" format when saving
+- **Smart "Select All" Detection**: "Select All" checkbox automatically updates based on individual selections
+- **Consistent Data Format**: Ensures all messages use simplified "ALL" format when appropriate
+- **Impact**: More intuitive and flexible user interface for message creation and editing
+
 ### 2025-06-30 - UI & Scheduling Improvements
 - **Persistent 'ALL' Time Period**: Ensured 'ALL' period is always present as a fallback in scheduling logic
 - **Default Messages**: Updated to support both 'default' (editable) and 'ALL' (special fallback) time periods
@@ -97,22 +111,6 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 ### 2025-06-11 - Initial Commit
 - Initial commit: Mental Health Management (MHM) system
 
-## 📈 Performance Improvements
-
-- **80% log noise reduction** while preserving debugging info
-- **50-70% reduction** in AI timeouts
-- **Unified admin interface** replaces fragmented UIs
-- **Response caching** eliminates redundant AI generation
-- **Faster file operations** with organized user directories
-
-## 🔧 Available Tools
-
-- **Admin Panel**: `ui_app.py` - User and system management
-- **Data CLI**: `scripts/utilities/user_data_cli.py` - Admin interface
-- **Duplicate Cleanup**: `scripts/utilities/cleanup_duplicate_messages.py`
-- **Migration**: `scripts/migration/migrate_data.py`
-- **Debug Menu**: Built into admin panel
-
 ---
 
 ## 📝 How to Add Changes
@@ -126,119 +124,3 @@ When adding new changes, follow this format:
 ```
 
 Keep entries **concise** and **scannable**. Focus on **what changed** and **why it matters**.
-
-## Completed Improvements
-
-### ✅ Core Infrastructure Refactoring (Completed)
-- **Refactored `core/utils.py`** into focused modules:
-  - `core/file_operations.py` - File and directory operations
-  - `core/user_management.py` - User data management
-  - `core/message_management.py` - Message handling
-  - `core/schedule_management.py` - Schedule operations
-  - `core/response_tracking.py` - Response tracking
-  - `core/service_utilities.py` - Service utilities
-  - `core/validation.py` - Data validation
-- **Enhanced `core/config.py`** with comprehensive configuration validation
-- **Improved code organization** and maintainability
-- **Better separation of concerns** across modules
-
-### ✅ Comprehensive Error Handling System (Completed)
-- **Created `core/error_handling.py`** with robust error handling framework:
-  - Custom exception classes (`DataError`, `FileOperationError`, `ConfigurationError`, `ServiceError`)
-  - Error recovery strategies and fallback mechanisms
-  - Decorator-based error handling (`@handle_errors`, `@error_handler`)
-  - Comprehensive logging and error reporting
-  - Graceful degradation with meaningful fallback responses
-
-- **Integrated error handling across ALL modules (100% coverage):**
-  - **Core modules (15/15 completed):**
-    - `core/file_operations.py` ✅
-    - `core/config.py` ✅
-    - `core/user_management.py` ✅
-    - `core/message_management.py` ✅
-    - `core/scheduler.py` ✅
-    - `core/response_tracking.py` ✅
-    - `core/schedule_management.py` ✅
-    - `core/checkin_analytics.py` ✅
-    - `core/user_data_manager.py` ✅
-    - `core/service_utilities.py` ✅
-    - `core/validation.py` ✅
-    - `core/auto_cleanup.py` ✅
-    - `core/service.py` ✅
-    - `core/logger.py` ✅
-    - `core/error_handling.py` ✅
-
-  - **UI modules (3/3 completed):**
-    - `ui/ui_app.py` ✅
-    - `ui/account_manager.py` ✅
-    - `ui/account_creator.py` ✅
-
-  - **Bot modules (6/6 completed):**
-    - `bot/user_context_manager.py` ✅
-    - `bot/telegram_bot.py` ✅
-    - `bot/email_bot.py` ✅
-    - `bot/discord_bot.py` ✅
-    - `bot/conversation_manager.py` ✅
-    - `bot/ai_chatbot.py` ✅
-
-  - **User modules (2/2 completed):**
-    - `user/user_context.py` ✅
-    - `user/user_preferences.py` ✅
-
-  - **Task modules (1/1 completed):**
-    - `tasks/reminder_task_manager.py` ✅
-
-  - **Main entry point:**
-    - `run_mhm.py` ✅
-
-  - **Base infrastructure (3/3 completed):**
-    - `bot/base_channel.py` ✅
-    - `bot/channel_factory.py` ✅
-    - `bot/channel_registry.py` ✅
-
-- **Total modules with comprehensive error handling: 31/31 (100% coverage)**
-
-- **Key benefits achieved:**
-  - **Robust error recovery** with meaningful fallback responses
-  - **Consistent error handling** across all modules
-  - **Better user experience** with graceful degradation
-  - **Improved debugging** with detailed error logging
-  - **Maintainable codebase** with centralized error handling
-  - **Reliable operation** even under adverse conditions
-
-- **Status**: ✅ **FULLY COMPLETED - 100% Error Handling Coverage Achieved**
-
-## Current Status
-
-### 🎯 **MAJOR MILESTONE ACHIEVED: 100% Error Handling Coverage**
-- **All 31 modules** now have comprehensive error handling
-- **Zero try/except blocks** replaced with robust error handling framework
-- **Consistent error recovery** across the entire application
-- **Production-ready reliability** with graceful degradation
-
-### 🔧 System Health
-- **Application runs successfully** ✅
-- **All modules import correctly** ✅
-- **Error handling framework functional** ✅
-- **No breaking changes introduced** ✅
-
-## Development Notes
-
-### Error Handling Implementation Details
-- **Decorator-based approach** for clean, maintainable code
-- **Custom exception hierarchy** for specific error types
-- **Recovery strategies** with meaningful fallback responses
-- **Comprehensive logging** for debugging and monitoring
-- **Graceful degradation** ensuring system reliability
-
-### Code Quality Improvements
-- **Consistent error handling patterns** across all modules
-- **Reduced code duplication** through centralized error handling
-- **Better separation of concerns** with focused modules
-- **Improved maintainability** with clear error boundaries
-- **Enhanced debugging capabilities** with detailed error context
-
----
-
-**Last Updated:** June 2025  
-**Status:** ✅ **COMPLETE - All major improvements implemented successfully** 

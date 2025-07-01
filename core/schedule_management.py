@@ -337,6 +337,7 @@ def validate_and_format_time(time_str):
 
 @handle_errors("getting current day names", default_return=[])
 def get_current_day_names():
-    """Returns the name of the current day."""
+    """Returns the name of the current day plus 'ALL' for universal day messages."""
     day_index = datetime.today().weekday()
-    return [list(calendar.day_name)[day_index]] 
+    current_day = list(calendar.day_name)[day_index]
+    return [current_day, 'ALL'] 

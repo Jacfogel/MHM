@@ -165,19 +165,21 @@ class ServiceManager:
             try:
                 if not proc.info['name'] or 'python' not in proc.info['name'].lower():
                     continue
-                    
                 cmdline = proc.info.get('cmdline', [])
                 if cmdline and any('service.py' in arg for arg in cmdline):
-                    # Only add if process is still running
                     if proc.is_running():
                         found_processes.append(proc)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                # Process terminated while we were checking it - skip it
                 continue
         
         if not found_processes:
-            logger.info(f"No service processes found (reported PID {pid} may have already terminated)")
-            # Double-check if any service is actually running
+            # Wait-and-retry loop to confirm service is stopped
+            max_retries = 6  # 3 seconds total
+            for _ in range(max_retries):
+                is_running, current_pid = self.is_service_running()
+                if not is_running:
+                    break
+                time.sleep(0.5)
             is_running, current_pid = self.is_service_running()
             if not is_running:
                 logger.info("Service is not running - stop operation successful")
@@ -188,37 +190,31 @@ class ServiceManager:
                 messagebox.showinfo("Service Status", "Service processes cleaned up successfully")
                 return True
         else:
-            logger.info(f"Found {len(found_processes)} service process(es), terminating all")
+            if len(found_processes) > 1:
+                logger.info(f"Found {len(found_processes)} service processes, cleaning up all instances")
+            else:
+                logger.info(f"Found {len(found_processes)} service process, terminating")
             all_terminated = True
             
             for proc in found_processes:
                 proc_pid = proc.info['pid']
                 logger.info(f"Terminating service process (PID: {proc_pid})")
-                
                 try:
-                    # Check if process still exists before trying to terminate
                     if not proc.is_running():
-                        logger.info(f"Process {proc_pid} already terminated, skipping")
+                        logger.debug(f"Process {proc_pid} already terminated, skipping")
                         continue
-                        
-                    # First try SIGTERM (graceful)
                     proc.terminate()
                     logger.info(f"Termination signal sent to PID {proc_pid}, waiting for graceful shutdown...")
-                    
                     try:
-                        proc.wait(timeout=8)  # Wait up to 8 seconds for graceful shutdown
+                        proc.wait(timeout=8)
                         logger.info(f"Service stopped gracefully (PID: {proc_pid})")
                     except psutil.TimeoutExpired:
                         logger.warning(f"Process {proc_pid} didn't stop gracefully within 8 seconds, using Windows taskkill")
-                        
-                        # On Windows, use taskkill for more reliable termination
                         if os.name == 'nt':
                             try:
                                 result = subprocess.run(['taskkill', '/PID', str(proc_pid), '/F'], 
                                                       capture_output=True, text=True, timeout=10)
                                 logger.info(f"Taskkill result for PID {proc_pid}: {result.returncode}, output: {result.stdout}, error: {result.stderr}")
-                                
-                                # Wait a moment and check if process is gone
                                 time.sleep(2)
                                 if not proc.is_running():
                                     logger.info(f"Service forcefully terminated via taskkill (PID: {proc_pid})")
@@ -228,8 +224,6 @@ class ServiceManager:
                             except Exception as e:
                                 logger.error(f"Taskkill failed for PID {proc_pid}: {e}")
                                 all_terminated = False
-                        
-                        # Fallback to psutil kill
                         if proc.is_running():
                             try:
                                 proc.kill()
@@ -238,14 +232,11 @@ class ServiceManager:
                             except Exception as e:
                                 logger.error(f"Failed to kill process {proc_pid}: {e}")
                                 all_terminated = False
-                
                 except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
                     logger.info(f"Process {proc_pid} already terminated or inaccessible: {e}")
-                    # This is fine - process is gone
                 except Exception as e:
                     logger.error(f"Error terminating process {proc_pid}: {e}")
                     all_terminated = False
-            
             # Clean up shutdown file
             try:
                 if os.path.exists(shutdown_file):
@@ -253,9 +244,19 @@ class ServiceManager:
                     logger.info("Cleanup: Removed shutdown request file")
             except Exception as e:
                 logger.warning(f"Could not remove shutdown file: {e}")
-            
+            # Wait-and-retry loop to confirm service is stopped
+            max_retries = 6  # 3 seconds total
+            for _ in range(max_retries):
+                is_running, current_pid = self.is_service_running()
+                if not is_running:
+                    break
+                time.sleep(0.5)
+            is_running, current_pid = self.is_service_running()
             if all_terminated:
-                messagebox.showinfo("Service Status", "All MHM Service processes stopped successfully")
+                if len(found_processes) > 1:
+                    messagebox.showinfo("Service Status", f"All {len(found_processes)} MHM Service processes stopped successfully")
+                else:
+                    messagebox.showinfo("Service Status", "MHM Service stopped successfully")
                 return True
             else:
                 messagebox.showwarning("Service Status", "Some MHM Service processes may still be running")

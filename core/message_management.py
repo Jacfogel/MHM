@@ -111,6 +111,29 @@ def edit_message(user_id, category, index, new_message_data):
     save_json_data(data, file_path)
     logger.info(f"Edited message in category {category} for user {user_id}, : {new_message_data}")
 
+@handle_errors("updating message by ID")
+def update_message(user_id, category, message_id, new_message_data):
+    """Update a message by its message_id."""
+    if user_id is None:
+        logger.error("update_message called with None user_id")
+        return
+
+    file_path = determine_file_path('messages', f'{category}/{user_id}')
+    data = load_json_data(file_path)
+    
+    if data is None or 'messages' not in data:
+        raise ValidationError("Invalid category or data file.")
+    
+    # Find the message by ID
+    for i, msg in enumerate(data['messages']):
+        if msg.get('message_id') == message_id:
+            data['messages'][i] = new_message_data
+            save_json_data(data, file_path)
+            logger.info(f"Updated message with ID {message_id} in category {category} for user {user_id}")
+            return
+    
+    raise ValidationError("Message ID not found.")
+
 @handle_errors("deleting message")
 def delete_message(user_id, category, message_id):
     if user_id is None:
