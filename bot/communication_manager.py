@@ -513,7 +513,7 @@ class CommunicationManager:
     def handle_message_sending(self, user_id: str, category: str):
         """
         Handle sending messages for a user and category with improved recipient resolution.
-        Now includes automatic daily check-in prompting when enabled.
+        Now uses scheduled check-ins instead of random replacement.
         """
         logger.debug(f"Handling message sending for user_id: {user_id}, category: {category}")
         
@@ -537,21 +537,18 @@ class CommunicationManager:
             logger.error(f"No valid recipient found for user {user_id} with service {messaging_service}")
             return
 
-        # Check if user has check-ins enabled and if this should be a check-in prompt
-        checkin_prefs = preferences.get('checkins', {})
-        if checkin_prefs.get('enabled', False):
-            # Check if it's time for a check-in based on frequency
-            if self._should_send_checkin_prompt(user_id, checkin_prefs):
-                self._send_checkin_prompt(user_id, messaging_service, recipient)
-                return
+        # Handle check-in category specially
+        if category == "checkin":
+            self._handle_scheduled_checkin(user_id, messaging_service, recipient)
+            return
 
         # Handle AI-generated messages
         if category in ["personalized", "ai_personalized"]:
             self._send_ai_generated_message(user_id, category, messaging_service, recipient)
-            return
-
-        # Handle pre-defined messages
-        self._send_predefined_message(user_id, category, messaging_service, recipient)
+        else:
+            self._send_predefined_message(user_id, category, messaging_service, recipient)
+        
+        logger.info(f"Completed message sending for user {user_id}, category {category}")
 
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
         """Get the appropriate recipient ID for the messaging service"""
@@ -619,6 +616,39 @@ class CommunicationManager:
             logger.error(f"Error determining if check-in prompt should be sent for user {user_id}: {e}")
             # Default to sending check-in if there's an error
             return True
+
+    def _handle_scheduled_checkin(self, user_id: str, messaging_service: str, recipient: str):
+        """
+        Handle scheduled check-in messages based on user preferences and frequency.
+        """
+        try:
+            preferences = get_user_preferences(user_id)
+            if not preferences:
+                logger.error(f"User preferences not found for user {user_id}")
+                return
+            
+            checkin_prefs = preferences.get('checkins', {})
+            if not checkin_prefs.get('enabled', False):
+                logger.debug(f"Check-ins disabled for user {user_id}")
+                return
+            
+            # Check frequency and last check-in time
+            frequency = checkin_prefs.get('frequency', 'daily')
+            
+            # If frequency is "none", don't send scheduled check-ins
+            if frequency == 'none':
+                logger.debug(f"Check-in frequency set to 'none' for user {user_id}, skipping scheduled check-in")
+                return
+            
+            # Check if it's time for a check-in based on frequency
+            if self._should_send_checkin_prompt(user_id, checkin_prefs):
+                self._send_checkin_prompt(user_id, messaging_service, recipient)
+                logger.info(f"Sent scheduled check-in prompt to user {user_id}")
+            else:
+                logger.debug(f"Check-in not due yet for user {user_id}")
+                
+        except Exception as e:
+            logger.error(f"Error handling scheduled check-in for user {user_id}: {e}")
 
     def _send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
         """

@@ -157,6 +157,7 @@ class SchedulerManager:
         
         for user_id in user_ids:
             try:
+                # Schedule regular message categories
                 categories = get_user_preferences(user_id, ['categories'])
                 if isinstance(categories, list):
                     if categories:  # Only process if list is not empty
@@ -170,6 +171,22 @@ class SchedulerManager:
                     # Empty list is fine - no warning needed
                 else:
                     logger.warning(f"Expected list for categories, got {type(categories)} for user '{user_id}'")
+                
+                # Schedule check-ins if enabled
+                try:
+                    checkin_prefs = get_user_preferences(user_id, ['checkins'])
+                    if checkin_prefs and checkin_prefs.get('enabled', False):
+                        # Check if check-in category exists in schedules
+                        time_periods = get_schedule_time_periods(user_id, "checkin")
+                        if time_periods:
+                            self.schedule_daily_message_job(user_id, "checkin")
+                            total_scheduled += 1
+                            logger.debug(f"Scheduled check-ins for user {user_id}")
+                        else:
+                            logger.debug(f"No check-in schedule found for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to schedule check-ins for user {user_id}: {e}")
+                    
             except Exception as e:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
         
@@ -194,14 +211,20 @@ class SchedulerManager:
 
         # Schedule a message for each active period
         scheduled_count = 0
+        from datetime import datetime
+        today_name = datetime.now().strftime('%A')
         for period_name, period_data in time_periods.items():
             # Skip the "ALL" period - it should not be scheduled, only used as fallback
             if period_name == "ALL":
                 logger.debug(f"Skipping ALL period scheduling for user {user_id}, category {category} - ALL is fallback only")
                 continue
-                
             # Check if this period is active (default to active if not specified)
             if period_data.get('active', True):
+                # If 'days' is present, only schedule if today is in days
+                if 'days' in period_data:
+                    if today_name not in period_data['days']:
+                        logger.debug(f"Skipping period {period_name} for user {user_id}, category {category} (not scheduled for today: {today_name})")
+                        continue
                 try:
                     self.schedule_message_for_period(user_id, category, period_name)
                     scheduled_count += 1
@@ -260,6 +283,48 @@ class SchedulerManager:
 
         if retry_count == max_retries:
             logger.warning(f"Max retries reached. Could not find a suitable time for user {user_id}, category {category}, period {period_name}.")
+
+    @handle_errors("scheduling check-in at exact time")
+    def schedule_checkin_at_exact_time(self, user_id, period_name):
+        """
+        Schedule a check-in at the exact time specified in the period.
+        """
+        logger.info(f"Scheduling check-in for user {user_id}, period {period_name}")
+
+        try:
+            # Get the time periods for check-in category
+            time_periods = get_schedule_time_periods(user_id, "checkin")
+            if not time_periods or period_name not in time_periods:
+                logger.error(f"No time period '{period_name}' found for check-in scheduling for user {user_id}")
+                return
+
+            period_data = time_periods[period_name]
+            checkin_time = period_data['start']  # Use start time as the exact time
+            
+            # Create datetime for today at the specified time
+            tz = pytz.timezone('America/Regina')
+            now = datetime.now(tz)
+            today = now.date()
+            
+            # Parse the check-in time
+            hour, minute = map(int, checkin_time.split(':'))
+            schedule_datetime = datetime.combine(today, datetime.min.time().replace(hour=hour, minute=minute), tzinfo=tz)
+            
+            # If the time has already passed today, schedule for tomorrow
+            if schedule_datetime <= now:
+                schedule_datetime += timedelta(days=1)
+                logger.info(f"Check-in time has passed today, scheduling for tomorrow: {schedule_datetime}")
+
+            # Schedule the check-in
+            time_part = schedule_datetime.strftime('%H:%M')
+            schedule.every().day.at(time_part).do(self.handle_sending_scheduled_message, user_id=user_id, category="checkin")
+            logger.info(f"Successfully scheduled check-in for user {user_id} at {time_part} on {schedule_datetime.strftime('%Y-%m-%d')}.")
+
+            # Set the wake timer for the scheduled time
+            self.set_wake_timer(schedule_datetime, user_id, "checkin", period_name)
+            
+        except Exception as e:
+            logger.error(f"Error scheduling check-in for user {user_id}: {e}")
 
     @handle_errors("scheduling message at random time")
     def schedule_message_at_random_time(self, user_id, category):

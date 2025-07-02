@@ -3,6 +3,15 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-01 - Check-in & Schedule Management System Improvements
+- **Unified Save Method**: Both check-in settings and category schedules now use `save_user_info_data` consistently
+- **Data Preservation**: Fixed edge cases where editing one type of schedule could overwrite the other
+- **Category Management Bug Fix**: Fixed incorrect nesting of preferences that could cause data loss
+- **Improved Error Handling**: Better handling of missing files, empty data structures, and first-time users
+- **Consistent Data Structure**: Ensures proper structure for preferences, schedules, and user data
+- **Edge Case Handling**: Properly handles first-time check-in enablement and new category addition
+- **Impact**: More reliable schedule management, prevents data loss, and handles all user scenarios correctly
+
 ### 2025-07-01 - Debug/IDE Config Cleanup & Service Process Investigation
 - **Investigated double service process issue**: Confirmed that VS Code/Cursor debug/play button launches an extra service process due to IDE/debugger quirks, not project code.
 - **Temporary debug code removed**: Cleaned up print statements and debug logging from `run_mhm.py` and `core/service.py`.

@@ -351,6 +351,45 @@ class CreateAccountScreen:
             help_label.pack(anchor="w")
             help_label.bind("<MouseWheel>", self.on_main_mouse_wheel)
             
+            # Add check-in time scheduling
+            time_frame = tk.LabelFrame(self.checkin_content_frame, text="Check-in Time", font=("Arial", 9, "bold"))
+            time_frame.pack(fill="x", pady=5)
+            time_frame.bind("<MouseWheel>", self.on_main_mouse_wheel)
+            
+            # Time selection
+            time_selection_frame = tk.Frame(time_frame)
+            time_selection_frame.pack(fill="x", padx=5, pady=3)
+            time_selection_frame.bind("<MouseWheel>", self.on_main_mouse_wheel)
+            
+            tk.Label(time_selection_frame, text="Preferred time:", font=("Arial", 9)).pack(side="left", padx=(0, 5))
+            
+            # Time dropdown (hour)
+            self.checkin_hour_var = tk.StringVar(value="09")
+            hour_dropdown = tk.OptionMenu(time_selection_frame, self.checkin_hour_var, 
+                                        *[f"{i:02d}" for i in range(24)])
+            hour_dropdown.config(width=3, font=("Arial", 9))
+            hour_dropdown.pack(side="left", padx=2)
+            
+            tk.Label(time_selection_frame, text=":", font=("Arial", 9)).pack(side="left", padx=2)
+            
+            # Time dropdown (minute)
+            self.checkin_minute_var = tk.StringVar(value="00")
+            minute_dropdown = tk.OptionMenu(time_selection_frame, self.checkin_minute_var, 
+                                          *[f"{i:02d}" for i in range(0, 60, 15)])  # 15-minute intervals
+            minute_dropdown.config(width=3, font=("Arial", 9))
+            minute_dropdown.pack(side="left", padx=2)
+            
+            # Time help text
+            time_help_frame = tk.Frame(time_frame)
+            time_help_frame.pack(fill="x", padx=5, pady=(0, 3))
+            time_help_frame.bind("<MouseWheel>", self.on_main_mouse_wheel)
+            
+            time_help_text = "Check-ins will be scheduled at this time. You can adjust this later in settings."
+            time_help_label = tk.Label(time_help_frame, text=time_help_text, 
+                                      font=("Arial", 8, "italic"), fg="gray", justify=tk.LEFT)
+            time_help_label.pack(anchor="w")
+            time_help_label.bind("<MouseWheel>", self.on_main_mouse_wheel)
+            
             # Create questions section - use a simple Frame instead of LabelFrame to avoid border issues
             questions_container = tk.Frame(self.checkin_content_frame)
             questions_container.pack(fill="x", pady=(3, 5))
@@ -457,6 +496,7 @@ class CreateAccountScreen:
         UserContext().set_user_id(user_id)
         UserContext().set_internal_username(internal_username)
 
+        # Create schedules for regular message categories
         schedules = {
             category: {
                 "ALL": {
@@ -467,13 +507,29 @@ class CreateAccountScreen:
                 }
             } for category in selected_categories
         }
+        
+        # Add check-in schedule if enabled
+        if self.checkin_enabled_var.get() == 1:
+            checkin_hour = self.checkin_hour_var.get()
+            checkin_minute = self.checkin_minute_var.get()
+            checkin_time = f"{checkin_hour}:{checkin_minute}"
+            
+            # Create a specific time period for check-ins
+            schedules["checkin"] = {
+                "checkin_time": {
+                    "start": checkin_time,
+                    "end": checkin_time,  # Same time for exact scheduling
+                    "active": True,
+                    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+                    "description": f"Daily check-in scheduled at {checkin_time}"
+                }
+            }
 
-        # Collect check-in preferences
+        # Collect check-in preferences (enabled status and questions only)
         checkin_preferences = {}
         if self.checkin_enabled_var.get() == 1:
             checkin_preferences = {
                 "enabled": True,
-                "frequency": self.checkin_frequency_var.get(),
                 "questions": {}
             }
             
@@ -486,7 +542,6 @@ class CreateAccountScreen:
         else:
             checkin_preferences = {
                 "enabled": False,
-                "frequency": "daily",
                 "questions": {}
             }
 
@@ -512,6 +567,11 @@ class CreateAccountScreen:
 
         add_user_info(user_id, user_info)
         create_user_files(user_id, selected_categories)  # Ensure message files are created
+        
+        # Explicitly save schedules to schedules.json
+        from core.file_operations import get_user_file_path, save_json_data
+        schedules_file = get_user_file_path(user_id, 'schedules')
+        save_json_data(schedules, schedules_file)
 
         logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
         messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")

@@ -1411,13 +1411,18 @@ def setup_category_management_window(parent, user_id):
                 added_categories = new_set - original_set
                 removed_categories = original_set - new_set
                 
-                # Update user preferences
-                if 'preferences' not in preferences:
-                    preferences['preferences'] = {}
-                preferences['preferences']['categories'] = selected_categories
+                # Load full user data to preserve existing data
+                user_data = load_user_info_data(user_id)
+                if not user_data:
+                    user_data = {}
+                if 'preferences' not in user_data:
+                    user_data['preferences'] = {}
+                
+                # Update categories in preferences
+                user_data['preferences']['categories'] = selected_categories
                 
                 # Save changes
-                save_user_info_data(preferences, user_id)
+                save_user_info_data(user_data, user_id)
                 
                 # Create message files for new categories
                 for category in added_categories:
@@ -1482,66 +1487,101 @@ def setup_checkin_management_window(root, user_id):
         
         preferences = user_data.get('preferences', {})
         current_checkin_prefs = preferences.get('checkins', {})
-        # Default check-in preferences if none exist
-        if not current_checkin_prefs:
-            current_checkin_prefs = {
-                "enabled": False,
-                "frequency": "daily",
-                "questions": {}
-            }
+        
+        # Load schedule data from schedules.json to get time and days
+        from core.file_operations import get_user_file_path, load_json_data
+        schedules_file = get_user_file_path(user_id, 'schedules')
+        schedules_data = load_json_data(schedules_file) or {}
+        checkin_schedule = schedules_data.get('checkin', {}).get('checkin_time', {})
+        
+        # Merge preferences with schedule data
+        current_checkin_prefs = {
+            "enabled": current_checkin_prefs.get("enabled", False),
+            "start_time": checkin_schedule.get("start", "09:00"),
+            "end_time": checkin_schedule.get("end", "10:00"),
+            "days": checkin_schedule.get("days", ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]),
+            "questions": current_checkin_prefs.get("questions", {})
+        }
         
         tk.Label(checkin_window, text="Check-in Settings", font=("Arial", 14, "bold")).pack(pady=10)
-        
-        # Enable/disable check-ins
+
+        # Enable/disable check-ins (within the Check-in Settings section)
         enabled_frame = tk.Frame(checkin_window)
-        enabled_frame.pack(fill="x", padx=20, pady=10)
-        
+        enabled_frame.pack(fill="x", padx=20, pady=(0, 10))
         checkin_enabled_var = tk.IntVar(value=1 if current_checkin_prefs.get("enabled", False) else 0)
-        checkin_checkbox = tk.Checkbutton(enabled_frame, text="Enable check-ins", 
-                                        variable=checkin_enabled_var, 
-                                        font=("Arial", 12, "bold"))
+        checkin_checkbox = tk.Checkbutton(enabled_frame, text="Enable check-ins", variable=checkin_enabled_var, font=("Arial", 12, "bold"))
         checkin_checkbox.pack(side="left")
-        
         if current_checkin_prefs.get("enabled", False):
             status_label = tk.Label(enabled_frame, text="✓ Currently Active", fg="green", font=("Arial", 10))
         else:
             status_label = tk.Label(enabled_frame, text="○ Currently Inactive", fg="gray", font=("Arial", 10))
         status_label.pack(side="left", padx=(20, 0))
-        
-        # Frequency selection
-        frequency_frame = tk.LabelFrame(checkin_window, text="Frequency", font=("Arial", 10, "bold"))
-        frequency_frame.pack(fill="x", padx=20, pady=10)
-        
-        frequency_var = tk.StringVar(value=current_checkin_prefs.get("frequency", "daily"))
-        
-        for freq in ["daily", "weekly", "none", "custom"]:
-            rb = tk.Radiobutton(frequency_frame, text=freq.title(), variable=frequency_var, value=freq)
-            rb.pack(side="left", padx=10, pady=5)
-        
-        # Add explanatory text for frequency options
-        freq_help_frame = tk.Frame(frequency_frame)
-        freq_help_frame.pack(fill="x", pady=(5, 0))
-        
-        # Break the text into multiple lines for better readability
-        help_text = (
-            "Daily: Prompted once per day\n"
-            "Weekly: Prompted once per week\n" 
-            "None: Manual only (/checkin command)\n"
-            "Custom: Set your own schedule"
-        )
-        tk.Label(freq_help_frame, 
-                text=help_text, 
-                font=("Arial", 8, "italic"), fg="gray", justify=tk.LEFT).pack(anchor="w")
-        
-        # Questions section
-        questions_frame = tk.LabelFrame(checkin_window, text="Questions to Include", font=("Arial", 10, "bold"))
-        questions_frame.pack(fill="both", expand=True, padx=20, pady=(5, 10))
-        
-        # Select All / Deselect All buttons (above questions)
+
+        # Main content frame for two-column layout
+        content_frame = tk.Frame(checkin_window)
+        content_frame.pack(fill="both", expand=True, padx=10, pady=5)
+
+        # Left column (Time Range + Days)
+        left_col = tk.Frame(content_frame)
+        left_col.pack(side="left", fill="y", padx=(0, 10), pady=0, anchor="n")
+
+        # Right column (Questions)
+        right_col = tk.Frame(content_frame)
+        right_col.pack(side="left", fill="both", expand=True, pady=0, anchor="n")
+
+        # --- Time Range Section ---
+        current_start = current_checkin_prefs.get("start_time", "09:00")
+        current_end = current_checkin_prefs.get("end_time", "10:00")
+        time_frame = tk.LabelFrame(left_col, text="Time Range", font=("Arial", 10, "bold"))
+        time_frame.pack(fill="x", padx=5, pady=(0, 10))
+        time_selection_frame = tk.Frame(time_frame)
+        time_selection_frame.pack(fill="x", padx=5, pady=3)
+        tk.Label(time_selection_frame, text="Start:", font=("Arial", 10)).pack(side="left", padx=(0, 5))
+        checkin_start_var = tk.StringVar(value=current_start)
+        start_entry = tk.Entry(time_selection_frame, textvariable=checkin_start_var, width=6, font=("Arial", 10))
+        start_entry.pack(side="left", padx=2)
+        tk.Label(time_selection_frame, text="End:", font=("Arial", 10)).pack(side="left", padx=(10, 5))
+        checkin_end_var = tk.StringVar(value=current_end)
+        end_entry = tk.Entry(time_selection_frame, textvariable=checkin_end_var, width=6, font=("Arial", 10))
+        end_entry.pack(side="left", padx=2)
+        # --- End Time Range Section ---
+
+        # --- Days of the Week Section ---
+        current_days = current_checkin_prefs.get("days", [
+            "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+        ])
+        days_frame = tk.LabelFrame(left_col, text="Days of the Week", font=("Arial", 10, "bold"))
+        days_frame.pack(fill="x", padx=5, pady=(0, 10))
+        days_order = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        day_vars = {day: tk.IntVar(value=1 if day in current_days else 0) for day in days_order}
+        # Select All checkbox
+        def all_days_selected():
+            return all(var.get() == 1 for var in day_vars.values())
+        def handle_all_days_toggle():
+            new_val = all_days_var.get()
+            for var in day_vars.values():
+                var.set(new_val)
+        all_days_var = tk.IntVar(value=1 if all_days_selected() else 0)
+        all_days_cb = tk.Checkbutton(days_frame, text="Select All", variable=all_days_var, font=("Arial", 10, "bold"), command=handle_all_days_toggle)
+        all_days_cb.pack(anchor="w", padx=2, pady=(2, 0))
+        # Update Select All if any day is toggled
+        def update_all_days_cb(*_):
+            all_selected = all_days_selected()
+            if all_selected != bool(all_days_var.get()):
+                all_days_var.set(1 if all_selected else 0)
+        for day in days_order:
+            day_vars[day].trace_add('write', update_all_days_cb)
+        day_font = font.Font(size=10)
+        for day in days_order:
+            cb = tk.Checkbutton(days_frame, text=day, variable=day_vars[day], font=day_font, fg="black", activeforeground="black", selectcolor="white")
+            cb.pack(anchor="w", padx=12)
+        # --- End Days of the Week Section ---
+
+        # --- Questions section (right column) ---
+        questions_frame = tk.LabelFrame(right_col, text="Questions to Include", font=("Arial", 10, "bold"))
+        questions_frame.pack(fill="both", expand=True, padx=5, pady=(0, 10))
         control_frame = tk.Frame(questions_frame)
         control_frame.pack(fill="x", padx=10, pady=(5, 10))
-        
-        # Default question definitions with recommended defaults marked
         default_questions = {
             'mood': {'label': 'Mood (1-5 scale) (recommended)', 'default': True},
             'energy': {'label': 'Energy level (1-5 scale) (recommended)', 'default': True},
@@ -1558,42 +1598,28 @@ def setup_checkin_management_window(root, user_id):
             'stress_level': {'label': 'Stress level (1-5 scale)', 'default': False},
             'daily_reflection': {'label': 'Brief reflection/notes (text)', 'default': False}
         }
-        
         question_vars = {}
         current_questions = current_checkin_prefs.get("questions", {})
-        
-        # Define select functions and smart toggle button
         def select_default():
-            """Select only the recommended default questions"""
             for question_key, var in question_vars.items():
                 var.set(1 if default_questions[question_key]['default'] else 0)
-        
         def toggle_all():
-            """Smart toggle: select all if not all selected, deselect all if all selected"""
-            # Check if all are currently selected
             all_selected = all(var.get() == 1 for var in question_vars.values())
-            
             if all_selected:
-                # Deselect all
                 for var in question_vars.values():
                     var.set(0)
                 toggle_button.config(text="Select All")
             else:
-                # Select all
                 for var in question_vars.values():
                     var.set(1)
                 toggle_button.config(text="Deselect All")
-        
         def update_toggle_button_text():
-            """Update the toggle button text based on current selection state"""
-            if not question_vars:  # If question_vars is empty, can't check
+            if not question_vars:
                 return
             all_selected = all(var.get() == 1 for var in question_vars.values())
             toggle_button.config(text="Deselect All" if all_selected else "Select All")
-        
-        # Add the buttons
-        Button(control_frame, text="Select Default", command=select_default, width=12).pack(side="left", padx=(0, 5))
-        toggle_button = Button(control_frame, text="Select All", command=toggle_all, width=12)
+        Button(control_frame, text="Select Default", command=select_default, width=12, font=day_font).pack(side="left", padx=(0, 5))
+        toggle_button = Button(control_frame, text="Select All", command=toggle_all, width=12, font=day_font)
         toggle_button.pack(side="left")
         
         # Create scrollable frame for questions
@@ -1685,32 +1711,40 @@ def setup_checkin_management_window(root, user_id):
         
         def save_checkin_changes():
             try:
+                from core.schedule_management import validate_and_format_time
+                # Validate time fields
+                try:
+                    formatted_start = validate_and_format_time(checkin_start_var.get())
+                    formatted_end = validate_and_format_time(checkin_end_var.get())
+                except Exception as e:
+                    messagebox.showerror("Invalid Time Format", f"Start and End times must be in HH:MM (24h) or H[H]:MM AM/PM format.\nError: {e}")
+                    return
                 # Build new check-in preferences
+                selected_days = [day for day, var in day_vars.items() if var.get() == 1]
                 new_checkin_prefs = {
                     "enabled": checkin_enabled_var.get() == 1,
-                    "frequency": frequency_var.get(),
+                    "start_time": formatted_start,
+                    "end_time": formatted_end,
+                    "days": selected_days,
                     "questions": {}
                 }
-                
-                # Collect question preferences
                 for question_key, var in question_vars.items():
                     new_checkin_prefs["questions"][question_key] = {
                         "enabled": var.get() == 1,
                         "label": default_questions[question_key]['label']
                     }
-                
                 # Check for changes by comparing with current settings
                 current_enabled = current_checkin_prefs.get("enabled", False)
-                current_frequency = current_checkin_prefs.get("frequency", "daily")
+                current_start = current_checkin_prefs.get("start_time", "09:00")
+                current_end = current_checkin_prefs.get("end_time", "10:00")
+                current_days = current_checkin_prefs.get("days", [
+                    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+                ])
                 current_questions_dict = current_checkin_prefs.get("questions", {})
-                
-                # Compare enabled status
                 enabled_changed = new_checkin_prefs["enabled"] != current_enabled
-                
-                # Compare frequency 
-                frequency_changed = new_checkin_prefs["frequency"] != current_frequency
-                
-                # Compare questions
+                start_changed = new_checkin_prefs["start_time"] != current_start
+                end_changed = new_checkin_prefs["end_time"] != current_end
+                days_changed = set(new_checkin_prefs["days"]) != set(current_days)
                 questions_changed = False
                 for question_key, new_data in new_checkin_prefs["questions"].items():
                     current_data = current_questions_dict.get(question_key, {})
@@ -1718,49 +1752,71 @@ def setup_checkin_management_window(root, user_id):
                     if new_data["enabled"] != current_question_enabled:
                         questions_changed = True
                         break
-                
-                # If no changes, show appropriate message
-                if not (enabled_changed or frequency_changed or questions_changed):
+                if not (enabled_changed or start_changed or end_changed or days_changed or questions_changed):
                     messagebox.showinfo("No Changes", "No changes were made to check-in settings.")
                     logger.info(f"No changes made to check-in settings for user {user_id}")
                     checkin_window.destroy()
                     return
-                
                 # Load full user data to preserve categories and schedules
                 user_data = load_user_info_data(user_id)
                 if not user_data:
                     user_data = {}
-                
-                # Ensure preferences structure exists
                 if 'preferences' not in user_data:
                     user_data['preferences'] = {}
                 
-                # Update only the check-in preferences
-                user_data['preferences']['checkins'] = new_checkin_prefs
+                # Save check-in preferences (enabled status and questions) to preferences
+                checkin_preferences = {
+                    "enabled": new_checkin_prefs["enabled"],
+                    "questions": new_checkin_prefs["questions"]
+                }
+                user_data['preferences']['checkins'] = checkin_preferences
                 
-                # Save changes
+                # Load current schedules to preserve existing category schedules
+                from core.file_operations import get_user_file_path, load_json_data
+                schedules_file = get_user_file_path(user_id, 'schedules')
+                current_schedules = load_json_data(schedules_file) or {}
+                
+                # Update the user_data with current schedules and new check-in settings
+                if 'schedules' not in user_data:
+                    user_data['schedules'] = {}
+                
+                # Preserve existing category schedules
+                for category, schedule_info in current_schedules.items():
+                    if category != 'checkin':  # Don't overwrite check-in, we'll set that below
+                        user_data['schedules'][category] = schedule_info
+                
+                # Update check-in schedule
+                if new_checkin_prefs["enabled"]:
+                    user_data['schedules']["checkin"] = {
+                        "checkin_time": {
+                            "start": new_checkin_prefs["start_time"],
+                            "end": new_checkin_prefs["end_time"],
+                            "active": True,
+                            "days": selected_days,
+                            "description": f"Check-in scheduled between {new_checkin_prefs['start_time']} and {new_checkin_prefs['end_time']} on {', '.join(selected_days)}"
+                        }
+                    }
+                else:
+                    if "checkin" in user_data['schedules']:
+                        del user_data['schedules']["checkin"]
+                
+                # Save everything using save_user_info_data
                 save_user_info_data(user_data, user_id)
-                
-                # Show confirmation with details of what changed
                 enabled_count = sum(1 for var in question_vars.values() if var.get() == 1)
                 status = "enabled" if new_checkin_prefs["enabled"] else "disabled"
-                frequency = new_checkin_prefs["frequency"]
-                
                 change_details = []
                 if enabled_changed:
                     change_details.append(f"Check-ins {status}")
-                if frequency_changed:
-                    change_details.append(f"Frequency: {frequency.title()}")
+                if start_changed or end_changed:
+                    change_details.append(f"Time Range: {new_checkin_prefs['start_time']} - {new_checkin_prefs['end_time']}")
+                if days_changed:
+                    change_details.append(f"Days: {', '.join(new_checkin_prefs['days'])}")
                 if questions_changed:
                     change_details.append(f"Questions: {enabled_count} selected")
-                
                 message = "Check-in settings updated successfully!\n\n" + "\n".join(change_details)
-                
-                logger.info(f"Updated check-in settings for user {user_id}: enabled={new_checkin_prefs['enabled']}, frequency={frequency}, questions={enabled_count}")
+                logger.info(f"Updated check-in settings for user {user_id}: enabled={new_checkin_prefs['enabled']}, questions={enabled_count}, time={new_checkin_prefs['start_time']}-{new_checkin_prefs['end_time']}, days={new_checkin_prefs['days']}")
                 messagebox.showinfo("Check-in Settings Updated", message)
-                
                 checkin_window.destroy()
-                
             except Exception as e:
                 logger.error(f"Error updating check-in settings: {e}")
                 messagebox.showerror("Error", f"Failed to update check-in settings: {e}")

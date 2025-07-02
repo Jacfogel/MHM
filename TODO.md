@@ -41,6 +41,12 @@ These improvements will make the code more reliable and easier to work with:
    - *Priority*: High
    - *Estimated effort*: Medium
 
+7. **Test edge cases for check-in and category schedule management**
+   - *What it means*: Verify that first-time check-in enablement and new category addition work correctly
+   - *Why it helps*: Ensures the improved schedule management system handles all scenarios properly
+   - *Priority*: Medium
+   - *Estimated effort*: Small
+
 - [ ] fix treeview refresh - should refresh reflecting the changes, while maintaining current sorting, on message add, edit, delete, and undo delete. should also scroll window to added, edited or undeleted message
 - [ ] fix ui window sizing
 - [ ] Advanced task management and progress tracking
