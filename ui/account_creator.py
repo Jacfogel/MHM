@@ -13,6 +13,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 import uuid
+from core.schedule_management import validate_and_format_time, set_schedule_periods, set_schedule_days, clear_schedule_periods_cache
 
 logger = get_logger(__name__)
 
@@ -204,6 +205,93 @@ class CreateAccountScreen:
                 col = 0
                 row_in_frame += 1
         
+        current_row += 1
+
+        # Task Management Section
+        tk.Label(master, text="Task Management", font=("Arial", 12, "bold")).grid(
+            row=current_row, column=0, columnspan=4, pady=(15, 8), sticky=tk.W, padx=15)
+        current_row += 1
+
+        # Task management options
+        self.task_section_box = tk.LabelFrame(master, text="Task Management (Optional)", font=("Arial", 10, "bold"))
+        self.task_section_box.grid(row=current_row, column=0, columnspan=4, padx=15, pady=(10, 0), sticky=tk.W+tk.E)
+        self.tasks_enabled_var = tk.IntVar()
+        self.task_enable_checkbox = tk.Checkbutton(self.task_section_box, text="Enable Task Management", variable=self.tasks_enabled_var, command=self.update_task_options)
+        self.task_enable_checkbox.pack(anchor="w", padx=10, pady=(5, 2))
+        self.task_content_frame = tk.Frame(self.task_section_box)
+        self.task_content_frame.pack(fill="x", pady=(5, 0))
+        self.task_content_frame.pack_forget()
+        # Task periods and days UI (like admin)
+        self.task_reminder_periods = []  # List of dicts with start, end, active, and UI vars
+        self.task_period_widgets = []
+        self.task_days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        self.task_day_vars = []
+        self.task_select_all_var = tk.IntVar(value=1)
+        def render_task_periods():
+            for w in self.task_period_widgets:
+                w.destroy()
+            self.task_period_widgets.clear()
+            for idx, period in enumerate(self.task_reminder_periods):
+                row = tk.Frame(self.task_periods_box)
+                row.pack(fill="x", pady=3, anchor="w")
+                start_var = period['start_var']
+                end_var = period['end_var']
+                active_var = period['active_var']
+                tk.Label(row, text="Start:").pack(side="left")
+                tk.Entry(row, textvariable=start_var, width=6).pack(side="left", padx=(0, 5))
+                tk.Label(row, text="End:").pack(side="left")
+                tk.Entry(row, textvariable=end_var, width=6).pack(side="left", padx=(0, 5))
+                tk.Checkbutton(row, text="Active", variable=active_var).pack(side="left", padx=(5, 5))
+                def make_delete(idx):
+                    return lambda: (self.task_reminder_periods.pop(idx), render_task_periods())
+                tk.Button(row, text="Delete", command=make_delete(idx)).pack(side="left", padx=(5, 0))
+                self.task_period_widgets.append(row)
+        def add_task_period():
+            self.task_reminder_periods.append({
+                'start_var': tk.StringVar(value="12:00"),
+                'end_var': tk.StringVar(value="12:00"),
+                'active_var': tk.IntVar(value=1)
+            })
+            render_task_periods()
+        # Periods and days boxes side by side
+        self.task_columns_frame = tk.Frame(self.task_content_frame)
+        self.task_columns_frame.pack(fill="x", pady=5)
+        self.task_periods_box = tk.LabelFrame(self.task_columns_frame, text="Reminder Time Periods", font=("Arial", 10, "bold"))
+        self.task_periods_box.pack(side="left", fill="both", expand=False, padx=(0, 15), ipadx=10, ipady=5)
+        tk.Button(self.task_periods_box, text="Add New Period", command=add_task_period).pack(anchor="w", pady=5)
+        self.task_days_box = tk.LabelFrame(self.task_columns_frame, text="Reminder Days", font=("Arial", 10, "bold"))
+        self.task_days_box.pack(side="left", fill="y", expand=True, ipadx=30, ipady=5)
+        def on_task_select_all():
+            val = self.task_select_all_var.get()
+            for v in self.task_day_vars:
+                v.set(val)
+        tk.Checkbutton(self.task_days_box, text="Select All", variable=self.task_select_all_var, command=on_task_select_all).pack(anchor="w", pady=(2, 2))
+        self.task_day_vars.clear()
+        for day in self.task_days_of_week:
+            var = tk.IntVar(value=1)
+            tk.Checkbutton(self.task_days_box, text=day, variable=var).pack(anchor="w")
+            self.task_day_vars.append(var)
+        def update_task_select_all(*_):
+            if all(v.get() for v in self.task_day_vars):
+                self.task_select_all_var.set(1)
+            elif all(not v.get() for v in self.task_day_vars):
+                self.task_select_all_var.set(0)
+            else:
+                self.task_select_all_var.set(0)
+        for v in self.task_day_vars:
+            v.trace_add('write', update_task_select_all)
+        # Initial state: no periods until enabled
+        def update_task_options():
+            enabled = self.tasks_enabled_var.get() == 1
+            if enabled:
+                self.task_content_frame.pack(fill="x", pady=(5, 0))
+                if not self.task_reminder_periods:
+                    add_task_period()
+            else:
+                self.task_content_frame.pack_forget()
+        self.update_task_options = update_task_options
+        self.tasks_enabled_var.trace_add('write', lambda *_: self.update_task_options())
+
         current_row += 1
 
         # Check-in Settings Section with collapsible layout
@@ -447,6 +535,13 @@ class CreateAccountScreen:
             self.explanation.bind("<MouseWheel>", self.on_main_mouse_wheel)
         # If disabled, content frame is destroyed and not recreated, allowing proper collapsing
 
+    def update_task_options(self):
+        """Show/hide task options based on main checkbox"""
+        # For now, just enable/disable the reminder time entry
+        enabled = self.tasks_enabled_var.get() == 1
+        # The reminder time entry is always visible but can be disabled if needed
+        # This method can be expanded later for more complex task UI
+
     @handle_errors("creating account")
     def create_account(self):
         """
@@ -545,6 +640,22 @@ class CreateAccountScreen:
                 "questions": {}
             }
 
+        # Collect task management preferences
+        task_preferences = {
+            "enabled": self.tasks_enabled_var.get() == 1
+        }
+        # Add task reminder schedule to schedules if enabled
+        if self.tasks_enabled_var.get() == 1:
+            days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            schedules["tasks"] = {
+                "reminder_periods": [{
+                    "start": "12:00",
+                    "end": "12:00",
+                    "active": True
+                }],
+                "reminder_days": days_of_week.copy()
+            }
+
         # Build user_info dictionary
         user_info = {
             "user_id": user_id,
@@ -556,7 +667,8 @@ class CreateAccountScreen:
             "preferences": {
                 "categories": selected_categories,
                 "messaging_service": messaging_service,
-                "checkins": checkin_preferences
+                "checkins": checkin_preferences,
+                "tasks": task_preferences
             },
             "schedules": schedules
         }
@@ -568,10 +680,48 @@ class CreateAccountScreen:
         add_user_info(user_id, user_info)
         create_user_files(user_id, selected_categories)  # Ensure message files are created
         
-        # Explicitly save schedules to schedules.json
-        from core.file_operations import get_user_file_path, save_json_data
-        schedules_file = get_user_file_path(user_id, 'schedules')
-        save_json_data(schedules, schedules_file)
+        # Save check-in periods and days if enabled
+        if self.checkin_enabled_var.get() == 1:
+            checkin_periods_dict = {}
+            for idx, period in enumerate(getattr(self, 'checkin_reminder_periods', [])):
+                start = period['start_var'].get().strip()
+                end = period['end_var'].get().strip()
+                try:
+                    formatted_start = validate_and_format_time(start)
+                    formatted_end = validate_and_format_time(end)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Invalid check-in time format: {e}")
+                    return
+                active = period['active_var'].get() == 1
+                period_name = period.get('name', f'Period {idx+1}')
+                checkin_periods_dict[period_name] = {'start': formatted_start, 'end': formatted_end, 'active': active}
+            checkin_days = [day for day, v in zip(self.task_days_of_week, getattr(self, 'checkin_day_vars', [])) if v.get() == 1]
+            if not checkin_days:
+                checkin_days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            set_schedule_periods(user_id, 'checkin', checkin_periods_dict)
+            set_schedule_days(user_id, 'checkin', checkin_days)
+            clear_schedule_periods_cache(user_id, 'checkin')
+        # Save task periods and days if enabled
+        if self.tasks_enabled_var.get() == 1:
+            task_periods_dict = {}
+            for idx, period in enumerate(self.task_reminder_periods):
+                start = period['start_var'].get().strip()
+                end = period['end_var'].get().strip()
+                try:
+                    formatted_start = validate_and_format_time(start)
+                    formatted_end = validate_and_format_time(end)
+                except Exception as e:
+                    messagebox.showerror("Error", f"Invalid task reminder time format: {e}")
+                    return
+                active = period['active_var'].get() == 1
+                period_name = period.get('name', f'Period {idx+1}')
+                task_periods_dict[period_name] = {'start': formatted_start, 'end': formatted_end, 'active': active}
+            task_days = [day for day, v in zip(self.task_days_of_week, self.task_day_vars) if v.get() == 1]
+            if not task_days:
+                task_days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            set_schedule_periods(user_id, 'tasks', task_periods_dict)
+            set_schedule_days(user_id, 'tasks', task_days)
+            clear_schedule_periods_cache(user_id, 'tasks')
 
         logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
         messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")

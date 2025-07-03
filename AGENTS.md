@@ -9,12 +9,19 @@
 - Windows 11, PowerShell syntax preferred
 - Safety-first approach: backup before major changes, test incrementally
 
+## Project Vision
+- **Communication-First Design**: All user interactions happen through communication channels (Discord, email, etc.)
+- **AI-Powered Interface**: Users interact primarily through AI chatbot with optional menu systems
+- **No Required User UI**: Admin interface exists for management, but users never need a separate UI
+- **Channel-Agnostic Architecture**: Features work across all communication channels with minimal channel-specific code
+
 ## Key Files
 - `run_mhm.py` - Main entry point
 - `core/service.py` - Background service  
-- `ui/ui_app.py` - Admin interface
+- `ui/ui_app.py` - Admin interface (admin only, not for users)
 - `core/config.py` - Configuration
 - `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py` - Utilities (formerly in utils.py, now refactored for clarity and maintainability)
+- `bot/` - Communication channel implementations
 - `data/users/` - User data
 
 ## Rule Organization

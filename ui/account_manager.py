@@ -5,13 +5,18 @@ from tkinter import messagebox, Toplevel, Button, Entry, Checkbutton, IntVar, Fr
 import uuid
 from datetime import datetime
 import re
+from tkcalendar import DateEntry, Calendar
+import json
+import os
+from tkinter import simpledialog
 
 from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path
 from core.user_management import load_user_info_data, save_user_info_data
 from core.message_management import edit_message, add_message, delete_message, get_message_categories, update_message
 from core.schedule_management import (
     get_schedule_time_periods, delete_schedule_period, set_schedule_period_active,
-    edit_schedule_period, add_schedule_period, clear_schedule_periods_cache
+    edit_schedule_period, add_schedule_period, clear_schedule_periods_cache,
+    get_schedule_days, set_schedule_days, set_schedule_periods, validate_and_format_time
 )
 from core.validation import title_case
 from core.service_utilities import InvalidTimeFormatError
@@ -20,6 +25,11 @@ from user.user_context import UserContext
 from core.checkin_analytics import checkin_analytics
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
+)
+from tasks.task_management import (
+    load_active_tasks, save_active_tasks, load_completed_tasks, save_completed_tasks,
+    create_task, update_task, complete_task, delete_task, get_task_by_id,
+    get_tasks_due_soon, get_user_task_stats
 )
 
 logger = get_logger(__name__)
@@ -1785,23 +1795,30 @@ def setup_checkin_management_window(root, user_id):
                     if category != 'checkin':  # Don't overwrite check-in, we'll set that below
                         user_data['schedules'][category] = schedule_info
                 
-                # Update check-in schedule
-                if new_checkin_prefs["enabled"]:
-                    user_data['schedules']["checkin"] = {
-                        "checkin_time": {
-                            "start": new_checkin_prefs["start_time"],
-                            "end": new_checkin_prefs["end_time"],
-                            "active": True,
-                            "days": selected_days,
-                            "description": f"Check-in scheduled between {new_checkin_prefs['start_time']} and {new_checkin_prefs['end_time']} on {', '.join(selected_days)}"
-                        }
+                # Always preserve check-in schedule data, regardless of enabled status
+                user_data['schedules']["checkin"] = {
+                    "checkin_time": {
+                        "start": new_checkin_prefs["start_time"],
+                        "end": new_checkin_prefs["end_time"],
+                        "active": True,
+                        "days": selected_days,
+                        "description": f"Check-in scheduled between {new_checkin_prefs['start_time']} and {new_checkin_prefs['end_time']} on {', '.join(selected_days)}"
                     }
-                else:
-                    if "checkin" in user_data['schedules']:
-                        del user_data['schedules']["checkin"]
+                }
                 
                 # Save everything using save_user_info_data
                 save_user_info_data(user_data, user_id)
+                
+                # Reschedule check-ins if enabled status changed or schedule changed
+                if enabled_changed or start_changed or end_changed or days_changed:
+                    try:
+                        # Create reschedule request for service to pick up
+                        from core.service_utilities import create_reschedule_request
+                        create_reschedule_request(user_id, "checkin")
+                        logger.info(f"Created reschedule request for check-ins for user {user_id}")
+                    except Exception as e:
+                        logger.warning(f"Could not create reschedule request for check-ins: {e}")
+                
                 enabled_count = sum(1 for var in question_vars.values() if var.get() == 1)
                 status = "enabled" if new_checkin_prefs["enabled"] else "disabled"
                 change_details = []
@@ -2029,3 +2046,1004 @@ def setup_checkin_analytics_window(root, user_id):
         logger.error(f"Error setting up analytics window for user {user_id}: {e}")
         messagebox.showerror("Error", f"Failed to load analytics: {e}")
         analytics_window.destroy() 
+
+def setup_task_management_window(parent, user_id):
+    """Opens a window to manage user's task settings."""
+    logger.info(f"Opening task management for user {user_id}")
+
+    task_window = Toplevel(parent)
+    task_window.title(f"Task Management - {user_id}")
+    task_window.geometry("700x600")
+
+    try:
+        user_data = load_user_info_data(user_id)
+        if not user_data:
+            user_data = {}
+        if 'preferences' not in user_data:
+            user_data['preferences'] = {}
+        if 'tasks' not in user_data['preferences']:
+            user_data['preferences']['tasks'] = {}
+        task_preferences = user_data['preferences'].get('tasks', {})
+        tasks_enabled = task_preferences.get('enabled', False)
+        
+        # Load reminder periods and days from schedules.json using the same system as check-ins
+        from core.schedule_management import get_reminder_periods_and_days
+        reminder_periods, reminder_days = get_reminder_periods_and_days(user_id, 'tasks')
+        
+        # Backward compatibility: migrate old single time if present in preferences
+        if not reminder_periods and 'default_reminder_time' in task_preferences:
+            reminder_periods = [{
+                'start': task_preferences['default_reminder_time'],
+                'end': task_preferences['default_reminder_time'],
+                'active': True
+            }]
+
+        # Title label at the top
+        tk.Label(task_window, text="Task Management Settings", font=("Arial", 16, "bold")).pack(pady=(15, 5))
+
+        # Enable/disable tasks (moved above settings)
+        enable_frame = tk.Frame(task_window)
+        enable_frame.pack(fill="x", padx=20, pady=(0, 0))
+        tasks_enabled_var = tk.IntVar(value=1 if tasks_enabled else 0)
+        enable_checkbox = tk.Checkbutton(enable_frame, text="Enable Task Management", variable=tasks_enabled_var, font=("Arial", 10))
+        enable_checkbox.pack(anchor="w")
+
+        # Main settings frame
+        settings_frame = tk.LabelFrame(task_window, text="Task Settings", font=("Arial", 10, "bold"))
+        settings_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+        # Two-column layout for periods and days as side-by-side boxes
+        columns_frame = tk.Frame(settings_frame)
+        columns_frame.pack(fill="x", padx=10, pady=10)
+
+        # Left: Reminder Time Periods box (narrower)
+        periods_box = tk.LabelFrame(columns_frame, text="Reminder Time Periods", font=("Arial", 10, "bold"))
+        periods_box.pack(side="left", fill="both", expand=False, padx=(0, 15), pady=0, anchor="n", ipadx=10, ipady=5)
+        periods_box.config(width=280)
+        period_widgets = []
+        def render_periods():
+            for w in period_widgets:
+                w.destroy()
+            period_widgets.clear()
+            for idx, period in enumerate(reminder_periods):
+                row = tk.Frame(periods_box)
+                row.pack(fill="x", pady=3, anchor="w")
+                start_var = tk.StringVar(value=period.get('start', '09:00'))
+                tk.Label(row, text="Start:").pack(side="left")
+                start_entry = tk.Entry(row, textvariable=start_var, width=6)
+                start_entry.pack(side="left", padx=(0, 5))
+                end_var = tk.StringVar(value=period.get('end', '10:00'))
+                tk.Label(row, text="End:").pack(side="left")
+                end_entry = tk.Entry(row, textvariable=end_var, width=6)
+                end_entry.pack(side="left", padx=(0, 5))
+                active_var = tk.IntVar(value=1 if period.get('active', True) else 0)
+                active_cb = tk.Checkbutton(row, text="Active", variable=active_var)
+                active_cb.pack(side="left", padx=(5, 5))
+                def make_delete(idx):
+                    return lambda: (reminder_periods.pop(idx), render_periods())
+                del_btn = tk.Button(row, text="Delete", command=make_delete(idx))
+                del_btn.pack(side="left", padx=(5, 0))
+                period_widgets.append(row)
+                period['__vars'] = {
+                    'start': start_var, 'end': end_var, 'active': active_var
+                }
+        render_periods()
+        tk.Button(periods_box, text="Add New Period", command=lambda: (reminder_periods.append({'start': '09:00', 'end': '10:00', 'active': True}), render_periods())).pack(anchor="w", pady=5)
+
+        # Right: Reminder Days box (wider)
+        days_box = tk.LabelFrame(columns_frame, text="Reminder Days", font=("Arial", 10, "bold"))
+        days_box.pack(side="left", fill="y", expand=True, padx=(0,0), pady=0, anchor="n", ipadx=30, ipady=5)
+        days_box.config(width=200)
+        days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        day_vars = []
+        
+        # Create day variables first
+        for i, day in enumerate(days_of_week):
+            var = tk.IntVar(value=1 if day in reminder_days else 0)
+            day_vars.append(var)
+        
+        # Select All checkbox - initialize based on actual selected days
+        all_days_selected = all(var.get() for var in day_vars)
+        select_all_var = tk.IntVar(value=1 if all_days_selected else 0)
+        
+        def on_select_all():
+            val = select_all_var.get()
+            for v in day_vars:
+                v.set(val)
+        
+        select_all_cb = tk.Checkbutton(days_box, text="Select All", variable=select_all_var, command=on_select_all)
+        select_all_cb.pack(anchor="w", pady=(2, 2))
+        
+        def update_select_all(*_):
+            if all(v.get() for v in day_vars):
+                select_all_var.set(1)
+            elif all(not v.get() for v in day_vars):
+                select_all_var.set(0)
+            else:
+                select_all_var.set(0)
+        
+        # Create checkboxes and bind update function
+        for i, day in enumerate(days_of_week):
+            cb = tk.Checkbutton(days_box, text=day, variable=day_vars[i], command=update_select_all)
+            cb.pack(anchor="w")
+
+        # When enabling task management for the first time, add a default period if none exist
+        def on_enable_toggle(*_):
+            if tasks_enabled_var.get() == 1 and not reminder_periods:
+                reminder_periods.append({'start': '09:00', 'end': '10:00', 'active': True})
+                render_periods()
+        tasks_enabled_var.trace_add('write', on_enable_toggle)
+
+        # Task statistics frame (unchanged)
+        stats_frame = tk.LabelFrame(task_window, text="Task Statistics", font=("Arial", 10, "bold"))
+        stats_frame.pack(fill="x", padx=20, pady=10)
+        try:
+            from tasks.task_management import get_user_task_stats
+            stats = get_user_task_stats(user_id)
+            stats_text = f"Active Tasks: {stats.get('active_count', 0)}\n"
+            stats_text += f"Completed Tasks: {stats.get('completed_count', 0)}\n"
+            stats_text += f"Total Tasks: {stats.get('total_count', 0)}"
+            stats_label = tk.Label(stats_frame, text=stats_text, font=("Arial", 10), justify=tk.LEFT)
+            stats_label.pack(padx=10, pady=10)
+        except Exception as e:
+            logger.warning(f"Could not load task statistics: {e}")
+            stats_label = tk.Label(stats_frame, text="Task statistics unavailable", font=("Arial", 10, "italic"), fg="gray")
+            stats_label.pack(padx=10, pady=10)
+
+        # Instructions (unchanged)
+        instructions_frame = tk.Frame(task_window)
+        instructions_frame.pack(fill="x", padx=20, pady=(0, 10))
+        tk.Label(instructions_frame, text="Task management allows users to create and track tasks with reminders.", font=("Arial", 8, "italic"), fg="gray").pack()
+        tk.Label(instructions_frame, text="Tasks can be managed through the AI chatbot interface.", font=("Arial", 8, "italic"), fg="gray").pack()
+
+        def save_task_changes():
+            try:
+                from core.file_operations import get_user_file_path, load_json_data, save_json_data
+                from core.schedule_management import validate_and_format_time
+                schedules_file = get_user_file_path(user_id, 'schedules')
+                # Gather periods from UI
+                new_periods = []
+                for period in reminder_periods:
+                    vars = period.get('__vars', {})
+                    start = vars['start'].get().strip()
+                    end = vars['end'].get().strip()
+                    try:
+                        formatted_start = validate_and_format_time(start)
+                        formatted_end = validate_and_format_time(end)
+                    except Exception as e:
+                        messagebox.showerror("Error", f"Invalid time format: {e}")
+                        return
+                    active = vars['active'].get() == 1
+                    new_periods.append({'start': formatted_start, 'end': formatted_end, 'active': active})
+                # Gather days from UI (as names)
+                days = [day for day, v in zip(days_of_week, day_vars) if v.get() == 1]
+                if not days:
+                    messagebox.showerror("Error", "Please select at least one day for reminders.")
+                    return
+                new_enabled = tasks_enabled_var.get() == 1
+                user_data = load_user_info_data(user_id)
+                if not user_data:
+                    user_data = {}
+                if 'preferences' not in user_data:
+                    user_data['preferences'] = {}
+                if 'tasks' not in user_data['preferences']:
+                    user_data['preferences']['tasks'] = {}
+                user_data['preferences']['tasks']['enabled'] = new_enabled
+                save_user_info_data(user_data, user_id)
+                # Always preserve task reminder schedule data, regardless of enabled status
+                from core.schedule_management import set_reminder_periods_and_days
+                set_reminder_periods_and_days(user_id, 'tasks', new_periods, days)
+                
+                # Reschedule task reminders if enabled status changed or schedule changed
+                if new_enabled != tasks_enabled:
+                    try:
+                        # Create reschedule request for service to pick up
+                        from core.service_utilities import create_reschedule_request
+                        create_reschedule_request(user_id, "tasks")
+                        logger.info(f"Created reschedule request for task reminders for user {user_id}")
+                    except Exception as e:
+                        logger.warning(f"Could not create reschedule request for task reminders: {e}")
+                
+                message = "Task settings updated successfully!"
+                logger.info(f"Updated task settings for user {user_id}: enabled={new_enabled}, periods={new_periods}, days={days}")
+                messagebox.showinfo("Task Settings Updated", message)
+                task_window.destroy()
+            except Exception as e:
+                logger.error(f"Error updating task settings: {e}")
+                messagebox.showerror("Error", f"Failed to update task settings: {e}")
+
+        button_frame = tk.Frame(task_window)
+        button_frame.pack(pady=10)
+        tk.Button(button_frame, text="Save Changes", command=save_task_changes).pack(side="left", padx=5)
+        tk.Button(button_frame, text="Cancel", command=task_window.destroy).pack(side="left", padx=5)
+
+    except Exception as e:
+        logger.error(f"Error loading task management: {e}")
+        messagebox.showerror("Error", f"Failed to load task management: {e}")
+        task_window.destroy()
+
+@handle_errors("setting up task CRUD window")
+def setup_task_crud_window(parent, user_id):
+    """Opens a window for full CRUD operations on tasks."""
+    logger.info(f"Opening task CRUD window for user {user_id}")
+
+    task_crud_window = Toplevel(parent)
+    task_crud_window.title(f"Task Management - {user_id}")
+    task_crud_window.geometry("1000x700")
+    task_crud_window.minsize(800, 600)
+
+    # Main container
+    main_frame = tk.Frame(task_crud_window)
+    main_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    # Title
+    title_label = tk.Label(main_frame, text="Task Management", font=("Arial", 16, "bold"))
+    title_label.pack(pady=(0, 10))
+
+    # Create notebook for tabs
+    notebook = ttk.Notebook(main_frame)
+    notebook.pack(fill="both", expand=True)
+
+    # Active Tasks Tab
+    active_frame = tk.Frame(notebook)
+    notebook.add(active_frame, text="Active Tasks")
+
+    # Completed Tasks Tab
+    completed_frame = tk.Frame(notebook)
+    notebook.add(completed_frame, text="Completed Tasks")
+
+    # Task Statistics Tab
+    stats_frame = tk.Frame(notebook)
+    notebook.add(stats_frame, text="Statistics")
+
+    # Active Tasks Tab Content
+    def setup_active_tasks_tab():
+        # Toolbar
+        toolbar = tk.Frame(active_frame)
+        toolbar.pack(fill="x", padx=5, pady=5)
+
+        tk.Button(toolbar, text="Add New Task", command=lambda: add_task_dialog(active_frame, user_id, refresh_active_tasks)).pack(side="left", padx=5)
+        tk.Button(toolbar, text="Edit Selected", command=lambda: edit_selected_task(active_frame, user_id, refresh_active_tasks)).pack(side="left", padx=5)
+        tk.Button(toolbar, text="Complete Selected", command=lambda: complete_selected_task(active_frame, user_id, refresh_active_tasks)).pack(side="left", padx=5)
+        tk.Button(toolbar, text="Delete Selected", command=lambda: delete_selected_task(active_frame, user_id, refresh_active_tasks)).pack(side="left", padx=5)
+        tk.Button(toolbar, text="Refresh", command=lambda: refresh_active_tasks()).pack(side="left", padx=5)
+
+        # Treeview for active tasks
+        columns = ("Title", "Description", "Due Date", "Due Time", "Priority", "Category", "Created")
+        active_tree = ttk.Treeview(active_frame, columns=columns, show="headings", height=15)
+        
+        # Configure columns
+        active_tree.heading("Title", text="Title")
+        active_tree.heading("Description", text="Description")
+        active_tree.heading("Due Date", text="Due Date")
+        active_tree.heading("Due Time", text="Due Time")
+        active_tree.heading("Priority", text="Priority")
+        active_tree.heading("Category", text="Category")
+        active_tree.heading("Created", text="Created")
+
+        active_tree.column("Title", width=150)
+        active_tree.column("Description", width=200)
+        active_tree.column("Due Date", width=100)
+        active_tree.column("Due Time", width=80)
+        active_tree.column("Priority", width=80)
+        active_tree.column("Category", width=100)
+        active_tree.column("Created", width=120)
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(active_frame, orient="vertical", command=active_tree.yview)
+        active_tree.configure(yscrollcommand=scrollbar.set)
+
+        active_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar.pack(side="right", fill="y", pady=5)
+
+        # Status bar
+        status_bar = tk.Label(active_frame, text="Ready", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        def refresh_active_tasks():
+            """Refresh the active tasks treeview."""
+            try:
+                # Clear existing items
+                for item in active_tree.get_children():
+                    active_tree.delete(item)
+
+                # Load and display active tasks
+                tasks = load_active_tasks(user_id)
+                for task in tasks:
+                    values = (
+                        task.get('title', ''),
+                        task.get('description', ''),
+                        task.get('due_date', ''),
+                        task.get('due_time', ''),
+                        task.get('priority', 'medium'),
+                        task.get('category', ''),
+                        task.get('created_at', '')
+                    )
+                    active_tree.insert('', 'end', values=values, tags=(task.get('task_id', ''),))
+
+                status_bar.config(text=f"Loaded {len(tasks)} active tasks")
+                
+            except Exception as e:
+                logger.error(f"Error refreshing active tasks: {e}")
+                status_bar.config(text=f"Error loading tasks: {e}")
+
+        # Store the tree and refresh function for external access
+        active_frame.active_tree = active_tree
+        active_frame.refresh_active_tasks = refresh_active_tasks
+        active_frame.status_bar = status_bar
+
+        # Initial load
+        refresh_active_tasks()
+
+    # Completed Tasks Tab Content
+    def setup_completed_tasks_tab():
+        # Toolbar
+        toolbar = tk.Frame(completed_frame)
+        toolbar.pack(fill="x", padx=5, pady=5)
+
+        tk.Button(toolbar, text="Refresh", command=lambda: refresh_completed_tasks()).pack(side="left", padx=5)
+
+        # Treeview for completed tasks
+        columns = ("Title", "Description", "Due Date", "Priority", "Category", "Completed")
+        completed_tree = ttk.Treeview(completed_frame, columns=columns, show="headings", height=15)
+        
+        # Configure columns
+        completed_tree.heading("Title", text="Title")
+        completed_tree.heading("Description", text="Description")
+        completed_tree.heading("Due Date", text="Due Date")
+        completed_tree.heading("Priority", text="Priority")
+        completed_tree.heading("Category", text="Category")
+        completed_tree.heading("Completed", text="Completed")
+
+        completed_tree.column("Title", width=150)
+        completed_tree.column("Description", width=200)
+        completed_tree.column("Due Date", width=100)
+        completed_tree.column("Priority", width=80)
+        completed_tree.column("Category", width=100)
+        completed_tree.column("Completed", width=120)
+
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(completed_frame, orient="vertical", command=completed_tree.yview)
+        completed_tree.configure(yscrollcommand=scrollbar.set)
+
+        completed_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+        scrollbar.pack(side="right", fill="y", pady=5)
+
+        # Status bar
+        status_bar = tk.Label(completed_frame, text="Ready", bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+
+        def refresh_completed_tasks():
+            """Refresh the completed tasks treeview."""
+            try:
+                # Clear existing items
+                for item in completed_tree.get_children():
+                    completed_tree.delete(item)
+
+                # Load and display completed tasks
+                tasks = load_completed_tasks(user_id)
+                for task in tasks:
+                    values = (
+                        task.get('title', ''),
+                        task.get('description', ''),
+                        task.get('due_date', ''),
+                        task.get('priority', 'medium'),
+                        task.get('category', ''),
+                        task.get('completed_at', '')
+                    )
+                    completed_tree.insert('', 'end', values=values, tags=(task.get('task_id', ''),))
+
+                status_bar.config(text=f"Loaded {len(tasks)} completed tasks")
+                
+            except Exception as e:
+                logger.error(f"Error refreshing completed tasks: {e}")
+                status_bar.config(text=f"Error loading tasks: {e}")
+
+        # Store the tree and refresh function for external access
+        completed_frame.completed_tree = completed_tree
+        completed_frame.refresh_completed_tasks = refresh_completed_tasks
+        completed_frame.status_bar = status_bar
+
+        # Initial load
+        refresh_completed_tasks()
+
+    # Statistics Tab Content
+    def setup_statistics_tab():
+        stats_content = tk.Frame(stats_frame)
+        stats_content.pack(fill="both", expand=True, padx=20, pady=20)
+
+        def refresh_statistics():
+            """Refresh the statistics display."""
+            try:
+                # Clear existing content
+                for widget in stats_content.winfo_children():
+                    widget.destroy()
+
+                # Get statistics
+                stats = get_user_task_stats(user_id)
+                active_tasks = load_active_tasks(user_id)
+                completed_tasks = load_completed_tasks(user_id)
+                due_soon = get_tasks_due_soon(user_id, 7)
+
+                # Create statistics display
+                tk.Label(stats_content, text="Task Statistics", font=("Arial", 14, "bold")).pack(pady=(0, 20))
+
+                # Basic stats
+                basic_frame = tk.LabelFrame(stats_content, text="Overview", font=("Arial", 10, "bold"))
+                basic_frame.pack(fill="x", pady=10)
+
+                tk.Label(basic_frame, text=f"Active Tasks: {stats.get('active_count', 0)}", font=("Arial", 10)).pack(anchor="w", padx=10, pady=5)
+                tk.Label(basic_frame, text=f"Completed Tasks: {stats.get('completed_count', 0)}", font=("Arial", 10)).pack(anchor="w", padx=10, pady=5)
+                tk.Label(basic_frame, text=f"Total Tasks: {stats.get('total_count', 0)}", font=("Arial", 10)).pack(anchor="w", padx=10, pady=5)
+
+                # Due soon tasks
+                due_frame = tk.LabelFrame(stats_content, text=f"Due Within 7 Days ({len(due_soon)} tasks)", font=("Arial", 10, "bold"))
+                due_frame.pack(fill="both", expand=True, pady=10)
+
+                if due_soon:
+                    # Create treeview for due soon tasks
+                    columns = ("Title", "Due Date", "Priority", "Category")
+                    due_tree = ttk.Treeview(due_frame, columns=columns, show="headings", height=8)
+                    
+                    due_tree.heading("Title", text="Title")
+                    due_tree.heading("Due Date", text="Due Date")
+                    due_tree.heading("Priority", text="Priority")
+                    due_tree.heading("Category", text="Category")
+
+                    due_tree.column("Title", width=200)
+                    due_tree.column("Due Date", width=100)
+                    due_tree.column("Priority", width=80)
+                    due_tree.column("Category", width=100)
+
+                    scrollbar = ttk.Scrollbar(due_frame, orient="vertical", command=due_tree.yview)
+                    due_tree.configure(yscrollcommand=scrollbar.set)
+
+                    due_tree.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+                    scrollbar.pack(side="right", fill="y", pady=5)
+
+                    for task in due_soon:
+                        values = (
+                            task.get('title', ''),
+                            task.get('due_date', ''),
+                            task.get('priority', 'medium'),
+                            task.get('category', '')
+                        )
+                        due_tree.insert('', 'end', values=values)
+                else:
+                    tk.Label(due_frame, text="No tasks due within 7 days", font=("Arial", 10, "italic"), fg="gray").pack(pady=20)
+
+                # Refresh button
+                tk.Button(stats_content, text="Refresh Statistics", command=refresh_statistics).pack(pady=10)
+
+            except Exception as e:
+                logger.error(f"Error refreshing statistics: {e}")
+                tk.Label(stats_content, text=f"Error loading statistics: {e}", fg="red").pack(pady=20)
+
+        # Initial load
+        refresh_statistics()
+
+    # Setup all tabs
+    setup_active_tasks_tab()
+    setup_completed_tasks_tab()
+    setup_statistics_tab()
+
+    # Store references for external access
+    task_crud_window.active_frame = active_frame
+    task_crud_window.completed_frame = completed_frame
+    task_crud_window.stats_frame = stats_frame
+
+    return task_crud_window
+
+class TaskDialog(tk.Toplevel):
+    """Dialog for adding or editing tasks."""
+    
+    def __init__(self, parent, user_id, task_data=None, on_save=None):
+        super().__init__(parent)
+        self.user_id = user_id
+        self.task_data = task_data or {}
+        self.on_save = on_save
+        self.is_edit = bool(task_data)
+        self.tags = self.load_tags()
+        self.selected_tags = set(self.task_data.get('categories', [])) if 'categories' in self.task_data else set([self.task_data.get('category', '')] if self.task_data.get('category', '') else [])
+        self.reminder_periods = self.task_data.get('reminder_periods', []) or []
+        self.title("Edit Task" if self.is_edit else "Add New Task")
+        self.geometry("850x900")
+        self.resizable(False, False)
+        self.transient(parent)
+        self.grab_set()
+        self.setup_ui()
+        self.bind('<Return>', lambda e: self.save_task())
+        self.bind('<Escape>', lambda e: self.destroy())
+
+    def load_tags(self):
+        tags_file = os.path.join('data', 'users', self.user_id, 'tags.json')
+        if os.path.exists(tags_file):
+            try:
+                with open(tags_file, 'r', encoding='utf-8') as f:
+                    tags = json.load(f)
+                if isinstance(tags, list):
+                    return tags
+            except Exception:
+                pass
+        return []
+
+    def save_tags(self):
+        tags_file = os.path.join('data', 'users', self.user_id, 'tags.json')
+        try:
+            with open(tags_file, 'w', encoding='utf-8') as f:
+                json.dump(self.tags, f, indent=2)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save tags: {e}")
+
+    def setup_ui(self):
+        main_frame = tk.Frame(self)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        title_text = "Edit Task" if self.is_edit else "Add New Task"
+        tk.Label(main_frame, text=title_text, font=("Arial", 14, "bold")).pack(pady=(0, 20))
+        form_frame = tk.Frame(main_frame)
+        form_frame.pack(fill="both", expand=True)
+        # Title
+        tk.Label(form_frame, text="Title *:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        self.title_var = tk.StringVar(value=self.task_data.get('title', ''))
+        title_entry = tk.Entry(form_frame, textvariable=self.title_var, width=50)
+        title_entry.pack(fill="x", pady=(0, 15))
+        title_entry.focus_set()
+        # Description
+        tk.Label(form_frame, text="Description:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        self.description_text = tk.Text(form_frame, height=4, width=50)
+        self.description_text.insert("1.0", self.task_data.get('description', ''))
+        self.description_text.pack(fill="x", pady=(0, 15))
+        # Due Date (always-visible Calendar)
+        tk.Label(form_frame, text="Due Date:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        cal_frame = tk.Frame(form_frame)
+        cal_frame.pack(anchor="w", pady=(0, 10))
+        self.due_date_var = tk.StringVar(value=self.task_data.get('due_date', ''))
+        self.due_calendar = Calendar(cal_frame, selectmode='day', date_pattern='yyyy-mm-dd')
+        self.due_calendar.pack()
+        if self.due_date_var.get():
+            try:
+                self.due_calendar.selection_set(self.due_date_var.get())
+            except Exception:
+                pass
+        # Due Time (ComboBoxes + AM/PM)
+        tk.Label(form_frame, text="Due Time:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        due_time_frame = tk.Frame(form_frame)
+        due_time_frame.pack(anchor="w", pady=(0, 15))
+        hour_options = [''] + [f"{h:02d}" for h in range(1, 13)]
+        minute_options = [''] + [f"{m:02d}" for m in range(0, 60, 5)]
+        ampm_options = ['', 'AM', 'PM']
+        due_time = self.task_data.get('due_time', '')
+        due_hour, due_minute, due_ampm = '', '00', 'AM'
+        if due_time:
+            try:
+                h, m = map(int, due_time.split(':'))
+                due_ampm = 'AM' if h < 12 or h == 24 else 'PM'
+                h12 = h % 12
+                if h12 == 0: h12 = 12
+                due_hour = f"{h12:02d}"
+                due_minute = f"{m:02d}"
+            except Exception:
+                pass
+        self.due_hour_var = tk.StringVar(value=due_hour)
+        self.due_minute_var = tk.StringVar(value=due_minute)
+        self.due_ampm_var = tk.StringVar(value=due_ampm)
+        ttk.Combobox(due_time_frame, textvariable=self.due_hour_var, values=hour_options, width=3, state="readonly").pack(side=tk.LEFT)
+        tk.Label(due_time_frame, text=":").pack(side=tk.LEFT)
+        ttk.Combobox(due_time_frame, textvariable=self.due_minute_var, values=minute_options, width=3, state="readonly").pack(side=tk.LEFT)
+        ttk.Combobox(due_time_frame, textvariable=self.due_ampm_var, values=ampm_options, width=3, state="readonly").pack(side=tk.LEFT)
+        for val in ("AM", "PM"):
+            tk.Radiobutton(due_time_frame, text=val, variable=self.due_ampm_var, value=val).pack(side=tk.LEFT)
+        # Priority (Titlecase)
+        tk.Label(form_frame, text="Priority:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        priority_val = self.task_data.get('priority')
+        if priority_val and priority_val.lower() in ['low', 'medium', 'high']:
+            priority_val = priority_val.capitalize()
+        else:
+            priority_val = ''  # Allow blank/none
+        self.priority_var = tk.StringVar(value=priority_val)
+        priority_combo = ttk.Combobox(form_frame, textvariable=self.priority_var, 
+                                    values=['', 'Low', 'Medium', 'High'], state="readonly", width=15)
+        priority_combo.pack(anchor="w", pady=(0, 15))
+        # Multi-Tag UI
+        tk.Label(form_frame, text="Tags:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        self.tag_bubble_frame = tk.Frame(form_frame)
+        self.tag_bubble_frame.pack(fill="x", pady=(0, 5))
+        self.render_tag_bubbles()
+        tag_list_frame = tk.Frame(form_frame)
+        tag_list_frame.pack(fill="x", pady=(0, 10))
+        tag_listbox_frame = tk.Frame(tag_list_frame)
+        tag_listbox_frame.pack(side=tk.LEFT, fill="y")
+        tag_scrollbar = tk.Scrollbar(tag_listbox_frame, orient="vertical")
+        self.tag_listbox = tk.Listbox(tag_listbox_frame, selectmode=tk.SINGLE, yscrollcommand=tag_scrollbar.set, height=5)
+        tag_scrollbar.config(command=self.tag_listbox.yview)
+        tag_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tag_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.refresh_tag_listbox()
+        tag_btn_frame = tk.Frame(tag_list_frame)
+        tag_btn_frame.pack(side=tk.LEFT, padx=5)
+        tk.Button(tag_btn_frame, text="Add Tag", command=self.add_selected_tag).pack(fill="x")
+        tk.Button(tag_btn_frame, text="New Tag", command=self.create_new_tag).pack(fill="x", pady=(5,0))
+        # Reminder Periods Section (unchanged except for tag storage)
+        tk.Label(form_frame, text="Reminder Time Periods:", font=("Arial", 10, "bold")).pack(anchor="w", pady=(10, 5))
+        self.reminder_periods_frame = tk.Frame(form_frame)
+        self.reminder_periods_frame.pack(fill="x", pady=(0, 10))
+        self.render_reminder_periods()
+        tk.Button(form_frame, text="Add New Reminder Period", command=self.add_reminder_period).pack(anchor="w", pady=(0, 10))
+        # Buttons
+        button_frame = tk.Frame(main_frame)
+        button_frame.pack(fill="x", pady=(20, 0))
+        tk.Button(button_frame, text="Save", command=self.save_task).pack(side="right", padx=(5, 0))
+        tk.Button(button_frame, text="Cancel", command=self.destroy).pack(side="right")
+
+    def render_tag_bubbles(self):
+        for widget in self.tag_bubble_frame.winfo_children():
+            widget.destroy()
+        for tag in sorted(self.selected_tags):
+            bubble = tk.Frame(self.tag_bubble_frame, bd=1, relief=tk.SOLID, bg="#e0e0e0", padx=6, pady=2)
+            tk.Label(bubble, text=tag, bg="#e0e0e0").pack(side=tk.LEFT)
+            tk.Button(bubble, text="×", command=lambda t=tag: self.remove_tag_bubble(t), bd=0, bg="#e0e0e0", fg="red", padx=2).pack(side=tk.LEFT)
+            bubble.pack(side=tk.LEFT, padx=3, pady=2)
+
+    def refresh_tag_listbox(self):
+        self.tag_listbox.delete(0, tk.END)
+        for tag in sorted([t for t in self.tags if t not in self.selected_tags]):
+            self.tag_listbox.insert(tk.END, tag)
+
+    def add_selected_tag(self):
+        selection = self.tag_listbox.curselection()
+        if selection:
+            tag = self.tag_listbox.get(selection[0])
+            self.selected_tags.add(tag)
+            self.render_tag_bubbles()
+            self.refresh_tag_listbox()
+
+    def remove_tag_bubble(self, tag):
+        self.selected_tags.discard(tag)
+        self.render_tag_bubbles()
+        self.refresh_tag_listbox()
+
+    def create_new_tag(self):
+        new_tag = simpledialog.askstring("Create New Tag", "Enter new tag name:")
+        if new_tag and new_tag not in self.tags:
+            self.tags.append(new_tag)
+            self.save_tags()
+            self.refresh_tag_listbox()
+
+    def render_reminder_periods(self):
+        for widget in self.reminder_periods_frame.winfo_children():
+            widget.destroy()
+        for idx, period in enumerate(self.reminder_periods):
+            self.render_reminder_period_row(idx, period)
+
+    def render_reminder_period_row(self, idx, period):
+        row = tk.Frame(self.reminder_periods_frame)
+        row.pack(fill="x", pady=2, expand=True)
+        # Date
+        tk.Label(row, text="Date:").pack(side=tk.LEFT)
+        date_var = tk.StringVar(value=period.get('date', ''))
+        date_entry = DateEntry(row, textvariable=date_var, width=10, date_pattern='yyyy-mm-dd')
+        date_entry.pack(side=tk.LEFT, padx=(2, 5))
+        # Start Time
+        tk.Label(row, text="Start Time:").pack(side=tk.LEFT)
+        start_hour_var = tk.StringVar(value='')
+        start_minute_var = tk.StringVar(value='00')
+        start_ampm_var = tk.StringVar(value='AM')
+        if 'start_time' in period and period['start_time']:
+            try:
+                h, m = map(int, period['start_time'].split(':'))
+                start_ampm_var.set('AM' if h < 12 or h == 24 else 'PM')
+                h12 = h % 12
+                if h12 == 0: h12 = 12
+                start_hour_var.set(f"{h12:02d}")
+                start_minute_var.set(f"{m:02d}")
+            except Exception:
+                pass
+        hour_options = [''] + [f"{h:02d}" for h in range(1, 13)]
+        minute_options = [''] + [f"{m:02d}" for m in range(0, 60, 5)]
+        ampm_options = ['', 'AM', 'PM']
+        ttk.Combobox(row, textvariable=start_hour_var, values=hour_options, width=3, state="readonly").pack(side=tk.LEFT)
+        tk.Label(row, text=":").pack(side=tk.LEFT)
+        ttk.Combobox(row, textvariable=start_minute_var, values=minute_options, width=3, state="readonly").pack(side=tk.LEFT)
+        ttk.Combobox(row, textvariable=start_ampm_var, values=ampm_options, width=3, state="readonly").pack(side=tk.LEFT)
+        for val in ("AM", "PM"):
+            tk.Radiobutton(row, text=val, variable=start_ampm_var, value=val).pack(side=tk.LEFT)
+        # End Time
+        tk.Label(row, text="End Time:").pack(side=tk.LEFT, padx=(10, 0))
+        end_hour_var = tk.StringVar(value='')
+        end_minute_var = tk.StringVar(value='00')
+        end_ampm_var = tk.StringVar(value='AM')
+        if 'end_time' in period and period['end_time']:
+            try:
+                h, m = map(int, period['end_time'].split(':'))
+                end_ampm_var.set('AM' if h < 12 or h == 24 else 'PM')
+                h12 = h % 12
+                if h12 == 0: h12 = 12
+                end_hour_var.set(f"{h12:02d}")
+                end_minute_var.set(f"{m:02d}")
+            except Exception:
+                pass
+        ttk.Combobox(row, textvariable=end_hour_var, values=hour_options, width=3, state="readonly").pack(side=tk.LEFT)
+        tk.Label(row, text=":").pack(side=tk.LEFT)
+        ttk.Combobox(row, textvariable=end_minute_var, values=minute_options, width=3, state="readonly").pack(side=tk.LEFT)
+        ttk.Combobox(row, textvariable=end_ampm_var, values=ampm_options, width=3, state="readonly").pack(side=tk.LEFT)
+        for val in ("AM", "PM"):
+            tk.Radiobutton(row, text=val, variable=end_ampm_var, value=val).pack(side=tk.LEFT)
+        # No Active checkbox (just add/delete)
+        # Delete button
+        tk.Button(row, text="Delete", command=lambda idx=idx: self.delete_reminder_period(idx)).pack(side=tk.LEFT, padx=(10, 0))
+        # Store variables for later retrieval
+        period['__vars'] = {
+            'date': date_var,
+            'start_hour': start_hour_var,
+            'start_minute': start_minute_var,
+            'start_ampm': start_ampm_var,
+            'end_hour': end_hour_var,
+            'end_minute': end_minute_var,
+            'end_ampm': end_ampm_var
+        }
+
+    def add_reminder_period(self):
+        self.reminder_periods.append({
+            'date': '', 'start_time': '', 'end_time': ''
+        })
+        self.render_reminder_periods()
+
+    def delete_reminder_period(self, idx):
+        if 0 <= idx < len(self.reminder_periods):
+            self.reminder_periods.pop(idx)
+            self.render_reminder_periods()
+
+    def validate_dates(self, due_date, reminder_periods):
+        """Validate dates and show confirmation dialogs if needed."""
+        from datetime import datetime, date
+        
+        today = date.today()
+        due_date_obj = None
+        
+        # Check if due date is in the past
+        try:
+            due_date_obj = datetime.strptime(due_date, '%Y-%m-%d').date()
+            if due_date_obj < today:
+                result = messagebox.askyesno(
+                    "Past Due Date", 
+                    f"The due date ({due_date}) is in the past.\n\nDo you want to continue anyway?"
+                )
+                if not result:
+                    return False
+        except Exception:
+            pass  # Invalid date format, let it pass
+        
+        # Check reminder periods
+        for i, period in enumerate(reminder_periods):
+            try:
+                reminder_date = datetime.strptime(period['date'], '%Y-%m-%d').date()
+                
+                # Check if reminder date is in the past
+                if reminder_date < today:
+                    result = messagebox.askyesno(
+                        "Past Reminder Date", 
+                        f"Reminder period {i+1} date ({period['date']}) is in the past.\n\nDo you want to continue anyway?"
+                    )
+                    if not result:
+                        return False
+                
+                # Check if reminder date is after due date (only if due date is valid)
+                if due_date_obj and reminder_date > due_date_obj:
+                    result = messagebox.askyesno(
+                        "Reminder After Due Date", 
+                        f"Reminder period {i+1} date ({period['date']}) is after the due date ({due_date}).\n\nDo you want to continue anyway?"
+                    )
+                    if not result:
+                        return False
+                        
+            except Exception:
+                pass  # Invalid date format, let it pass
+        
+        return True
+
+    def save_task(self, *_):
+        try:
+            title = self.title_var.get().strip()
+            if not title:
+                messagebox.showerror("Error", "Title is required.")
+                return
+            due_date_val = self.due_calendar.get_date()
+            if hasattr(due_date_val, 'strftime'):
+                due_date = due_date_val.strftime('%Y-%m-%d')
+            else:
+                due_date = str(due_date_val)
+            # Only save due_time if both hour and minute are set and not blank
+            due_time = None
+            hour = self.due_hour_var.get().strip()
+            minute = self.due_minute_var.get().strip()
+            if hour:
+                try:
+                    h = int(hour)
+                    m = int(minute)
+                    if self.due_ampm_var.get() == 'PM' and h != 12:
+                        h += 12
+                    if self.due_ampm_var.get() == 'AM' and h == 12:
+                        h = 0
+                    due_time = f"{h:02d}:{m:02d}"
+                except Exception:
+                    due_time = None
+            priority = self.priority_var.get().lower() if self.priority_var.get() else None
+            tags = sorted(self.selected_tags)
+            # Only save reminder_periods if at least one is present
+            reminder_periods = []
+            for period in self.reminder_periods:
+                vars = period.get('__vars', {})
+                date = vars['date'].get().strip()
+                sh = vars['start_hour'].get().strip()
+                sm = vars['start_minute'].get().strip()
+                eh = vars['end_hour'].get().strip()
+                em = vars['end_minute'].get().strip()
+                # Only save if both start and end hour are set (minute/ampm can default)
+                if date and sh and eh:
+                    try:
+                        sh24 = int(sh)
+                        sm = int(sm) if sm else 0
+                        eh24 = int(eh)
+                        em = int(em) if em else 0
+                        if vars['start_ampm'].get() == 'PM' and sh24 != 12:
+                            sh24 += 12
+                        if vars['start_ampm'].get() == 'AM' and sh24 == 12:
+                            sh24 = 0
+                        if vars['end_ampm'].get() == 'PM' and eh24 != 12:
+                            eh24 += 12
+                        if vars['end_ampm'].get() == 'AM' and eh24 == 12:
+                            eh24 = 0
+                        reminder_periods.append({
+                            'date': date,
+                            'start_time': f"{sh24:02d}:{sm:02d}",
+                            'end_time': f"{eh24:02d}:{em:02d}"
+                        })
+                    except Exception:
+                        continue
+            task_data = {
+                'title': title,
+                'description': self.description_text.get("1.0", tk.END).strip(),
+                'due_date': due_date,
+                'priority': priority,
+                'categories': tags
+            }
+            if due_time:
+                task_data['due_time'] = due_time
+            if reminder_periods:
+                task_data['reminder_periods'] = reminder_periods
+            
+            # Validate dates and get user confirmation if needed
+            if not self.validate_dates(due_date, reminder_periods):
+                return  # User cancelled
+                
+            if self.is_edit:
+                task_id = self.task_data.get('task_id')
+                if update_task(self.user_id, task_id, task_data):
+                    messagebox.showinfo("Success", "Task updated successfully!")
+                    if self.on_save:
+                        self.on_save()
+                    self.destroy()
+                else:
+                    messagebox.showerror("Error", "Failed to update task.")
+            else:
+                task_id = create_task(
+                    self.user_id,
+                    task_data['title'],
+                    task_data['description'],
+                    task_data['due_date'],
+                    task_data.get('due_time'),
+                    task_data['priority'],
+                    ','.join(task_data['categories']),
+                    reminder_periods if reminder_periods else None
+                )
+                if task_id:
+                    messagebox.showinfo("Success", "Task created successfully!")
+                    if self.on_save:
+                        self.on_save()
+                    self.destroy()
+                else:
+                    messagebox.showerror("Error", "Failed to create task.")
+        except Exception as e:
+            logger.error(f"Error saving task: {e}")
+            messagebox.showerror("Error", f"Failed to save task: {e}")
+
+def add_task_dialog(parent, user_id, on_save=None):
+    """Open dialog to add a new task."""
+    dialog = TaskDialog(parent, user_id, on_save=on_save)
+    dialog.wait_window()
+
+def edit_selected_task(parent, user_id, on_save=None):
+    """Edit the selected task in the active tasks treeview."""
+    try:
+        active_tree = parent.active_tree
+        selection = active_tree.selection()
+        
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a task to edit.")
+            return
+        
+        # Get the selected item
+        item = selection[0]
+        task_id = active_tree.item(item, "tags")[0]
+        
+        # Get task data
+        task_data = get_task_by_id(user_id, task_id)
+        if not task_data:
+            messagebox.showerror("Error", "Task not found.")
+            return
+        
+        # Open edit dialog
+        dialog = TaskDialog(parent, user_id, task_data, on_save=on_save)
+        dialog.wait_window()
+        
+    except Exception as e:
+        logger.error(f"Error editing task: {e}")
+        messagebox.showerror("Error", f"Failed to edit task: {e}")
+
+def complete_selected_task(parent, user_id, on_save=None):
+    """Complete the selected task in the active tasks treeview."""
+    try:
+        active_tree = parent.active_tree
+        selection = active_tree.selection()
+        
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a task to complete.")
+            return
+        
+        # Get the selected item
+        item = selection[0]
+        task_id = active_tree.item(item, "tags")[0]
+        
+        # Confirm completion
+        task_data = get_task_by_id(user_id, task_id)
+        if not task_data:
+            messagebox.showerror("Error", "Task not found.")
+            return
+        
+        result = messagebox.askyesno("Complete Task", 
+                                   f"Are you sure you want to mark '{task_data.get('title', '')}' as completed?")
+        if result:
+            if complete_task(user_id, task_id):
+                messagebox.showinfo("Success", "Task marked as completed!")
+                if on_save:
+                    on_save()
+            else:
+                messagebox.showerror("Error", "Failed to complete task.")
+        
+    except Exception as e:
+        logger.error(f"Error completing task: {e}")
+        messagebox.showerror("Error", f"Failed to complete task: {e}")
+
+def delete_selected_task(parent, user_id, on_save=None):
+    """Delete the selected task in the active tasks treeview."""
+    try:
+        active_tree = parent.active_tree
+        selection = active_tree.selection()
+        
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select a task to delete.")
+            return
+        
+        # Get the selected item
+        item = selection[0]
+        task_id = active_tree.item(item, "tags")[0]
+        
+        # Confirm deletion
+        task_data = get_task_by_id(user_id, task_id)
+        if not task_data:
+            messagebox.showerror("Error", "Task not found.")
+            return
+        
+        result = messagebox.askyesno("Delete Task", 
+                                   f"Are you sure you want to delete '{task_data.get('title', '')}'?\n\nThis action cannot be undone.")
+        if result:
+            if delete_task(user_id, task_id):
+                messagebox.showinfo("Success", "Task deleted successfully!")
+                if on_save:
+                    on_save()
+            else:
+                messagebox.showerror("Error", "Failed to delete task.")
+        
+    except Exception as e:
+        logger.error(f"Error deleting task: {e}")
+        messagebox.showerror("Error", f"Failed to delete task: {e}")

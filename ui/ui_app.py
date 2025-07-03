@@ -27,7 +27,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog
+from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog, setup_task_management_window
 from user.user_context import UserContext
 from core.user_management import get_all_user_ids, get_user_info, get_user_preferences
 from core.validation import title_case
@@ -822,8 +822,6 @@ For detailed setup instructions, see the README.md file.
         content_frame = tk.Frame(user_frame)
         content_frame.pack(fill=tk.X, pady=(10, 0))
         
-
-        
         # Content management buttons
         self.content_button_frame = tk.Frame(content_frame)
         self.content_button_frame.pack(pady=10)
@@ -840,13 +838,13 @@ For detailed setup instructions, see the README.md file.
                                         command=self.send_test_message, width=15, state=tk.DISABLED)
         self.send_test_button.pack(side=tk.LEFT, padx=5)
         
+        self.comm_settings_button = tk.Button(self.content_button_frame, text="Communication Settings", 
+                                            command=self.manage_communication_settings, width=18, state=tk.DISABLED)
+        self.comm_settings_button.pack(side=tk.LEFT, padx=5)
+        
         # User settings management buttons
         self.settings_button_frame = tk.Frame(content_frame)
         self.settings_button_frame.pack(pady=10)
-        
-        self.comm_settings_button = tk.Button(self.settings_button_frame, text="Communication Settings", 
-                                            command=self.manage_communication_settings, width=18, state=tk.DISABLED)
-        self.comm_settings_button.pack(side=tk.LEFT, padx=5)
         
         self.category_settings_button = tk.Button(self.settings_button_frame, text="Manage Categories", 
                                                 command=self.manage_categories, width=15, state=tk.DISABLED)
@@ -855,6 +853,14 @@ For detailed setup instructions, see the README.md file.
         self.checkin_settings_button = tk.Button(self.settings_button_frame, text="Check-in Settings", 
                                                command=self.manage_checkins, width=14, state=tk.DISABLED)
         self.checkin_settings_button.pack(side=tk.LEFT, padx=5)
+        
+        self.task_settings_button = tk.Button(self.settings_button_frame, text="Task Management", 
+                                            command=self.manage_tasks, width=15, state=tk.DISABLED)
+        self.task_settings_button.pack(side=tk.LEFT, padx=5)
+        
+        self.task_crud_button = tk.Button(self.settings_button_frame, text="Task CRUD", 
+                                        command=self.manage_task_crud, width=12, state=tk.DISABLED)
+        self.task_crud_button.pack(side=tk.LEFT, padx=5)
         
         # Info label about test messages
         info_label = tk.Label(content_frame, text="Note: Test messages require the MHM service to be running", 
@@ -906,25 +912,22 @@ For detailed setup instructions, see the README.md file.
         """Refresh the user dropdown list"""
         user_ids = get_all_user_ids()
         user_display_names = []
-        
         for user_id in user_ids:
             user_info = get_user_info(user_id)
             internal_username = user_info.get('internal_username', 'Unknown')
             preferred_name = user_info.get('preferred_name', '')
-            
             if preferred_name:
                 display_name = f"{preferred_name} ({internal_username}) - {user_id}"
             else:
                 display_name = f"{internal_username} - {user_id}"
             user_display_names.append(display_name)
-        
         # Add blank option at the beginning
         dropdown_values = [""] + user_display_names
-        self.user_dropdown['values'] = dropdown_values
-        
-        # Set to blank by default
-        self.selected_user_id.set("")
-        
+        # Only update if widget still exists
+        if hasattr(self, 'user_dropdown') and self.user_dropdown.winfo_exists():
+            self.user_dropdown['values'] = dropdown_values
+            # Set to blank by default
+            self.selected_user_id.set("")
         if user_display_names:
             logger.info(f"Found {len(user_display_names)} users")
         else:
@@ -972,6 +975,8 @@ For detailed setup instructions, see the README.md file.
         self.comm_settings_button.config(state=tk.NORMAL)
         self.category_settings_button.config(state=tk.NORMAL)
         self.checkin_settings_button.config(state=tk.NORMAL)
+        self.task_settings_button.config(state=tk.NORMAL)
+        self.task_crud_button.config(state=tk.NORMAL)
         logger.debug("Admin Panel: Content management buttons enabled successfully")
 
     def disable_content_management(self):
@@ -982,6 +987,8 @@ For detailed setup instructions, see the README.md file.
         self.comm_settings_button.config(state=tk.DISABLED)
         self.category_settings_button.config(state=tk.DISABLED)
         self.checkin_settings_button.config(state=tk.DISABLED)
+        self.task_settings_button.config(state=tk.DISABLED)
+        self.task_crud_button.config(state=tk.DISABLED)
         self.user_info_label.config(text="Select a user to manage content", 
                                    fg="gray", font=("Arial", 9, "italic"))
         self.current_user_id = None
@@ -1257,6 +1264,28 @@ For detailed setup instructions, see the README.md file.
         logger.info(f"Admin Panel: Opening check-in management for user {self.current_user_id}")
         from ui.account_manager import setup_checkin_management_window
         setup_checkin_management_window(self.root, self.current_user_id)
+
+    @handle_errors("managing tasks")
+    def manage_tasks(self):
+        """Open task management for selected user"""
+        if not hasattr(self, 'current_user_id') or not self.current_user_id:
+            messagebox.showwarning("No User Selected", "Please select a user first.")
+            return
+            
+        logger.info(f"Admin Panel: Opening task management for user {self.current_user_id}")
+        from ui.account_manager import setup_task_management_window
+        setup_task_management_window(self.root, self.current_user_id)
+
+    @handle_errors("managing task CRUD operations")
+    def manage_task_crud(self):
+        """Open comprehensive task CRUD operations for selected user"""
+        if not hasattr(self, 'current_user_id') or not self.current_user_id:
+            messagebox.showwarning("No User Selected", "Please select a user first.")
+            return
+            
+        logger.info(f"Admin Panel: Opening task CRUD operations for user {self.current_user_id}")
+        from ui.account_manager import setup_task_crud_window
+        setup_task_crud_window(self.root, self.current_user_id)
     
     @handle_errors("shutting down UI components")
     def shutdown_ui_components(self, communication_manager=None):

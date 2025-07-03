@@ -763,6 +763,98 @@ class CommunicationManager:
         channel = self.channels.get(channel_name)
         return channel.is_ready() if channel else False
 
+    def handle_task_reminder(self, user_id: str, task_id: str):
+        """
+        Handle sending task reminders for a user.
+        """
+        logger.debug(f"Handling task reminder for user_id: {user_id}, task_id: {task_id}")
+        
+        if not user_id or not task_id:
+            logger.error("User ID and task ID are required for task reminder.")
+            return
+
+        # Import task management functions
+        from tasks.task_management import get_task_by_id, are_tasks_enabled
+        
+        # Check if tasks are enabled for this user
+        if not are_tasks_enabled(user_id):
+            logger.debug(f"Tasks not enabled for user {user_id}")
+            return
+
+        # Get the task details
+        task = get_task_by_id(user_id, task_id)
+        if not task:
+            logger.error(f"Task {task_id} not found for user {user_id}")
+            return
+
+        # Check if task is still active
+        if task.get('completed', False):
+            logger.debug(f"Task {task_id} is already completed, skipping reminder")
+            return
+
+        # Get user preferences
+        preferences = get_user_preferences(user_id)
+        if not preferences:
+            logger.error(f"User preferences not found for user {user_id}.")
+            return
+
+        messaging_service = preferences.get('messaging_service')
+        if not messaging_service:
+            logger.error(f"No messaging service configured for user {user_id}")
+            return
+
+        # Get the appropriate recipient ID for the messaging service
+        recipient = self._get_recipient_for_service(user_id, messaging_service, preferences)
+        if not recipient:
+            logger.error(f"No valid recipient found for user {user_id} with service {messaging_service}")
+            return
+
+        # Create the task reminder message
+        reminder_message = self._create_task_reminder_message(task)
+        
+        # Send the reminder
+        success = self.send_message_sync(messaging_service, recipient, reminder_message)
+        
+        if success:
+            logger.info(f"Task reminder sent successfully for user {user_id}, task {task_id}")
+        else:
+            logger.error(f"Failed to send task reminder for user {user_id}, task {task_id}")
+
+    def _create_task_reminder_message(self, task: dict) -> str:
+        """
+        Create a formatted task reminder message.
+        """
+        title = task.get('title', 'Untitled Task')
+        description = task.get('description', '')
+        due_date = task.get('due_date', '')
+        priority = task.get('priority', 'medium')
+        category = task.get('category', '')
+        
+        # Create priority emoji
+        priority_emoji = {
+            'low': '🟢',
+            'medium': '🟡', 
+            'high': '🔴'
+        }.get(priority, '🟡')
+        
+        # Build the message
+        message = f"📋 **Task Reminder** {priority_emoji}\n\n"
+        message += f"**{title}**\n"
+        
+        if description:
+            message += f"{description}\n\n"
+        
+        if due_date:
+            message += f"📅 **Due:** {due_date}\n"
+        
+        if category:
+            message += f"📂 **Category:** {category}\n"
+        
+        message += f"⚡ **Priority:** {priority.title()}\n\n"
+        message += "Use 'complete task' or 'list tasks' to manage your tasks."
+        
+        return message
+
 class LegacyChannelWrapper:
     """Provides complete backward compatibility for channel access"""
     

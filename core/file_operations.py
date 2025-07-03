@@ -12,7 +12,7 @@ from datetime import datetime
 from core.logger import get_logger
 from core.config import (
     USER_INFO_DIR_PATH, MESSAGES_BY_CATEGORY_DIR_PATH, SENT_MESSAGES_DIR_PATH, 
-    DEFAULT_MESSAGES_DIR_PATH, USE_USER_SUBDIRECTORIES, get_user_file_path, ensure_user_directory
+    DEFAULT_MESSAGES_DIR_PATH, USE_USER_SUBDIRECTORIES, get_user_file_path, ensure_user_directory, get_user_data_dir
 )
 from core.error_handling import (
     error_handler, FileOperationError, DataError, handle_file_error,
@@ -58,6 +58,20 @@ def determine_file_path(file_type, identifier):
             path = os.path.join(SENT_MESSAGES_DIR_PATH, f"{identifier}.json")
     elif file_type == 'default_messages':
         path = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{identifier}.json")
+    elif file_type == 'tasks':
+        # New task file structure: data/users/{user_id}/tasks/{task_file}.json
+        try:
+            user_id, task_file = identifier.split('/')
+            if USE_USER_SUBDIRECTORIES:
+                # New structure: tasks are in user subdirectory
+                user_dir = get_user_file_path(user_id, 'profile').replace('/profile.json', '')
+                path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
+            else:
+                # Legacy structure: tasks would be in main user directory
+                user_dir = os.path.join(USER_INFO_DIR_PATH, user_id)
+                path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
+        except ValueError as e:
+            raise FileOperationError(f"Invalid task identifier format '{identifier}': expected 'user_id/task_file'")
     else:
         raise FileOperationError(f"Unknown file type: {file_type}")
 
@@ -183,7 +197,8 @@ def create_user_files(user_id, categories):
     if not os.path.exists(preferences_file):
         default_preferences = {
             "categories": [],  # Initialize with empty list instead of missing field
-            "messaging_service": "email"
+            "messaging_service": "email",
+            "tasks_enabled": False  # Task management is disabled by default
         }
         save_json_data(default_preferences, preferences_file)
         logger.debug(f"Created preferences file for user {user_id}")
@@ -201,6 +216,32 @@ def create_user_files(user_id, categories):
         if not os.path.exists(log_file):
             save_json_data([], log_file)
             logger.debug(f"Created {log_type} file for user {user_id}")
+
+    # Create task files if they don't exist
+    try:
+        # Get user directory path using the correct function
+        user_dir = get_user_data_dir(user_id)
+        tasks_dir = os.path.join(user_dir, 'tasks')
+        
+        # Create tasks directory if it doesn't exist
+        if not os.path.exists(tasks_dir):
+            os.makedirs(tasks_dir, exist_ok=True)
+            logger.debug(f"Created tasks directory for user {user_id}")
+        
+        # Create initial task files
+        task_files = {
+            'active_tasks': [],
+            'completed_tasks': [],
+            'task_schedules': {}
+        }
+        
+        for task_file, default_data in task_files.items():
+            task_file_path = os.path.join(tasks_dir, f"{task_file}.json")
+            if not os.path.exists(task_file_path):
+                save_json_data(default_data, task_file_path)
+                logger.debug(f"Created {task_file} file for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error creating task files for user {user_id}: {e}")
 
     # Create message files for each category
     for category in categories:

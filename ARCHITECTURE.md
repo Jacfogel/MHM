@@ -53,7 +53,7 @@
 - **ui/account_manager.py**: UI logic for managing user accounts, categories, check-ins, and schedules. Uses the focused utility modules for all data operations.
 - **ui/ui_app.py**: Main Tkinter UI application, user selection, and admin panel.
 - **bot/**: Messaging bots for different platforms, using user data for personalized interactions.
-- **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery.
+- **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery. Includes intelligent task reminder scheduling with random task selection and timing.
 - **core/checkin_analytics.py**: Analytics and insights on user check-in data.
 
 ---

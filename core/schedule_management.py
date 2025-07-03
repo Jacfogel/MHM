@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
 from core.user_management import load_user_info_data, save_user_info_data
-from core.file_operations import determine_file_path, load_json_data, save_json_data
+from core.file_operations import determine_file_path, load_json_data, save_json_data, get_user_file_path
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
 from core.error_handling import (
@@ -340,4 +340,51 @@ def get_current_day_names():
     """Returns the name of the current day plus 'ALL' for universal day messages."""
     day_index = datetime.today().weekday()
     current_day = list(calendar.day_name)[day_index]
-    return [current_day, 'ALL'] 
+    return [current_day, 'ALL']
+
+def get_reminder_periods_and_days(user_id, category):
+    """Load reminder periods and days for a category (e.g., 'tasks') from schedules.json."""
+    schedules_file = get_user_file_path(user_id, 'schedules')
+    schedules_data = load_json_data(schedules_file) or {}
+    cat_data = schedules_data.get(category, {})
+    periods = cat_data.get('reminder_periods', [])
+    days = cat_data.get('reminder_days', [])
+    return periods, days
+
+def set_reminder_periods_and_days(user_id, category, periods, days):
+    """Save reminder periods and days for a category to schedules.json."""
+    schedules_file = get_user_file_path(user_id, 'schedules')
+    schedules_data = load_json_data(schedules_file) or {}
+    if category not in schedules_data:
+        schedules_data[category] = {}
+    schedules_data[category]['reminder_periods'] = periods
+    schedules_data[category]['reminder_days'] = days
+    save_json_data(schedules_data, schedules_file)
+
+def set_schedule_periods(user_id, category, periods_dict):
+    """Replace all schedule periods for a category with the given dict (period_name: {start, end, active})."""
+    user_info = load_user_info_data(user_id) or {}
+    if 'schedules' not in user_info:
+        user_info['schedules'] = {}
+    user_info['schedules'][category] = user_info['schedules'].get(category, {})
+    # Remove all existing periods except 'days' and 'description'
+    keep_keys = {'days', 'description'}
+    user_info['schedules'][category] = {k: v for k, v in user_info['schedules'][category].items() if k in keep_keys}
+    # Add new periods
+    for period_name, period_data in periods_dict.items():
+        user_info['schedules'][category][period_name] = period_data
+    save_user_info_data(user_info, user_id)
+    clear_schedule_periods_cache(user_id, category)
+
+def get_schedule_days(user_id, category):
+    user_info = load_user_info_data(user_id) or {}
+    return user_info.get('schedules', {}).get(category, {}).get('days', ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
+
+def set_schedule_days(user_id, category, days):
+    user_info = load_user_info_data(user_id) or {}
+    if 'schedules' not in user_info:
+        user_info['schedules'] = {}
+    if category not in user_info['schedules']:
+        user_info['schedules'][category] = {}
+    user_info['schedules'][category]['days'] = days
+    save_user_info_data(user_info, user_id) 

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import logging
 
 from core.user_management import get_all_user_ids, get_user_preferences
-from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation
+from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation, get_reminder_periods_and_days
 from core.service_utilities import load_and_localize_datetime
 from core.logger import get_logger
 from user.user_context import UserContext
@@ -119,8 +119,25 @@ class SchedulerManager:
         # Remove only the scheduled jobs for the active user and the specific category
         schedule.jobs = [job for job in schedule.jobs if not self.is_job_for_category(job, active_user_id, category)]
     
-        # Immediately reschedule a message for the active user and category
-        self.schedule_daily_message_job(user_id=active_user_id, category=category)
+        # Handle different categories appropriately
+        if category == "tasks":
+            # For tasks, check if task management is enabled and schedule task reminders
+            try:
+                from core.user_management import get_user_preferences
+                task_prefs = get_user_preferences(active_user_id, ['tasks'])
+                if task_prefs and task_prefs.get('enabled', False):
+                    self.schedule_all_task_reminders(active_user_id)
+                    logger.info(f"Rescheduled task reminders for user {active_user_id}")
+                else:
+                    logger.info(f"Task management disabled for user {active_user_id}, skipping task reminder scheduling")
+            except Exception as e:
+                logger.error(f"Error rescheduling task reminders for user {active_user_id}: {e}")
+        elif category == "checkin":
+            # For check-ins, use the standard scheduling
+            self.schedule_daily_message_job(user_id=active_user_id, category=category)
+        else:
+            # For regular message categories, use the standard scheduling
+            self.schedule_daily_message_job(user_id=active_user_id, category=category)
     
         logger.info(f"Scheduler reset and rescheduled daily messages for active user: {active_user_id}, category: {category}.")
 
@@ -186,6 +203,12 @@ class SchedulerManager:
                             logger.debug(f"No check-in schedule found for user {user_id}")
                 except Exception as e:
                     logger.error(f"Failed to schedule check-ins for user {user_id}: {e}")
+                    
+                # Schedule task reminders if tasks are enabled
+                try:
+                    self.schedule_all_task_reminders(user_id)
+                except Exception as e:
+                    logger.error(f"Failed to schedule task reminders for user {user_id}: {e}")
                     
             except Exception as e:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
@@ -481,6 +504,47 @@ class SchedulerManager:
                 attempt += 1
                 logger.info(f"Retrying in {retry_delay} seconds... ({attempt}/{retry_attempts})")
                 time.sleep(retry_delay)  # Wait before retrying
+
+    @handle_errors("handling task reminder")
+    def handle_task_reminder(self, user_id, task_id, retry_attempts=3, retry_delay=30):
+        """
+        Handles sending task reminders with retries.
+        """
+        if self.communication_manager is None:
+            logger.error("Communication manager is not initialized.")
+            return
+
+        attempt = 0
+        while attempt < retry_attempts:
+            try:
+                # Import task management functions
+                from tasks.task_management import get_task_by_id, update_task
+                
+                # Get the task details
+                task = get_task_by_id(user_id, task_id)
+                if not task:
+                    logger.error(f"Task {task_id} not found for user {user_id}")
+                    return
+                
+                # Check if task is still active and not already completed
+                if task.get('completed', False):
+                    logger.info(f"Task {task_id} is already completed, skipping reminder")
+                    return
+                
+                # Send the task reminder via communication manager
+                self.communication_manager.handle_task_reminder(user_id, task_id)
+                
+                # Mark reminder as sent
+                update_task(user_id, task_id, {'reminder_sent': True})
+                
+                logger.info(f"Task reminder sent successfully for user {user_id}, task {task_id}")
+                return  # Exit after successful execution
+                
+            except Exception as e:
+                logger.error(f"Error sending task reminder for user {user_id}, task {task_id}: {e}")
+                attempt += 1
+                logger.info(f"Retrying in {retry_delay} seconds... ({attempt}/{retry_attempts})")
+                time.sleep(retry_delay)  # Wait before retrying
     
     @handle_errors("setting wake timer")
     def set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes=4):
@@ -586,3 +650,273 @@ class SchedulerManager:
         except Exception as query_error:
             logger.debug(f"Error querying system tasks for cleanup: {query_error}")
             logger.info(f"System task cleanup skipped for user {user_id}, category {category} (query failed).")
+
+    @handle_errors("scheduling all task reminders")
+    def schedule_all_task_reminders(self, user_id):
+        """
+        Schedule reminders for all active tasks for a user.
+        For each reminder period, pick one random task and schedule it at a random time within the period.
+        """
+        try:
+            from tasks.task_management import load_active_tasks, are_tasks_enabled
+            from core.schedule_management import get_reminder_periods_and_days
+            import random
+            
+            # Check if tasks are enabled for this user
+            if not are_tasks_enabled(user_id):
+                logger.debug(f"Tasks not enabled for user {user_id}")
+                return
+            
+            # Get user's configured reminder periods and days
+            reminder_periods, reminder_days = get_reminder_periods_and_days(user_id, 'tasks')
+            if not reminder_periods:
+                logger.debug(f"No reminder periods configured for user {user_id}")
+                return
+            
+            # Load active tasks
+            active_tasks = load_active_tasks(user_id)
+            
+            # Filter to only incomplete tasks
+            incomplete_tasks = [task for task in active_tasks if not task.get('completed', False)]
+            
+            if not incomplete_tasks:
+                logger.debug(f"No incomplete tasks found for user {user_id}")
+                return
+            
+            scheduled_count = 0
+            
+            # For each active reminder period, pick one random task and schedule it
+            for period in reminder_periods:
+                if not period.get('active', True):
+                    continue
+                
+                # Pick one random task for this period
+                selected_task = random.choice(incomplete_tasks)
+                
+                # Generate a random time within the period
+                random_time = self.get_random_time_within_task_period(period['start'], period['end'])
+                if not random_time:
+                    logger.warning(f"Could not generate random time for period {period['start']}-{period['end']}")
+                    continue
+                
+                # Schedule the task reminder
+                if self.schedule_task_reminder_at_time(user_id, selected_task['task_id'], random_time):
+                    scheduled_count += 1
+                    logger.info(f"Scheduled reminder for task '{selected_task['title']}' at {random_time} (period: {period['start']}-{period['end']})")
+            
+            logger.info(f"Scheduled {scheduled_count} task reminders for user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error scheduling task reminders for user {user_id}: {e}")
+
+    @handle_errors("getting random time within task period")
+    def get_random_time_within_task_period(self, start_time, end_time):
+        """
+        Generate a random time within a task reminder period.
+        Args:
+            start_time: Start time in HH:MM format (e.g., "17:00")
+            end_time: End time in HH:MM format (e.g., "18:00")
+        Returns:
+            Random time in HH:MM format
+        """
+        try:
+            from datetime import datetime, timedelta
+            import random
+            
+            # Parse start and end times
+            start_dt = datetime.strptime(start_time, "%H:%M")
+            end_dt = datetime.strptime(end_time, "%H:%M")
+            
+            # If end time is before start time, it means the period spans midnight
+            # For now, we'll assume it's the same day
+            if end_dt < start_dt:
+                end_dt += timedelta(days=1)
+            
+            # Calculate total seconds in the period
+            total_seconds = (end_dt - start_dt).total_seconds()
+            
+            if total_seconds <= 0:
+                logger.error(f"Invalid time range: {start_time} to {end_time}")
+                return None
+            
+            # Generate random seconds within the period
+            random_seconds = random.randint(0, int(total_seconds))
+            random_dt = start_dt + timedelta(seconds=random_seconds)
+            
+            # Format as HH:MM
+            random_time = random_dt.strftime("%H:%M")
+            
+            logger.debug(f"Generated random time {random_time} within period {start_time}-{end_time}")
+            return random_time
+            
+        except Exception as e:
+            logger.error(f"Error generating random time within period {start_time}-{end_time}: {e}")
+            return None
+
+    @handle_errors("scheduling task reminder at specific time")
+    def schedule_task_reminder_at_time(self, user_id, task_id, reminder_time):
+        """
+        Schedule a reminder for a specific task at the specified time (daily).
+        """
+        try:
+            from tasks.task_management import get_task_by_id
+            
+            # Get the task to verify it exists and is active
+            task = get_task_by_id(user_id, task_id)
+            if not task:
+                logger.error(f"Task {task_id} not found for user {user_id}")
+                return False
+            
+            if task.get('completed', False):
+                logger.info(f"Task {task_id} is already completed, skipping reminder scheduling")
+                return False
+            
+            # Parse the reminder time
+            try:
+                hour, minute = map(int, reminder_time.split(':'))
+                time_str = f"{hour:02d}:{minute:02d}"
+            except ValueError:
+                logger.error(f"Invalid reminder time format: {reminder_time}")
+                return False
+            
+            # Schedule the task reminder
+            schedule.every().day.at(time_str).do(self.handle_task_reminder, user_id=user_id, task_id=task_id)
+            
+            logger.info(f"Scheduled daily task reminder for user {user_id}, task {task_id} at {time_str}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}")
+            return False
+
+    @handle_errors("scheduling task reminder")
+    def schedule_task_reminder(self, user_id, task_id, reminder_time):
+        """
+        Legacy function for backward compatibility.
+        Schedule a reminder for a specific task at the specified time.
+        """
+        return self.schedule_task_reminder_at_time(user_id, task_id, reminder_time)
+
+    @handle_errors("scheduling task reminder at specific datetime")
+    def schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str):
+        """
+        Schedule a reminder for a specific task at a specific date and time.
+        """
+        try:
+            from tasks.task_management import get_task_by_id
+            from datetime import datetime, timedelta
+            
+            # Get the task to verify it exists and is active
+            task = get_task_by_id(user_id, task_id)
+            if not task:
+                logger.error(f"Task {task_id} not found for user {user_id}")
+                return False
+            
+            if task.get('completed', False):
+                logger.info(f"Task {task_id} is already completed, skipping reminder scheduling")
+                return False
+            
+            # Parse the date and time
+            try:
+                reminder_datetime = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+            except ValueError:
+                logger.error(f"Invalid date/time format: {date_str} {time_str}")
+                return False
+            
+            # Check if the reminder time is in the past
+            if reminder_datetime < datetime.now():
+                logger.debug(f"Reminder time {reminder_datetime} is in the past, skipping")
+                return False
+            
+            # Calculate delay until the reminder time
+            delay_seconds = (reminder_datetime - datetime.now()).total_seconds()
+            
+            # Schedule the task reminder
+            schedule.every(delay_seconds).seconds.do(self.handle_task_reminder, user_id=user_id, task_id=task_id)
+            
+            logger.info(f"Scheduled one-time task reminder for user {user_id}, task {task_id} at {reminder_datetime}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}")
+            return False
+
+    @handle_errors("cleaning up task reminders")
+    def cleanup_task_reminders(self, user_id, task_id=None):
+        """
+        Clean up task reminders for a user or specific task.
+        """
+        try:
+            jobs_to_keep = []
+            for job in schedule.jobs:
+                # Keep jobs that are not task reminders for this user/task
+                if (job.job_func.__name__ != 'handle_task_reminder' or
+                    job.job_func.args[0] != user_id or
+                    (task_id and job.job_func.args[1] != task_id)):
+                    jobs_to_keep.append(job)
+            
+            # Clear all jobs and reschedule only the ones we want to keep
+            schedule.clear()
+            for job in jobs_to_keep:
+                # Re-add the job with its original schedule
+                if hasattr(job, 'at_time') and job.at_time:
+                    at_time_str = str(job.at_time)
+                    if ' ' in at_time_str:
+                        at_time_str = at_time_str.split(' ')[1]
+                    if ':' in at_time_str:
+                        time_parts = at_time_str.split(':')
+                        if len(time_parts) >= 2:
+                            at_time_str = f"{time_parts[0]}:{time_parts[1]}"
+                            try:
+                                schedule.every().day.at(at_time_str).do(job.job_func, *job.job_func.args)
+                            except Exception as e:
+                                logger.warning(f"Could not re-add job with time {at_time_str}: {e}")
+            
+            if task_id:
+                logger.info(f"Cleaned up task reminders for user {user_id}, task {task_id}")
+            else:
+                logger.info(f"Cleaned up all task reminders for user {user_id}")
+                
+        except Exception as e:
+            logger.error(f"Error cleaning up task reminders for user {user_id}: {e}")
+
+# Standalone functions for admin UI access
+@handle_errors("scheduling all task reminders for user")
+def schedule_all_task_reminders(user_id):
+    """
+    Standalone function to schedule all task reminders for a user.
+    This can be called from the admin UI without needing a scheduler instance.
+    """
+    try:
+        from tasks.task_management import are_tasks_enabled
+        
+        # Check if tasks are enabled for this user
+        if not are_tasks_enabled(user_id):
+            logger.debug(f"Tasks not enabled for user {user_id}")
+            return
+        
+        # For now, just log that scheduling was requested
+        # The actual scheduling will happen when the main scheduler starts
+        logger.info(f"Task reminder scheduling requested for user {user_id}")
+        logger.info("Task reminders will be scheduled when the main scheduler starts")
+        
+    except Exception as e:
+        logger.error(f"Error in task reminder scheduling request for user {user_id}: {e}")
+
+@handle_errors("cleaning up task reminders for user")
+def cleanup_task_reminders(user_id, task_id=None):
+    """
+    Standalone function to clean up task reminders for a user.
+    This can be called from the admin UI without needing a scheduler instance.
+    """
+    try:
+        # For now, just log that cleanup was requested
+        # The actual cleanup will happen when the main scheduler restarts
+        if task_id:
+            logger.info(f"Task reminder cleanup requested for user {user_id}, task {task_id}")
+        else:
+            logger.info(f"Task reminder cleanup requested for user {user_id}")
+        logger.info("Task reminders will be cleaned up when the main scheduler restarts")
+        
+    except Exception as e:
+        logger.error(f"Error in task reminder cleanup request for user {user_id}: {e}")

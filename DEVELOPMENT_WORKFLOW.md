@@ -34,22 +34,26 @@ This guide explains how to work safely and effectively on the MHM project, espec
 - What are you trying to accomplish?
 - What could go wrong?
 - How will you test it?
+- **For new features**: How will users interact with this through communication channels?
 
 ### Step 2: Implement
 - Make the smallest change possible
 - Test immediately
 - If it works, move to the next small change
 - If it breaks, fix it before continuing
+- **Remember**: All user-facing features must work through communication channels
 
 ### Step 3: Test
 - Test the specific feature you changed
 - Test related features that might be affected
 - Test the full application workflow
+- **Test communication channels**: Verify features work through communication channels, especially Discord
 
 ### Step 4: Document
 - Update `CHANGELOG.md` with what you changed
 - Update any relevant documentation
 - Note any new dependencies in `requirements.txt`
+- **Update communication docs**: Document how users interact with new features
 
 ## 🧪 Testing Strategy
 

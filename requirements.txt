@@ -28,3 +28,5 @@ pylint>=2.17.0  # For code linting
 # - re (regex)
 # - os
 # - time 
+
+tkcalendar 
