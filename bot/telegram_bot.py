@@ -20,7 +20,7 @@ from typing import List, Dict, Any
 import warnings
 from telegram.warnings import PTBUserWarning
 from core.service_utilities import wait_for_network, title_case
-from core.user_management import get_user_preferences, get_user_id_by_chat_id, add_user_info, load_user_info_data
+from core.user_management import get_user_preferences, get_user_id_by_chat_id, get_user_account, get_user_context
 from core.schedule_management import get_schedule_time_periods, add_schedule_period
 from core.message_management import add_message
 from core.validation import InvalidTimeFormatError
@@ -314,7 +314,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         context.user_data['category_prompt'] = True
 
         user_id = UserContext().get_user_id()
-        categories = get_user_preferences(user_id, ['categories']) or []
+        categories = get_user_preferences(user_id, 'categories') or []
 
         buttons = [[InlineKeyboardButton(title_case(category), callback_data=f'category_{category}')] for category in categories]
         reply_markup = InlineKeyboardMarkup(buttons)
@@ -609,23 +609,95 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
         user_id = get_user_id_by_chat_id(chat_id)
         if user_id:
-            user_info = load_user_info_data(user_id)
+            user_account = get_user_account(user_id)
+            user_context_data = get_user_context(user_id)
             user_context.set_user_id(user_id)
-            user_context.set_internal_username(user_info.get('internal_username'))
-            user_context.set_preferred_name(user_info.get('preferred_name'))
+            user_context.set_internal_username(user_account.get('internal_username') if user_account else '')
+            user_context.set_preferred_name(user_context_data.get('preferred_name') if user_context_data else '')
             return True
 
         new_user_id = str(uuid.uuid4())
-        add_user_info(new_user_id, {
+        # Create new user using the new structure
+        from core.user_management import create_new_user
+        user_data = {
             "user_id": new_user_id,
             "internal_username": telegram_username,
             "preferred_name": telegram_username,
-            "chat_id": chat_id
-        })
+            "chat_id": chat_id,
+            "messaging_service": "telegram"
+        }
+        create_new_user(user_data)
         user_context.set_user_id(new_user_id)
         user_context.set_internal_username(telegram_username)
         user_context.set_preferred_name(telegram_username)
         return True
+
+    def get_user_categories(self, user_id: str) -> List[str]:
+        """Get user's message categories."""
+        try:
+            categories = get_user_preferences(user_id, 'categories')
+            if categories is None:
+                return []
+            elif isinstance(categories, list):
+                return categories
+            elif isinstance(categories, dict):
+                return list(categories.keys())
+            else:
+                return []
+        except Exception as e:
+            logger.error(f"Error getting categories for user {user_id}: {e}")
+            return []
+
+    def handle_user_command(self, update, context):
+        """Handle /user command to show user information."""
+        try:
+            user_id = UserContext().get_user_id()
+            if not user_id:
+                update.message.reply_text("No user context found.")
+                return
+            
+            # Get user data using new functions
+            user_account = get_user_account(user_id)
+            user_preferences = get_user_preferences(user_id)
+            user_context = get_user_context(user_id)
+            
+            if not user_account:
+                update.message.reply_text("User account not found.")
+                return
+            
+            # Build user info message
+            username = user_account.get('internal_username', 'Unknown')
+            preferred_name = user_context.get('preferred_name', '') if user_context else ''
+            categories = get_user_preferences(user_id, 'categories') or []
+            messaging_service = user_preferences.get('channel', {}).get('type', user_preferences.get('messaging_service', 'Unknown')) if user_preferences else 'Unknown'
+            
+            message = f"User: {username}"
+            if preferred_name:
+                message += f" ({preferred_name})"
+            message += f"\nService: {messaging_service}"
+            message += f"\nCategories: {', '.join(categories) if categories else 'None'}"
+            
+            update.message.reply_text(message)
+            
+        except Exception as e:
+            logger.error(f"Error handling /user command: {e}")
+            update.message.reply_text("Error retrieving user information.")
+
+    def get_user_categories_for_telegram(self, user_id: str) -> List[str]:
+        """Get user's message categories for Telegram bot."""
+        try:
+            categories = get_user_preferences(user_id, 'categories')
+            if categories is None:
+                return []
+            elif isinstance(categories, list):
+                return categories
+            elif isinstance(categories, dict):
+                return list(categories.keys())
+            else:
+                return []
+        except Exception as e:
+            logger.error(f"Error getting categories for user {user_id}: {e}")
+            return []
 
 # Initialize the bot instance
 telegram_bot = TelegramBot()

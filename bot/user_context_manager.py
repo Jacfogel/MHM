@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any
 from core.logger import get_logger
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
-from core.user_management import load_user_info_data, get_user_preferences
+from core.user_management import get_user_account, get_user_preferences, get_user_context
 from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
 from core.message_management import get_last_10_messages
 from core.error_handling import (
@@ -86,16 +86,17 @@ class UserContextManager:
         user_context.load_user_data(user_id)
         user_preferences = UserPreferences(user_id)
         
-        # Also get additional data from utils for completeness
-        user_info = load_user_info_data(user_id)
-        if not user_info:
+        # Also get additional data from new structure for completeness
+        user_account = get_user_account(user_id)
+        user_context_data = get_user_context(user_id)
+        if not user_account:
             return {}
             
         return {
-            'preferred_name': user_context.get_preferred_name() or user_info.get('preferred_name', ''),
-            'active_categories': user_preferences.get_preference('categories') or user_info.get('preferences', {}).get('categories', []),
-            'messaging_service': user_preferences.get_preference('messaging_service') or user_info.get('preferences', {}).get('messaging_service', ''),
-            'active_schedules': self._get_active_schedules(user_info.get('schedules', {}))
+            'preferred_name': user_context.get_preferred_name() or user_context_data.get('preferred_name', ''),
+            'active_categories': user_preferences.get_preference('categories') or user_preferences.get('categories', []),
+            'messaging_service': user_preferences.get_preference('channel', {}).get('type') or user_preferences.get_preference('messaging_service') or user_preferences.get('messaging_service', 'discord'),
+            'active_schedules': self._get_active_schedules({})  # Schedules handled separately
         }
     
     @handle_errors("getting recent activity", default_return={})
@@ -193,7 +194,7 @@ class UserContextManager:
         
         return {
             'categories': user_preferences.get_preference('categories') or preferences.get('categories', []),
-            'messaging_service': user_preferences.get_preference('messaging_service') or preferences.get('messaging_service', 'discord'),
+            'messaging_service': user_preferences.get_preference('channel', {}).get('type') or user_preferences.get_preference('messaging_service') or user_preferences.get('messaging_service', 'discord'),
             'email': user_preferences.get_preference('email') or preferences.get('email', '')
         }
     
@@ -265,8 +266,10 @@ class UserContextManager:
     @handle_errors("getting minimal context", default_return={})
     def _get_minimal_context(self, user_id: str) -> Dict[str, Any]:
         """Fallback minimal context if full context generation fails."""
-        user_info = load_user_info_data(user_id)
-        preferred_name = user_info.get('preferred_name', '') if user_info else ''
+        from core.user_management import get_user_account, get_user_context
+        user_account = get_user_account(user_id)
+        user_context = get_user_context(user_id)
+        preferred_name = user_context.get('preferred_name', '') if user_context else ''
         
         return {
             'user_profile': {'preferred_name': preferred_name},

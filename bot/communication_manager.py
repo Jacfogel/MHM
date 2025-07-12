@@ -16,6 +16,8 @@ from core.response_tracking import get_recent_daily_checkins
 from core.message_management import store_sent_message
 from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
 from core.file_operations import determine_file_path, load_json_data
+import os
+from core.config import get_user_data_dir
 
 logger = get_logger(__name__)
 
@@ -526,7 +528,7 @@ class CommunicationManager:
             logger.error(f"User preferences not found for user {user_id}.")
             return
 
-        messaging_service = preferences.get('messaging_service')
+        messaging_service = preferences.get('channel', {}).get('type', preferences.get('messaging_service'))
         if not messaging_service:
             logger.error(f"No messaging service configured for user {user_id}")
             return
@@ -553,12 +555,18 @@ class CommunicationManager:
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
         """Get the appropriate recipient ID for the messaging service"""
         if messaging_service == "discord":
-            return preferences.get('discord_user_id')
+            # Get discord_user_id from account.json, not preferences
+            from core.user_management import get_user_account
+            account_data = get_user_account(user_id)
+            return account_data.get('discord_user_id', '') if account_data else None
         elif messaging_service == "telegram":
             logger.error("Telegram channel has been deactivated")
             return None
         elif messaging_service == "email":
-            return preferences.get('email', '')
+            # Get email from account.json, not preferences
+            from core.user_management import get_user_account
+            account_data = get_user_account(user_id)
+            return account_data.get('email', '') if account_data else None
         else:
             logger.error(f"Unknown messaging service: {messaging_service}")
             return None
@@ -627,10 +635,14 @@ class CommunicationManager:
                 logger.error(f"User preferences not found for user {user_id}")
                 return
             
-            checkin_prefs = preferences.get('checkins', {})
-            if not checkin_prefs.get('enabled', False):
+            # Check if check-ins are enabled in account features
+            from core.user_management import get_user_account
+            account_data = get_user_account(user_id)
+            if not account_data or account_data.get('features', {}).get('checkins') != 'enabled':
                 logger.debug(f"Check-ins disabled for user {user_id}")
                 return
+            
+            checkin_prefs = preferences.get('checkin_settings', {})
             
             # Check frequency and last check-in time
             frequency = checkin_prefs.get('frequency', 'daily')
@@ -716,7 +728,9 @@ class CommunicationManager:
             if not matching_periods and 'ALL' in valid_periods:
                 matching_periods = ['ALL']
 
-            file_path = determine_file_path('messages', f'{category}/{user_id}')
+            # Use new user-specific message file structure
+            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+            file_path = os.path.join(user_messages_dir, f"{category}.json")
             data = load_json_data(file_path)
 
             if not data or 'messages' not in data:
@@ -798,7 +812,7 @@ class CommunicationManager:
             logger.error(f"User preferences not found for user {user_id}.")
             return
 
-        messaging_service = preferences.get('messaging_service')
+        messaging_service = preferences.get('channel', {}).get('type', preferences.get('messaging_service'))
         if not messaging_service:
             logger.error(f"No messaging service configured for user {user_id}")
             return

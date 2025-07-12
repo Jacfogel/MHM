@@ -29,10 +29,10 @@ from core.error_handling import (
 
 from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog, setup_task_management_window
 from user.user_context import UserContext
-from core.user_management import get_all_user_ids, get_user_info, get_user_preferences
+from core.user_management import get_all_user_ids, get_user_account, get_user_preferences, get_user_context
 from core.validation import title_case
 from tkinter import ttk
-from core.config import BASE_DATA_DIR, MESSAGES_BY_CATEGORY_DIR_PATH, USER_INFO_DIR_PATH
+from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
 class ServiceManager:
     """Manages the MHM backend service process"""
@@ -519,8 +519,7 @@ class MHMManagerUI:
         # Add current configuration values
         from core.config import (
             BASE_DATA_DIR, LOG_FILE_PATH, LOG_LEVEL, LM_STUDIO_BASE_URL, 
-            AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, USE_USER_SUBDIRECTORIES, 
-            AUTO_CREATE_USER_DIRS, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
+            AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
             EMAIL_SMTP_USERNAME, DISCORD_BOT_TOKEN
         )
         
@@ -531,8 +530,6 @@ class MHMManagerUI:
             ("LM Studio URL", LM_STUDIO_BASE_URL),
             ("AI Timeout", f"{AI_TIMEOUT_SECONDS}s"),
             ("Scheduler Interval", f"{SCHEDULER_INTERVAL}s"),
-            ("Use User Subdirectories", str(USE_USER_SUBDIRECTORIES)),
-            ("Auto Create User Dirs", str(AUTO_CREATE_USER_DIRS)),
             ("Email SMTP Server", EMAIL_SMTP_SERVER or "Not configured"),
             ("Email IMAP Server", EMAIL_IMAP_SERVER or "Not configured"),
             ("Email Username", EMAIL_SMTP_USERNAME or "Not configured"),
@@ -593,7 +590,6 @@ OPTIONAL SETTINGS:
 - LOG_LEVEL (default: WARNING)
 - AI_TIMEOUT_SECONDS (default: 15)
 - SCHEDULER_INTERVAL (default: 60)
-- USE_USER_SUBDIRECTORIES (default: true)
 - AUTO_CREATE_USER_DIRS (default: true)
 
 EXAMPLE .env FILE:
@@ -662,12 +658,13 @@ For detailed setup instructions, see the README.md file.
                 text_widget.insert('end', f"Total users: {len(user_ids)}\n\n")
                 
                 for user_id in user_ids:
-                    user_info = get_user_info(user_id)
-                    if user_info:
-                        username = user_info.get('internal_username', 'Unknown')
-                        preferred_name = user_info.get('preferred_name', '')
+                    user_account = get_user_account(user_id)
+                    if user_account:
+                        username = user_account.get('internal_username', 'Unknown')
+                        preferred_name = user_account.get('preferred_name', '')
                         categories = get_user_preferences(user_id).get('categories', [])
-                        messaging_service = get_user_preferences(user_id).get('messaging_service', 'Unknown')
+                        prefs = get_user_preferences(user_id)
+                        messaging_service = prefs.get('channel', {}).get('type', prefs.get('messaging_service', 'Unknown'))
                         
                         text_widget.insert('end', f"User: {username}")
                         if preferred_name:
@@ -722,7 +719,7 @@ For detailed setup instructions, see the README.md file.
             text_widget.insert('end', f"✓ Total Users: {len(user_ids)}\n")
             
             # Check data directories
-            required_dirs = [BASE_DATA_DIR, MESSAGES_BY_CATEGORY_DIR_PATH, USER_INFO_DIR_PATH]
+            required_dirs = [BASE_DATA_DIR, USER_INFO_DIR_PATH]
             for dir_path in required_dirs:
                 exists = os.path.exists(dir_path)
                 status = "✓" if exists else "✗"
@@ -732,9 +729,9 @@ For detailed setup instructions, see the README.md file.
             text_widget.insert('end', "\nChecking for common issues...\n")
             
             # Check for orphaned message files
-            if os.path.exists(MESSAGES_BY_CATEGORY_DIR_PATH):
+            if os.path.exists(USER_INFO_DIR_PATH):
                 orphaned_files = 0
-                for root, dirs, files in os.walk(MESSAGES_BY_CATEGORY_DIR_PATH):
+                for root, dirs, files in os.walk(USER_INFO_DIR_PATH):
                     for file in files:
                         if file.endswith('.json'):
                             # Extract user_id from filename
@@ -805,10 +802,9 @@ For detailed setup instructions, see the README.md file.
         user_select_frame.pack(fill=tk.X, pady=5)
         
         tk.Label(user_select_frame, text="Select User:", font=("Arial", 10, "bold")).pack(side=tk.LEFT)
-        self.user_dropdown = ttk.Combobox(user_select_frame, textvariable=self.selected_user_id, 
-                                         state="readonly", width=35)
-        self.user_dropdown.pack(side=tk.LEFT, padx=(10, 0))
-        self.user_dropdown.bind('<<ComboboxSelected>>', self.on_user_selected)
+        self.user_listbox = tk.Listbox(user_select_frame, width=35)
+        self.user_listbox.pack(side=tk.LEFT, padx=(10, 0))
+        self.user_listbox.bind('<<ListboxSelect>>', self.on_user_selected)
         
         # User info display (connected to dropdown)
         self.user_info_frame = tk.Frame(user_frame)
@@ -862,6 +858,10 @@ For detailed setup instructions, see the README.md file.
                                         command=self.manage_task_crud, width=12, state=tk.DISABLED)
         self.task_crud_button.pack(side=tk.LEFT, padx=5)
         
+        self.personalization_button = tk.Button(self.settings_button_frame, text="Personalization", 
+                                              command=self.manage_personalization, width=15, state=tk.DISABLED)
+        self.personalization_button.pack(side=tk.LEFT, padx=5)
+        
         # Info label about test messages
         info_label = tk.Label(content_frame, text="Note: Test messages require the MHM service to be running", 
                              fg="gray", font=("Arial", 8, "italic"))
@@ -909,61 +909,61 @@ For detailed setup instructions, see the README.md file.
     
     @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):
-        """Refresh the user dropdown list"""
-        user_ids = get_all_user_ids()
-        user_display_names = []
-        for user_id in user_ids:
-            user_info = get_user_info(user_id)
-            internal_username = user_info.get('internal_username', 'Unknown')
-            preferred_name = user_info.get('preferred_name', '')
-            if preferred_name:
-                display_name = f"{preferred_name} ({internal_username}) - {user_id}"
-            else:
-                display_name = f"{internal_username} - {user_id}"
-            user_display_names.append(display_name)
-        # Add blank option at the beginning
-        dropdown_values = [""] + user_display_names
-        # Only update if widget still exists
-        if hasattr(self, 'user_dropdown') and self.user_dropdown.winfo_exists():
-            self.user_dropdown['values'] = dropdown_values
-            # Set to blank by default
-            self.selected_user_id.set("")
-        if user_display_names:
-            logger.info(f"Found {len(user_display_names)} users")
-        else:
-            logger.info("No users found")
+        """Refresh the user list in the combo box"""
+        try:
+            user_ids = get_all_user_ids()
+            self.user_listbox.delete(0, tk.END)
+            self.user_listbox.insert(tk.END, "Select a user...")
+            
+            for user_id in user_ids:
+                user_account = get_user_account(user_id)
+                internal_username = user_account.get('internal_username', 'Unknown') if user_account else 'Unknown'
+                user_context = get_user_context(user_id)
+                preferred_name = user_context.get('preferred_name', '') if user_context else ''
+                if preferred_name:
+                    display_name = f"{preferred_name} ({internal_username}) - {user_id}"
+                else:
+                    display_name = f"{internal_username} - {user_id}"
+                self.user_listbox.insert(tk.END, display_name)
+                
+        except Exception as e:
+            logger.error(f"Error refreshing user list: {e}")
+            messagebox.showerror("Error", f"Failed to refresh user list: {e}")
 
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, event=None):
-        """Handle user selection from dropdown"""
-        selected_display = self.selected_user_id.get()
-        
-        if not selected_display or selected_display == "":
+        """Handle user selection from listbox"""
+        selection = self.user_listbox.curselection()
+        if not selection or selection[0] == 0:  # "Select a user..." is selected
+            self.current_user_id = None
             self.disable_content_management()
             return
-            
-        # Extract user_id from display name (format: "Name - user_id")
-        if " - " in selected_display:
-            user_id = selected_display.split(" - ")[-1]
-            self.current_user_id = user_id
-            
-            # Update user info display
-            user_info = get_user_info(user_id)
-            if not user_info:
-                logger.error(f"Admin Panel: Could not load user info for user_id: {user_id}")
+        
+        try:
+            # Extract user_id from display name (format: "Name - user_id")
+            display_name = self.user_listbox.get(selection[0])
+            if " - " in display_name:
+                user_id = display_name.split(" - ")[-1]
+            else:
+                logger.warning(f"Could not parse user_id from selected_display: '{display_name}'")
                 self.disable_content_management()
                 return
-            
-            internal_username = user_info.get('internal_username', 'Unknown')
-            info_text = f"Managing: {internal_username} ({user_id})"
-            self.user_info_label.config(text=info_text, fg="black", font=("Arial", 9, "normal"))
-            
-            # Enable content management buttons
-            self.enable_content_management()
-            
-            logger.info(f"Admin Panel: User selected for management: {user_id} ({internal_username})")
-        else:
-            logger.warning(f"Admin Panel: Could not parse user_id from selected_display: '{selected_display}'")
+                
+            self.current_user_id = user_id
+            user_account = get_user_account(user_id)
+            if user_account:
+                # Load user categories
+                self.load_user_categories(user_id)
+                self.enable_content_management()
+                logger.info(f"Admin Panel: User selected for management: {user_id} ({user_account.get('internal_username', 'Unknown')})")
+            else:
+                messagebox.showerror("User Error", f"Could not load user account for {user_id}")
+                self.disable_content_management()
+                return
+                
+        except Exception as e:
+            logger.error(f"Error handling user selection: {e}")
+            messagebox.showerror("Error", f"Failed to load user: {e}")
             self.disable_content_management()
 
     @handle_errors("enabling content management")
@@ -977,6 +977,7 @@ For detailed setup instructions, see the README.md file.
         self.checkin_settings_button.config(state=tk.NORMAL)
         self.task_settings_button.config(state=tk.NORMAL)
         self.task_crud_button.config(state=tk.NORMAL)
+        self.personalization_button.config(state=tk.NORMAL)
         logger.debug("Admin Panel: Content management buttons enabled successfully")
 
     def disable_content_management(self):
@@ -989,6 +990,7 @@ For detailed setup instructions, see the README.md file.
         self.checkin_settings_button.config(state=tk.DISABLED)
         self.task_settings_button.config(state=tk.DISABLED)
         self.task_crud_button.config(state=tk.DISABLED)
+        self.personalization_button.config(state=tk.DISABLED)
         self.user_info_label.config(text="Select a user to manage content", 
                                    fg="gray", font=("Arial", 9, "italic"))
         self.current_user_id = None
@@ -1024,8 +1026,8 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("editing user messages")
     def edit_user_messages(self):
         """Open message editing interface for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening message editor for user {self.current_user_id}")
@@ -1034,10 +1036,12 @@ For detailed setup instructions, see the README.md file.
         UserContext().set_user_id(self.current_user_id)
         
         # Load the user's full data to get internal_username and other details
-        user_info = get_user_info(self.current_user_id)
-        if user_info:
-            UserContext().set_internal_username(user_info.get('internal_username', ''))
-            UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+        user_account = get_user_account(self.current_user_id)
+        user_context = get_user_context(self.current_user_id)
+        if user_account:
+            UserContext().set_internal_username(user_account.get('internal_username', ''))
+            if user_context:
+                UserContext().set_preferred_name(user_context.get('preferred_name', ''))
             # Load the full user data into UserContext
             UserContext().load_user_data(self.current_user_id)
         
@@ -1050,16 +1054,19 @@ For detailed setup instructions, see the README.md file.
             return
         
         # Open category selection dialog
-        category_window = tk.Toplevel(self.root)
-        category_window.title(f"Select Category - {self.current_user_id}")
-        category_window.geometry("300x200")
+        category_dialog = tk.Toplevel(self.root)
+        category_dialog.title(f"Select Category - {self.current_user_id}")
+        category_dialog.geometry("300x200")
+        category_dialog.transient(self.root)
+        category_dialog.grab_set()
         
-        tk.Label(category_window, text="Select message category to edit:", font=("Arial", 12)).pack(pady=10)
+        title_label = tk.Label(category_dialog, text="Select message category to edit:", font=("Arial", 12))
+        title_label.pack(pady=10)
         
         for category in categories:
-            tk.Button(category_window, text=title_case(category), 
-                     command=lambda c=category: self.open_message_editor(category_window, c),
-                     width=20).pack(pady=5)
+            button = tk.Button(category_dialog, text=title_case(category), 
+                             command=lambda c=category: self.open_message_editor(category_dialog, c))
+            button.pack(pady=2)
 
     @handle_errors("opening message editor")
     def open_message_editor(self, parent_window, category):
@@ -1071,67 +1078,40 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("editing user schedules")
     def edit_user_schedules(self):
         """Open schedule editing interface for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
+            return
+        
+        # Check if a category is selected
+        selected_category = self.category_combo.get()
+        if not selected_category or selected_category == "Select a category...":
+            messagebox.showerror("No Category Selected", "Please select a category from the dropdown first.")
             return
             
-        logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}")
+        logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}, category {selected_category}")
+        
         # Temporarily set the user context for editing
         original_user = UserContext().get_user_id()
         UserContext().set_user_id(self.current_user_id)
         
         # Load the user's full data to get internal_username and other details
-        user_info = get_user_info(self.current_user_id)
-        if user_info:
-            UserContext().set_internal_username(user_info.get('internal_username', ''))
-            UserContext().set_preferred_name(user_info.get('preferred_name', ''))
+        user_account = get_user_account(self.current_user_id)
+        user_context = get_user_context(self.current_user_id)
+        if user_account:
+            UserContext().set_internal_username(user_account.get('internal_username', ''))
+            if user_context:
+                UserContext().set_preferred_name(user_context.get('preferred_name', ''))
             # Load the full user data into UserContext
             UserContext().load_user_data(self.current_user_id)
         
-        # Get user categories
-        categories = get_user_preferences(self.current_user_id).get('categories', [])
-        
-        if not categories:
-            logger.info(f"Admin Panel: User {self.current_user_id} has no schedule categories configured")
-            messagebox.showinfo("No Categories", "This user has no message categories configured.")
-            return
-        
-        # Open category selection dialog
-        category_window = tk.Toplevel(self.root)
-        category_window.title(f"Select Category - {self.current_user_id}")
-        category_window.geometry("300x200")
-        
-        tk.Label(category_window, text="Select category to edit schedule:", font=("Arial", 12)).pack(pady=10)
-        
-        for category in categories:
-            tk.Button(category_window, text=title_case(category), 
-                     command=lambda c=category: self.open_schedule_editor(category_window, c),
-                     width=20).pack(pady=5)
-
-    @handle_errors("opening schedule editor")
-    def open_schedule_editor(self, parent_window, category):
-        """Open the schedule editing window for a specific category"""
-        logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user_id}, category {category}")
-        parent_window.destroy()
-        setup_view_edit_schedule_window(self.root, category)
+        # Open the schedule editor directly with the selected category
+        self.open_schedule_editor(None, selected_category)
 
     @handle_errors("sending test message")
     def send_test_message(self):
         """Send a test message to the selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
-            return
-        
-        # Check if service is running
-        is_running, pid = self.service_manager.is_service_running()
-        if not is_running:
-            messagebox.showwarning("Service Not Running", 
-                                 "MHM Service is not running. Test messages require the service to be active.\n\n"
-                                 "To send a test message:\n"
-                                 "1. Click 'Start Service' above\n"
-                                 "2. Wait for service to initialize\n"
-                                 "3. Try sending the test message again\n\n"
-                                 "The admin panel does not create its own communication channels.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
         
         logger.info(f"Admin Panel: Preparing test message for user {self.current_user_id}")
@@ -1144,16 +1124,19 @@ For detailed setup instructions, see the README.md file.
             return
         
         # Open category selection dialog for test message
-        category_window = tk.Toplevel(self.root)
-        category_window.title(f"Send Test Message - {self.current_user_id}")
-        category_window.geometry("300x200")
+        category_dialog = tk.Toplevel(self.root)
+        category_dialog.title(f"Send Test Message - {self.current_user_id}")
+        category_dialog.geometry("300x200")
+        category_dialog.transient(self.root)
+        category_dialog.grab_set()
         
-        tk.Label(category_window, text="Select category for test message:", font=("Arial", 12)).pack(pady=10)
+        title_label = tk.Label(category_dialog, text="Select category for test message:", font=("Arial", 12))
+        title_label.pack(pady=10)
         
         for category in categories:
-            tk.Button(category_window, text=title_case(category), 
-                     command=lambda c=category: self.confirm_test_message(category_window, c),
-                     width=20).pack(pady=5)
+            button = tk.Button(category_dialog, text=title_case(category), 
+                             command=lambda c=category: self.confirm_test_message(category_dialog, c))
+            button.pack(pady=2)
 
     @handle_errors("confirming test message")
     def confirm_test_message(self, parent_window, category):
@@ -1235,8 +1218,8 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("managing communication settings")
     def manage_communication_settings(self):
         """Open communication settings management for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening communication settings for user {self.current_user_id}")
@@ -1246,8 +1229,8 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("managing categories")
     def manage_categories(self):
         """Open category management for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening category management for user {self.current_user_id}")
@@ -1257,8 +1240,8 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("managing checkins")
     def manage_checkins(self):
         """Open check-in settings management for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening check-in management for user {self.current_user_id}")
@@ -1268,8 +1251,8 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("managing tasks")
     def manage_tasks(self):
         """Open task management for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening task management for user {self.current_user_id}")
@@ -1279,14 +1262,25 @@ For detailed setup instructions, see the README.md file.
     @handle_errors("managing task CRUD operations")
     def manage_task_crud(self):
         """Open comprehensive task CRUD operations for selected user"""
-        if not hasattr(self, 'current_user_id') or not self.current_user_id:
-            messagebox.showwarning("No User Selected", "Please select a user first.")
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
             return
             
         logger.info(f"Admin Panel: Opening task CRUD operations for user {self.current_user_id}")
         from ui.account_manager import setup_task_crud_window
         setup_task_crud_window(self.root, self.current_user_id)
-    
+
+    @handle_errors("managing personalization")
+    def manage_personalization(self):
+        """Open personalization management interface for selected user"""
+        if not self.current_user_id:
+            messagebox.showerror("No User Selected", "Please select a user first.")
+            return
+        
+        logger.info(f"Admin Panel: Opening personalization management for user {self.current_user_id}")
+        from ui.account_manager import setup_personalization_management_window
+        setup_personalization_management_window(self.root, self.current_user_id)
+
     @handle_errors("shutting down UI components")
     def shutdown_ui_components(self, communication_manager=None):
         """Shutdown any UI-created components gracefully"""
@@ -1302,6 +1296,31 @@ For detailed setup instructions, see the README.md file.
         """Handle window close event"""
         self.shutdown_ui_components()
         self.root.destroy()
+
+    def load_user_categories(self, user_id):
+        """Load categories for the selected user"""
+        try:
+            # Get user preferences to find categories
+            user_prefs = get_user_preferences(user_id)
+            if user_prefs and 'categories' in user_prefs:
+                categories = user_prefs['categories']
+                # Handle both list and dictionary formats
+                if isinstance(categories, dict):
+                    self.current_user_categories = list(categories.keys())
+                elif isinstance(categories, list):
+                    self.current_user_categories = categories
+                else:
+                    self.current_user_categories = []
+            else:
+                self.current_user_categories = []
+            
+            # Update category combo box
+            self.category_combo['values'] = ["Select a category..."] + self.current_user_categories
+            self.category_combo.set("Select a category...")
+                
+        except Exception as e:
+            logger.error(f"Error loading user categories: {e}")
+            self.current_user_categories = []
 
 @handle_errors("starting UI application")
 def main():

@@ -3,6 +3,114 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-11 - Sent Messages Directory Cleanup
+- **Global Directory References Removed**: Eliminated all references to the obsolete global `data/sent_messages` directory
+  - Removed `SENT_MESSAGES_DIR_PATH` from core path validation in `core/config.py`
+  - Removed `SENT_MESSAGES_DIR_PATH` definition from `core/config.py`
+  - Removed import references from `core/file_operations.py`
+  - Added cleanup tasks to TODO.md for future per-user sent message file migration
+- **Eliminated Startup Warnings**: App no longer checks for or creates the obsolete global sent messages directory
+- **Codebase Consistency**: Keeps codebase clean and consistent with per-user sent message storage architecture
+- **Impact**: Removes unnecessary warnings and directory creation, improves startup experience
+- **Status**: ✅ **COMPLETED** - Global sent messages directory references removed
+
+### 2025-07-11 - Message File Creation Architecture Improvements
+- **Refactored Message File Creation Logic**: Improved efficiency and cleaner architecture for message file creation
+  - Removed directory creation from `create_message_file_from_defaults()` (now handled by `create_user_files()` during account creation)
+  - Made `ensure_user_message_files()` accept subset of categories for targeted creation (validation checks all, updates check only new categories)
+  - Improved separation of concerns: validation checks missing files, worker creates them
+- **Eliminated Redundant Operations**: Removed duplicate file existence checks and directory creation calls
+- **Better Use Case Support**: Different scenarios now use appropriate functions:
+  - Account creation: `create_user_files()` creates directory, calls `create_message_file_from_defaults()` for each category
+  - Validation: `ensure_user_message_files()` checks all categories, creates missing files
+  - Category updates: `ensure_user_message_files()` checks only new categories, creates missing files
+- **Impact**: More efficient file creation, cleaner code architecture, and better separation of responsibilities
+
+### 2025-07-11 - Default Message Library Population Fix
+- **Fixed Default Message Population**: Updated create_user_files to properly populate user message files from default_messages with correct format (days, time_periods, message_id fields)
+- **Created Migration Script**: Added scripts/fix_user_message_formats.py to migrate existing user message files from old format (list of strings) to new format (list of dictionaries)
+- **Created Cleanup Script**: Added scripts/cleanup_user_message_files.py to delete unintentional message files for non-opted-in categories and ensure only enabled categories have message files
+- **Best Practice**: Message files are now only created for categories a user is opted into, always using default_messages as the source
+- **Added Helper Functions**: Created populate_user_messages_from_defaults() and migrate_user_message_format() functions in core/message_management.py
+- **Impact**: New users will get properly formatted message files, existing users can run migration/cleanup scripts to fix their files
+
+### 2025-07-11 - User Index Redesign, Survey Cleanup & Signal-Based Dynamic Updates
+- **User Index Redesign**: Completely redesigned user index structure to be more relevant and current
+  - New structure: `internal_username`, `active`, `channel_type`, `enabled_features`, `last_interaction`, `last_updated`
+  - Automatic index updates whenever users are created/modified
+  - Fixed format consistency issues across all user entries
+  - UI now uses user index instead of scanning directories directly
+- **Survey Responses Cleanup**: Removed all unused survey functionality from codebase
+  - Deleted all `survey_responses.json` files from user directories
+  - Removed survey-related code from core modules (`user_data_manager.py`, `file_operations.py`, `config.py`, `response_tracking.py`)
+  - No more unused survey functionality cluttering the codebase
+- **Signal-Based Dynamic Updates**: Implemented real-time UI updates when user data changes
+  - Added `user_changed` signals to all user-editing dialogs (AccountCreatorDialog, CategoryManagementDialog, CheckinManagementDialog, UserProfileDialog, ChannelManagementDialog, TaskManagementDialog)
+  - Connected signals to `refresh_user_list()` in main window
+  - User dropdown automatically refreshes with updated information after any user data change
+  - Consistent data synchronization across all UI components
+- **Impact**: More responsive UI, cleaner codebase, better data consistency, and improved user experience with real-time updates
+- **Status**: ✅ **COMPLETED** - User index synchronization, survey cleanup, and signal-based updates
+
+
+### 2025-07-10 - Schedule Data Migration, Restoration & Bugfixes
+- **Schedule Data Migration**: Successfully migrated all user schedule data to the new nested format with periods sub-dict
+- **Custom Period Restoration**: Restored custom schedule periods for all users after migration
+- **'ALL' Period Scheduling Bug Fixed**: Fixed bug where 'ALL' period was incorrectly scheduled; now only used as fallback
+- **Migration/Backup Best Practices**: Established workflow for backup before migration, verification after migration, and restoration if needed
+- **Impact**: Data integrity preserved, user customizations restored, and scheduling logic now works as intended
+
+### 2025-07-07 - UI Directory Reorganization & PySide6 Migration Completion
+- **Complete UI Reorganization**: Successfully reorganized UI directory structure with clear separation of concerns
+- **Directory Structure**: Created `ui/designs/` for .ui files, `ui/generated/` for auto-generated Python classes, `ui/dialogs/` for dialog implementations, and `ui/widgets/` for widget implementations
+- **Naming Convention Standardization**: Removed redundant `ui_app_` prefix and implemented consistent naming patterns (e.g., `createaccount` → `account_creator`, `editschedule` → `schedule_editor`)
+- **PySide6 Migration**: Completed migration from Tkinter to PySide6/Qt for all UI components
+- **Generated UI Files**: Successfully regenerated all PyQt Python files from updated .ui files using `pyside6-uic`
+- **File Mapping**: Updated all file references and imports to use new naming conventions
+- **Code Cleanup**: Moved test and debug files to `scripts/` directory for better organization
+- **Impact**: Cleaner, more maintainable UI architecture with proper separation of design, generated code, and implementation
+- **Status**: ✅ **COMPLETED** - Full UI reorganization and PySide6 migration
+
+### 2025-07-07 - Default Schedule Periods for New Categories
+- **Default Schedule Creation**: Added automatic creation of default schedule periods (18:00-20:00) for new categories
+- **Legacy Migration**: Implemented migration system to convert existing flat schedule structure to new nested format
+- **Fallback Period**: Ensured "ALL" period (00:00-23:59) is always available as a fallback for all categories
+- **Schedule Management**: Added `load_user_schedules_data()`, `save_user_schedules_data()`, and `update_user_schedules()` functions
+- **Migration Functions**: Created `migrate_legacy_schedules_structure()` and `ensure_category_has_default_schedule()` for data consistency
+- **Integration**: Modified `update_user_preferences()` to automatically create default schedules when new categories are added
+- **File Operations**: Updated `create_user_files()` to include default periods when creating new user files
+- **Impact**: Every new category now has sensible default schedule periods, improving user experience and reducing setup time
+- **Status**: ✅ **COMPLETED** - Default schedule periods with legacy migration and automatic creation
+
+### 2025-07-04 - PySide6 UI Migration & QUiLoader Implementation
+- **Complete UI Framework Migration**: Successfully migrated entire admin interface from Tkinter to PySide6/Qt
+- **Qt Designer Integration**: Implemented workflow for designing UI layouts in Qt Designer and loading .ui files at runtime
+- **Main Admin Panel Migration**: Migrated comprehensive admin panel with service management, user management, and content management features
+- **QUiLoader Implementation**: Implemented proper loading of .ui files using QUiLoader for better maintainability and visual design workflow
+- **UI File Structure**: Created and integrated ui_app_mainwindow.ui and ui_app_createaccount_dialogue.ui files
+- **QSS Theme Integration**: Added support for loading and applying QSS themes (admin_theme.qss) to enhance UI appearance
+- **Account Creation Dialog Refactoring**: Refactored account creation dialog to load directly from .ui file with collapsible sections
+- **Service Management Integration**: Migrated service start/stop/restart functionality with proper process management
+- **User Management Features**: Migrated user selection, category management, and user action buttons
+- **Error Handling**: Implemented comprehensive error handling for UI loading, theme application, and service operations
+- **Signal/Slot Connections**: Properly wired up UI signals and slots for buttons, dropdowns, and interactive elements
+- **Collapsible Sections**: Implemented collapsible task management and check-in sections in account creation dialog
+- **Best Practices Established**: Determined optimal approach for dialog structure using QDialog as root widget in .ui files
+- **Widget Refactoring Planning**: Identified need for reusable widgets (task management, check-in settings, personalization) to eliminate code duplication
+- **Code Organization**: Improved separation of concerns by using function-based dialog creation instead of class-based approach
+- **Theme Fallback Handling**: Implemented graceful degradation when QSS theme files are missing
+- **Cross-Platform Compatibility**: Ensured PySide6 UI works consistently across Windows, Linux, and macOS
+- **Impact**: Complete UI modernization with better maintainability, consistent behavior, visual design capabilities, and foundation for future widget-based architecture
+- **Status**: ✅ **COMPLETED** - Full PySide6 migration with Qt Designer integration and QSS theming
+
+### 2025-07-07 - UI Migration Finalization & Check-in Frequency Update
+- **Check-in Frequency Logic Removed**: All frequency logic removed from check-in settings; now every applicable time period prompts a check-in
+- **Widget/Dialog Naming Standardization**: All widgets and dialogs now use consistent, clear names
+- **PySide6 Migration Finalized**: All major dialogs and widgets are now PySide6-based and working
+- **Widget Refactoring**: Nearly complete; only minor polish and testing remain
+- **Error Handling & UI Consistency**: Improved error handling and UI consistency across dialogs
+- **Next Steps**: Comprehensive dialog and widget testing for visual and functional correctness
+
 ### 2025-07-03 - Smart Task Reminder Scheduling Implementation
 - **Intelligent Task Selection**: Implemented smart task reminder scheduling that picks one random task per reminder period instead of scheduling every task
 - **Random Time Scheduling**: Added random time generation within reminder periods (e.g., between 17:00-18:00) instead of always scheduling at the start time
@@ -147,6 +255,22 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ### 2025-06-11 - Initial Commit
 - Initial commit: Mental Health Management (MHM) system
+
+### 2025-07-07 - Messaging Service Field Migration & Data Model Modernization
+- **Canonical Field Update**: Migrated all code and user data to use `preferences['channel']['type']` as the canonical field for messaging service selection
+- **Legacy Field Removal**: Deprecated and removed the legacy `preferences['messaging_service']` field from all user data
+- **Codebase Update**: Updated all code to read from `channel['type']` with a temporary fallback to `messaging_service` for legacy support
+- **Migration Script**: Added and ran a migration script to move any legacy `messaging_service` values to `channel['type']` and remove the old field
+- **Verification**: Verified all user data is now clean and consistent; fallback can be removed in the future
+- **Documentation**: Updated best practices and documentation to reflect the new canonical field
+- **Impact**: Ensures data consistency, future-proofs messaging service selection, and simplifies codebase
+- **Status**: ✅ **COMPLETED** - Messaging service field migration and codebase modernization
+
+### 2025-07-08 - Modular Period Widget Management & UI Logic Refactor
+- **Modular Period Management**: Refactored period widget logic into reusable functions and standardized handling across all relevant dialogs
+- **UI Logic Separation**: Created core/ui_management.py to house UI-specific period management logic, improving maintainability
+- **Bug Fixes**: Resolved groupbox checkbox visual issues, period prepopulation bugs, and period naming inconsistencies
+- **Outstanding Issue**: Schedule saving callback signature mismatch to be fixed
 
 ---
 

@@ -9,11 +9,11 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
-from core.user_management import get_user_info
+from core.user_management import get_user_account, get_user_preferences, get_user_context
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.config import (
-    USER_INFO_DIR_PATH, USE_USER_SUBDIRECTORIES,
-    ensure_user_directory
+    USER_INFO_DIR_PATH,
+    get_user_file_path, ensure_user_directory
 )
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -25,8 +25,7 @@ def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""
     filename_mapping = {
         "daily_checkin": "daily_checkin_log.json",
-        "chat_interaction": "chat_interaction_log.json", 
-        "survey_response": "survey_response_log.json"
+        "chat_interaction": "chat_interaction_log.json"
     }
     return filename_mapping.get(response_type, f"{response_type}_log.json")
 
@@ -40,8 +39,6 @@ def store_user_response(user_id: str, response_data: dict, response_type: str = 
         log_file = get_user_file_path(user_id, 'daily_checkins')
     elif response_type == "chat_interaction":
         log_file = get_user_file_path(user_id, 'chat_interactions')
-    elif response_type == "survey_response":
-        log_file = get_user_file_path(user_id, 'survey_responses')
     else:
         log_file = get_user_file_path(user_id, f'{response_type}_log')
     
@@ -78,15 +75,7 @@ def store_chat_interaction(user_id: str, user_message: str, ai_response: str, co
     store_user_response(user_id, response_data, "chat_interaction")
     logger.info(f"Stored chat_interaction response for user {user_id}: {response_data}")
 
-@handle_errors("storing survey response")
-def store_survey_response(user_id: str, survey_name: str, responses: dict):
-    """Store a survey response."""
-    response_data = {
-        'survey_name': survey_name,
-        'responses': responses,
-        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    }
-    store_user_response(user_id, response_data, "survey_response")
+
 
 @handle_errors("getting recent responses", default_return=[])
 def get_recent_responses(user_id: str, response_type: str = "daily_checkin", limit: int = 5):
@@ -96,8 +85,6 @@ def get_recent_responses(user_id: str, response_type: str = "daily_checkin", lim
         log_file = get_user_file_path(user_id, 'daily_checkins')
     elif response_type == "chat_interaction":
         log_file = get_user_file_path(user_id, 'chat_interactions')
-    elif response_type == "survey_response":
-        log_file = get_user_file_path(user_id, 'survey_responses')
     else:
         log_file = get_user_file_path(user_id, f'{response_type}_log')
     
@@ -138,28 +125,66 @@ def get_recent_chat_interactions(user_id: str, limit: int = 10):
     """Get recent chat interactions for a user."""
     return get_recent_responses(user_id, "chat_interaction", limit)
 
-@handle_errors("getting recent survey responses", default_return=[])
-def get_recent_survey_responses(user_id: str, limit: int = 5):
-    """Get recent survey responses for a user."""
-    return get_recent_responses(user_id, "survey_response", limit)
+
 
 @handle_errors("getting user checkin preferences", default_return={})
 def get_user_checkin_preferences(user_id: str) -> dict:
-    """Get user's check-in preferences from their user info."""
-    user_info = get_user_info(user_id)
-    if not user_info:
+    """Get user's check-in preferences from their preferences file."""
+    from core.user_management import get_user_preferences
+    user_preferences = get_user_preferences(user_id)
+    if not user_preferences:
         return {}
     
-    return user_info.get('preferences', {}).get('checkins', {})
+    return user_preferences.get('checkin_settings', {})
 
 @handle_errors("checking if user checkins enabled", default_return=False)
 def is_user_checkins_enabled(user_id: str) -> bool:
     """Check if check-ins are enabled for a user."""
-    checkin_prefs = get_user_checkin_preferences(user_id)
-    return checkin_prefs.get('enabled', False)
+    user_account = get_user_account(user_id)
+    if not user_account:
+        return False
+    
+    return user_account.get('features', {}).get('checkins') == 'enabled'
 
 @handle_errors("getting user checkin questions", default_return={})
 def get_user_checkin_questions(user_id: str) -> dict:
     """Get the enabled check-in questions for a user."""
     checkin_prefs = get_user_checkin_preferences(user_id)
-    return checkin_prefs.get('questions', {}) 
+    return checkin_prefs.get('questions', {})
+
+def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
+    """Get user information for response tracking."""
+    try:
+        user_account = get_user_account(user_id)
+        user_preferences = get_user_preferences(user_id)
+        user_context = get_user_context(user_id)
+        
+        if not user_account:
+            return {}
+        
+        return {
+            "user_id": user_id,
+            "internal_username": user_account.get("internal_username", ""),
+            "preferred_name": user_context.get("preferred_name", "") if user_context else "",
+            "categories": user_preferences.get("categories", []) if user_preferences else [],
+            "messaging_service": user_preferences.get("messaging_service", "") if user_preferences else "",
+            "created_at": user_account.get("created_at", ""),
+            "last_updated": user_account.get("last_updated", "")
+        }
+    except Exception as e:
+        logger.error(f"Error getting user info for tracking {user_id}: {e}")
+        return {}
+
+def track_user_response(user_id: str, category: str, response_data: Dict[str, Any]):
+    """Track a user's response to a message."""
+    try:
+        # Get user info using new functions
+        user_account = get_user_account(user_id)
+        if not user_account:
+            logger.error(f"User account not found for tracking: {user_id}")
+            return
+        
+        # Rest of tracking logic...
+        
+    except Exception as e:
+        logger.error(f"Error tracking user response: {e}") 

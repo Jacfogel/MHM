@@ -4,6 +4,7 @@ discord.py>=2.3.0  # For Discord bot functionality
 schedule>=1.2.0  # For task scheduling
 python-dotenv>=1.0.0  # For environment variable management
 pytz>=2023.3  # For timezone handling (used in scheduler.py)
+tzlocal>=5.3.1  # For detecting system timezone in account creation
 psutil>=5.9.0  # For process management in UI application
 
 # AI/ML dependencies  
@@ -29,4 +30,6 @@ pylint>=2.17.0  # For code linting
 # - os
 # - time 
 
-tkcalendar 
+# UI dependencies
+tkcalendar>=1.6.1  # For date picker in UI dialogs
+PySide6>=6.5.0  # For Qt-based UI (replacing tkinter) 

@@ -4,7 +4,7 @@
 import json
 import os
 
-from core.user_management import get_user_preferences, load_user_info_data, save_user_info_data
+from core.user_management import get_user_preferences, update_user_preferences, get_user_account, get_user_context
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active
 from core.logger import get_logger
 from core.error_handling import (
@@ -20,22 +20,16 @@ class UserPreferences:
 
     @handle_errors("loading preferences", default_return={})
     def load_preferences(self):
-        """Load user preferences using the updated utils functions."""
-        # Use the updated utils function that supports new structure
+        """Load user preferences using the new user management functions."""
+        # Use the new user management function
         preferences = get_user_preferences(self.user_id)
         return preferences or {}
 
     @handle_errors("saving preferences")
     def save_preferences(self):
-        """Save user preferences using the updated utils functions."""
-        # Load current user data
-        user_data = load_user_info_data(self.user_id) or {}
-        
-        # Update preferences
-        user_data['preferences'] = self.preferences
-        
-        # Save updated user data
-        save_user_info_data(user_data, self.user_id)
+        """Save user preferences using the new user management functions."""
+        # Use the new update function
+        update_user_preferences(self.user_id, self.preferences)
         logger.info(f"User preferences saved for {self.user_id}")
 
     @handle_errors("setting preference")

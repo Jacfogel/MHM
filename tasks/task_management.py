@@ -395,13 +395,15 @@ def are_tasks_enabled(user_id: str) -> bool:
             logger.error("User ID is required for checking task status")
             return False
         
-        # Load user preferences
-        from core.user_management import get_user_preferences
-        preferences = get_user_preferences(user_id)
+        # Load user account to check feature status
+        from core.user_management import get_user_account
+        user_account = get_user_account(user_id)
         
-        # Check if tasks are enabled
-        task_preferences = preferences.get('tasks', {})
-        return task_preferences.get('enabled', False)
+        # Check if task management is enabled in account features
+        if user_account and user_account.get('features', {}).get('task_management') == 'enabled':
+            return True
+        
+        return False
         
     except Exception as e:
         logger.error(f"Error checking task status for user {user_id}: {e}")

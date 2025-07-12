@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ui_app_mainwindow</class>
+ <widget class="QMainWindow" name="ui_app_mainwindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>879</width>
+    <height>711</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLabel" name="label_mhm_admin_panel">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Motivational Health Messages Admin Panel</string>
+      </property>
+      <property name="role" stdset="0">
+       <string>header</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_server_management">
+      <property name="title">
+       <string>Service Management</string>
+      </property>
+      <layout class="QVBoxLayout" name="veticalLayout_2">
+       <property name="leftMargin">
+        <number>5</number>
+       </property>
+       <property name="topMargin">
+        <number>9</number>
+       </property>
+       <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="1" column="0">
+          <widget class="QPushButton" name="pushButton_start_service">
+           <property name="text">
+            <string>Start Service</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pushButton_stop_service">
+           <property name="text">
+            <string>Stop Service</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QPushButton" name="pushButton_restart_service">
+           <property name="text">
+            <string>Restart</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QPushButton" name="pushButton_refresh_server_status">
+           <property name="text">
+            <string>Refresh</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="4">
+          <widget class="QLabel" name="label_service_status">
+           <property name="text">
+            <string>Service Status:</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="pushButton_create_new_user">
+      <property name="text">
+       <string>Create New User</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBox_user_management">
+      <property name="title">
+       <string>User Management</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="2" colspan="2">
+          <widget class="QComboBox" name="comboBox_users"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_select_user">
+           <property name="layoutDirection">
+            <enum>Qt::LayoutDirection::LeftToRight</enum>
+           </property>
+           <property name="text">
+            <string>Select User:</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0" rowspan="2" colspan="4">
+          <layout class="QGridLayout" name="gridLayout_2">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="pushButton_communication_settings">
+             <property name="cursor">
+              <cursorShape>SizeBDiagCursor</cursorShape>
+             </property>
+             <property name="contextMenuPolicy">
+              <enum>Qt::ContextMenuPolicy::ActionsContextMenu</enum>
+             </property>
+             <property name="toolTipDuration">
+              <number>-7</number>
+             </property>
+             <property name="layoutDirection">
+              <enum>Qt::LayoutDirection::LeftToRight</enum>
+             </property>
+             <property name="text">
+              <string>Comunication Settings</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="pushButton_personalization">
+             <property name="text">
+              <string>Personalization</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QPushButton" name="pushButton_category_management">
+             <property name="text">
+              <string>Category Management</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="pushButton_checkin_settings">
+             <property name="text">
+              <string>Check-in Settings</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="pushButton_task_management">
+             <property name="text">
+              <string>Task Management</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QPushButton" name="pushButton_task_crud">
+             <property name="text">
+              <string>Task CRUD</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_category_actions">
+         <property name="title">
+          <string>Category Actions</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_5">
+          <item>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="1" column="2">
+             <widget class="QPushButton" name="pushButton_send_test_message">
+              <property name="text">
+               <string>Sent Test Message</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_select_category">
+              <property name="toolTipDuration">
+               <number>-2</number>
+              </property>
+              <property name="layoutDirection">
+               <enum>Qt::LayoutDirection::LeftToRight</enum>
+              </property>
+              <property name="text">
+               <string>Select Category:</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="pushButton_edit_messages">
+              <property name="text">
+               <string>Edit Messages</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2" colspan="2">
+             <widget class="QComboBox" name="comboBox_user_categories"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="pushButton_edit_schedules">
+              <property name="text">
+               <string>Edit Schedules</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>879</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <widget class="QMenu" name="menuCache_Management">
+     <property name="title">
+      <string>Cache Management</string>
+     </property>
+     <addaction name="actionView_Cache_Status"/>
+     <addaction name="actionForce_Clean_Cache"/>
+    </widget>
+    <addaction name="actionToggle_Verbos_Logging"/>
+    <addaction name="actionView_Log_File"/>
+    <addaction name="menuCache_Management"/>
+   </widget>
+   <widget class="QMenu" name="menuAdmin">
+    <property name="title">
+     <string>Admin</string>
+    </property>
+    <addaction name="actionValidate_Configuration"/>
+    <addaction name="actionView_All_Users"/>
+    <addaction name="actionSystem_Health_Check"/>
+   </widget>
+   <addaction name="menuDebug"/>
+   <addaction name="menuAdmin"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionToggle_Verbos_Logging">
+   <property name="text">
+    <string>Toggle Verbose Logging</string>
+   </property>
+  </action>
+  <action name="actionView_Log_File">
+   <property name="text">
+    <string>View Log File</string>
+   </property>
+  </action>
+  <action name="actionView_Cache_Status">
+   <property name="text">
+    <string>View Cache Status</string>
+   </property>
+  </action>
+  <action name="actionForce_Clean_Cache">
+   <property name="text">
+    <string>Force Clean Cache</string>
+   </property>
+  </action>
+  <action name="actionValidate_Configuration">
+   <property name="text">
+    <string>Validate Configuration</string>
+   </property>
+  </action>
+  <action name="actionView_All_Users">
+   <property name="text">
+    <string>View All Users</string>
+   </property>
+  </action>
+  <action name="actionSystem_Health_Check">
+   <property name="text">
+    <string>System Health Check</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

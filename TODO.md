@@ -35,16 +35,69 @@ These improvements will make the code more reliable and easier to work with:
      - Failure to properly handle multi-line output
      - Incorrect conclusions about what commands actually did
 
-7. **Test edge cases for check-in and category schedule management**
+6. **Test edge cases for check-in and category schedule management**
    - *What it means*: Verify that first-time check-in enablement and new category addition work correctly
    - *Why it helps*: Ensures the improved schedule management system handles all scenarios properly
    - *Priority*: Medium
    - *Estimated effort*: Small
 
-- [ ] fix treeview refresh - should refresh reflecting the changes, while maintaining current sorting, on message add, edit, delete, and undo delete. should also scroll window to added, edited or undeleted message
-- [ ] Advanced task management and progress tracking
-- [ ] Advanced scheduling
-- [ ] Integration with additional services
+7. **Fix treeview refresh** - Should refresh reflecting the changes, while maintaining current sorting, on message add, edit, delete, and undo delete. Should also scroll window to added, edited or undeleted message
+   - *What it means*: Improve the message editing interface to automatically update the display when messages are changed
+   - *Why it helps*: Better user experience with immediate visual feedback
+   - *Priority*: Medium
+   - *Estimated effort*: Small
+
+8. **Advanced task management and progress tracking**
+   - *What it means*: Implement comprehensive task management with advanced features
+   - *Why it helps*: Better executive functioning support
+   - *Priority*: High
+   - *Estimated effort*: Large
+
+9. **Advanced scheduling**
+   - *What it means*: Implement more sophisticated scheduling capabilities
+   - *Why it helps*: More flexible and powerful scheduling options
+   - *Priority*: Medium
+   - *Estimated effort*: Medium
+
+10. **Integration with additional services**
+    - *What it means*: Add support for more communication channels and external services
+    - *Why it helps*: More ways to interact with the system
+    - *Priority*: Low
+    - *Estimated effort*: Large
+
+## 🖥️ PySide6 UI Migration & Widget Refactoring
+
+### Current Status: ✅ **COMPLETED** - See CHANGELOG.md for details
+- **UI Migration**: Successfully completed - see CHANGELOG.md for full details
+- **Widget Refactoring**: ✅ **COMPLETED** - All widgets migrated and integrated with signal-based dynamic updates
+- **User Index & Data Cleanup**: ✅ **COMPLETED** - User index redesigned and synchronized, survey responses removed
+- **Signal-Based Updates**: ✅ **COMPLETED** - Dynamic UI updates when user data changes
+- **Next Focus**: Comprehensive testing and final polish
+
+### Completed Widget Refactoring ✅
+**Goal**: Create reusable widgets for features used in multiple places
+
+- **Task Management Widget**: ✅ **COMPLETED** - Reusable widget for task management features
+  - *What it means*: Extract task management UI into a standalone widget that can be used in both account creation dialog and standalone task management dialog
+  - *Why it helps*: Eliminates code duplication, ensures consistent behavior, makes maintenance easier
+  - *Status*: ✅ Complete with signal-based updates
+
+- **Check-in Settings Widget**: ✅ **COMPLETED** - Reusable widget for check-in configuration
+  - *What it means*: Extract check-in settings UI into a standalone widget for use in account creation and standalone check-in management
+  - *Why it helps*: Single source of truth for check-in logic, consistent UI across all contexts
+  - *Status*: ✅ Complete (frequency logic removed, now every time period prompts a check-in)
+
+- **Personalization Widget**: ✅ **COMPLETED** - Reusable widget for personalization settings
+  - *What it means*: Extract personalization UI into a standalone widget for use in account creation and standalone personalization dialog
+  - *Why it helps*: Consistent personalization experience, easier to maintain and extend
+  - *Status*: ✅ Complete with signal-based updates
+
+### Signal-Based Architecture ✅ **COMPLETED**
+- **Real-time Updates**: UI automatically refreshes when user data changes
+- **Decoupled Components**: Dialogs don't need to know about main window internals
+- **Scalable Design**: Easy to add new dialogs that trigger updates
+- **Consistent Behavior**: All user-editing dialogs follow the same update pattern
+- **Maintainable Code**: Clear separation of concerns between data changes and UI updates
 
 ## 🔧 System Reliability & Maintenance
 
@@ -230,4 +283,68 @@ Keep entries **concise** and **actionable**. Focus on **what needs to be done** 
 
 Remember: This is your personal mental health assistant. Every improvement makes it better for you!
 
-- Note: The double service process issue when using the play/debug button in VS Code/Cursor is due to IDE/debugger quirks, not project code. Running from the terminal with venv activated is recommended. 
+- Note: The double service process issue when using the play/debug button in VS Code/Cursor is due to IDE/debugger quirks, not project code. Running from the terminal with venv activated is recommended.
+
+## 🧹 UI Migration Cleanup & Consolidation
+
+### Completed Cleanup Tasks ✅
+- **Real Task Statistics**: Replaced placeholder statistics in task management with real data fetching from the task management system
+- **Implemented Missing Features**: Replaced "Not Implemented" placeholders in PySide6 UI with proper implementations:
+  - Check-in management now opens the full check-in management interface (frequency logic removed, now every time period prompts a check-in)
+  - Task CRUD operations now opens the comprehensive task management interface  
+  - Message editor now opens the full message editing interface
+- **User Context Integration**: Updated task management dialog to properly pass user_id for real data access
+- **Widget/Dialog Naming Standardization**: All widgets and dialogs now use consistent, clear names (July 2025)
+- [x] **Period Widget Refactoring**: Modular, reusable period widget management implemented across dialogs (July 2025)
+- [x] **Schedule Data Migration & Restoration**: Schedule data successfully migrated to new nested format; custom periods restored after migration (July 2025)
+- [ ] **Comprehensive Dialog/Widget Testing**: Continue testing all dialogs and widgets for visual and functional correctness
+- [ ] **Document Migration/Backup Procedures**: Add documentation for migration/backup best practices
+- [ ] **Fix schedule saving callback signature mismatch** - Update callback to match new argument order after refactor
+- [x] **Created core/ui_management.py**: UI-specific period logic moved to new module for maintainability (July 2025)
+
+### Remaining Cleanup Tasks (Medium Priority)
+
+#### Code Consolidation
+- **Account Creator Pattern**: Refactor `account_creator_qt.py` to use the generated UI class pattern instead of QUiLoader for consistency
+- **Redundant Methods**: Review and consolidate duplicate logic between Tkinter and PySide6 versions
+- **Temporary User ID Pattern**: Document the temporary user ID pattern used in personalization dialogs as a best practice
+- **Account Creation Feature Enablement**: Update account creation dialog to read/write feature enablement from account.json instead of preferences (task_management and checkins features)
+
+#### File Organization
+- **Generated UI Files**: Consider organizing generated `*_pyqt.py` files in a separate subdirectory
+- **Widget Reusability**: Extract common widget patterns into reusable base classes
+- **Documentation**: Create UI development guidelines documenting the established patterns
+
+#### Testing & Validation
+- **Cross-Platform Testing**: Test all dialogs and widgets on different platforms
+- **Error Handling**: Audit all error handling to ensure consistent patterns
+- **Performance**: Monitor UI responsiveness and optimize slow operations
+- **Comprehensive Dialog Testing**: Test all dialogs for visual and functional correctness (July 2025)
+
+### Best Practices Established
+- **Generated UI Pattern**: Use `
+
+### Sent Messages Migration & Cleanup ✅ **PARTIALLY COMPLETE**
+- ✅ **Global Directory Cleanup**: Removed all references to obsolete global `data/sent_messages` directory
+  - Removed `SENT_MESSAGES_DIR_PATH` from core path validation and configuration
+  - Eliminated unnecessary startup warnings and directory creation
+- **Remaining Tasks** (Planned for future):
+  - Move users' `sent_messages.json`s into their messages folder
+  - Update the code and current data files to match
+  - Update or remove any code that references the global sent_messages directory, ensuring all sent message operations use per-user directories/files
+  - Correct the default message library population for users (new and existing)
+  - Review and update user file validation
+
+### Legacy Code Cleanup (Planned)
+- **Legacy messaging_service field**: Remove fallback references to `preferences['messaging_service']` once all code uses `preferences['channel']['type']`
+- **Legacy compatibility code**: Review and remove any remaining legacy compatibility functions and fallbacks
+- **Documentation cleanup**: Remove references to obsolete configuration options and file structures
+
+### Legacy messaging_service Field Cleanup (High Priority)
+Found in multiple files - these are fallback references that should be cleaned up:
+- `ui/ui_app_qt.py` (line 1243)
+- `ui/account_manager.py` (lines 1170, 1294)
+- `core/response_tracking.py` (line 169)
+- `bot/user_context_manager.py` (lines 97, 196)
+- `bot/telegram_bot.py` (line 671)
+- `bot/communication_manager.py` (lines 530, 814)

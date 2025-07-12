@@ -35,8 +35,6 @@ BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 # Paths - Updated for better organization
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
 USER_INFO_DIR_PATH = os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users'))
-MESSAGES_BY_CATEGORY_DIR_PATH = os.getenv('MESSAGES_BY_CATEGORY_DIR_PATH', os.path.join(BASE_DATA_DIR, 'messages'))
-SENT_MESSAGES_DIR_PATH = os.getenv('SENT_MESSAGES_DIR_PATH', os.path.join(BASE_DATA_DIR, 'sent_messages'))
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'default_messages')  # Keep at root
 
 # LM Studio Configuration (replacing GPT4All)
@@ -63,7 +61,6 @@ CONTEXT_CACHE_TTL = int(os.getenv('CONTEXT_CACHE_TTL', '300'))  # 5 minutes
 CONTEXT_CACHE_MAX_SIZE = int(os.getenv('CONTEXT_CACHE_MAX_SIZE', '100'))
 
 # File Organization Settings
-USE_USER_SUBDIRECTORIES = os.getenv('USE_USER_SUBDIRECTORIES', 'true').lower() == 'true'
 AUTO_CREATE_USER_DIRS = os.getenv('AUTO_CREATE_USER_DIRS', 'true').lower() == 'true'
 
 # Logging Configuration
@@ -98,8 +95,6 @@ def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
     paths_to_check = [
         ('BASE_DATA_DIR', BASE_DATA_DIR),
         ('USER_INFO_DIR_PATH', USER_INFO_DIR_PATH),
-        ('MESSAGES_BY_CATEGORY_DIR_PATH', MESSAGES_BY_CATEGORY_DIR_PATH),
-        ('SENT_MESSAGES_DIR_PATH', SENT_MESSAGES_DIR_PATH),
         ('DEFAULT_MESSAGES_DIR_PATH', DEFAULT_MESSAGES_DIR_PATH),
     ]
     
@@ -256,15 +251,12 @@ def validate_file_organization_settings() -> Tuple[bool, List[str], List[str]]:
     warnings = []
     
     # These are boolean settings, so just check they're valid
-    if not isinstance(USE_USER_SUBDIRECTORIES, bool):
-        errors.append("USE_USER_SUBDIRECTORIES must be a boolean value")
-    
     if not isinstance(AUTO_CREATE_USER_DIRS, bool):
         errors.append("AUTO_CREATE_USER_DIRS must be a boolean value")
     
     # Check for potential conflicts
-    if USE_USER_SUBDIRECTORIES and not AUTO_CREATE_USER_DIRS:
-        warnings.append("USE_USER_SUBDIRECTORIES is enabled but AUTO_CREATE_USER_DIRS is disabled - user directories may not be created automatically")
+    if AUTO_CREATE_USER_DIRS:
+        warnings.append("AUTO_CREATE_USER_DIRS is enabled - user directories will be created automatically")
     
     return len(errors) == 0, errors, warnings
 
@@ -407,7 +399,6 @@ def print_configuration_report():
     print(f"  LM Studio URL: {LM_STUDIO_BASE_URL}")
     print(f"  AI Timeout: {AI_TIMEOUT_SECONDS}s")
     print(f"  Scheduler Interval: {SCHEDULER_INTERVAL}s")
-    print(f"  Use User Subdirectories: {USE_USER_SUBDIRECTORIES}")
     print(f"  Auto Create User Dirs: {AUTO_CREATE_USER_DIRS}")
     
     print("\n" + "="*60)
@@ -417,34 +408,29 @@ def print_configuration_report():
 # Data Management Functions
 def get_user_data_dir(user_id: str) -> str:
     """Get the data directory for a specific user."""
-    if USE_USER_SUBDIRECTORIES:
-        return os.path.join(BASE_DATA_DIR, 'users', user_id)
-    else:
-        return USER_INFO_DIR_PATH
+    return os.path.join(BASE_DATA_DIR, 'users', user_id)
 
 def get_user_file_path(user_id: str, file_type: str) -> str:
     """Get the file path for a specific user file type."""
     user_dir = get_user_data_dir(user_id)
     
-    if USE_USER_SUBDIRECTORIES:
-        file_mapping = {
-            'profile': 'profile.json',
-            'preferences': 'preferences.json',
-            'schedules': 'schedules.json',
-            'daily_checkins': 'daily_checkins.json',
-            'chat_interactions': 'chat_interactions.json',
-            'survey_responses': 'survey_responses.json',
-            'sent_messages': 'sent_messages.json',
-            'conversation_history': 'conversation_history.json'
-        }
-        return os.path.join(user_dir, file_mapping.get(file_type, f'{file_type}.json'))
-    else:
-        # Legacy flat structure
-        return os.path.join(USER_INFO_DIR_PATH, f"{user_id}.json")
+    file_mapping = {
+        # New structure
+        'account': 'account.json',
+        'preferences': 'preferences.json',
+        'user_context': 'user_context.json',
+        'schedules': 'schedules.json',
+        # Other files
+        'daily_checkins': 'daily_checkins.json',
+        'chat_interactions': 'chat_interactions.json',
+        'sent_messages': 'messages/sent_messages.json',
+        'conversation_history': 'conversation_history.json'
+    }
+    return os.path.join(user_dir, file_mapping.get(file_type, f'{file_type}.json'))
 
 def ensure_user_directory(user_id: str) -> bool:
     """Ensure user directory exists if using subdirectories."""
-    if not USE_USER_SUBDIRECTORIES or not AUTO_CREATE_USER_DIRS:
+    if not AUTO_CREATE_USER_DIRS:
         return True
     
     user_dir = get_user_data_dir(user_id)

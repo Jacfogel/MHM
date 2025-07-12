@@ -9,6 +9,7 @@ import subprocess
 import os
 from datetime import datetime, timedelta
 import logging
+from typing import List, Dict, Any
 
 from core.user_management import get_all_user_ids, get_user_preferences
 from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation, get_reminder_periods_and_days
@@ -47,7 +48,7 @@ class SchedulerManager:
                 # Then set up recurring daily scheduling at 01:00 for all users
                 user_ids = get_all_user_ids()
                 for user_id in user_ids:
-                    categories = get_user_preferences(user_id, ['categories'])
+                    categories = get_user_preferences(user_id, 'categories')
                     for category in categories:
                         # Check if a job already exists for this user and category before scheduling
                         if not self.is_job_for_category(None, user_id, category):
@@ -123,9 +124,9 @@ class SchedulerManager:
         if category == "tasks":
             # For tasks, check if task management is enabled and schedule task reminders
             try:
-                from core.user_management import get_user_preferences
-                task_prefs = get_user_preferences(active_user_id, ['tasks'])
-                if task_prefs and task_prefs.get('enabled', False):
+                from core.user_management import get_user_account
+                user_account = get_user_account(active_user_id)
+                if user_account and user_account.get('features', {}).get('task_management') == 'enabled':
                     self.schedule_all_task_reminders(active_user_id)
                     logger.info(f"Rescheduled task reminders for user {active_user_id}")
                 else:
@@ -175,7 +176,7 @@ class SchedulerManager:
         for user_id in user_ids:
             try:
                 # Schedule regular message categories
-                categories = get_user_preferences(user_id, ['categories'])
+                categories = get_user_preferences(user_id, 'categories')
                 if isinstance(categories, list):
                     if categories:  # Only process if list is not empty
                         for category in categories:
@@ -191,8 +192,9 @@ class SchedulerManager:
                 
                 # Schedule check-ins if enabled
                 try:
-                    checkin_prefs = get_user_preferences(user_id, ['checkins'])
-                    if checkin_prefs and checkin_prefs.get('enabled', False):
+                    from core.user_management import get_user_account
+                    user_account = get_user_account(user_id)
+                    if user_account and user_account.get('features', {}).get('checkins') == 'enabled':
                         # Check if check-in category exists in schedules
                         time_periods = get_schedule_time_periods(user_id, "checkin")
                         if time_periods:
@@ -243,9 +245,16 @@ class SchedulerManager:
                 continue
             # Check if this period is active (default to active if not specified)
             if period_data.get('active', True):
-                # If 'days' is present, only schedule if today is in days
+                # If 'days' is present, only schedule if today is in days or if days contains "ALL"
                 if 'days' in period_data:
-                    if today_name not in period_data['days']:
+                    days = period_data['days']
+                    if "ALL" in days:
+                        # Schedule for all days
+                        logger.debug(f"Scheduling period {period_name} for user {user_id}, category {category} (ALL days)")
+                    elif today_name in days:
+                        # Schedule for today
+                        logger.debug(f"Scheduling period {period_name} for user {user_id}, category {category} (today: {today_name})")
+                    else:
                         logger.debug(f"Skipping period {period_name} for user {user_id}, category {category} (not scheduled for today: {today_name})")
                         continue
                 try:
@@ -920,3 +929,57 @@ def cleanup_task_reminders(user_id, task_id=None):
         
     except Exception as e:
         logger.error(f"Error in task reminder cleanup request for user {user_id}: {e}")
+
+def get_user_categories(user_id: str) -> List[str]:
+    """Get user's message categories."""
+    try:
+        categories = get_user_preferences(user_id, 'categories')
+        if categories is None:
+            return []
+        elif isinstance(categories, list):
+            return categories
+        elif isinstance(categories, dict):
+            return list(categories.keys())
+        else:
+            return []
+    except Exception as e:
+        logger.error(f"Error getting categories for user {user_id}: {e}")
+        return []
+
+def process_user_schedules(user_id: str):
+    """Process schedules for a specific user."""
+    try:
+        # Get user's categories
+        categories = get_user_preferences(user_id, 'categories')
+        if not categories:
+            logger.debug(f"No categories found for user {user_id}")
+            return
+        
+        # Process each category
+        for category in categories:
+            process_category_schedule(user_id, category)
+            
+    except Exception as e:
+        logger.error(f"Error processing schedules for user {user_id}: {e}")
+
+def get_user_task_preferences(user_id: str) -> Dict[str, Any]:
+    """Get user's task preferences."""
+    try:
+        task_prefs = get_user_preferences(user_id, 'task_management')
+        if task_prefs is None:
+            return {}
+        return task_prefs
+    except Exception as e:
+        logger.error(f"Error getting task preferences for user {user_id}: {e}")
+        return {}
+
+def get_user_checkin_preferences(user_id: str) -> Dict[str, Any]:
+    """Get user's check-in preferences."""
+    try:
+        checkin_prefs = get_user_preferences(user_id, 'checkin_settings')
+        if checkin_prefs is None:
+            return {}
+        return checkin_prefs
+    except Exception as e:
+        logger.error(f"Error getting check-in preferences for user {user_id}: {e}")
+        return {}

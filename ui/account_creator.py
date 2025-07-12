@@ -7,7 +7,7 @@ from core.logger import get_logger
 from user.user_context import UserContext
 from core.message_management import get_message_categories
 from core.validation import title_case
-from core.user_management import get_user_id_by_internal_username, add_user_info
+from core.user_management import get_user_id_by_internal_username, create_new_user
 from core.file_operations import create_user_files
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -328,6 +328,14 @@ class CreateAccountScreen:
         
         current_row += 1
 
+        # Personalization Button
+        self.personalization_button = tk.Button(master, text="Personalization Settings", 
+                                              command=self.open_personalization_dialog,
+                                              font=("Arial", 10), bg="#2196F3", fg="white", pady=6)
+        self.personalization_button.grid(row=current_row, column=0, columnspan=4, pady=(10, 5))
+        self.personalization_button.bind("<MouseWheel>", on_main_mouse_wheel)
+        current_row += 1
+
         # Create Account Button
         self.create_button = tk.Button(master, text="Create Account", command=self.create_account, 
                                      font=("Arial", 12, "bold"), bg="#4CAF50", fg="white", pady=8)
@@ -542,190 +550,71 @@ class CreateAccountScreen:
         # The reminder time entry is always visible but can be disabled if needed
         # This method can be expanded later for more complex task UI
 
+    def open_personalization_dialog(self):
+        """Open the personalization dialog for the user."""
+        try:
+            from ui.dialogs.user_profile_dialog import open_personalization_dialog
+            
+            # Create a temporary user ID for the dialog
+            temp_user_id = str(uuid.uuid4())
+            
+            def on_personalization_save(data):
+                """Callback when personalization data is saved."""
+                # Store the personalization data temporarily
+                self.temp_personalization_data = data
+                logger.info("Personalization data saved for account creation")
+            
+            # Pass existing data if available (for editing)
+            existing_data = getattr(self, 'temp_personalization_data', None)
+            open_personalization_dialog(self.master, temp_user_id, on_personalization_save, existing_data)
+            
+        except Exception as e:
+            logger.error(f"Error opening personalization dialog: {e}")
+            messagebox.showerror("Error", f"Failed to open personalization dialog: {str(e)}")
+
     @handle_errors("creating account")
     def create_account(self):
-        """
-        Handles the account creation process, including validation and saving user data.
-        """
-        internal_username = self.internal_username_entry.get().strip().lower()
-        preferred_name = self.preferred_name_entry.get().strip()
-        email = self.email_entry.get().strip()
-        phone = self.phone_entry.get().strip()
-        country_code = self.country_code.get().strip()
-        discord_user_id = self.discord_id_entry.get().strip()
-        selected_categories = [category for category, var in self.category_vars.items() if var.get() == 1]
+        """Create the user account."""
+        try:
+            # Create user data in the new format
+            user_data = {
+                'internal_username': self.internal_username_entry.get().strip().lower(),
+                'preferred_name': self.preferred_name_entry.get().strip(),
+                'messaging_service': self.service_var.get(),
+                'chat_id': self.discord_id_entry.get().strip() if self.service_var.get() == "discord" else "",
+                'phone': f"{self.country_code.get().strip()} {self.phone_entry.get().strip()}" if self.service_var.get() == "telegram" else "",
+                'email': self.email_entry.get().strip() if self.service_var.get() == "email" else "",
+                'discord_user_id': self.discord_id_entry.get().strip() if self.service_var.get() == "discord" else "",
+                'categories': [category for category, var in self.category_vars.items() if var.get() == 1],
+                'checkin_settings': {
+                    "enabled": self.checkin_enabled_var.get() == 1,
+                    "questions": {question_key: {"enabled": question_data['var'].get() == 1, "label": question_data['label']} for question_key, question_data in self.checkin_questions.items()},
+                    "frequency": self.checkin_frequency_var.get(),
+                    "hour": self.checkin_hour_var.get(),
+                    "minute": self.checkin_minute_var.get()
+                },
+                'task_settings': {
+                    "enabled": self.tasks_enabled_var.get() == 1
+                },
+                'personalization_data': getattr(self, 'temp_personalization_data', None)
+            }
 
-        if not internal_username:
-            messagebox.showerror("Account Creation Failed", "Username is required.")
-            return
-
-        # Check if username is already taken
-        if get_user_id_by_internal_username(internal_username):
-            messagebox.showerror("Account Creation Failed", "Username is already taken. Please choose another.")
-            return
-
-        messaging_service = self.service_var.get()
-        if not messaging_service or messaging_service == "NONE_SELECTED":
-            messagebox.showerror("Account Creation Failed", "Please select a message service.")
-            return
-
-        # Validate based on which service
-        if messaging_service == "email":
-            if not email:
-                messagebox.showerror("Account Creation Failed", "Email is required for Email service.")
-                return
-        elif messaging_service == "telegram":
-            if not phone:
-                messagebox.showerror("Account Creation Failed", "Phone number is required for Telegram service.")
-                return
-        elif messaging_service == "discord":
-            if not discord_user_id:
-                messagebox.showerror("Account Creation Failed", "Discord user ID is required for Discord service.")
-                return
-
-        if not selected_categories:
-            messagebox.showerror("Account Creation Failed", "At least one category must be selected.")
-            return
-
-        user_id = str(uuid.uuid4())
-        UserContext().set_user_id(user_id)
-        UserContext().set_internal_username(internal_username)
-
-        # Create schedules for regular message categories
-        schedules = {
-            category: {
-                "ALL": {
-                    "start": "00:00",
-                    "end": "23:59",
-                    "active": True,
-                    "description": "Messages sent regardless of time of day"
-                }
-            } for category in selected_categories
-        }
-        
-        # Add check-in schedule if enabled
-        if self.checkin_enabled_var.get() == 1:
-            checkin_hour = self.checkin_hour_var.get()
-            checkin_minute = self.checkin_minute_var.get()
-            checkin_time = f"{checkin_hour}:{checkin_minute}"
+            # Create the user using the new function
+            user_id = create_new_user(user_data)
             
-            # Create a specific time period for check-ins
-            schedules["checkin"] = {
-                "checkin_time": {
-                    "start": checkin_time,
-                    "end": checkin_time,  # Same time for exact scheduling
-                    "active": True,
-                    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                    "description": f"Daily check-in scheduled at {checkin_time}"
-                }
-            }
-
-        # Collect check-in preferences (enabled status and questions only)
-        checkin_preferences = {}
-        if self.checkin_enabled_var.get() == 1:
-            checkin_preferences = {
-                "enabled": True,
-                "questions": {}
-            }
+            # Create user files
+            create_user_files(user_id, user_data['categories'], user_data)
             
-            # Collect enabled questions
-            for question_key, question_data in self.checkin_questions.items():
-                checkin_preferences["questions"][question_key] = {
-                    "enabled": question_data['var'].get() == 1,
-                    "label": question_data['label']
-                }
-        else:
-            checkin_preferences = {
-                "enabled": False,
-                "questions": {}
-            }
-
-        # Collect task management preferences
-        task_preferences = {
-            "enabled": self.tasks_enabled_var.get() == 1
-        }
-        # Add task reminder schedule to schedules if enabled
-        if self.tasks_enabled_var.get() == 1:
-            days_of_week = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            schedules["tasks"] = {
-                "reminder_periods": [{
-                    "start": "12:00",
-                    "end": "12:00",
-                    "active": True
-                }],
-                "reminder_days": days_of_week.copy()
-            }
-
-        # Build user_info dictionary
-        user_info = {
-            "user_id": user_id,
-            "internal_username": internal_username,
-            "preferred_name": preferred_name,
-            "chat_id": "",  # For Telegram
-            "phone": f"{country_code} {phone}" if messaging_service == "telegram" else "",
-            "email": email if messaging_service == "email" else "",
-            "preferences": {
-                "categories": selected_categories,
-                "messaging_service": messaging_service,
-                "checkins": checkin_preferences,
-                "tasks": task_preferences
-            },
-            "schedules": schedules
-        }
-
-        # If Discord, store the user's Discord ID in preferences
-        if messaging_service == "discord":
-            user_info["preferences"]["discord_user_id"] = discord_user_id
-
-        add_user_info(user_id, user_info)
-        create_user_files(user_id, selected_categories)  # Ensure message files are created
-        
-        # Save check-in periods and days if enabled
-        if self.checkin_enabled_var.get() == 1:
-            checkin_periods_dict = {}
-            for idx, period in enumerate(getattr(self, 'checkin_reminder_periods', [])):
-                start = period['start_var'].get().strip()
-                end = period['end_var'].get().strip()
-                try:
-                    formatted_start = validate_and_format_time(start)
-                    formatted_end = validate_and_format_time(end)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Invalid check-in time format: {e}")
-                    return
-                active = period['active_var'].get() == 1
-                period_name = period.get('name', f'Period {idx+1}')
-                checkin_periods_dict[period_name] = {'start': formatted_start, 'end': formatted_end, 'active': active}
-            checkin_days = [day for day, v in zip(self.task_days_of_week, getattr(self, 'checkin_day_vars', [])) if v.get() == 1]
-            if not checkin_days:
-                checkin_days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            set_schedule_periods(user_id, 'checkin', checkin_periods_dict)
-            set_schedule_days(user_id, 'checkin', checkin_days)
-            clear_schedule_periods_cache(user_id, 'checkin')
-        # Save task periods and days if enabled
-        if self.tasks_enabled_var.get() == 1:
-            task_periods_dict = {}
-            for idx, period in enumerate(self.task_reminder_periods):
-                start = period['start_var'].get().strip()
-                end = period['end_var'].get().strip()
-                try:
-                    formatted_start = validate_and_format_time(start)
-                    formatted_end = validate_and_format_time(end)
-                except Exception as e:
-                    messagebox.showerror("Error", f"Invalid task reminder time format: {e}")
-                    return
-                active = period['active_var'].get() == 1
-                period_name = period.get('name', f'Period {idx+1}')
-                task_periods_dict[period_name] = {'start': formatted_start, 'end': formatted_end, 'active': active}
-            task_days = [day for day, v in zip(self.task_days_of_week, self.task_day_vars) if v.get() == 1]
-            if not task_days:
-                task_days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            set_schedule_periods(user_id, 'tasks', task_periods_dict)
-            set_schedule_days(user_id, 'tasks', task_days)
-            clear_schedule_periods_cache(user_id, 'tasks')
-
-        logger.info(f"Account created successfully for user {internal_username} (ID: {user_id})")
-        messagebox.showinfo("Account Created", f"Account created for {internal_username}.\n\nYou can now manage this user through the admin panel.")
-        self.master.destroy()
+            logger.info(f"Created new user account: {self.internal_username_entry.get().strip().lower()} (ID: {user_id})")
+            messagebox.showinfo("Account Created", f"Account created for {self.internal_username_entry.get().strip().lower()}.\n\nYou can now manage this user through the admin panel.")
+            self.master.destroy()
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error creating account: {e}")
+            messagebox.showerror("Account Creation Failed", f"Failed to create account: {str(e)}")
+            return False
 
     @handle_errors("closing account creator")
     def on_closing(self):

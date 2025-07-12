@@ -15,14 +15,11 @@ from pathlib import Path
 
 from core.logger import get_logger
 from core.config import (
-    USE_USER_SUBDIRECTORIES,
-    get_user_file_path,
-    get_user_data_dir,
-    BASE_DATA_DIR,
-    MESSAGES_BY_CATEGORY_DIR_PATH,
+    USER_INFO_DIR_PATH,
+    get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR
 )
 from core.file_operations import load_json_data, save_json_data
-from core.user_management import get_user_preferences, load_user_info_data, save_user_info_data
+from core.user_management import get_user_account, get_user_preferences, get_user_context, load_user_info_data, save_user_info_data, get_all_user_ids
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -40,18 +37,14 @@ class UserDataManager:
     @handle_errors("updating message references", default_return=False)
     def update_message_references(self, user_id: str) -> bool:
         """Add/update message file references in user profile"""
-        if not USE_USER_SUBDIRECTORIES:
-            logger.debug("Message references only supported in new user subdirectory structure")
-            return False
-            
         # Load user profile
-        user_info = load_user_info_data(user_id)
+        user_info = get_user_info_for_data_manager(user_id)
         if not user_info:
             logger.error(f"User {user_id} not found")
             return False
         
         # Get user's categories
-        categories = get_user_preferences(user_id, ['categories'])
+        categories = get_user_preferences(user_id, 'categories')
         if not categories:
             logger.warning(f"No categories found for user {user_id}")
             return True
@@ -59,7 +52,7 @@ class UserDataManager:
         # Build message references
         message_refs = {}
         for category in categories:
-            message_file = os.path.join(MESSAGES_BY_CATEGORY_DIR_PATH, category, f"{user_id}.json")
+            message_file = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
             if os.path.exists(message_file):
                 message_refs[category] = {
                     "path": message_file,
@@ -86,7 +79,7 @@ class UserDataManager:
     @handle_errors("getting user message files", default_return={})
     def get_user_message_files(self, user_id: str) -> Dict[str, str]:
         """Get all message file paths for a user"""
-        user_info = load_user_info_data(user_id)
+        user_info = get_user_info_for_data_manager(user_id)
         if not user_info:
             return {}
         
@@ -95,13 +88,13 @@ class UserDataManager:
             return {cat: info["path"] for cat, info in user_info["message_files"].items() if info["exists"]}
         
         # Fallback: build from categories
-        categories = get_user_preferences(user_id, ['categories'])
+        categories = get_user_preferences(user_id, 'categories')
         if not categories:
             return {}
         
         message_files = {}
         for category in categories:
-            message_file = os.path.join(MESSAGES_BY_CATEGORY_DIR_PATH, category, f"{user_id}.json")
+            message_file = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
             if os.path.exists(message_file):
                 message_files[category] = message_file
         
@@ -160,7 +153,7 @@ class UserDataManager:
         }
         
         # Export profile data
-        user_info = load_user_info_data(user_id)
+        user_info = get_user_info_for_data_manager(user_id)
         if user_info:
             export_data["profile"] = user_info
         
@@ -186,7 +179,7 @@ class UserDataManager:
             export_data["sent_messages"] = load_json_data(sent_file) or {}
         
         # Export logs
-        log_types = ["daily_checkins", "chat_interactions", "survey_responses"]
+        log_types = ["daily_checkins", "chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if os.path.exists(log_file):
@@ -262,10 +255,31 @@ class UserDataManager:
                             total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
                             summary[file_type]["count"] = total_messages
         
-        # Check message files
+        # Check message files using ensure_user_message_files
+        user_preferences = get_user_preferences(user_id) or {}
+        enabled_categories = user_preferences.get('categories', [])
+        
+        if enabled_categories:
+            try:
+                from core.message_management import ensure_user_message_files
+                # This will check which files are missing and create them
+                result = ensure_user_message_files(user_id, enabled_categories)
+                if result["success"]:
+                    logger.info(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}")
+                else:
+                    logger.warning(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, some failures occurred")
+            except Exception as e:
+                logger.error(f"Error ensuring message files during validation for user {user_id}: {e}")
+        
+        # Now get the message files (after ensuring they exist)
         message_files = self.get_user_message_files(user_id)
-        for category, file_path in message_files.items():
+        
+        # Report on all message files
+        for category in enabled_categories:
+            file_path = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
+            
             if os.path.exists(file_path):
+                # File exists, report its details
                 size = os.path.getsize(file_path)
                 data = load_json_data(file_path)
                 message_count = len(data.get("messages", [])) if data else 0
@@ -278,9 +292,37 @@ class UserDataManager:
                 }
                 summary["total_files"] += 1
                 summary["total_size"] += size
+            else:
+                # File still missing after ensure_user_message_files
+                summary["messages"][category] = {
+                    "exists": False,
+                    "size": 0,
+                    "message_count": 0,
+                    "path": file_path,
+                    "creation_failed": True
+                }
+                logger.warning(f"Message file for category {category} still missing after ensure_user_message_files for user {user_id}")
+        
+        # Also check any existing message files that might not be in enabled categories
+        for category, file_path in message_files.items():
+            if category not in enabled_categories and os.path.exists(file_path):
+                # This is an orphaned message file (category not enabled but file exists)
+                size = os.path.getsize(file_path)
+                data = load_json_data(file_path)
+                message_count = len(data.get("messages", [])) if data else 0
+                
+                summary["messages"][category] = {
+                    "exists": True,
+                    "size": size,
+                    "message_count": message_count,
+                    "path": file_path,
+                    "orphaned": True  # Mark as orphaned for potential cleanup
+                }
+                summary["total_files"] += 1
+                summary["total_size"] += size
         
         # Check log files
-        log_types = ["daily_checkins", "chat_interactions", "survey_responses"]
+        log_types = ["daily_checkins", "chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if os.path.exists(log_file):
@@ -298,6 +340,48 @@ class UserDataManager:
         
         return summary
     
+    @handle_errors("getting last interaction", default_return="1970-01-01 00:00:00")
+    def _get_last_interaction(self, user_id: str) -> str:
+        """Get the most recent user interaction timestamp"""
+        try:
+            # Check recent check-ins
+            from core.response_tracking import get_recent_daily_checkins
+            recent_checkins = get_recent_daily_checkins(user_id, limit=1)
+            if recent_checkins:
+                return recent_checkins[0].get('timestamp', '1970-01-01 00:00:00')
+            
+            # Check recent chat interactions
+            from core.response_tracking import get_recent_responses
+            recent_chats = get_recent_responses(user_id, 'chat_interaction', limit=1)
+            if recent_chats:
+                return recent_chats[0].get('timestamp', '1970-01-01 00:00:00')
+            
+            # Check sent messages
+            sent_file = get_user_file_path(user_id, 'sent_messages')
+            if os.path.exists(sent_file):
+                sent_data = load_json_data(sent_file) or {}
+                all_messages = []
+                for category_messages in sent_data.values():
+                    if isinstance(category_messages, list):
+                        all_messages.extend(category_messages)
+                
+                if all_messages:
+                    # Sort by timestamp and get the most recent
+                    sorted_messages = sorted(
+                        all_messages,
+                        key=lambda x: x.get('timestamp', '1970-01-01 00:00:00'),
+                        reverse=True
+                    )
+                    return sorted_messages[0].get('timestamp', '1970-01-01 00:00:00')
+            
+            # Fallback to account creation date
+            user_account = get_user_account(user_id) or {}
+            return user_account.get('created_at', '1970-01-01 00:00:00')
+            
+        except Exception as e:
+            logger.warning(f"Error getting last interaction for user {user_id}: {e}")
+            return '1970-01-01 00:00:00'
+    
     @handle_errors("updating user index", default_return=False)
     def update_user_index(self, user_id: str) -> bool:
         """Update the global user index with current user data locations"""
@@ -306,11 +390,50 @@ class UserDataManager:
         
         # Update user entry
         summary = self.get_user_data_summary(user_id)
+        
+        # Safely get message count - handle case where no message categories exist
+        message_count = 0
+        if summary["messages"]:
+            try:
+                first_category = next(iter(summary["messages"]))
+                message_count = summary["messages"].get(first_category, {}).get("message_count", 0)
+            except StopIteration:
+                message_count = 0
+        
+        # Get user account, preferences, and context for additional info
+        user_account = get_user_account(user_id) or {}
+        user_preferences = get_user_preferences(user_id) or {}
+        user_context = get_user_context(user_id) or {}
+        
+        # Determine enabled features
+        enabled_features = []
+        features = user_account.get('features', {})
+        
+        if features.get('automated_messages') == 'enabled':
+            enabled_features.append('automated_messages')
+            # Include categories only if automated messages are enabled
+            categories = user_preferences.get('categories', [])
+            enabled_features.extend(categories)
+        
+        if features.get('checkins') == 'enabled':
+            enabled_features.append('checkins')
+            
+        if features.get('task_management') == 'enabled':
+            enabled_features.append('task_management')
+        
+        # Get channel type
+        channel_type = user_preferences.get('channel', {}).get('type', 'email')
+        
+        # Get last interaction (most recent activity)
+        last_interaction = self._get_last_interaction(user_id)
+        
         index_data[user_id] = {
-            "active": True,
-            "categories": sorted(set(get_user_preferences(user_id, ['categories']))),
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            "message_count": summary["messages"].get(next(iter(summary["messages"])), {}).get("message_count", 0)
+            "internal_username": user_account.get('internal_username', ''),
+            "active": user_account.get('account_status') == 'active',
+            "channel_type": channel_type,
+            "enabled_features": sorted(enabled_features),
+            "last_interaction": last_interaction,
+            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         
         # Save updated index
@@ -339,11 +462,41 @@ class UserDataManager:
         for user_id in user_ids:
             if user_id:
                 summary = self.get_user_data_summary(user_id)
+                
+                # Get user account, preferences, and context for additional info
+                user_account = get_user_account(user_id) or {}
+                user_preferences = get_user_preferences(user_id) or {}
+                user_context = get_user_context(user_id) or {}
+                
+                # Determine enabled features
+                enabled_features = []
+                features = user_account.get('features', {})
+                
+                if features.get('automated_messages') == 'enabled':
+                    enabled_features.append('automated_messages')
+                    # Include categories only if automated messages are enabled
+                    categories = user_preferences.get('categories', [])
+                    enabled_features.extend(categories)
+                
+                if features.get('checkins') == 'enabled':
+                    enabled_features.append('checkins')
+                    
+                if features.get('task_management') == 'enabled':
+                    enabled_features.append('task_management')
+                
+                # Get channel type
+                channel_type = user_preferences.get('channel', {}).get('type', 'email')
+                
+                # Get last interaction (most recent activity)
+                last_interaction = self._get_last_interaction(user_id)
+                
                 index_data[user_id] = {
-                    "active": True,
-                    "categories": sorted(set(get_user_preferences(user_id, ['categories']))),
-                    "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                    "message_count": summary["messages"].get(next(iter(summary["messages"])), {}).get("message_count", 0)
+                    "internal_username": user_account.get('internal_username', ''),
+                    "active": user_account.get('account_status') == 'active',
+                    "channel_type": channel_type,
+                    "enabled_features": sorted(enabled_features),
+                    "last_interaction": last_interaction,
+                    "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 }
         
         save_json_data(index_data, self.index_file)
@@ -361,7 +514,7 @@ class UserDataManager:
         
         for user_id, user_index in index_data.items():
             # Load user profile for searching
-            user_info = load_user_info_data(user_id)
+            user_info = get_user_info_for_data_manager(user_id)
             if not user_info:
                 continue
             
@@ -413,4 +566,190 @@ def update_user_index(user_id: str) -> bool:
 
 def rebuild_user_index() -> bool:
     """Rebuild the complete user index"""
-    return user_data_manager.rebuild_full_index() 
+    return user_data_manager.rebuild_full_index()
+
+@handle_errors("getting user info for data manager", default_return=None)
+def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
+    """Get user info for data manager operations - uses new structure."""
+    if not user_id:
+        return None
+    
+    # Load user account data instead of profile
+    account_file = get_user_file_path(user_id, 'account')
+    account_data = load_json_data(account_file)
+    if not account_data:
+        logger.warning(f"No account data found for user {user_id}")
+        return None
+    
+    # Extract relevant fields from account data
+    user_info = {
+        "user_id": account_data.get("user_id", user_id),
+        "internal_username": account_data.get("internal_username", ""),
+        "active": account_data.get("account_status") == "active",
+        "preferred_name": account_data.get("preferred_name", ""),
+        "chat_id": account_data.get("chat_id", ""),
+        "phone": account_data.get("phone", ""),
+        "email": account_data.get("email", ""),
+        "created_at": account_data.get("created_at", ""),
+        "last_updated": account_data.get("updated_at", "")
+    }
+    
+    return user_info
+
+@handle_errors("getting user categories", default_return=[])
+def get_user_categories(user_id: str) -> List[str]:
+    """Get user's message categories."""
+    try:
+        categories = get_user_preferences(user_id, 'categories')
+        if categories is None:
+            return []
+        elif isinstance(categories, list):
+            return categories
+        elif isinstance(categories, dict):
+            return list(categories.keys())
+        else:
+            return []
+    except Exception as e:
+        logger.error(f"Error getting categories for user {user_id}: {e}")
+        return []
+
+@handle_errors("building user index", default_return={})
+def build_user_index() -> Dict[str, Any]:
+    """Build an index of all users and their message data."""
+    try:
+        user_ids = get_all_user_ids()
+        index_data = {}
+        
+        for user_id in user_ids:
+            try:
+                # Get user info using new structure
+                user_info = get_user_info_for_data_manager(user_id)
+                if not user_info:
+                    continue
+                
+                # Get message count
+                message_count = 0
+                categories = get_user_categories(user_id)
+                
+                for category in categories:
+                    category_path = os.path.join(get_user_data_dir(user_id), 'messages', f'{category}.json')
+                    if os.path.exists(category_path):
+                        try:
+                            with open(category_path, 'r', encoding='utf-8') as f:
+                                data = json.load(f)
+                                message_count += len(data.get('messages', []))
+                        except Exception as e:
+                            logger.warning(f"Error reading message file {category_path}: {e}")
+                
+                # Build index entry
+                index_data[user_id] = {
+                    "active": True,
+                    "categories": sorted(set(categories)),
+                    "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    "message_count": message_count
+                }
+                
+            except Exception as e:
+                logger.error(f"Error processing user {user_id} for index: {e}")
+                continue
+        
+        return index_data
+        
+    except Exception as e:
+        logger.error(f"Error building user index: {e}")
+        return {}
+
+@handle_errors("getting user summary", default_return={})
+def get_user_summary(user_id: str) -> Dict[str, Any]:
+    """Get a summary of user data and message statistics."""
+    try:
+        # Get user info using new structure
+        user_info = get_user_info_for_data_manager(user_id)
+        if not user_info:
+            return {}
+        
+        # Get categories
+        categories = get_user_categories(user_id)
+        
+        # Get message statistics
+        message_stats = {}
+        total_messages = 0
+        
+        for category in categories:
+            category_path = os.path.join(get_user_data_dir(user_id), 'messages', f'{category}.json')
+            if os.path.exists(category_path):
+                try:
+                    with open(category_path, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        message_count = len(data.get('messages', []))
+                        message_stats[category] = message_count
+                        total_messages += message_count
+                except Exception as e:
+                    logger.warning(f"Error reading message file {category_path}: {e}")
+                    message_stats[category] = 0
+            else:
+                message_stats[category] = 0
+        
+        # Build summary
+        summary = {
+            "user_id": user_id,
+            "internal_username": user_info.get("internal_username", ""),
+            "preferred_name": user_info.get("preferred_name", ""),
+            "active": user_info.get("active", False),
+            "categories": categories,
+            "message_stats": message_stats,
+            "total_messages": total_messages,
+            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"Error getting user summary for {user_id}: {e}")
+        return {}
+
+@handle_errors("getting all user summaries", default_return=[])
+def get_all_user_summaries() -> List[Dict[str, Any]]:
+    """Get summaries for all users."""
+    try:
+        user_ids = get_all_user_ids()
+        summaries = []
+        
+        for user_id in user_ids:
+            try:
+                summary = get_user_summary(user_id)
+                if summary:
+                    summaries.append(summary)
+            except Exception as e:
+                logger.error(f"Error getting summary for user {user_id}: {e}")
+                continue
+        
+        return summaries
+        
+    except Exception as e:
+        logger.error(f"Error getting all user summaries: {e}")
+        return []
+
+def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
+    """Get analytics summary for user."""
+    try:
+        user_account = get_user_account(user_id)
+        user_preferences = get_user_preferences(user_id)
+        user_context = get_user_context(user_id)
+        
+        if not user_account:
+            return {}
+        
+        return {
+            "user_id": user_id,
+            "internal_username": user_account.get("internal_username", ""),
+            "preferred_name": user_context.get("preferred_name", "") if user_context else "",
+            "categories": sorted(set(get_user_preferences(user_id, 'categories') or [])),
+            "messaging_service": user_preferences.get("channel", {}).get("type", "") if user_preferences else "",
+            "features": user_account.get("features", {}),
+            "created_at": user_account.get("created_at", ""),
+            "last_updated": user_account.get("updated_at", "")
+        }
+    except Exception as e:
+        logger.error(f"Error getting user analytics summary for {user_id}: {e}")
+        return {} 

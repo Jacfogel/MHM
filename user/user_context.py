@@ -4,7 +4,7 @@ import json
 import os
 import threading
 from core.logger import get_logger
-from core.user_management import load_user_info_data, save_user_info_data
+from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -25,7 +25,7 @@ class UserContext:
     @handle_errors("loading user data")
     def load_user_data(self, user_id):
         """
-        Loads user data using the updated utils functions that support new file structure.
+        Loads user data using the new user management functions.
         
         Args:
             user_id (str): The user ID whose data needs to be loaded.
@@ -33,20 +33,35 @@ class UserContext:
         if not user_id:
             logger.error("Attempted to load user data with None user_id")
             return
-        # Use the updated utils function that handles both old and new structures
-        user_data = load_user_info_data(user_id)
-        if user_data:
-            self.user_data = user_data
-            logger.info(f"User data loaded for user_id {user_id}")
-        else:
-            logger.warning(f"No user data found for user_id {user_id}")
-            self.user_data = {}
+        
+        # Use the new user management functions
+        account_data = get_user_account(user_id) or {}
+        preferences_data = get_user_preferences(user_id) or {}
+        context_data = get_user_context(user_id) or {}
+        
+        # Combine into legacy format for compatibility
+        user_data = {
+            "user_id": account_data.get("user_id", user_id),
+            "internal_username": account_data.get("internal_username", ""),
+            "active": account_data.get("account_status") == "active",
+            "preferred_name": context_data.get("preferred_name", ""),
+            "chat_id": account_data.get("chat_id", ""),
+            "phone": account_data.get("phone", ""),
+            "email": account_data.get("email", ""),
+            "discord_user_id": account_data.get("discord_user_id", ""),
+            "created_at": account_data.get("created_at", ""),
+            "last_updated": account_data.get("updated_at", ""),
+            "preferences": preferences_data,
+            "schedules": {}  # Schedules are handled separately
+        }
+        
+        self.user_data = user_data
+        logger.info(f"User data loaded for user_id {user_id}")
 
     @handle_errors("saving user data")
     def save_user_data(self, user_id):
         """
-        Saves user data using the updated utils functions that support new file structure.
-        WARNING: Only the flat preferences dict is saved to preferences.json. Always load, update, and save the full dict to avoid data loss.
+        Saves user data using the new user management functions.
         
         Args:
             user_id (str): The user ID whose data needs to be saved.
@@ -54,8 +69,28 @@ class UserContext:
         if not user_id:
             logger.error("Attempted to save user data with None user_id")
             return
-        # Use the updated utils function that handles both old and new structures
-        save_user_info_data(self.user_data, user_id)
+        
+        # Extract data from legacy format and update using new functions
+        account_updates = {
+            "user_id": self.user_data.get("user_id", user_id),
+            "internal_username": self.user_data.get("internal_username", ""),
+            "account_status": "active" if self.user_data.get("active", True) else "inactive",
+            "chat_id": self.user_data.get("chat_id", ""),
+            "phone": self.user_data.get("phone", ""),
+            "email": self.user_data.get("email", ""),
+        }
+        
+        preferences_updates = self.user_data.get("preferences", {})
+        
+        context_updates = {
+            "preferred_name": self.user_data.get("preferred_name", ""),
+        }
+        
+        # Update all data using new functions
+        update_user_account(user_id, account_updates)
+        update_user_preferences(user_id, preferences_updates)
+        update_user_context(user_id, context_updates)
+        
         logger.info(f"User data saved for user_id {user_id}")
 
     @handle_errors("setting user ID")
@@ -133,7 +168,6 @@ class UserContext:
     def set_preference(self, key, value):
         """
         Sets a user preference in the user_data dictionary.
-        WARNING: Always update the full preferences dict and save the whole thing, not just a single key, to avoid overwriting other preferences.
         
         Args:
             key (str): The preference key to be set.
@@ -170,3 +204,46 @@ class UserContext:
             self.save_user_data(user_id)
         else:
             logger.warning("Cannot save preference update: no user_id set")
+
+    @handle_errors("getting active schedules")
+    def _get_active_schedules(self, schedules):
+        """
+        Retrieves active schedules from the user_data dictionary.
+        
+        Args:
+            schedules (dict): The current schedules dictionary.
+        
+        Returns:
+            dict: The updated schedules dictionary.
+        """
+        active_schedules = {}
+        for schedule_id, schedule in schedules.items():
+            if schedule.get('active', False):
+                active_schedules[schedule_id] = schedule
+        return active_schedules
+
+    @handle_errors("getting user context")
+    def get_user_context(self):
+        """
+        Retrieves user context data.
+        
+        Returns:
+            dict: The user context data.
+        """
+        user_id = self.get_user_id()
+        if not user_id:
+            logger.warning("Cannot get user context: no user_id set")
+            return {}
+        
+        # Use the new user management functions
+        account_data = get_user_account(user_id) or {}
+        preferences_data = get_user_preferences(user_id) or {}
+        context_data = get_user_context(user_id) or {}
+        
+        return {
+            'preferred_name': self.get_preferred_name() or context_data.get('preferred_name', ''),
+            'active_categories': self.get_preference('categories') or self.user_data.get('categories', []),
+            'messaging_service': self.get_preference('channel', {}).get('type') or self.get_preference('messaging_service') or self.user_data.get('messaging_service', ''),
+            'active_schedules': self._get_active_schedules(self.user_data.get('schedules', {})),  # Schedules handled separately
+            'discord_user_id': account_data.get("discord_user_id", "")
+        }

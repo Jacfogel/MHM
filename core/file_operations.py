@@ -11,8 +11,9 @@ import time
 from datetime import datetime
 from core.logger import get_logger
 from core.config import (
-    USER_INFO_DIR_PATH, MESSAGES_BY_CATEGORY_DIR_PATH, SENT_MESSAGES_DIR_PATH, 
-    DEFAULT_MESSAGES_DIR_PATH, USE_USER_SUBDIRECTORIES, get_user_file_path, ensure_user_directory, get_user_data_dir
+    USER_INFO_DIR_PATH,
+    DEFAULT_MESSAGES_DIR_PATH,
+    get_user_file_path, ensure_user_directory, get_user_data_dir
 )
 from core.error_handling import (
     error_handler, FileOperationError, DataError, handle_file_error,
@@ -37,39 +38,37 @@ def determine_file_path(file_type, identifier):
     Updated to support new organized structure.
     """
     if file_type == 'users':
-        if USE_USER_SUBDIRECTORIES:
-            # New structure: return profile file path
-            return get_user_file_path(identifier, 'profile')
-        else:
-            # Legacy structure
-            path = os.path.join(USER_INFO_DIR_PATH, f"{identifier}.json")
+        # New structure: return account file path
+        return get_user_file_path(identifier, 'account')
     elif file_type == 'messages':
+        # New structure: data/users/{user_id}/messages/{category}.json
         try:
             category, user_id = identifier.split('/')
-            path = os.path.join(MESSAGES_BY_CATEGORY_DIR_PATH, category, f"{user_id}.json")
+            user_dir = get_user_data_dir(user_id)
+            path = os.path.join(user_dir, 'messages', f"{category}.json")
         except ValueError as e:
             raise FileOperationError(f"Invalid identifier format '{identifier}': expected 'category/user_id'")
+    elif file_type == 'schedules':
+        # Optional: per-category schedules
+        try:
+            category, user_id = identifier.split('/')
+            user_dir = get_user_data_dir(user_id)
+            path = os.path.join(user_dir, 'schedules', f"{category}.json")
+        except ValueError:
+            # Default to single schedules.json if not per-category
+            user_dir = get_user_data_dir(identifier)
+            path = os.path.join(user_dir, 'schedules.json')
     elif file_type == 'sent_messages':
-        if USE_USER_SUBDIRECTORIES:
-            # New structure: sent messages are in user directory
-            return get_user_file_path(identifier, 'sent_messages')
-        else:
-            # Legacy structure
-            path = os.path.join(SENT_MESSAGES_DIR_PATH, f"{identifier}.json")
+        # Sent messages are now stored in user directories
+        return get_user_file_path(identifier, 'sent_messages')
     elif file_type == 'default_messages':
         path = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{identifier}.json")
     elif file_type == 'tasks':
         # New task file structure: data/users/{user_id}/tasks/{task_file}.json
         try:
             user_id, task_file = identifier.split('/')
-            if USE_USER_SUBDIRECTORIES:
-                # New structure: tasks are in user subdirectory
-                user_dir = get_user_file_path(user_id, 'profile').replace('/profile.json', '')
-                path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
-            else:
-                # Legacy structure: tasks would be in main user directory
-                user_dir = os.path.join(USER_INFO_DIR_PATH, user_id)
-                path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
+            user_dir = get_user_data_dir(user_id)
+            path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
         except ValueError as e:
             raise FileOperationError(f"Invalid task identifier format '{identifier}': expected 'user_id/task_file'")
     else:
@@ -109,7 +108,7 @@ def load_json_data(file_path):
                 if 'schedules' in file_path or 'messages' in file_path:
                     # Try to find categories from existing files or default to ['motivational']
                     categories = ['motivational']
-                create_user_files(user_id, categories)
+                create_user_files(user_id, categories, None)  # No user preferences available in auto-creation
                 logger.info(f"Auto-created missing user files for user_id {user_id}")
                 # Try loading again
                 try:
@@ -167,107 +166,260 @@ def save_json_data(data, file_path):
         raise FileOperationError(f"Failed to save data to {file_path}: {e}")
 
 @handle_errors("creating user files", user_friendly=True)
-def create_user_files(user_id, categories):
+def create_user_files(user_id, categories, user_preferences=None):
     """
     Creates files for a new user in the appropriate structure.
+    Ensures schedules.json contains a block for each category, plus checkin and task reminder blocks.
+    
+    Args:
+        user_id: The user ID
+        categories: List of message categories the user is opted into
+        user_preferences: Optional user preferences dict to determine which files to create
     """
-    # New structure: ensure user directory exists and create organized files
     ensure_user_directory(user_id)
     
-    # Create profile file if it doesn't exist
-    profile_file = get_user_file_path(user_id, 'profile')
-    if not os.path.exists(profile_file):
+    # Create account.json if it doesn't exist
+    account_file = get_user_file_path(user_id, 'account')
+    if not os.path.exists(account_file):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        profile_data = {
+        account_data = {
             "user_id": user_id,
             "internal_username": "",
-            "active": True,
-            "preferred_name": "",
+            "account_status": "active",
             "chat_id": "",
             "phone": "",
             "email": "",
+            "discord_user_id": "",
             "created_at": current_time,
-            "last_updated": current_time
+            "updated_at": current_time,
+            "features": {
+                "automated_messages": "enabled" if categories else "disabled",
+                "checkins": "disabled",
+                "task_management": "disabled"
+            }
         }
-        save_json_data(profile_data, profile_file)
-        logger.debug(f"Created profile file for user {user_id}")
+        save_json_data(account_data, account_file)
+        logger.debug(f"Created account file for user {user_id}")
     
-    # Create preferences file if it doesn't exist
+    # Create preferences.json if it doesn't exist
     preferences_file = get_user_file_path(user_id, 'preferences')
     if not os.path.exists(preferences_file):
         default_preferences = {
-            "categories": [],  # Initialize with empty list instead of missing field
-            "messaging_service": "email",
-            "tasks_enabled": False  # Task management is disabled by default
+            "categories": categories or [],
+            "channel": {
+                "type": "email"
+            },
+            "checkin_settings": {
+                "enabled": False
+            },
+            "task_settings": {
+                "enabled": False
+            }
         }
         save_json_data(default_preferences, preferences_file)
         logger.debug(f"Created preferences file for user {user_id}")
     
+    # Create user_context.json if it doesn't exist
+    context_file = get_user_file_path(user_id, 'user_context')
+    if not os.path.exists(context_file):
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        context_data = {
+            "preferred_name": "",
+            "pronouns": [],
+            "date_of_birth": "",
+            "custom_fields": {
+                "health_conditions": [],
+                "medications_treatments": [],
+                "reminders_needed": []
+            },
+            "interests": [],
+            "goals": [],
+            "loved_ones": [],
+            "activities_for_encouragement": [],
+            "notes_for_ai": [],
+            "created_at": current_time,
+            "last_updated": current_time
+        }
+        save_json_data(context_data, context_file)
+        logger.debug(f"Created user_context file for user {user_id}")
+    
     # Create schedules file if it doesn't exist
     schedules_file = get_user_file_path(user_id, 'schedules')
     if not os.path.exists(schedules_file):
-        save_json_data({}, schedules_file)
-        logger.debug(f"Created schedules file for user {user_id}")
+        schedules_data = {}
+    else:
+        schedules_data = load_json_data(schedules_file) or {}
+    # Ensure each category has a default schedule block
+    for category in categories:
+        if category not in schedules_data:
+            if category in ("checkin", "tasks"):
+                # Only create a 'default' period for checkin and tasks
+                if category == "checkin":
+                    default_period = {
+                        "default": {
+                            "active": True,
+                            "days": ["ALL"],
+                            "start_time": "10:00",
+                            "end_time": "12:00"
+                        }
+                    }
+                else:  # tasks
+                    default_period = {
+                        "default": {
+                            "active": True,
+                            "days": ["ALL"],
+                            "start_time": "18:00",
+                            "end_time": "20:00"
+                        }
+                    }
+                schedules_data[category] = default_period
+            else:
+                # Create default periods for new categories (ALL + default)
+                default_periods = {
+                    "ALL": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "00:00",
+                        "end_time": "23:59"
+                    },
+                    "default": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "18:00",
+                        "end_time": "20:00"
+                    }
+                }
+                schedules_data[category] = default_periods
+    # Ensure checkin and tasks blocks exist
+    if 'checkin' not in schedules_data:
+        schedules_data['checkin'] = {
+            "default": {
+                "active": True,
+                "days": ["ALL"],
+                "start_time": "10:00",
+                "end_time": "12:00"
+            }
+        }
+    if 'tasks' not in schedules_data:
+        schedules_data['tasks'] = {
+            "default": {
+                "active": True,
+                "days": ["ALL"],
+                "start_time": "18:00",
+                "end_time": "20:00"
+            }
+        }
+    save_json_data(schedules_data, schedules_file)
+    logger.debug(f"Created schedules file for user {user_id}")
     
     # Initialize empty log files if they don't exist
-    log_types = ["daily_checkins", "chat_interactions", "survey_responses", "sent_messages"]
+    log_types = ["daily_checkins", "chat_interactions"]
     for log_type in log_types:
         log_file = get_user_file_path(user_id, log_type)
         if not os.path.exists(log_file):
             save_json_data([], log_file)
             logger.debug(f"Created {log_type} file for user {user_id}")
+    
+    # Create sent_messages.json in messages/ subdirectory
+    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    os.makedirs(user_messages_dir, exist_ok=True)
+    sent_messages_file = os.path.join(user_messages_dir, 'sent_messages.json')
+    if not os.path.exists(sent_messages_file):
+        save_json_data({}, sent_messages_file)
+        logger.debug(f"Created sent_messages file for user {user_id}")
 
-    # Create task files if they don't exist
-    try:
-        # Get user directory path using the correct function
-        user_dir = get_user_data_dir(user_id)
-        tasks_dir = os.path.join(user_dir, 'tasks')
-        
-        # Create tasks directory if it doesn't exist
-        if not os.path.exists(tasks_dir):
-            os.makedirs(tasks_dir, exist_ok=True)
-            logger.debug(f"Created tasks directory for user {user_id}")
-        
-        # Create initial task files
-        task_files = {
-            'active_tasks': [],
-            'completed_tasks': [],
-            'task_schedules': {}
-        }
-        
-        for task_file, default_data in task_files.items():
-            task_file_path = os.path.join(tasks_dir, f"{task_file}.json")
-            if not os.path.exists(task_file_path):
-                save_json_data(default_data, task_file_path)
-                logger.debug(f"Created {task_file} file for user {user_id}")
-    except Exception as e:
-        logger.error(f"Error creating task files for user {user_id}: {e}")
-
-    # Create message files for each category
-    for category in categories:
+    # Determine which features are enabled
+    tasks_enabled = False
+    checkins_enabled = False
+    
+    if user_preferences:
+        # Use provided preferences
+        checkin_settings = user_preferences.get('checkin_settings', {})
+        task_settings = user_preferences.get('task_settings', {})
+        tasks_enabled = task_settings.get('enabled', False)
+        checkins_enabled = checkin_settings.get('enabled', False)
+    else:
+        # Try to load user preferences from file
         try:
-            category_path = determine_file_path('messages', f'{category}/{user_id}')
-            if not os.path.exists(category_path):
-                default_category_path = determine_file_path('default_messages', category)
-                if os.path.exists(default_category_path):
-                    # Ensure directory exists before copying
-                    os.makedirs(os.path.dirname(category_path), exist_ok=True)
-                    shutil.copy(default_category_path, category_path)
-                    logger.debug(f"Copied default {category} messages JSON for user {user_id}")
-                else:
-                    # Ensure directory exists before creating file
-                    os.makedirs(os.path.dirname(category_path), exist_ok=True)
-                    save_json_data({"messages": []}, category_path)
-                    logger.warning(f"Default messages JSON for {category} not found. Created blank JSON for user {user_id}")
+            from core.user_management import load_user_preferences_data
+            loaded_preferences = load_user_preferences_data(user_id)
+            if loaded_preferences:
+                checkin_settings = loaded_preferences.get('checkin_settings', {})
+                task_settings = loaded_preferences.get('task_settings', {})
+                tasks_enabled = task_settings.get('enabled', False)
+                checkins_enabled = checkin_settings.get('enabled', False)
+            else:
+                # Default to creating files if no preferences found
+                tasks_enabled = True
+                checkins_enabled = True
         except Exception as e:
-            logger.error(f"Error creating message file for category {category} and user {user_id}: {e}")
-            # Continue with other categories even if one fails
+            logger.warning(f"Could not load user preferences for {user_id}, defaulting to create files: {e}")
+            tasks_enabled = True
+            checkins_enabled = True
+    
+    if tasks_enabled:
+        try:
+            # Get user directory path using the correct function
+            user_dir = get_user_data_dir(user_id)
+            tasks_dir = os.path.join(user_dir, 'tasks')
+            
+            # Create tasks directory if it doesn't exist
+            if not os.path.exists(tasks_dir):
+                os.makedirs(tasks_dir, exist_ok=True)
+                logger.debug(f"Created tasks directory for user {user_id}")
+            
+            # Create initial task files
+            task_files = {
+                'active_tasks': [],
+                'completed_tasks': [],
+                'task_schedules': {}
+            }
+            
+            for task_file, default_data in task_files.items():
+                task_file_path = os.path.join(tasks_dir, f"{task_file}.json")
+                if not os.path.exists(task_file_path):
+                    save_json_data(default_data, task_file_path)
+                    logger.debug(f"Created {task_file} file for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error creating task files for user {user_id}: {e}")
+    
+    # Create daily_checkins.json only if checkins are enabled
+    if checkins_enabled:
+        daily_checkins_file = get_user_file_path(user_id, 'daily_checkins')
+        if not os.path.exists(daily_checkins_file):
+            save_json_data([], daily_checkins_file)
+            logger.debug(f"Created daily_checkins file for user {user_id}")
+
+    # Create message files for each enabled category directly
+    if categories:
+        try:
+            # Create messages directory for user
+            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+            os.makedirs(user_messages_dir, exist_ok=True)
+            
+            # Create message files for each category
+            from core.message_management import create_message_file_from_defaults
+            success_count = 0
+            for category in categories:
+                if create_message_file_from_defaults(user_id, category):
+                    success_count += 1
+                    logger.debug(f"Created message file for category {category} for user {user_id}")
+                else:
+                    logger.warning(f"Failed to create message file for category {category} for user {user_id}")
+            
+            if success_count == len(categories):
+                logger.debug(f"Created all message files for user {user_id}")
+            else:
+                logger.warning(f"Failed to create {len(categories) - success_count} message files for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error creating message files for user {user_id}: {e}")
     
     # Auto-update message references and user index
     try:
         from core.user_data_manager import update_message_references, update_user_index
         update_message_references(user_id)
-        update_user_index(user_id)
+        # Skip user index update during initial file creation to avoid circular dependency
+        # The index will be updated when the user is actually created
     except ImportError:
         logger.debug("User data manager not available, skipping reference updates")
     except Exception as e:

@@ -10,7 +10,7 @@ import json
 import os
 from tkinter import simpledialog
 
-from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path
+from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path, get_user_data_dir
 from core.user_management import load_user_info_data, save_user_info_data
 from core.message_management import edit_message, add_message, delete_message, get_message_categories, update_message
 from core.schedule_management import (
@@ -125,7 +125,10 @@ def setup_view_edit_schedule_window(parent, category, scheduler_manager=None):
 def add_message_dialog(parent, category):
     """Opens a dialog to add a message to the specified category."""
     user_id = UserContext().get_user_id()
-    data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+    # Use new user-specific message file structure
+    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    data = load_json_data(file_path)
     if data is None:
         raise ValueError("Failed to load message data.")
 
@@ -180,12 +183,18 @@ class MessageDialog(tk.Toplevel):
             self.destroy()
             return
         
-        self.data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+        # Use new user-specific message file structure
+        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+        file_path = os.path.join(user_messages_dir, f"{category}.json")
+        self.data = load_json_data(file_path)
         if not self.data:
             self.data = {"messages": []}
 
         try:
-            self.data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+            # Use new user-specific message file structure
+            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+            file_path = os.path.join(user_messages_dir, f"{category}.json")
+            self.data = load_json_data(file_path)
             if not self.data:
                 self.data = {"messages": []}
         except Exception as e:
@@ -396,7 +405,10 @@ def load_and_display_messages(view_messages_window, category):
         return
 
     try:
-        data = load_json_data(determine_file_path('messages', f'{category}/{user_id}'))
+        # Use new user-specific message file structure
+        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+        file_path = os.path.join(user_messages_dir, f"{category}.json")
+        data = load_json_data(file_path)
         messages = data.get('messages', []) if data else []
     except Exception as e:
         logger.error(f"Error loading messages for category {category}: {e}", exc_info=True)
@@ -1089,12 +1101,25 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
                     # Skip restoring ALL, try next
                     continue
                 # Load user data to ensure the period is restored in the correct state
-                user_info = load_user_info_data(user_id) or {}
-                schedules = user_info.setdefault('schedules', {})
-                category_schedules = schedules.setdefault(category, {})
+                from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+                from core.schedule_management import set_schedule_periods
+                
+                # Get current user data
+                user_account = get_user_account(user_id) or {}
+                user_preferences = get_user_preferences(user_id) or {}
+                user_context = get_user_context(user_id) or {}
+                
+                # Update schedules in preferences
+                if 'schedules' not in user_preferences:
+                    user_preferences['schedules'] = {}
+                if category not in user_preferences['schedules']:
+                    user_preferences['schedules'][category] = {}
+                
                 # Restore the period with its original data, including active status
-                category_schedules[period] = times  # Use the data from the stack
-                save_user_info_data(user_info, user_id)
+                user_preferences['schedules'][category][period] = times
+                
+                # Save updated preferences
+                update_user_preferences(user_id, user_preferences)
                 # Clear the cache for this user/category
                 clear_schedule_periods_cache(user_id, category)
                 logger.info(f"Restored schedule period for user {user_id}, category {category}, period {period} with data: {times}")
@@ -1130,21 +1155,23 @@ def setup_communication_settings_window(parent, user_id):
     settings_window.geometry("450x300")
     
     try:
-        # Load preferences and profile separately for accuracy
-        user_data = load_user_info_data(user_id)
-        if not user_data:
-            user_data = {}
+        # Load preferences and profile separately for accuracy using new functions
+        from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+        
+        user_account = get_user_account(user_id) or {}
+        user_preferences = get_user_preferences(user_id) or {}
+        user_context = get_user_context(user_id) or {}
         
         # Ensure preferences structure exists
-        if 'preferences' not in user_data:
-            user_data['preferences'] = {}
+        if not user_preferences:
+            user_preferences = {}
         
-        preferences = user_data.get('preferences', {})
-        profile = load_user_info_data(user_id)
-        current_service = preferences.get('messaging_service', 'email')
+        preferences = user_preferences
+        profile = user_account
+        current_service = preferences.get('channel', {}).get('type', preferences.get('messaging_service', 'email'))
         current_email = profile.get('email', '')
         current_phone = profile.get('phone', '')
-        current_discord_id = preferences.get('discord_user_id', '')
+        current_discord_id = profile.get('discord_user_id', '')
         
         tk.Label(settings_window, text="Communication Channel Settings", font=("Arial", 14, "bold")).pack(pady=10)
         
@@ -1269,9 +1296,9 @@ def setup_communication_settings_window(parent, user_id):
                 preferences['discord_user_id'] = new_discord_id
                 profile['email'] = new_email
                 profile['phone'] = new_phone
-                # Save both preferences and profile
-                save_json_data(preferences, get_user_file_path(user_id, 'preferences'))
-                save_json_data(profile, get_user_file_path(user_id, 'profile'))
+                # Save both preferences and profile using new functions
+                update_user_preferences(user_id, preferences)
+                update_user_account(user_id, profile)
                 logger.info(f"Updated communication settings for user {user_id}: service={new_service}, email={bool(new_email)}, phone={bool(new_phone)}, discord={bool(new_discord_id)}")
                 
                 # Show detailed feedback about what changed
@@ -1303,15 +1330,11 @@ def setup_category_management_window(parent, user_id):
     category_window.geometry("500x400")
     
     try:
-        user_data = load_user_info_data(user_id)
-        if not user_data:
-            user_data = {}
+        # Use new user management functions
+        from core.user_management import get_user_preferences, update_user_preferences
         
-        # Ensure preferences structure exists
-        if 'preferences' not in user_data:
-            user_data['preferences'] = {}
-        
-        preferences = user_data.get('preferences', {})
+        user_preferences = get_user_preferences(user_id) or {}
+        preferences = user_preferences
         current_categories = preferences.get('categories', [])
         available_categories = get_message_categories()
         
@@ -1421,24 +1444,18 @@ def setup_category_management_window(parent, user_id):
                 added_categories = new_set - original_set
                 removed_categories = original_set - new_set
                 
-                # Load full user data to preserve existing data
-                user_data = load_user_info_data(user_id)
-                if not user_data:
-                    user_data = {}
-                if 'preferences' not in user_data:
-                    user_data['preferences'] = {}
-                
-                # Update categories in preferences
-                user_data['preferences']['categories'] = selected_categories
+                # Update categories in preferences using new functions
+                user_preferences = get_user_preferences(user_id) or {}
+                user_preferences['categories'] = selected_categories
                 
                 # Save changes
-                save_user_info_data(user_data, user_id)
+                update_user_preferences(user_id, user_preferences)
                 
                 # Create message files for new categories
                 for category in added_categories:
-                    # TODO: Investigate and fix create_user_message_file function
-                    # create_user_message_file(user_id, category)
-                    logger.warning(f"create_user_message_file not implemented - skipping creation for category {category}")
+                    # Message files are now created automatically by ensure_user_message_files()
+                    # when categories are added via update_user_preferences()
+                    pass
                 
                 # Show what changed
                 change_summary = []
@@ -1487,15 +1504,11 @@ def setup_checkin_management_window(root, user_id):
     checkin_window.resizable(True, True)
 
     try:
-        user_data = load_user_info_data(user_id)
-        if not user_data:
-            user_data = {}
+        # Use new user management functions
+        from core.user_management import get_user_preferences, update_user_preferences
         
-        # Ensure preferences structure exists
-        if 'preferences' not in user_data:
-            user_data['preferences'] = {}
-        
-        preferences = user_data.get('preferences', {})
+        user_preferences = get_user_preferences(user_id) or {}
+        preferences = user_preferences
         current_checkin_prefs = preferences.get('checkins', {})
         
         # Load schedule data from schedules.json to get time and days
@@ -1767,36 +1780,40 @@ def setup_checkin_management_window(root, user_id):
                     logger.info(f"No changes made to check-in settings for user {user_id}")
                     checkin_window.destroy()
                     return
-                # Load full user data to preserve categories and schedules
-                user_data = load_user_info_data(user_id)
-                if not user_data:
-                    user_data = {}
-                if 'preferences' not in user_data:
-                    user_data['preferences'] = {}
+                # Load user data using new structure
+                from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+                
+                user_account = get_user_account(user_id) or {}
+                user_preferences = get_user_preferences(user_id) or {}
+                user_context = get_user_context(user_id) or {}
+                
+                # Ensure preferences structure exists
+                if not user_preferences:
+                    user_preferences = {}
                 
                 # Save check-in preferences (enabled status and questions) to preferences
                 checkin_preferences = {
                     "enabled": new_checkin_prefs["enabled"],
                     "questions": new_checkin_prefs["questions"]
                 }
-                user_data['preferences']['checkins'] = checkin_preferences
+                user_preferences['checkins'] = checkin_preferences
                 
                 # Load current schedules to preserve existing category schedules
                 from core.file_operations import get_user_file_path, load_json_data
                 schedules_file = get_user_file_path(user_id, 'schedules')
                 current_schedules = load_json_data(schedules_file) or {}
                 
-                # Update the user_data with current schedules and new check-in settings
-                if 'schedules' not in user_data:
-                    user_data['schedules'] = {}
+                # Update schedules with new check-in settings
+                if 'schedules' not in current_schedules:
+                    current_schedules['schedules'] = {}
                 
                 # Preserve existing category schedules
                 for category, schedule_info in current_schedules.items():
                     if category != 'checkin':  # Don't overwrite check-in, we'll set that below
-                        user_data['schedules'][category] = schedule_info
+                        current_schedules[category] = schedule_info
                 
                 # Always preserve check-in schedule data, regardless of enabled status
-                user_data['schedules']["checkin"] = {
+                current_schedules["checkin"] = {
                     "checkin_time": {
                         "start": new_checkin_prefs["start_time"],
                         "end": new_checkin_prefs["end_time"],
@@ -1806,8 +1823,9 @@ def setup_checkin_management_window(root, user_id):
                     }
                 }
                 
-                # Save everything using save_user_info_data
-                save_user_info_data(user_data, user_id)
+                # Save check-in preferences using new structure
+                user_preferences['checkins'] = checkin_preferences
+                update_user_preferences(user_id, user_preferences)
                 
                 # Reschedule check-ins if enabled status changed or schedule changed
                 if enabled_changed or start_changed or end_changed or days_changed:
@@ -2056,14 +2074,13 @@ def setup_task_management_window(parent, user_id):
     task_window.geometry("700x600")
 
     try:
-        user_data = load_user_info_data(user_id)
-        if not user_data:
-            user_data = {}
-        if 'preferences' not in user_data:
-            user_data['preferences'] = {}
-        if 'tasks' not in user_data['preferences']:
-            user_data['preferences']['tasks'] = {}
-        task_preferences = user_data['preferences'].get('tasks', {})
+        # Load user data using new structure
+        from core.user_management import get_user_preferences, update_user_preferences
+        
+        user_preferences = get_user_preferences(user_id) or {}
+        if 'tasks' not in user_preferences:
+            user_preferences['tasks'] = {}
+        task_preferences = user_preferences.get('tasks', {})
         tasks_enabled = task_preferences.get('enabled', False)
         
         # Load reminder periods and days from schedules.json using the same system as check-ins
@@ -2221,15 +2238,9 @@ def setup_task_management_window(parent, user_id):
                     messagebox.showerror("Error", "Please select at least one day for reminders.")
                     return
                 new_enabled = tasks_enabled_var.get() == 1
-                user_data = load_user_info_data(user_id)
-                if not user_data:
-                    user_data = {}
-                if 'preferences' not in user_data:
-                    user_data['preferences'] = {}
-                if 'tasks' not in user_data['preferences']:
-                    user_data['preferences']['tasks'] = {}
-                user_data['preferences']['tasks']['enabled'] = new_enabled
-                save_user_info_data(user_data, user_id)
+                # Update task preferences using new structure
+                user_preferences['tasks']['enabled'] = new_enabled
+                update_user_preferences(user_id, user_preferences)
                 # Always preserve task reminder schedule data, regardless of enabled status
                 from core.schedule_management import set_reminder_periods_and_days
                 set_reminder_periods_and_days(user_id, 'tasks', new_periods, days)
@@ -3047,3 +3058,162 @@ def delete_selected_task(parent, user_id, on_save=None):
     except Exception as e:
         logger.error(f"Error deleting task: {e}")
         messagebox.showerror("Error", f"Failed to delete task: {e}")
+
+@handle_errors("setting up personalization management window")
+def setup_personalization_management_window(parent, user_id):
+    """Opens a window for managing user personalization settings."""
+    if not user_id:
+        logger.error("setup_personalization_management_window called with None user_id")
+        messagebox.showerror("Error", "User ID is not set. Please ensure you are logged in.")
+        return None
+    
+    window_attr_name = "_personalization_management_window"
+    personalization_window = getattr(parent, window_attr_name, None)
+    if personalization_window is None or not personalization_window.winfo_exists():
+        personalization_window = Toplevel(parent)
+        personalization_window.title("Personalization Management")
+        setattr(parent, window_attr_name, personalization_window)
+        
+        # Set window size
+        personalization_window.geometry("850x750")
+        personalization_window.minsize(700, 600)
+        
+        # Define what happens when the window is closed
+        personalization_window.protocol("WM_DELETE_WINDOW", lambda: save_geometry_and_close(personalization_window, parent, window_attr_name))
+    else:
+        for widget in personalization_window.winfo_children():
+            widget.destroy()
+
+    # Create main frame
+    main_frame = ttk.Frame(personalization_window)
+    main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    
+    # Title
+    title_label = ttk.Label(main_frame, text="Personalization Management", 
+                           font=("Arial", 16, "bold"))
+    title_label.pack(pady=(0, 20))
+    
+    # Description
+    description_label = ttk.Label(main_frame, 
+                                 text="Manage user personalization settings including pronouns, health information, interests, and more.",
+                                 font=("Arial", 10), wraplength=600)
+    description_label.pack(pady=(0, 20))
+    
+    # Button to open personalization dialog
+    def open_personalization_dialog():
+        try:
+            from ui.dialogs.user_profile_dialog import open_personalization_dialog
+            from core.personalization_management import load_personalization_data
+            
+            def on_personalization_save(data):
+                """Callback when personalization data is saved."""
+                try:
+                    from core.personalization_management import save_personalization_data
+                    save_personalization_data(user_id, data)
+                    messagebox.showinfo("Success", "Personalization data updated successfully!")
+                    logger.info(f"Personalization data updated for user {user_id}")
+                except Exception as e:
+                    logger.error(f"Failed to save personalization data: {e}")
+                    messagebox.showerror("Error", f"Failed to save personalization data: {str(e)}")
+            
+            # Load existing data to pass to dialog
+            existing_data = load_personalization_data(user_id)
+            open_personalization_dialog(personalization_window, user_id, on_personalization_save, existing_data)
+            
+        except Exception as e:
+            logger.error(f"Error opening personalization dialog: {e}")
+            messagebox.showerror("Error", f"Failed to open personalization dialog: {str(e)}")
+    
+    # Create button frame
+    button_frame = ttk.Frame(main_frame)
+    button_frame.pack(pady=20)
+    
+    ttk.Button(button_frame, text="Edit Personalization Settings", 
+              command=open_personalization_dialog,
+              style="Accent.TButton").pack(pady=10)
+    
+    # Add some spacing
+    ttk.Separator(main_frame, orient='horizontal').pack(fill=tk.X, pady=20)
+    
+    # Show current personalization summary
+    try:
+        from core.personalization_management import load_personalization_data
+        
+        personalization_data = load_personalization_data(user_id)
+        if personalization_data:
+            summary_frame = ttk.LabelFrame(main_frame, text="Current Personalization Summary")
+            summary_frame.pack(fill=tk.X, pady=10)
+            
+            summary_text = tk.Text(summary_frame, height=15, wrap=tk.WORD, state=tk.DISABLED)
+            summary_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+            
+            # Create summary content
+            summary_content = []
+            
+            # Basic info
+            if personalization_data.get("pronouns"):
+                summary_content.append(f"Pronouns: {', '.join(personalization_data['pronouns'])}")
+            
+            if personalization_data.get("date_of_birth"):
+                summary_content.append(f"Date of Birth: {personalization_data['date_of_birth']}")
+            
+            if personalization_data.get("timezone"):
+                summary_content.append(f"Timezone: {personalization_data['timezone']}")
+            
+            # Health info
+            if personalization_data.get("health_conditions"):
+                summary_content.append(f"\nHealth Conditions: {', '.join(personalization_data['health_conditions'])}")
+            
+            if personalization_data.get("medications_treatments"):
+                summary_content.append(f"Medications/Treatments: {', '.join(personalization_data['medications_treatments'])}")
+            
+            if personalization_data.get("reminders_needed"):
+                summary_content.append(f"Reminders Needed: {', '.join(personalization_data['reminders_needed'])}")
+            
+            # Loved ones
+            if personalization_data.get("loved_ones"):
+                summary_content.append(f"\nLoved Ones:")
+                for loved_one in personalization_data["loved_ones"]:
+                    name = loved_one.get("name", "Unknown")
+                    type_val = loved_one.get("type", "Unknown")
+                    relationships = loved_one.get("relationships", [])
+                    rel_text = f" ({', '.join(relationships)})" if relationships else ""
+                    summary_content.append(f"  • {name} ({type_val}){rel_text}")
+            
+            # Interests
+            if personalization_data.get("interests"):
+                summary_content.append(f"\nInterests: {', '.join(personalization_data['interests'])}")
+            
+            if personalization_data.get("activities_for_encouragement"):
+                summary_content.append(f"Activities for Encouragement: {', '.join(personalization_data['activities_for_encouragement'])}")
+            
+            # Notes
+            if personalization_data.get("notes_for_ai"):
+                summary_content.append(f"\nNotes for AI: {', '.join(personalization_data['notes_for_ai'])}")
+            
+            # Goals
+            if personalization_data.get("goals"):
+                summary_content.append(f"\nGoals: {', '.join(personalization_data['goals'])}")
+            
+            # Update text widget
+            summary_text.config(state=tk.NORMAL)
+            summary_text.delete(1.0, tk.END)
+            if summary_content:
+                summary_text.insert(1.0, '\n'.join(summary_content))
+            else:
+                summary_text.insert(1.0, "No personalization data has been set yet.\n\nClick 'Edit Personalization Settings' to get started.")
+            summary_text.config(state=tk.DISABLED)
+            
+        else:
+            # No personalization data
+            no_data_label = ttk.Label(main_frame, 
+                                     text="No personalization data has been set yet.\n\nClick 'Edit Personalization Settings' to get started.",
+                                     font=("Arial", 10), justify=tk.CENTER)
+            no_data_label.pack(pady=20)
+            
+    except Exception as e:
+        logger.error(f"Error loading personalization summary: {e}")
+        error_label = ttk.Label(main_frame, 
+                               text=f"Error loading personalization data: {str(e)}",
+                               font=("Arial", 10), foreground="red")
+        error_label.pack(pady=20)

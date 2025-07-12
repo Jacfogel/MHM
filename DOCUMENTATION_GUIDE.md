@@ -28,10 +28,11 @@ This guide defines the audience and purpose of each documentation file in the MH
 #### Development Guides
 - **`DEVELOPMENT_WORKFLOW.md`** - Safe development practices for beginners
 - **`QUICK_REFERENCE.md`** - Essential commands and troubleshooting
+- **`UI_MIGRATION_PLAN.md`** - UI migration, data migration, and backup best practices (see new section)
 
 #### Technical Reference
 - **`ARCHITECTURE.md`** - System structure and data organization
-- **`CHANGELOG.md`** - Change log and recent updates
+- **`CHANGELOG.md`** - Change log and recent updates (see 2025-07-10 for migration/backup best practices)
 - **`TODO.md`** - Current development priorities
 
 ### 🔧 Configuration Files

@@ -7,6 +7,7 @@ import logging
 import os
 import atexit
 from datetime import datetime
+from typing import List
 
 # Add parent directory to path so we can import from other modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -26,7 +27,7 @@ register_all_channels()
 
 # Now import the rest
 from bot.communication_manager import CommunicationManager
-from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH
+from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
 from core.user_management import get_all_user_ids, get_user_preferences
@@ -76,14 +77,16 @@ class MHMService:
             if user_id is None:
                 logger.warning("Encountered None user_id in get_all_user_ids()")
                 continue
-            categories = get_user_preferences(user_id, ['categories'])
+            categories = get_user_preferences(user_id, 'categories')
             if isinstance(categories, list):
                 if categories:  # Only process if list is not empty
                     for category in categories:
                         try:
-                            path = determine_file_path('messages', f'{category}/{user_id}')
+                            # Use new user-specific message file structure
+                            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+                            path = os.path.join(user_messages_dir, f"{category}.json")
                             paths.append(path)
-                        except ValueError as e:
+                        except Exception as e:
                             logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")
                 # Empty list is fine - no warning needed
             else:
@@ -498,6 +501,38 @@ class MHMService:
                         self.scheduler_manager.stop_scheduler()
                 except:
                     pass
+
+def get_user_categories(user_id: str) -> List[str]:
+    """Get user's message categories."""
+    try:
+        categories = get_user_preferences(user_id, 'categories')
+        if categories is None:
+            return []
+        elif isinstance(categories, list):
+            return categories
+        elif isinstance(categories, dict):
+            return list(categories.keys())
+        else:
+            return []
+    except Exception as e:
+        logger.error(f"Error getting categories for user {user_id}: {e}")
+        return []
+
+def process_user_messages(user_id: str):
+    """Process messages for a specific user."""
+    try:
+        # Get user's categories
+        categories = get_user_preferences(user_id, 'categories')
+        if not categories:
+            logger.debug(f"No categories found for user {user_id}")
+            return
+        
+        # Process each category
+        for category in categories:
+            process_category_messages(user_id, category)
+            
+    except Exception as e:
+        logger.error(f"Error processing messages for user {user_id}: {e}")
 
 @handle_errors("main service function")
 def main():

@@ -10,7 +10,11 @@
 - **default_messages/**: Default motivational, health, and other message templates
 - **scripts/**: One-off scripts, debug, and migration tools
 - **tasks/**: Task and reminder management
-- **ui/**: Tkinter-based management UI (account, schedule, check-in, etc.)
+- **ui/**: PySide6/Qt-based management UI with organized structure:
+  - `ui/designs/`: Qt Designer files (.ui)
+  - `ui/generated/`: Auto-generated Python classes (*_pyqt.py)
+  - `ui/dialogs/`: Dialog implementations
+  - `ui/widgets/`: Widget implementations
 - **user/**: User context and preferences management
 
 ---
@@ -22,6 +26,11 @@
   - `preferences.json`: FLAT dict of user preferences (categories, checkins, etc.)
   - `schedules.json`: User's schedule data
   - (Other files: logs, messages, etc.)
+
+**Message File Handling (2025-07):**
+- Message files are only created for categories a user is opted into.
+- All message files are always created from the corresponding file in `default_messages/` (never as a list of strings).
+- Legacy/invalid files can be fixed using `scripts/fix_user_message_formats.py` (migration) and `scripts/cleanup_user_message_files.py` (cleanup).
 
 **Important:**
 - `preferences.json` is a flat dict (not nested under a 'preferences' key).
@@ -58,10 +67,33 @@
 
 ---
 
+## UI Architecture & Naming Conventions
+
+### Directory Structure
+The UI system uses a clean separation of concerns:
+- **Designs** (`ui/designs/`): Qt Designer .ui files for visual layout
+- **Generated** (`ui/generated/`): Auto-generated Python classes from .ui files
+- **Dialogs** (`ui/dialogs/`): Dialog implementations with business logic
+- **Widgets** (`ui/widgets/`): Reusable widget implementations
+
+### Naming Conventions
+- **Dialogs**: Use "management" suffix (e.g., `category_management_dialog.py`)
+- **Widgets**: Use "settings" or "selection" suffix (e.g., `category_selection_widget.py`)
+- **Generated Files**: Use "_pyqt" suffix (e.g., `category_management_dialog_pyqt.py`)
+- **No Redundant Prefixes**: Removed `ui_app_` prefix since all files are in `ui/` directory
+
+### File Mapping Examples
+| Purpose | Design File | Generated File | Implementation |
+|---------|-------------|----------------|----------------|
+| Category Management | `category_management_dialog.ui` | `category_management_dialog_pyqt.py` | `category_management_dialog.py` |
+| Account Creation | `account_creator_dialog.ui` | `account_creator_dialog_pyqt.py` | `account_creator_dialog.py` |
+| Task Settings | `task_settings_widget.ui` | `task_settings_widget_pyqt.py` | `task_settings_widget.py` |
+
 ## Adding New Features Safely
 - Always use the provided load/save functions for user data.
 - When adding new preferences, update the full dict and save it, never just a single key.
 - Document new data fields and update this file as needed.
+- For UI components, follow the established naming conventions and directory structure.
 
 ## IDE/Debugger Double Process Note
 

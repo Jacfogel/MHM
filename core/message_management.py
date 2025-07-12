@@ -9,12 +9,13 @@ import json
 import uuid
 from datetime import datetime
 from core.logger import get_logger
-from core.config import DEFAULT_MESSAGES_DIR_PATH
+from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.error_handling import (
     error_handler, DataError, FileOperationError, ValidationError,
     handle_file_error, handle_errors
 )
+from typing import List
 
 logger = get_logger(__name__)
 
@@ -78,7 +79,10 @@ def add_message(user_id, category, message_data, index=None):
         logger.error("add_message called with None user_id")
         return
 
-    file_path = determine_file_path('messages', f'{category}/{user_id}')
+    # Use new user-specific message file structure
+    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    
     data = load_json_data(file_path)
     
     if data is None:
@@ -93,23 +97,48 @@ def add_message(user_id, category, message_data, index=None):
         data['messages'].append(message_data)
     
     save_json_data(data, file_path)
+    
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after message addition for user {user_id}: {e}")
+    
     logger.info(f"Added message to category {category} for user {user_id}: {message_data}")
 
 @handle_errors("editing message")
-def edit_message(user_id, category, index, new_message_data):
+def edit_message(user_id, category, message_id, updated_data):
     if user_id is None:
         logger.error("edit_message called with None user_id")
         return
 
-    file_path = determine_file_path('messages', f'{category}/{user_id}')
+    # Use new user-specific message file structure
+    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    
     data = load_json_data(file_path)
     
-    if data is None or 'messages' not in data or index >= len(data['messages']):
-        raise ValidationError("Invalid message index or category.")
+    if data is None or 'messages' not in data:
+        raise ValidationError("Invalid category or data file.")
     
-    data['messages'][index] = new_message_data
+    message_index = next((i for i, msg in enumerate(data['messages']) if msg['message_id'] == message_id), None)
+    
+    if message_index is None:
+        raise ValidationError("Message ID not found.")
+    
+    # Update the message
+    data['messages'][message_index].update(updated_data)
     save_json_data(data, file_path)
-    logger.info(f"Edited message in category {category} for user {user_id}, : {new_message_data}")
+    
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after message edit for user {user_id}: {e}")
+    
+    logger.info(f"Edited message with ID {message_id} in category {category} for user {user_id}.")
 
 @handle_errors("updating message by ID")
 def update_message(user_id, category, message_id, new_message_data):
@@ -140,7 +169,10 @@ def delete_message(user_id, category, message_id):
         logger.error("delete_message called with None user_id")
         return
 
-    file_path = determine_file_path('messages', f'{category}/{user_id}')
+    # Use new user-specific message file structure
+    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    
     data = load_json_data(file_path)
     
     if data is None or 'messages' not in data:
@@ -153,6 +185,14 @@ def delete_message(user_id, category, message_id):
     
     data['messages'].remove(message_to_delete)
     save_json_data(data, file_path)
+    
+    # Update user index
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception as e:
+        logger.warning(f"Failed to update user index after message deletion for user {user_id}: {e}")
+    
     logger.info(f"Deleted message with ID {message_id} in category {category} for user {user_id}.")
 
 @handle_errors("getting last 10 messages", default_return=[])
@@ -217,3 +257,141 @@ def store_sent_message(user_id, category, message_id, message):
                 logger.info(f"Cleaned up {original_count - cleaned_count} old messages from {cat} category for user {user_id}")
     save_json_data(sent_messages, file_path)
     logger.debug(f"Stored sent message for user {user_id}, category {category}.") 
+
+@handle_errors("creating message file from defaults")
+def create_message_file_from_defaults(user_id: str, category: str) -> bool:
+    """
+    Create a user's message file for a specific category from default messages.
+    This is the actual worker function that creates the file.
+    
+    Args:
+        user_id: The user ID
+        category: The specific category to create a message file for
+        
+    Returns:
+        bool: True if file was created successfully
+    """
+    if not user_id or not category:
+        logger.error(f"Invalid parameters: user_id={user_id}, category={category}")
+        return False
+    
+    try:
+        # Load default messages for the category
+        default_messages = load_default_messages(category)
+        if not default_messages:
+            logger.warning(f"No default messages found for category {category}")
+            return False
+        
+        # Ensure default messages are in the correct format
+        formatted_messages = []
+        for message in default_messages:
+            if isinstance(message, dict):
+                # Already in correct format, just ensure it has all required fields
+                if 'message' not in message:
+                    logger.warning(f"Default message missing 'message' field: {message}")
+                    continue
+                if 'message_id' not in message:
+                    message['message_id'] = str(uuid.uuid4())
+                if 'days' not in message:
+                    message['days'] = ['ALL']
+                if 'time_periods' not in message:
+                    message['time_periods'] = ['ALL']
+                formatted_messages.append(message)
+            else:
+                logger.warning(f"Invalid message format in defaults: {message}")
+                continue
+        
+        if not formatted_messages:
+            logger.error(f"No valid messages found in defaults for category {category}")
+            return False
+        
+        # Create user message file with proper format
+        # Note: messages directory should be created by create_user_files() during account creation
+        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+        category_message_file = os.path.join(user_messages_dir, f"{category}.json")
+        message_data = {
+            "messages": formatted_messages
+        }
+        
+        save_json_data(message_data, category_message_file)
+        logger.info(f"Created message file for user {user_id}, category {category} from defaults ({len(formatted_messages)} messages)")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error creating message file for user {user_id}, category {category}: {e}")
+        return False
+
+@handle_errors("ensuring user message files exist")
+def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
+    """
+    Ensure user has message files for specified categories.
+    Creates messages directory if missing, checks which files are missing, and creates them.
+    
+    Args:
+        user_id: The user ID
+        categories: List of categories to check/create message files for (can be subset of user's categories)
+        
+    Returns:
+        dict: Summary of the operation with keys:
+            - success: bool - True if all files were created/validated successfully
+            - directory_created: bool - True if messages directory was created
+            - files_checked: int - Number of categories checked
+            - files_created: int - Number of new files created
+            - files_existing: int - Number of files that already existed
+    """
+    if not user_id or not categories:
+        logger.error(f"Invalid parameters: user_id={user_id}, categories={categories}")
+        return {
+            "success": False,
+            "directory_created": False,
+            "files_checked": 0,
+            "files_created": 0,
+            "files_existing": 0
+        }
+    
+    try:
+        # Create messages directory for user if it doesn't exist
+        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+        directory_created = not os.path.exists(user_messages_dir)
+        os.makedirs(user_messages_dir, exist_ok=True)
+        
+        # Check which categories are missing message files
+        missing_categories = []
+        for category in categories:
+            category_message_file = os.path.join(user_messages_dir, f"{category}.json")
+            if not os.path.exists(category_message_file):
+                missing_categories.append(category)
+        
+        # Create missing files
+        success_count = 0
+        for category in missing_categories:
+            if create_message_file_from_defaults(user_id, category):
+                success_count += 1
+                logger.debug(f"Created missing message file for category {category} for user {user_id}")
+            else:
+                logger.warning(f"Failed to create missing message file for category {category} for user {user_id}")
+        
+        # Count existing files as successes
+        existing_count = len(categories) - len(missing_categories)
+        total_success = success_count + existing_count
+        
+        result = {
+            "success": total_success == len(categories),
+            "directory_created": directory_created,
+            "files_checked": len(categories),
+            "files_created": success_count,
+            "files_existing": existing_count
+        }
+        
+        logger.info(f"Ensured message files for user {user_id}: {total_success}/{len(categories)} categories (created {success_count} new files, directory_created={directory_created})")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error ensuring user message files for user {user_id}: {e}")
+        return {
+            "success": False,
+            "directory_created": False,
+            "files_checked": len(categories),
+            "files_created": 0,
+            "files_existing": 0
+        }

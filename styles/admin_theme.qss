@@ -1,0 +1,191 @@
+/* MAIN BACKGROUND */
+QMainWindow, QDialog {
+    background-color: #f0f2f5;
+}
+
+/* GROUP BOXES - Sections with better separation */
+QGroupBox {
+    border: 1px solid #b0b0b0;
+    border-radius: 8px;
+    margin-top: 12px;
+    /* background-color: #fbfbfb; */
+    /* padding: 4px; */
+}
+
+QGroupBox:title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 6px 12px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    background-color: #e0e0e0;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+}
+
+/* HEADER ROLE LABEL - main window title */
+QLabel[role="header"] {
+    font-size: 22px;
+    font-weight: bold;
+    color: #111;
+    min-height: 50px;
+    max-height: 100px;
+    padding: 4px;
+    background-color: #e6e6e6;
+    border: 1px solid #aaa;
+    border-radius: 8px;
+    border-bottom: 3px solid #ccc;
+}
+
+/* LABELS IN GROUPS - General text */
+QLabel {
+    font-size: 13px;
+    color: #333;
+    padding: 2px 6px;
+}
+
+/* Dynamic role labels */
+QLabel[role="body"] {
+    font-size: 13px;
+}
+
+QLabel[role="smallprint"] {
+    font-size: 11px;
+    color: #777;
+    font-style: italic;
+}
+
+/* STATUS LABELS */
+QLabel[status="ok"] {
+    color: #28a745;
+    font-weight: bold;
+}
+
+/* BUTTONS - More pronounced look */
+QPushButton {
+    background-color: #dfe3e6;
+    border: 1px solid #888;
+    border-radius: 6px;
+    padding: 4px 10px;
+    min-height: 28px;
+    font-weight: 500;
+    color: #222;
+}
+
+QPushButton:hover {
+    background-color: #c8ccd0;
+    border-color: #666;
+}
+
+QPushButton:pressed {
+    background-color: #b0b4b8;
+    border-color: #555;
+    padding-top: 7px;
+    padding-bottom: 5px;
+}
+
+/* COMBO BOXES - More definition */
+QComboBox {
+    background-color: #ffffff;
+    border: 1px solid #999;
+    border-radius: 5px;
+    padding: 5px 10px;
+    min-height: 30px;
+}
+
+/* LINE EDITS / TEXT EDITS - More visible fields */
+QLineEdit, QTextEdit {
+    background-color: #ffffff;
+    border: 1px solid #999;
+    padding: 3px 6px;
+    border-radius: 5px;
+    min-height: 24px;
+}
+
+/* CHECKBOXES */
+QCheckBox {
+    min-height: 20px;
+    padding: 2px 6px;
+}
+
+/* RADIO BUTTONS */
+QRadioButton {
+    min-height: 20px;
+    padding: 2px 6px;
+}
+/* HEADER2 ROLE LABEL - Section title */
+QLabel[role="header2"] {
+    font-size: 18px;
+    font-weight: bold;
+    color: #222;
+    padding: 10px;
+    background-color: #e8e8e8;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    border-bottom: 2px solid #ccc;
+}
+
+/* HEADER3 ROLE LABEL - Subsection title */
+QLabel[role="header3"] {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    padding: 8px;
+    background-color: #f2f2f2;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+}
+
+/* SMALLPRINT ROLE LABEL - Already exists in your sheet
+QLabel[role="smallprint"] {
+    font-size: 11px;
+    color: #777;
+    font-style: italic;
+}
+*/
+
+/* CAPTION ROLE LABEL - Footnotes or supporting text */
+QLabel[role="caption"] {
+    font-size: 10px;
+    color: #888;
+    font-style: italic;
+    padding: 2px 4px;
+}
+
+/* HIGHLIGHT ROLE LABEL - Attention-grabbing text */
+QLabel[role="highlight"] {
+    font-size: 13px;
+    font-weight: bold;
+    color: #c00;
+    background-color: #ffe6e6;
+    padding: 4px 8px;
+    border: 1px solid #cc0000;
+    border-radius: 4px;
+}
+
+QCheckBox[role="header3"] {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 8px;
+}
+
+QCheckBox[role="header3"]::indicator {
+    margin-right: 8px;
+}
+
+QCheckBox[role="header3"]::text {
+    background-color: #f2f2f2;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    padding: 4px 8px;
+}
+
+QGroupBox::indicator {
+    width: 16px;
+    height: 16px;
+    subcontrol-position: left top;
+    subcontrol-origin: margin;
+    margin-left: 4px;
+    margin-right: 8px;
+}
