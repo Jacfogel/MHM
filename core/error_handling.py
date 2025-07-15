@@ -243,7 +243,10 @@ class ErrorHandler:
         # Check if we've exceeded retry limits
         error_key = f"{type(error).__name__}:{operation}"
         if self.error_count.get(error_key, 0) >= self.max_retries:
-            logger.error(f"Maximum retries exceeded for {error_key}")
+            try:
+                logger.error(f"Maximum retries exceeded for {error_key}")
+            except Exception:
+                pass  # Don't let logger failures break error handling
             if user_friendly:
                 self._show_user_error(error, context, "Maximum retries exceeded")
             return False
@@ -251,12 +254,21 @@ class ErrorHandler:
         # Try recovery strategies
         for strategy in self.recovery_strategies:
             if strategy.can_handle(error):
-                logger.info(f"Attempting recovery with strategy: {strategy.name}")
+                try:
+                    logger.info(f"Attempting recovery with strategy: {strategy.name}")
+                except Exception:
+                    pass  # Don't let logger failures break error handling
                 if strategy.recover(error, context):
-                    logger.info(f"Successfully recovered from error using {strategy.name}")
+                    try:
+                        logger.info(f"Successfully recovered from error using {strategy.name}")
+                    except Exception:
+                        pass  # Don't let logger failures break error handling
                     return True
                 else:
-                    logger.warning(f"Recovery strategy {strategy.name} failed")
+                    try:
+                        logger.warning(f"Recovery strategy {strategy.name} failed")
+                    except Exception:
+                        pass  # Don't let logger failures break error handling
         
         # Increment error count
         self.error_count[error_key] = self.error_count.get(error_key, 0) + 1
@@ -275,7 +287,13 @@ class ErrorHandler:
         if context.get('user_id'):
             error_msg += f" (User: {context['user_id']})"
         
-        logger.error(error_msg, exc_info=True)
+        try:
+            logger.error(error_msg, exc_info=True)
+        except Exception as log_error:
+            # If logging fails, we don't want to break the error handling
+            # Just print to stderr as a fallback
+            print(f"Logging failed: {log_error}", file=sys.stderr)
+            print(f"Original error: {error_msg}", file=sys.stderr)
     
     def _show_user_error(self, error: Exception, context: Dict[str, Any], 
                         custom_message: str = None):
@@ -287,7 +305,13 @@ class ErrorHandler:
         else:
             user_msg = self._get_user_friendly_message(error, context)
         
-        logger.error(f"User Error: {user_msg}")
+        try:
+            logger.error(f"User Error: {user_msg}")
+        except Exception as log_error:
+            # If logging fails, we don't want to break the error handling
+            # Just print to stderr as a fallback
+            print(f"Logging failed: {log_error}", file=sys.stderr)
+            print(f"User Error: {user_msg}", file=sys.stderr)
     
     def _get_user_friendly_message(self, error: Exception, context: Dict[str, Any]) -> str:
         """Convert technical error to user-friendly message."""
@@ -342,7 +366,10 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
                     try:
                         return func(*args, **kwargs)
                     except Exception as e2:
-                        logger.error(f"Operation failed again after recovery: {e2}")
+                        try:
+                            logger.error(f"Operation failed again after recovery: {e2}")
+                        except Exception:
+                            pass  # Don't let logger failures break error handling
                         return default_return
                 else:
                     return default_return
@@ -387,6 +414,8 @@ def safe_file_operation(file_path: str, operation: str = "file operation",
 # ============================================================================
 
 error_handler = ErrorHandler()
+
+
 
 # ============================================================================
 # CONVENIENCE FUNCTIONS

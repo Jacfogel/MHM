@@ -67,8 +67,24 @@ class DiscordBot(BaseChannel):
             self._set_status(ChannelStatus.ERROR, error_msg)
             return False
 
-        # Create bot instance
-        self.bot = commands.Bot(command_prefix="!", intents=intents)
+        # Check network connectivity before attempting connection
+        try:
+            import socket
+            socket.create_connection(("discord.com", 443), timeout=5)
+            logger.info("Network connectivity to Discord confirmed")
+        except Exception as e:
+            logger.warning(f"Network connectivity check failed: {e}")
+            # Continue anyway as the check might be overly strict
+
+        # Create bot instance with better connection settings
+        self.bot = commands.Bot(
+            command_prefix="!", 
+            intents=intents,
+            # Add connection settings for better resilience
+            max_messages=10000,  # Increase message cache
+            heartbeat_timeout=60.0,  # Increase heartbeat timeout
+            guild_ready_timeout=20.0,  # Increase guild ready timeout
+        )
         
         # Register event handlers
         self._register_events()
@@ -82,7 +98,7 @@ class DiscordBot(BaseChannel):
         self.discord_thread.start()
         
         # Wait for the bot to be ready with longer timeout and better checking
-        max_wait = 10  # 10 seconds max wait
+        max_wait = 30  # Increased to 30 seconds for network issues
         wait_interval = 0.5  # Check every 0.5 seconds
         total_waited = 0
         
@@ -94,6 +110,10 @@ class DiscordBot(BaseChannel):
                 self._set_status(ChannelStatus.READY)
                 logger.info("Discord bot initialized successfully")
                 return True
+            
+            # Log progress for longer waits
+            if total_waited % 5 == 0:  # Every 5 seconds
+                logger.info(f"Waiting for Discord bot to be ready... ({total_waited}s/{max_wait}s)")
         
         # If we get here, the bot didn't become ready in time
         error_msg = f"Discord bot failed to become ready within {max_wait} seconds"
@@ -148,6 +168,17 @@ class DiscordBot(BaseChannel):
         async def on_ready():
             logger.info(f"Discord Bot logged in as {self.bot.user}")
             print(f"Discord Bot is online as {self.bot.user}")
+
+        @self.bot.event
+        async def on_disconnect():
+            logger.warning("Discord bot disconnected - attempting to reconnect...")
+            # The discord.py library will automatically attempt to reconnect
+            # We just log this for monitoring purposes
+
+        @self.bot.event
+        async def on_error(event, *args, **kwargs):
+            logger.error(f"Discord bot error in event {event}: {args} {kwargs}")
+            # Log errors but let discord.py handle reconnection
 
         @self.bot.event
         async def on_message(message):

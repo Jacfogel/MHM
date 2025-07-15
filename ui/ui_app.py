@@ -12,6 +12,8 @@ import logging
 # Add parent directory to path so we can import from core
 import sys
 import os
+
+from user import user_context
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set up logging
@@ -29,7 +31,7 @@ from core.error_handling import (
 
 from ui.account_manager import setup_view_edit_messages_window, setup_view_edit_schedule_window, add_message_dialog, setup_task_management_window
 from user.user_context import UserContext
-from core.user_management import get_all_user_ids, get_user_account, get_user_preferences, get_user_context
+from core.user_management import get_all_user_ids, get_user_data
 from core.validation import title_case
 from tkinter import ttk
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
@@ -89,9 +91,8 @@ class ServiceManager:
         
         if service_pids:
             if len(service_pids) > 1:
-                logger.debug(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
-            else:
-                logger.debug(f"Service process found: {service_pids[0]}")
+                logger.debug(f"Status check: Found {len(service_pids)} service processes: {service_pids}")
+            # Only log single process on DEBUG level if needed for troubleshooting
             return True, service_pids[0]  # Return first PID
         return False, None
     
@@ -658,22 +659,27 @@ For detailed setup instructions, see the README.md file.
                 text_widget.insert('end', f"Total users: {len(user_ids)}\n\n")
                 
                 for user_id in user_ids:
-                    user_account = get_user_account(user_id)
-                    if user_account:
-                        username = user_account.get('internal_username', 'Unknown')
-                        preferred_name = user_account.get('preferred_name', '')
-                        categories = get_user_preferences(user_id).get('categories', [])
-                        prefs = get_user_preferences(user_id)
-                        messaging_service = prefs.get('channel', {}).get('type', prefs.get('messaging_service', 'Unknown'))
-                        
-                        text_widget.insert('end', f"User: {username}")
-                        if preferred_name:
-                            text_widget.insert('end', f" ({preferred_name})")
-                        text_widget.insert('end', f"\n")
-                        text_widget.insert('end', f"  ID: {user_id}\n")
-                        text_widget.insert('end', f"  Service: {messaging_service}\n")
-                        text_widget.insert('end', f"  Categories: {', '.join(categories) if categories else 'None'}\n")
-                        text_widget.insert('end', "\n")
+                    # Get user account data
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account')
+                    if not user_account:
+                        logger.error(f"User account not found for {user_id}")
+                        continue
+                    username = user_account.get('internal_username', 'Unknown')
+                    preferred_name = user_account.get('preferred_name', '')
+                    prefs_result = get_user_data(user_id, 'preferences')
+                    categories = prefs_result.get('preferences', {}).get('categories', [])
+                    prefs = prefs_result.get('preferences', {})
+                    messaging_service = prefs.get('channel', {}).get('type', 'Unknown')
+                    
+                    text_widget.insert('end', f"User: {username}")
+                    if preferred_name:
+                        text_widget.insert('end', f" ({preferred_name})")
+                    text_widget.insert('end', f"\n")
+                    text_widget.insert('end', f"  ID: {user_id}\n")
+                    text_widget.insert('end', f"  Service: {messaging_service}\n")
+                    text_widget.insert('end', f"  Categories: {', '.join(categories) if categories else 'None'}\n")
+                    text_widget.insert('end', "\n")
             
             text_widget.config(state='disabled')  # Make read-only
             
@@ -916,9 +922,13 @@ For detailed setup instructions, see the README.md file.
             self.user_listbox.insert(tk.END, "Select a user...")
             
             for user_id in user_ids:
-                user_account = get_user_account(user_id)
+                # Get user account data
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account')
                 internal_username = user_account.get('internal_username', 'Unknown') if user_account else 'Unknown'
-                user_context = get_user_context(user_id)
+                # Get user context
+                context_result = get_user_data(user_id, 'context')
+                user_context = context_result.get('context')
                 preferred_name = user_context.get('preferred_name', '') if user_context else ''
                 if preferred_name:
                     display_name = f"{preferred_name} ({internal_username}) - {user_id}"
@@ -950,7 +960,9 @@ For detailed setup instructions, see the README.md file.
                 return
                 
             self.current_user_id = user_id
-            user_account = get_user_account(user_id)
+            # Get user account data
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account')
             if user_account:
                 # Load user categories
                 self.load_user_categories(user_id)
@@ -1036,8 +1048,9 @@ For detailed setup instructions, see the README.md file.
         UserContext().set_user_id(self.current_user_id)
         
         # Load the user's full data to get internal_username and other details
-        user_account = get_user_account(self.current_user_id)
-        user_context = get_user_context(self.current_user_id)
+        # Get user account data
+        user_data_result = get_user_data(self.current_user_id, 'account')
+        user_account = user_data_result.get('account')
         if user_account:
             UserContext().set_internal_username(user_account.get('internal_username', ''))
             if user_context:
@@ -1046,7 +1059,9 @@ For detailed setup instructions, see the README.md file.
             UserContext().load_user_data(self.current_user_id)
         
         # Get user categories
-        categories = get_user_preferences(self.current_user_id).get('categories', [])
+        prefs_result = get_user_data(self.current_user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
+        prefs = prefs_result.get('preferences', {})
         
         if not categories:
             logger.info(f"Admin Panel: User {self.current_user_id} has no message categories configured")
@@ -1095,8 +1110,9 @@ For detailed setup instructions, see the README.md file.
         UserContext().set_user_id(self.current_user_id)
         
         # Load the user's full data to get internal_username and other details
-        user_account = get_user_account(self.current_user_id)
-        user_context = get_user_context(self.current_user_id)
+        # Get user account data
+        user_data_result = get_user_data(self.current_user_id, 'account')
+        user_account = user_data_result.get('account')
         if user_account:
             UserContext().set_internal_username(user_account.get('internal_username', ''))
             if user_context:
@@ -1116,7 +1132,8 @@ For detailed setup instructions, see the README.md file.
         
         logger.info(f"Admin Panel: Preparing test message for user {self.current_user_id}")
         # Get user categories
-        categories = get_user_preferences(self.current_user_id).get('categories', [])
+        prefs_result = get_user_data(self.current_user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         
         if not categories:
             logger.info(f"Admin Panel: User {self.current_user_id} has no message categories for test")
@@ -1301,16 +1318,15 @@ For detailed setup instructions, see the README.md file.
         """Load categories for the selected user"""
         try:
             # Get user preferences to find categories
-            user_prefs = get_user_preferences(user_id)
-            if user_prefs and 'categories' in user_prefs:
-                categories = user_prefs['categories']
-                # Handle both list and dictionary formats
-                if isinstance(categories, dict):
-                    self.current_user_categories = list(categories.keys())
-                elif isinstance(categories, list):
-                    self.current_user_categories = categories
-                else:
-                    self.current_user_categories = []
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
+            prefs = prefs_result.get('preferences', {})
+            
+            # Handle both list and dictionary formats
+            if isinstance(categories, dict):
+                self.current_user_categories = list(categories.keys())
+            elif isinstance(categories, list):
+                self.current_user_categories = categories
             else:
                 self.current_user_categories = []
             

@@ -43,6 +43,7 @@
   }
   ```
 - When saving, only the contents of `user_data['preferences']` are written to `preferences.json` (flat).
+- **All user data access is now handled exclusively through the unified `get_user_data()` handler. All legacy user data functions have been removed.**
 
 ---
 

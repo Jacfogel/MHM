@@ -255,14 +255,22 @@ def validate_personalization_data(data: Dict[str, Any]) -> tuple[bool, List[str]
     """Validate personalization data structure and content."""
     errors = []
     
-    # Check required fields
-    required_fields = [
-        "pronouns", "date_of_birth", "timezone", "health_conditions",
-        "medications_treatments", "reminders_needed", "loved_ones",
-        "interests", "activities_for_encouragement", "notes_for_ai", "goals"
+    # Required fields and their expected types
+    required_string_fields = ["date_of_birth", "timezone"]
+    required_list_fields = [
+        "pronouns", "health_conditions", "medications_treatments", "reminders_needed",
+        "loved_ones", "interests", "activities_for_encouragement", "notes_for_ai", "goals"
     ]
     
-    for field in required_fields:
+    # Check string fields
+    for field in required_string_fields:
+        if field not in data:
+            errors.append(f"Missing required field: {field}")
+        elif not isinstance(data[field], str):
+            errors.append(f"Field {field} must be a string")
+    
+    # Check list fields
+    for field in required_list_fields:
         if field not in data:
             errors.append(f"Missing required field: {field}")
         elif not isinstance(data[field], list):
@@ -281,10 +289,8 @@ def validate_personalization_data(data: Dict[str, Any]) -> tuple[bool, List[str]
         if not isinstance(loved_one, dict):
             errors.append(f"loved_one at index {i} must be a dictionary")
             continue
-        
         if "name" not in loved_one:
             errors.append(f"loved_one at index {i} missing required 'name' field")
-        
         if "type" not in loved_one:
             errors.append(f"loved_one at index {i} missing required 'type' field")
     

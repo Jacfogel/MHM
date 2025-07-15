@@ -9,24 +9,64 @@ This guide explains how to work safely and effectively on the MHM project, espec
 ## 🛡️ Safety First
 
 ### Before Making Changes
-1. **Create a backup** of your working code
+1. **Ensure your virtual environment is activated**
+   ```powershell
+   # You should see (venv) at the start of your command prompt
+   # If not, activate it:
+   venv\Scripts\activate
+   ```
+
+2. **Create a backup** of your working code
    ```powershell
    # Create a backup folder with timestamp
    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
    Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
    ```
 
-2. **Test the current state** to make sure everything works
+3. **Test the current state** to make sure everything works
    ```powershell
    python run_mhm.py
    ```
 
-3. **Make small changes** - don't try to fix everything at once
+4. **Make small changes** - don't try to fix everything at once
 
 ### During Development
-1. **Test frequently** - after each small change
-2. **Keep a log** of what you're changing
-3. **Ask for help** if something doesn't make sense
+1. **Keep your virtual environment activated** - you should always see `(venv)` in your prompt
+2. **Test frequently** - after each small change
+3. **Keep a log** of what you're changing
+4. **Ask for help** if something doesn't make sense
+
+## 🔧 Virtual Environment Best Practices
+
+### Why Use a Virtual Environment?
+- **Keeps your system Python clean** - no conflicts with other projects
+- **Makes dependencies explicit** - all requirements are listed in `requirements.txt`
+- **Prevents permission issues** - no need to install packages globally
+- **Makes the project portable** - anyone can recreate the exact same environment
+
+### Virtual Environment Commands
+```powershell
+# Create virtual environment (only needed once)
+python -m venv venv
+
+# Activate virtual environment (needed every time you work on the project)
+venv\Scripts\activate
+
+# Install dependencies (after activation)
+pip install -r requirements.txt
+
+# Add new dependencies
+pip install package_name
+pip freeze > requirements.txt
+
+# Deactivate when done
+deactivate
+```
+
+### Common Virtual Environment Issues
+- **"Command not found"**: Make sure virtual environment is activated
+- **Import errors**: Try `pip install -r requirements.txt --force-reinstall`
+- **Permission errors**: Run PowerShell as Administrator or adjust execution policy
 
 ## 🔄 Development Process
 
@@ -42,6 +82,7 @@ This guide explains how to work safely and effectively on the MHM project, espec
 - If it works, move to the next small change
 - If it breaks, fix it before continuing
 - **Remember**: All user-facing features must work through communication channels
+- **User Data Access**: All user data access must use the unified `get_user_data()` handler. Legacy user data functions are no longer present in the codebase.
 
 ### Step 3: Test
 - Test the specific feature you changed

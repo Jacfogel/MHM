@@ -200,6 +200,29 @@ class AccountCreatorDialog(QDialog):
         if button_box:
             button_box.accepted.connect(self.validate_and_accept)
             button_box.rejected.connect(self.reject)
+        
+        # Override key events for large dialog
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+        
+    def keyPressEvent(self, event):
+        """Handle key press events for the dialog."""
+        if event.key() == Qt.Key.Key_Escape:
+            # Show confirmation dialog before canceling
+            reply = QMessageBox.question(
+                self, 
+                "Cancel Account Creation", 
+                "Are you sure you want to cancel? All unsaved changes will be lost.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.reject()
+            event.accept()
+        elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            # Ignore Enter key to prevent accidental saving
+            event.ignore()
+        else:
+            super().keyPressEvent(event)
     
     def on_username_changed(self):
         """Handle username change."""
@@ -243,9 +266,20 @@ class AccountCreatorDialog(QDialog):
         # Generate a temporary user ID for the dialog
         temp_user_id = f"temp_{uuid.uuid4().hex[:8]}"
         
-        def on_personalization_save(data):
-            self.personalization_data = data
+        # Merge timezone from the dialog's timezone field into the data passed to the widget
+        tz = self.ui.comboBox_time_zone.currentText() if hasattr(self.ui, 'comboBox_time_zone') else ''
+        if tz:
+            self.personalization_data['timezone'] = tz
         
+        def on_personalization_save(data):
+            # Store the personalization data temporarily, and store timezone separately
+            tz = data.pop('timezone', None)
+            self.personalization_data = data
+            if tz:
+                self._pending_timezone = tz
+            logger.info("Personalization data saved for account creation")
+        
+        from ui.dialogs.user_profile_dialog import open_personalization_dialog
         open_personalization_dialog(self, temp_user_id, on_personalization_save, self.personalization_data)
     
     def populate_timezones(self):
@@ -328,7 +362,6 @@ class AccountCreatorDialog(QDialog):
             user_data = {
                 'internal_username': account_data['username'],
                 'preferred_name': account_data['preferred_name'],
-                'messaging_service': account_data['message_service'],
                 'chat_id': account_data['contact_info'].get(account_data['message_service'], ''),
                 'phone': account_data['contact_info'].get('telegram', ''),
                 'email': account_data['contact_info'].get('email', ''),
@@ -337,7 +370,7 @@ class AccountCreatorDialog(QDialog):
                 'checkin_settings': account_data['checkin_settings'],
                 'task_settings': account_data['task_settings'],
                 'personalization_data': account_data['personalization_data'],
-                'timezone': account_data['timezone']
+                'timezone': getattr(self, '_pending_timezone', account_data.get('timezone', ''))
             }
             
             # Create the user using the new function

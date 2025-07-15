@@ -341,8 +341,9 @@ def create_user_files(user_id, categories, user_preferences=None):
     else:
         # Try to load user preferences from file
         try:
-            from core.user_management import load_user_preferences_data
-            loaded_preferences = load_user_preferences_data(user_id)
+            from core.user_management import get_user_data
+            user_data = get_user_data(user_id, 'preferences', auto_create=True)
+            loaded_preferences = user_data.get('preferences')
             if loaded_preferences:
                 checkin_settings = loaded_preferences.get('checkin_settings', {})
                 task_settings = loaded_preferences.get('task_settings', {})

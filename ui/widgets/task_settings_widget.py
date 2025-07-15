@@ -18,7 +18,7 @@ from core.schedule_management import (
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
-from core.user_management import get_user_preferences, update_user_preferences
+from core.user_management import update_user_preferences
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 
@@ -45,18 +45,17 @@ class TaskSettingsWidget(QWidget):
     def setup_connections(self):
         """Setup signal connections."""
         # Connect time period buttons
-        self.ui.pushButton_add_new_period.clicked.connect(lambda: self.add_new_period())
-        self.ui.pushButton_undo_last__time_period_delete.clicked.connect(self.undo_last_period_delete)
+        self.ui.pushButton_task_reminder_add_new_period.clicked.connect(lambda: self.add_new_period())
+        self.ui.pushButton_undo_last__task_reminder_time_period_delete.clicked.connect(self.undo_last_period_delete)
     
     def load_existing_data(self):
-        """Load existing task data."""
         if not self.user_id:
             logger.warning("TaskSettingsWidget: No user_id provided!")
             return
         try:
             # Use the new reusable function to load period widgets
             self.period_widgets = load_period_widgets_for_category(
-                layout=self.ui.verticalLayout_3,
+                layout=self.ui.verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods,
                 user_id=self.user_id,
                 category="tasks",
                 parent_widget=self,
@@ -65,6 +64,9 @@ class TaskSettingsWidget(QWidget):
             )
         except Exception as e:
             logger.error(f"Error loading task data for user {self.user_id}: {e}")
+    
+    def showEvent(self, event):
+        super().showEvent(event)
     
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
@@ -75,17 +77,17 @@ class TaskSettingsWidget(QWidget):
             logger.warning(f"TaskSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})")
             period_name = str(period_name)
         if period_data is None:
-            period_data = {'start': '09:00', 'end': '17:00', 'active': True, 'days': ['ALL']}
+            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
         # Defensive: ensure period_data is a dict
         if not isinstance(period_data, dict):
             logger.warning(f"TaskSettingsWidget: period_data is not a dict: {period_data} (type: {type(period_data)})")
-            period_data = {'start': '09:00', 'end': '17:00', 'active': True, 'days': ['ALL']}
+            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
         # Create the period row widget
         period_widget = PeriodRowWidget(self, period_name, period_data)
         # Connect the delete signal
         period_widget.delete_requested.connect(self.remove_period_row)
         # Add to the scroll area layout
-        layout = self.ui.verticalLayout_3
+        layout = self.ui.verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods
         layout.addWidget(period_widget)
         # Store reference
         self.period_widgets.append(period_widget)
@@ -98,15 +100,15 @@ class TaskSettingsWidget(QWidget):
             period_data = row_widget.get_period_data()
             deleted_data = {
                 'period_name': period_data['name'],
-                'start_time': period_data['start'],
-                'end_time': period_data['end'],
+                'start_time': period_data['start_time'],
+                'end_time': period_data['end_time'],
                 'active': period_data['active'],
                 'days': period_data['days']
             }
             self.deleted_periods.append(deleted_data)
         
         # Remove from layout and widget list
-        layout = self.ui.verticalLayout_3
+        layout = self.ui.verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods
         layout.removeWidget(row_widget)
         row_widget.setParent(None)
         row_widget.deleteLater()
@@ -125,14 +127,14 @@ class TaskSettingsWidget(QWidget):
         
         # Recreate the period
         period_data = {
-            'start': deleted_data['start_time'],
-            'end': deleted_data['end_time'],
+            'start_time': deleted_data['start_time'],
+            'end_time': deleted_data['end_time'],
             'active': deleted_data['active'],
             'days': deleted_data.get('days', ['ALL'])
         }
         
         # Add it back
-        self.add_new_period(deleted_data['period_name'], period_data)
+        self.add_new_period(period_name=deleted_data['period_name'], period_data=period_data)
     
     def get_task_settings(self):
         """Get the current task settings."""
@@ -150,7 +152,7 @@ class TaskSettingsWidget(QWidget):
         
         # Clear existing period widgets
         for widget in self.period_widgets:
-            layout = self.ui.verticalLayout_3
+            layout = self.ui.verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods
             layout.removeWidget(widget)
             widget.setParent(None)
             widget.deleteLater()

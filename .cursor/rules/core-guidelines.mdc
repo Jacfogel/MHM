@@ -23,12 +23,12 @@ alwaysApply: true
 ## Key Files
 - `run_mhm.py` (entry point)
 - `core/service.py` (background service)
-- `ui/ui_app.py` (admin interface)
+- `ui/ui_app.qt.py` (admin interface)
 - `core/config.py` (configuration)
-- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py` (formerly in utils.py, now refactored for clarity and maintainability)
+- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`
 
 ## Development Workflow
-1. **Test current state**: `python run_mhm.py`
+1. **If applicable: Test current state**: `python run_mhm.py`
 2. **Create backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. **Make incremental changes**
 4. **Test after each change**
@@ -42,11 +42,9 @@ alwaysApply: true
 - Always verify command success with exit codes
 
 ## Communication Guidelines
-- Be encouraging and patient
 - Explain WHY changes are needed
 - Break complex tasks into steps
 - Acknowledge progress and successes
-- Provide clear error messages
 - Keep explanations simple and clear
 - Focus on one concept at a time
 

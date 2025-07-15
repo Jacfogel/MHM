@@ -2,28 +2,57 @@
 
 > **Audience**: Human Developer (Beginner Programmer)  
 > **Purpose**: Essential commands and troubleshooting  
-> **Style**: Practical, organized, easy-to-scan
+> **Style**: Concise, scannable, action-oriented
 
 ## 🚀 Essential Commands
 
-### Start the Application
+### Virtual Environment (Always Use!)
 ```powershell
+# Create virtual environment (first time only)
+python -m venv venv
+
+# Activate virtual environment (every time you work on the project)
+venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Deactivate when done
+deactivate
+```
+
+### Running the App
+```powershell
+# Main application (admin panel + service)
 python run_mhm.py
-```
 
-### Start Service Only (No UI)
-```powershell
+# Service only (background)
 python core/service.py
-```
 
-### Start UI Only (No Service)
-```powershell
+# Admin panel only (legacy Tkinter)
 python ui/ui_app.py
 ```
 
-### Install Dependencies
+### Testing
 ```powershell
-pip install -r requirements.txt
+# Run all tests
+python run_tests.py
+
+# Run specific test types
+python run_tests.py --type unit
+python run_tests.py --type integration
+python run_tests.py --verbose
+```
+
+### Development
+```powershell
+# Create backup before major changes
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
+
+# Add new dependency
+pip install package_name
+pip freeze > requirements.txt
 ```
 
 ## 📁 Key File Locations

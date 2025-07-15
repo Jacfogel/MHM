@@ -34,7 +34,7 @@ from core.error_handling import (
 )
 
 from user.user_context import UserContext
-from core.user_management import get_all_user_ids, get_user_account, get_user_preferences, get_user_context
+from core.user_management import get_all_user_ids, get_user_data
 from core.validation import title_case
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
@@ -96,9 +96,8 @@ class ServiceManager:
         
         if service_pids:
             if len(service_pids) > 1:
-                logger.debug(f"Found {len(service_pids)} service processes: {service_pids} (will clean up extras)")
-            else:
-                logger.debug(f"Service process found: {service_pids[0]}")
+                logger.debug(f"Status check: Found {len(service_pids)} service processes: {service_pids}")
+            # Only log single process on DEBUG level if needed for troubleshooting
             return True, service_pids[0]  # Return first PID
         return False, None
     
@@ -350,9 +349,29 @@ class MHMManagerUI(QMainWindow):
         # Disable category management until user is selected
         self.disable_content_management()
         
+        # Update user index automatically on startup
+        self.update_user_index_on_startup()
+        
         # Load user list
         self.refresh_user_list()
-        
+    
+    @handle_errors("updating user index on startup", default_return=None)
+    def update_user_index_on_startup(self):
+        """Automatically update the user index when the admin panel starts"""
+        try:
+            from core.user_data_manager import rebuild_user_index
+            logger.info("Admin Panel: Updating user index on startup...")
+            
+            success = rebuild_user_index()
+            if success:
+                logger.info("Admin Panel: User index updated successfully on startup")
+            else:
+                logger.warning("Admin Panel: Failed to update user index on startup")
+                
+        except Exception as e:
+            logger.error(f"Admin Panel: Error updating user index on startup: {e}")
+            # Don't show error to user - this is a background maintenance task
+    
     def update_service_status(self):
         """Update the service status display"""
         is_running, pid = self.service_manager.is_service_running()
@@ -385,6 +404,9 @@ class MHMManagerUI(QMainWindow):
         try:
             from core.user_data_manager import load_json_data
             from core.config import BASE_DATA_DIR
+            
+            # Remember the currently selected user
+            current_user_id = self.current_user
             
             # Load user index
             index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
@@ -434,9 +456,13 @@ class MHMManagerUI(QMainWindow):
                 self.ui.comboBox_users.addItem("Select a user...")
                 
                 for user_id in user_ids:
-                    user_account = get_user_account(user_id)
+                    # Get user account
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account')
                     internal_username = user_account.get('internal_username', 'Unknown') if user_account else 'Unknown'
-                    user_context = get_user_context(user_id)
+                    # Get user context
+                    context_result = get_user_data(user_id, 'context')
+                    user_context = context_result.get('context')
                     preferred_name = user_context.get('preferred_name', '') if user_context else ''
                     if preferred_name:
                         display_name = f"{preferred_name} ({internal_username}) - {user_id}"
@@ -446,6 +472,16 @@ class MHMManagerUI(QMainWindow):
             except Exception as fallback_error:
                 logger.error(f"Fallback user list refresh also failed: {fallback_error}")
                 QMessageBox.warning(self, "Error", f"Failed to refresh user list: {e}")
+        
+        # Reselect the previously selected user if it still exists
+        if current_user_id:
+            for i in range(self.ui.comboBox_users.count()):
+                item_text = self.ui.comboBox_users.itemText(i)
+                if f" - {current_user_id}" in item_text:
+                    self.ui.comboBox_users.setCurrentIndex(i)
+                    # Trigger the selection handler to reload user data
+                    self.on_user_selected(item_text)
+                    break
     
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):
@@ -460,7 +496,9 @@ class MHMManagerUI(QMainWindow):
             if " - " in user_display:
                 user_id = user_display.split(" - ")[-1]
             self.current_user = user_id
-            user_account = get_user_account(user_id)
+            # Get user account
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account')
             if user_account:
                 # Load user categories
                 self.load_user_categories(user_id)
@@ -483,9 +521,9 @@ class MHMManagerUI(QMainWindow):
     def load_user_categories(self, user_id):
         """Load categories for the selected user"""
         try:
-            # Get user preferences to find categories
-            prefs = get_user_preferences(user_id)
-            messaging_service = prefs.get('channel', {}).get('type', prefs.get('messaging_service', 'Unknown'))
+            # Load user preferences
+            prefs_result = get_user_data(user_id, 'preferences')
+            prefs = prefs_result.get('preferences') or {}
             if prefs and 'categories' in prefs:
                 categories = prefs['categories']
                 # Handle both list and dictionary formats
@@ -643,7 +681,22 @@ class MHMManagerUI(QMainWindow):
         logger.info(f"Admin Panel: Opening personalization management for user {self.current_user}")
         try:
             from ui.dialogs.user_profile_dialog import UserProfileDialog
-            dialog = UserProfileDialog(self, self.current_user)
+            from core.user_management import get_user_data, update_user_context, save_user_account_data
+            # Load user context and account data
+            user_data = get_user_data(self.current_user, ['context', 'account'])
+            context_data = user_data.get('context', {})
+            account_data = user_data.get('account', {})
+            # Merge timezone from account.json into context_data for the dialog
+            if 'timezone' in account_data:
+                context_data['timezone'] = account_data['timezone']
+            # Custom save handler to split timezone
+            def on_save(data):
+                tz = data.pop('timezone', None)
+                update_user_context(self.current_user, data)
+                if tz is not None:
+                    account_data['timezone'] = tz
+                    save_user_account_data(self.current_user, account_data)
+            dialog = UserProfileDialog(self, self.current_user, on_save, existing_data=context_data)
             dialog.user_changed.connect(self.refresh_user_list)
             dialog.setWindowTitle(f"Personalization Settings - {self.current_user}")
             dialog.exec()
@@ -664,8 +717,11 @@ class MHMManagerUI(QMainWindow):
         UserContext().set_user_id(self.current_user)
         
         # Load the user's full data to get internal_username and other details
-        user_account = get_user_account(self.current_user)
-        user_context = get_user_context(self.current_user)
+        user_data_result = get_user_data(self.current_user, 'account')
+        user_account = user_data_result.get('account')
+        # Get user context
+        context_result = get_user_data(self.current_user, 'context')
+        user_context = context_result.get('context')
         if user_account:
             UserContext().set_internal_username(user_account.get('internal_username', ''))
             if user_context:
@@ -674,7 +730,8 @@ class MHMManagerUI(QMainWindow):
             UserContext().load_user_data(self.current_user)
         
         # Get user categories
-        categories = get_user_preferences(self.current_user).get('categories', [])
+        prefs_result = get_user_data(self.current_user, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         
         if not categories:
             logger.info(f"Admin Panel: User {self.current_user} has no message categories configured")
@@ -736,8 +793,11 @@ class MHMManagerUI(QMainWindow):
         UserContext().set_user_id(self.current_user)
         
         # Load the user's full data to get internal_username and other details
-        user_account = get_user_account(self.current_user)
-        user_context = get_user_context(self.current_user)
+        user_data_result = get_user_data(self.current_user, 'account')
+        user_account = user_data_result.get('account')
+        # Get user context
+        context_result = get_user_data(self.current_user, 'context')
+        user_context = context_result.get('context')
         if user_account:
             UserContext().set_internal_username(user_account.get('internal_username', ''))
             if user_context:
@@ -796,7 +856,8 @@ class MHMManagerUI(QMainWindow):
         
         logger.info(f"Admin Panel: Preparing test message for user {self.current_user}")
         # Get user categories
-        categories = get_user_preferences(self.current_user).get('categories', [])
+        prefs_result = get_user_data(self.current_user, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         
         if not categories:
             logger.info(f"Admin Panel: User {self.current_user} has no message categories for test")
@@ -1235,13 +1296,19 @@ For detailed setup instructions, see the README.md file.
                 summary_text = f"Total users: {len(user_ids)}\n\n"
                 
                 for user_id in user_ids:
-                    user_account = get_user_account(user_id)
-                    user_context = get_user_context(user_id)
+                    # Get user account
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account')
+                    # Get user context
+                    context_result = get_user_data(user_id, 'context')
+                    user_context = context_result.get('context')
                     if user_account:
                         username = user_account.get('internal_username', 'Unknown')
                         preferred_name = user_context.get('preferred_name', '') if user_context else ''
-                        categories = get_user_preferences(user_id).get('categories', [])
-                        messaging_service = get_user_preferences(user_id).get('channel', {}).get('type', get_user_preferences(user_id).get('messaging_service', 'Unknown'))
+                        prefs_result = get_user_data(user_id, 'preferences')
+                        prefs = prefs_result.get('preferences', {})
+                        categories = prefs.get('categories', [])
+                        messaging_service = prefs.get('channel', {}).get('type', 'Unknown')
                         
                         summary_text += f"User: {username}"
                         if preferred_name:

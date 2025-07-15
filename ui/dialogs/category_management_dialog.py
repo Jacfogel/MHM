@@ -1,7 +1,12 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
-from ui.generated.category_management_dialog_pyqt import Ui_Dialog
+from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_management as Ui_Dialog
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from PySide6.QtCore import Signal
+from core.logger import get_logger
+from core.user_management import update_user_preferences, get_user_data
+from core.error_handling import handle_errors
+
+logger = get_logger(__name__)
 
 class CategoryManagementDialog(QDialog):
     user_changed = Signal()
@@ -13,7 +18,7 @@ class CategoryManagementDialog(QDialog):
         self.ui.setupUi(self)
         # Add the category widget to the group box layout
         self.category_widget = CategorySelectionWidget(self)
-        layout = self.ui.groupBox.layout()
+        layout = self.ui.groupBox_select_categories.layout()
         # Remove any existing widgets
         while layout.count():
             item = layout.takeAt(0)
@@ -28,18 +33,17 @@ class CategoryManagementDialog(QDialog):
         self.load_user_category_data()
 
     def load_user_category_data(self):
-        """Load the user's current category selections"""
-        if not self.user_id:
-            return
+        """Load user's current category settings"""
         try:
-            from core.user_management import get_user_preferences
-            prefs = get_user_preferences(self.user_id) or {}
+            # Load user preferences
+            prefs_result = get_user_data(self.user_id, 'preferences')
+            prefs = prefs_result.get('preferences') or {}
             current_categories = prefs.get('categories', [])
             self.category_widget.set_selected_categories(current_categories)
         except Exception as e:
-            from core.logger import get_logger
-            logger = get_logger(__name__)
-            logger.error(f"Error loading category data for user {self.user_id}: {e}")
+            logger.error(f"Error loading user category data: {e}")
+            # Set default categories if loading fails
+            self.category_widget.set_selected_categories([])
 
     def save_category_settings(self):
         """Save the selected categories back to user preferences"""
@@ -47,7 +51,6 @@ class CategoryManagementDialog(QDialog):
             self.accept()
             return
         try:
-            from core.user_management import get_user_preferences, update_user_preferences
             selected_categories = self.category_widget.get_selected_categories()
             
             # Validate that at least one category is selected
@@ -57,7 +60,8 @@ class CategoryManagementDialog(QDialog):
                 return
             
             # Get current preferences and update categories
-            prefs = get_user_preferences(self.user_id) or {}
+            prefs_result = get_user_data(self.user_id, 'preferences')
+            prefs = prefs_result.get('preferences') or {}
             prefs['categories'] = selected_categories
             
             # Save updated preferences
@@ -69,8 +73,6 @@ class CategoryManagementDialog(QDialog):
             self.accept()
             
         except Exception as e:
-            from core.logger import get_logger
-            logger = get_logger(__name__)
             logger.error(f"Error saving category settings for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save categories: {str(e)}")
 

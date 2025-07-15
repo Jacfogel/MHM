@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
-from core.user_management import get_user_account, get_user_preferences, get_user_context
+from core.user_management import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.config import (
     USER_INFO_DIR_PATH,
@@ -130,8 +130,8 @@ def get_recent_chat_interactions(user_id: str, limit: int = 10):
 @handle_errors("getting user checkin preferences", default_return={})
 def get_user_checkin_preferences(user_id: str) -> dict:
     """Get user's check-in preferences from their preferences file."""
-    from core.user_management import get_user_preferences
-    user_preferences = get_user_preferences(user_id)
+    prefs_result = get_user_data(user_id, 'preferences')
+    user_preferences = prefs_result.get('preferences')
     if not user_preferences:
         return {}
     
@@ -140,7 +140,8 @@ def get_user_checkin_preferences(user_id: str) -> dict:
 @handle_errors("checking if user checkins enabled", default_return=False)
 def is_user_checkins_enabled(user_id: str) -> bool:
     """Check if check-ins are enabled for a user."""
-    user_account = get_user_account(user_id)
+    user_data_result = get_user_data(user_id, 'account')
+    user_account = user_data_result.get('account')
     if not user_account:
         return False
     
@@ -155,9 +156,13 @@ def get_user_checkin_questions(user_id: str) -> dict:
 def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
     """Get user information for response tracking."""
     try:
-        user_account = get_user_account(user_id)
-        user_preferences = get_user_preferences(user_id)
-        user_context = get_user_context(user_id)
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account')
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences')
+        # Get user context
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context')
         
         if not user_account:
             return {}
@@ -167,7 +172,7 @@ def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
             "internal_username": user_account.get("internal_username", ""),
             "preferred_name": user_context.get("preferred_name", "") if user_context else "",
             "categories": user_preferences.get("categories", []) if user_preferences else [],
-            "messaging_service": user_preferences.get("messaging_service", "") if user_preferences else "",
+            "messaging_service": user_preferences.get("channel", {}).get("type", "") if user_preferences else "",
             "created_at": user_account.get("created_at", ""),
             "last_updated": user_account.get("last_updated", "")
         }
@@ -179,7 +184,8 @@ def track_user_response(user_id: str, category: str, response_data: Dict[str, An
     """Track a user's response to a message."""
     try:
         # Get user info using new functions
-        user_account = get_user_account(user_id)
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account')
         if not user_account:
             logger.error(f"User account not found for tracking: {user_id}")
             return

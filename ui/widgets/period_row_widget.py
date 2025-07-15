@@ -41,8 +41,8 @@ class PeriodRowWidget(QWidget):
         # Initialize with default data if none provided
         if period_data is None:
             period_data = {
-                'start': '09:00',
-                'end': '17:00',
+                'start_time': '18:00',
+                'end_time': '20:00',
                 'active': True,
                 'days': ['ALL']
             }
@@ -118,7 +118,7 @@ class PeriodRowWidget(QWidget):
         self.ui.lineEdit_time_period_name.setText(display_name)
         
         # Set start time
-        start_time = self.period_data.get('start', '09:00')
+        start_time = self.period_data.get('start_time', '18:00')
         start_hour_12, start_min_val, start_is_pm = time_24h_to_12h_display(start_time)
         self.ui.comboBox_start_time_hours.setCurrentText(f"{start_hour_12}")
         self.ui.comboBox_start_time_minutes.setCurrentText(f"{start_min_val:02d}")
@@ -126,7 +126,7 @@ class PeriodRowWidget(QWidget):
         self.ui.radioButton_start_time_pm.setChecked(start_is_pm)
         
         # Set end time
-        end_time = self.period_data.get('end', '17:00')
+        end_time = self.period_data.get('end_time', '20:00')
         end_hour_12, end_min_val, end_is_pm = time_24h_to_12h_display(end_time)
         self.ui.comboBox_end_time_hours.setCurrentText(f"{end_hour_12}")
         self.ui.comboBox_end_time_minutes.setCurrentText(f"{end_min_val:02d}")
@@ -235,8 +235,8 @@ class PeriodRowWidget(QWidget):
         
         return {
             'name': period_name,
-            'start': start_time,
-            'end': end_time,
+            'start_time': start_time,
+            'end_time': end_time,
             'active': active,
             'days': days
         }

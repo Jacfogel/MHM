@@ -18,9 +18,10 @@ from core.schedule_management import (
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
-from core.user_management import get_user_preferences, update_user_preferences
+from core.user_management import update_user_preferences
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
+from core.user_management import get_user_data
 
 # Import our period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -36,7 +37,7 @@ class CheckinSettingsWidget(QWidget):
         self.user_id = user_id
         self.ui = Ui_Form_checkin_settings()
         self.ui.setupUi(self)
-        
+        # Initialize data structures
         # Initialize data structures
         self.period_widgets = []
         self.deleted_periods = []  # For undo functionality
@@ -44,15 +45,19 @@ class CheckinSettingsWidget(QWidget):
         
         self.setup_connections()
         self.load_existing_data()
+        self.ui.scrollAreaWidgetContents_checkin_time_periods.setVisible(True)
+    
+    def showEvent(self, event):
+        super().showEvent(event)
     
     def setup_connections(self):
         """Setup signal connections."""
         # Connect time period buttons
-        self.ui.pushButton_add_new_time_period.clicked.connect(lambda: self.add_new_time_period())
-        self.ui.pushButton_undo_last__time_period_delete.clicked.connect(self.undo_last_time_period_delete)
+        self.ui.pushButton_add_new_checkin_time_period.clicked.connect(lambda: self.add_new_time_period())
+        self.ui.pushButton_undo_last__checkin_time_period_delete.clicked.connect(self.undo_last_time_period_delete)
         # Connect question buttons
-        self.ui.pushButton_add_new_question.clicked.connect(self.add_new_question)
-        self.ui.pushButton_undo_last_question_delete.clicked.connect(self.undo_last_question_delete)
+        self.ui.pushButton_add_new_checkin_question.clicked.connect(self.add_new_question)
+        self.ui.pushButton_undo_last_checkin_question_delete.clicked.connect(self.undo_last_question_delete)
         
         # Connect question checkboxes
         self.connect_question_checkboxes()
@@ -85,30 +90,23 @@ class CheckinSettingsWidget(QWidget):
     
     def load_existing_data(self):
         """Load existing check-in data."""
-        if not self.user_id:
-            logger.warning("CheckinSettingsWidget: No user_id provided!")
-            return
-        try:
-            logger.info(f"CheckinSettingsWidget: Loading periods for user_id={self.user_id}")
-            
-            # Use the new reusable function to load period widgets
-            self.period_widgets = load_period_widgets_for_category(
-                layout=self.ui.verticalLayout_3,
-                user_id=self.user_id,
-                category="checkin",
-                parent_widget=self,
-                widget_list=self.period_widgets,
-                delete_callback=self.remove_period_row
-            )
-            
-            # Load question preferences
-            prefs = get_user_preferences(self.user_id) or {}
-            checkin_settings = prefs.get('checkin_settings', {})
-            questions = checkin_settings.get('questions', {})
-            # Set question checkboxes based on saved preferences
-            self.set_question_checkboxes(questions)
-        except Exception as e:
-            logger.error(f"Error loading check-in data for user {self.user_id}: {e}")
+        logger.info(f"CheckinSettingsWidget: Loading periods for user_id={self.user_id}")
+        # Use the new reusable function to load period widgets
+        self.period_widgets = load_period_widgets_for_category(
+            layout=self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods,
+            user_id=self.user_id,
+            category="checkin",
+            parent_widget=self,
+            widget_list=self.period_widgets,
+            delete_callback=self.remove_period_row
+        )
+        # Get user preferences
+        prefs_result = get_user_data(self.user_id, 'preferences')
+        prefs = prefs_result.get('preferences') or {}
+        checkin_settings = prefs.get('checkin_settings', {})
+        questions = checkin_settings.get('questions', {})
+        # Set question checkboxes based on saved preferences
+        self.set_question_checkboxes(questions)
     
     def set_question_checkboxes(self, questions):
         """Set question checkboxes based on saved preferences."""
@@ -141,26 +139,27 @@ class CheckinSettingsWidget(QWidget):
     
     def add_new_time_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
+        logger.info(f"CheckinSettingsWidget: add_new_time_period called with period_name={period_name}, period_data={period_data}")
         if period_name is None:
             period_name = f"Period {len(self.period_widgets) + 1}"
         if not isinstance(period_name, str):
+            logger.warning(f"CheckinSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})")
             period_name = str(period_name)
         if period_data is None:
-            period_data = {'start': '09:00', 'end': '17:00', 'active': True, 'days': ['ALL']}
-        
+            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
+        # Defensive: ensure period_data is a dict
+        if not isinstance(period_data, dict):
+            logger.warning(f"CheckinSettingsWidget: period_data is not a dict: {period_data} (type: {type(period_data)})")
+            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
         # Create the period row widget
         period_widget = PeriodRowWidget(self, period_name, period_data)
-        
         # Connect the delete signal
         period_widget.delete_requested.connect(self.remove_period_row)
-        
         # Add to the scroll area layout
-        layout = self.ui.verticalLayout_3
+        layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
         layout.addWidget(period_widget)
-        
         # Store reference
         self.period_widgets.append(period_widget)
-        
         return period_widget
     
     def remove_period_row(self, row_widget):
@@ -170,15 +169,15 @@ class CheckinSettingsWidget(QWidget):
             period_data = row_widget.get_period_data()
             deleted_data = {
                 'period_name': period_data['name'],
-                'start_time': period_data['start'],
-                'end_time': period_data['end'],
+                'start_time': period_data['start_time'],
+                'end_time': period_data['end_time'],
                 'active': period_data['active'],
                 'days': period_data['days']
             }
             self.deleted_periods.append(deleted_data)
         
         # Remove from layout and widget list
-        layout = self.ui.verticalLayout_3
+        layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
         layout.removeWidget(row_widget)
         row_widget.setParent(None)
         row_widget.deleteLater()
@@ -197,14 +196,14 @@ class CheckinSettingsWidget(QWidget):
         
         # Recreate the period
         period_data = {
-            'start': deleted_data['start_time'],
-            'end': deleted_data['end_time'],
+            'start_time': deleted_data['start_time'],
+            'end_time': deleted_data['end_time'],
             'active': deleted_data['active'],
             'days': deleted_data.get('days', ['ALL'])
         }
         
         # Add it back
-        self.add_new_time_period(None, deleted_data['period_name'], period_data)
+        self.add_new_time_period(period_name=deleted_data['period_name'], period_data=period_data)
     
     def add_new_question(self):
         """Add a new check-in question."""
@@ -280,7 +279,7 @@ class CheckinSettingsWidget(QWidget):
         
         # Clear existing period widgets
         for widget in self.period_widgets:
-            layout = self.ui.verticalLayout_3
+            layout = self.ui.verticalLayout_scrollAreaWidgetContents_checkin_time_periods
             layout.removeWidget(widget)
             widget.setParent(None)
             widget.deleteLater()
@@ -289,7 +288,7 @@ class CheckinSettingsWidget(QWidget):
         # Add time periods
         time_periods = settings.get('time_periods', {})
         for period_name, period_data in time_periods.items():
-            self.add_new_time_period(None, period_name, period_data)
+            self.add_new_time_period(period_name, period_data)
         
         # Set questions
         questions = settings.get('questions', {})

@@ -83,10 +83,8 @@ def test_changes():
 ```
 
 ## User Communication
-- Be encouraging and patient
 - Explain WHY changes are needed
 - Break complex tasks into steps
-- Acknowledge progress and successes
 - Provide clear error messages
 
 ---

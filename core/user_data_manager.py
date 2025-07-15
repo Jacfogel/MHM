@@ -18,8 +18,8 @@ from core.config import (
     USER_INFO_DIR_PATH,
     get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR
 )
-from core.file_operations import load_json_data, save_json_data
-from core.user_management import get_user_account, get_user_preferences, get_user_context, load_user_info_data, save_user_info_data, get_all_user_ids
+from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
+from core.user_management import get_user_data, get_all_user_ids
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -44,7 +44,8 @@ class UserDataManager:
             return False
         
         # Get user's categories
-        categories = get_user_preferences(user_id, 'categories')
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if not categories:
             logger.warning(f"No categories found for user {user_id}")
             return True
@@ -88,7 +89,8 @@ class UserDataManager:
             return {cat: info["path"] for cat, info in user_info["message_files"].items() if info["exists"]}
         
         # Fallback: build from categories
-        categories = get_user_preferences(user_id, 'categories')
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if not categories:
             return {}
         
@@ -256,14 +258,14 @@ class UserDataManager:
                             summary[file_type]["count"] = total_messages
         
         # Check message files using ensure_user_message_files
-        user_preferences = get_user_preferences(user_id) or {}
-        enabled_categories = user_preferences.get('categories', [])
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         
-        if enabled_categories:
+        if categories:
             try:
                 from core.message_management import ensure_user_message_files
                 # This will check which files are missing and create them
-                result = ensure_user_message_files(user_id, enabled_categories)
+                result = ensure_user_message_files(user_id, categories)
                 if result["success"]:
                     logger.info(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}")
                 else:
@@ -275,7 +277,7 @@ class UserDataManager:
         message_files = self.get_user_message_files(user_id)
         
         # Report on all message files
-        for category in enabled_categories:
+        for category in categories:
             file_path = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
             
             if os.path.exists(file_path):
@@ -305,7 +307,7 @@ class UserDataManager:
         
         # Also check any existing message files that might not be in enabled categories
         for category, file_path in message_files.items():
-            if category not in enabled_categories and os.path.exists(file_path):
+            if category not in categories and os.path.exists(file_path):
                 # This is an orphaned message file (category not enabled but file exists)
                 size = os.path.getsize(file_path)
                 data = load_json_data(file_path)
@@ -375,7 +377,8 @@ class UserDataManager:
                     return sorted_messages[0].get('timestamp', '1970-01-01 00:00:00')
             
             # Fallback to account creation date
-            user_account = get_user_account(user_id) or {}
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account') or {}
             return user_account.get('created_at', '1970-01-01 00:00:00')
             
         except Exception as e:
@@ -401,9 +404,12 @@ class UserDataManager:
                 message_count = 0
         
         # Get user account, preferences, and context for additional info
-        user_account = get_user_account(user_id) or {}
-        user_preferences = get_user_preferences(user_id) or {}
-        user_context = get_user_context(user_id) or {}
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account') or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context') or {}
         
         # Determine enabled features
         enabled_features = []
@@ -464,9 +470,12 @@ class UserDataManager:
                 summary = self.get_user_data_summary(user_id)
                 
                 # Get user account, preferences, and context for additional info
-                user_account = get_user_account(user_id) or {}
-                user_preferences = get_user_preferences(user_id) or {}
-                user_context = get_user_context(user_id) or {}
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account') or {}
+                prefs_result = get_user_data(user_id, 'preferences')
+                user_preferences = prefs_result.get('preferences') or {}
+                context_result = get_user_data(user_id, 'context')
+                user_context = context_result.get('context') or {}
                 
                 # Determine enabled features
                 enabled_features = []
@@ -570,13 +579,14 @@ def rebuild_user_index() -> bool:
 
 @handle_errors("getting user info for data manager", default_return=None)
 def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
-    """Get user info for data manager operations - uses new structure."""
+    """Get user info for data manager operations - uses new hybrid structure."""
     if not user_id:
         return None
     
-    # Load user account data instead of profile
-    account_file = get_user_file_path(user_id, 'account')
-    account_data = load_json_data(account_file)
+    # Use the hybrid function to get account data
+    user_data = get_user_data(user_id, 'account')
+    account_data = user_data.get('account')
+    
     if not account_data:
         logger.warning(f"No account data found for user {user_id}")
         return None
@@ -600,7 +610,8 @@ def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories."""
     try:
-        categories = get_user_preferences(user_id, 'categories')
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if categories is None:
             return []
         elif isinstance(categories, list):
@@ -733,9 +744,12 @@ def get_all_user_summaries() -> List[Dict[str, Any]]:
 def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
     """Get analytics summary for user."""
     try:
-        user_account = get_user_account(user_id)
-        user_preferences = get_user_preferences(user_id)
-        user_context = get_user_context(user_id)
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account')
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences')
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context')
         
         if not user_account:
             return {}
@@ -744,7 +758,7 @@ def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
             "user_id": user_id,
             "internal_username": user_account.get("internal_username", ""),
             "preferred_name": user_context.get("preferred_name", "") if user_context else "",
-            "categories": sorted(set(get_user_preferences(user_id, 'categories') or [])),
+            "categories": sorted(set(prefs_result.get('preferences', {}).get('categories', []) or [])),
             "messaging_service": user_preferences.get("channel", {}).get("type", "") if user_preferences else "",
             "features": user_account.get("features", {}),
             "created_at": user_account.get("created_at", ""),

@@ -117,7 +117,7 @@ class ScheduleEditorDialog(QDialog):
         if period_name is None:
             period_name = f"Period {len(self.period_widgets) + 1}"
         if period_data is None:
-            period_data = {'start': '09:00', 'end': '17:00', 'active': True, 'days': ['ALL']}
+            period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
         
         # Create the period row widget
         period_widget = PeriodRowWidget(self, period_name, period_data)
@@ -165,8 +165,8 @@ class ScheduleEditorDialog(QDialog):
         
         # Recreate the period
         period_data = {
-            'start': deleted_data['start_time'],
-            'end': deleted_data['end_time'],
+            'start_time': deleted_data['start_time'],
+            'end_time': deleted_data['end_time'],
             'active': deleted_data['active'],
             'days': deleted_data.get('days', ['ALL'])
         }

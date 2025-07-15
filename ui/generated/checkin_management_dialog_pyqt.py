@@ -19,50 +19,53 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGroupBox, QLabel, QSizePolicy, QVBoxLayout,
     QWidget)
 
-def qtTrId(id): return id
-
 class Ui_Dialog_checkin_management(object):
     def setupUi(self, Dialog_checkin_management):
         if not Dialog_checkin_management.objectName():
             Dialog_checkin_management.setObjectName(u"Dialog_checkin_management")
         Dialog_checkin_management.resize(950, 700)
-        self.verticalLayout = QVBoxLayout(Dialog_checkin_management)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(Dialog_checkin_management.sizePolicy().hasHeightForWidth())
+        Dialog_checkin_management.setSizePolicy(sizePolicy)
+        self.verticalLayout_Dialog_checkin_management = QVBoxLayout(Dialog_checkin_management)
+        self.verticalLayout_Dialog_checkin_management.setObjectName(u"verticalLayout_Dialog_checkin_management")
         self.label_checkin_management = QLabel(Dialog_checkin_management)
         self.label_checkin_management.setObjectName(u"label_checkin_management")
         self.label_checkin_management.setMinimumSize(QSize(0, 0))
 
-        self.verticalLayout.addWidget(self.label_checkin_management)
+        self.verticalLayout_Dialog_checkin_management.addWidget(self.label_checkin_management)
 
         self.groupBox_checkBox_enable_checkins = QGroupBox(Dialog_checkin_management)
         self.groupBox_checkBox_enable_checkins.setObjectName(u"groupBox_checkBox_enable_checkins")
+        sizePolicy.setHeightForWidth(self.groupBox_checkBox_enable_checkins.sizePolicy().hasHeightForWidth())
+        self.groupBox_checkBox_enable_checkins.setSizePolicy(sizePolicy)
         self.groupBox_checkBox_enable_checkins.setCheckable(True)
         self.groupBox_checkBox_enable_checkins.setChecked(False)
-        self.verticalLayout_3 = QVBoxLayout(self.groupBox_checkBox_enable_checkins)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_groupBox_checkBox_enable_checkins = QVBoxLayout(self.groupBox_checkBox_enable_checkins)
+        self.verticalLayout_groupBox_checkBox_enable_checkins.setObjectName(u"verticalLayout_groupBox_checkBox_enable_checkins")
         self.widget_placeholder_checkin_settings = QWidget(self.groupBox_checkBox_enable_checkins)
         self.widget_placeholder_checkin_settings.setObjectName(u"widget_placeholder_checkin_settings")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
+        self.widget_placeholder_checkin_settings.setEnabled(True)
         sizePolicy.setHeightForWidth(self.widget_placeholder_checkin_settings.sizePolicy().hasHeightForWidth())
         self.widget_placeholder_checkin_settings.setSizePolicy(sizePolicy)
-        self.verticalLayout_2 = QVBoxLayout(self.widget_placeholder_checkin_settings)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_widget_placeholder_checkin_settings = QVBoxLayout(self.widget_placeholder_checkin_settings)
+        self.verticalLayout_widget_placeholder_checkin_settings.setObjectName(u"verticalLayout_widget_placeholder_checkin_settings")
 
-        self.verticalLayout_3.addWidget(self.widget_placeholder_checkin_settings)
+        self.verticalLayout_groupBox_checkBox_enable_checkins.addWidget(self.widget_placeholder_checkin_settings)
 
 
-        self.verticalLayout.addWidget(self.groupBox_checkBox_enable_checkins)
+        self.verticalLayout_Dialog_checkin_management.addWidget(self.groupBox_checkBox_enable_checkins)
 
         self.buttonBox_save_cancel = QDialogButtonBox(Dialog_checkin_management)
         self.buttonBox_save_cancel.setObjectName(u"buttonBox_save_cancel")
         self.buttonBox_save_cancel.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox_save_cancel.setStandardButtons(QDialogButtonBox.StandardButton.Cancel|QDialogButtonBox.StandardButton.Save)
 
-        self.verticalLayout.addWidget(self.buttonBox_save_cancel)
+        self.verticalLayout_Dialog_checkin_management.addWidget(self.buttonBox_save_cancel)
 
-        self.verticalLayout.setStretch(1, 1)
+        self.verticalLayout_Dialog_checkin_management.setStretch(1, 1)
 
         self.retranslateUi(Dialog_checkin_management)
 
