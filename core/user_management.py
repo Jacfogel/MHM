@@ -9,11 +9,12 @@ import json
 import time
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
 from core.logger import get_logger
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir, determine_file_path
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
+from core.message_management import get_message_categories
 
 logger = get_logger(__name__)
 
@@ -463,7 +464,9 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
         logger.error("update_user_schedules called with None user_id")
         return False
     
-    return save_user_schedules_data(user_id, schedules_data)
+    # Use the centralized save_user_data function
+    result = save_user_data(user_id, {'schedules': schedules_data})
+    return result.get('schedules', False)
 
 def create_default_schedule_periods() -> Dict[str, Any]:
     """Create default schedule periods for a new category."""
@@ -573,12 +576,9 @@ def update_user_account(user_id: str, updates: Dict[str, Any], auto_create: bool
         logger.error("update_user_account called with None user_id")
         return False
     
-    account_data = load_user_account_data(user_id, auto_create=auto_create)
-    if account_data is None:
-        logger.warning(f"Could not load or create account for user {user_id}")
-        return False
-    account_data.update(updates)
-    return save_user_account_data(user_id, account_data)
+    # Use the centralized save_user_data function
+    result = save_user_data(user_id, {'account': updates}, auto_create=auto_create)
+    return result.get('account', False)
 
 @handle_errors("updating user preferences")
 def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:
@@ -587,8 +587,8 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: 
         logger.error("update_user_preferences called with None user_id")
         return False
     
+    # Load current preferences to check for category changes
     preferences_data = load_user_preferences_data(user_id, auto_create=auto_create)
-    # If user didn't exist and couldn't be auto-created, preferences_data will be None
     if preferences_data is None:
         logger.warning(f"Could not load or create preferences for user {user_id}")
         return False
@@ -621,8 +621,9 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: 
             except Exception as e:
                 logger.error(f"Error creating message files for user {user_id} after category update: {e}")
     
-    preferences_data.update(updates)
-    return save_user_preferences_data(user_id, preferences_data)
+    # Use the centralized save_user_data function
+    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    return result.get('preferences', False)
 
 @handle_errors("updating user context")
 def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:
@@ -631,12 +632,9 @@ def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool
         logger.error("update_user_context called with None user_id")
         return False
     
-    context_data = load_user_context_data(user_id, auto_create=auto_create)
-    if context_data is None:
-        logger.warning(f"Could not load or create context for user {user_id}")
-        return False
-    context_data.update(updates)
-    return save_user_context_data(user_id, context_data)
+    # Use the centralized save_user_data function
+    result = save_user_data(user_id, {'context': updates}, auto_create=auto_create)
+    return result.get('context', False)
 
 @handle_errors("creating new user")
 def create_new_user(user_data: Dict[str, Any]) -> str:
@@ -697,10 +695,12 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
         "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
     
-    # Save all data
-    save_user_account_data(user_id, account_data)
-    save_user_preferences_data(user_id, preferences_data)
-    save_user_context_data(user_id, context_data)
+    # Save all data using centralized save_user_data
+    save_user_data(user_id, {
+        'account': account_data,
+        'preferences': preferences_data,
+        'context': context_data
+    })
     
     # Create default schedule periods for initial categories
     categories = user_data.get('categories', [])
@@ -904,6 +904,282 @@ def get_user_data(
     return result
 
 # ============================================================================
+# UNIFIED SAVE API - MIRRORS GET_USER_DATA APPROACH
+# ============================================================================
+
+@handle_errors("saving user data", default_return={})
+def save_user_data(
+    user_id: str,
+    data_updates: Dict[str, Dict[str, Any]],
+    auto_create: bool = True,
+    update_index: bool = True,
+    create_backup: bool = True,
+    validate_data: bool = True
+) -> Dict[str, bool]:
+    """
+    Central handler for all user data saving.
+    
+    Args:
+        user_id: User identifier
+        data_updates: Dict of data type -> updates to apply
+            Example: {
+                'account': {'email': 'new@email.com'},
+                'preferences': {'categories': ['motivational']},
+                'context': {'preferred_name': 'John'}
+            }
+        auto_create: Whether to create missing files
+        update_index: Whether to update user index after saving
+        create_backup: Whether to create backup before major changes
+        validate_data: Whether to validate data before saving
+    
+    Returns:
+        Dict with success status for each data type
+        Example: {'account': True, 'preferences': True, 'context': False}
+    """
+    if not user_id:
+        logger.error("save_user_data called with None user_id")
+        return {}
+    
+    if not data_updates:
+        logger.warning("save_user_data called with empty data_updates")
+        return {}
+    
+    # Validate data types
+    available_types = get_available_data_types()
+    invalid_types = [dt for dt in data_updates.keys() if dt not in available_types]
+    if invalid_types:
+        logger.error(f"Invalid data types in save_user_data: {invalid_types}. Valid types: {available_types}")
+        return {}
+    
+    # Create backup if requested and this is a major change
+    if create_backup and len(data_updates) > 1:
+        try:
+            from core.user_data_manager import UserDataManager
+            data_manager = UserDataManager()
+            backup_path = data_manager.backup_user_data(user_id)
+            logger.info(f"Created backup before major data update: {backup_path}")
+        except Exception as e:
+            logger.warning(f"Failed to create backup before data update: {e}")
+    
+    result = {}
+    
+    # Save each data type using registered save functions
+    for data_type, updates in data_updates.items():
+        try:
+            # Validate data if requested
+            if validate_data:
+                is_valid, errors = validate_user_data_updates(user_id, data_type, updates)
+                if not is_valid:
+                    logger.error(f"Validation failed for {data_type}: {errors}")
+                    result[data_type] = False
+                    continue
+            
+            # Load existing data
+            current_data = get_user_data(user_id, data_type, auto_create=auto_create)
+            if not current_data or data_type not in current_data:
+                logger.warning(f"Could not load existing {data_type} data for user {user_id}")
+                result[data_type] = False
+                continue
+            
+            # Merge updates with existing data
+            updated_data = current_data[data_type].copy()
+            updated_data.update(updates)
+            
+            # Save using appropriate save function
+            if data_type == 'account':
+                success = save_user_account_data(user_id, updated_data)
+            elif data_type == 'preferences':
+                success = save_user_preferences_data(user_id, updated_data)
+            elif data_type == 'context':
+                success = save_user_context_data(user_id, updated_data)
+            elif data_type == 'schedules':
+                success = save_user_schedules_data(user_id, updated_data)
+            else:
+                logger.error(f"No save function registered for data type: {data_type}")
+                success = False
+            
+            result[data_type] = success
+            
+            if success:
+                logger.debug(f"Successfully saved {data_type} data for user {user_id}")
+            else:
+                logger.error(f"Failed to save {data_type} data for user {user_id}")
+                
+        except Exception as e:
+            logger.error(f"Error saving {data_type} data for user {user_id}: {e}")
+            result[data_type] = False
+    
+    # Update user index if requested and any saves were successful
+    if update_index and any(result.values()):
+        try:
+            from core.user_data_manager import update_user_index
+            update_user_index(user_id)
+            logger.debug(f"Updated user index after data save for user {user_id}")
+        except Exception as e:
+            logger.warning(f"Failed to update user index after data save for user {user_id}: {e}")
+    
+    return result
+
+@handle_errors("validating user data updates", default_return=(False, ["Validation failed"]))
+def validate_user_data_updates(
+    user_id: str,
+    data_type: str,
+    updates: Dict[str, Any]
+) -> Tuple[bool, List[str]]:
+    """
+    Validate user data updates before saving.
+    
+    Args:
+        user_id: User identifier
+        data_type: Type of data being updated ('account', 'preferences', 'context', 'schedules')
+        updates: Updates to validate
+    
+    Returns:
+        Tuple of (is_valid, list_of_errors)
+    """
+    errors = []
+    
+    if not user_id:
+        errors.append("user_id is required")
+    
+    if not updates:
+        errors.append("updates cannot be empty")
+    
+    # Type-specific validation
+    if data_type == 'account':
+        # Validate email format if present
+        if 'email' in updates and updates['email']:
+            from core.validation import is_valid_email
+            if not is_valid_email(updates['email']):
+                errors.append("Invalid email format")
+        
+        # Validate account status if present
+        if 'account_status' in updates:
+            valid_statuses = ['active', 'inactive', 'suspended']
+            if updates['account_status'] not in valid_statuses:
+                errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
+    
+    elif data_type == 'preferences':
+        # Validate categories if present
+        if 'categories' in updates:
+            if not isinstance(updates['categories'], list):
+                errors.append("categories must be a list")
+            else:
+                # Check if categories are valid
+                valid_categories = get_message_categories()
+                invalid_categories = [cat for cat in updates['categories'] if cat not in valid_categories]
+                if invalid_categories:
+                    errors.append(f"Invalid categories: {invalid_categories}")
+        
+        # Validate channel type if present
+        if 'channel' in updates and isinstance(updates['channel'], dict):
+            channel_type = updates['channel'].get('type')
+            if channel_type:
+                valid_channels = ['email', 'discord', 'telegram']
+                if channel_type not in valid_channels:
+                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
+    
+    elif data_type == 'context':
+        # Validate date of birth if present
+        if 'date_of_birth' in updates and updates['date_of_birth']:
+            try:
+                from datetime import datetime
+                datetime.strptime(updates['date_of_birth'], '%Y-%m-%d')
+            except ValueError:
+                errors.append("date_of_birth must be in YYYY-MM-DD format")
+        
+        # Validate custom fields structure if present
+        if 'custom_fields' in updates:
+            if not isinstance(updates['custom_fields'], dict):
+                errors.append("custom_fields must be a dictionary")
+    
+    elif data_type == 'schedules':
+        # Validate schedule periods if present
+        for category, periods in updates.items():
+            if isinstance(periods, dict):
+                for period_name, period_data in periods.items():
+                    if isinstance(period_data, dict):
+                        # Validate time format
+                        for time_field in ['start_time', 'end_time']:
+                            if time_field in period_data:
+                                from core.validation import validate_time_format
+                                if not validate_time_format(period_data[time_field]):
+                                    errors.append(f"Invalid {time_field} format in {category}.{period_name}")
+                        
+                        # Validate days
+                        if 'days' in period_data:
+                            if not isinstance(period_data['days'], list):
+                                errors.append(f"days must be a list in {category}.{period_name}")
+                            else:
+                                valid_days = ['ALL', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+                                invalid_days = [day for day in period_data['days'] if day not in valid_days]
+                                if invalid_days:
+                                    errors.append(f"Invalid days in {category}.{period_name}: {invalid_days}")
+    
+    return len(errors) == 0, errors
+
+@handle_errors("saving user data with transaction", default_return=False)
+def save_user_data_transaction(
+    user_id: str,
+    data_updates: Dict[str, Dict[str, Any]],
+    auto_create: bool = True
+) -> bool:
+    """
+    Save multiple data types atomically - all succeed or all fail.
+    
+    Args:
+        user_id: User identifier
+        data_updates: Dict of data type -> updates to apply
+    
+    Returns:
+        True if all saves succeeded, False if any failed
+    """
+    if not user_id or not data_updates:
+        return False
+    
+    # Create backup before transaction
+    try:
+        from core.user_data_manager import UserDataManager
+        data_manager = UserDataManager()
+        backup_path = data_manager.backup_user_data(user_id)
+        logger.info(f"Created backup before transaction: {backup_path}")
+    except Exception as e:
+        logger.warning(f"Failed to create backup before transaction: {e}")
+    
+    # Attempt to save all data
+    result = save_user_data(
+        user_id=user_id,
+        data_updates=data_updates,
+        auto_create=auto_create,
+        update_index=False,  # We'll update index at the end
+        create_backup=False,  # Already created backup
+        validate_data=True
+    )
+    
+    # Check if all saves succeeded
+    all_succeeded = all(result.values())
+    
+    if all_succeeded:
+        # Update user index
+        try:
+            from core.user_data_manager import update_user_index
+            update_user_index(user_id)
+            logger.info(f"Transaction completed successfully for user {user_id}")
+        except Exception as e:
+            logger.error(f"Transaction succeeded but failed to update index: {e}")
+            # Consider this a partial failure
+            all_succeeded = False
+    else:
+        # Log which saves failed
+        failed_types = [data_type for data_type, success in result.items() if not success]
+        logger.error(f"Transaction failed for user {user_id}. Failed types: {failed_types}")
+        
+        # TODO: Implement rollback mechanism here
+        # For now, we just log the failure
+    
+    return all_succeeded
+
+# ============================================================================
 # UTILITY FUNCTIONS (Keep these)
 # ============================================================================
 
@@ -1086,7 +1362,7 @@ PREDEFINED_OPTIONS = {
 TIMEZONE_OPTIONS = [
     "America/New_York", "America/Chicago", "America/Denver", "America/Los_Angeles",
     "America/Regina", "America/Toronto", "America/Vancouver", "America/Edmonton",
-    "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Rome",
+    "America/Port_of_Spain", "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Rome",
     "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Australia/Sydney",
     "Pacific/Auckland", "UTC"
 ]
@@ -1097,7 +1373,110 @@ def get_predefined_options(field: str) -> List[str]:
 
 def get_timezone_options() -> List[str]:
     """Get timezone options."""
-    return TIMEZONE_OPTIONS
+    try:
+        import pytz
+        return pytz.all_timezones
+    except ImportError:
+        # Fallback to hardcoded list if pytz is not available
+        return TIMEZONE_OPTIONS
+
+def create_default_personalization_data() -> Dict[str, Any]:
+    """Create default personalization data structure."""
+    return {
+        "preferred_name": "",
+        "pronouns": [],
+        "date_of_birth": "",
+        "custom_fields": {
+            "health_conditions": [],
+            "medications_treatments": [],
+            "allergies": []
+        },
+        "interests": [],
+        "goals": [],
+        "loved_ones": [],
+        "notes_for_ai": [],
+        "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    }
+
+@handle_errors("getting personalization field", default_return=None)
+def get_personalization_field(user_id: str, field: str) -> Any:
+    """Get a specific field from personalization data using centralized system."""
+    if not user_id or not field:
+        logger.error("get_personalization_field called with invalid parameters")
+        return None
+    
+    user_data = get_user_data(user_id, 'context', fields=field)
+    context_data = user_data.get('context', {})
+    return context_data.get(field)
+
+@handle_errors("updating personalization field")
+def update_personalization_field(user_id: str, field: str, value: Any) -> bool:
+    """Update a specific field in personalization data using centralized system."""
+    if not user_id or not field:
+        logger.error("update_personalization_field called with invalid parameters")
+        return False
+    
+    # Use the centralized save system
+    result = save_user_data(user_id, {
+        'context': {field: value}
+    })
+    return result.get('context', False)
+
+@handle_errors("adding item to personalization list")
+def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
+    """Add an item to a list field in personalization data using centralized system."""
+    if not user_id or not field:
+        logger.error("add_personalization_item called with invalid parameters")
+        return False
+    
+    # Get current list
+    current_data = get_user_data(user_id, 'context', fields=field)
+    current_list = current_data.get('context', {}).get(field, [])
+    
+    if not isinstance(current_list, list):
+        logger.error(f"Field {field} is not a list")
+        return False
+    
+    # Add item if not already present
+    if item not in current_list:
+        current_list.append(item)
+        result = save_user_data(user_id, {
+            'context': {field: current_list}
+        })
+        return result.get('context', False)
+    
+    return True  # Item already exists
+
+@handle_errors("removing item from personalization list")
+def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
+    """Remove an item from a list field in personalization data using centralized system."""
+    if not user_id or not field:
+        logger.error("remove_personalization_item called with invalid parameters")
+        return False
+    
+    # Get current list
+    current_data = get_user_data(user_id, 'context', fields=field)
+    current_list = current_data.get('context', {}).get(field, [])
+    
+    if not isinstance(current_list, list):
+        return False
+    
+    # Remove item if present
+    if item in current_list:
+        current_list.remove(item)
+        result = save_user_data(user_id, {
+            'context': {field: current_list}
+        })
+        return result.get('context', False)
+    
+    return True  # Item doesn't exist
+
+@handle_errors("clearing personalization cache")
+def clear_personalization_cache(user_id: str = None) -> None:
+    """Clear the personalization cache for a specific user or all users."""
+    # Use the centralized cache clearing system
+    clear_user_caches(user_id)
 
 def validate_personalization_data(data: Dict[str, Any]) -> tuple[bool, List[str]]:
     """Validate personalization data structure and content. No fields are required, only type-checked if present."""

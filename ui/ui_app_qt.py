@@ -692,10 +692,12 @@ class MHMManagerUI(QMainWindow):
             # Custom save handler to split timezone
             def on_save(data):
                 tz = data.pop('timezone', None)
-                update_user_context(self.current_user, data)
+                # Use centralized save_user_data for both context and account updates
+                from core.user_management import save_user_data
+                updates = {'context': data}
                 if tz is not None:
-                    account_data['timezone'] = tz
-                    save_user_account_data(self.current_user, account_data)
+                    updates['account'] = {'timezone': tz}
+                save_user_data(self.current_user, updates)
             dialog = UserProfileDialog(self, self.current_user, on_save, existing_data=context_data)
             dialog.user_changed.connect(self.refresh_user_list)
             dialog.setWindowTitle(f"Personalization Settings - {self.current_user}")

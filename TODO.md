@@ -4,85 +4,113 @@
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
 
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Recent Changes](CHANGELOG.md)** - What's new and what's changed
+
 ## 🎯 Current Priority Tasks
 
 ### Immediate Action Items (High Priority)
 These improvements will fix critical issues and make the app actually functional:
 
-1. **Fix Missing UI Files** - Create missing UI files for broken dialogs
+1. **Personalization Management Cleanup & Centralized Saving System** - ✅ **COMPLETED**
+   - *What it means*: Migrated all personalization functions to user_management.py and implemented unified saving system
+   - *Why it helps*: Cleaner codebase with unified data access patterns and robust test coverage
+   - *Status*: ✅ **COMPLETED** - All 112 tests passing, legacy code removed, centralized saving implemented
+
+2. **AI Documentation System Enhancements** - ✅ **COMPLETED**
+   - *What it means*: Created automated version synchronization and comprehensive tool guidance for AI documentation
+   - *Why it helps*: Significantly improves AI effectiveness with automated maintenance and better tool guidance
+   - *Status*: ✅ **COMPLETED** - Version sync tool, tool guide, and enhanced troubleshooting implemented
+
+3. **Fix Missing UI Files** - Create missing UI files for broken dialogs
    - *What it means*: Several dialogs are trying to load UI files that don't exist (user profile dialog now fixed)
    - *Why it helps*: Makes broken dialogs functional again
    - *Priority*: High
    - *Estimated effort*: Small
 
-2. **Fix Widget Integration Issues** - Resolve "No user_id provided!" errors
-   - *What it means*: Widgets are showing errors because they're not receiving proper user_id parameters
-   - *Why it helps*: Eliminates error messages and makes widgets functional
-   - *Priority*: High
-   - *Estimated effort*: Small
+4. **Account Creation Dialog Improvements** - ✅ **COMPLETED**
+   - *What it means*: Redesigned account creation dialog with feature-based enablement and conditional tab visibility
+   - *Why it helps*: Better user experience with logical feature selection and clear organization
+   - *Status*: ✅ **COMPLETED** - Feature-based account creation implemented with proper validation and conditional UI
 
-3. **Complete User Profile Dialog Field Support** - ✅ **COMPLETED**
+5. **Fix Widget Integration Issues** - ✅ **COMPLETED**
+   - *What it means*: Widgets were showing errors because they weren't receiving proper user_id parameters
+   - *Why it helps*: Eliminates error messages and makes widgets functional
+   - *Status*: ✅ **COMPLETED** - Widgets now handle new user creation mode properly
+
+6. **Complete User Profile Dialog Field Support** - ✅ **COMPLETED**
    - *What it means*: All personalization fields now save/load correctly with proper validation and prepopulation
    - *Why it helps*: Ensures all user data is editable and persistent
    - *Status*: ✅ **COMPLETED** - All fields functional including preferred name, gender identity, health data, interests, goals, loved ones, and timezone
 
-4. **Test Personalization Dialog Save/Load** - ✅ **COMPLETED**
+7. **Test Personalization Dialog Save/Load** - ✅ **COMPLETED**
    - *What it means*: All fields in the personalization dialog are saved and loaded correctly with proper validation
    - *Why it helps*: Prevents data loss and ensures a reliable user experience
    - *Status*: ✅ **COMPLETED** - Comprehensive testing confirms all functionality works correctly
 
-5. **Test All Existing Dialogs** - Actually test each dialog to see what works
+8. **Test All Existing Dialogs** - Actually test each dialog to see what works
    - *What it means*: Systematically test each dialog to identify what's broken vs. what works
    - *Why it helps*: Provides accurate assessment of current state and identifies specific issues
    - *Priority*: High
    - *Estimated effort*: Medium
 
-6. **Complete Task Management Migration** - Implement actual task management functionality
-   - *What it means*: Replace "Feature in Migration" placeholder with actual task management interface
-   - *Why it helps*: Makes task management feature actually usable
+9. **Test Feature-Based Account Creation** - Verify the new account creation workflow
+   - *What it means*: Test the feature enablement checkboxes, conditional tab visibility, and validation logic
+   - *Why it helps*: Ensures the new account creation system works correctly for all feature combinations
    - *Priority*: High
-   - *Estimated effort*: Medium
+   - *Estimated effort*: Small
 
-7. **Complete Message Editing Migration** - Implement actual message editing functionality
-   - *What it means*: Replace "Feature in Migration" placeholder with actual message editing interface
-   - *Why it helps*: Makes message editing feature actually usable
-   - *Priority*: High
-   - *Estimated effort*: Medium
+10. **Complete Task Management Migration** - Implement actual task management functionality
+    - *What it means*: Replace "Feature in Migration" placeholder with actual task management interface
+    - *Why it helps*: Makes task management feature actually usable
+    - *Priority*: High
+    - *Estimated effort*: Medium
+
+11. **Complete Message Editing Migration** - Implement actual message editing functionality
+    - *What it means*: Replace "Feature in Migration" placeholder with actual message editing interface
+    - *Why it helps*: Makes message editing feature actually usable
+    - *Priority*: High
+    - *Estimated effort*: Medium
 
 ### Medium Priority Items
 These improvements will enhance reliability and user experience:
 
-6. **Expand Testing Framework** - Add tests for untested modules
+1. **Expand Testing Framework** - Add tests for untested modules
    - *What it means*: Currently only 5 out of 31+ modules have tests (15% coverage)
    - *Why it helps*: Ensures reliability and makes changes safer
    - *Priority*: Medium
    - *Estimated effort*: Large
 
-7. **Fix Dialog Integration** - Ensure dialogs properly communicate with main window
+2. **Fix Dialog Integration** - Ensure dialogs properly communicate with main window
    - *What it means*: Make sure dialogs update the main window when data changes
    - *Why it helps*: Better user experience with immediate visual feedback
    - *Priority*: Medium
    - *Estimated effort*: Medium
 
-8. **Add Data Validation** - Validate user input in all forms
+3. **Add Data Validation** - Validate user input in all forms
    - *What it means*: Check that user input is valid before saving
    - *Why it helps*: Prevents data corruption and provides better error messages
    - *Priority*: Medium
    - *Estimated effort*: Medium
 
-9. **Improve Error Handling** - Add proper error handling to all dialogs
+4. **Improve Error Handling** - Add proper error handling to all dialogs
    - *What it means*: Make sure dialogs handle errors gracefully and show helpful messages
    - *Why it helps*: Better user experience when things go wrong
    - *Priority*: Medium
    - *Estimated effort*: Medium
 
-10. **Performance Optimization** - Monitor and optimize UI responsiveness
+5. **Performance Optimization** - Monitor and optimize UI responsiveness
     - *What it means*: Identify and fix slow operations in the UI
     - *Why it helps*: Better user experience with faster response times
     - *Priority*: Medium
     - *Estimated effort*: Medium
 
-11. **Document Temporary User ID Pattern** - ✅ **COMPLETED**
+6. **Document Temporary User ID Pattern** - ✅ **COMPLETED**
     - *What it means*: Add documentation for the temporary user ID pattern used in personalization dialogs
     - *Why it helps*: Ensures maintainability and clarity for future development
     - *Status*: ✅ **COMPLETED** - Pattern documented and implemented in user profile dialog
@@ -90,43 +118,43 @@ These improvements will enhance reliability and user experience:
 ### Low Priority Items
 These improvements will add polish and advanced features:
 
-11. **Add Performance Monitoring** - Track how long operations take
+1. **Add Performance Monitoring** - Track how long operations take
     - *What it means*: The app keeps track of which operations are slow so you can improve them
     - *Why it helps*: Helps you identify and fix performance problems before they become annoying
     - *Priority*: Low
     - *Estimated effort*: Medium
 
-12. **Create Development Guidelines** - Establish coding standards and best practices
+2. **Create Development Guidelines** - Establish coding standards and best practices
     - *What it means*: Write down rules for how code should be written to keep it consistent
     - *Why it helps*: Makes the code easier to read and understand, especially when working with AI assistance
     - *Priority*: Low
     - *Estimated effort*: Small
 
-13. **Improve AI Terminal Interaction Reliability** - Address issues with AI misunderstanding terminal output
+3. **Improve AI Terminal Interaction Reliability** - Address issues with AI misunderstanding terminal output
     - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
     - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
     - *Priority*: Low
     - *Estimated effort*: Medium
 
-14. **Fix Treeview Refresh** - Should refresh reflecting the changes, while maintaining current sorting
+4. **Fix Treeview Refresh** - Should refresh reflecting the changes, while maintaining current sorting
     - *What it means*: Improve the message editing interface to automatically update the display when messages are changed
     - *Why it helps*: Better user experience with immediate visual feedback
     - *Priority*: Low
     - *Estimated effort*: Small
 
-15. **Advanced Task Management and Progress Tracking**
+5. **Advanced Task Management and Progress Tracking**
     - *What it means*: Implement comprehensive task management with advanced features
     - *Why it helps*: Better executive functioning support
     - *Priority*: Low
     - *Estimated effort*: Large
 
-16. **Advanced Scheduling**
+6. **Advanced Scheduling**
     - *What it means*: Implement more sophisticated scheduling capabilities
     - *Why it helps*: More flexible and powerful scheduling options
     - *Priority*: Low
     - *Estimated effort*: Medium
 
-17. **Integration with Additional Services**
+7. **Integration with Additional Services**
     - *What it means*: Add support for more communication channels and external services
     - *Why it helps*: More ways to interact with the system
     - *Priority*: Low
@@ -175,6 +203,41 @@ These improvements will add polish and advanced features:
 - **Consistent Behavior**: All user-editing dialogs follow the same update pattern
 - **Maintainable Code**: Clear separation of concerns between data changes and UI updates
 - **Testing Needed**: Verify signal connections work properly
+
+## 📚 Documentation Cleanup & Maintenance
+
+### Human-Facing Documentation Improvements
+1. **Update README.md** - ✅ **COMPLETED**
+   - *What it means*: Fixed outdated module count references and improved clarity
+   - *Why it helps*: Provides accurate project information for new developers
+   - *Status*: ✅ **COMPLETED** - Updated module count from 22 to 31+ modules
+
+2. **Update HOW_TO_RUN.md** - ✅ **COMPLETED**
+   - *What it means*: Removed references to non-existent directories and improved clarity
+   - *Why it helps*: Prevents confusion and provides accurate setup instructions
+   - *Status*: ✅ **COMPLETED** - Removed scripts/launchers reference, improved alternative launch methods
+
+3. **Update DEVELOPMENT_WORKFLOW.md** - ✅ **COMPLETED**
+   - *What it means*: Updated testing checklist to reflect current features and capabilities
+   - *Why it helps*: Ensures testing covers actual current functionality
+   - *Status*: ✅ **COMPLETED** - Updated testing checklist with feature-based account creation and personalization
+
+4. **Fix TODO.md Numbering** - ✅ **COMPLETED**
+   - *What it means*: Fixed inconsistent numbering in priority sections
+   - *Why it helps*: Makes the document easier to read and reference
+   - *Status*: ✅ **COMPLETED** - All sections now have consistent numbering
+
+5. **Review and Update ARCHITECTURE.md** - Check for outdated information
+   - *What it means*: Ensure architecture documentation reflects current system state
+   - *Why it helps*: Provides accurate technical reference for development
+   - *Priority*: Medium
+   - *Estimated effort*: Small
+
+6. **Review and Update QUICK_REFERENCE.md** - Check for outdated commands
+   - *What it means*: Ensure quick reference contains current commands and procedures
+   - *Why it helps*: Provides reliable quick access to common tasks
+   - *Priority*: Medium
+   - *Estimated effort*: Small
 
 ## 🔧 System Reliability & Maintenance
 

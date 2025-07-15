@@ -6,6 +6,14 @@
 > **Status**: Created 2025-07-13  
 > **Current Status**: 112 tests passing, 1 skipped - **99.1% success rate** 🎉
 
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Current Priorities](TODO.md)** - What we're working on next
+
 ## 🎯 Current State Assessment
 
 ### ✅ **What's Working Well**

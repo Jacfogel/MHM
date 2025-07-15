@@ -67,14 +67,8 @@ class UserDataManager:
                     "last_modified": None
                 }
         
-        # Update profile with message references
-        user_info["message_files"] = message_refs
-        user_info["last_updated"] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Save directly to avoid circular dependency
-        profile_file = get_user_file_path(user_id, 'profile')
-        save_json_data(user_info, profile_file)
-        logger.info(f"Updated message references for user {user_id}")
+        # Log the message references but don't save to profile.json (legacy file)
+        logger.info(f"Updated message references for user {user_id}: {list(message_refs.keys())}")
         return True
     
     @handle_errors("getting user message files", default_return={})

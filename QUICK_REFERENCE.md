@@ -4,6 +4,14 @@
 > **Purpose**: Essential commands and troubleshooting  
 > **Style**: Concise, scannable, action-oriented
 
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+- **[Troubleshooting](README.md#troubleshooting)** - Common issues and solutions
+
 ## 🚀 Essential Commands
 
 ### Virtual Environment (Always Use!)
@@ -98,6 +106,28 @@ Get-ChildItem -Path . -Recurse -Include "__pycache__" | Remove-Item -Recurse -Fo
 ```
 
 ## 🐛 Troubleshooting
+
+### Common Problems & Solutions
+
+#### **Virtual Environment Issues**
+- **Problem**: "Command not found" or import errors
+- **Solution**: Ensure virtual environment is activated - you should see `(venv)` in your prompt
+- **Fix**: `venv\Scripts\activate` then `pip install -r requirements.txt --force-reinstall`
+
+#### **Permission Issues**
+- **Problem**: PowerShell execution policy errors
+- **Solution**: Adjust execution policy for current user
+- **Fix**: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+#### **Service Issues**
+- **Problem**: Service won't start or messages not sending
+- **Solution**: Check Discord token and bot permissions
+- **Fix**: Verify `.env` file has `DISCORD_BOT_TOKEN=your_token_here`
+
+#### **UI Issues**
+- **Problem**: UI won't launch or looks broken
+- **Solution**: Try the modern Qt interface instead of legacy Tkinter
+- **Fix**: Use `python ui/ui_app_qt.py` instead of `python ui/ui_app.py`
 
 ### App Won't Start
 1. Check if Python is installed: `python --version`

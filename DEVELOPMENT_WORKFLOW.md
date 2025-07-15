@@ -6,7 +6,23 @@
 
 This guide explains how to work safely and effectively on the MHM project, especially designed for beginner programmers.
 
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+- **[Testing Plan](TESTING_IMPROVEMENT_PLAN.md)** - Testing strategy and improvements
+
 ## 🛡️ Safety First
+
+### 🎯 Best Practices Summary
+1. **Always use virtual environments** - Never install packages globally
+2. **Create backups before major changes** - Use PowerShell backup command
+3. **Test incrementally** - Make small changes and test after each one
+4. **Document everything** - Update CHANGELOG.md for all changes
+5. **Ask for help early** - Don't get stuck, ask specific questions
+6. **Use the Audit-First Protocol** - Run audit tools before creating documentation
 
 ### Before Making Changes
 1. **Ensure your virtual environment is activated**
@@ -100,12 +116,11 @@ deactivate
 
 ### Manual Testing Checklist
 - [ ] Does the UI launch without errors?
-- [ ] Can you create a new user?
-- [ ] Can you edit user settings?
-- [ ] Can you add/edit messages?
-- [ ] Can you modify schedules?
+- [ ] Can you create a new user with feature-based account creation?
+- [ ] Can you edit user settings and personalization?
+- [ ] Can you manage message categories and schedules?
 - [ ] Does the service start and stop properly?
-- [ ] Do messages send correctly?
+- [ ] Do messages send correctly through Discord/other channels?
 
 ### Error Testing
 - [ ] What happens with invalid input?

@@ -1,5 +1,16 @@
 # MHM System Architecture
 
+> **Audience**: Developers and contributors  
+> **Purpose**: System design, data flow, and technical architecture  
+> **Style**: Technical, detailed, reference-oriented
+
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+
 ---
 
 ## Directory Structure & Key Modules

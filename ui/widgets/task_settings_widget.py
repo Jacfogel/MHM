@@ -50,7 +50,9 @@ class TaskSettingsWidget(QWidget):
     
     def load_existing_data(self):
         if not self.user_id:
-            logger.warning("TaskSettingsWidget: No user_id provided!")
+            logger.info("TaskSettingsWidget: No user_id provided - creating new user mode")
+            # For new user creation, add a default period
+            self.add_new_period()
             return
         try:
             # Use the new reusable function to load period widgets

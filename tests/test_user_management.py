@@ -21,6 +21,7 @@ from core.user_management import (
     save_user_account_data,
     save_user_preferences_data,
     save_user_context_data,
+    save_user_data,
     update_user_account,
     update_user_context
 )
@@ -121,6 +122,8 @@ class TestUserManagement:
     def test_save_user_data_success(self, test_data_dir, mock_config):
         """Test saving user data successfully using new system."""
         user_id = 'test-save-user'
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
+        os.makedirs(user_dir, exist_ok=True)  # Ensure user directory exists
         
         # Test data for each type (new system)
         account_data = {
@@ -131,7 +134,7 @@ class TestUserManagement:
         }
         
         preferences_data = {
-            'categories': {'motivational': True, 'health': True},
+            'categories': ['motivational', 'health'],
             'test': 'data',
             'number': 42
         }
@@ -140,18 +143,19 @@ class TestUserManagement:
             'preferred_name': 'Test User'
         }
         
-        # Save each data type separately (new system)
-        result1 = save_user_account_data(user_id, account_data)
-        result2 = save_user_preferences_data(user_id, preferences_data)
-        result3 = save_user_context_data(user_id, context_data)
+        # Save all data types using centralized save_user_data function
+        result = save_user_data(user_id, {
+            'account': account_data,
+            'preferences': preferences_data,
+            'context': context_data
+        })
         
-        # Functions return True on success
-        assert result1 is True
-        assert result2 is True
-        assert result3 is True
+        # Function returns dict with success status for each data type
+        assert result.get('account') is True
+        assert result.get('preferences') is True
+        assert result.get('context') is True
         
         # Verify the files were created
-        user_dir = os.path.join(test_data_dir, 'users', user_id)
         assert os.path.exists(os.path.join(user_dir, 'account.json'))
         assert os.path.exists(os.path.join(user_dir, 'preferences.json'))
         assert os.path.exists(os.path.join(user_dir, 'user_context.json'))
@@ -172,7 +176,8 @@ class TestUserManagement:
         categories = ['motivational', 'health']
         user_preferences = {
             'checkin_settings': {'enabled': True},
-            'task_settings': {'enabled': True}
+            'task_settings': {'enabled': True},
+            'categories': ['motivational', 'health']
         }
         
         result = create_user_files(user_id, categories, user_preferences)
@@ -190,17 +195,17 @@ class TestUserManagement:
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
         """Test updating user preferences successfully."""
         new_preferences = {
-            'categories': {'motivational': False, 'health': True, 'fun_facts': True}
+            'categories': ['motivational', 'health', 'fun_facts']
         }
         
         result = update_user_preferences(mock_user_data['user_id'], new_preferences)
         assert result is True
         
-        # Verify preferences were updated
-        prefs_result = get_user_data(mock_user_data['user_id'], 'preferences')
-        updated_preferences = prefs_result.get('preferences')
-        assert updated_preferences['categories']['motivational'] is False
-        assert updated_preferences['categories']['fun_facts'] is True
+        # Verify the update
+        updated_preferences = get_user_data(mock_user_data['user_id'], 'preferences')['preferences']
+        assert 'motivational' in updated_preferences['categories']
+        assert 'health' in updated_preferences['categories']
+        assert 'fun_facts' in updated_preferences['categories']
     
     @pytest.mark.unit
     def test_get_user_data_account_with_chat_id(self, mock_user_data, mock_config):
@@ -244,8 +249,9 @@ class TestUserManagement:
             'account_status': 'active'
         }
         
-        # Save account data directly
-        save_user_account_data(user_id, account_data)
+        # Save account data using centralized save_user_data function
+        result = save_user_data(user_id, {'account': account_data})
+        assert result.get('account') is True
         
         # Get account and verify email
         user_data_result = get_user_data(user_id, 'account')
@@ -281,8 +287,8 @@ class TestUserManagementEdgeCases:
     @pytest.mark.unit
     def test_save_user_preferences_invalid_user_id(self):
         """Test saving preferences with invalid user ID."""
-        result = save_user_preferences_data('', {'test': 'data'})
-        assert result is False  # Function returns False for invalid user ID
+        result = save_user_data('', {'preferences': {'test': 'data'}})
+        assert result == {}  # Function returns empty dict for invalid user ID
     
     @pytest.mark.unit
     def test_update_user_preferences_nonexistent_user(self, mock_config):
@@ -327,7 +333,7 @@ class TestUserManagementEdgeCases:
         assert os.access(user_dir, os.W_OK), f"User directory should be writable: {user_dir}"
         
         # ✅ VERIFY REAL BEHAVIOR: Check required files were created
-        expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json', 'daily_checkins.json', 'chat_interactions.json', 'profile.json']
+        expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json', 'daily_checkins.json', 'chat_interactions.json']
         expected_dirs = ['messages', 'tasks']
         
         for file_name in expected_files:

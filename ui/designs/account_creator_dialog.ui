@@ -6,32 +6,38 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>798</width>
-    <height>1091</height>
+    <width>900</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="contextMenuPolicy">
    <enum>Qt::ContextMenuPolicy::PreventContextMenu</enum>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Create a New Account</string>
   </property>
   <property name="role" stdset="0">
    <string>header</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0,0,0,1,1,1,0">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0">
    <property name="leftMargin">
-    <number>5</number>
+    <number>10</number>
    </property>
    <property name="topMargin">
-    <number>7</number>
+    <number>10</number>
+   </property>
+   <property name="rightMargin">
+    <number>10</number>
+   </property>
+   <property name="bottomMargin">
+    <number>10</number>
    </property>
    <item>
     <widget class="QLabel" name="label_create_a_new_account">
      <property name="minimumSize">
       <size>
        <width>0</width>
-       <height>0</height>
+       <height>30</height>
       </size>
      </property>
      <property name="cursor">
@@ -58,160 +64,346 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_basic_information">
-     <property name="title">
-      <string>Basic Information</string>
+    <widget class="QTabWidget" name="tabWidget">
+     <property name="currentIndex">
+      <number>0</number>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label_username">
-          <property name="text">
-           <string>Username:</string>
+     <widget class="QWidget" name="tab_basic_info">
+      <attribute name="title">
+       <string>Basic Information</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_basic">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_basic_information">
+         <property name="title">
+          <string>Account Details</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_basic">
+          <property name="leftMargin">
+           <number>10</number>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QLabel" name="label_prefered_name">
-          <property name="text">
-           <string>Prefered Name:</string>
+          <property name="topMargin">
+           <number>10</number>
           </property>
-         </widget>
-        </item>
-        <item row="1" column="1" alignment="Qt::AlignmentFlag::AlignLeft">
-         <widget class="QLineEdit" name="lineEdit_prefered_name"/>
-        </item>
-        <item row="0" column="1" alignment="Qt::AlignmentFlag::AlignLeft">
-         <widget class="QLineEdit" name="lineEdit_username"/>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_time_zone">
-     <property name="title">
-      <string>Time Zone</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_12">
-      <item alignment="Qt::AlignmentFlag::AlignLeft">
-       <widget class="QComboBox" name="comboBox_time_zone">
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>0</height>
-         </size>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_username">
+            <property name="text">
+             <string>Username:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEdit_username"/>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_prefered_name">
+            <property name="text">
+             <string>Preferred Name:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEdit_prefered_name"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_timezone">
+            <property name="text">
+             <string>Time Zone:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="comboBox_time_zone">
+            <property name="minimumSize">
+             <size>
+              <width>300</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_features">
+         <property name="title">
+          <string>Features</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_features">
+          <property name="leftMargin">
+           <number>10</number>
+          </property>
+          <property name="topMargin">
+           <number>10</number>
+          </property>
+          <property name="rightMargin">
+           <number>10</number>
+          </property>
+          <property name="bottomMargin">
+           <number>10</number>
+          </property>
+                     <item>
+            <widget class="QCheckBox" name="checkBox_enable_messages">
+             <property name="text">
+              <string>Enable Automated Messages</string>
+             </property>
+             <property name="checked">
+              <bool>true</bool>
+             </property>
+            </widget>
+           </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_enable_task_management">
+            <property name="text">
+             <string>Enable Task Management</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="checkBox_enable_checkins">
+            <property name="text">
+             <string>Enable Check-ins</string>
+            </property>
+            <property name="checked">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_basic">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_communication">
+      <attribute name="title">
+       <string>Communication</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_comm">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_primary_channel">
+         <property name="title">
+          <string>Primary Communication Channel</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_11">
+          <item>
+           <widget class="QWidget" name="widget_placeholder_channel_selection" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_7"/>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_comm">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_categories">
+      <attribute name="title">
+       <string>Messages</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_cat">
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>10</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>10</number>
+       </property>
+       <item>
+        <widget class="QGroupBox" name="groupBox_select_categories">
+         <property name="title">
+          <string>Select Message Categories (at least one required)</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item>
+           <widget class="QWidget" name="widget_placeholder_select_categories" native="true">
+            <layout class="QVBoxLayout" name="verticalLayout_10"/>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_cat">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+           <widget class="QWidget" name="tab_tasks">
+       <attribute name="title">
+        <string>Tasks</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_tasks">
+        <property name="leftMargin">
+         <number>10</number>
         </property>
-       </widget>
-      </item>
-     </layout>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="groupBox_task_settings">
+          <property name="title">
+           <string>Task Management Settings</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_9">
+           <item>
+            <widget class="QWidget" name="widget_placeholder_task_settings" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_4"/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_checkins">
+       <attribute name="title">
+        <string>Check-ins</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_checkins">
+        <property name="leftMargin">
+         <number>10</number>
+        </property>
+        <property name="topMargin">
+         <number>10</number>
+        </property>
+        <property name="rightMargin">
+         <number>10</number>
+        </property>
+        <property name="bottomMargin">
+         <number>10</number>
+        </property>
+        <item>
+         <widget class="QGroupBox" name="groupBox_checkin_settings">
+          <property name="title">
+           <string>Check-in Settings</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_8">
+           <item>
+            <widget class="QWidget" name="widget_placeholder_checkin_settings" native="true">
+             <layout class="QVBoxLayout" name="verticalLayout_5"/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+
+       </layout>
+      </widget>
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_primary_channel">
-     <property name="title">
-      <string>Prmiary Channel</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_11">
-      <item>
-       <widget class="QWidget" name="widget_placeholder_channel_selection" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_7"/>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_select_categories">
-     <property name="title">
-      <string>Select Categories (at least one required)</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QWidget" name="widget_placeholder_select_categories" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_10"/>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_checkBox_enable_task_management">
-     <property name="title">
-      <string>Enable Task Management</string>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_9">
-      <item>
-       <widget class="QWidget" name="widget_placeholder_task_settings" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_4"/>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_checkBox_enable_checkins">
-     <property name="title">
-      <string>Enable Check-ins</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-     <property name="checkable">
-      <bool>true</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_8">
-      <item>
-       <widget class="QWidget" name="widget_placeholder_checkin_settings" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_5"/>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_user_profile">
-     <property name="title">
-      <string>Profile</string>
-     </property>
-     <property name="flat">
-      <bool>false</bool>
-     </property>
-     <property name="checkable">
-      <bool>false</bool>
-     </property>
-     <property name="checked">
-      <bool>false</bool>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <item>
-       <widget class="QWidget" name="widget_placeholder_user_profile" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_13"/>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QDialogButtonBox" name="buttonBox_save_cancel">
-     <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save</set>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+     <item>
+      <widget class="QPushButton" name="pushButton_profile">
+       <property name="text">
+        <string>Setup Profile (Optional)</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QDialogButtonBox" name="buttonBox_save_cancel">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="standardButtons">
+        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

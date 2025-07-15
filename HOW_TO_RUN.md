@@ -1,5 +1,16 @@
 # How to Run MHM
 
+> **Audience**: New users and developers setting up the project  
+> **Purpose**: Step-by-step setup and launch instructions  
+> **Style**: Clear, beginner-friendly, troubleshooting-focused
+
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - For ongoing development
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Troubleshooting](README.md#troubleshooting)** - Common issues and solutions
+
 ## 🚀 Quick Start (Recommended)
 
 **Important**: Always use a virtual environment to keep your system Python clean and avoid dependency conflicts.
@@ -36,9 +47,9 @@ python core/service.py  # run service only (no UI)
 python ui/ui_app.py     # admin panel only (legacy Tkinter)
 ```
 
-## 📁 Windows Shortcuts
+## 📁 Alternative Launch Methods
 
-The `scripts/launchers` directory contains Windows batch files if you prefer shortcuts.
+You can also run individual components directly if needed:
 
 ## ⚠️ Important Notes
 
@@ -64,4 +75,35 @@ Run PowerShell as Administrator, or use:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-See the README for an overview of features and project structure.
+## ❓ Frequently Asked Questions
+
+### **Q: Do I need to install Python globally?**
+**A**: No! Always use a virtual environment. This keeps your system Python clean and prevents conflicts with other projects.
+
+### **Q: What if I see "(venv)" but the app still doesn't work?**
+**A**: Try deactivating and reactivating your virtual environment:
+```bash
+deactivate
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### **Q: Can I run the service without the admin panel?**
+**A**: Yes! Run `python core/service.py` for the background service only, or `python ui/ui_app.py` for the admin panel only.
+
+### **Q: What's the difference between the two UI files?**
+**A**: 
+- `ui/ui_app_qt.py` - Modern PySide6/Qt interface (recommended)
+- `ui/ui_app.py` - Legacy Tkinter interface (deprecated)
+
+### **Q: How do I know if the service is running?**
+**A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`
+
+### **Q: Where are my logs stored?**
+**A**: Check `app.log` in the project root directory for application logs.
+
+## 📚 Next Steps
+- **Project Overview**: See [README.md](README.md) for features and architecture
+- **Development Workflow**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe practices
+- **Quick Reference**: See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for common commands
+- **Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md) for system design

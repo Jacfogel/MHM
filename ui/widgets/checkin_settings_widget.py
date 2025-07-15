@@ -90,6 +90,13 @@ class CheckinSettingsWidget(QWidget):
     
     def load_existing_data(self):
         """Load existing check-in data."""
+        if not self.user_id:
+            logger.info("CheckinSettingsWidget: No user_id provided - creating new user mode")
+            # For new user creation, add a default period and set default questions
+            self.add_new_time_period()
+            self.set_question_checkboxes({})  # Use defaults
+            return
+            
         logger.info(f"CheckinSettingsWidget: Loading periods for user_id={self.user_id}")
         # Use the new reusable function to load period widgets
         self.period_widgets = load_period_widgets_for_category(

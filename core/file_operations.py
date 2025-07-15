@@ -201,6 +201,27 @@ def create_user_files(user_id, categories, user_preferences=None):
         save_json_data(account_data, account_file)
         logger.debug(f"Created account file for user {user_id}")
     
+    # Determine which features are enabled first
+    tasks_enabled = False
+    checkins_enabled = False
+    
+    if user_preferences:
+        # Check for explicit feature enablement in account_data
+        features_enabled = user_preferences.get('features_enabled', {})
+        if features_enabled:
+            tasks_enabled = features_enabled.get('tasks', False)
+            checkins_enabled = features_enabled.get('checkins', False)
+        else:
+            # Fallback to checking settings (legacy approach)
+            checkin_settings = user_preferences.get('checkin_settings', {})
+            task_settings = user_preferences.get('task_settings', {})
+            tasks_enabled = task_settings.get('enabled', False)
+            checkins_enabled = checkin_settings.get('enabled', False)
+    else:
+        # Default to not creating files if no preferences provided
+        tasks_enabled = False
+        checkins_enabled = False
+    
     # Create preferences.json if it doesn't exist
     preferences_file = get_user_file_path(user_id, 'preferences')
     if not os.path.exists(preferences_file):
@@ -208,14 +229,14 @@ def create_user_files(user_id, categories, user_preferences=None):
             "categories": categories or [],
             "channel": {
                 "type": "email"
-            },
-            "checkin_settings": {
-                "enabled": False
-            },
-            "task_settings": {
-                "enabled": False
             }
         }
+        # Only add check-in settings if check-ins are enabled (without enabled flag)
+        if checkins_enabled:
+            default_preferences["checkin_settings"] = {}
+        # Only add task settings if tasks are enabled (without enabled flag)
+        if tasks_enabled:
+            default_preferences["task_settings"] = {}
         save_json_data(default_preferences, preferences_file)
         logger.debug(f"Created preferences file for user {user_id}")
     
@@ -249,30 +270,14 @@ def create_user_files(user_id, categories, user_preferences=None):
         schedules_data = {}
     else:
         schedules_data = load_json_data(schedules_file) or {}
+    
     # Ensure each category has a default schedule block
     for category in categories:
         if category not in schedules_data:
             if category in ("checkin", "tasks"):
-                # Only create a 'default' period for checkin and tasks
-                if category == "checkin":
-                    default_period = {
-                        "default": {
-                            "active": True,
-                            "days": ["ALL"],
-                            "start_time": "10:00",
-                            "end_time": "12:00"
-                        }
-                    }
-                else:  # tasks
-                    default_period = {
-                        "default": {
-                            "active": True,
-                            "days": ["ALL"],
-                            "start_time": "18:00",
-                            "end_time": "20:00"
-                        }
-                    }
-                schedules_data[category] = default_period
+                # Don't create schedule periods for checkin/tasks during account creation
+                # These will be created when the user actually enables the features
+                continue
             else:
                 # Create default periods for new categories (ALL + default)
                 default_periods = {
@@ -290,25 +295,23 @@ def create_user_files(user_id, categories, user_preferences=None):
                     }
                 }
                 schedules_data[category] = default_periods
-    # Ensure checkin and tasks blocks exist
-    if 'checkin' not in schedules_data:
-        schedules_data['checkin'] = {
-            "default": {
-                "active": True,
-                "days": ["ALL"],
-                "start_time": "10:00",
-                "end_time": "12:00"
-            }
-        }
-    if 'tasks' not in schedules_data:
-        schedules_data['tasks'] = {
-            "default": {
-                "active": True,
-                "days": ["ALL"],
-                "start_time": "18:00",
-                "end_time": "20:00"
-            }
-        }
+    
+    # Create schedule periods for tasks if enabled
+    if tasks_enabled and user_preferences and 'task_settings' in user_preferences:
+        task_settings = user_preferences.get('task_settings', {})
+        task_time_periods = task_settings.get('time_periods', {})
+        if task_time_periods:
+            schedules_data['tasks'] = task_time_periods
+            logger.debug(f"Created task schedule periods for user {user_id}")
+    
+    # Create schedule periods for check-ins if enabled
+    if checkins_enabled and user_preferences and 'checkin_settings' in user_preferences:
+        checkin_settings = user_preferences.get('checkin_settings', {})
+        checkin_time_periods = checkin_settings.get('time_periods', {})
+        if checkin_time_periods:
+            schedules_data['checkin'] = checkin_time_periods
+            logger.debug(f"Created check-in schedule periods for user {user_id}")
+    
     save_json_data(schedules_data, schedules_file)
     logger.debug(f"Created schedules file for user {user_id}")
     
@@ -328,36 +331,9 @@ def create_user_files(user_id, categories, user_preferences=None):
         save_json_data({}, sent_messages_file)
         logger.debug(f"Created sent_messages file for user {user_id}")
 
-    # Determine which features are enabled
-    tasks_enabled = False
-    checkins_enabled = False
+
     
-    if user_preferences:
-        # Use provided preferences
-        checkin_settings = user_preferences.get('checkin_settings', {})
-        task_settings = user_preferences.get('task_settings', {})
-        tasks_enabled = task_settings.get('enabled', False)
-        checkins_enabled = checkin_settings.get('enabled', False)
-    else:
-        # Try to load user preferences from file
-        try:
-            from core.user_management import get_user_data
-            user_data = get_user_data(user_id, 'preferences', auto_create=True)
-            loaded_preferences = user_data.get('preferences')
-            if loaded_preferences:
-                checkin_settings = loaded_preferences.get('checkin_settings', {})
-                task_settings = loaded_preferences.get('task_settings', {})
-                tasks_enabled = task_settings.get('enabled', False)
-                checkins_enabled = checkin_settings.get('enabled', False)
-            else:
-                # Default to creating files if no preferences found
-                tasks_enabled = True
-                checkins_enabled = True
-        except Exception as e:
-            logger.warning(f"Could not load user preferences for {user_id}, defaulting to create files: {e}")
-            tasks_enabled = True
-            checkins_enabled = True
-    
+    # Only create task files if tasks are enabled
     if tasks_enabled:
         try:
             # Get user directory path using the correct function
@@ -383,6 +359,8 @@ def create_user_files(user_id, categories, user_preferences=None):
                     logger.debug(f"Created {task_file} file for user {user_id}")
         except Exception as e:
             logger.error(f"Error creating task files for user {user_id}: {e}")
+    else:
+        logger.debug(f"Tasks not enabled for user {user_id}, skipping task file creation")
     
     # Create daily_checkins.json only if checkins are enabled
     if checkins_enabled:
@@ -390,6 +368,8 @@ def create_user_files(user_id, categories, user_preferences=None):
         if not os.path.exists(daily_checkins_file):
             save_json_data([], daily_checkins_file)
             logger.debug(f"Created daily_checkins file for user {user_id}")
+    else:
+        logger.debug(f"Check-ins not enabled for user {user_id}, skipping daily_checkins file creation")
 
     # Create message files for each enabled category directly
     if categories:

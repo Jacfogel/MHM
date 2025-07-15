@@ -88,11 +88,25 @@ class UserProfileSettingsWidget(QWidget):
             # Timezone
             if hasattr(self.ui, 'comboBox_timezone'):
                 tz = self.existing_data.get('timezone', '')
-                idx = self.ui.comboBox_timezone.findText(tz) if tz else -1
-                if idx >= 0:
-                    self.ui.comboBox_timezone.setCurrentIndex(idx)
-                else:
-                    self.ui.comboBox_timezone.setCurrentIndex(0)
+                if tz:
+                    idx = self.ui.comboBox_timezone.findText(tz)
+                    if idx >= 0:
+                        self.ui.comboBox_timezone.setCurrentIndex(idx)
+                    else:
+                        # If timezone not found, try to set a reasonable default
+                        # Try to find a timezone with similar name
+                        for i in range(self.ui.comboBox_timezone.count()):
+                            item_text = self.ui.comboBox_timezone.itemText(i)
+                            if tz.lower() in item_text.lower() or item_text.lower() in tz.lower():
+                                self.ui.comboBox_timezone.setCurrentIndex(i)
+                                break
+                        else:
+                            # If no match found, set to UTC as fallback
+                            utc_idx = self.ui.comboBox_timezone.findText("UTC")
+                            if utc_idx >= 0:
+                                self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
+                            else:
+                                self.ui.comboBox_timezone.setCurrentIndex(0)
 
             # Health conditions (available in UI) - handle nested structure
             custom_fields = self.existing_data.get('custom_fields', {})

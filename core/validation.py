@@ -31,6 +31,16 @@ def is_valid_phone(phone):
     cleaned = re.sub(r'[\s\-\(\)\.]', '', phone)
     return cleaned.isdigit() and len(cleaned) >= 10
 
+@handle_errors("validating time format", default_return=False)
+def validate_time_format(time_str: str) -> bool:
+    """Validate time format (HH:MM)"""
+    if not time_str:
+        return False
+    
+    # Check if time matches HH:MM format
+    pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+    return bool(re.match(pattern, time_str))
+
 @handle_errors("converting to title case", default_return="")
 def title_case(text: str) -> str:
     """Convert text to title case, handling special cases"""

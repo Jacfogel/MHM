@@ -1,0 +1,201 @@
+---
+description: "Context rules for development work - PowerShell syntax, error handling, common patterns"
+globs: *.py,*.md,*.txt
+alwaysApply: false
+priority: 2
+version: "1.1.0"
+lastUpdated: "2025-07-15"
+relatedFiles: ["AI_RULES.md", "AI_CONTEXT.md"]
+---
+# Context Rules - Development Work
+
+## 🔧 PowerShell Critical Rules
+- **ALWAYS check exit codes**: `$LASTEXITCODE` after commands
+- **Use PowerShell syntax**: `;` for chaining, `-and`/`-or` for logic, `$env:VARIABLE` for environment variables
+- **Never assume success**: Check both exit codes and error patterns in output
+- **Handle boolean returns**: Many PowerShell cmdlets return True/False without printing
+
+## ❌ Common Mistakes to Avoid
+- ❌ `command1 && command2` (bash syntax)
+- ✅ `command1; command2` (PowerShell syntax)
+- ❌ `$PATH` (bash syntax)
+- ✅ `$env:PATH` (PowerShell syntax)
+- ❌ Assuming empty output means failure
+- ✅ Check `$LASTEXITCODE` for actual success/failure
+
+## 📊 Code Analysis Priority
+1. Check file existence before operations
+2. Validate configuration at startup
+3. Handle missing data gracefully
+4. Log errors appropriately
+5. Test changes incrementally
+
+## ⚠️ Common Pitfalls to Avoid
+- Don't assume files exist
+- Don't make multiple changes without testing
+- Don't forget to update documentation
+- Don't ignore error conditions
+
+## 🔍 Efficient Problem Solving
+1. Identify the specific issue
+2. Check related files and functions
+3. Make minimal changes
+4. Test the fix
+5. Document the solution
+
+## 💻 Code Patterns
+
+### Error Handling Pattern
+```python
+try:
+    # Operation that might fail
+    result = some_operation()
+except FileNotFoundError:
+    logger.error(f"Required file not found: {file_path}")
+    return None
+except Exception as e:
+    logger.error(f"Unexpected error: {e}")
+    return None
+```
+
+### File Operations Pattern
+```python
+def safe_file_operation(file_path):
+    if not os.path.exists(file_path):
+        logger.warning(f"File not found: {file_path}")
+        return None
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading {file_path}: {e}")
+        return None
+```
+
+### Configuration Validation Pattern
+```python
+def validate_config():
+    required_vars = ['DISCORD_BOT_TOKEN']
+    missing = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing:
+        raise ConfigError(f"Missing required environment variables: {missing}")
+```
+
+### Testing Pattern
+```python
+# Always test after changes
+def test_changes():
+    try:
+        subprocess.run([sys.executable, 'run_mhm.py'], 
+                      capture_output=True, timeout=30)
+        return True
+    except Exception as e:
+        logger.error(f"Test failed: {e}")
+        return False
+```
+
+## 🔄 Common Development Tasks
+
+### Adding New Feature
+1. Plan the feature
+2. Create backup: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
+3. Implement incrementally
+4. Test: `python run_mhm.py`
+5. Update `CHANGELOG.md`
+
+### Fixing Bug
+1. Reproduce the bug
+2. Identify root cause
+3. Make minimal fix
+4. Test fix works
+5. Test nothing else broke
+
+### Refactoring Code
+1. Understand current code
+2. Plan refactoring steps
+3. Make one change at a time
+4. Test after each change
+5. Update all references
+
+### Adding Dependencies
+1. Add to `requirements.txt`
+2. Update `CHANGELOG.md`
+3. Test installation: `pip install -r requirements.txt`
+4. Test functionality
+
+### Configuration Changes
+1. Update `core/config.py`
+2. Test configuration loading
+3. Update documentation if needed
+4. Test affected features
+
+## 📝 Response Guidelines
+- Keep explanations simple and clear
+- Focus on one concept at a time
+- Provide step-by-step instructions
+- Always suggest testing after changes
+- Explain WHY changes are needed
+- Break complex tasks into steps
+- Acknowledge progress and successes
+
+## 💻 PowerShell Examples
+
+### File Operations
+```powershell
+# Check if file exists (returns True/False, doesn't print)
+if (Test-Path "filename.txt") { Write-Host "File exists" }
+
+# Check if directory exists
+if (Test-Path "dirname" -PathType Container) { Write-Host "Directory exists" }
+
+# List files
+Get-ChildItem
+ls  # alias
+
+# Copy files
+Copy-Item "source" "destination"
+cp  # alias
+
+# Move files
+Move-Item "source" "destination"
+mv  # alias
+```
+
+### Git Operations
+```powershell
+# Check status
+git status
+git status --porcelain  # machine-readable format
+
+# Add and commit
+git add .
+git commit -m "message"
+
+# Push changes
+git push
+
+# Always verify success
+if ($LASTEXITCODE -ne 0) { Write-Host "Git command failed" -ForegroundColor Red }
+```
+
+### Process Management
+```powershell
+# Check if process is running
+Get-Process "processname" -ErrorAction SilentlyContinue
+
+# Kill process
+Stop-Process "processname" -Force
+
+# Start process
+Start-Process "command"
+```
+
+## 🔍 Error Detection
+- Always check `$LASTEXITCODE` after commands
+- Look for error keywords: "error", "exception", "failed", "not found"
+- Don't assume success from empty output
+- Handle PowerShell exceptions with try-catch
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the context.mdc rule"

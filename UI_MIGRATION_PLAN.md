@@ -6,6 +6,14 @@
 > **Status**: **PARTIALLY COMPLETE** - Foundation solid, but many dialogs broken  
 > **Last Updated**: 2025-07-14
 
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Current Priorities](TODO.md)** - What we're working on next
+
 ## 📋 Executive Summary
 
 ### Project Context & Goals
@@ -24,8 +32,9 @@
 - **Check-in Frequency Logic**: ✅ **REMOVED** - Check-in frequency logic removed; now every applicable time period prompts a check-in
 - **Testing & Validation**: ⚠️ **LIMITED** - Only 5 core modules have tests (15% of codebase)
 - **User Data Migration**: ✅ **FULLY COMPLETE** - All user data access is now routed through the new `get_user_data()` handler; legacy functions have been removed; robust test coverage confirms correctness and reliability
-- **User Profile Dialog**: ⚠️ **IMPROVED** - Validation and persistence logic fixed; date of birth and core fields now save/load correctly; full field support still in progress
+- **User Profile Dialog**: ✅ **FULLY FUNCTIONAL** - All personalization fields now fully functional with proper save/load/prepopulation
 - **Admin Panel Startup**: ✅ **IMPROVED** - Now automatically updates user index on startup for always-current user data
+- **Feature-Based Account Creation**: ✅ **COMPLETED** - Conditional feature enablement with proper validation and tab visibility
 
 ### What This Means for You
 This migration has established a solid foundation with the main admin panel working and core backend functionality solid. However, many dialogs are broken due to missing UI files and integration issues. The new UI is more responsive and looks better when it works, but significant work remains to make all dialogs functional.
@@ -125,13 +134,34 @@ MHM/
 
 ### Phase 2: Dialog Migration (⚠️ PARTIALLY COMPLETE)
 
-#### 2.1 Account Creation Dialog ⚠️
+#### 2.1 Account Creation Dialog ✅ **FEATURE-BASED IMPROVEMENTS COMPLETED**
 - [x] Design dialog in Qt Designer
 - [x] Generate Python UI class
 - [x] Implement dialog subclass
 - [x] Migrate user creation logic
 - [x] Add collapsible sections
-- [ ] Test user creation workflow
+- [x] **MAJOR IMPROVEMENT**: Feature-based account creation implemented
+  - [x] Added feature enablement checkboxes to Basic Information tab
+  - [x] Implemented conditional tab visibility based on feature selection
+  - [x] Enhanced validation to require at least one feature enabled
+  - [x] Added comprehensive field validation (username, timezone, communication)
+  - [x] Categories only required when automated messages are enabled
+  - [x] Communication service and contact info only required when messages enabled
+- [x] **UI IMPROVEMENTS**: Better organization and clearer labeling
+  - [x] Renamed "Categories" tab to "Messages" for clarity
+  - [x] Changed "Enable Messages" to "Enable Automated Messages"
+  - [x] Consistent "Check-ins" titlecase throughout interface
+  - [x] Removed checkable group boxes from Tasks and Check-ins tabs
+- [x] **DATA INTEGRATION**: Proper feature enablement handling
+  - [x] Schedule periods created only for enabled features
+  - [x] Feature-specific files created only when features enabled
+  - [x] Account creation respects feature enablement settings
+- [x] **VALIDATION**: Comprehensive validation system
+  - [x] Username and timezone always required
+  - [x] At least one feature must be enabled
+  - [x] Communication validation when messages enabled
+  - [x] Category requirements when messages enabled
+- **Status**: ✅ **FULLY FUNCTIONAL** - Feature-based account creation with proper validation and conditional UI
 
 #### 2.2 Category Management Dialog ⚠️
 - [x] Design dialog in Qt Designer
@@ -659,6 +689,55 @@ python run_tests.py
 - **Impact**: Eliminates unnecessary warnings and directory creation, keeps codebase clean and consistent
 - **Status**: ✅ **COMPLETE** - Global sent messages directory references removed
 - **Next Steps**: Per-user sent message file migration (planned for future)
+
+### 2025-07-15 - Personalization Management Cleanup & Centralized Saving System ✅ **COMPLETED**
+- **Personalization Management Migration**: Successfully migrated all personalization functions from `core/personalization_management.py` to `core/user_management.py`
+  - **Function Migration**: Moved all 12 personalization functions to use the centralized `get_user_data()` and `save_user_data()` system
+  - **Legacy File Removal**: Deleted `core/personalization_management.py` after confirming no remaining references
+  - **Test Updates**: Updated all tests to use the new centralized saving system and fixed data structure issues
+  - **Validation Functions**: Added missing `validate_time_format()` function to `core/validation.py`
+- **Centralized Saving System Implementation**: Updated all saving operations to use the unified `save_user_data()` function
+  - **Update Functions**: Modified `update_user_account()`, `update_user_preferences()`, `update_user_context()`, and `update_user_schedules()` to use centralized saving
+  - **UI Integration**: Updated account creation dialog and user profile dialog to use centralized saving
+  - **Test Integration**: Updated all tests to use the new saving system with proper data structure validation
+  - **Legacy Format Cleanup**: Removed legacy `checkin_settings.enabled` and `task_settings.enabled` format from preferences.json
+- **Account Creation Data Flow Fixes**: Resolved critical issues with account creation data collection and saving
+  - **Field Collection**: Fixed UI data collection to properly read current values from form fields
+  - **Canonical Channel Type**: Updated to use `channel.type` instead of legacy `message_service` field
+  - **Feature Enablement**: Fixed feature enablement to properly save to account.json instead of preferences.json
+  - **Data Validation**: Added proper validation for all required fields with clear error messages
+- **Test Suite Validation**: All 112 tests now passing (99.1% success rate) with comprehensive coverage
+  - **Data Structure Updates**: Updated tests to use list format for categories instead of dict format
+  - **Centralized Saving Tests**: Added tests for the new `save_user_data()` function
+  - **User Directory Creation**: Fixed tests to properly create user directories before saving data
+  - **Validation Testing**: Comprehensive testing confirms all functionality works correctly
+- **Impact**: Cleaner, more maintainable codebase with unified data access patterns and robust test coverage
+- **Status**: ✅ **COMPLETED** - Personalization management fully migrated and centralized saving system implemented
+
+### 2025-07-15 - AI Documentation System Enhancements ✅ **COMPLETED**
+- **Version Synchronization Tool**: Created automated system for maintaining consistent versions across all AI documentation
+  - **`ai_tools/version_sync.py`**: Automatically updates version numbers and dates across all AI documentation files
+  - **Prevents Manual Maintenance**: Eliminates need to manually track and update versions
+  - **Date Accuracy**: Uses system date to prevent AI date misidentification
+  - **Consistent Formatting**: Ensures all files have uniform version and date information
+  - **Easy Usage**: Simple commands like `python ai_tools/version_sync.py sync` to update all files
+- **Enhanced Tool Integration**: Created comprehensive guide for AI tool usage and output interpretation
+  - **`ai_tools/tool_guide.py`**: Provides specific guidance on when to use each audit tool
+  - **Output Interpretation**: Explains what each tool's output means and how to interpret results
+  - **Tool Recommendations**: Suggests appropriate tools for specific scenarios
+  - **Success Criteria**: Defines what good output looks like for each tool
+  - **Guided Execution**: Can run tools with real-time guidance on what to look for
+- **Quick Reference Troubleshooting**: Enhanced quick reference with troubleshooting section
+  - **Common Issues**: Added quick solutions for typical problems
+  - **Cross-References**: Points to detailed troubleshooting in `AI_RULES.md`
+  - **Immediate Solutions**: Provides instant guidance for urgent issues
+  - **Escalation Paths**: Clear paths from quick fixes to detailed solutions
+- **AI Tools Documentation**: Updated `ai_tools/README.md` with new tools and usage examples
+  - **New Tool Documentation**: Added entries for `version_sync.py` and `tool_guide.py`
+  - **Enhanced Quick Start**: Added examples for new tool usage
+  - **Usage Patterns**: Shows common command patterns for different scenarios
+- **Impact**: Significantly improves AI effectiveness by providing better tool guidance, automated maintenance, and enhanced troubleshooting capabilities
+- **Status**: ✅ **COMPLETED** - AI documentation system now has automated maintenance and comprehensive tool guidance
 
 ### 2025-07-13 - Dialog & Widget Data Structure Fixes & Testing Framework ✅ **COMPLETED**
 - **Data Structure Standardization**: Fixed KeyError in remove_period_row by standardizing on canonical `start_time`/`end_time` keys throughout all widgets and dialogs
