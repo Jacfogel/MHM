@@ -20,6 +20,11 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-16 - Chatbot Mode Support
+- **Auto Mode Detection**: Added `_detect_mode()` to classify command requests.
+- **Command Parsing Prompt**: `_create_command_parsing_prompt()` enforces JSON responses.
+- **`generate_response()` Updated**: Accepts optional `mode` parameter and selects the correct prompt.
+
 ### 2025-07-15 - Testing Framework Major Expansion & Quality Improvements ✅ **COMPLETED**
 - **Testing Framework Expansion**: Successfully expanded test coverage from 5 to 9 modules with 185 tests passing (99.5% success rate)
   - **Message Management Tests**: Added comprehensive 25 tests with real file operations and side effect verification
@@ -119,8 +124,6 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
   - **Usage Patterns**: Shows common command patterns for different scenarios
 - **Impact**: Significantly improves AI effectiveness by providing better tool guidance, automated maintenance, and enhanced troubleshooting capabilities
 - **Status**: ✅ **COMPLETED** - AI documentation system now has automated maintenance and comprehensive tool guidance
-
-## 🗓️ Recent Changes (Most Recent First)
 
 ### 2025-07-14 - AI Collaboration System Implementation ✅ **COMPLETED**
 - **Audit-First Protocol**: Implemented structural constraint system to prevent incomplete documentation
@@ -401,6 +404,7 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
   - Improved user-focused documentation style
 - **Impact**: Clearer setup instructions, better development practices, and more consistent documentation
 - **Status**: ✅ **COMPLETED** - Documentation updated and testing framework cleaned up
+
 
 ### 2025-07-11 - Sent Messages Directory Cleanup
 - **Global Directory References Removed**: Eliminated all references to the obsolete global `data/sent_messages` directory
