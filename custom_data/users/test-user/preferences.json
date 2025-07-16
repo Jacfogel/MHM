@@ -1,0 +1,12 @@
+{
+    "categories": [],
+    "channel": {
+        "type": "email"
+    },
+    "checkin_settings": {
+        "enabled": false
+    },
+    "task_settings": {
+        "enabled": false
+    }
+}
