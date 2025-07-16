@@ -172,11 +172,16 @@ class MHMService:
             
         except Exception as log_error:
             # If we can't even log, then we definitely have a problem
-            print(f"Logging system is not working - cannot write log messages: {log_error}")
+            logger.error(
+                "Logging system is not working - cannot write log messages: %s",
+                log_error,
+            )
             # Fall through to restart logic
         
         # Only restart if we have clear evidence of logging failure
-        print("Logging system verification failed - attempting force restart...")
+        logger.warning(
+            "Logging system verification failed - attempting force restart..."
+        )
         
         # Force restart logging
         from core.logger import force_restart_logging
@@ -184,7 +189,7 @@ class MHMService:
             logger = get_logger(__name__)
             logger.info("Logging system force restarted successfully")
         else:
-            print("Failed to restart logging system")
+            logger.error("Failed to restart logging system")
 
     @handle_errors("starting service")
     def start(self):

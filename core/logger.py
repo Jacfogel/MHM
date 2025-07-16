@@ -60,14 +60,24 @@ def setup_logging():
         # Suppress noisy third-party libraries
         suppress_noisy_logging()
 
-        print(f"Logging initialized - Console level: {logging.getLevelName(console_level)}, File level: DEBUG")
-        print("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
+        status_logger = logging.getLogger(__name__)
+        status_logger.info(
+            "Logging initialized - Console level: %s, File level: DEBUG",
+            logging.getLevelName(console_level),
+        )
+        status_logger.info(
+            "Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity"
+        )
         
     except Exception as e:
-        print(f"Failed to set up logging: {e}")
-        # Fallback to basic logging
-        logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
-        print("Using fallback logging configuration")
+        # Fallback to basic logging that writes to stderr
+        logging.basicConfig(
+            level=logging.WARNING,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+        )
+        fallback_logger = logging.getLogger(__name__)
+        fallback_logger.error("Failed to set up logging: %s", e)
+        fallback_logger.warning("Using fallback logging configuration")
 
 
 def get_logger(name):
@@ -106,7 +116,10 @@ def set_console_log_level(level):
     for handler in root_logger.handlers:
         if isinstance(handler, logging.StreamHandler) and not isinstance(handler, RotatingFileHandler):
             handler.setLevel(level)
-            print(f"Console logging level set to: {logging.getLevelName(level)}")
+            logging.getLogger(__name__).info(
+                "Console logging level set to: %s",
+                logging.getLevelName(level),
+            )
             break
 
 def toggle_verbose_logging():
@@ -124,12 +137,16 @@ def toggle_verbose_logging():
     if _verbose_mode:
         # Enable verbose mode - show DEBUG and INFO
         set_console_log_level(logging.DEBUG)
-        print("Verbose logging enabled (DEBUG/INFO messages will be shown)")
+        logging.getLogger(__name__).info(
+            "Verbose logging enabled (DEBUG/INFO messages will be shown)"
+        )
         return True
     else:
         # Enable quiet mode - show only WARNING and above
         set_console_log_level(logging.WARNING)
-        print("Quiet logging enabled (only WARNING/ERROR messages will be shown)")
+        logging.getLogger(__name__).info(
+            "Quiet logging enabled (only WARNING/ERROR messages will be shown)"
+        )
         return False
 
 def get_verbose_mode():
@@ -153,10 +170,10 @@ def set_verbose_mode(enabled):
     
     if enabled:
         set_console_log_level(logging.DEBUG)
-        print("Verbose logging enabled")
+        logging.getLogger(__name__).info("Verbose logging enabled")
     else:
         set_console_log_level(logging.WARNING)
-        print("Quiet logging enabled")
+        logging.getLogger(__name__).info("Quiet logging enabled")
 
 def disable_module_logging(module_name):
     """
@@ -210,5 +227,9 @@ def force_restart_logging():
         return True
         
     except Exception as e:
-        print(f"Failed to force restart logging: {e}")
+        logging.basicConfig(
+            level=logging.ERROR,
+            format="%(asctime)s - %(levelname)s - %(message)s",
+        )
+        logging.getLogger(__name__).error("Failed to force restart logging: %s", e)
         return False
