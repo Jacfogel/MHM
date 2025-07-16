@@ -3,6 +3,11 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-16 - Chatbot Mode Support
+- **Auto Mode Detection**: Added `_detect_mode()` to classify command requests.
+- **Command Parsing Prompt**: `_create_command_parsing_prompt()` enforces JSON responses.
+- **`generate_response()` Updated**: Accepts optional `mode` parameter and selects the correct prompt.
+
 ### 2025-07-11 - Sent Messages Directory Cleanup
 - **Global Directory References Removed**: Eliminated all references to the obsolete global `data/sent_messages` directory
   - Removed `SENT_MESSAGES_DIR_PATH` from core path validation in `core/config.py`

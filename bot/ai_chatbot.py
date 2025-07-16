@@ -510,17 +510,70 @@ Instructions:
         
         return [system_message, user_message]
 
+    @handle_errors("detecting prompt mode", default_return="chat")
+    def _detect_mode(self, user_prompt: str) -> str:
+        """Detect whether the prompt is a command or a chat query."""
+        command_keywords = [
+            "remind",
+            "todo",
+            "schedule",
+            "add",
+            "remove",
+            "delete",
+            "call",
+            "message",
+        ]
+        prompt_lower = user_prompt.lower()
+        if any(keyword in prompt_lower for keyword in command_keywords):
+            return "command"
+        return "chat"
+
+    @handle_errors(
+        "creating command parsing prompt",
+        default_return=[
+            {"role": "system", "content": "You are a command parser."},
+            {"role": "user", "content": ""},
+        ],
+    )
+    def _create_command_parsing_prompt(self, user_prompt: str) -> list:
+        """Create a prompt instructing the model to return strict JSON."""
+        system_message = {
+            "role": "system",
+            "content": (
+                "You extract structured commands from user requests. "
+                "Respond ONLY in valid JSON like "
+                '{"action": "<action>", "details": {...}}'."
+            ),
+        }
+
+        user_message = {"role": "user", "content": user_prompt}
+        return [system_message, user_message]
+
     @handle_errors("generating AI response", default_return="I'm having trouble generating a response right now. Please try again in a moment.")
-    def generate_response(self, user_prompt: str, timeout: Optional[int] = None, user_id: Optional[str] = None) -> str:
+    def generate_response(
+        self,
+        user_prompt: str,
+        timeout: Optional[int] = None,
+        user_id: Optional[str] = None,
+        mode: Optional[str] = None,
+    ) -> str:
         """
         Generate a basic AI response from user_prompt, using LM Studio API.
         Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
         """
         if timeout is None:
             timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
-            
+
+        if mode is None:
+            mode = self._detect_mode(user_prompt)
+        mode = mode.lower()
+        if mode not in ["command", "chat"]:
+            mode = "chat"
+
+        cache_key_prompt = f"{mode}:{user_prompt}"
+
         # Check cache first
-        cached_response = self.response_cache.get(user_prompt, user_id)
+        cached_response = self.response_cache.get(cache_key_prompt, user_id)
         if cached_response:
             return cached_response
         
@@ -531,41 +584,46 @@ Instructions:
         # Use fallback if LM Studio is not available
         if not self.lm_studio_available:
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(user_prompt, response, user_id)
+            self.response_cache.set(cache_key_prompt, response, user_id)
             return response
 
         # Prevent concurrent API calls which can cause rate limiting
         if not self._generation_lock.acquire(blocking=False):
             logger.warning("API is busy, using enhanced contextual fallback")
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(user_prompt, response, user_id)
+            self.response_cache.set(cache_key_prompt, response, user_id)
             return response
 
-        logger.debug(f"AIChatBot generating response via LM Studio for prompt: {user_prompt[:60]}...")
-        
-        # Optimize prompt for LM Studio API
-        messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-        
-        # Use shorter token count for faster responses
-        max_tokens = min(120, max(50, len(user_prompt) // 2))
+        logger.debug(
+            f"AIChatBot generating response via LM Studio for prompt: {user_prompt[:60]} in mode {mode}..."
+        )
+
+        if mode == "command":
+            messages = self._create_command_parsing_prompt(user_prompt)
+            max_tokens = 60
+            temperature = 0.0
+        else:
+            messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
+            max_tokens = min(120, max(50, len(user_prompt) // 2))
+            temperature = 0.2
         
         # Call LM Studio API with adaptive timeout
         result = self._call_lm_studio_api(
             messages=messages,
             max_tokens=max_tokens,
-            temperature=0.2,  # Lower temperature for more focused responses
-            timeout=timeout
+            temperature=temperature,
+            timeout=timeout,
         )
         
         if result:
             response = result.strip()
             # Cache successful responses
-            self.response_cache.set(user_prompt, response, user_id)
+            self.response_cache.set(cache_key_prompt, response, user_id)
             return response
         else:
             # API failed, use contextual fallback
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(user_prompt, response, user_id)
+            self.response_cache.set(cache_key_prompt, response, user_id)
             return response
 
     @handle_errors("generating async AI response")
