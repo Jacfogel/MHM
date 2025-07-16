@@ -17,8 +17,8 @@ setup_logging()
 logger = get_logger(__name__)
 
 # Import core functionality
-from core.user_management import get_user_preferences, update_user_preferences, get_user_account, update_user_account
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
+from core.user_management import update_user_preferences, get_user_data, update_user_account
 from core.error_handling import handle_errors
 
 # Import widget
@@ -38,13 +38,24 @@ class CheckinManagementDialog(QDialog):
         # Load user account to set groupbox checked state
         checkins_enabled = False
         if self.user_id:
-            account = get_user_account(self.user_id) or {}
+            user_data_result = get_user_data(self.user_id, 'account')
+            account = user_data_result.get('account') or {}
             features = account.get('features', {})
             checkins_enabled = features.get('checkins') == 'enabled'
         self.ui.groupBox_checkBox_enable_checkins.setChecked(checkins_enabled)
-        self.setWindowTitle("Check-in Management")
-        self.setModal(True)
-        self.setup_ui()
+        # Add the check-in settings widget to the placeholder
+        self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
+        layout = self.ui.widget_placeholder_checkin_settings.layout()
+        # Remove any existing widgets
+        while layout.count():
+            item = layout.takeAt(0)
+            w = item.widget()
+            if w:
+                w.setParent(None)
+        layout.addWidget(self.checkin_widget)
+        # Connect Save/Cancel
+        self.ui.buttonBox_save_cancel.accepted.connect(self.save_checkin_settings)
+        self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
         # Wire up groupbox checkbox logic
         self.ui.groupBox_checkBox_enable_checkins.toggled.connect(self.on_enable_checkins_toggled)
         self.on_enable_checkins_toggled(self.ui.groupBox_checkBox_enable_checkins.isChecked())
@@ -55,35 +66,14 @@ class CheckinManagementDialog(QDialog):
             if child is not self.ui.groupBox_checkBox_enable_checkins:
                 child.setEnabled(checked)
     
-    def setup_ui(self):
-        """Setup the UI components."""
-        # Add the check-in settings widget to the placeholder
-        self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
-        layout = self.ui.widget_placeholder_checkin_settings.layout()  # Update this line if the placeholder name changed in the regenerated UI file
-        
-        # Remove any existing widgets
-        while layout.count():
-            item = layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.setParent(None)
-        
-        # Add the check-in widget
-        layout.addWidget(self.checkin_widget)
-        
-        # Connect Save/Cancel
-        self.ui.buttonBox_save_cancel.accepted.connect(self.save_checkin_settings)
-        self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
-        
-        # Load user's current check-in settings
-        self.load_user_checkin_data()
-    
     def load_user_checkin_data(self):
         """Load the user's current check-in settings"""
         if not self.user_id:
             return
         try:
-            prefs = get_user_preferences(self.user_id) or {}
+            # Load user preferences
+            prefs_result = get_user_data(self.user_id, 'preferences')
+            prefs = prefs_result.get('preferences') or {}
             checkin_settings = prefs.get('checkin_settings', {})
             self.checkin_widget.set_checkin_settings(checkin_settings)
         except Exception as e:
@@ -100,11 +90,13 @@ class CheckinManagementDialog(QDialog):
             
             # Save time periods to schedule management
             time_periods = checkin_settings.get('time_periods', {})
+            logger.info(f"Saving check-in time periods for user {self.user_id}: {time_periods}")
             set_schedule_periods(self.user_id, "checkin", time_periods)
             clear_schedule_periods_cache(self.user_id, "checkin")
             
             # Get current preferences and update check-in settings
-            prefs = get_user_preferences(self.user_id) or {}
+            prefs_result = get_user_data(self.user_id, 'preferences')
+            prefs = prefs_result.get('preferences') or {}
             prefs['checkin_settings'] = {
                 'questions': checkin_settings.get('questions', {})
             }
@@ -113,7 +105,8 @@ class CheckinManagementDialog(QDialog):
             update_user_preferences(self.user_id, prefs)
             
             # Update user account features
-            account = get_user_account(self.user_id) or {}
+            user_data_result = get_user_data(self.user_id, 'account')
+            account = user_data_result.get('account') or {}
             if 'features' not in account:
                 account['features'] = {}
             account['features']['checkins'] = 'enabled' if self.ui.groupBox_checkBox_enable_checkins.isChecked() else 'disabled'

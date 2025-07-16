@@ -1,5 +1,4 @@
 # Core dependencies
-# python-telegram-bot[job-queue]>=20.0  # For Telegram bot functionality and job queue (Deactivated)
 discord.py>=2.3.0  # For Discord bot functionality
 schedule>=1.2.0  # For task scheduling
 python-dotenv>=1.0.0  # For environment variable management
@@ -11,8 +10,15 @@ psutil>=5.9.0  # For process management in UI application
 requests>=2.31.0  # For LM Studio HTTP API calls
 # gpt4all  # Deprecated - replaced with LM Studio API
 
-# Optional but recommended for development
+# UI dependencies
+tkcalendar>=1.6.1  # For date picker in UI dialogs
+PySide6>=6.5.0  # For Qt-based UI (replacing tkinter)
+
+# Testing dependencies (optional)
 pytest>=7.0.0  # For testing
+pytest-mock>=3.14.0  # For mocking in tests
+
+# Optional but recommended for development
 black>=23.0.0  # For code formatting
 pylint>=2.17.0  # For code linting
 
@@ -29,7 +35,3 @@ pylint>=2.17.0  # For code linting
 # - re (regex)
 # - os
 # - time 
-
-# UI dependencies
-tkcalendar>=1.6.1  # For date picker in UI dialogs
-PySide6>=6.5.0  # For Qt-based UI (replacing tkinter) 

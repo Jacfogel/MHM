@@ -15,6 +15,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 from core.config import get_user_data_dir
+from core.user_management import get_user_data
 
 logger = get_logger(__name__)
 
@@ -395,15 +396,14 @@ def are_tasks_enabled(user_id: str) -> bool:
             logger.error("User ID is required for checking task status")
             return False
         
-        # Load user account to check feature status
-        from core.user_management import get_user_account
-        user_account = get_user_account(user_id)
+        # Get user account to check if task management is enabled
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account')
+        if not user_account or user_account.get('features', {}).get('task_management') != 'enabled':
+            logger.warning(f"Task management not enabled for user {user_id}")
+            return False
         
-        # Check if task management is enabled in account features
-        if user_account and user_account.get('features', {}).get('task_management') == 'enabled':
-            return True
-        
-        return False
+        return True
         
     except Exception as e:
         logger.error(f"Error checking task status for user {user_id}: {e}")

@@ -4,7 +4,7 @@ import json
 import os
 import threading
 from core.logger import get_logger
-from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+from core.user_management import get_user_data, update_user_account, update_user_preferences, update_user_context
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -35,9 +35,12 @@ class UserContext:
             return
         
         # Use the new user management functions
-        account_data = get_user_account(user_id) or {}
-        preferences_data = get_user_preferences(user_id) or {}
-        context_data = get_user_context(user_id) or {}
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account') or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        preferences_data = prefs_result.get('preferences') or {}
+        context_result = get_user_data(user_id, 'context')
+        context_data = context_result.get('context') or {}
         
         # Combine into legacy format for compatibility
         user_data = {
@@ -236,14 +239,17 @@ class UserContext:
             return {}
         
         # Use the new user management functions
-        account_data = get_user_account(user_id) or {}
-        preferences_data = get_user_preferences(user_id) or {}
-        context_data = get_user_context(user_id) or {}
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account') or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        preferences_data = prefs_result.get('preferences') or {}
+        context_result = get_user_data(user_id, 'context')
+        context_data = context_result.get('context') or {}
         
         return {
             'preferred_name': self.get_preferred_name() or context_data.get('preferred_name', ''),
             'active_categories': self.get_preference('categories') or self.user_data.get('categories', []),
-            'messaging_service': self.get_preference('channel', {}).get('type') or self.get_preference('messaging_service') or self.user_data.get('messaging_service', ''),
+            'messaging_service': self.get_preference('channel', {}).get('type', ''),
             'active_schedules': self._get_active_schedules(self.user_data.get('schedules', {})),  # Schedules handled separately
             'discord_user_id': account_data.get("discord_user_id", "")
         }

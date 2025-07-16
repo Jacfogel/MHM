@@ -6,6 +6,15 @@
 
 MHM is a simple personal assistant created by and for a single beginner programmer. It sends scheduled motivational messages and basic mood tracking through Discord (email and Telegram are optional). The project also supports optional local AI integration via LM Studio for contextual chat responses.
 
+## [Navigation](#navigation)
+- **[Quick Start](HOW_TO_RUN.md)** - Get up and running in minutes
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - For contributors and developers  
+- **[Architecture Overview](ARCHITECTURE.md)** - System design and components
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+- **[Recent Changes](CHANGELOG.md)** - What's new and what's changed
+- **[Current Priorities](TODO.md)** - What we're working on next
+
 ## Features
 - Multi-channel messaging (Discord, Telegram, Email)
 - Automated daily reminders and basic mood tracking
@@ -88,11 +97,49 @@ This project is personal. Keep forks private and respect mental health data.
 
 **Your Control**: You can decide which improvements to tackle first, and we can skip any that seem too complex or risky.
 
-**Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This now covers ALL 22 modules across the entire application stack!**
+**Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This covers the entire application - from the UI to the background service to all communication channels.**
 
 For current development priorities and completed improvements, see **TODO.md** and **CHANGELOG.md**.
 
-## Troubleshooting
+## 🆘 Troubleshooting
 
-### Double Service Process Issue in VS Code/Cursor
+### Common Issues & Solutions
+
+#### **Double Service Process in VS Code/Cursor**
 If you see two service processes when using the play/debug button in VS Code or Cursor, this is due to IDE/debugger quirks, not a problem with the project code. For the most reliable experience, run the app from a terminal with your virtual environment activated.
+
+#### **"Command not found" Errors**
+- **Solution**: Make sure your virtual environment is activated. You should see `(venv)` at the beginning of your command prompt.
+- **Fix**: Run `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (macOS/Linux)
+
+#### **Import Errors**
+- **Solution**: Try reinstalling dependencies in your virtual environment
+- **Fix**: `pip install -r requirements.txt --force-reinstall`
+
+#### **Permission Errors on Windows**
+- **Solution**: Run PowerShell as Administrator, or adjust execution policy
+- **Fix**: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+#### **App Won't Start**
+1. Check if Python is installed: `python --version`
+2. Install dependencies: `pip install -r requirements.txt`
+3. Check for syntax errors: `python -m py_compile run_mhm.py`
+4. Check log file: `Get-Content app.log -Tail 20`
+
+#### **Service Won't Start**
+1. Check if Discord token is set in `.env`
+2. Check if required directories exist
+3. Check log file for specific errors
+4. Try running service directly: `python core/service.py`
+
+#### **Messages Not Sending**
+1. Check if service is running
+2. Verify Discord bot token in `.env`
+3. Check bot permissions in Discord
+4. Check log file for error messages
+
+### Getting Help
+- **Quick Reference**: See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for common commands
+- **Development Workflow**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe practices
+- **Architecture**: See [ARCHITECTURE.md](ARCHITECTURE.md) for system understanding
+- **Current Issues**: See [TODO.md](TODO.md) for known issues and priorities

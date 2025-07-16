@@ -115,6 +115,7 @@ def load_period_widgets_for_category(layout, user_id: str, category: str,
     """
     try:
         from core.schedule_management import get_schedule_time_periods
+        from ui.widgets.period_row_widget import PeriodRowWidget
         
         # Clear existing widgets
         clear_period_widgets_from_layout(layout, widget_list)
@@ -156,6 +157,8 @@ def collect_period_data_from_widgets(widget_list, category: str) -> dict:
     """
     periods = {}
     
+    logger.info(f"Collecting period data from {len(widget_list)} widgets for category {category}")
+    
     for widget in widget_list:
         try:
             period_data = widget.get_period_data()
@@ -165,16 +168,19 @@ def collect_period_data_from_widgets(widget_list, category: str) -> dict:
             storage_name = period_name_for_storage(display_name, category)
             
             periods[storage_name] = {
-                'start_time': period_data['start'],
-                'end_time': period_data['end'],
+                'start_time': period_data['start_time'],
+                'end_time': period_data['end_time'],
                 'active': period_data['active'],
                 'days': period_data['days']
             }
+            
+            logger.info(f"Collected period '{storage_name}': {periods[storage_name]}")
             
         except Exception as e:
             logger.error(f"Error collecting data from period widget: {e}")
             continue
     
+    logger.info(f"Final collected periods for category {category}: {periods}")
     return periods
 
 

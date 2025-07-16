@@ -23,13 +23,17 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QTime, QDate, Signal
 from PySide6.QtGui import QFont, QIcon
 
+# Import generated UI classes
+from ui.generated.user_profile_management_dialog_pyqt import Ui_Dialog_user_profile
+from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_settings
+
 # Set up logging
 from core.logger import setup_logging, get_logger
 setup_logging()
 logger = get_logger(__name__)
 
 # Import core functionality
-from core.personalization_management import (
+from core.user_management import (
     get_predefined_options, get_timezone_options, validate_personalization_data
 )
 from core.error_handling import handle_errors
@@ -72,40 +76,42 @@ class UserProfileDialog(QDialog):
     
     def setup_ui(self):
         """Setup the user interface."""
-        # Load UI from file
-        ui_file_path = os.path.join(os.path.dirname(__file__), '..', 'designs', 'user_profile_dialog.ui')
-        if not os.path.exists(ui_file_path):
-            raise FileNotFoundError(f"UI file not found: {ui_file_path}")
-
-        # Remove all QUiLoader imports and usage
-        # loader = QUiLoader()
-        # self.ui = loader.load(ui_file_path, self)
-        # self.setLayout(self.ui.layout())
+        # Use generated UI class
+        self.ui = Ui_Dialog_user_profile()
+        self.ui.setupUi(self)
         
-        # Store references to UI elements
-        self.name_edit = self.ui.lineEdit_name
-        self.age_spin = self.ui.spinBox_age
-        self.timezone_combo = self.ui.comboBox_timezone
-        self.notes_edit = self.ui.textEdit_notes
-        
-        # Setup placeholder widgets for dynamic content
-        self.health_conditions_widget = self.ui.widget_health_conditions
-        self.medications_widget = self.ui.widget_medications
-        self.allergies_widget = self.ui.widget_allergies
-        self.loved_ones_container = self.ui.widget_loved_ones_container
-        self.interests_widget = self.ui.widget_interests
-        self.goals_widget = self.ui.widget_goals
-        
-        # Create dynamic sections
-        self.create_health_section()
-        self.create_loved_ones_section()
-        self.create_interests_section()
-        self.create_notes_section()
-        self.create_goals_section()
+        # Add the user profile settings widget to the placeholder
+        from ui.widgets.user_profile_settings_widget import UserProfileSettingsWidget
+        self.profile_widget = UserProfileSettingsWidget(self, self.user_id, self.personalization_data)
+        layout = self.ui.widget__user_profile.layout()
+        layout.addWidget(self.profile_widget)
         
         # Connect buttons
-        self.ui.buttonBox.accepted.connect(self.save_personalization)
-        self.ui.buttonBox.rejected.connect(self.cancel)
+        self.ui.buttonBox_save_cancel.accepted.connect(self.save_personalization)
+        self.ui.buttonBox_save_cancel.rejected.connect(self.cancel)
+        
+        # Override key events for large dialog
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
+        
+    def keyPressEvent(self, event):
+        """Handle key press events for the dialog."""
+        if event.key() == Qt.Key.Key_Escape:
+            # Show confirmation dialog before canceling
+            reply = QMessageBox.question(
+                self, 
+                "Cancel Personalization", 
+                "Are you sure you want to cancel? All unsaved changes will be lost.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.cancel()
+            event.accept()
+        elif event.key() == Qt.Key.Key_Return or event.key() == Qt.Key.Key_Enter:
+            # Ignore Enter key to prevent accidental saving
+            event.ignore()
+        else:
+            super().keyPressEvent(event)
     
     def create_custom_field_list(self, parent_layout, predefined_values, existing_values, label_text):
         """Creates a multi-column list with preset items (checkbox + label) and custom fields (checkbox + entry + delete)."""
@@ -381,48 +387,27 @@ class UserProfileDialog(QDialog):
     def save_personalization(self):
         """Save the personalization data."""
         try:
-            # Collect basic information
-            data = {
-                'name': self.name_edit.text().strip(),
-                'age': self.age_spin.value(),
-                'timezone': self.timezone_combo.currentText(),
-                
-                # Health information
-                'health_conditions': self.collect_custom_field_data(self.health_conditions_group),
-                'medications': self.collect_custom_field_data(self.medications_group),
-                'allergies': self.collect_custom_field_data(self.allergies_group),
-                
-                # Loved ones
-                'loved_ones': self.collect_loved_ones_data(),
-                
-                # Interests
-                'hobbies': self.collect_custom_field_data(self.hobbies_group),
-                'music_preferences': self.collect_custom_field_data(self.music_group),
-                'reading_preferences': self.collect_custom_field_data(self.reading_group),
-                
-                # Notes
-                'notes': self.notes_edit.toPlainText().strip(),
-                
-                # Goals
-                'short_term_goals': self.collect_custom_field_data(self.short_goals_group),
-                'long_term_goals': self.collect_custom_field_data(self.long_goals_group),
-                
-                # Metadata
-                'last_updated': datetime.now().isoformat(),
-                'user_id': self.user_id
-            }
+            # Get data from the profile widget
+            data = self.profile_widget.get_personalization_data()
+            
+            # Add metadata
+            data['last_updated'] = datetime.now().isoformat()
+            data['user_id'] = self.user_id
             
             # Validate data
-            validation_result = validate_personalization_data(data)
-            if not validation_result['valid']:
+            is_valid, errors = validate_personalization_data(data)
+            if not is_valid:
                 QMessageBox.warning(self, "Validation Error", 
                                    f"Please fix the following issues:\n\n" + 
-                                   "\n".join(validation_result['errors']))
+                                   "\n".join(errors))
                 return
             
-            # Call save callback if provided
+            # Save data: use callback if provided, else save directly
             if self.on_save:
                 self.on_save(data)
+            else:
+                from core.user_management import update_user_context
+                update_user_context(self.user_id, data)
             
             self.user_changed.emit()
             self.accept()

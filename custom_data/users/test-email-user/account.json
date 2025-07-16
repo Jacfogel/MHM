@@ -1,0 +1,7 @@
+{
+    "user_id": "test-email-user",
+    "internal_username": "testuser",
+    "email": "test@example.com",
+    "account_status": "active",
+    "updated_at": "2025-07-16 01:01:20"
+}

@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout" stretch="0,1,0,0">
+  <layout class="QVBoxLayout" name="verticalLayout_Dialog_task_management" stretch="0,1,0,0">
    <item>
     <widget class="QLabel" name="label_task_management">
      <property name="minimumSize">
@@ -41,10 +41,10 @@
      <property name="checked">
       <bool>false</bool>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
+     <layout class="QVBoxLayout" name="verticalLayout_groupBox_checkBox_enable_task_management">
       <item>
        <widget class="QWidget" name="widget_placeholder_task_settings" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_2">
+        <layout class="QVBoxLayout" name="verticalLayout_widget_placeholder_task_settings">
          <property name="spacing">
           <number>2</number>
          </property>

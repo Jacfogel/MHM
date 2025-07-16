@@ -580,7 +580,6 @@ class CreateAccountScreen:
             user_data = {
                 'internal_username': self.internal_username_entry.get().strip().lower(),
                 'preferred_name': self.preferred_name_entry.get().strip(),
-                'messaging_service': self.service_var.get(),
                 'chat_id': self.discord_id_entry.get().strip() if self.service_var.get() == "discord" else "",
                 'phone': f"{self.country_code.get().strip()} {self.phone_entry.get().strip()}" if self.service_var.get() == "telegram" else "",
                 'email': self.email_entry.get().strip() if self.service_var.get() == "email" else "",

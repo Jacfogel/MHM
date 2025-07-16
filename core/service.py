@@ -30,8 +30,7 @@ from bot.communication_manager import CommunicationManager
 from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
-from core.user_management import get_all_user_ids, get_user_preferences
-from core.user_management import load_and_ensure_ids
+from core.user_management import get_all_user_ids, get_user_data
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -77,7 +76,9 @@ class MHMService:
             if user_id is None:
                 logger.warning("Encountered None user_id in get_all_user_ids()")
                 continue
-            categories = get_user_preferences(user_id, 'categories')
+            # Get user categories
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
             if isinstance(categories, list):
                 if categories:  # Only process if list is not empty
                     for category in categories:
@@ -171,11 +172,16 @@ class MHMService:
             
         except Exception as log_error:
             # If we can't even log, then we definitely have a problem
-            print(f"Logging system is not working - cannot write log messages: {log_error}")
+            logger.error(
+                "Logging system is not working - cannot write log messages: %s",
+                log_error,
+            )
             # Fall through to restart logic
         
         # Only restart if we have clear evidence of logging failure
-        print("Logging system verification failed - attempting force restart...")
+        logger.warning(
+            "Logging system verification failed - attempting force restart..."
+        )
         
         # Force restart logging
         from core.logger import force_restart_logging
@@ -183,7 +189,7 @@ class MHMService:
             logger = get_logger(__name__)
             logger.info("Logging system force restarted successfully")
         else:
-            print("Failed to restart logging system")
+            logger.error("Failed to restart logging system")
 
     @handle_errors("starting service")
     def start(self):
@@ -289,15 +295,34 @@ class MHMService:
                 
                 # Check for shutdown request file every iteration
                 if os.path.exists(shutdown_file):
-                    logger.info("Shutdown request file detected - initiating graceful shutdown")
+                    # Check if this is a new shutdown request (created after service started)
                     try:
-                        with open(shutdown_file, 'r') as f:
-                            content = f.read().strip()
-                        logger.info(f"Shutdown request details: {content}")
+                        file_mtime = os.path.getmtime(shutdown_file)
+                        if self.startup_time and file_mtime < self.startup_time:
+                            # This is an old shutdown request from before service started
+                            logger.debug(f"Ignoring old shutdown request file (created before service startup)")
+                            try:
+                                os.remove(shutdown_file)
+                                logger.debug("Removed old shutdown request file")
+                            except Exception as e:
+                                logger.warning(f"Could not remove old shutdown file: {e}")
+                        else:
+                            # This is a new shutdown request
+                            logger.info("Shutdown request file detected - initiating graceful shutdown")
+                            try:
+                                with open(shutdown_file, 'r') as f:
+                                    content = f.read().strip()
+                                logger.info(f"Shutdown request details: {content}")
+                            except Exception as e:
+                                logger.warning(f"Could not read shutdown file: {e}")
+                            self.running = False
+                            break
                     except Exception as e:
-                        logger.warning(f"Could not read shutdown file: {e}")
-                    self.running = False
-                    break
+                        logger.warning(f"Error checking shutdown file timestamp: {e}")
+                        # If we can't check the timestamp, assume it's new and shut down
+                        logger.info("Shutdown request file detected - initiating graceful shutdown")
+                        self.running = False
+                        break
                 
                 # Check for test message request files
                 self.check_test_message_requests()
@@ -505,7 +530,9 @@ class MHMService:
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories."""
     try:
-        categories = get_user_preferences(user_id, 'categories')
+        # Get user categories
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if categories is None:
             return []
         elif isinstance(categories, list):
@@ -517,22 +544,6 @@ def get_user_categories(user_id: str) -> List[str]:
     except Exception as e:
         logger.error(f"Error getting categories for user {user_id}: {e}")
         return []
-
-def process_user_messages(user_id: str):
-    """Process messages for a specific user."""
-    try:
-        # Get user's categories
-        categories = get_user_preferences(user_id, 'categories')
-        if not categories:
-            logger.debug(f"No categories found for user {user_id}")
-            return
-        
-        # Process each category
-        for category in categories:
-            process_category_messages(user_id, category)
-            
-    except Exception as e:
-        logger.error(f"Error processing messages for user {user_id}: {e}")
 
 @handle_errors("main service function")
 def main():

@@ -9,7 +9,7 @@ import calendar
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
-from core.user_management import get_user_account, get_user_preferences, get_user_context, load_user_info_data, save_user_info_data
+from core.user_management import get_user_data
 from core.file_operations import determine_file_path, load_json_data, save_json_data, get_user_file_path
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
@@ -39,7 +39,10 @@ def get_schedule_time_periods(user_id, category):
         if current_time - cache_time < _cache_timeout:
             return cached_data
     
-    user_info = get_user_info_for_schedule_management(user_id)
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
+
     if not user_info:
         logger.error(f"User {user_id} not found.")
         return {}
@@ -49,31 +52,35 @@ def get_schedule_time_periods(user_id, category):
     periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
 
     if periods:
-        # Sort periods by start time
+        # Sort periods by start_time (canonical)
         sorted_periods = {}
         for period_name, period_data in periods.items():
             if not isinstance(period_data, dict):
                 logger.warning(f"Period {period_name} in category {category} is not a dictionary: {period_data}")
                 continue
             # Normalize keys for compatibility
-            start = period_data.get('start_time') or period_data.get('start')
-            end = period_data.get('end_time') or period_data.get('end')
-            if not start or not end:
+            start_time = period_data.get('start_time') or period_data.get('start')
+            end_time = period_data.get('end_time') or period_data.get('end')
+            # Log if legacy keys are used
+            if 'start' in period_data or 'end' in period_data:
+                logger.warning(f"[LEGACY] User {user_id}, category {category}, period {period_name} is using legacy keys: start={period_data.get('start')}, end={period_data.get('end')}")
+            if not start_time or not end_time:
                 logger.warning(f"Missing start/end time for period {period_name} in category {category}")
                 continue
             try:
-                start_time_obj = datetime.strptime(start, "%H:%M")
+                start_time_obj = datetime.strptime(start_time, "%H:%M")
             except ValueError as e:
                 logger.warning(f"Error parsing start time for period {period_name} in category {category}: {e}")
                 continue
+            # Always use canonical keys in returned dict
             sorted_periods[period_name] = {
-                'start': start,
-                'end': end,
+                'start_time': start_time,
+                'end_time': end_time,
                 'active': period_data.get('active', True),
                 'days': period_data.get('days', ['ALL'])
             }
             sorted_periods[period_name]['start_time_obj'] = start_time_obj
-        # Sort by start time
+        # Sort by start_time
         sorted_periods = dict(sorted(sorted_periods.items(), key=lambda item: item[1]['start_time_obj']))
         for period in sorted_periods:
             del sorted_periods[period]['start_time_obj']
@@ -85,8 +92,8 @@ def get_schedule_time_periods(user_id, category):
         if category not in ("tasks", "checkin"):
             all_period = {
                 "ALL": {
-                    "start": "00:00",
-                    "end": "23:59",
+                    "start_time": "00:00",
+                    "end_time": "23:59",
                     "active": True,
                     "description": "Messages sent regardless of time of day"
                 }
@@ -101,7 +108,9 @@ def get_schedule_time_periods(user_id, category):
 
 @handle_errors("setting schedule period active", default_return=False)
 def set_schedule_period_active(user_id, category, period_name, active=True):
-    user_info = get_user_info_for_schedule_management(user_id)
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     if not user_info:
         logger.error(f"User {user_id} not found.")
         return False
@@ -131,7 +140,9 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
 
 @handle_errors("checking if schedule period active", default_return=False)
 def is_schedule_period_active(user_id, category, period_name):
-    user_info = get_user_info_for_schedule_management(user_id)
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     if not user_info:
         return False
     schedules = user_info.get('schedules', {})
@@ -167,7 +178,7 @@ def get_current_time_periods_with_validation(user_id, category):
             continue  # Skip "ALL" as it's already handled above
         
         if times.get('active', True):  # Check if period is active
-            start_time, end_time = times['start'], times['end']
+            start_time, end_time = times['start_time'], times['end_time']
             if start_time <= current_time_str <= end_time:
                 matching_periods.append(period)
 
@@ -195,7 +206,9 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
         logger.error("User ID is not set in UserContext (add_schedule_period).")
         return
     
-    user_info = get_user_info_for_schedule_management(user_id) or {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
 
     if user_info.get("user_id") != user_id:
         logger.error(f"Mismatch in user_id for user info data: expected {user_id}, found {user_info.get('user_id')}")
@@ -233,7 +246,9 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
     if not user_id:
         logger.error("User ID is not set in UserContext (edit_schedule_period).")
         return
-    user_info = get_user_info_for_schedule_management(user_id) or {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     user_schedules = user_info.setdefault('schedules', {})
     category_data = user_schedules.setdefault(category, {})
     periods = category_data.setdefault('periods', {})
@@ -256,7 +271,9 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
     if not user_id:
         logger.error("User ID is not set in UserContext (delete_schedule_period).")
         return
-    user_info = get_user_info_for_schedule_management(user_id) or {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     user_schedules = user_info.setdefault('schedules', {})
     category_data = user_schedules.setdefault(category, {})
     periods = category_data.setdefault('periods', {})
@@ -406,9 +423,22 @@ def set_reminder_periods_and_days(user_id, category, periods, days):
 
 def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""
-    user_info = get_user_info_for_schedule_management(user_id) or {}
-    if 'schedules' not in user_info:
-        user_info['schedules'] = {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_data = schedules_result.get('schedules', {})
+    
+    logger.info(f"set_schedule_periods: Setting periods for user {user_id}, category {category}")
+    logger.info(f"set_schedule_periods: Current schedules data: {schedules_data}")
+    logger.info(f"set_schedule_periods: New periods dict: {periods_dict}")
+
+    # Ensure category exists
+    if category not in schedules_data:
+        schedules_data[category] = {}
+    
+    # Ensure periods sub-dict exists
+    if 'periods' not in schedules_data[category]:
+        schedules_data[category]['periods'] = {}
+    
     # Defensive: ensure all keys are strings and only allowed fields are present in each period
     cleaned_periods = {}
     for period_name, period_data in periods_dict.items():
@@ -421,19 +451,27 @@ def set_schedule_periods(user_id, category, periods_dict):
             'start_time': period_data.get('start_time'),
             'end_time': period_data.get('end_time')
         }
-    # Write only the periods sub-dict for the category
-    user_info['schedules'][category] = {'periods': cleaned_periods}
-    # Update schedules using new structure
+    
+    # Replace the periods for this category
+    schedules_data[category]['periods'] = cleaned_periods
+    
+    logger.info(f"set_schedule_periods: Final schedules data: {schedules_data}")
+    
+    # Save the updated schedules
     from core.user_management import update_user_schedules
-    update_user_schedules(user_id, user_info.get('schedules', {}))
+    update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
 
 def get_schedule_days(user_id, category):
-    user_info = get_user_info_for_schedule_management(user_id) or {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     return user_info.get('schedules', {}).get(category, {}).get('days', ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 
 def set_schedule_days(user_id, category, days):
-    user_info = get_user_info_for_schedule_management(user_id) or {}
+    # Get user schedules
+    schedules_result = get_user_data(user_id, 'schedules')
+    user_info = {'schedules': schedules_result.get('schedules', {})}
     if 'schedules' not in user_info:
         user_info['schedules'] = {}
     if category not in user_info['schedules']:
@@ -454,3 +492,45 @@ def get_user_info_for_schedule_management(user_id: str) -> Optional[Dict[str, An
     except Exception as e:
         logger.error(f"Error loading user schedules for schedule management: {e}")
         return None 
+
+def migrate_legacy_schedule_keys(user_id=None):
+    """
+    Migrate all user schedule files from legacy 'start'/'end' keys to canonical 'start_time'/'end_time'.
+    If user_id is None, migrate all users.
+    """
+    from core.user_management import get_all_user_ids, get_user_file_path
+    from core.file_operations import load_json_data, save_json_data
+    import copy
+    user_ids = [user_id] if user_id else get_all_user_ids()
+    migrated = 0
+    for uid in user_ids:
+        schedules_file = get_user_file_path(uid, 'schedules')
+        schedules_data = load_json_data(schedules_file) or {}
+        changed = False
+        for category, cat_data in schedules_data.items():
+            periods = cat_data.get('periods', {})
+            for period_name, period_data in list(periods.items()):
+                # Only migrate if legacy keys are present
+                if 'start' in period_data or 'end' in period_data:
+                    # Copy to canonical keys if not already present
+                    if 'start_time' not in period_data and 'start' in period_data:
+                        period_data['start_time'] = period_data['start']
+                        changed = True
+                    if 'end_time' not in period_data and 'end' in period_data:
+                        period_data['end_time'] = period_data['end']
+                        changed = True
+                    # Remove legacy keys
+                    if 'start' in period_data:
+                        del period_data['start']
+                        changed = True
+                    if 'end' in period_data:
+                        del period_data['end']
+                        changed = True
+                    periods[period_name] = period_data
+            cat_data['periods'] = periods
+            schedules_data[category] = cat_data
+        if changed:
+            save_json_data(schedules_data, schedules_file)
+            migrated += 1
+            logger.info(f"Migrated legacy schedule keys for user {uid}")
+    logger.info(f"Migration complete. {migrated} user(s) updated.") 

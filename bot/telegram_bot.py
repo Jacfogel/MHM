@@ -20,7 +20,7 @@ from typing import List, Dict, Any
 import warnings
 from telegram.warnings import PTBUserWarning
 from core.service_utilities import wait_for_network, title_case
-from core.user_management import get_user_preferences, get_user_id_by_chat_id, get_user_account, get_user_context
+from core.user_management import get_user_id_by_chat_id
 from core.schedule_management import get_schedule_time_periods, add_schedule_period
 from core.message_management import add_message
 from core.validation import InvalidTimeFormatError
@@ -314,7 +314,9 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         context.user_data['category_prompt'] = True
 
         user_id = UserContext().get_user_id()
-        categories = get_user_preferences(user_id, 'categories') or []
+        # Get user categories
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', []) or []
 
         buttons = [[InlineKeyboardButton(title_case(category), callback_data=f'category_{category}')] for category in categories]
         reply_markup = InlineKeyboardMarkup(buttons)
@@ -458,7 +460,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             return ConversationHandler.END
 
         buttons = [
-            [InlineKeyboardButton(f"{title_case(period)}: {times['start']} - {times['end']}", callback_data=f"edit_period_{period}")]
+            [InlineKeyboardButton(f"{title_case(period)}: {times['start_time']} - {times['end_time']}", callback_data=f"edit_period_{period}")]
             for period, times in schedule_data.items()
         ]
         buttons.append([InlineKeyboardButton("➕ Add New Period", callback_data="add_period")])
@@ -609,10 +611,11 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
         user_id = get_user_id_by_chat_id(chat_id)
         if user_id:
-            user_account = get_user_account(user_id)
-            user_context_data = get_user_context(user_id)
+            # Get user context
+            context_result = get_user_data(user_id, 'context')
+            user_context_data = context_result.get('context')
             user_context.set_user_id(user_id)
-            user_context.set_internal_username(user_account.get('internal_username') if user_account else '')
+            user_context.set_internal_username(user_context_data.get('internal_username') if user_context_data else '')
             user_context.set_preferred_name(user_context_data.get('preferred_name') if user_context_data else '')
             return True
 
@@ -623,8 +626,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             "user_id": new_user_id,
             "internal_username": telegram_username,
             "preferred_name": telegram_username,
-            "chat_id": chat_id,
-            "messaging_service": "telegram"
+            "chat_id": chat_id
         }
         create_new_user(user_data)
         user_context.set_user_id(new_user_id)
@@ -635,7 +637,8 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     def get_user_categories(self, user_id: str) -> List[str]:
         """Get user's message categories."""
         try:
-            categories = get_user_preferences(user_id, 'categories')
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
             if categories is None:
                 return []
             elif isinstance(categories, list):
@@ -657,9 +660,13 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
                 return
             
             # Get user data using new functions
-            user_account = get_user_account(user_id)
-            user_preferences = get_user_preferences(user_id)
-            user_context = get_user_context(user_id)
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account')
+            prefs_result = get_user_data(user_id, 'preferences')
+            user_preferences = prefs_result.get('preferences')
+            # Get user context
+            context_result = get_user_data(user_id, 'context')
+            user_context_data = context_result.get('context')
             
             if not user_account:
                 update.message.reply_text("User account not found.")
@@ -667,9 +674,9 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             
             # Build user info message
             username = user_account.get('internal_username', 'Unknown')
-            preferred_name = user_context.get('preferred_name', '') if user_context else ''
-            categories = get_user_preferences(user_id, 'categories') or []
-            messaging_service = user_preferences.get('channel', {}).get('type', user_preferences.get('messaging_service', 'Unknown')) if user_preferences else 'Unknown'
+            preferred_name = user_context_data.get('preferred_name', '') if user_context_data else ''
+            categories = prefs_result.get('preferences', {}).get('categories', []) or []
+            messaging_service = user_preferences.get('channel', {}).get('type', 'Unknown') if user_preferences else 'Unknown'
             
             message = f"User: {username}"
             if preferred_name:
@@ -686,7 +693,8 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     def get_user_categories_for_telegram(self, user_id: str) -> List[str]:
         """Get user's message categories for Telegram bot."""
         try:
-            categories = get_user_preferences(user_id, 'categories')
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
             if categories is None:
                 return []
             elif isinstance(categories, list):

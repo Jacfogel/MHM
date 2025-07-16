@@ -22,7 +22,7 @@ from core.config import (
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
     HERMES_FILE_PATH  # Keep for fallback compatibility
 )
-from core.user_management import get_user_context
+# Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
 from bot.user_context_manager import user_context_manager
 from datetime import datetime
@@ -209,12 +209,13 @@ class AIChatBotSingleton:
         """
         prompt_lower = user_prompt.lower()
         
-        # Get basic user context for personalization
+        # Get user context
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context')
+        
         user_name = ""
         if user_id:
-            user_context = get_user_context(user_id)
-            if user_context:
-                user_name = user_context.get('preferred_name', '').strip()
+            user_name = user_context.get('preferred_name', '').strip()
         
         name_prefix = f"{user_name}, " if user_name else ""
         
@@ -352,7 +353,9 @@ class AIChatBotSingleton:
         """
         # Try to get recent user data for basic personalization
         recent_data = get_recent_responses(user_id, limit=5)
-        user_context = get_user_context(user_id)
+        # Get user context
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context')
         user_name = user_context.get('preferred_name', '') if user_context else ''
         name_prefix = f"{user_name}, " if user_name else ""
         

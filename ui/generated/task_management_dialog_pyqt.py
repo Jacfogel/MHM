@@ -19,38 +19,36 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGridLayout, QGroupBox, QLabel, QSizePolicy,
     QVBoxLayout, QWidget)
 
-def qtTrId(id): return id
-
 class Ui_Dialog_task_management(object):
     def setupUi(self, Dialog_task_management):
         if not Dialog_task_management.objectName():
             Dialog_task_management.setObjectName(u"Dialog_task_management")
         Dialog_task_management.resize(950, 601)
-        self.verticalLayout = QVBoxLayout(Dialog_task_management)
-        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.verticalLayout_Dialog_task_management = QVBoxLayout(Dialog_task_management)
+        self.verticalLayout_Dialog_task_management.setObjectName(u"verticalLayout_Dialog_task_management")
         self.label_task_management = QLabel(Dialog_task_management)
         self.label_task_management.setObjectName(u"label_task_management")
         self.label_task_management.setMinimumSize(QSize(0, 0))
 
-        self.verticalLayout.addWidget(self.label_task_management)
+        self.verticalLayout_Dialog_task_management.addWidget(self.label_task_management)
 
         self.groupBox_checkBox_enable_task_management = QGroupBox(Dialog_task_management)
         self.groupBox_checkBox_enable_task_management.setObjectName(u"groupBox_checkBox_enable_task_management")
         self.groupBox_checkBox_enable_task_management.setCheckable(True)
         self.groupBox_checkBox_enable_task_management.setChecked(False)
-        self.verticalLayout_3 = QVBoxLayout(self.groupBox_checkBox_enable_task_management)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.verticalLayout_groupBox_checkBox_enable_task_management = QVBoxLayout(self.groupBox_checkBox_enable_task_management)
+        self.verticalLayout_groupBox_checkBox_enable_task_management.setObjectName(u"verticalLayout_groupBox_checkBox_enable_task_management")
         self.widget_placeholder_task_settings = QWidget(self.groupBox_checkBox_enable_task_management)
         self.widget_placeholder_task_settings.setObjectName(u"widget_placeholder_task_settings")
-        self.verticalLayout_2 = QVBoxLayout(self.widget_placeholder_task_settings)
-        self.verticalLayout_2.setSpacing(2)
-        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_widget_placeholder_task_settings = QVBoxLayout(self.widget_placeholder_task_settings)
+        self.verticalLayout_widget_placeholder_task_settings.setSpacing(2)
+        self.verticalLayout_widget_placeholder_task_settings.setObjectName(u"verticalLayout_widget_placeholder_task_settings")
+        self.verticalLayout_widget_placeholder_task_settings.setContentsMargins(2, 2, 2, 2)
 
-        self.verticalLayout_3.addWidget(self.widget_placeholder_task_settings)
+        self.verticalLayout_groupBox_checkBox_enable_task_management.addWidget(self.widget_placeholder_task_settings)
 
 
-        self.verticalLayout.addWidget(self.groupBox_checkBox_enable_task_management)
+        self.verticalLayout_Dialog_task_management.addWidget(self.groupBox_checkBox_enable_task_management)
 
         self.groupBox_task_stats = QGroupBox(Dialog_task_management)
         self.groupBox_task_stats.setObjectName(u"groupBox_task_stats")
@@ -75,16 +73,16 @@ class Ui_Dialog_task_management(object):
         self.gridLayout.addWidget(self.label_total_tasks, 0, 0, 1, 1)
 
 
-        self.verticalLayout.addWidget(self.groupBox_task_stats)
+        self.verticalLayout_Dialog_task_management.addWidget(self.groupBox_task_stats)
 
         self.buttonBox_save_cancel = QDialogButtonBox(Dialog_task_management)
         self.buttonBox_save_cancel.setObjectName(u"buttonBox_save_cancel")
         self.buttonBox_save_cancel.setOrientation(Qt.Orientation.Horizontal)
         self.buttonBox_save_cancel.setStandardButtons(QDialogButtonBox.StandardButton.Cancel|QDialogButtonBox.StandardButton.Save)
 
-        self.verticalLayout.addWidget(self.buttonBox_save_cancel)
+        self.verticalLayout_Dialog_task_management.addWidget(self.buttonBox_save_cancel)
 
-        self.verticalLayout.setStretch(1, 1)
+        self.verticalLayout_Dialog_task_management.setStretch(1, 1)
 
         self.retranslateUi(Dialog_task_management)
 

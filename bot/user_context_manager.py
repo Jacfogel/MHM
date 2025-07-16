@@ -16,14 +16,12 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
 from core.logger import get_logger
-from user.user_context import UserContext
-from user.user_preferences import UserPreferences
-from core.user_management import get_user_account, get_user_preferences, get_user_context
+from core.user_management import get_user_data
 from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
 from core.message_management import get_last_10_messages
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
+from user.user_context import UserContext
+from user.user_preferences import UserPreferences
 
 logger = get_logger(__name__)
 
@@ -84,18 +82,20 @@ class UserContextManager:
         # Use existing UserContext and UserPreferences classes
         user_context = UserContext()
         user_context.load_user_data(user_id)
-        user_preferences = UserPreferences(user_id)
-        
-        # Also get additional data from new structure for completeness
-        user_account = get_user_account(user_id)
-        user_context_data = get_user_context(user_id)
-        if not user_account:
-            return {}
+        # Get user preferences
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
+        # Get user account
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account') or {}
+        # Get user context
+        context_result = get_user_data(user_id, 'context')
+        user_context_data = context_result.get('context') or {}
             
         return {
             'preferred_name': user_context.get_preferred_name() or user_context_data.get('preferred_name', ''),
             'active_categories': user_preferences.get_preference('categories') or user_preferences.get('categories', []),
-            'messaging_service': user_preferences.get_preference('channel', {}).get('type') or user_preferences.get_preference('messaging_service') or user_preferences.get('messaging_service', 'discord'),
+            'messaging_service': user_preferences.get_preference('channel', {}).get('type', ''),
             'active_schedules': self._get_active_schedules({})  # Schedules handled separately
         }
     
@@ -119,8 +119,8 @@ class UserContextManager:
                 activity_summary['last_response_date'] = timestamp_value.split(' ')[0]
         
         # Get recent message activity from all categories
-        user_preferences = get_user_preferences(user_id)
-        categories = user_preferences.get('categories', [])
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         
         total_recent_messages = 0
         most_recent_date = None
@@ -186,17 +186,14 @@ class UserContextManager:
     
     @handle_errors("getting user preferences", default_return={})
     def _get_user_preferences(self, user_id: str) -> Dict[str, Any]:
-        """Get user preferences and settings using existing UserPreferences class."""
-        user_preferences = UserPreferences(user_id)
-        
-        # Also get from utils as fallback
-        preferences = get_user_preferences(user_id)
-        
-        return {
-            'categories': user_preferences.get_preference('categories') or preferences.get('categories', []),
-            'messaging_service': user_preferences.get_preference('channel', {}).get('type') or user_preferences.get_preference('messaging_service') or user_preferences.get('messaging_service', 'discord'),
-            'email': user_preferences.get_preference('email') or preferences.get('email', '')
-        }
+        """Get user preferences using new structure."""
+        try:
+            prefs_result = get_user_data(user_id, 'preferences')
+            preferences = prefs_result.get('preferences', {})
+            return preferences
+        except Exception as e:
+            logger.error(f"Error getting preferences for user {user_id}: {e}")
+            return {}
     
     @handle_errors("getting mood trends", default_return={})
     def _get_mood_trends(self, user_id: str) -> Dict[str, Any]:
@@ -266,9 +263,11 @@ class UserContextManager:
     @handle_errors("getting minimal context", default_return={})
     def _get_minimal_context(self, user_id: str) -> Dict[str, Any]:
         """Fallback minimal context if full context generation fails."""
-        from core.user_management import get_user_account, get_user_context
-        user_account = get_user_account(user_id)
-        user_context = get_user_context(user_id)
+        # Legacy import removed - using get_user_data() instead
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account')
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context')
         preferred_name = user_context.get('preferred_name', '') if user_context else ''
         
         return {

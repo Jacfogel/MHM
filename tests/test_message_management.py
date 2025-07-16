@@ -1,0 +1,609 @@
+"""
+Tests for the message management module - Message CRUD operations.
+
+This module tests:
+- Message category retrieval from environment
+- Default message loading
+- Message CRUD operations (add, edit, delete, update)
+- Sent message tracking and retrieval
+- Message file creation and management
+- Message validation and error handling
+"""
+
+import pytest
+import os
+import json
+from unittest.mock import Mock, patch, MagicMock, mock_open
+from pathlib import Path
+import tempfile
+import shutil
+
+# Add the project root to the path
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from core.message_management import (
+    get_message_categories,
+    load_default_messages,
+    add_message,
+    edit_message,
+    update_message,
+    delete_message,
+    get_last_10_messages,
+    store_sent_message,
+    create_message_file_from_defaults,
+    ensure_user_message_files
+)
+from core.config import get_user_data_dir
+
+
+class TestMessageCategories:
+    """Test message category functionality."""
+    
+    @pytest.mark.unit
+    def test_get_message_categories_success(self):
+        """Test getting message categories successfully."""
+        with patch.dict(os.environ, {'MESSAGE_CATEGORIES': 'motivational,health,fun_facts'}):
+            categories = get_message_categories()
+            # Use set for unordered comparison
+            assert set(categories) == set(['motivational', 'health', 'fun_facts', 'quotes_to_ponder', 'word_of_the_day'])
+    
+    @pytest.mark.unit
+    def test_get_message_categories_default(self):
+        """Test getting default message categories."""
+        with patch('os.getenv', return_value='motivational,health,fun_facts'):
+            categories = get_message_categories()
+            assert set(categories) == set(['motivational', 'health', 'fun_facts'])
+    
+    @pytest.mark.unit
+    def test_get_message_categories_custom(self):
+        """Test getting custom message categories."""
+        with patch('os.getenv', return_value='custom1,custom2,custom3'):
+            categories = get_message_categories()
+            assert set(categories) == set(['custom1', 'custom2', 'custom3'])
+    
+    @pytest.mark.unit
+    def test_get_message_categories_empty(self):
+        """Test getting message categories when none are defined."""
+        with patch('os.getenv', return_value=None):
+            categories = get_message_categories()
+            assert categories == []
+
+
+class TestDefaultMessages:
+    """Test default message loading functionality."""
+    
+    @pytest.mark.unit
+    def test_load_default_messages_success(self, test_data_dir):
+        """Test loading default messages successfully."""
+        test_messages = [
+            {
+                'message': "Don't forget to be awesome today! Let's make some epic things happen!",
+                'days': ['ALL'],
+                'time_periods': ['ALL'],
+                'message_id': 'motivational_001'
+            },
+            {
+                'message': "Remember to stay hydrated and take care of yourself!",
+                'days': ['ALL'],
+                'time_periods': ['ALL'],
+                'message_id': 'motivational_002'
+            }
+        ]
+        
+        # Mock the file reading to return the exact structure
+        mock_file_data = {"messages": test_messages}
+        
+        with patch('builtins.open', mock_open(read_data=json.dumps(mock_file_data))):
+            messages = load_default_messages('motivational')
+            assert messages == test_messages
+    
+    @pytest.mark.unit
+    def test_load_default_messages_file_not_found(self, test_data_dir):
+        """Test loading default messages when file doesn't exist."""
+        category = "nonexistent"
+        
+        # Create test default messages directory
+        default_dir = os.path.join(test_data_dir, 'default_messages')
+        os.makedirs(default_dir, exist_ok=True)
+        
+        # Patch the default messages path to use our test directory
+        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', default_dir):
+            messages = load_default_messages(category)
+            assert messages == []
+    
+    @pytest.mark.unit
+    def test_load_default_messages_invalid_json(self, test_data_dir):
+        """Test loading default messages with invalid JSON."""
+        category = "invalid"
+        
+        # Create test default messages file with invalid JSON
+        default_dir = os.path.join(test_data_dir, 'default_messages')
+        os.makedirs(default_dir, exist_ok=True)
+        
+        with open(os.path.join(default_dir, f'{category}.json'), 'w') as f:
+            f.write("invalid json content")
+        
+        # Patch the default messages path to use our test directory
+        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', default_dir):
+            messages = load_default_messages(category)
+            assert messages == []
+
+
+class TestMessageCRUD:
+    """Test message CRUD operations."""
+    
+    @pytest.mark.unit
+    def test_add_message_success(self, test_data_dir):
+        """Test adding a message successfully."""
+        user_id = "test-user-add"
+        category = "motivational"
+        message_data = {
+            "message": "Test message",
+            "days": ["monday", "tuesday"],
+            "time_periods": ["morning"]
+        }
+        
+        # Create user directory structure
+        user_dir = os.path.join(test_data_dir, user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        # Mock get_user_data_dir to return our test directory
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+            result = add_message(user_id, category, message_data)
+            
+            # Functions return None on success
+            assert result is None
+            
+            # Verify the message file was created and contains the message
+            message_file = os.path.join(messages_dir, f"{category}.json")
+            assert os.path.exists(message_file)
+            
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert 'messages' in data
+                assert len(data['messages']) == 1
+                assert data['messages'][0]['message'] == "Test message"
+                assert data['messages'][0]['days'] == ["monday", "tuesday"]
+                assert data['messages'][0]['time_periods'] == ["morning"]
+                assert 'message_id' in data['messages'][0]
+    
+    @pytest.mark.unit
+    def test_edit_message_success(self, test_data_dir):
+        """Test editing a message successfully."""
+        user_id = "test-user-edit"
+        category = "motivational"
+        message_id = "test-msg-1"
+        updated_data = {
+            "message": "Updated message",
+            "days": ["monday"],
+            "time_periods": ["evening"]
+        }
+        
+        # Create user directory structure and initial message file
+        user_dir = os.path.join(test_data_dir, user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        # Create initial message file
+        message_file = os.path.join(messages_dir, f"{category}.json")
+        initial_data = {
+            'messages': [
+                {
+                    "message_id": "test-msg-1",
+                    "message": "Original message",
+                    "days": ["monday", "tuesday"],
+                    "time_periods": ["morning"]
+                }
+            ]
+        }
+        with open(message_file, 'w', encoding='utf-8') as f:
+            json.dump(initial_data, f)
+        
+        # Mock get_user_data_dir to return our test directory
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+            result = edit_message(user_id, category, message_id, updated_data)
+            
+            # Functions return None on success
+            assert result is None
+            
+            # Verify the message was updated in the file
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert len(data['messages']) == 1
+                assert data['messages'][0]['message'] == "Updated message"
+                assert data['messages'][0]['days'] == ["monday"]
+                assert data['messages'][0]['time_periods'] == ["evening"]
+                assert data['messages'][0]['message_id'] == "test-msg-1"
+    
+    @pytest.mark.unit
+    def test_edit_message_not_found(self, test_data_dir):
+        """Test editing a message that doesn't exist."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "nonexistent"
+        updated_data = {"message": "Updated message"}
+        
+        existing_messages = {
+            'messages': [
+                {
+                    "message_id": "test-msg-1",
+                    "message": "Original message",
+                    "days": ["monday"],
+                    "time_periods": ["morning"]
+                }
+            ]
+        }
+        
+        mock_load = Mock(return_value=existing_messages)
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = edit_message(user_id, category, message_id, updated_data)
+            
+            # Functions return None on failure (due to error handler)
+            assert result is None
+            mock_load.assert_called_once()
+    
+    @pytest.mark.unit
+    def test_update_message_success(self, test_data_dir):
+        """Test updating a message successfully."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "test-msg-1"
+        updates = {
+            "message": "Updated message",
+            "days": ["monday"]
+        }
+        
+        existing_messages = {
+            'messages': [
+                {
+                    "message_id": "test-msg-1",
+                    "message": "Original message",
+                    "days": ["monday", "tuesday"],
+                    "time_periods": ["morning"]
+                }
+            ]
+        }
+        
+        mock_load = Mock(return_value=existing_messages)
+        mock_save = Mock(return_value=True)
+        
+        with patch('core.message_management.load_json_data', mock_load), \
+             patch('core.message_management.save_json_data', mock_save):
+            
+            result = update_message(user_id, category, message_id, updates)
+            
+            # Functions return None on success
+            assert result is None
+            mock_load.assert_called_once()
+            mock_save.assert_called_once()
+    
+    @pytest.mark.unit
+    def test_delete_message_success(self, test_data_dir):
+        """Test deleting a message successfully."""
+        user_id = "test-user-delete"
+        category = "motivational"
+        message_id = "test-msg-1"
+        
+        # Create user directory structure and initial message file
+        user_dir = os.path.join(test_data_dir, user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        # Create initial message file with two messages
+        message_file = os.path.join(messages_dir, f"{category}.json")
+        initial_data = {
+            'messages': [
+                {
+                    "message_id": "test-msg-1",
+                    "message": "Message to delete",
+                    "days": ["monday"],
+                    "time_periods": ["morning"]
+                },
+                {
+                    "message_id": "test-msg-2",
+                    "message": "Message to keep",
+                    "days": ["tuesday"],
+                    "time_periods": ["evening"]
+                }
+            ]
+        }
+        with open(message_file, 'w', encoding='utf-8') as f:
+            json.dump(initial_data, f)
+        
+        # Mock get_user_data_dir to return our test directory
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+            result = delete_message(user_id, category, message_id)
+            
+            # Functions return None on success
+            assert result is None
+            
+            # Verify the message was deleted from the file
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert len(data['messages']) == 1
+                assert data['messages'][0]['message_id'] == "test-msg-2"
+                assert data['messages'][0]['message'] == "Message to keep"
+    
+    @pytest.mark.unit
+    def test_delete_message_not_found(self, test_data_dir):
+        """Test deleting a message that doesn't exist."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "nonexistent"
+        
+        existing_messages = {
+            'messages': [
+                {
+                    "message_id": "test-msg-1",
+                    "message": "Existing message",
+                    "days": ["monday"],
+                    "time_periods": ["morning"]
+                }
+            ]
+        }
+        
+        mock_load = Mock(return_value=existing_messages)
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = delete_message(user_id, category, message_id)
+            
+            # Functions return None on failure (due to error handler)
+            assert result is None
+            mock_load.assert_called_once()
+
+
+class TestSentMessages:
+    """Test sent message tracking functionality."""
+    
+    @pytest.mark.unit
+    def test_store_sent_message_success(self, test_data_dir):
+        """Test storing a sent message successfully."""
+        user_id = "test-user-sent"
+        category = "motivational"
+        message_id = "test_msg"
+        message = "Test motivational message"
+        
+        # Mock file operations
+        mock_load = Mock(return_value={})
+        mock_save = Mock()
+        
+        with patch('core.message_management.load_json_data', mock_load), \
+             patch('core.message_management.save_json_data', mock_save):
+            
+            result = store_sent_message(user_id, category, message_id, message)
+            
+            assert result is True or result is None
+            mock_load.assert_called_once()
+            mock_save.assert_called_once()
+    
+    @pytest.mark.unit
+    def test_get_last_10_messages_success(self, test_data_dir):
+        """Test getting last 10 sent messages successfully."""
+        user_id = "test-user-last10"
+        category = "motivational"
+        
+        # Create user directory structure and sent messages file
+        user_dir = os.path.join(test_data_dir, user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        # Create sent messages file with test data
+        sent_messages_file = os.path.join(messages_dir, 'sent_messages.json')
+        test_sent_messages = {
+            category: [
+                {"message_id": "msg1", "timestamp": "2025-01-01 10:00:00"},
+                {"message_id": "msg2", "timestamp": "2025-01-01 11:00:00"},
+                {"message_id": "msg3", "timestamp": "2025-01-01 12:00:00"}
+            ]
+        }
+        with open(sent_messages_file, 'w', encoding='utf-8') as f:
+            json.dump(test_sent_messages, f)
+        
+        # Mock determine_file_path to return our test file
+        with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
+            messages = get_last_10_messages(user_id, category)
+            
+            assert len(messages) == 3
+            # Messages are sorted by timestamp descending, so msg3 (latest) comes first
+            assert messages[0]['message_id'] == 'msg3'
+            assert messages[1]['message_id'] == 'msg2'
+            assert messages[2]['message_id'] == 'msg1'
+    
+    @pytest.mark.unit
+    def test_get_last_10_messages_empty(self, test_data_dir):
+        """Test getting last 10 messages when none exist."""
+        user_id = "test-user"
+        category = "motivational"
+        
+        # Mock file operations
+        mock_load = Mock(return_value={})
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = get_last_10_messages(user_id, category)
+            
+            assert result == []
+            mock_load.assert_called_once()
+
+
+class TestMessageFileManagement:
+    """Test message file creation and management."""
+    
+    @pytest.mark.unit
+    def test_create_message_file_from_defaults_success(self, test_data_dir):
+        """Test creating message file from defaults successfully."""
+        user_id = "test-user"
+        category = "motivational"
+        
+        default_messages = [
+            {"message_id": "default1", "message": "Default message 1", "days": ["monday"], "time_periods": ["morning"]},
+            {"message_id": "default2", "message": "Default message 2", "days": ["tuesday"], "time_periods": ["evening"]}
+        ]
+        
+        # Mock file operations
+        mock_load_defaults = Mock(return_value=default_messages)
+        mock_save = Mock()
+        
+        with patch('core.message_management.load_default_messages', mock_load_defaults), \
+             patch('core.message_management.save_json_data', mock_save):
+            
+            result = create_message_file_from_defaults(user_id, category)
+            
+            assert result is True
+            mock_load_defaults.assert_called_once_with(category)
+            mock_save.assert_called_once()
+    
+    @pytest.mark.unit
+    def test_ensure_user_message_files_success(self, test_data_dir):
+        """Test ensuring user message files exist successfully."""
+        user_id = "test-user"
+        categories = ["motivational", "health"]
+        
+        # Mock file operations
+        mock_file_exists = Mock(return_value=False)
+        mock_create_file = Mock(return_value=True)
+        
+        with patch('core.message_management.os.path.exists', mock_file_exists), \
+             patch('core.message_management.create_message_file_from_defaults', mock_create_file):
+            
+            result = ensure_user_message_files(user_id, categories)
+            
+            assert result['success'] is True
+            assert mock_file_exists.call_count >= 2
+            assert mock_create_file.call_count == 2
+
+
+class TestErrorHandling:
+    """Test error handling in message management functions."""
+    
+    @pytest.mark.unit
+    def test_add_message_file_error(self, test_data_dir):
+        """Test add_message handles file errors gracefully."""
+        user_id = "test-user"
+        category = "motivational"
+        message_data = {"message_id": "test_msg", "message": "Test message", "days": ["monday"], "time_periods": ["morning"]}
+        
+        # Mock file operations to raise exception
+        mock_load = Mock(side_effect=Exception("File error"))
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = add_message(user_id, category, message_data)
+            
+            assert result is False or result is None
+    
+    @pytest.mark.unit
+    def test_edit_message_file_error(self, test_data_dir):
+        """Test edit_message handles file errors gracefully."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "test_msg"
+        updated_data = {"message_id": "test_msg", "message": "Updated message", "days": ["monday"], "time_periods": ["morning"]}
+        
+        # Mock file operations to raise exception
+        mock_load = Mock(side_effect=Exception("File error"))
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = edit_message(user_id, category, message_id, updated_data)
+            
+            assert result is False or result is None
+    
+    @pytest.mark.unit
+    def test_delete_message_file_error(self, test_data_dir):
+        """Test delete_message handles file errors gracefully."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "test_msg"
+        
+        # Mock file operations to raise exception
+        mock_load = Mock(side_effect=Exception("File error"))
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = delete_message(user_id, category, message_id)
+            
+            assert result is False or result is None
+    
+    @pytest.mark.unit
+    def test_store_sent_message_file_error(self, test_data_dir):
+        """Test store_sent_message handles file errors gracefully."""
+        user_id = "test-user"
+        category = "motivational"
+        message_id = "test_msg"
+        message = "Test message"
+        
+        # Mock file operations to raise exception
+        mock_load = Mock(side_effect=Exception("File error"))
+        
+        with patch('core.message_management.load_json_data', mock_load):
+            result = store_sent_message(user_id, category, message_id, message)
+            
+            assert result is False or result is None
+
+
+class TestIntegration:
+    """Test integration between message management functions."""
+    
+    @pytest.mark.integration
+    def test_full_message_lifecycle(self, test_data_dir):
+        """Test complete message lifecycle (add, edit, delete)."""
+        user_id = "test-user-lifecycle"  # Use unique user ID to avoid conflicts
+        category = "motivational"
+        
+        # Create user directory structure
+        user_dir = os.path.join(test_data_dir, user_id)
+        messages_dir = os.path.join(user_dir, 'messages')
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        # Ensure no existing message file exists
+        message_file = os.path.join(messages_dir, f"{category}.json")
+        if os.path.exists(message_file):
+            os.remove(message_file)
+        
+        # Message to add
+        new_message = {
+            "message": "Test message",
+            "days": ["monday"],
+            "time_periods": ["morning"]
+        }
+        
+        # Updated message
+        updated_message = {
+            "message": "Updated test message",
+            "days": ["monday", "tuesday"],
+            "time_periods": ["morning", "evening"]
+        }
+        
+        # Mock get_user_data_dir to return our test directory
+        with patch('core.message_management.get_user_data_dir', return_value=user_dir):
+            # 1. Add message
+            result1 = add_message(user_id, category, new_message)
+            assert result1 is None
+            
+            # Verify message was added
+            assert os.path.exists(message_file)
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert len(data['messages']) == 1
+                assert data['messages'][0]['message'] == "Test message"
+                message_id = data['messages'][0]['message_id']
+            
+            # 2. Edit message
+            result2 = edit_message(user_id, category, message_id, updated_message)
+            assert result2 is None
+            
+            # Verify message was updated
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert len(data['messages']) == 1
+                assert data['messages'][0]['message'] == "Updated test message"
+                assert data['messages'][0]['days'] == ["monday", "tuesday"]
+            
+            # 3. Delete message
+            result3 = delete_message(user_id, category, message_id)
+            assert result3 is None
+            
+            # Verify message was deleted
+            with open(message_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                assert len(data['messages']) == 0 

@@ -5,7 +5,7 @@ from PySide6.QtCore import Signal
 
 # Import core functionality
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
-from core.user_management import get_user_preferences, update_user_preferences, get_user_account, update_user_account
+from core.user_management import update_user_preferences, update_user_account, get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 
@@ -20,12 +20,11 @@ class TaskManagementDialog(QDialog):
         self.ui = Ui_Dialog_task_management()
         self.ui.setupUi(self)
 
-        # Load user account to set groupbox checked state
-        tasks_enabled = False
-        if self.user_id:
-            account = get_user_account(self.user_id) or {}
-            features = account.get('features', {})
-            tasks_enabled = features.get('task_management') == 'enabled'
+        # Get user account
+        user_data_result = get_user_data(self.user_id, 'account')
+        account = user_data_result.get('account') or {}
+        features = account.get('features', {})
+        tasks_enabled = features.get('task_management') == 'enabled'
         self.ui.groupBox_checkBox_enable_task_management.setChecked(tasks_enabled)
 
         # Add the task management widget to the placeholder
@@ -71,12 +70,14 @@ class TaskManagementDialog(QDialog):
             task_settings = self.task_widget.get_task_settings()
             time_periods = task_settings.get('time_periods', {})
             
+            logger.info(f"Saving task time periods for user {self.user_id}: {time_periods}")
             # When saving periods
             set_schedule_periods(self.user_id, "tasks", time_periods)
             clear_schedule_periods_cache(self.user_id, "tasks")
             
             # Update user account features
-            account = get_user_account(self.user_id) or {}
+            user_data_result = get_user_data(self.user_id, 'account')
+            account = user_data_result.get('account') or {}
             if 'features' not in account:
                 account['features'] = {}
             account['features']['task_management'] = 'enabled' if self.ui.groupBox_checkBox_enable_task_management.isChecked() else 'disabled'

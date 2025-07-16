@@ -1,0 +1,86 @@
+---
+description: "Audit rules for documentation and analysis - mandatory audit-first protocol"
+globs: *.md,*.txt,*.mdc
+alwaysApply: false
+priority: 3
+version: "1.1.0"
+lastUpdated: "2025-07-15"
+relatedFiles: ["ai_tools/TRIGGER.md", "AI_RULES.md"]
+---
+# Audit Rules - Documentation & Analysis
+
+## 🚨 Audit-First Protocol (CRITICAL)
+
+### **BEFORE** creating any documentation, function registry, or comprehensive analysis:
+1. **ALWAYS** run `python ai_tools/quick_audit.py` first
+2. **ALWAYS** show audit results to user with statistics
+3. **NEVER** create documentation from partial information
+4. **NEVER** assume patterns apply everywhere
+5. **ALWAYS** ask for user approval before proceeding
+
+## 🔍 Universal Triggers (Stop and Audit)
+
+### **Red Flags - Stop and Audit**
+- User asks for "complete" documentation
+- User mentions "accuracy" or "completeness"
+- User wants "function registry" or "dependency map"
+- User mentions "systematic" or "comprehensive"
+- User expresses concern about trust or reliability
+- User asks for "support system" or "best practices"
+- User requests any new documentation file
+- User asks for "how to" or "what works" for collaboration
+- User mentions "research" or "what others have done"
+- User asks for any kind of system or framework
+
+### **Universal Trigger - ANY Documentation Request**
+- **ANY** request for documentation, guides, systems, frameworks, or best practices
+- **ANY** request for "how to" or "what works" 
+- **ANY** request for new files or comprehensive information
+- **ANY** request that could result in creating documentation
+- **WHEN IN DOUBT, AUDIT FIRST**
+
+### **When User Requests Documentation**
+- **NEVER** create documentation immediately
+- **ALWAYS** say: "Let me run an audit first to get accurate information"
+- **ALWAYS** show audit results before creating anything
+- **ALWAYS** ask: "Should I proceed with this data?"
+
+## 🛠️ Required Audit Scripts
+- `python ai_tools/quick_audit.py` - For comprehensive overview
+- `python ai_tools/function_discovery.py` - For function analysis
+- `python ai_tools/audit_function_registry.py` - For function documentation
+- `python ai_tools/audit_module_dependencies.py` - For dependency maps
+- `python ai_tools/analyze_documentation.py` - For documentation consolidation
+
+## 🔄 Audit-First Workflow
+1. **Run audit script** to get actual data
+2. **Show results** to user with statistics
+3. **Ask for approval** before proceeding
+4. **Use audit data** as foundation for documentation
+5. **Verify completeness** before presenting
+
+## ✅ Success Criteria
+- Audit results shown before any documentation
+- User approves data before proceeding
+- Documentation based on actual code, not assumptions
+- Completeness statistics provided
+- User trusts the process
+
+## 🛡️ Failure Prevention
+- If no audit script exists, create one first
+- If audit shows gaps, acknowledge them
+- If user questions accuracy, run audit
+- If documentation seems incomplete, run audit
+
+## 📝 Documentation Guidelines
+- Add new information to existing md files when possible
+- Only create new md files in subdirectories that don't already have one
+- Keep documentation concise and scannable
+
+## 📁 Scripts Organization
+- Place testing, migration, debug, and utility scripts in `scripts/` directory
+- Use descriptive filenames and include comments
+- Remove obsolete scripts when no longer needed
+- Document significant scripts in `CHANGELOG.md`
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the audit.mdc rule"

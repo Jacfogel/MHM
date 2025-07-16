@@ -11,7 +11,8 @@ import os
 from tkinter import simpledialog
 
 from core.file_operations import load_json_data, save_json_data, determine_file_path, get_user_file_path, get_user_data_dir
-from core.user_management import load_user_info_data, save_user_info_data
+from core.user_management import update_user_preferences, get_user_data
+from core.file_operations import create_user_files
 from core.message_management import edit_message, add_message, delete_message, get_message_categories, update_message
 from core.schedule_management import (
     get_schedule_time_periods, delete_schedule_period, set_schedule_period_active,
@@ -1101,13 +1102,16 @@ def load_and_display_schedule(view_schedule_window, parent, category, scheduler_
                     # Skip restoring ALL, try next
                     continue
                 # Load user data to ensure the period is restored in the correct state
-                from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+                from core.user_management import get_user_data, update_user_account, update_user_preferences, update_user_context
                 from core.schedule_management import set_schedule_periods
                 
                 # Get current user data
-                user_account = get_user_account(user_id) or {}
-                user_preferences = get_user_preferences(user_id) or {}
-                user_context = get_user_context(user_id) or {}
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account') or {}
+                prefs_result = get_user_data(user_id, 'preferences')
+                user_preferences = prefs_result.get('preferences') or {}
+                context_result = get_user_data(user_id, 'context')
+                user_context = context_result.get('context') or {}
                 
                 # Update schedules in preferences
                 if 'schedules' not in user_preferences:
@@ -1156,11 +1160,14 @@ def setup_communication_settings_window(parent, user_id):
     
     try:
         # Load preferences and profile separately for accuracy using new functions
-        from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+        from core.user_management import get_user_data, update_user_account, update_user_preferences, update_user_context
         
-        user_account = get_user_account(user_id) or {}
-        user_preferences = get_user_preferences(user_id) or {}
-        user_context = get_user_context(user_id) or {}
+        user_data_result = get_user_data(user_id, 'account')
+        user_account = user_data_result.get('account') or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
+        context_result = get_user_data(user_id, 'context')
+        user_context = context_result.get('context') or {}
         
         # Ensure preferences structure exists
         if not user_preferences:
@@ -1168,7 +1175,7 @@ def setup_communication_settings_window(parent, user_id):
         
         preferences = user_preferences
         profile = user_account
-        current_service = preferences.get('channel', {}).get('type', preferences.get('messaging_service', 'email'))
+        current_service = preferences.get('channel', {}).get('type', 'email')
         current_email = profile.get('email', '')
         current_phone = profile.get('phone', '')
         current_discord_id = profile.get('discord_user_id', '')
@@ -1292,7 +1299,6 @@ def setup_communication_settings_window(parent, user_id):
             
             try:
                 # Update user preferences and contact info
-                preferences['messaging_service'] = new_service
                 preferences['discord_user_id'] = new_discord_id
                 profile['email'] = new_email
                 profile['phone'] = new_phone
@@ -1331,9 +1337,10 @@ def setup_category_management_window(parent, user_id):
     
     try:
         # Use new user management functions
-        from core.user_management import get_user_preferences, update_user_preferences
+        from core.user_management import update_user_preferences
         
-        user_preferences = get_user_preferences(user_id) or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
         preferences = user_preferences
         current_categories = preferences.get('categories', [])
         available_categories = get_message_categories()
@@ -1445,7 +1452,8 @@ def setup_category_management_window(parent, user_id):
                 removed_categories = original_set - new_set
                 
                 # Update categories in preferences using new functions
-                user_preferences = get_user_preferences(user_id) or {}
+                prefs_result = get_user_data(user_id, 'preferences')
+                user_preferences = prefs_result.get('preferences') or {}
                 user_preferences['categories'] = selected_categories
                 
                 # Save changes
@@ -1505,9 +1513,10 @@ def setup_checkin_management_window(root, user_id):
 
     try:
         # Use new user management functions
-        from core.user_management import get_user_preferences, update_user_preferences
+        from core.user_management import update_user_preferences
         
-        user_preferences = get_user_preferences(user_id) or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
         preferences = user_preferences
         current_checkin_prefs = preferences.get('checkins', {})
         
@@ -1781,11 +1790,14 @@ def setup_checkin_management_window(root, user_id):
                     checkin_window.destroy()
                     return
                 # Load user data using new structure
-                from core.user_management import get_user_account, get_user_preferences, get_user_context, update_user_account, update_user_preferences, update_user_context
+                from core.user_management import get_user_data, update_user_account, update_user_preferences, update_user_context
                 
-                user_account = get_user_account(user_id) or {}
-                user_preferences = get_user_preferences(user_id) or {}
-                user_context = get_user_context(user_id) or {}
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account') or {}
+                prefs_result = get_user_data(user_id, 'preferences')
+                user_preferences = prefs_result.get('preferences') or {}
+                context_result = get_user_data(user_id, 'context')
+                user_context = context_result.get('context') or {}
                 
                 # Ensure preferences structure exists
                 if not user_preferences:
@@ -2075,9 +2087,10 @@ def setup_task_management_window(parent, user_id):
 
     try:
         # Load user data using new structure
-        from core.user_management import get_user_preferences, update_user_preferences
+        from core.user_management import get_user_data, update_user_preferences
         
-        user_preferences = get_user_preferences(user_id) or {}
+        prefs_result = get_user_data(user_id, 'preferences')
+        user_preferences = prefs_result.get('preferences') or {}
         if 'tasks' not in user_preferences:
             user_preferences['tasks'] = {}
         task_preferences = user_preferences.get('tasks', {})
@@ -2142,10 +2155,10 @@ def setup_task_management_window(parent, user_id):
                 del_btn.pack(side="left", padx=(5, 0))
                 period_widgets.append(row)
                 period['__vars'] = {
-                    'start': start_var, 'end': end_var, 'active': active_var
+                    'start_time': start_var, 'end_time': end_var, 'active': active_var
                 }
         render_periods()
-        tk.Button(periods_box, text="Add New Period", command=lambda: (reminder_periods.append({'start': '09:00', 'end': '10:00', 'active': True}), render_periods())).pack(anchor="w", pady=5)
+        tk.Button(periods_box, text="Add New Period", command=lambda: (reminder_periods.append({'start_time': '09:00', 'end_time': '10:00', 'active': True}), render_periods())).pack(anchor="w", pady=5)
 
         # Right: Reminder Days box (wider)
         days_box = tk.LabelFrame(columns_frame, text="Reminder Days", font=("Arial", 10, "bold"))
@@ -2187,7 +2200,7 @@ def setup_task_management_window(parent, user_id):
         # When enabling task management for the first time, add a default period if none exist
         def on_enable_toggle(*_):
             if tasks_enabled_var.get() == 1 and not reminder_periods:
-                reminder_periods.append({'start': '09:00', 'end': '10:00', 'active': True})
+                reminder_periods.append({'start_time': '09:00', 'end_time': '10:00', 'active': True})
                 render_periods()
         tasks_enabled_var.trace_add('write', on_enable_toggle)
 
@@ -2222,8 +2235,8 @@ def setup_task_management_window(parent, user_id):
                 new_periods = []
                 for period in reminder_periods:
                     vars = period.get('__vars', {})
-                    start = vars['start'].get().strip()
-                    end = vars['end'].get().strip()
+                    start = vars['start_time'].get().strip()
+                    end = vars['end_time'].get().strip()
                     try:
                         formatted_start = validate_and_format_time(start)
                         formatted_end = validate_and_format_time(end)
@@ -2231,7 +2244,7 @@ def setup_task_management_window(parent, user_id):
                         messagebox.showerror("Error", f"Invalid time format: {e}")
                         return
                     active = vars['active'].get() == 1
-                    new_periods.append({'start': formatted_start, 'end': formatted_end, 'active': active})
+                    new_periods.append({'start_time': formatted_start, 'end_time': formatted_end, 'active': active})
                 # Gather days from UI (as names)
                 days = [day for day, v in zip(days_of_week, day_vars) if v.get() == 1]
                 if not days:
@@ -3103,13 +3116,13 @@ def setup_personalization_management_window(parent, user_id):
     def open_personalization_dialog():
         try:
             from ui.dialogs.user_profile_dialog import open_personalization_dialog
-            from core.personalization_management import load_personalization_data
+            from core.user_management import get_user_data, update_user_context
             
             def on_personalization_save(data):
                 """Callback when personalization data is saved."""
                 try:
-                    from core.personalization_management import save_personalization_data
-                    save_personalization_data(user_id, data)
+                    # Update the context data with personalization fields
+                    update_user_context(user_id, data)
                     messagebox.showinfo("Success", "Personalization data updated successfully!")
                     logger.info(f"Personalization data updated for user {user_id}")
                 except Exception as e:
@@ -3117,7 +3130,8 @@ def setup_personalization_management_window(parent, user_id):
                     messagebox.showerror("Error", f"Failed to save personalization data: {str(e)}")
             
             # Load existing data to pass to dialog
-            existing_data = load_personalization_data(user_id)
+            context_result = get_user_data(user_id, 'context')
+            existing_data = context_result.get('context', {})
             open_personalization_dialog(personalization_window, user_id, on_personalization_save, existing_data)
             
         except Exception as e:
@@ -3137,9 +3151,10 @@ def setup_personalization_management_window(parent, user_id):
     
     # Show current personalization summary
     try:
-        from core.personalization_management import load_personalization_data
+        from core.user_management import get_user_data
         
-        personalization_data = load_personalization_data(user_id)
+        context_result = get_user_data(user_id, 'context')
+        personalization_data = context_result.get('context', {})
         if personalization_data:
             summary_frame = ttk.LabelFrame(main_frame, text="Current Personalization Summary")
             summary_frame.pack(fill=tk.X, pady=10)

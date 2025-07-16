@@ -13,13 +13,13 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_Form_task_settings">
    <item>
-    <widget class="QGroupBox" name="groupBox_reminder_time_periods">
+    <widget class="QGroupBox" name="groupBox_task_reminder_time_periods">
      <property name="title">
       <string>Reminder Time Periods</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,0">
+     <layout class="QVBoxLayout" name="verticalLayout_groupBox_task_reminder_time_periods" stretch="1,0">
       <property name="spacing">
        <number>2</number>
       </property>
@@ -36,7 +36,7 @@
        <number>2</number>
       </property>
       <item>
-       <widget class="QScrollArea" name="scrollArea_time_periods">
+       <widget class="QScrollArea" name="scrollArea_task_reminder_time_periods">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -46,7 +46,7 @@
         <property name="widgetResizable">
          <bool>true</bool>
         </property>
-        <widget class="QWidget" name="scrollAreaWidgetContents_periods">
+        <widget class="QWidget" name="scrollAreaWidgetContents_task_reminder_time_periods">
          <property name="geometry">
           <rect>
            <x>0</x>
@@ -61,7 +61,7 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
+         <layout class="QVBoxLayout" name="verticalLayout_scrollAreaWidgetContents_task_reminder_time_periods">
           <property name="spacing">
            <number>4</number>
           </property>
@@ -82,8 +82,8 @@
        </widget>
       </item>
       <item alignment="Qt::AlignmentFlag::AlignLeft">
-       <widget class="QWidget" name="widget_time_period_buttons" native="true">
-        <layout class="QHBoxLayout" name="horizontalLayout">
+       <widget class="QWidget" name="widget_task_reminder_time_period_buttons" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_widget_task_reminder_time_period_buttons">
          <property name="spacing">
           <number>4</number>
          </property>
@@ -100,7 +100,7 @@
           <number>4</number>
          </property>
          <item>
-          <widget class="QPushButton" name="pushButton_add_new_period">
+          <widget class="QPushButton" name="pushButton_task_reminder_add_new_period">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -113,7 +113,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_undo_last__time_period_delete">
+          <widget class="QPushButton" name="pushButton_undo_last__task_reminder_time_period_delete">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>

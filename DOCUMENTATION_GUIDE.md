@@ -1,6 +1,33 @@
 # Documentation Guide
 
+> **Audience**: Developers and contributors  
+> **Purpose**: Documentation organization, standards, and maintenance  
+> **Style**: Reference, organizational, comprehensive
+
 This guide defines the audience and purpose of each documentation file in the MHM project.
+
+## 📊 Documentation Summary Table
+
+| File | Audience | Purpose | Style |
+|------|----------|---------|-------|
+| **README.md** | New users & developers | Project overview and features | Comprehensive, beginner-friendly |
+| **HOW_TO_RUN.md** | New users & developers | Setup and installation | Step-by-step, troubleshooting-focused |
+| **DEVELOPMENT_WORKFLOW.md** | Developers & contributors | Safe development practices | Comprehensive, step-by-step, supportive |
+| **QUICK_REFERENCE.md** | Developers & contributors | Essential commands and troubleshooting | Concise, scannable, action-oriented |
+| **ARCHITECTURE.md** | Developers & contributors | System design and components | Technical, detailed, reference-oriented |
+| **CHANGELOG.md** | Developers & contributors | Track changes and system evolution | Chronological, detailed, reference-oriented |
+| **TODO.md** | Developers & contributors | Current priorities and planned work | Organized, actionable, beginner-friendly |
+| **DOCUMENTATION_GUIDE.md** | Developers & contributors | Documentation organization and standards | Reference, organizational, comprehensive |
+| **TESTING_IMPROVEMENT_PLAN.md** | Developers & contributors | Testing strategy and improvements | Organized, actionable, beginner-friendly |
+| **UI_MIGRATION_PLAN.md** | Developers & contributors | UI migration and project reorganization | Comprehensive, step-by-step, beginner-friendly |
+
+## [Navigation](#navigation)
+- **[Project Overview](README.md)** - What MHM is and what it does
+- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
+- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
+- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
+- **[Architecture](ARCHITECTURE.md)** - System design and components
+- **[Testing Plan](TESTING_IMPROVEMENT_PLAN.md)** - Testing strategy and improvements
 
 ## 📋 Documentation Categories
 
@@ -79,12 +106,38 @@ This guide defines the audience and purpose of each documentation file in the MH
 - Update this guide to include the new file
 - Consider if it could be consolidated with existing docs
 
+## 🔍 Audit-First Protocol
+
+### What It Is
+The Audit-First Protocol is a mandatory system that ensures all documentation and analysis is based on actual data, not assumptions. Before creating any significant documentation, AI assistants must run audit tools to get accurate information.
+
+### How It Works
+1. **Run Audit Tools**: Execute `python ai_tools/quick_audit.py` to get comprehensive system data
+2. **Show Results**: Display audit statistics and findings to the user
+3. **Get Approval**: Ask for user approval before proceeding with documentation
+4. **Use Real Data**: Base all documentation on actual audit results, not assumptions
+
+### Available Audit Tools
+- **`function_discovery.py`** - Find all functions in the codebase
+- **`decision_support.py`** - Analyze code complexity and identify issues
+- **`audit_function_registry.py`** - Check function documentation completeness
+- **`audit_module_dependencies.py`** - Map module dependencies
+- **`analyze_documentation.py`** - Analyze documentation coverage and redundancy
+
+### When to Use
+- Before creating any new documentation
+- Before updating existing documentation significantly
+- When user asks for "complete" or "comprehensive" information
+- When accuracy and completeness are critical
+- When user expresses concern about trust or reliability
+
 ## 🎯 Quick Reference
 
 ### For AI Assistants:
 - Start with `AGENTS.md` for core rules
 - Check `.cursor/rules/` for specific guidelines
 - Keep responses concise and focused
+- **ALWAYS** use Audit-First Protocol for documentation
 
 ### For Human Developer:
 - Start with `README.md` for overview

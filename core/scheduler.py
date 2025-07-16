@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import logging
 from typing import List, Dict, Any
 
-from core.user_management import get_all_user_ids, get_user_preferences
+from core.user_management import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation, get_reminder_periods_and_days
 from core.service_utilities import load_and_localize_datetime
 from core.logger import get_logger
@@ -19,6 +19,7 @@ from user.user_context import UserContext
 from core.error_handling import (
     error_handler, SchedulerError, CommunicationError, handle_errors
 )
+from core.user_management import get_user_data
 
 # Suppress debug logging from the schedule library to reduce log spam
 schedule_logger = logging.getLogger('schedule')
@@ -48,7 +49,9 @@ class SchedulerManager:
                 # Then set up recurring daily scheduling at 01:00 for all users
                 user_ids = get_all_user_ids()
                 for user_id in user_ids:
-                    categories = get_user_preferences(user_id, 'categories')
+                    # Get user categories
+                    prefs_result = get_user_data(user_id, 'preferences')
+                    categories = prefs_result.get('preferences', {}).get('categories', [])
                     for category in categories:
                         # Check if a job already exists for this user and category before scheduling
                         if not self.is_job_for_category(None, user_id, category):
@@ -124,8 +127,9 @@ class SchedulerManager:
         if category == "tasks":
             # For tasks, check if task management is enabled and schedule task reminders
             try:
-                from core.user_management import get_user_account
-                user_account = get_user_account(active_user_id)
+                # Get user account data
+                user_data_result = get_user_data(active_user_id, 'account')
+                user_account = user_data_result.get('account')
                 if user_account and user_account.get('features', {}).get('task_management') == 'enabled':
                     self.schedule_all_task_reminders(active_user_id)
                     logger.info(f"Rescheduled task reminders for user {active_user_id}")
@@ -176,7 +180,8 @@ class SchedulerManager:
         for user_id in user_ids:
             try:
                 # Schedule regular message categories
-                categories = get_user_preferences(user_id, 'categories')
+                prefs_result = get_user_data(user_id, 'preferences')
+                categories = prefs_result.get('preferences', {}).get('categories', [])
                 if isinstance(categories, list):
                     if categories:  # Only process if list is not empty
                         for category in categories:
@@ -192,8 +197,9 @@ class SchedulerManager:
                 
                 # Schedule check-ins if enabled
                 try:
-                    from core.user_management import get_user_account
-                    user_account = get_user_account(user_id)
+                    # Get user account data
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account')
                     if user_account and user_account.get('features', {}).get('checkins') == 'enabled':
                         # Check if check-in category exists in schedules
                         time_periods = get_schedule_time_periods(user_id, "checkin")
@@ -331,7 +337,11 @@ class SchedulerManager:
                 return
 
             period_data = time_periods[period_name]
-            checkin_time = period_data['start']  # Use start time as the exact time
+            # Use canonical keys with fallback to legacy keys
+            checkin_time = period_data.get('start_time') or period_data.get('start')
+            if not checkin_time:
+                logger.error(f"Missing start time for check-in period {period_name} in user {user_id}")
+                return
             
             # Create datetime for today at the specified time
             tz = pytz.timezone('America/Regina')
@@ -446,8 +456,16 @@ class SchedulerManager:
             logger.error(f"Period '{period}' not found in time periods for user {user_id}, category {category}. Available periods: {list(time_periods.keys())}")
             return None
             
-        period_start_time = datetime.strptime(time_periods[period]['start'], "%H:%M").time()
-        period_end_time = datetime.strptime(time_periods[period]['end'], "%H:%M").time()
+        # Use canonical keys with fallback to legacy keys
+        start_time = time_periods[period].get('start_time') or time_periods[period].get('start')
+        end_time = time_periods[period].get('end_time') or time_periods[period].get('end')
+        
+        if not start_time or not end_time:
+            logger.error(f"Missing start/end time for period {period} in user {user_id}, category {category}")
+            return None
+            
+        period_start_time = datetime.strptime(start_time, "%H:%M").time()
+        period_end_time = datetime.strptime(end_time, "%H:%M").time()
 
         # Create datetime objects for today
         start_datetime = datetime.combine(now_datetime.date(), period_start_time, tzinfo=tz)
@@ -610,7 +628,7 @@ class SchedulerManager:
                         at_time_str = f"{time_parts[0]}:{time_parts[1]}"
                         try:
                             schedule.every().day.at(at_time_str).do(job.job_func, *job.job_func.args)
-                            logger.debug(f"Re-added job with time: {at_time_str}")
+                            # Only log re-added jobs at TRACE level or when troubleshooting
                         except Exception as e:
                             logger.warning(f"Could not re-add job with time {at_time_str}: {e}")
                     else:
@@ -702,16 +720,24 @@ class SchedulerManager:
                 # Pick one random task for this period
                 selected_task = random.choice(incomplete_tasks)
                 
+                # Use canonical keys with fallback to legacy keys for task reminder periods
+                start_time = period.get('start_time') or period.get('start')
+                end_time = period.get('end_time') or period.get('end')
+                
+                if not start_time or not end_time:
+                    logger.warning(f"Missing start/end time for task reminder period in user {user_id}")
+                    continue
+                
                 # Generate a random time within the period
-                random_time = self.get_random_time_within_task_period(period['start'], period['end'])
+                random_time = self.get_random_time_within_task_period(start_time, end_time)
                 if not random_time:
-                    logger.warning(f"Could not generate random time for period {period['start']}-{period['end']}")
+                    logger.warning(f"Could not generate random time for period {start_time}-{end_time}")
                     continue
                 
                 # Schedule the task reminder
                 if self.schedule_task_reminder_at_time(user_id, selected_task['task_id'], random_time):
                     scheduled_count += 1
-                    logger.info(f"Scheduled reminder for task '{selected_task['title']}' at {random_time} (period: {period['start']}-{period['end']})")
+                    logger.info(f"Scheduled reminder for task '{selected_task['title']}' at {random_time} (period: {start_time}-{end_time})")
             
             logger.info(f"Scheduled {scheduled_count} task reminders for user {user_id}")
             
@@ -933,7 +959,8 @@ def cleanup_task_reminders(user_id, task_id=None):
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories."""
     try:
-        categories = get_user_preferences(user_id, 'categories')
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if categories is None:
             return []
         elif isinstance(categories, list):
@@ -950,7 +977,8 @@ def process_user_schedules(user_id: str):
     """Process schedules for a specific user."""
     try:
         # Get user's categories
-        categories = get_user_preferences(user_id, 'categories')
+        prefs_result = get_user_data(user_id, 'preferences')
+        categories = prefs_result.get('preferences', {}).get('categories', [])
         if not categories:
             logger.debug(f"No categories found for user {user_id}")
             return
@@ -965,7 +993,8 @@ def process_user_schedules(user_id: str):
 def get_user_task_preferences(user_id: str) -> Dict[str, Any]:
     """Get user's task preferences."""
     try:
-        task_prefs = get_user_preferences(user_id, 'task_management')
+        prefs_result = get_user_data(user_id, 'preferences')
+        task_prefs = prefs_result.get('preferences', {}).get('task_management', {})
         if task_prefs is None:
             return {}
         return task_prefs
@@ -976,7 +1005,8 @@ def get_user_task_preferences(user_id: str) -> Dict[str, Any]:
 def get_user_checkin_preferences(user_id: str) -> Dict[str, Any]:
     """Get user's check-in preferences."""
     try:
-        checkin_prefs = get_user_preferences(user_id, 'checkin_settings')
+        prefs_result = get_user_data(user_id, 'preferences')
+        checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
         if checkin_prefs is None:
             return {}
         return checkin_prefs
