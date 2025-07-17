@@ -15,10 +15,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QCalendarWidget, QCheckBox, QComboBox,
-    QGridLayout, QGroupBox, QLabel, QLineEdit,
-    QSizePolicy, QTabWidget, QTextEdit, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QCalendarWidget, QCheckBox, QGridLayout,
+    QGroupBox, QLabel, QLineEdit, QSizePolicy,
+    QTabWidget, QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_Form_user_profile_settings(object):
     def setupUi(self, Form_user_profile_settings):
@@ -82,19 +81,6 @@ class Ui_Form_user_profile_settings(object):
 
 
         self.verticalLayout_basic_info.addWidget(self.groupBox_date_of_birth)
-
-        self.groupBox_timezone = QGroupBox(self.tab_basic_info)
-        self.groupBox_timezone.setObjectName(u"groupBox_timezone")
-        self.verticalLayout_timezone = QVBoxLayout(self.groupBox_timezone)
-        self.verticalLayout_timezone.setObjectName(u"verticalLayout_timezone")
-        self.comboBox_timezone = QComboBox(self.groupBox_timezone)
-        self.comboBox_timezone.setObjectName(u"comboBox_timezone")
-        self.comboBox_timezone.setEnabled(False)
-
-        self.verticalLayout_timezone.addWidget(self.comboBox_timezone)
-
-
-        self.verticalLayout_basic_info.addWidget(self.groupBox_timezone)
 
         self.tabWidget.addTab(self.tab_basic_info, "")
         self.tab_health = QWidget()
@@ -479,8 +465,6 @@ class Ui_Form_user_profile_settings(object):
         self.checkBox_prefer_not_to_say.setText(QCoreApplication.translate("Form_user_profile_settings", u"Prefer not to say", None))
         self.lineEdit_custom_gender.setPlaceholderText(QCoreApplication.translate("Form_user_profile_settings", u"Custom...", None))
         self.groupBox_date_of_birth.setTitle(QCoreApplication.translate("Form_user_profile_settings", u"Date of Birth", None))
-        self.groupBox_timezone.setTitle(QCoreApplication.translate("Form_user_profile_settings", u"Timezone", None))
-        self.comboBox_timezone.setPlaceholderText(QCoreApplication.translate("Form_user_profile_settings", u"Timezone selection coming soon...", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_basic_info), QCoreApplication.translate("Form_user_profile_settings", u"Basic Info", None))
         self.groupBox_medical.setTitle(QCoreApplication.translate("Form_user_profile_settings", u"Health and Medical", None))
         self.checkBox_depression.setText(QCoreApplication.translate("Form_user_profile_settings", u"Depression", None))

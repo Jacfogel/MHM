@@ -27,7 +27,7 @@ from core.logger import get_logger
 
 logger = get_logger(__name__)
 
-class TestCleanupManager:
+class CleanupManager:
     """Manages test data cleanup and isolation."""
     
     def __init__(self, test_data_dir: Optional[str] = None):
@@ -289,7 +289,7 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     
-    cleanup_manager = TestCleanupManager()
+    cleanup_manager = CleanupManager()
     
     if args.cleanup_users:
         success = cleanup_manager.cleanup_test_users(args.users)

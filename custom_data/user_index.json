@@ -4,16 +4,19 @@
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-15 23:23:57",
-        "last_updated": "2025-07-15 23:23:57"
+        "last_interaction": "2025-07-16 15:39:25",
+        "last_updated": "2025-07-16 15:39:25"
     },
     "test-email-user": {
         "internal_username": "testuser",
         "active": true,
         "channel_type": "email",
-        "enabled_features": [],
-        "last_interaction": "1970-01-01 00:00:00",
-        "last_updated": "2025-07-15 23:23:57"
+        "enabled_features": [
+            "automated_messages",
+            "motivational"
+        ],
+        "last_interaction": "2025-07-16 15:39:26",
+        "last_updated": "2025-07-16 15:39:26"
     },
     "test-user-123": {
         "internal_username": "testuser",
@@ -30,5 +33,21 @@
         "enabled_features": [],
         "last_interaction": "2025-07-15 18:25:23",
         "last_updated": "2025-07-15 18:35:12"
+    },
+    "test-user-1f2b79b7": {
+        "internal_username": "testuser_79b7",
+        "active": true,
+        "channel_type": "email",
+        "enabled_features": [],
+        "last_interaction": "1970-01-01 00:00:00",
+        "last_updated": "2025-07-16 15:39:25"
+    },
+    "test-lifecycle-user": {
+        "internal_username": "",
+        "active": false,
+        "channel_type": "email",
+        "enabled_features": [],
+        "last_interaction": "2025-01-01T00:00:00Z",
+        "last_updated": "2025-07-16 15:39:26"
     }
 }

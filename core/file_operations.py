@@ -178,29 +178,6 @@ def create_user_files(user_id, categories, user_preferences=None):
     """
     ensure_user_directory(user_id)
     
-    # Create account.json if it doesn't exist
-    account_file = get_user_file_path(user_id, 'account')
-    if not os.path.exists(account_file):
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        account_data = {
-            "user_id": user_id,
-            "internal_username": "",
-            "account_status": "active",
-            "chat_id": "",
-            "phone": "",
-            "email": "",
-            "discord_user_id": "",
-            "created_at": current_time,
-            "updated_at": current_time,
-            "features": {
-                "automated_messages": "enabled" if categories else "disabled",
-                "checkins": "disabled",
-                "task_management": "disabled"
-            }
-        }
-        save_json_data(account_data, account_file)
-        logger.debug(f"Created account file for user {user_id}")
-    
     # Determine which features are enabled first
     tasks_enabled = False
     checkins_enabled = False
@@ -222,42 +199,108 @@ def create_user_files(user_id, categories, user_preferences=None):
         tasks_enabled = False
         checkins_enabled = False
     
-    # Create preferences.json if it doesn't exist
-    preferences_file = get_user_file_path(user_id, 'preferences')
-    if not os.path.exists(preferences_file):
-        default_preferences = {
-            "categories": categories or [],
-            "channel": {
-                "type": "email"
+    # Create account.json with actual user data
+    account_file = get_user_file_path(user_id, 'account')
+    if not os.path.exists(account_file):
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Get actual user data from user_preferences if available
+        internal_username = user_preferences.get('internal_username', "")
+        chat_id = user_preferences.get('chat_id', "")
+        phone = user_preferences.get('phone', "")
+        email = user_preferences.get('email', "")
+        discord_user_id = user_preferences.get('discord_user_id', "")
+        timezone = user_preferences.get('timezone', "")
+        
+        # Determine chat_id based on channel type
+        channel = user_preferences.get('channel', {})
+        channel_type = channel.get('type', 'email')
+        if channel_type == 'email':
+            chat_id = email
+        elif channel_type == 'telegram':
+            chat_id = phone
+        elif channel_type == 'discord':
+            chat_id = discord_user_id
+        
+        account_data = {
+            "user_id": user_id,
+            "internal_username": internal_username,
+            "account_status": "active",
+            "chat_id": chat_id,
+            "phone": phone,
+            "email": email,
+            "discord_user_id": discord_user_id,
+            "timezone": timezone,
+            "created_at": current_time,
+            "updated_at": current_time,
+            "features": {
+                "automated_messages": "enabled" if categories else "disabled",
+                "checkins": "enabled" if checkins_enabled else "disabled",
+                "task_management": "enabled" if tasks_enabled else "disabled"
             }
         }
-        # Only add check-in settings if check-ins are enabled (without enabled flag)
-        if checkins_enabled:
-            default_preferences["checkin_settings"] = {}
-        # Only add task settings if tasks are enabled (without enabled flag)
-        if tasks_enabled:
-            default_preferences["task_settings"] = {}
+        save_json_data(account_data, account_file)
+        logger.debug(f"Created account file for user {user_id}")
+    
+    # Create preferences.json with actual user data
+    preferences_file = get_user_file_path(user_id, 'preferences')
+    if not os.path.exists(preferences_file):
+        # Use actual user preferences if available, otherwise create defaults
+        if user_preferences:
+            default_preferences = {
+                "categories": categories or [],
+                "channel": user_preferences.get('channel', {"type": "email"})
+            }
+            # Add check-in settings if available (but remove schedule periods)
+            if checkins_enabled and 'checkin_settings' in user_preferences:
+                checkin_settings = user_preferences['checkin_settings'].copy()
+                # Remove time_periods from preferences (they go in schedules.json)
+                if 'time_periods' in checkin_settings:
+                    del checkin_settings['time_periods']
+                default_preferences["checkin_settings"] = checkin_settings
+            # Add task settings if available (but remove schedule periods)
+            if tasks_enabled and 'task_settings' in user_preferences:
+                task_settings = user_preferences['task_settings'].copy()
+                # Remove time_periods from preferences (they go in schedules.json)
+                if 'time_periods' in task_settings:
+                    del task_settings['time_periods']
+                default_preferences["task_settings"] = task_settings
+        else:
+            default_preferences = {
+                "categories": categories or [],
+                "channel": {"type": "email"}
+            }
+            # Only add check-in settings if check-ins are enabled (without enabled flag)
+            if checkins_enabled:
+                default_preferences["checkin_settings"] = {}
+            # Only add task settings if tasks are enabled (without enabled flag)
+            if tasks_enabled:
+                default_preferences["task_settings"] = {}
         save_json_data(default_preferences, preferences_file)
         logger.debug(f"Created preferences file for user {user_id}")
     
-    # Create user_context.json if it doesn't exist
+    # Create user_context.json with actual personalization data
     context_file = get_user_file_path(user_id, 'user_context')
     if not os.path.exists(context_file):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Get actual personalization data if available
+        personalization_data = user_preferences.get('personalization_data', {}) if user_preferences else {}
+        
         context_data = {
-            "preferred_name": "",
-            "pronouns": [],
-            "date_of_birth": "",
+            "preferred_name": personalization_data.get('preferred_name', ""),
+            "pronouns": personalization_data.get('pronouns', []),
+            "date_of_birth": personalization_data.get('date_of_birth', ""),
             "custom_fields": {
-                "health_conditions": [],
-                "medications_treatments": [],
-                "reminders_needed": []
+                "health_conditions": personalization_data.get('health_conditions', []),
+                "medications_treatments": personalization_data.get('medications_treatments', []),
+                "reminders_needed": personalization_data.get('reminders_needed', [])
             },
-            "interests": [],
-            "goals": [],
-            "loved_ones": [],
-            "activities_for_encouragement": [],
-            "notes_for_ai": [],
+            "interests": personalization_data.get('interests', []),
+            "goals": personalization_data.get('goals', []),
+            "loved_ones": personalization_data.get('loved_ones', []),
+            "activities_for_encouragement": personalization_data.get('activities_for_encouragement', []),
+            "notes_for_ai": personalization_data.get('notes_for_ai', []),
             "created_at": current_time,
             "last_updated": current_time
         }

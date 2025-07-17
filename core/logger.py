@@ -5,6 +5,25 @@ import os
 from logging.handlers import RotatingFileHandler
 from core.config import LOG_FILE_PATH
 
+# FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
+# This ensures test logs never go to app.log, even if logging setup is triggered early
+if os.getenv('MHM_TESTING') == '1':
+    # Remove all handlers from root logger
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        handler.close()
+        root_logger.removeHandler(handler)
+    
+    # Remove all handlers from main logger (this module)
+    main_logger = logging.getLogger(__name__)
+    for handler in main_logger.handlers[:]:
+        handler.close()
+        main_logger.removeHandler(handler)
+    
+    # Clear any cached handlers
+    root_logger.handlers.clear()
+    main_logger.handlers.clear()
+
 # Global variable to track current verbosity mode
 _verbose_mode = False
 _original_levels = {}
@@ -18,6 +37,10 @@ def setup_logging():
     """
     Set up logging with file and console handlers. Ensure it is called only once.
     """
+    # Skip logging setup if running tests
+    if os.getenv('MHM_TESTING') == '1':
+        return
+    
     root_logger = logging.getLogger()
     
     # Check if logging is already set up properly

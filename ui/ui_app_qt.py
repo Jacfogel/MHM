@@ -65,9 +65,24 @@ class ServiceManager:
             QMessageBox.critical(None, "Configuration Error", error_message)
             return False
         
-        if result['warnings']:
+        # Filter out non-critical warnings that don't need popup
+        critical_warnings = []
+        for warning in result['warnings']:
+            # Skip warnings about default values and auto-creation settings
+            if any(skip_phrase in warning.lower() for skip_phrase in [
+                'using default',
+                'auto_create_user_dirs is enabled',
+                'not set (using default)'
+            ]):
+                # Log these warnings but don't show popup
+                logger.info(f"Configuration note: {warning}")
+                continue
+            critical_warnings.append(warning)
+        
+        # Only show popup for critical warnings
+        if critical_warnings:
             warning_message = "Configuration warnings:\n\n"
-            for warning in result['warnings']:
+            for warning in critical_warnings:
                 warning_message += f"• {warning}\n"
             warning_message += "\nThe service will start, but you may want to address these warnings."
             QMessageBox.warning(None, "Configuration Warnings", warning_message)
@@ -119,17 +134,34 @@ class ServiceManager:
         
         logger.debug(f"Service path: {service_path}")
         
+        # Ensure we use the venv Python explicitly
+        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        venv_python = os.path.join(script_dir, '.venv', 'Scripts', 'python.exe')
+        if os.path.exists(venv_python):
+            python_executable = venv_python
+        else:
+            python_executable = sys.executable
+        
+        logger.debug(f"Using Python: {python_executable}")
+        
+        # Set up environment to ensure venv is used
+        env = os.environ.copy()
+        venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
+        if os.path.exists(venv_scripts_dir):
+            # Add venv Scripts directory to PATH to ensure it's found first
+            env['PATH'] = venv_scripts_dir + os.pathsep + env.get('PATH', '')
+        
         # Run the service in the background without showing a console window
         if os.name == 'nt':  # Windows
             # Run without showing console window
             self.service_process = subprocess.Popen([
-                sys.executable, service_path
-            ], creationflags=subprocess.CREATE_NO_WINDOW)
+                python_executable, service_path
+            ], env=env, creationflags=subprocess.CREATE_NO_WINDOW)
         else:  # Unix/Linux/Mac
             # Run in background
             self.service_process = subprocess.Popen([
-                sys.executable, service_path
-            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                python_executable, service_path
+            ], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         logger.debug("Service process started, waiting for initialization...")
         # Give it a moment to start

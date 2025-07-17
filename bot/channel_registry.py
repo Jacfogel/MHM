@@ -12,4 +12,4 @@ def register_all_channels():
     # ChannelFactory.register_channel('telegram', TelegramBot)  # Deactivated
     ChannelFactory.register_channel('email', EmailBot)
     ChannelFactory.register_channel('discord', DiscordBot)
-    print("Communication channels registered successfully (Telegram deactivated)") 
+    # Removed print statement to clean up notifications 

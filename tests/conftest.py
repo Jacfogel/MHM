@@ -24,12 +24,37 @@ from datetime import datetime
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-# Import core modules for testing
+# CRITICAL: Set up logging isolation BEFORE importing any core modules
+def setup_logging_isolation():
+    """Set up logging isolation before any core modules are imported."""
+    # Remove all handlers from root logger to prevent test logs from going to app.log
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        handler.close()
+        root_logger.removeHandler(handler)
+    
+    # Also clear any handlers from the main application logger if it exists
+    main_logger = logging.getLogger("mhm")
+    for handler in main_logger.handlers[:]:
+        handler.close()
+        main_logger.removeHandler(handler)
+    
+    # Set propagate to False for main loggers to prevent test logs from bubbling up
+    root_logger.propagate = False
+    main_logger.propagate = False
+
+# Set up logging isolation immediately
+setup_logging_isolation()
+
+# Set environment variable to indicate we're running tests
+os.environ['MHM_TESTING'] = '1'
+
+# Import core modules for testing (after logging isolation is set up)
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
 # Set up dedicated testing logging
 def setup_test_logging():
-    """Set up dedicated logging for tests."""
+    """Set up dedicated logging for tests with complete isolation from main app logging."""
     # Create test logs directory
     test_logs_dir = Path(project_root) / "test_logs"
     test_logs_dir.mkdir(exist_ok=True)
@@ -60,14 +85,57 @@ def setup_test_logging():
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)
     
-    # Add handlers
+    # Add handlers to test logger only
     test_logger.addHandler(file_handler)
     test_logger.addHandler(console_handler)
+    
+    # Prevent test logger from propagating to root logger
+    test_logger.propagate = False
     
     return test_logger, test_log_file
 
 # Set up test logging
 test_logger, test_log_file = setup_test_logging()
+
+@pytest.fixture(scope="session", autouse=True)
+def isolate_logging():
+    """Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log."""
+    # Store original handlers
+    root_logger = logging.getLogger()
+    original_root_handlers = root_logger.handlers[:]
+    
+    main_logger = logging.getLogger("mhm")
+    original_main_handlers = main_logger.handlers[:]
+    
+    # Remove all handlers from main loggers to prevent test logs from going to app.log
+    for handler in root_logger.handlers[:]:
+        handler.close()
+        root_logger.removeHandler(handler)
+    
+    for handler in main_logger.handlers[:]:
+        handler.close()
+        main_logger.removeHandler(handler)
+    
+    # Set propagate to False for main loggers to prevent test logs from bubbling up
+    root_logger.propagate = False
+    main_logger.propagate = False
+    
+    test_logger.info("Logging isolation activated - test logs will not appear in main app.log")
+    
+    yield
+    
+    # Restore original handlers after tests complete
+    for handler in original_root_handlers:
+        root_logger.addHandler(handler)
+    
+    for handler in original_main_handlers:
+        main_logger.addHandler(handler)
+    
+    # Restore propagate settings
+    root_logger.propagate = True
+    main_logger.propagate = True
+    
+    test_logger.info("Logging isolation deactivated - main app logging restored")
 
 @pytest.fixture(scope="session")
 def test_data_dir():
@@ -120,18 +188,148 @@ def mock_user_data(test_data_dir, mock_config, request):
         }
     }
     
-    # Create mock preferences.json
+    # Create mock preferences.json - categories only included if automated_messages enabled
     preferences_data = {
         "channel": {
             "type": "email"
         },
-        "categories": {
-            "motivational": True,
-            "health": True,
-            "fun_facts": False,
-            "quotes_to_ponder": True,
-            "word_of_the_day": False
+        "checkin_settings": {
+            "enabled": False,
+            "frequency": "daily",
+            "time": "09:00",
+            "categories": ["mood", "energy", "sleep"]
         },
+        "task_settings": {
+            "enabled": False,
+            "reminder_frequency": "daily",
+            "reminder_time": "10:00"
+        }
+    }
+    
+    # Only add categories if automated_messages is enabled
+    if account_data["features"]["automated_messages"] == "enabled":
+        preferences_data["categories"] = ["motivational", "health", "quotes_to_ponder"]
+    
+    # Create mock user_context.json
+    context_data = {
+        "preferred_name": f"Test User {user_id[-4:]}",
+        "pronouns": ["they/them"],
+        "date_of_birth": "",
+        "custom_fields": {
+            "health_conditions": [],
+            "medications_treatments": [],
+            "reminders_needed": [],
+            "gender_identity": "",
+            "accessibility_needs": []
+        },
+        "interests": ["reading", "music"],
+        "goals": ["Improve mental health", "Stay organized"],
+        "loved_ones": [],
+        "activities_for_encouragement": ["exercise", "socializing"],
+        "notes_for_ai": ["Prefers gentle encouragement", "Responds well to structure"],
+        "created_at": current_time,
+        "last_updated": current_time
+    }
+    
+    # Create mock daily_checkins.json
+    checkins_data = {
+        "checkins": [],
+        "last_checkin_date": None,
+        "streak_count": 0
+    }
+    
+    # Create mock chat_interactions.json
+    chat_data = {
+        "interactions": [],
+        "total_interactions": 0,
+        "last_interaction": None
+    }
+    
+    # Create messages directory and sent_messages.json only if automated_messages enabled
+    messages_dir = os.path.join(user_dir, "messages")
+    if account_data["features"]["automated_messages"] == "enabled":
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        sent_messages_data = {
+            "messages": [],
+            "total_sent": 0,
+            "last_sent": None
+        }
+        
+        with open(os.path.join(messages_dir, "sent_messages.json"), "w") as f:
+            json.dump(sent_messages_data, f, indent=2)
+    else:
+        sent_messages_data = None
+    
+    # Save all mock data
+    with open(os.path.join(user_dir, "account.json"), "w") as f:
+        json.dump(account_data, f, indent=2)
+    
+    with open(os.path.join(user_dir, "preferences.json"), "w") as f:
+        json.dump(preferences_data, f, indent=2)
+    
+    with open(os.path.join(user_dir, "user_context.json"), "w") as f:
+        json.dump(context_data, f, indent=2)
+    
+    with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+        json.dump(checkins_data, f, indent=2)
+    
+    with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
+        json.dump(chat_data, f, indent=2)
+    
+    test_logger.debug(f"Created complete mock user data files in: {user_dir}")
+    
+    # Store user_id for cleanup
+    request.node.user_id = user_id
+    
+    return {
+        "user_id": user_id,
+        "user_dir": user_dir,
+        "account_data": account_data,
+        "preferences_data": preferences_data,
+        "context_data": context_data,
+        "checkins_data": checkins_data,
+        "chat_data": chat_data,
+        "sent_messages_data": sent_messages_data
+    }
+
+@pytest.fixture(scope="function")
+def mock_user_data_with_messages(test_data_dir, mock_config, request):
+    """Create mock user data for testing with automated_messages enabled and categories."""
+    import uuid
+    
+    # Generate unique user ID for each test to prevent interference
+    user_id = f"test-user-messages-{uuid.uuid4().hex[:8]}"
+    user_dir = os.path.join(test_data_dir, "users", user_id)
+    os.makedirs(user_dir, exist_ok=True)
+    
+    test_logger.debug(f"Creating mock user data with messages for user: {user_id}")
+    
+    # Create mock account.json with automated_messages enabled
+    current_time = datetime.now().isoformat() + "Z"
+    account_data = {
+        "user_id": user_id,
+        "internal_username": f"testuser_{user_id[-4:]}",
+        "account_status": "active",
+        "chat_id": "",
+        "phone": "",
+        "email": f"test_{user_id[-4:]}@example.com",
+        "discord_user_id": "",
+        "created_at": current_time,
+        "updated_at": current_time,
+        "features": {
+            "automated_messages": "enabled",
+            "checkins": "disabled",
+            "task_management": "disabled"
+        }
+    }
+    
+    # Create mock preferences.json with categories (automated_messages enabled)
+    preferences_data = {
+        "channel": {
+            "type": "email"
+        },
+        "categories": ["motivational", "health", "quotes_to_ponder"],
         "checkin_settings": {
             "enabled": False,
             "frequency": "daily",
@@ -180,7 +378,7 @@ def mock_user_data(test_data_dir, mock_config, request):
         "last_interaction": None
     }
     
-    # Create messages directory and sent_messages.json
+    # Create messages directory and sent_messages.json (automated_messages enabled)
     messages_dir = os.path.join(user_dir, "messages")
     os.makedirs(messages_dir, exist_ok=True)
     
@@ -209,7 +407,7 @@ def mock_user_data(test_data_dir, mock_config, request):
     with open(os.path.join(messages_dir, "sent_messages.json"), "w") as f:
         json.dump(sent_messages_data, f, indent=2)
     
-    test_logger.debug(f"Created complete mock user data files in: {user_dir}")
+    test_logger.debug(f"Created complete mock user data with messages in: {user_dir}")
     
     # Store user_id for cleanup
     request.node.user_id = user_id
@@ -224,6 +422,24 @@ def mock_user_data(test_data_dir, mock_config, request):
         "chat_data": chat_data,
         "sent_messages_data": sent_messages_data
     }
+
+@pytest.fixture(scope="function")
+def update_user_index_for_test(test_data_dir):
+    """Helper fixture to update user index for test users."""
+    def _update_index(user_id):
+        try:
+            from core.user_data_manager import update_user_index
+            success = update_user_index(user_id)
+            if success:
+                test_logger.debug(f"Updated user index for test user: {user_id}")
+            else:
+                test_logger.warning(f"Failed to update user index for test user: {user_id}")
+            return success
+        except Exception as e:
+            test_logger.warning(f"Error updating user index for test user {user_id}: {e}")
+            return False
+    
+    return _update_index
 
 @pytest.fixture(scope="function")
 def cleanup_test_users(request, test_data_dir):

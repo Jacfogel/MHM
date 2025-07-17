@@ -57,6 +57,7 @@ You can also run individual components directly if needed:
 - **Never install dependencies globally** - this can cause conflicts
 - **If you see (venv) in your terminal prompt**, you're using the virtual environment correctly
 - **To deactivate the virtual environment**, simply type `deactivate`
+- **Windows Python Processes**: On Windows, you may see two Python processes when running scripts - this is normal behavior and doesn't affect functionality
 
 ## 🆘 Troubleshooting
 
@@ -74,6 +75,9 @@ Run PowerShell as Administrator, or use:
 ```bash
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
+
+### Multiple Python processes on Windows
+If you see two Python processes when running the app (one with venv Python, one with system Python), this is normal Windows behavior. The venv Python process runs your actual code, while the system Python process is a harmless Windows artifact.
 
 ## ❓ Frequently Asked Questions
 
@@ -101,6 +105,9 @@ pip install -r requirements.txt
 
 ### **Q: Where are my logs stored?**
 **A**: Check `app.log` in the project root directory for application logs.
+
+### **Q: Why do I see two Python processes when running the app on Windows?**
+**A**: This is normal Windows behavior. Windows launches both your venv Python and system Python when running scripts. The venv Python runs your actual code, while the system Python is a harmless Windows artifact.
 
 ## 📚 Next Steps
 - **Project Overview**: See [README.md](README.md) for features and architecture

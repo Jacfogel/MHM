@@ -3,6 +3,7 @@ from ui.generated.channel_management_dialog_pyqt import Ui_Dialog
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
 import logging
 from PySide6.QtCore import Signal
+from core.validation import is_valid_email, is_valid_phone
 
 class ChannelManagementDialog(QDialog):
     user_changed = Signal()
@@ -41,7 +42,8 @@ class ChannelManagementDialog(QDialog):
                 email = account.get('email', '')
                 phone = account.get('phone', '')
                 discord_id = account.get('discord_user_id', '')
-                self.channel_widget.set_contact_info(email=email, phone=phone, discord_id=discord_id)
+                timezone = account.get('timezone', 'America/Regina')
+                self.channel_widget.set_contact_info(email=email, phone=phone, discord_id=discord_id, timezone=timezone)
                 # Set the selected channel radio button
                 value = ''
                 if channel_lc == 'email':
@@ -69,9 +71,31 @@ class ChannelManagementDialog(QDialog):
             user_data_result = get_user_data(self.user_id, 'account')
             account = user_data_result.get('account') or {}
             channel, value = self.channel_widget.get_selected_channel()
+            # Get timezone from channel widget
+            timezone = self.channel_widget.get_timezone()
+            # Get all contact info from widget
+            contact_info = self.channel_widget.get_all_contact_info()
+            
+            # Collect validation errors
+            validation_errors = []
+            
+            # Validate email if provided
+            if contact_info['email'] and not is_valid_email(contact_info['email']):
+                validation_errors.append(f"Invalid email format: {contact_info['email']}")
+            
+            # Validate phone if provided
+            if contact_info['phone'] and not is_valid_phone(contact_info['phone']):
+                validation_errors.append(f"Invalid phone format: {contact_info['phone']}")
+            
+            # Show validation errors if any
+            if validation_errors:
+                error_message = "Please correct the following validation errors:\n\n" + "\n".join(validation_errors)
+                QMessageBox.warning(self, "Validation Errors", error_message)
+                return  # Don't save, let user fix errors
+            
             # Save channel type to preferences (lowercase for consistency)
             channel_type = channel.lower()
-            # If using a nested channel structure, update it too
+            # Ensure channel structure exists in preferences
             if 'channel' not in prefs or not isinstance(prefs['channel'], dict):
                 prefs['channel'] = {}
             prefs['channel']['type'] = channel_type
@@ -82,13 +106,15 @@ class ChannelManagementDialog(QDialog):
             for key in ['email', 'phone', 'discord_user_id']:
                 if key in prefs:
                     del prefs[key]
-            # Save contact info to account/profile only
-            if channel_type == 'email':
-                account['email'] = value
-            elif channel_type == 'telegram':
-                account['phone'] = value
-            elif channel_type == 'discord':
-                account['discord_user_id'] = value
+            # Save all valid contact info to account/profile
+            if contact_info['email'] and is_valid_email(contact_info['email']):
+                account['email'] = contact_info['email']
+            if contact_info['phone'] and is_valid_phone(contact_info['phone']):
+                account['phone'] = contact_info['phone']
+            if contact_info['discord_id'] and contact_info['discord_id'].strip():
+                account['discord_user_id'] = contact_info['discord_id']
+            # Save timezone to account
+            account['timezone'] = timezone
             # Save both
             update_user_preferences(self.user_id, prefs)
             update_user_account(self.user_id, account)

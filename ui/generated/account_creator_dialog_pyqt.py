@@ -15,11 +15,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
-    QDialog, QDialogButtonBox, QFrame, QGridLayout,
-    QGroupBox, QHBoxLayout, QLabel, QLineEdit,
-    QPushButton, QSizePolicy, QSpacerItem, QTabWidget,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QDialog,
+    QDialogButtonBox, QFrame, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QLineEdit, QPushButton,
+    QSizePolicy, QSpacerItem, QTabWidget, QVBoxLayout,
+    QWidget)
 
 class Ui_Dialog_create_account(object):
     def setupUi(self, Dialog_create_account):
@@ -72,17 +72,6 @@ class Ui_Dialog_create_account(object):
         self.lineEdit_prefered_name.setObjectName(u"lineEdit_prefered_name")
 
         self.gridLayout_basic.addWidget(self.lineEdit_prefered_name, 1, 1, 1, 1)
-
-        self.label_timezone = QLabel(self.groupBox_basic_information)
-        self.label_timezone.setObjectName(u"label_timezone")
-
-        self.gridLayout_basic.addWidget(self.label_timezone, 2, 0, 1, 1)
-
-        self.comboBox_time_zone = QComboBox(self.groupBox_basic_information)
-        self.comboBox_time_zone.setObjectName(u"comboBox_time_zone")
-        self.comboBox_time_zone.setMinimumSize(QSize(300, 0))
-
-        self.gridLayout_basic.addWidget(self.comboBox_time_zone, 2, 1, 1, 1)
 
 
         self.verticalLayout_basic.addWidget(self.groupBox_basic_information)
@@ -250,7 +239,6 @@ class Ui_Dialog_create_account(object):
         self.groupBox_basic_information.setTitle(QCoreApplication.translate("Dialog_create_account", u"Account Details", None))
         self.label_username.setText(QCoreApplication.translate("Dialog_create_account", u"Username:", None))
         self.label_prefered_name.setText(QCoreApplication.translate("Dialog_create_account", u"Preferred Name:", None))
-        self.label_timezone.setText(QCoreApplication.translate("Dialog_create_account", u"Time Zone:", None))
         self.groupBox_features.setTitle(QCoreApplication.translate("Dialog_create_account", u"Features", None))
         self.checkBox_enable_messages.setText(QCoreApplication.translate("Dialog_create_account", u"Enable Automated Messages", None))
         self.checkBox_enable_task_management.setText(QCoreApplication.translate("Dialog_create_account", u"Enable Task Management", None))

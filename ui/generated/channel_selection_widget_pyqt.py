@@ -15,17 +15,15 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLayout,
-    QLineEdit, QRadioButton, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWidget)
-
-def qtTrId(id): return id
+from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QLabel,
+    QLayout, QLineEdit, QRadioButton, QSizePolicy,
+    QSpacerItem, QVBoxLayout, QWidget)
 
 class Ui_Form_channel_selection(object):
     def setupUi(self, Form_channel_selection):
         if not Form_channel_selection.objectName():
             Form_channel_selection.setObjectName(u"Form_channel_selection")
-        Form_channel_selection.resize(400, 140)
+        Form_channel_selection.resize(400, 180)
         self.verticalLayout = QVBoxLayout(Form_channel_selection)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.gridLayout_4 = QGridLayout()
@@ -51,6 +49,11 @@ class Ui_Form_channel_selection(object):
 
         self.gridLayout_4.addWidget(self.lineEdit_phone, 3, 3, 1, 1)
 
+        self.comboBox_timezone = QComboBox(Form_channel_selection)
+        self.comboBox_timezone.setObjectName(u"comboBox_timezone")
+
+        self.gridLayout_4.addWidget(self.comboBox_timezone, 4, 3, 1, 1)
+
         self.label_select_service = QLabel(Form_channel_selection)
         self.label_select_service.setObjectName(u"label_select_service")
 
@@ -65,6 +68,11 @@ class Ui_Form_channel_selection(object):
         self.radioButton_Email.setObjectName(u"radioButton_Email")
 
         self.gridLayout_4.addWidget(self.radioButton_Email, 2, 0, 1, 1)
+
+        self.label_timezone = QLabel(Form_channel_selection)
+        self.label_timezone.setObjectName(u"label_timezone")
+
+        self.gridLayout_4.addWidget(self.label_timezone, 4, 0, 1, 1)
 
         self.label_email = QLabel(Form_channel_selection)
         self.label_email.setObjectName(u"label_email")
@@ -83,7 +91,7 @@ class Ui_Form_channel_selection(object):
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
-        self.gridLayout_4.addItem(self.verticalSpacer, 0, 1, 4, 1)
+        self.gridLayout_4.addItem(self.verticalSpacer, 0, 1, 5, 1)
 
         self.label_contact_information = QLabel(Form_channel_selection)
         self.label_contact_information.setObjectName(u"label_contact_information")
@@ -106,6 +114,7 @@ class Ui_Form_channel_selection(object):
         self.label_select_service.setProperty(u"role", QCoreApplication.translate("Form_channel_selection", u"header3", None))
         self.radioButton_Discord.setText(QCoreApplication.translate("Form_channel_selection", u"Discord", None))
         self.radioButton_Email.setText(QCoreApplication.translate("Form_channel_selection", u"Email", None))
+        self.label_timezone.setText(QCoreApplication.translate("Form_channel_selection", u"Timezone:", None))
         self.label_email.setText(QCoreApplication.translate("Form_channel_selection", u"Email:", None))
         self.label_phone.setText(QCoreApplication.translate("Form_channel_selection", u"Phone:", None))
         self.label_discordID.setText(QCoreApplication.translate("Form_channel_selection", u"Discord ID:", None))

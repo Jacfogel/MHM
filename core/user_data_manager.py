@@ -43,11 +43,19 @@ class UserDataManager:
             logger.error(f"User {user_id} not found")
             return False
         
+        # Check if automated messages are enabled
+        account_result = get_user_data(user_id, 'account')
+        account_data = account_result.get('account', {})
+        features = account_data.get('features', {})
+        automated_messages_enabled = features.get('automated_messages', 'disabled') == 'enabled'
         # Get user's categories
         prefs_result = get_user_data(user_id, 'preferences')
         categories = prefs_result.get('preferences', {}).get('categories', [])
         if not categories:
-            logger.warning(f"No categories found for user {user_id}")
+            if automated_messages_enabled:
+                logger.warning(f"No categories found for user {user_id} (automated messages enabled)")
+            else:
+                logger.debug(f"No categories found for user {user_id} (automated messages disabled)")
             return True
         
         # Build message references

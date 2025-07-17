@@ -58,8 +58,17 @@ class TestUserManagement:
         # or return the actual preferences if the user exists
         if preferences is not None:
             assert 'channel' in preferences
-            assert 'categories' in preferences
-            # Note: actual field names may vary depending on the user's data
+            # Categories are only present if automated_messages is enabled
+            # Check if automated_messages is enabled in account data
+            account_result = get_user_data(mock_user_data['user_id'], 'account')
+            account = account_result.get('account', {})
+            features = account.get('features', {})
+            
+            if features.get('automated_messages') == 'enabled':
+                assert 'categories' in preferences, "Categories should be present when automated_messages is enabled"
+            else:
+                # Categories may or may not be present when automated_messages is disabled
+                pass
         else:
             # This is expected for test users that don't exist in the real data directory
             pass
@@ -108,7 +117,10 @@ class TestUserManagement:
         
         # Verify expected fields in each data type
         assert 'user_id' in user_data['account']
-        assert 'categories' in user_data['preferences']
+        # Categories are only present if automated_messages is enabled
+        features = user_data['account'].get('features', {})
+        if features.get('automated_messages') == 'enabled':
+            assert 'categories' in user_data['preferences'], "Categories should be present when automated_messages is enabled"
         assert 'preferred_name' in user_data['context']
     
     @pytest.mark.unit
@@ -130,7 +142,8 @@ class TestUserManagement:
             'user_id': user_id,
             'internal_username': 'testuser',
             'account_status': 'active',
-            'email': 'test@example.com'
+            'email': 'test@example.com',
+            'channel': {'type': 'email', 'contact': 'test@example.com'}
         }
         
         preferences_data = {
@@ -238,21 +251,26 @@ class TestUserManagement:
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
-    def test_get_user_data_account_with_email(self, test_data_dir):
+    def test_get_user_data_account_with_email(self, test_data_dir, mock_config):
         """Test getting user account with email successfully."""
         # Test creating a user with email and getting their account
         user_id = 'test-email-user'
+
+        # Create user directory and files first
+        create_user_files(user_id, ['motivational'])
+
         account_data = {
             'user_id': user_id,
             'internal_username': 'testuser',
             'email': 'test@example.com',
-            'account_status': 'active'
+            'account_status': 'active',
+            'channel': {'type': 'email', 'contact': 'test@example.com'}
         }
-        
+
         # Save account data using centralized save_user_data function
         result = save_user_data(user_id, {'account': account_data})
         assert result.get('account') is True
-        
+
         # Get account and verify email
         user_data_result = get_user_data(user_id, 'account')
         account = user_data_result.get('account')

@@ -55,11 +55,8 @@ class UserProfileSettingsWidget(QWidget):
     
     def populate_timezones(self):
         """Populate the timezone combo box with options and enable selection."""
-        if hasattr(self.ui, 'comboBox_timezone'):
-            from core.user_management import get_timezone_options
-            self.ui.comboBox_timezone.setEnabled(True)
-            self.ui.comboBox_timezone.clear()
-            self.ui.comboBox_timezone.addItems(get_timezone_options())
+        # Timezone functionality moved to channel selection widget
+        pass
     
     def load_existing_data(self):
         """Load existing personalization data into the form."""
@@ -84,29 +81,6 @@ class UserProfileSettingsWidget(QWidget):
                 custom_genders = [g for g in gender_identity if g not in [
                     'Woman', 'Man', 'Non-binary', 'None', 'Prefer not to say']]
                 self.ui.lineEdit_custom_gender.setText(', '.join(custom_genders))
-
-            # Timezone
-            if hasattr(self.ui, 'comboBox_timezone'):
-                tz = self.existing_data.get('timezone', '')
-                if tz:
-                    idx = self.ui.comboBox_timezone.findText(tz)
-                    if idx >= 0:
-                        self.ui.comboBox_timezone.setCurrentIndex(idx)
-                    else:
-                        # If timezone not found, try to set a reasonable default
-                        # Try to find a timezone with similar name
-                        for i in range(self.ui.comboBox_timezone.count()):
-                            item_text = self.ui.comboBox_timezone.itemText(i)
-                            if tz.lower() in item_text.lower() or item_text.lower() in tz.lower():
-                                self.ui.comboBox_timezone.setCurrentIndex(i)
-                                break
-                        else:
-                            # If no match found, set to UTC as fallback
-                            utc_idx = self.ui.comboBox_timezone.findText("UTC")
-                            if utc_idx >= 0:
-                                self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
-                            else:
-                                self.ui.comboBox_timezone.setCurrentIndex(0)
 
             # Health conditions (available in UI) - handle nested structure
             custom_fields = self.existing_data.get('custom_fields', {})
@@ -138,8 +112,8 @@ class UserProfileSettingsWidget(QWidget):
                 self.ui.checkBox_food_allergies.setChecked('Food Allergies' in allergies)
             if hasattr(self.ui, 'checkBox_medication_allergies'):
                 self.ui.checkBox_medication_allergies.setChecked('Medication Allergies' in allergies)
-            if hasattr(self.ui, 'checkBox_environmental'):
-                self.ui.checkBox_environmental.setChecked('Environmental' in allergies)
+            if hasattr(self.ui, 'checkBox_environmental_allergies'):
+                self.ui.checkBox_environmental_allergies.setChecked('Environmental' in allergies)
             if hasattr(self.ui, 'checkBox_latex_allergy'):
                 self.ui.checkBox_latex_allergy.setChecked('Latex Allergy' in allergies)
             if hasattr(self.ui, 'checkBox_gluten_sensitivity'):
@@ -338,9 +312,19 @@ class UserProfileSettingsWidget(QWidget):
                     gender_identity.extend([g.strip() for g in custom_genders.split(',') if g.strip()])
             data['gender_identity'] = gender_identity
 
-            # Timezone
-            if hasattr(self.ui, 'comboBox_timezone'):
-                data['timezone'] = self.ui.comboBox_timezone.currentText().strip()
+            # Date of Birth (if present in UI)
+            if hasattr(self.ui, 'calendarWidget_date_of_birth'):
+                selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
+                if selected_date.isValid():
+                    # Convert QDate to ISO format string
+                    dob_str = selected_date.toString(Qt.DateFormat.ISODate)
+                    data['date_of_birth'] = dob_str
+                else:
+                    # Clear date if invalid
+                    data['date_of_birth'] = ''
+
+            # Timezone functionality moved to channel selection widget
+            # Timezone is now handled by the channel selection widget
 
             # Health conditions (checkbox group)
             health_conditions = self.get_checkbox_group('health_conditions')
@@ -376,7 +360,7 @@ class UserProfileSettingsWidget(QWidget):
                 allergies.append('Food Allergies')
             if hasattr(self.ui, 'checkBox_medication_allergies') and self.ui.checkBox_medication_allergies.isChecked():
                 allergies.append('Medication Allergies')
-            if hasattr(self.ui, 'checkBox_environmental') and self.ui.checkBox_environmental.isChecked():
+            if hasattr(self.ui, 'checkBox_environmental_allergies') and self.ui.checkBox_environmental_allergies.isChecked():
                 allergies.append('Environmental')
             if hasattr(self.ui, 'checkBox_latex_allergy') and self.ui.checkBox_latex_allergy.isChecked():
                 allergies.append('Latex Allergy')

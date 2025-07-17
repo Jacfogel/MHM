@@ -78,5 +78,5 @@ QUICK_AUDIT = {
     'run_validation': True,
     'generate_summary': True,
     'save_results': True,
-    'results_file': 'ai_audit_results.json'
+    'results_file': 'ai_tools/ai_audit_results.json'
 } 

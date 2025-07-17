@@ -1047,6 +1047,9 @@ def validate_user_data_updates(
     
     # Type-specific validation
     if data_type == 'account':
+        # Only validate fields that are actually being updated
+        # Don't require internal_username or channel if they're not being changed
+        
         # Validate email format if present
         if 'email' in updates and updates['email']:
             from core.validation import is_valid_email
@@ -1058,6 +1061,21 @@ def validate_user_data_updates(
             valid_statuses = ['active', 'inactive', 'suspended']
             if updates['account_status'] not in valid_statuses:
                 errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
+        
+        # Validate channel structure if present
+        if 'channel' in updates:
+            if not isinstance(updates['channel'], dict):
+                errors.append("channel is required and must be a dictionary")
+            elif 'type' not in updates['channel'] or not updates['channel']['type']:
+                errors.append("channel.type is required")
+            else:
+                valid_channels = ['email', 'discord', 'telegram']
+                if updates['channel']['type'] not in valid_channels:
+                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
+        
+        # Validate internal_username if present
+        if 'internal_username' in updates and not updates['internal_username']:
+            errors.append("internal_username is required")
     
     elif data_type == 'preferences':
         # Validate categories if present

@@ -90,25 +90,6 @@
          </layout>
         </widget>
        </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_timezone">
-         <property name="title">
-          <string>Timezone</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_timezone">
-          <item>
-           <widget class="QComboBox" name="comboBox_timezone">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="placeholderText">
-             <string>Timezone selection coming soon...</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="tab_health">

@@ -136,11 +136,13 @@ def validate_ai_configuration() -> Tuple[bool, List[str], List[str]]:
     elif not LM_STUDIO_BASE_URL.startswith(('http://', 'https://')):
         errors.append("LM_STUDIO_BASE_URL must be a valid URL starting with http:// or https://")
     
-    if not LM_STUDIO_API_KEY:
-        warnings.append("LM_STUDIO_API_KEY is not set (using default)")
+    # LM_STUDIO_API_KEY has a default value, so we only warn if it's explicitly set to empty
+    if LM_STUDIO_API_KEY == '':
+        warnings.append("LM_STUDIO_API_KEY is explicitly set to empty (using default)")
     
-    if not LM_STUDIO_MODEL:
-        warnings.append("LM_STUDIO_MODEL is not set (using default)")
+    # LM_STUDIO_MODEL has a default value, so we only warn if it's explicitly set to empty
+    if LM_STUDIO_MODEL == '':
+        warnings.append("LM_STUDIO_MODEL is explicitly set to empty (using default)")
     
     # Check AI performance settings
     if AI_TIMEOUT_SECONDS < 5:
