@@ -108,6 +108,18 @@ def get_schedule_time_periods(user_id, category):
 
 @handle_errors("setting schedule period active", default_return=False)
 def set_schedule_period_active(user_id, category, period_name, active=True):
+    """
+    Set whether a schedule period is active or inactive.
+    
+    Args:
+        user_id: The user ID
+        category: The schedule category
+        period_name: The name of the period to modify
+        active: Whether the period should be active (default: True)
+        
+    Returns:
+        bool: True if the period was found and updated, False otherwise
+    """
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules')
     user_info = {'schedules': schedules_result.get('schedules', {})}
@@ -140,6 +152,17 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
 
 @handle_errors("checking if schedule period active", default_return=False)
 def is_schedule_period_active(user_id, category, period_name):
+    """
+    Check if a schedule period is currently active.
+    
+    Args:
+        user_id: The user ID
+        category: The schedule category
+        period_name: The name of the period to check
+        
+    Returns:
+        bool: True if the period is active, False otherwise (defaults to True if field is missing)
+    """
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules')
     user_info = {'schedules': schedules_result.get('schedules', {})}
@@ -267,6 +290,14 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
 
 @handle_errors("deleting schedule period")
 def delete_schedule_period(category, period_name, scheduler_manager=None):
+    """
+    Delete a schedule period from a category.
+    
+    Args:
+        category: The schedule category
+        period_name: The name of the period to delete
+        scheduler_manager: Optional scheduler manager for rescheduling (default: None)
+    """
     user_id = UserContext().get_user_id()
     if not user_id:
         logger.error("User ID is not set in UserContext (delete_schedule_period).")
@@ -312,6 +343,18 @@ def clear_schedule_periods_cache(user_id=None, category=None):
 
 @handle_errors("validating and formatting time")
 def validate_and_format_time(time_str):
+    """
+    Validate and format a time string to HH:MM format.
+    
+    Args:
+        time_str: Time string to validate and format
+        
+    Returns:
+        str: Formatted time string in HH:MM format
+        
+    Raises:
+        ValueError: If the time format is invalid
+    """
     import re
     hh_mm_pattern = r"^(2[0-3]|[01]?[0-9]):([0-5][0-9])$"
     h_hh_pattern = r"^(2[0-3]|[01]?[0-9])$"
@@ -463,12 +506,30 @@ def set_schedule_periods(user_id, category, periods_dict):
     clear_schedule_periods_cache(user_id, category)
 
 def get_schedule_days(user_id, category):
+    """
+    Get the schedule days for a user and category.
+    
+    Args:
+        user_id: The user ID
+        category: The schedule category
+        
+    Returns:
+        list: List of days for the schedule, defaults to all days of the week
+    """
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules')
     user_info = {'schedules': schedules_result.get('schedules', {})}
     return user_info.get('schedules', {}).get(category, {}).get('days', ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 
 def set_schedule_days(user_id, category, days):
+    """
+    Set the schedule days for a user and category.
+    
+    Args:
+        user_id: The user ID
+        category: The schedule category
+        days: List of days to set for the schedule
+    """
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules')
     user_info = {'schedules': schedules_result.get('schedules', {})}

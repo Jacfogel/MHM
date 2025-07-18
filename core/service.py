@@ -41,6 +41,11 @@ class InitializationError(Exception):
 
 class MHMService:
     def __init__(self):
+        """
+        Initialize the MHM backend service.
+        
+        Sets up communication manager, scheduler manager, and registers emergency shutdown handler.
+        """
         self.communication_manager = None
         self.scheduler_manager = None
         self.running = False
@@ -64,6 +69,14 @@ class MHMService:
         
     @handle_errors("initializing paths")
     def initialize_paths(self):
+        """
+        Initialize and verify all required file paths for the service.
+        
+        Creates paths for log files, user data directories, and message files for all users.
+        
+        Returns:
+            List[str]: List of all initialized file paths
+        """
         paths = [
             LOG_FILE_PATH,
             HERMES_FILE_PATH,
@@ -193,7 +206,12 @@ class MHMService:
 
     @handle_errors("starting service")
     def start(self):
-        """Start the MHM backend service"""
+        """
+        Start the MHM backend service.
+        
+        Initializes communication channels, scheduler, and begins the main service loop.
+        Sets up signal handlers for graceful shutdown.
+        """
         logger.info("Starting MHM Backend Service...")
         self.running = True
         
@@ -501,9 +519,15 @@ class MHMService:
         logger.info("MHM Backend Service shutdown complete")
 
     def signal_handler(self, signum, frame):
-        """Handle shutdown signals"""
-        logger.info(f"Received signal {signum}. Initiating graceful shutdown...")
-        self.running = False
+        """
+        Handle shutdown signals for graceful service termination.
+        
+        Args:
+            signum: Signal number
+            frame: Current stack frame
+        """
+        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
+        self.shutdown()
 
     @handle_errors("emergency shutdown")
     def emergency_shutdown(self):
@@ -528,26 +552,31 @@ class MHMService:
                     pass
 
 def get_user_categories(user_id: str) -> List[str]:
-    """Get user's message categories."""
+    """
+    Get the message categories for a specific user.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        List[str]: List of message categories the user is subscribed to
+    """
     try:
-        # Get user categories
-        prefs_result = get_user_data(user_id, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        if categories is None:
-            return []
-        elif isinstance(categories, list):
-            return categories
-        elif isinstance(categories, dict):
-            return list(categories.keys())
-        else:
-            return []
+        from core.user_management import get_user_data
+        user_data = get_user_data(user_id, 'preferences')
+        categories = user_data.get('preferences', {}).get('categories', [])
+        return categories if isinstance(categories, list) else []
     except Exception as e:
         logger.error(f"Error getting categories for user {user_id}: {e}")
         return []
 
 @handle_errors("main service function")
 def main():
-    """Main entry point for the service"""
+    """
+    Main entry point for the MHM backend service.
+    
+    Creates and starts the service, handling initialization errors and graceful shutdown.
+    """
     service = MHMService()
     service.start()
 

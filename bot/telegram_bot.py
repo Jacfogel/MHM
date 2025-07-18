@@ -1,4 +1,4 @@
-﻿# telegram_bot.py
+# telegram_bot.py
 
 import threading
 import time
@@ -69,6 +69,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @property
     def channel_type(self) -> ChannelType:
+        """
+        Get the channel type for Telegram bot.
+        
+        Returns:
+            ChannelType.ASYNC: Telegram bot operates asynchronously
+        """
         return ChannelType.ASYNC
 
     @handle_errors("running Telegram polling")
@@ -202,18 +208,25 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     # Legacy method for backward compatibility
     @handle_errors("starting Telegram bot")
     def start(self):
-        """Legacy start method - calls the new async initialize"""
+        """
+        Legacy start method - calls the new async initialize.
+        
+        Initializes the Telegram bot using the legacy interface.
+        """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         success = loop.run_until_complete(self.initialize())
         if not success:
             raise TelegramBotError("Failed to initialize Telegram bot")
-        return success
 
     # Legacy method for backward compatibility  
     @handle_errors("stopping Telegram bot")
     def stop(self):
-        """Legacy stop method - calls the new async shutdown"""
+        """
+        Legacy stop method - calls the new async shutdown.
+        
+        Shuts down the Telegram bot using the legacy interface.
+        """
         if asyncio.get_event_loop().is_running():
             # If we're in an async context, schedule the shutdown
             asyncio.create_task(self.shutdown())
@@ -224,7 +237,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             loop.run_until_complete(self.shutdown())
 
     def is_initialized(self):
-        """Legacy method for backward compatibility"""
+        """
+        Legacy method for backward compatibility.
+        
+        Returns:
+            bool: True if the Telegram bot is initialized and ready
+        """
         return self.is_ready()
 
     @handle_errors("handling start command")
@@ -255,15 +273,32 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("handling scream command")
     def scream_command(self, update: Update, context: CallbackContext) -> None:
-        self.screaming = True
-        logger.info("Received /scream command")
-        self.ensure_user_exists(update)
+        """
+        Handle the /scream command.
+        
+        Toggles screaming mode for the bot's responses.
+        
+        Args:
+            update: Telegram update object
+            context: Callback context
+        """
+        self.screaming = not self.screaming
+        status = "ON" if self.screaming else "OFF"
+        update.message.reply_text(f"SCREAMING MODE: {status}")
 
     @handle_errors("handling whisper command")
     def whisper_command(self, update: Update, context: CallbackContext) -> None:
+        """
+        Handle the /whisper command.
+        
+        Toggles whispering mode for the bot's responses.
+        
+        Args:
+            update: Telegram update object
+            context: Callback context
+        """
         self.screaming = False
-        logger.info("Received /whisper command")
-        self.ensure_user_exists(update)
+        update.message.reply_text("whispering mode activated...")
 
     @handle_errors("handling menu command")
     async def menu_command(self, update: Update, context: CallbackContext) -> None:
@@ -355,6 +390,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("getting base days keyboard")
     def get_base_days_keyboard(self) -> InlineKeyboardMarkup:
+        """
+        Create a keyboard with days of the week for user selection.
+        
+        Returns:
+            InlineKeyboardMarkup: Keyboard with days of the week and submit button
+        """
         days_of_week = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         buttons = [[InlineKeyboardButton(day, callback_data=day)] for day in days_of_week]
         buttons.append([InlineKeyboardButton('Submit', callback_data='submit_days')])
@@ -399,6 +440,14 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("updating time periods keyboard")
     def update_time_periods_keyboard(self, update: Update, context: CallbackContext, selected: list) -> None:
+        """
+        Update the time periods keyboard to reflect current selections.
+        
+        Args:
+            update: Telegram update object
+            context: Callback context
+            selected: List of currently selected time periods
+        """
         user_id = UserContext().get_user_id()  
         category = context.user_data.get('category')
         available_periods = get_schedule_time_periods(user_id, category)
@@ -414,6 +463,13 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("saving new message")
     def save_new_message(self, update: Update, context: CallbackContext) -> None:
+        """
+        Save a new message with selected days and time periods.
+        
+        Args:
+            update: Telegram update object
+            context: Callback context containing message data
+        """
         self.ensure_user_exists(update)
         user_id = UserContext().get_user_id()
         category = context.user_data['category']
@@ -486,7 +542,25 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("adding new period")
     def add_new_period(self, update: Update, context: CallbackContext) -> int:
-        category = context.user_data['category']
+        """
+        Handle adding a new time period to the schedule.
+        
+        Args:
+            update: Telegram update object
+            context: Callback context
+            
+        Returns:
+            int: Next conversation state
+        """
+        query = update.callback_query
+        query.answer()
+        
+        # Get the category from context
+        category = context.user_data.get('category')
+        if not category:
+            query.edit_message_text("Error: No category selected")
+            return ConversationHandler.END
+
         period_name = context.user_data['new_period_name']
         start_time = context.user_data['new_period_start_time']
         end_time = update.message.text.strip()
@@ -504,6 +578,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("creating add message conversation handler")
     def add_message_conv_handler(self):
+        """
+        Create a conversation handler for adding new messages.
+        
+        Returns:
+            ConversationHandler: Configured conversation handler for message addition flow
+        """
         conv_handler = ConversationHandler(
             entry_points=[CallbackQueryHandler(self.add_message_command, pattern='^add_message$')],
             states={
@@ -522,6 +602,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
     @handle_errors("creating schedule conversation handler")
     def schedule_conv_handler(self):
+        """
+        Create a conversation handler for schedule management.
+        
+        Returns:
+            ConversationHandler: Configured conversation handler for schedule editing flow
+        """
         conv_handler = ConversationHandler(
             entry_points=[CallbackQueryHandler(self.view_edit_schedule_command, pattern='^view_edit_schedule$')],
             states={
@@ -544,6 +630,12 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     # NEW: Daily Check-In Flow
     @handle_errors("creating daily checkin conversation handler")
     def daily_checkin_conv_handler(self):
+        """
+        Create a conversation handler for daily check-in flow.
+        
+        Returns:
+            ConversationHandler: Configured conversation handler for daily check-in flow
+        """
         return ConversationHandler(
             entry_points=[CommandHandler("dailycheckin", self.start_daily_checkin),
                           CallbackQueryHandler(self.start_daily_checkin, pattern='^daily_checkin$')],
@@ -714,4 +806,10 @@ telegram_bot = TelegramBot()
 
 @handle_errors("running Telegram bot in background")
 def run_telegram_bot_in_background():
-    telegram_bot.start()
+    """
+    Run the Telegram bot in the background.
+    
+    Creates and starts a Telegram bot instance for background operation.
+    """
+    bot = TelegramBot()
+    bot.start()

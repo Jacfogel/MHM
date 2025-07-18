@@ -7,6 +7,12 @@ class AdminPanelDialog(QDialog):
     """Dialog for admin panel functionality."""
     
     def __init__(self, parent=None):
+        """
+        Initialize the AdminPanelDialog.
+        
+        Args:
+            parent: Parent widget for the dialog
+        """
         super().__init__(parent)
         self.setWindowTitle("Admin Panel")
         self.setModal(True)
@@ -31,11 +37,21 @@ class AdminPanelDialog(QDialog):
         # layout.addWidget(admin_widget)
     
     def get_admin_data(self):
-        """Get the admin panel data."""
+        """
+        Get the admin panel data.
+        
+        Returns:
+            dict: Admin panel data (currently returns empty dict as placeholder)
+        """
         # TODO: Implement
         return {}
     
     def set_admin_data(self, data):
-        """Set the admin panel data."""
+        """
+        Set the admin panel data.
+        
+        Args:
+            data: Admin panel data to set (currently not implemented)
+        """
         # TODO: Implement
         pass 

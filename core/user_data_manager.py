@@ -30,6 +30,11 @@ class UserDataManager:
     """Enhanced user data management with references, backup, and indexing capabilities"""
     
     def __init__(self):
+        """
+        Initialize the UserDataManager.
+        
+        Sets up backup directory and index file path for user data management operations.
+        """
         self.index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
         self.backup_dir = os.path.join(BASE_DATA_DIR, "backups")
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -220,17 +225,25 @@ class UserDataManager:
     
     @handle_errors("getting user data summary", default_return={"error": "Failed to get summary"})
     def get_user_data_summary(self, user_id: str) -> Dict[str, Any]:
-        """Get a comprehensive summary of user's data"""
+        """
+        Get a comprehensive summary of user data including file counts and sizes.
+        
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            Dict containing summary information about the user's data
+        """
         summary = {
             "user_id": user_id,
-            "profile": {"exists": False, "size": 0},
-            "preferences": {"exists": False, "size": 0},
-            "schedules": {"exists": False, "size": 0, "periods": 0},
-            "messages": {},
-            "sent_messages": {"exists": False, "size": 0, "count": 0},
-            "logs": {},
+            "profile_exists": False,
+            "preferences_exists": False,
+            "schedules_exists": False,
+            "message_files": {},
+            "sent_messages_exists": False,
             "total_files": 0,
-            "total_size": 0
+            "total_size_bytes": 0,
+            "last_modified": None
         }
         
         # Check user directory files
@@ -346,20 +359,34 @@ class UserDataManager:
     
     @handle_errors("getting last interaction", default_return="1970-01-01 00:00:00")
     def _get_last_interaction(self, user_id: str) -> str:
-        """Get the most recent user interaction timestamp"""
+        """
+        Get the timestamp of the user's last interaction with the system.
+        
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            str: ISO format timestamp of last interaction, or default if none found
+        """
         try:
             # Check recent check-ins
-            from core.response_tracking import get_recent_daily_checkins
-            recent_checkins = get_recent_daily_checkins(user_id, limit=1)
-            if recent_checkins:
-                return recent_checkins[0].get('timestamp', '1970-01-01 00:00:00')
-            
+            try:
+                from core.response_tracking import get_recent_daily_checkins
+                recent_checkins = get_recent_daily_checkins(user_id, limit=1)
+                if recent_checkins:
+                    return recent_checkins[0].get('timestamp', '1970-01-01 00:00:00')
+            except Exception as e:
+                logger.warning(f"Error getting recent check-ins for user {user_id}: {e}")
+
             # Check recent chat interactions
-            from core.response_tracking import get_recent_responses
-            recent_chats = get_recent_responses(user_id, 'chat_interaction', limit=1)
-            if recent_chats:
-                return recent_chats[0].get('timestamp', '1970-01-01 00:00:00')
-            
+            try:
+                from core.response_tracking import get_recent_responses
+                recent_chats = get_recent_responses(user_id, 'chat_interaction', limit=1)
+                if recent_chats:
+                    return recent_chats[0].get('timestamp', '1970-01-01 00:00:00')
+            except Exception as e:
+                logger.warning(f"Error getting recent chat interactions for user {user_id}: {e}")
+
             # Check sent messages
             sent_file = get_user_file_path(user_id, 'sent_messages')
             if os.path.exists(sent_file):
@@ -382,148 +409,201 @@ class UserDataManager:
             user_data_result = get_user_data(user_id, 'account')
             user_account = user_data_result.get('account') or {}
             return user_account.get('created_at', '1970-01-01 00:00:00')
-            
+                
         except Exception as e:
             logger.warning(f"Error getting last interaction for user {user_id}: {e}")
             return '1970-01-01 00:00:00'
     
     @handle_errors("updating user index", default_return=False)
     def update_user_index(self, user_id: str) -> bool:
-        """Update the global user index with current user data locations"""
-        # Load existing index
-        index_data = load_json_data(self.index_file) or {}
+        """
+        Update the user index with current information for a specific user.
         
-        # Update user entry
-        summary = self.get_user_data_summary(user_id)
-        
-        # Safely get message count - handle case where no message categories exist
-        message_count = 0
-        if summary["messages"]:
-            try:
-                first_category = next(iter(summary["messages"]))
-                message_count = summary["messages"].get(first_category, {}).get("message_count", 0)
-            except StopIteration:
-                message_count = 0
-        
-        # Get user account, preferences, and context for additional info
-        user_data_result = get_user_data(user_id, 'account')
-        user_account = user_data_result.get('account') or {}
-        prefs_result = get_user_data(user_id, 'preferences')
-        user_preferences = prefs_result.get('preferences') or {}
-        context_result = get_user_data(user_id, 'context')
-        user_context = context_result.get('context') or {}
-        
-        # Determine enabled features
-        enabled_features = []
-        features = user_account.get('features', {})
-        
-        if features.get('automated_messages') == 'enabled':
-            enabled_features.append('automated_messages')
-            # Include categories only if automated messages are enabled
-            categories = user_preferences.get('categories', [])
-            enabled_features.extend(categories)
-        
-        if features.get('checkins') == 'enabled':
-            enabled_features.append('checkins')
+        Args:
+            user_id: The user's ID
             
-        if features.get('task_management') == 'enabled':
-            enabled_features.append('task_management')
-        
-        # Get channel type
-        channel_type = user_preferences.get('channel', {}).get('type', 'email')
-        
-        # Get last interaction (most recent activity)
-        last_interaction = self._get_last_interaction(user_id)
-        
-        index_data[user_id] = {
-            "internal_username": user_account.get('internal_username', ''),
-            "active": user_account.get('account_status') == 'active',
-            "channel_type": channel_type,
-            "enabled_features": sorted(enabled_features),
-            "last_interaction": last_interaction,
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        # Save updated index
-        save_json_data(index_data, self.index_file)
-        logger.debug(f"Updated user index for user {user_id}")
-        return True
+        Returns:
+            bool: True if index was updated successfully
+        """
+        try:
+            # Load existing index
+            index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
+            
+            # Get current user summary
+            user_summary = get_user_summary(user_id)
+            if not user_summary:
+                logger.warning(f"Could not get summary for user {user_id}")
+                return False
+
+            # Safely get message count - handle case where no message categories exist
+            message_count = user_summary.get("total_messages", 0)
+            
+            # Get user account, preferences, and context for additional info
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account') or {}
+            prefs_result = get_user_data(user_id, 'preferences')
+            user_preferences = prefs_result.get('preferences') or {}
+            context_result = get_user_data(user_id, 'context')
+            user_context = context_result.get('context') or {}
+            
+            # Determine enabled features
+            enabled_features = []
+            features = user_account.get('features', {})
+            
+            if features.get('automated_messages') == 'enabled':
+                enabled_features.append('automated_messages')
+                # Include categories only if automated messages are enabled
+                categories = user_preferences.get('categories', [])
+                enabled_features.extend(categories)
+            
+            if features.get('checkins') == 'enabled':
+                enabled_features.append('checkins')
+                
+            if features.get('task_management') == 'enabled':
+                enabled_features.append('task_management')
+            
+            # Get channel type
+            channel_type = user_preferences.get('channel', {}).get('type', 'email')
+            
+            # Get last interaction (most recent activity)
+            last_interaction = self._get_last_interaction(user_id)
+            
+            index_data[user_id] = {
+                "internal_username": user_account.get('internal_username', ''),
+                "active": user_account.get('account_status') == 'active',
+                "channel_type": channel_type,
+                "enabled_features": sorted(enabled_features),
+                "last_interaction": last_interaction,
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            
+            # Save updated index
+            save_json_data(index_data, self.index_file)
+            logger.debug(f"Updated user index for user {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Error updating user index for user {user_id}: {e}")
+            return False
     
     @handle_errors("removing from index", default_return=False)
     def remove_from_index(self, user_id: str) -> bool:
-        """Remove user from the global index"""
-        index_data = load_json_data(self.index_file) or {}
-        if user_id in index_data:
-            del index_data[user_id]
-            save_json_data(index_data, self.index_file)
-            logger.info(f"Removed user {user_id} from index")
-        return True
+        """
+        Remove a user from the index.
+        
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            bool: True if user was removed from index successfully
+        """
+        try:
+            index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
+            if user_id in index_data["users"]:
+                del index_data["users"][user_id]
+                index_data["last_updated"] = datetime.now().isoformat()
+                save_json_data(index_data, self.index_file)
+                logger.info(f"Removed user {user_id} from index")
+                return True
+            return True  # User wasn't in index, that's fine
+        except Exception as e:
+            logger.error(f"Error removing user {user_id} from index: {e}")
+            return False
     
     @handle_errors("rebuilding full index", default_return=False)
     def rebuild_full_index(self) -> bool:
-        """Rebuild the complete user index from scratch"""
-        from core.user_management import get_all_user_ids
+        """
+        Rebuild the complete user index from scratch.
         
-        index_data = {}
-        user_ids = get_all_user_ids()
+        Scans all user directories and creates a fresh index with current information.
         
-        for user_id in user_ids:
-            if user_id:
-                summary = self.get_user_data_summary(user_id)
-                
-                # Get user account, preferences, and context for additional info
-                user_data_result = get_user_data(user_id, 'account')
-                user_account = user_data_result.get('account') or {}
-                prefs_result = get_user_data(user_id, 'preferences')
-                user_preferences = prefs_result.get('preferences') or {}
-                context_result = get_user_data(user_id, 'context')
-                user_context = context_result.get('context') or {}
-                
-                # Determine enabled features
-                enabled_features = []
-                features = user_account.get('features', {})
-                
-                if features.get('automated_messages') == 'enabled':
-                    enabled_features.append('automated_messages')
-                    # Include categories only if automated messages are enabled
-                    categories = user_preferences.get('categories', [])
-                    enabled_features.extend(categories)
-                
-                if features.get('checkins') == 'enabled':
-                    enabled_features.append('checkins')
+        Returns:
+            bool: True if index was rebuilt successfully
+        """
+        try:
+            logger.info("Starting full user index rebuild...")
+            
+            # Get all user IDs
+            user_ids = get_all_user_ids()
+            if not user_ids:
+                logger.warning("No users found during index rebuild")
+                return True
+
+            index_data = {}
+            for user_id in user_ids:
+                if user_id:
+                    summary = self.get_user_data_summary(user_id)
                     
-                if features.get('task_management') == 'enabled':
-                    enabled_features.append('task_management')
-                
-                # Get channel type
-                channel_type = user_preferences.get('channel', {}).get('type', 'email')
-                
-                # Get last interaction (most recent activity)
-                last_interaction = self._get_last_interaction(user_id)
-                
-                index_data[user_id] = {
-                    "internal_username": user_account.get('internal_username', ''),
-                    "active": user_account.get('account_status') == 'active',
-                    "channel_type": channel_type,
-                    "enabled_features": sorted(enabled_features),
-                    "last_interaction": last_interaction,
-                    "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                }
-        
-        save_json_data(index_data, self.index_file)
-        logger.info(f"Rebuilt user index with {len(index_data)} users")
-        return True
+                    # Get user account, preferences, and context for additional info
+                    user_data_result = get_user_data(user_id, 'account')
+                    user_account = user_data_result.get('account') or {}
+                    prefs_result = get_user_data(user_id, 'preferences')
+                    user_preferences = prefs_result.get('preferences') or {}
+                    context_result = get_user_data(user_id, 'context')
+                    user_context = context_result.get('context') or {}
+                    
+                    # Determine enabled features
+                    enabled_features = []
+                    features = user_account.get('features', {})
+                    
+                    if features.get('automated_messages') == 'enabled':
+                        enabled_features.append('automated_messages')
+                        # Include categories only if automated messages are enabled
+                        categories = user_preferences.get('categories', [])
+                        enabled_features.extend(categories)
+                    
+                    if features.get('checkins') == 'enabled':
+                        enabled_features.append('checkins')
+                        
+                    if features.get('task_management') == 'enabled':
+                        enabled_features.append('task_management')
+                    
+                    # Get channel type
+                    channel_type = user_preferences.get('channel', {}).get('type', 'email')
+                    
+                    # Get last interaction (most recent activity)
+                    last_interaction = self._get_last_interaction(user_id)
+                    
+                    index_data[user_id] = {
+                        "internal_username": user_account.get('internal_username', ''),
+                        "active": user_account.get('account_status') == 'active',
+                        "channel_type": channel_type,
+                        "enabled_features": sorted(enabled_features),
+                        "last_interaction": last_interaction,
+                        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    }
+            
+            save_json_data(index_data, self.index_file)
+            logger.info(f"Rebuilt user index with {len(index_data)} users")
+            return True
+        except Exception as e:
+            logger.error(f"Error rebuilding full user index: {e}")
+            return False
     
     @handle_errors("searching users", default_return=[])
     def search_users(self, query: str, search_fields: List[str] = None) -> List[Dict[str, Any]]:
-        """Search users based on profile data or file patterns"""
-        if search_fields is None:
-            search_fields = ["internal_username", "preferred_name", "email"]
+        """
+        Search for users based on query string and specified fields.
         
-        index_data = load_json_data(self.index_file) or {}
+        Args:
+            query: Search query string
+            search_fields: List of fields to search in (default: all fields)
+            
+        Returns:
+            List of user summaries matching the search criteria
+        """
+        if not query.strip():
+            return []
+        
+        # Load index
+        index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
+        users = index_data.get("users", {})
+        
+        if not users:
+            return []
+
         matches = []
         
-        for user_id, user_index in index_data.items():
+        for user_id, user_index in users.items():
             # Load user profile for searching
             user_info = get_user_info_for_data_manager(user_id)
             if not user_info:
@@ -552,32 +632,95 @@ user_data_manager = UserDataManager()
 
 # Convenience functions
 def update_message_references(user_id: str) -> bool:
-    """Update message file references for a user"""
-    return user_data_manager.update_message_references(user_id)
+    """
+    Update message file references for a user.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        bool: True if references were updated successfully
+    """
+    manager = UserDataManager()
+    return manager.update_message_references(user_id)
 
 def backup_user_data(user_id: str, include_messages: bool = True) -> str:
-    """Create a backup of user's data"""
-    return user_data_manager.backup_user_data(user_id, include_messages)
+    """
+    Create a backup of user data.
+    
+    Args:
+        user_id: The user's ID
+        include_messages: Whether to include message files in backup
+        
+    Returns:
+        str: Path to the created backup file
+    """
+    manager = UserDataManager()
+    return manager.backup_user_data(user_id, include_messages)
 
 def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any]:
-    """Export user's data to structured format"""
-    return user_data_manager.export_user_data(user_id, export_format)
+    """
+    Export user data to a structured format.
+    
+    Args:
+        user_id: The user's ID
+        export_format: Format for export (currently only "json" supported)
+        
+    Returns:
+        Dict containing all user data in structured format
+    """
+    manager = UserDataManager()
+    return manager.export_user_data(user_id, export_format)
 
 def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
-    """Completely remove a user from the system"""
-    return user_data_manager.delete_user_completely(user_id, create_backup)
+    """
+    Completely delete a user and all their data.
+    
+    Args:
+        user_id: The user's ID
+        create_backup: Whether to create a backup before deletion
+        
+    Returns:
+        bool: True if user was deleted successfully
+    """
+    manager = UserDataManager()
+    return manager.delete_user_completely(user_id, create_backup)
 
 def get_user_data_summary(user_id: str) -> Dict[str, Any]:
-    """Get summary of user's data"""
-    return user_data_manager.get_user_data_summary(user_id)
+    """
+    Get a summary of user data.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        Dict containing user data summary
+    """
+    manager = UserDataManager()
+    return manager.get_user_data_summary(user_id)
 
 def update_user_index(user_id: str) -> bool:
-    """Update the user index"""
-    return user_data_manager.update_user_index(user_id)
+    """
+    Update the user index for a specific user.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        bool: True if index was updated successfully
+    """
+    manager = UserDataManager()
+    return manager.update_user_index(user_id)
 
 def rebuild_user_index() -> bool:
-    """Rebuild the complete user index"""
-    return user_data_manager.rebuild_full_index()
+    """
+    Rebuild the complete user index.
+    
+    Returns:
+        bool: True if index was rebuilt successfully
+    """
+    manager = UserDataManager()
+    return manager.rebuild_full_index()
 
 @handle_errors("getting user info for data manager", default_return=None)
 def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
@@ -744,28 +887,57 @@ def get_all_user_summaries() -> List[Dict[str, Any]]:
         return []
 
 def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
-    """Get analytics summary for user."""
+    """
+    Get an analytics summary for a user including interaction patterns and data usage.
+    
+    Args:
+        user_id: The user's ID
+        
+    Returns:
+        Dict containing analytics summary information
+    """
     try:
-        user_data_result = get_user_data(user_id, 'account')
-        user_account = user_data_result.get('account')
-        prefs_result = get_user_data(user_id, 'preferences')
-        user_preferences = prefs_result.get('preferences')
-        context_result = get_user_data(user_id, 'context')
-        user_context = context_result.get('context')
+        # Get basic summary
+        summary = get_user_summary(user_id)
+        if not summary:
+            return {"error": "User not found"}
         
-        if not user_account:
-            return {}
-        
-        return {
+        # Add analytics data
+        analytics = {
             "user_id": user_id,
-            "internal_username": user_account.get("internal_username", ""),
-            "preferred_name": user_context.get("preferred_name", "") if user_context else "",
-            "categories": sorted(set(prefs_result.get('preferences', {}).get('categories', []) or [])),
-            "messaging_service": user_preferences.get("channel", {}).get("type", "") if user_preferences else "",
-            "features": user_account.get("features", {}),
-            "created_at": user_account.get("created_at", ""),
-            "last_updated": user_account.get("updated_at", "")
+            "data_summary": summary,
+            "interaction_patterns": {},
+            "data_usage": {},
+            "recommendations": []
         }
+        
+        # Analyze interaction patterns
+        interaction_sources = [
+            ('sent_messages', 'Message Interactions'),
+            ('daily_checkins', 'Check-in Activity'),
+            ('chat_interactions', 'Chat Activity')
+        ]
+        
+        for source, label in interaction_sources:
+            file_path = get_user_file_path(user_id, source)
+            if os.path.exists(file_path):
+                data = load_json_data(file_path) or []
+                if isinstance(data, list):
+                    analytics["interaction_patterns"][source] = {
+                        "count": len(data),
+                        "last_interaction": data[-1].get('timestamp', 'Unknown') if data else 'None',
+                        "frequency": "High" if len(data) > 10 else "Medium" if len(data) > 5 else "Low"
+                    }
+        
+        # Generate recommendations
+        if analytics["interaction_patterns"].get('daily_checkins', {}).get('count', 0) < 3:
+            analytics["recommendations"].append("Consider enabling daily check-ins for better engagement")
+        
+        if analytics["interaction_patterns"].get('chat_interactions', {}).get('count', 0) < 5:
+            analytics["recommendations"].append("Try using the chat feature for personalized interactions")
+        
+        return analytics
+        
     except Exception as e:
-        logger.error(f"Error getting user analytics summary for {user_id}: {e}")
-        return {} 
+        logger.error(f"Error getting analytics summary for user {user_id}: {e}")
+        return {"error": f"Failed to get analytics: {str(e)}"} 

@@ -116,6 +116,15 @@ class UserProfileDialog(QDialog):
     def create_custom_field_list(self, parent_layout, predefined_values, existing_values, label_text):
         """Creates a multi-column list with preset items (checkbox + label) and custom fields (checkbox + entry + delete)."""
         def title_case(s):
+            """
+            Convert snake_case or lowercase to Title Case.
+            
+            Args:
+                s: String to convert to title case
+                
+            Returns:
+                str: String converted to title case
+            """
             # Convert snake_case or lowercase to Title Case
             return re.sub(r'(_|-)+', ' ', s).title()
 
@@ -202,184 +211,240 @@ class UserProfileDialog(QDialog):
         field_frame.deleteLater()
     
     def create_health_section(self):
-        """Create the health information section."""
-        # Health conditions
-        predefined_conditions = get_predefined_options('health_conditions')
-        existing_conditions = self.personalization_data.get('health_conditions', [])
-        self.health_conditions_group = self.create_custom_field_list(
-            self.health_conditions_widget.layout(), predefined_conditions, existing_conditions, "health_conditions"
+        """
+        Create the health section of the personalization dialog.
+        
+        Returns:
+            QGroupBox: Health section group box
+        """
+        health_group = QGroupBox("Health & Wellness")
+        health_layout = QVBoxLayout(health_group)
+        
+        # Get predefined health options
+        health_options = get_predefined_options('health_conditions')
+        existing_health = self.personalization_data.get('health_conditions', [])
+        
+        # Create health conditions list
+        self.health_group_box = self.create_custom_field_list(
+            health_layout, health_options, existing_health, "health_conditions"
         )
         
-        # Medications
-        predefined_medications = get_predefined_options('medications')
-        existing_medications = self.personalization_data.get('medications', [])
-        self.medications_group = self.create_custom_field_list(
-            self.medications_widget.layout(), predefined_medications, existing_medications, "medications"
-        )
-        
-        # Allergies
-        predefined_allergies = get_predefined_options('allergies')
-        existing_allergies = self.personalization_data.get('allergies', [])
-        self.allergies_group = self.create_custom_field_list(
-            self.allergies_widget.layout(), predefined_allergies, existing_allergies, "allergies"
-        )
+        return health_group
     
     def create_loved_ones_section(self):
-        """Create the loved ones section."""
-        layout = self.loved_ones_container.layout()
+        """
+        Create the loved ones section of the personalization dialog.
+        
+        Returns:
+            QGroupBox: Loved ones section group box
+        """
+        loved_ones_group = QGroupBox("Loved Ones & Relationships")
+        loved_ones_layout = QVBoxLayout(loved_ones_group)
         
         # Add loved one button
         add_button = QPushButton("Add Loved One")
-        add_button.clicked.connect(lambda: self.add_loved_one_widget(layout))
-        layout.addWidget(add_button)
+        add_button.clicked.connect(lambda: self.add_loved_one_widget(loved_ones_layout))
+        loved_ones_layout.addWidget(add_button)
         
         # Add existing loved ones
-        loved_ones = self.personalization_data.get('loved_ones', [])
-        for loved_one in loved_ones:
-            self.add_loved_one_widget(layout, loved_one)
+        existing_loved_ones = self.personalization_data.get('loved_ones', [])
+        for loved_one in existing_loved_ones:
+            self.add_loved_one_widget(loved_ones_layout, loved_one)
         
         # Store reference for data collection
-        self.loved_ones_container.loved_ones_layout = layout
+        loved_ones_group.loved_ones_layout = loved_ones_layout
+        
+        return loved_ones_group
     
     def add_loved_one_widget(self, parent_layout, loved_one_data=None):
-        """Add a loved one widget with name, relationship, and birthday fields."""
-        if loved_one_data is None:
-            loved_one_data = {}
+        """
+        Add a loved one widget to the layout.
         
+        Args:
+            parent_layout: Parent layout to add the widget to
+            loved_one_data: Optional existing loved one data
+        """
         frame = QFrame()
         frame.setFrameStyle(QFrame.Shape.StyledPanel)
-        layout = QFormLayout(frame)
+        layout = QVBoxLayout(frame)
         
-        # Name
+        # Header with name and remove button
+        header_layout = QHBoxLayout()
+        
+        name_label = QLabel("Name:")
+        header_layout.addWidget(name_label)
+        
         name_entry = QLineEdit()
-        name_entry.setText(loved_one_data.get('name', ''))
-        layout.addRow("Name:", name_entry)
+        if loved_one_data:
+            name_entry.setText(loved_one_data.get('name', ''))
+        header_layout.addWidget(name_entry)
         
-        # Relationship
-        relationship_entry = QLineEdit()
-        relationship_entry.setText(loved_one_data.get('relationship', ''))
-        layout.addRow("Relationship:", relationship_entry)
-        
-        # Birthday
-        birthday_edit = QDateEdit()
-        birthday_edit.setCalendarPopup(True)
-        birthday_str = loved_one_data.get('birthday', '')
-        if birthday_str:
-            try:
-                birthday_date = QDate.fromString(birthday_str, Qt.DateFormat.ISODate)
-                birthday_edit.setDate(birthday_date)
-            except:
-                birthday_edit.setDate(QDate.currentDate())
-        else:
-            birthday_edit.setDate(QDate.currentDate())
-        layout.addRow("Birthday:", birthday_edit)
-        
-        # Remove button
         remove_button = QPushButton("Remove")
         remove_button.clicked.connect(lambda: self.remove_loved_one_widget(frame))
-        layout.addRow("", remove_button)
+        header_layout.addWidget(remove_button)
+        
+        layout.addLayout(header_layout)
+        
+        # Relationship type
+        relationship_layout = QHBoxLayout()
+        relationship_label = QLabel("Relationship:")
+        relationship_layout.addWidget(relationship_label)
+        
+        relationship_combo = QComboBox()
+        relationship_options = ['Spouse', 'Partner', 'Child', 'Parent', 'Sibling', 'Friend', 'Other']
+        relationship_combo.addItems(relationship_options)
+        if loved_one_data:
+            relationship = loved_one_data.get('relationship', '')
+            index = relationship_combo.findText(relationship)
+            if index >= 0:
+                relationship_combo.setCurrentIndex(index)
+        relationship_layout.addWidget(relationship_combo)
+        
+        layout.addLayout(relationship_layout)
+        
+        # Notes
+        notes_label = QLabel("Notes:")
+        layout.addWidget(notes_label)
+        
+        notes_text = QTextEdit()
+        notes_text.setMaximumHeight(60)
+        if loved_one_data:
+            notes_text.setText(loved_one_data.get('notes', ''))
+        layout.addWidget(notes_text)
         
         # Store references
         frame.name_entry = name_entry
-        frame.relationship_entry = relationship_entry
-        frame.birthday_edit = birthday_edit
+        frame.relationship_combo = relationship_combo
+        frame.notes_text = notes_text
         
         parent_layout.addWidget(frame)
     
     def remove_loved_one_widget(self, frame):
-        """Remove a loved one widget from the layout."""
+        """
+        Remove a loved one widget from the layout.
+        
+        Args:
+            frame: Frame widget to remove
+        """
         frame.setParent(None)
         frame.deleteLater()
     
     def create_interests_section(self):
-        """Create the interests section."""
-        layout = self.interests_widget.layout()
+        """
+        Create the interests section of the personalization dialog.
         
-        # Hobbies
-        predefined_hobbies = get_predefined_options('hobbies')
-        existing_hobbies = self.personalization_data.get('hobbies', [])
-        self.hobbies_group = self.create_custom_field_list(
-            layout, predefined_hobbies, existing_hobbies, "hobbies"
+        Returns:
+            QGroupBox: Interests section group box
+        """
+        interests_group = QGroupBox("Interests & Hobbies")
+        interests_layout = QVBoxLayout(interests_group)
+        
+        # Get predefined interest options
+        interest_options = get_predefined_options('interests')
+        existing_interests = self.personalization_data.get('interests', [])
+        
+        # Create interests list
+        self.interests_group_box = self.create_custom_field_list(
+            interests_layout, interest_options, existing_interests, "interests"
         )
         
-        # Music preferences
-        predefined_music = get_predefined_options('music_preferences')
-        existing_music = self.personalization_data.get('music_preferences', [])
-        self.music_group = self.create_custom_field_list(
-            layout, predefined_music, existing_music, "music_preferences"
-        )
-        
-        # Reading preferences
-        predefined_reading = get_predefined_options('reading_preferences')
-        existing_reading = self.personalization_data.get('reading_preferences', [])
-        self.reading_group = self.create_custom_field_list(
-            layout, predefined_reading, existing_reading, "reading_preferences"
-        )
+        return interests_group
     
     def create_notes_section(self):
-        """Create the notes section."""
-        # Notes section is already in the UI file, just load existing data
-        self.notes_edit.setPlainText(self.personalization_data.get('notes', ''))
-        self.notes_edit.setPlaceholderText("Add any additional notes about yourself...")
+        """
+        Create the notes section of the personalization dialog.
+        
+        Returns:
+            QGroupBox: Notes section group box
+        """
+        notes_group = QGroupBox("Additional Notes")
+        notes_layout = QVBoxLayout(notes_group)
+        
+        notes_text = QTextEdit()
+        notes_text.setPlaceholderText("Any additional notes or information...")
+        notes_text.setText(self.personalization_data.get('notes', ''))
+        notes_layout.addWidget(notes_text)
+        
+        # Store reference
+        notes_group.notes_text = notes_text
+        
+        return notes_group
     
     def create_goals_section(self):
-        """Create the goals section."""
-        layout = self.goals_widget.layout()
+        """
+        Create the goals section of the personalization dialog.
         
-        # Short-term goals
-        predefined_short_goals = get_predefined_options('short_term_goals')
-        existing_short_goals = self.personalization_data.get('short_term_goals', [])
-        self.short_goals_group = self.create_custom_field_list(
-            layout, predefined_short_goals, existing_short_goals, "short_term_goals"
+        Returns:
+            QGroupBox: Goals section group box
+        """
+        goals_group = QGroupBox("Goals & Aspirations")
+        goals_layout = QVBoxLayout(goals_group)
+        
+        # Get predefined goal options
+        goal_options = get_predefined_options('goals')
+        existing_goals = self.personalization_data.get('goals', [])
+        
+        # Create goals list
+        self.goals_group_box = self.create_custom_field_list(
+            goals_layout, goal_options, existing_goals, "goals"
         )
         
-        # Long-term goals
-        predefined_long_goals = get_predefined_options('long_term_goals')
-        existing_long_goals = self.personalization_data.get('long_term_goals', [])
-        self.long_goals_group = self.create_custom_field_list(
-            layout, predefined_long_goals, existing_long_goals, "long_term_goals"
-        )
+        return goals_group
     
     def collect_custom_field_data(self, group_box):
-        """Collect data from a custom field group box."""
-        data = []
+        """
+        Collect data from custom field checkboxes and entries.
+        
+        Args:
+            group_box: Group box containing custom fields
+            
+        Returns:
+            list: List of selected values from checkboxes and custom entries
+        """
+        selected_values = []
         
         # Collect preset values
         for checkbox, value in group_box.preset_vars:
             if checkbox.isChecked():
-                data.append(value)
+                selected_values.append(value)
         
         # Collect custom values
         for i in range(group_box.custom_layout.count()):
             widget = group_box.custom_layout.itemAt(i).widget()
             if isinstance(widget, QFrame) and hasattr(widget, 'checkbox') and hasattr(widget, 'entry'):
                 if widget.checkbox.isChecked():
-                    value = widget.entry.text().strip()
-                if value:
-                    data.append(value)
+                    custom_value = widget.entry.text().strip()
+                    if custom_value:
+                        selected_values.append(custom_value)
         
-        return data
+        return selected_values
     
     def collect_loved_ones_data(self):
-        """Collect data from loved ones section."""
+        """
+        Collect data from loved ones widgets.
+        
+        Returns:
+            list: List of loved ones data dictionaries
+        """
         loved_ones = []
         
-        # Use the stored reference to the loved ones layout
-        if hasattr(self.loved_ones_container, 'loved_ones_layout'):
-            layout = self.loved_ones_container.loved_ones_layout
-            for i in range(layout.count()):
-                widget = layout.itemAt(i).widget()
-                if isinstance(widget, QFrame) and hasattr(widget, 'name_entry'):
-                    name = widget.name_entry.text().strip()
-                    relationship = widget.relationship_entry.text().strip()
-                    birthday = widget.birthday_edit.date().toString(Qt.DateFormat.ISODate)
-                    
-                    if name or relationship:
-                        loved_ones.append({
-                            'name': name,
-                            'relationship': relationship,
-                            'birthday': birthday
-                        })
+        # Find the loved ones section
+        for child in self.children():
+            if isinstance(child, QGroupBox) and child.title() == "Loved Ones & Relationships":
+                if hasattr(child, 'loved_ones_layout'):
+                    layout = child.loved_ones_layout
+                    for i in range(layout.count()):
+                        widget = layout.itemAt(i).widget()
+                        if isinstance(widget, QFrame) and hasattr(widget, 'name_entry'):
+                            name = widget.name_entry.text().strip()
+                            if name:  # Only include if name is provided
+                                loved_one = {
+                                    'name': name,
+                                    'relationship': widget.relationship_combo.currentText(),
+                                    'notes': widget.notes_text.toPlainText().strip()
+                                }
+                                loved_ones.append(loved_one)
+                break
         
         return loved_ones
     
@@ -417,16 +482,24 @@ class UserProfileDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to save personalization data: {str(e)}")
     
     def cancel(self):
-        """Cancel the dialog."""
+        """
+        Cancel the personalization dialog.
+        """
         self.reject()
 
 
 def open_personalization_dialog(parent, user_id: str, on_save: Optional[Callable] = None, existing_data: Optional[Dict[str, Any]] = None):
-    """Open the personalization dialog and return the result."""
-    dialog = UserProfileDialog(parent, user_id, on_save, existing_data)
-    result = dialog.exec()
+    """
+    Open the personalization dialog.
     
-    if result == QDialog.DialogCode.Accepted:
-        return True
-    else:
-        return False 
+    Args:
+        parent: Parent widget
+        user_id: User ID for the personalization data
+        on_save: Optional callback function to call when saving
+        existing_data: Optional existing personalization data
+        
+    Returns:
+        QDialog.DialogCode: Dialog result code
+    """
+    dialog = UserProfileDialog(parent, user_id, on_save, existing_data)
+    return dialog.exec() 

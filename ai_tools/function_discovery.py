@@ -23,6 +23,85 @@ TEST_KEYWORDS = config.FUNCTION_DISCOVERY['test_keywords']
 MAX_COMPLEXITY = config.FUNCTION_DISCOVERY['max_complexity_threshold']
 
 
+def is_special_python_method(func_name: str, complexity: int) -> bool:
+    """
+    Determine if a function is a special Python method that should be excluded from undocumented count.
+    
+    Args:
+        func_name: Name of the function
+        complexity: Complexity score of the function
+        
+    Returns:
+        True if the function should be excluded from undocumented count
+    """
+    # Special methods that should be excluded from undocumented count
+    special_methods = {
+        '__new__',  # Singleton patterns
+        '__post_init__',  # Dataclass post-init
+        '__repr__',  # String representation
+        '__str__',  # String conversion
+        '__hash__',  # Hashing
+        '__eq__',  # Equality comparison
+        '__lt__', '__le__', '__gt__', '__ge__',  # Comparison methods
+        '__len__',  # Length
+        '__bool__',  # Boolean conversion
+        '__call__',  # Callable
+        '__getitem__', '__setitem__', '__delitem__',  # Item access
+        '__iter__', '__next__',  # Iteration
+        '__contains__',  # Membership testing
+        '__add__', '__sub__', '__mul__', '__truediv__',  # Arithmetic
+        '__radd__', '__rsub__', '__rmul__', '__rtruediv__',  # Reverse arithmetic
+        '__iadd__', '__isub__', '__imul__', '__itruediv__',  # In-place arithmetic
+    }
+    
+    # Context manager methods (these should be documented)
+    context_methods = {'__enter__', '__exit__'}
+    
+    # Simple __init__ methods (complexity < 20) can be excluded
+    if func_name == '__init__' and complexity < 20:
+        return True
+    
+    # Exclude special methods but not context managers
+    if func_name in special_methods and func_name not in context_methods:
+        return True
+    
+    return False
+
+
+def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
+    """
+    Extract documentation from decorators like @handle_errors("description").
+    
+    Args:
+        decorator_list: List of decorator AST nodes
+        
+    Returns:
+        Documentation string from decorators, or empty string if none found
+    """
+    documentation = []
+    
+    for decorator in decorator_list:
+        # Handle @handle_errors("description")
+        if isinstance(decorator, ast.Call):
+            if isinstance(decorator.func, ast.Name) and decorator.func.id == 'handle_errors':
+                if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                    documentation.append(f"@handle_errors: {decorator.args[0].value}")
+            elif isinstance(decorator.func, ast.Attribute) and decorator.func.attr == 'handle_errors':
+                if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                    documentation.append(f"@handle_errors: {decorator.args[0].value}")
+        
+        # Handle @error_handler("description")
+        elif isinstance(decorator, ast.Call):
+            if isinstance(decorator.func, ast.Name) and decorator.func.id == 'error_handler':
+                if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                    documentation.append(f"@error_handler: {decorator.args[0].value}")
+            elif isinstance(decorator.func, ast.Attribute) and decorator.func.attr == 'error_handler':
+                if decorator.args and isinstance(decorator.args[0], ast.Constant):
+                    documentation.append(f"@error_handler: {decorator.args[0].value}")
+    
+    return "; ".join(documentation)
+
+
 def extract_functions(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file."""
     functions = []
@@ -34,7 +113,21 @@ def extract_functions(file_path: str) -> List[Dict]:
             if isinstance(node, ast.FunctionDef):
                 name = node.name
                 args = [arg.arg for arg in node.args.args]
-                docstring = ast.get_docstring(node) or ""
+                
+                # Get traditional docstring
+                traditional_docstring = ast.get_docstring(node) or ""
+                
+                # Get decorator-based documentation
+                decorator_docstring = extract_decorator_documentation(node.decorator_list)
+                
+                # Combine both types of documentation
+                combined_docstring = traditional_docstring
+                if decorator_docstring:
+                    if combined_docstring:
+                        combined_docstring += f" | {decorator_docstring}"
+                    else:
+                        combined_docstring = decorator_docstring
+                
                 decorators = [
                     d.id if isinstance(d, ast.Name) else d.func.id if isinstance(d, ast.Call) and isinstance(d.func, ast.Name) else str(d)
                     for d in node.decorator_list
@@ -42,14 +135,19 @@ def extract_functions(file_path: str) -> List[Dict]:
                 complexity = len(list(ast.walk(node)))
                 is_handler = any(k in name.lower() for k in HANDLER_KEYWORDS)
                 is_test = any(k in name.lower() for k in TEST_KEYWORDS)
+                is_special = is_special_python_method(name, complexity)
+                
                 functions.append({
                     'name': name,
                     'args': args,
-                    'docstring': docstring,
+                    'docstring': combined_docstring,
+                    'traditional_docstring': traditional_docstring,
+                    'decorator_docstring': decorator_docstring,
                     'decorators': decorators,
                     'complexity': complexity,
                     'is_handler': is_handler,
                     'is_test': is_test,
+                    'is_special': is_special,
                     'file': file_path
                 })
     except Exception as e:
@@ -79,6 +177,7 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
         'tests': [],
         'complex': [],
         'undocumented': [],
+        'special_methods': [],  # New category for special methods
         'other': []
     }
     for func in functions:
@@ -88,7 +187,11 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
             categories['handlers'].append(func)
         elif func['complexity'] > MAX_COMPLEXITY:
             categories['complex'].append(func)
+        elif func['is_special']:
+            # Special methods go to their own category
+            categories['special_methods'].append(func)
         elif not func['docstring'].strip():
+            # Only count as undocumented if not special and no documentation (traditional or decorator)
             categories['undocumented'].append(func)
         else:
             categories['other'].append(func)
@@ -103,6 +206,11 @@ def print_summary(categories: Dict[str, List[Dict]]):
             print(f"  - {func['name']} (file: {Path(func['file']).name}, complexity: {func['complexity']})")
         if len(funcs) > 10:
             print(f"  ...and {len(funcs)-10} more.")
+    
+    # Add summary of special methods excluded from undocumented count
+    special_count = len(categories.get('special_methods', []))
+    if special_count > 0:
+        print(f"\nNote: {special_count} special Python methods excluded from undocumented count")
 
 
 def main():

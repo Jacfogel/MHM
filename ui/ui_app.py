@@ -320,25 +320,42 @@ class ServiceManager:
         return True
 
 class MHMManagerUI:
-    """Main management UI for MHM - Comprehensive Admin Panel"""
+    """
+    Main UI application for managing MHM system.
+    
+    Provides a graphical interface for managing users, messages, schedules,
+    and system configuration.
+    """
     
     def __init__(self, root):
+        """
+        Initialize the MHM Manager UI.
+        
+        Args:
+            root: The root Tkinter window
+        """
         self.root = root
-        self.root.title("MHM Admin Panel")
-        self.root.geometry("600x500")
+        self.root.title("MHM Manager")
+        self.root.geometry("800x600")
         
+        # Initialize service manager
         self.service_manager = ServiceManager()
-        self.selected_user_id = tk.StringVar()
         
-        # Set up close protocol
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        # Initialize user context
+        self.user_context = UserContext()
         
-        # Add menu bar with debug functionality
+        # UI state
+        self.current_user = None
+        self.user_listbox = None
+        self.status_label = None
+        self.content_management_enabled = False
+        
+        # Set up the UI
+        self.setup_ui()
         self.setup_menu_bar()
         
-        self.setup_ui()
+        # Initial status update
         self.update_service_status()
-        self.refresh_user_list()
     
     def setup_menu_bar(self):
         """Set up the menu bar with debug and admin options."""
@@ -375,19 +392,16 @@ class MHMManagerUI:
         admin_menu.add_command(label="System Health Check", command=self.system_health_check)
     
     def toggle_logging_verbosity(self):
-        """Toggle logging verbosity and update menu."""
+        """
+        Toggle between verbose and quiet logging modes.
+        
+        Changes the console logging level while keeping file logging at DEBUG.
+        """
         from core.logger import toggle_verbose_logging, get_verbose_mode
+        
         is_verbose = toggle_verbose_logging()
-        
-        # Update the menu text
-        menubar = self.root.nametowidget(self.root['menu'])
-        debug_menu = menubar.nametowidget(menubar.entryconfig(1)['menu'][4])
-        verbose_status = "ON" if is_verbose else "OFF"
-        debug_menu.entryconfig(0, label=f"Toggle Verbose Logging (Currently: {verbose_status})")
-        
-        # Show status message
-        status = "enabled" if is_verbose else "disabled"
-        messagebox.showinfo("Logging", f"Verbose logging has been {status}")
+        mode = "Verbose" if is_verbose else "Quiet"
+        messagebox.showinfo("Logging Mode", f"Logging mode changed to: {mode}")
 
     @handle_errors("viewing log file")
     def view_log_file(self):
@@ -906,21 +920,23 @@ For detailed setup instructions, see the README.md file.
         info_label.pack(pady=(5, 0))
         
     def update_service_status(self):
-        """Update the service status display"""
+        """
+        Update the service status display in the UI.
+        
+        Checks if the service is running and updates the status label accordingly.
+        """
         is_running, pid = self.service_manager.is_service_running()
-        if is_running:
-            self.status_label.config(text=f"Running (PID: {pid})", fg="green")
-            self.start_button.config(state=tk.DISABLED)
-            self.stop_button.config(state=tk.NORMAL)
-            self.restart_button.config(state=tk.NORMAL)
-        else:
-            self.status_label.config(text="Stopped", fg="red")
-            self.start_button.config(state=tk.NORMAL)
-            self.stop_button.config(state=tk.DISABLED)
-            self.restart_button.config(state=tk.DISABLED)
-    
+        status_text = f"Service: {'Running' if is_running else 'Stopped'}"
+        if is_running and pid:
+            status_text += f" (PID: {pid})"
+        self.status_label.config(text=status_text)
+
     def start_service(self):
-        """Start the service"""
+        """
+        Start the MHM backend service.
+        
+        Attempts to start the service and updates the UI status.
+        """
         logger.info("Admin Panel: Starting service...")
         if self.service_manager.start_service():
             self.update_service_status()
@@ -928,7 +944,11 @@ For detailed setup instructions, see the README.md file.
             logger.warning("Admin Panel: Service start failed")
     
     def stop_service(self):
-        """Stop the service"""
+        """
+        Stop the MHM backend service.
+        
+        Attempts to stop the service and updates the UI status.
+        """
         logger.info("Admin Panel: Stop service requested")
         if self.service_manager.stop_service():
             logger.info("Admin Panel: Service stopped successfully")
@@ -937,7 +957,11 @@ For detailed setup instructions, see the README.md file.
             logger.warning("Admin Panel: Service stop failed")
     
     def restart_service(self):
-        """Restart the service"""
+        """
+        Restart the MHM backend service.
+        
+        Stops the service if running, then starts it again.
+        """
         logger.info("Admin Panel: Restart service requested")
         if self.service_manager.restart_service():
             logger.info("Admin Panel: Service restarted successfully")

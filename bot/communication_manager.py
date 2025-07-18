@@ -1,4 +1,4 @@
-﻿# communication_manager.py
+# communication_manager.py
 
 import asyncio
 import threading
@@ -78,6 +78,11 @@ class CommunicationManager:
                 # Create new loop for our operations
                 import threading
                 def run_event_loop():
+                    """
+                    Run the event loop in a separate thread for async operations.
+                    
+                    This nested function is used to manage the event loop for async channel operations.
+                    """
                     self._main_loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(self._main_loop)
                     self._main_loop.run_forever()
@@ -258,19 +263,15 @@ class CommunicationManager:
         return success
 
     def _create_legacy_channel_access(self):
-        """Create legacy channel access preserving all functionality"""
+        """
+        Create legacy channel access for backward compatibility.
+        
+        Creates wrapper objects that provide the old interface for existing code.
+        """
         self._legacy_channels = {}
         for name, channel in self.channels.items():
-            # Create wrapper that preserves the original channel's full interface
-            wrapper = LegacyChannelWrapper(channel)
-            
-            # For Telegram, preserve conversation state access (Deactivated)
-            # if name == 'telegram' and hasattr(channel, 'selected_days'):
-            #     wrapper.selected_days = channel.selected_days
-            #     wrapper.selected_time_periods = channel.selected_time_periods
-            #     wrapper.screaming = channel.screaming
-            
-            self._legacy_channels[name] = wrapper
+            self._legacy_channels[name] = LegacyChannelWrapper(channel)
+        logger.debug("Legacy channel access created")
 
     @property
     def channels(self):
@@ -324,20 +325,33 @@ class CommunicationManager:
             return False
 
     def _check_logging_health(self):
-        """Check if logging is still working and recover if needed"""
+        """
+        Check if logging is still working and recover if needed.
+        
+        Verifies that the logging system is functional and attempts to restart it if issues are detected.
+        """
         try:
-            logger.info("Logging health check")
+            # Test logging
+            test_message = f"Logging health check - {time.time()}"
+            logger.debug(test_message)
+            
+            # Force flush
+            import logging
+            root_logger = logging.getLogger()
+            for handler in root_logger.handlers:
+                if hasattr(handler, 'flush'):
+                    handler.flush()
+            
+            logger.debug("Logging health check passed")
             return True
         except Exception as e:
-            print(f"Logging system appears broken: {e}")
-            try:
-                # Try to restart logging
-                from core.logger import setup_logging
-                setup_logging()
+            logger.error(f"Logging health check failed: {e}")
+            # Try to restart logging
+            from core.logger import force_restart_logging
+            if force_restart_logging():
+                logger.info("Logging system restarted successfully")
                 return True
-            except Exception as restart_error:
-                print(f"Failed to restart logging: {restart_error}")
-                return False
+            return False
 
     def send_message_sync(self, channel_name: str, recipient: str, message: str, **kwargs) -> bool:
         """Synchronous wrapper with logging health check"""
@@ -475,22 +489,33 @@ class CommunicationManager:
             self._shutdown_sync()
 
     def _shutdown_sync(self):
-        """Synchronous shutdown method"""
-        logger.debug("Performing synchronous shutdown")
+        """
+        Synchronous shutdown method for all channels.
         
-        for name, channel in list(self.channels.items()):
-            if channel is not None:
-                try:
-                    # Try the legacy stop method
-                    if hasattr(channel, 'stop') and callable(getattr(channel, 'stop')):
-                        channel.stop()
-                        logger.info(f"Channel {name} stopped successfully")
-                except Exception as e:
-                    logger.error(f"Error stopping {name}: {e}")
+        Stops all communication channels and cleans up resources.
+        """
+        logger.info("Shutting down CommunicationManager...")
+        self._running = False
         
-        self.channels.clear()
-        if hasattr(self, '_legacy_channels'):
-            self._legacy_channels.clear()
+        # Stop all channels
+        for name, channel in self.channels.items():
+            try:
+                if hasattr(channel, 'stop'):
+                    channel.stop()
+                logger.debug(f"Channel {name} stopped")
+            except Exception as e:
+                logger.error(f"Error stopping channel {name}: {e}")
+        
+        # Stop event loop
+        if self._main_loop and not self._main_loop.is_closed():
+            try:
+                self._main_loop.call_soon_threadsafe(self._main_loop.stop)
+                if self._loop_thread and self._loop_thread.is_alive():
+                    self._loop_thread.join(timeout=5)
+            except Exception as e:
+                logger.error(f"Error stopping event loop: {e}")
+        
+        logger.info("CommunicationManager shutdown complete")
 
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages from all communication channels"""
@@ -887,76 +912,135 @@ class LegacyChannelWrapper:
     """Provides complete backward compatibility for channel access"""
     
     def __init__(self, base_channel: BaseChannel):
-        self.base_channel = base_channel
-        self._thread_pool = None
-    
+        """
+        Initialize the legacy channel wrapper.
+        
+        Args:
+            base_channel: The base channel to wrap
+        """
+        self._channel = base_channel
+
     def _run_async_safely(self, coro):
-        """Run async function safely, handling existing event loops"""
+        """
+        Run async function safely, handling existing event loops.
+        
+        Args:
+            coro: The coroutine to run
+            
+        Returns:
+            The result of the coroutine
+        """
         try:
-            # Check if we're already in an async context
-            loop = asyncio.get_running_loop()
-            # If we reach here, there's already a running loop
-            
-            # Use run_coroutine_threadsafe for running loop
-            import concurrent.futures
-            import threading
-            
-            # Create a future to hold the result
-            future = concurrent.futures.Future()
-            
-            def run_in_thread():
-                try:
-                    # Create new event loop for this thread
-                    new_loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(new_loop)
-                    result = new_loop.run_until_complete(coro)
-                    future.set_result(result)
-                    new_loop.close()
-                except Exception as e:
-                    future.set_exception(e)
-            
-            thread = threading.Thread(target=run_in_thread)
-            thread.start()
-            thread.join(timeout=30)  # 30 second timeout
-            
-            if thread.is_alive():
-                logger.error("Async operation timed out")
-                return False
+            # Try to get current event loop
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                # We're in an event loop, need to run in thread
+                import threading
+                import queue
                 
-            return future.result()
-            
-        except RuntimeError:
-            # No running loop, we can use run_until_complete
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                result = loop.run_until_complete(coro)
-                loop.close()
-                return result
-            except Exception as e:
-                logger.error(f"Error running async operation: {e}")
-                return False
-    
+                result_queue = queue.Queue()
+                exception_queue = queue.Queue()
+                
+                def run_in_thread():
+                    """
+                    Run the coroutine in a separate thread with its own event loop.
+                    
+                    This nested function ensures async operations can run safely in a threaded environment.
+                    """
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        result = loop.run_until_complete(coro)
+                        self._result = result
+                        self._exception = None
+                    except Exception as e:
+                        self._exception = e
+                    finally:
+                        loop.close()
+                
+                thread = threading.Thread(target=run_in_thread)
+                thread.start()
+                thread.join(timeout=30)
+                
+                if not exception_queue.empty():
+                    raise exception_queue.get()
+                
+                if not result_queue.empty():
+                    return result_queue.get()
+                else:
+                    raise TimeoutError("Async operation timed out")
+            else:
+                # No running loop, we can run directly
+                return loop.run_until_complete(coro)
+        except Exception as e:
+            logger.error(f"Error running async operation: {e}")
+            raise
+
     def is_initialized(self) -> bool:
-        """Legacy method - synchronous"""
-        return self.base_channel.is_ready()
-    
+        """
+        Legacy method - synchronous.
+        
+        Returns:
+            bool: True if the channel is initialized
+        """
+        return self._channel.is_ready()
+
     def start(self) -> bool:
-        """Legacy method - synchronous"""
-        return self._run_async_safely(self.base_channel.initialize())
-    
+        """
+        Legacy method - synchronous.
+        
+        Returns:
+            bool: True if the channel started successfully
+        """
+        try:
+            if hasattr(self._channel, 'start'):
+                return self._run_async_safely(self._channel.start())
+            return True
+        except Exception as e:
+            logger.error(f"Error starting channel: {e}")
+            return False
+
     def stop(self) -> bool:
-        """Legacy method - synchronous"""
-        return self._run_async_safely(self.base_channel.shutdown())
-    
+        """
+        Legacy method - synchronous.
+        
+        Returns:
+            bool: True if the channel stopped successfully
+        """
+        try:
+            if hasattr(self._channel, 'stop'):
+                return self._run_async_safely(self._channel.stop())
+            return True
+        except Exception as e:
+            logger.error(f"Error stopping channel: {e}")
+            return False
+
     def send_message(self, *args, **kwargs):
-        """Legacy method - synchronous"""
-        return self._run_async_safely(self.base_channel.send_message(*args, **kwargs))
-    
+        """
+        Legacy method - synchronous.
+        
+        Returns:
+            The result of sending the message
+        """
+        return self._run_async_safely(self._channel.send_message(*args, **kwargs))
+
     def receive_messages(self):
-        """Legacy method - synchronous"""
-        return self._run_async_safely(self.base_channel.receive_messages())
-    
-    # Forward all other attribute access to the base channel
+        """
+        Legacy method - synchronous.
+        
+        Returns:
+            List of received messages
+        """
+        return self._run_async_safely(self._channel.receive_messages())
+
     def __getattr__(self, name):
-        return getattr(self.base_channel, name)
+        """
+        Forward attribute access to the base channel for backward compatibility.
+        
+        Args:
+            name: The attribute name to access
+            
+        Returns:
+            The attribute value from the base channel
+        """
+        return getattr(self._channel, name)

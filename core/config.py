@@ -445,6 +445,11 @@ def ensure_user_directory(user_id: str) -> bool:
 
 # Legacy validation functions (kept for backward compatibility)
 def validate_telegram_config():
+    """Validate Telegram configuration (currently deactivated).
+    
+    Raises:
+        ConfigurationError: Always raised as Telegram channel is deactivated.
+    """
     # Deactivated - Telegram channel is disabled
     raise ConfigurationError("Telegram channel has been deactivated.")
     # if not TELEGRAM_BOT_TOKEN:
@@ -453,6 +458,14 @@ def validate_telegram_config():
 
 @handle_errors("validating email configuration", user_friendly=False)
 def validate_email_config():
+    """Validate email configuration settings.
+    
+    Returns:
+        bool: True if email configuration is valid
+        
+    Raises:
+        ConfigurationError: If required email configuration variables are missing
+    """
     required_vars = [EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]
     if not all(required_vars):
         missing = [var for var in ['EMAIL_SMTP_SERVER', 'EMAIL_IMAP_SERVER', 'EMAIL_SMTP_USERNAME', 'EMAIL_SMTP_PASSWORD'] 
@@ -462,6 +475,14 @@ def validate_email_config():
 
 @handle_errors("validating Discord configuration", user_friendly=False)
 def validate_discord_config():
+    """Validate Discord configuration settings.
+    
+    Returns:
+        bool: True if Discord configuration is valid
+        
+    Raises:
+        ConfigurationError: If DISCORD_BOT_TOKEN is missing
+    """
     if not DISCORD_BOT_TOKEN:
         raise ConfigurationError("DISCORD_BOT_TOKEN is missing from environment configuration.")
     return True

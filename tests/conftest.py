@@ -441,32 +441,37 @@ def update_user_index_for_test(test_data_dir):
     
     return _update_index
 
-@pytest.fixture(scope="function")
-def cleanup_test_users(request, test_data_dir):
-    """Clean up test users after each test."""
-    yield  # Run the test
-    
-    # Cleanup after test
-    try:
-        # Clean up any test users created during the test
-        if hasattr(request.node, 'user_id'):
-            user_id = request.node.user_id
-            user_dir = os.path.join(test_data_dir, "users", user_id)
-            if os.path.exists(user_dir):
-                shutil.rmtree(user_dir)
-                test_logger.debug(f"Cleaned up test user: {user_id}")
-        
-        # Also clean up any other test users that might have been created
-        users_dir = os.path.join(test_data_dir, "users")
-        if os.path.exists(users_dir):
-            for item in os.listdir(users_dir):
-                item_path = os.path.join(users_dir, item)
-                if os.path.isdir(item_path) and item.startswith("test-user-"):
-                    shutil.rmtree(item_path)
-                    test_logger.debug(f"Cleaned up test user directory: {item}")
-                    
-    except Exception as e:
-        test_logger.warning(f"Error during test cleanup: {e}")
+# --- GLOBAL PATCH: Force all user data to custom_data/users/ for all tests ---
+@pytest.fixture(autouse=True, scope="session")
+def patch_user_data_dirs():
+    """Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use custom_data/users/ for all tests."""
+    from unittest.mock import patch
+    import core.config
+    custom_data_dir = os.path.abspath("custom_data")
+    users_dir = os.path.join(custom_data_dir, "users")
+    os.makedirs(users_dir, exist_ok=True)
+    with patch("core.config.BASE_DATA_DIR", custom_data_dir), \
+         patch("core.config.USER_INFO_DIR_PATH", users_dir):
+        yield
+
+# --- CLEANUP FIXTURE: Remove test users from both data/users/ and custom_data/users/ after all tests ---
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_test_users_after_session():
+    """Remove test users from both data/users/ and custom_data/users/ after all tests."""
+    yield  # Run all tests first
+    for base_dir in ["data/users", "custom_data/users"]:
+        abs_dir = os.path.abspath(base_dir)
+        if os.path.exists(abs_dir):
+            for item in os.listdir(abs_dir):
+                if item.startswith("test-") or item.startswith("test_") or item.startswith("testuser"):
+                    item_path = os.path.join(abs_dir, item)
+                    try:
+                        if os.path.isdir(item_path):
+                            shutil.rmtree(item_path)
+                        else:
+                            os.remove(item_path)
+                    except Exception:
+                        pass
 
 @pytest.fixture(scope="function")
 def mock_logger():

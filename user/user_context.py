@@ -211,45 +211,55 @@ class UserContext:
     @handle_errors("getting active schedules")
     def _get_active_schedules(self, schedules):
         """
-        Retrieves active schedules from the user_data dictionary.
+        Get list of currently active schedule periods.
         
         Args:
-            schedules (dict): The current schedules dictionary.
-        
+            schedules: Dictionary containing schedule periods
+            
         Returns:
-            dict: The updated schedules dictionary.
+            list: List of active schedule period names
         """
-        active_schedules = {}
-        for schedule_id, schedule in schedules.items():
-            if schedule.get('active', False):
-                active_schedules[schedule_id] = schedule
-        return active_schedules
+        if not schedules:
+            return []
+        
+        active_periods = []
+        for period_name, period_data in schedules.items():
+            if isinstance(period_data, dict) and period_data.get('active', True):
+                active_periods.append(period_name)
+        
+        return active_periods
 
     @handle_errors("getting user context")
     def get_user_context(self):
         """
-        Retrieves user context data.
+        Get comprehensive user context for AI conversations.
         
         Returns:
-            dict: The user context data.
+            dict: Dictionary containing all relevant user context information
         """
         user_id = self.get_user_id()
         if not user_id:
-            logger.warning("Cannot get user context: no user_id set")
             return {}
         
-        # Use the new user management functions
+        # Get user data
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account') or {}
+        
+        # Get preferences
         prefs_result = get_user_data(user_id, 'preferences')
         preferences_data = prefs_result.get('preferences') or {}
+        
+        # Get context
         context_result = get_user_data(user_id, 'context')
         context_data = context_result.get('context') or {}
         
-        return {
-            'preferred_name': self.get_preferred_name() or context_data.get('preferred_name', ''),
-            'active_categories': self.get_preference('categories') or self.user_data.get('categories', []),
-            'messaging_service': self.get_preference('channel', {}).get('type', ''),
-            'active_schedules': self._get_active_schedules(self.user_data.get('schedules', {})),  # Schedules handled separately
-            'discord_user_id': account_data.get("discord_user_id", "")
+        # Build comprehensive context
+        context = {
+            'user_id': user_id,
+            'preferred_name': context_data.get('preferred_name', ''),
+            'account_status': account_data.get('account_status', 'unknown'),
+            'preferences': preferences_data,
+            'active_schedules': self._get_active_schedules(preferences_data.get('schedules', {}))
         }
+        
+        return context

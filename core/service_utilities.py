@@ -23,11 +23,29 @@ logger = get_logger(__name__)
 
 # Throttler class
 class Throttler:
+    """
+    A utility class for throttling operations based on time intervals.
+    
+    Prevents operations from running too frequently by tracking the last execution time.
+    """
+    
     def __init__(self, interval):
+        """
+        Initialize the throttler with a specified interval.
+        
+        Args:
+            interval: Time interval in seconds between allowed operations
+        """
         self.interval = interval
         self.last_run = None
 
     def should_run(self):
+        """
+        Check if enough time has passed since the last run to allow another execution.
+        
+        Returns:
+            bool: True if the operation should run, False if it should be throttled
+        """
         current_time = datetime.now()
         
         if self.last_run is None:
@@ -48,6 +66,11 @@ class Throttler:
         return False
 
 class InvalidTimeFormatError(Exception):
+    """
+    Exception raised when time format is invalid.
+    
+    Used for time parsing and validation operations.
+    """
     pass
 
 # Global throttler instance
@@ -120,9 +143,150 @@ def wait_for_network(timeout=60):
 
 @handle_errors("loading and localizing datetime")
 def load_and_localize_datetime(datetime_str, timezone_str='America/Regina'):
-    """Load and localize a datetime string to a specific timezone"""
-    tz = pytz.timezone(timezone_str)
-    naive_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
-    aware_datetime = tz.localize(naive_datetime)
-    logger.debug(f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'")
-    return aware_datetime 
+    """
+    Load and localize a datetime string to a specific timezone.
+    
+    Args:
+        datetime_str: Datetime string in format "YYYY-MM-DD HH:MM"
+        timezone_str: Timezone string (default: 'America/Regina')
+        
+    Returns:
+        datetime: Timezone-aware datetime object
+        
+    Raises:
+        InvalidTimeFormatError: If datetime_str format is invalid
+    """
+    try:
+        tz = pytz.timezone(timezone_str)
+        naive_datetime = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
+        aware_datetime = tz.localize(naive_datetime)
+        logger.debug(f"Localized datetime '{datetime_str}' to timezone '{timezone_str}': '{aware_datetime}'")
+        return aware_datetime
+    except ValueError as e:
+        raise InvalidTimeFormatError(f"Invalid datetime format '{datetime_str}': {e}")
+    except pytz.exceptions.UnknownTimeZoneError as e:
+        raise InvalidTimeFormatError(f"Unknown timezone '{timezone_str}': {e}")
+
+def title_case(text):
+    """
+    Convert text to title case with proper handling of special cases.
+    
+    Args:
+        text: The text to convert to title case
+        
+    Returns:
+        str: Text converted to title case
+    """
+    if not text:
+        return text
+    
+    # Handle common abbreviations and special cases
+    special_words = {
+        'ai': 'AI',
+        'api': 'API',
+        'ui': 'UI',
+        'ux': 'UX',
+        'mhm': 'MHM',
+        'id': 'ID',
+        'url': 'URL',
+        'http': 'HTTP',
+        'https': 'HTTPS',
+        'json': 'JSON',
+        'xml': 'XML',
+        'csv': 'CSV',
+        'pdf': 'PDF',
+        'sql': 'SQL',
+        'html': 'HTML',
+        'css': 'CSS',
+        'js': 'JS',
+        'php': 'PHP',
+        'python': 'Python',
+        'java': 'Java',
+        'c++': 'C++',
+        'c#': 'C#',
+        'dotnet': '.NET',
+        'asp': 'ASP',
+        'jsp': 'JSP',
+        'xml': 'XML',
+        'yaml': 'YAML',
+        'toml': 'TOML',
+        'ini': 'INI',
+        'cfg': 'CFG',
+        'conf': 'CONF',
+        'log': 'LOG',
+        'tmp': 'TMP',
+        'temp': 'TEMP',
+        'etc': 'ETC',
+        'usr': 'USR',
+        'var': 'VAR',
+        'bin': 'BIN',
+        'lib': 'LIB',
+        'src': 'SRC',
+        'doc': 'DOC',
+        'docs': 'DOCS',
+        'test': 'TEST',
+        'tests': 'TESTS',
+        'backup': 'BACKUP',
+        'backups': 'BACKUPS',
+        'config': 'CONFIG',
+        'configs': 'CONFIGS',
+        'data': 'DATA',
+        'files': 'FILES',
+        'images': 'IMAGES',
+        'media': 'MEDIA',
+        'audio': 'AUDIO',
+        'video': 'VIDEO',
+        'photos': 'PHOTOS',
+        'pictures': 'PICTURES',
+        'downloads': 'DOWNLOADS',
+        'uploads': 'UPLOADS',
+        'cache': 'CACHE',
+        'caches': 'CACHES',
+        'logs': 'LOGS',
+        'temp': 'TEMP',
+        'tmp': 'TMP',
+        'etc': 'ETC',
+        'usr': 'USR',
+        'var': 'VAR',
+        'bin': 'BIN',
+        'lib': 'LIB',
+        'src': 'SRC',
+        'doc': 'DOC',
+        'docs': 'DOCS',
+        'test': 'TEST',
+        'tests': 'TESTS',
+        'backup': 'BACKUP',
+        'backups': 'BACKUPS',
+        'config': 'CONFIG',
+        'configs': 'CONFIGS',
+        'data': 'DATA',
+        'files': 'FILES',
+        'images': 'IMAGES',
+        'media': 'MEDIA',
+        'audio': 'AUDIO',
+        'video': 'VIDEO',
+        'photos': 'PHOTOS',
+        'pictures': 'PICTURES',
+        'downloads': 'DOWNLOADS',
+        'uploads': 'UPLOADS',
+        'cache': 'CACHE',
+        'caches': 'CACHES',
+        'logs': 'LOGS'
+    }
+    
+    # Split text into words
+    words = text.split()
+    title_words = []
+    
+    for i, word in enumerate(words):
+        # Convert to lowercase for comparison
+        word_lower = word.lower()
+        
+        # Check if it's a special word
+        if word_lower in special_words:
+            title_words.append(special_words[word_lower])
+        else:
+            # Apply normal title case
+            title_words.append(word.title())
+    
+    return ' '.join(title_words) 

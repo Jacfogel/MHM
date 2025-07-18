@@ -24,7 +24,15 @@ logger = get_logger(__name__)
 
 @handle_errors("verifying file access", user_friendly=False)
 def verify_file_access(paths):
-    """Verify that files exist and are accessible"""
+    """
+    Verify that files exist and are accessible.
+    
+    Args:
+        paths: List of file paths to verify
+        
+    Raises:
+        FileOperationError: If any file is not found or inaccessible
+    """
     for path in paths:
         if not os.path.exists(path):
             raise FileOperationError(f"File not found at path: {path}")
@@ -36,6 +44,16 @@ def determine_file_path(file_type, identifier):
     """
     Determine file path based on file type and identifier.
     Updated to support new organized structure.
+    
+    Args:
+        file_type: Type of file ('users', 'messages', 'schedules', 'sent_messages', 'default_messages', 'tasks')
+        identifier: Identifier for the file (format depends on file_type)
+        
+    Returns:
+        str: Full file path
+        
+    Raises:
+        FileOperationError: If file_type is unknown or identifier format is invalid
     """
     if file_type == 'users':
         # New structure: return account file path
@@ -81,7 +99,15 @@ def determine_file_path(file_type, identifier):
 
 @handle_errors("loading JSON data", default_return=None)
 def load_json_data(file_path):
-    """Load data from a JSON file with comprehensive error handling and auto-create user files if missing."""
+    """
+    Load data from a JSON file with comprehensive error handling and auto-create user files if missing.
+    
+    Args:
+        file_path: Path to the JSON file to load
+        
+    Returns:
+        dict/list: Loaded JSON data, or None if loading failed
+    """
     context = {'file_path': file_path}
     
     try:
@@ -146,7 +172,16 @@ def load_json_data(file_path):
 
 @handle_errors("saving JSON data", user_friendly=False)
 def save_json_data(data, file_path):
-    """Save data to a JSON file with comprehensive error handling"""
+    """
+    Save data to a JSON file with comprehensive error handling.
+    
+    Args:
+        data: Data to save (must be JSON serializable)
+        file_path: Path where to save the file
+        
+    Raises:
+        FileOperationError: If saving fails
+    """
     directory = os.path.dirname(file_path)
     
     # Ensure directory exists
@@ -178,20 +213,23 @@ def create_user_files(user_id, categories, user_preferences=None):
     """
     ensure_user_directory(user_id)
     
+    # Always use a dict for user_prefs to avoid NoneType errors
+    user_prefs = user_preferences or {}
+    
     # Determine which features are enabled first
     tasks_enabled = False
     checkins_enabled = False
     
-    if user_preferences:
+    if user_prefs:
         # Check for explicit feature enablement in account_data
-        features_enabled = user_preferences.get('features_enabled', {})
+        features_enabled = user_prefs.get('features_enabled', {})
         if features_enabled:
             tasks_enabled = features_enabled.get('tasks', False)
             checkins_enabled = features_enabled.get('checkins', False)
         else:
             # Fallback to checking settings (legacy approach)
-            checkin_settings = user_preferences.get('checkin_settings', {})
-            task_settings = user_preferences.get('task_settings', {})
+            checkin_settings = user_prefs.get('checkin_settings', {})
+            task_settings = user_prefs.get('task_settings', {})
             tasks_enabled = task_settings.get('enabled', False)
             checkins_enabled = checkin_settings.get('enabled', False)
     else:
@@ -205,15 +243,15 @@ def create_user_files(user_id, categories, user_preferences=None):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # Get actual user data from user_preferences if available
-        internal_username = user_preferences.get('internal_username', "")
-        chat_id = user_preferences.get('chat_id', "")
-        phone = user_preferences.get('phone', "")
-        email = user_preferences.get('email', "")
-        discord_user_id = user_preferences.get('discord_user_id', "")
-        timezone = user_preferences.get('timezone', "")
+        internal_username = user_prefs.get('internal_username', "")
+        chat_id = user_prefs.get('chat_id', "")
+        phone = user_prefs.get('phone', "")
+        email = user_prefs.get('email', "")
+        discord_user_id = user_prefs.get('discord_user_id', "")
+        timezone = user_prefs.get('timezone', "")
         
         # Determine chat_id based on channel type
-        channel = user_preferences.get('channel', {})
+        channel = user_prefs.get('channel', {})
         channel_type = channel.get('type', 'email')
         if channel_type == 'email':
             chat_id = email
@@ -246,21 +284,21 @@ def create_user_files(user_id, categories, user_preferences=None):
     preferences_file = get_user_file_path(user_id, 'preferences')
     if not os.path.exists(preferences_file):
         # Use actual user preferences if available, otherwise create defaults
-        if user_preferences:
+        if user_prefs:
             default_preferences = {
                 "categories": categories or [],
-                "channel": user_preferences.get('channel', {"type": "email"})
+                "channel": user_prefs.get('channel', {"type": "email"})
             }
             # Add check-in settings if available (but remove schedule periods)
-            if checkins_enabled and 'checkin_settings' in user_preferences:
-                checkin_settings = user_preferences['checkin_settings'].copy()
+            if checkins_enabled and 'checkin_settings' in user_prefs:
+                checkin_settings = user_prefs['checkin_settings'].copy()
                 # Remove time_periods from preferences (they go in schedules.json)
                 if 'time_periods' in checkin_settings:
                     del checkin_settings['time_periods']
                 default_preferences["checkin_settings"] = checkin_settings
             # Add task settings if available (but remove schedule periods)
-            if tasks_enabled and 'task_settings' in user_preferences:
-                task_settings = user_preferences['task_settings'].copy()
+            if tasks_enabled and 'task_settings' in user_prefs:
+                task_settings = user_prefs['task_settings'].copy()
                 # Remove time_periods from preferences (they go in schedules.json)
                 if 'time_periods' in task_settings:
                     del task_settings['time_periods']
@@ -285,7 +323,7 @@ def create_user_files(user_id, categories, user_preferences=None):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # Get actual personalization data if available
-        personalization_data = user_preferences.get('personalization_data', {}) if user_preferences else {}
+        personalization_data = user_prefs.get('personalization_data', {})
         
         context_data = {
             "preferred_name": personalization_data.get('preferred_name', ""),
@@ -340,16 +378,16 @@ def create_user_files(user_id, categories, user_preferences=None):
                 schedules_data[category] = default_periods
     
     # Create schedule periods for tasks if enabled
-    if tasks_enabled and user_preferences and 'task_settings' in user_preferences:
-        task_settings = user_preferences.get('task_settings', {})
+    if tasks_enabled and user_prefs and 'task_settings' in user_prefs:
+        task_settings = user_prefs.get('task_settings', {})
         task_time_periods = task_settings.get('time_periods', {})
         if task_time_periods:
             schedules_data['tasks'] = task_time_periods
             logger.debug(f"Created task schedule periods for user {user_id}")
     
     # Create schedule periods for check-ins if enabled
-    if checkins_enabled and user_preferences and 'checkin_settings' in user_preferences:
-        checkin_settings = user_preferences.get('checkin_settings', {})
+    if checkins_enabled and user_prefs and 'checkin_settings' in user_prefs:
+        checkin_settings = user_prefs.get('checkin_settings', {})
         checkin_time_periods = checkin_settings.get('time_periods', {})
         if checkin_time_periods:
             schedules_data['checkin'] = checkin_time_periods

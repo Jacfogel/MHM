@@ -1,4 +1,4 @@
-﻿# bot/discord_bot.py
+# bot/discord_bot.py
 
 import os
 import discord
@@ -45,6 +45,12 @@ class DiscordBot(BaseChannel):
 
     @property
     def channel_type(self) -> ChannelType:
+        """
+        Get the channel type for Discord bot.
+        
+        Returns:
+            ChannelType.ASYNC: Discord bot operates asynchronously
+        """
         return ChannelType.ASYNC
 
     @handle_errors("initializing Discord bot", default_return=False)
@@ -333,29 +339,55 @@ class DiscordBot(BaseChannel):
     # Legacy methods for backward compatibility
     @handle_errors("starting Discord bot")
     def start(self):
-        """Legacy start method"""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        success = loop.run_until_complete(self.initialize())
-        if not success:
-            raise Exception("Failed to initialize Discord bot")
+        """
+        Legacy start method.
+        
+        Initializes the Discord bot if not already running.
+        """
+        if not self.is_initialized():
+            logger.info("Starting Discord bot...")
+            asyncio.run(self.initialize())
+        else:
+            logger.info("Discord bot already running")
 
     @handle_errors("stopping Discord bot")
     def stop(self):
-        """Legacy stop method - thread-safe"""
-        # Just send stop command and wait
-        if self._command_queue:
-            self._command_queue.put(("stop", None))
+        """
+        Legacy stop method - thread-safe.
         
+        Stops the Discord bot and cleans up resources.
+        """
+        logger.info("Stopping Discord bot...")
+        
+        # Send stop command to Discord thread
+        try:
+            self._command_queue.put(("stop", None))
+        except Exception as e:
+            logger.warning(f"Error sending stop command: {e}")
+        
+        # Wait for thread to finish
         if self.discord_thread and self.discord_thread.is_alive():
-            self.discord_thread.join(timeout=5)
-            
-        self._set_status(ChannelStatus.STOPPED)
-        logger.info("Discord bot stopped (legacy method)")
+            self.discord_thread.join(timeout=10)
+            if self.discord_thread.is_alive():
+                logger.warning("Discord thread did not stop gracefully")
+        
+        # Stop the bot
+        if self.bot:
+            try:
+                asyncio.run(self.shutdown())
+            except Exception as e:
+                logger.error(f"Error during Discord bot shutdown: {e}")
+        
+        logger.info("Discord bot stopped")
 
     def is_initialized(self):
-        """Legacy method for backward compatibility"""
-        return self.is_ready()
+        """
+        Legacy method for backward compatibility.
+        
+        Returns:
+            bool: True if the Discord bot is initialized and ready
+        """
+        return self.get_status() == ChannelStatus.READY
 
     # Keep the existing send_dm method for specific Discord functionality
     @handle_errors("sending Discord DM", default_return=False)

@@ -68,6 +68,16 @@ class TaskSettingsWidget(QWidget):
             logger.error(f"Error loading task data for user {self.user_id}: {e}")
     
     def showEvent(self, event):
+        """
+        Handle widget show event.
+        
+        Called when the widget becomes visible. Currently just calls the parent
+        implementation but can be extended for initialization that needs to happen
+        when the widget is shown.
+        
+        Args:
+            event: The show event object
+        """
         super().showEvent(event)
     
     def add_new_period(self, checked=None, period_name=None, period_data=None):

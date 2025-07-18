@@ -1,4 +1,4 @@
-﻿# logger.py
+# logger.py
 
 import logging
 import os
@@ -29,13 +29,24 @@ _verbose_mode = False
 _original_levels = {}
 
 def get_log_level_from_env():
-    """Get log level from environment variable, default to WARNING for quiet mode"""
+    """
+    Get log level from environment variable, default to WARNING for quiet mode.
+    
+    Returns:
+        int: Logging level constant (e.g., logging.WARNING, logging.DEBUG)
+    """
     log_level = os.getenv('LOG_LEVEL', 'WARNING').upper()
     return getattr(logging, log_level, logging.WARNING)
 
 def setup_logging():
     """
     Set up logging with file and console handlers. Ensure it is called only once.
+    
+    Creates a dual-handler logging system:
+    - File handler: Always logs at DEBUG level with rotation
+    - Console handler: Respects verbosity settings (WARNING by default)
+    
+    Automatically suppresses noisy third-party library logging.
     """
     # Skip logging setup if running tests
     if os.getenv('MHM_TESTING') == '1':
@@ -106,6 +117,12 @@ def setup_logging():
 def get_logger(name):
     """
     Get a logger with the specified name.
+    
+    Args:
+        name: Logger name (usually __name__ from the calling module)
+        
+    Returns:
+        logging.Logger: Configured logger instance
     """
     setup_logging()
     return logging.getLogger(name)
@@ -115,6 +132,9 @@ def get_logger(name):
 def suppress_noisy_logging():
     """
     Suppress excessive logging from third-party libraries.
+    
+    Sets logging level to WARNING for common noisy libraries to reduce log spam
+    while keeping important warnings and errors visible.
     """
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("telegram").setLevel(logging.WARNING)
@@ -201,6 +221,9 @@ def set_verbose_mode(enabled):
 def disable_module_logging(module_name):
     """
     Disable debug logging for a specific module.
+    
+    Args:
+        module_name: Name of the module to disable debug logging for
     """
     logger = logging.getLogger(module_name)
     logger.setLevel(logging.WARNING)
@@ -209,7 +232,12 @@ def disable_module_logging(module_name):
 
 def force_restart_logging():
     """
-    Force restart the logging system by clearing all handlers and reinitializing
+    Force restart the logging system by clearing all handlers and reinitializing.
+    
+    Useful when logging configuration becomes corrupted or needs to be reset.
+    
+    Returns:
+        bool: True if restart was successful, False otherwise
     """
     try:
         # Get the root logger

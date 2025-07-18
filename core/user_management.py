@@ -963,16 +963,40 @@ def save_user_data(
     
     result = {}
     
-    # Save each data type using registered save functions
-    for data_type, updates in data_updates.items():
-        try:
-            # Validate data if requested
-            if validate_data:
-                is_valid, errors = validate_user_data_updates(user_id, data_type, updates)
+    # Check if this is a new user creation (user directory doesn't exist)
+    from core.config import get_user_data_dir
+    user_dir = get_user_data_dir(user_id)
+    is_new_user = not os.path.exists(user_dir)
+    
+    # Validate data if requested
+    if validate_data:
+        if is_new_user:
+            # Use new user validation for new user creation
+            is_valid, errors = validate_new_user_data(user_id, data_updates)
+            if not is_valid:
+                logger.error(f"New user validation failed: {errors}")
+                # Return False for all data types if validation fails
+                for data_type in data_updates.keys():
+                    result[data_type] = False
+                return result
+        else:
+            # Use update validation for existing users
+            failed_validations = set()
+            for data_type, updates in data_updates.items():
+                is_valid, errors = validate_user_update(user_id, data_type, updates)
                 if not is_valid:
                     logger.error(f"Validation failed for {data_type}: {errors}")
                     result[data_type] = False
+                    failed_validations.add(data_type)
                     continue
+                # If validation passes, we'll save it below
+    
+    # Save each data type using registered save functions
+    for data_type, updates in data_updates.items():
+        # Skip data types that failed validation
+        if data_type in failed_validations:
+            continue
+        try:
             
             # Load existing data
             current_data = get_user_data(user_id, data_type, auto_create=auto_create)
@@ -1020,48 +1044,31 @@ def save_user_data(
     
     return result
 
-@handle_errors("validating user data updates", default_return=(False, ["Validation failed"]))
-def validate_user_data_updates(
+def validate_user_update(
     user_id: str,
     data_type: str,
     updates: Dict[str, Any]
 ) -> Tuple[bool, List[str]]:
     """
-    Validate user data updates before saving.
-    
-    Args:
-        user_id: User identifier
-        data_type: Type of data being updated ('account', 'preferences', 'context', 'schedules')
-        updates: Updates to validate
-    
-    Returns:
-        Tuple of (is_valid, list_of_errors)
+    Validate user data updates before saving (for updates only).
+    Only validates fields being updated, but if a full account object is being replaced, require required fields.
     """
     errors = []
-    
     if not user_id:
         errors.append("user_id is required")
-    
     if not updates:
         errors.append("updates cannot be empty")
-    
-    # Type-specific validation
     if data_type == 'account':
-        # Only validate fields that are actually being updated
-        # Don't require internal_username or channel if they're not being changed
-        
         # Validate email format if present
         if 'email' in updates and updates['email']:
             from core.validation import is_valid_email
             if not is_valid_email(updates['email']):
                 errors.append("Invalid email format")
-        
         # Validate account status if present
         if 'account_status' in updates:
             valid_statuses = ['active', 'inactive', 'suspended']
             if updates['account_status'] not in valid_statuses:
                 errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
-        
         # Validate channel structure if present
         if 'channel' in updates:
             if not isinstance(updates['channel'], dict):
@@ -1072,11 +1079,21 @@ def validate_user_data_updates(
                 valid_channels = ['email', 'discord', 'telegram']
                 if updates['channel']['type'] not in valid_channels:
                     errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
-        
         # Validate internal_username if present
         if 'internal_username' in updates and not updates['internal_username']:
             errors.append("internal_username is required")
-    
+        # If this is a full account update, require required fields
+        account_fields = ['user_id', 'internal_username', 'account_status', 'channel', 'email', 'phone', 'discord_user_id', 'timezone']
+        provided_fields = [field for field in account_fields if field in updates]
+        if len(provided_fields) >= 2:
+            if 'internal_username' not in updates or not updates['internal_username']:
+                errors.append("internal_username is required for account updates")
+            if 'channel' not in updates:
+                errors.append("channel is required for account updates")
+            elif not isinstance(updates['channel'], dict):
+                errors.append("channel is required and must be a dictionary")
+            elif 'type' not in updates['channel'] or not updates['channel']['type']:
+                errors.append("channel.type is required for account updates")
     elif data_type == 'preferences':
         # Validate categories if present
         if 'categories' in updates:
@@ -1133,6 +1150,110 @@ def validate_user_data_updates(
                                 invalid_days = [day for day in period_data['days'] if day not in valid_days]
                                 if invalid_days:
                                     errors.append(f"Invalid days in {category}.{period_name}: {invalid_days}")
+    
+    return len(errors) == 0, errors
+
+@handle_errors("validating new user data", default_return=(False, ["Validation failed"]))
+def validate_new_user_data(
+    user_id: str,
+    data_updates: Dict[str, Dict[str, Any]]
+) -> Tuple[bool, List[str]]:
+    """
+    Validate data for new user creation.
+    
+    Args:
+        user_id: User identifier
+        data_updates: Dict of data type -> data to validate
+    
+    Returns:
+        Tuple of (is_valid, list_of_errors)
+    """
+    errors = []
+    
+    if not user_id:
+        errors.append("user_id is required")
+    
+    if not data_updates:
+        errors.append("data_updates cannot be empty")
+    
+    # Check if user already exists
+    from core.config import get_user_data_dir
+    user_dir = get_user_data_dir(user_id)
+    if os.path.exists(user_dir):
+        errors.append(f"User {user_id} already exists")
+    
+    # Validate account data (required for new users)
+    if 'account' not in data_updates:
+        errors.append("account data is required for new user creation")
+    else:
+        account_data = data_updates['account']
+        
+        # Required fields for new user creation
+        if 'internal_username' not in account_data or not account_data['internal_username']:
+            errors.append("internal_username is required for new user creation")
+        
+        if 'channel' not in account_data:
+            errors.append("channel is required for new user creation")
+        elif not isinstance(account_data['channel'], dict):
+            errors.append("channel is required and must be a dictionary")
+        elif 'type' not in account_data['channel'] or not account_data['channel']['type']:
+            errors.append("channel.type is required for new user creation")
+        else:
+            valid_channels = ['email', 'discord', 'telegram']
+            if account_data['channel']['type'] not in valid_channels:
+                errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
+        
+        # Validate email format if present
+        if 'email' in account_data and account_data['email']:
+            from core.validation import is_valid_email
+            if not is_valid_email(account_data['email']):
+                errors.append("Invalid email format")
+        
+        # Validate account status if present
+        if 'account_status' in account_data:
+            valid_statuses = ['active', 'inactive', 'suspended']
+            if account_data['account_status'] not in valid_statuses:
+                errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
+    
+    # Validate preferences data if present
+    if 'preferences' in data_updates:
+        preferences_data = data_updates['preferences']
+        
+        # Validate categories if present
+        if 'categories' in preferences_data:
+            if not isinstance(preferences_data['categories'], list):
+                errors.append("categories must be a list")
+            else:
+                # Check if categories are valid
+                valid_categories = get_message_categories()
+                invalid_categories = [cat for cat in preferences_data['categories'] if cat not in valid_categories]
+                if invalid_categories:
+                    errors.append(f"Invalid categories: {invalid_categories}")
+        
+        # Validate channel type if present
+        if 'channel' in preferences_data and isinstance(preferences_data['channel'], dict):
+            channel_type = preferences_data['channel'].get('type')
+            if channel_type:
+                valid_channels = ['email', 'discord', 'telegram']
+                if channel_type not in valid_channels:
+                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
+    
+    # Validate context data if present
+    if 'context' in data_updates:
+        context_data = data_updates['context']
+        
+        # Validate date of birth if present
+        if 'date_of_birth' in context_data and context_data['date_of_birth']:
+            try:
+                from datetime import datetime
+                datetime.strptime(context_data['date_of_birth'], '%Y-%m-%d')
+            except ValueError:
+                errors.append("date_of_birth must be in YYYY-MM-DD format")
+        
+        # Validate custom fields structure if present
+        if 'custom_fields' in context_data:
+            if not isinstance(context_data['custom_fields'], dict):
+                errors.append("custom_fields must be a dictionary")
     
     return len(errors) == 0, errors
 

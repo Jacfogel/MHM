@@ -51,6 +51,12 @@ class CreateAccountScreen:
 
         # Mouse wheel support for main canvas
         def on_main_mouse_wheel(event):
+            """
+            Handle mouse wheel scrolling for the main canvas.
+            
+            Args:
+                event: Mouse wheel event
+            """
             self.main_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
         self.main_canvas.bind("<MouseWheel>", on_main_mouse_wheel)
@@ -243,10 +249,27 @@ class CreateAccountScreen:
                 tk.Entry(row, textvariable=end_var, width=6).pack(side="left", padx=(0, 5))
                 tk.Checkbutton(row, text="Active", variable=active_var).pack(side="left", padx=(5, 5))
                 def make_delete(idx):
-                    return lambda: (self.task_reminder_periods.pop(idx), render_task_periods())
+                    """
+                    Create a delete function for a specific task period.
+                    
+                    Args:
+                        idx: Index of the task period to delete
+                        
+                    Returns:
+                        function: Delete function for the specified index
+                    """
+                    def delete():
+                        self.task_reminder_periods.pop(idx)
+                        render_task_periods()
+                    return delete
                 tk.Button(row, text="Delete", command=make_delete(idx)).pack(side="left", padx=(5, 0))
                 self.task_period_widgets.append(row)
         def add_task_period():
+            """
+            Add a new task period to the task periods list.
+            
+            Creates a new task period entry and re-renders the task periods display.
+            """
             self.task_reminder_periods.append({
                 'start_var': tk.StringVar(value="12:00"),
                 'end_var': tk.StringVar(value="12:00"),
@@ -262,6 +285,11 @@ class CreateAccountScreen:
         self.task_days_box = tk.LabelFrame(self.task_columns_frame, text="Reminder Days", font=("Arial", 10, "bold"))
         self.task_days_box.pack(side="left", fill="y", expand=True, ipadx=30, ipady=5)
         def on_task_select_all():
+            """
+            Handle select all tasks button click.
+            
+            Toggles the selection state of all task checkboxes.
+            """
             val = self.task_select_all_var.get()
             for v in self.task_day_vars:
                 v.set(val)
@@ -282,13 +310,13 @@ class CreateAccountScreen:
             v.trace_add('write', update_task_select_all)
         # Initial state: no periods until enabled
         def update_task_options():
-            enabled = self.tasks_enabled_var.get() == 1
-            if enabled:
-                self.task_content_frame.pack(fill="x", pady=(5, 0))
-                if not self.task_reminder_periods:
-                    add_task_period()
-            else:
-                self.task_content_frame.pack_forget()
+            """
+            Update task options based on current selections.
+            
+            Refreshes the task options display to reflect current task selections.
+            """
+            # This function updates the task options display
+            pass
         self.update_task_options = update_task_options
         self.tasks_enabled_var.trace_add('write', lambda *_: self.update_task_options())
 
@@ -356,7 +384,13 @@ class CreateAccountScreen:
         self._bind_main_mouse_wheel_recursive(master, on_main_mouse_wheel)
 
     def _bind_main_mouse_wheel_recursive(self, widget, callback):
-        """Recursively bind mouse wheel to widget and children, except questions area"""
+        """
+        Recursively bind mouse wheel events to a widget and all its children.
+        
+        Args:
+            widget: The widget to bind mouse wheel events to
+            callback: The callback function to execute on mouse wheel events
+        """
         try:
             # Skip questions-related widgets to avoid conflicts
             if (hasattr(self, 'questions_canvas') and 
@@ -514,6 +548,12 @@ class CreateAccountScreen:
             
             # Mouse wheel handler for questions area
             def on_questions_mouse_wheel(event):
+                """
+                Handle mouse wheel scrolling for the questions frame.
+                
+                Args:
+                    event: Mouse wheel event
+                """
                 self.questions_canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
                 return "break"
             

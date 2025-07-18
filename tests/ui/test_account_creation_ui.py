@@ -95,8 +95,8 @@ class TestAccountCreationDialogRealBehavior:
         assert hasattr(dialog, 'task_widget'), "Task widget should be loaded"
         assert hasattr(dialog, 'checkin_widget'), "Check-in widget should be loaded"
         
-        # ✅ VERIFY REAL BEHAVIOR: Check timezone dropdown is populated
-        timezone_combo = dialog.ui.comboBox_time_zone
+        # ✅ VERIFY REAL BEHAVIOR: Check timezone dropdown is populated (now in channel widget)
+        timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         assert timezone_combo.count() > 0, "Timezone dropdown should be populated"
         assert "America/New_York" in [timezone_combo.itemText(i) for i in range(timezone_combo.count())], "Common timezone should be available"
     
@@ -179,7 +179,7 @@ class TestAccountCreationDialogRealBehavior:
     @pytest.mark.ui
     def test_timezone_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test timezone validation with real UI interactions."""
-        timezone_combo = dialog.ui.comboBox_time_zone
+        timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         
         # ✅ VERIFY INITIAL STATE: Timezone should have a selection
         assert timezone_combo.currentText() != "", "Timezone should have a default selection"
@@ -224,7 +224,7 @@ class TestAccountCreationDialogRealBehavior:
         """REAL BEHAVIOR TEST: Test feature validation with proper category requirements."""
         # Set up username and timezone first (required for validation to proceed past these checks)
         username_edit = dialog.ui.lineEdit_username
-        timezone_combo = dialog.ui.comboBox_time_zone
+        timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         QTest.keyClicks(username_edit, "testuser")
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
@@ -282,7 +282,7 @@ class TestAccountCreationDialogRealBehavior:
         """REAL BEHAVIOR TEST: Test messages-specific validation when messages are enabled."""
         # Set up username and timezone first (required for validation to proceed past these checks)
         username_edit = dialog.ui.lineEdit_username
-        timezone_combo = dialog.ui.comboBox_time_zone
+        timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         QTest.keyClicks(username_edit, "testuser")
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
@@ -332,7 +332,7 @@ class TestAccountCreationDialogRealBehavior:
         """REAL BEHAVIOR TEST: Test complete account creation workflow with real file operations."""
         # Set up basic required fields
         username_edit = dialog.ui.lineEdit_username
-        timezone_combo = dialog.ui.comboBox_time_zone
+        timezone_combo = dialog.channel_widget.ui.comboBox_timezone
         QTest.keyClicks(username_edit, "testuser")
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()

@@ -21,6 +21,11 @@ logger = get_logger(__name__)
 
 class CheckinAnalytics:
     def __init__(self):
+        """
+        Initialize the CheckinAnalytics instance.
+        
+        This class provides analytics and insights from daily check-in data.
+        """
         pass
     
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})

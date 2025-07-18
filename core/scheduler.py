@@ -30,6 +30,12 @@ logger = get_logger(__name__)
 class SchedulerManager:
     @handle_errors("initializing scheduler manager")
     def __init__(self, communication_manager):
+        """
+        Initialize the SchedulerManager with communication manager.
+        
+        Args:
+            communication_manager: The communication manager for sending messages
+        """
         self.communication_manager = communication_manager
         self.scheduler_thread = None
         self.running = False
@@ -575,6 +581,16 @@ class SchedulerManager:
     
     @handle_errors("setting wake timer")
     def set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes=4):
+        """
+        Set a Windows scheduled task to wake the computer before a scheduled message.
+        
+        Args:
+            schedule_time: The datetime when the message is scheduled
+            user_id: The user ID
+            category: The message category
+            period: The time period name
+            wake_ahead_minutes: Minutes before schedule_time to wake the computer (default: 4)
+        """
         # Adjust the schedule_time to wake the computer a few minutes earlier
         wake_time = schedule_time - timedelta(minutes=wake_ahead_minutes)
         task_name = f"Wake_{user_id}_{category}_{period}_{wake_time.strftime('%H%M')}"

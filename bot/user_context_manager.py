@@ -29,6 +29,11 @@ class UserContextManager:
     """Manages rich user context for AI conversations."""
     
     def __init__(self):
+        """
+        Initialize the UserContextManager.
+        
+        Sets up conversation history storage for tracking user interactions.
+        """
         # Store conversation history per user
         self.conversation_history: Dict[str, List[Dict]] = {}
     
@@ -226,13 +231,23 @@ class UserContextManager:
     
     @handle_errors("getting active schedules", default_return=[])
     def _get_active_schedules(self, schedules: Dict) -> List[str]:
-        """Get list of currently active schedule periods."""
+        """
+        Get list of currently active schedule periods.
+        
+        Args:
+            schedules: Dictionary containing schedule periods
+            
+        Returns:
+            list: List of active schedule period names
+        """
+        if not schedules:
+            return []
+        
         active_periods = []
-        for category, periods in schedules.items():
-            for period_name, period_info in periods.items():
-                # Use existing UserPreferences schedule methods where possible
-                if period_info.get('active', False):
-                    active_periods.append(f"{category}:{period_name}")
+        for period_name, period_data in schedules.items():
+            if isinstance(period_data, dict) and period_data.get('active', True):
+                active_periods.append(period_name)
+        
         return active_periods
     
     @handle_errors("getting conversation history", default_return=[])
@@ -242,37 +257,63 @@ class UserContextManager:
     
     @handle_errors("adding conversation exchange")
     def add_conversation_exchange(self, user_id: str, user_message: str, ai_response: str):
-        """Add a conversation exchange to history."""
+        """
+        Add a conversation exchange to history.
+        
+        Args:
+            user_id: The user's ID
+            user_message: The user's message
+            ai_response: The AI's response
+        """
         if user_id not in self.conversation_history:
             self.conversation_history[user_id] = []
         
         exchange = {
             'timestamp': datetime.now().isoformat(),
             'user_message': user_message,
-            'ai_response': ai_response
+            'ai_response': ai_response,
+            'message_length': len(user_message),
+            'response_length': len(ai_response)
         }
         
         self.conversation_history[user_id].append(exchange)
         
-        # Keep only last 10 exchanges per user
-        if len(self.conversation_history[user_id]) > 10:
-            self.conversation_history[user_id] = self.conversation_history[user_id][-10:]
+        # Keep only last 20 exchanges to prevent memory bloat
+        if len(self.conversation_history[user_id]) > 20:
+            self.conversation_history[user_id] = self.conversation_history[user_id][-20:]
             
         logger.debug(f"Added conversation exchange for user {user_id}")
     
     @handle_errors("getting minimal context", default_return={})
     def _get_minimal_context(self, user_id: str) -> Dict[str, Any]:
-        """Fallback minimal context if full context generation fails."""
-        # Legacy import removed - using get_user_data() instead
-        user_data_result = get_user_data(user_id, 'account')
-        user_account = user_data_result.get('account')
-        context_result = get_user_data(user_id, 'context')
-        user_context = context_result.get('context')
-        preferred_name = user_context.get('preferred_name', '') if user_context else ''
+        """
+        Fallback minimal context if full context generation fails.
         
+        Args:
+            user_id: The user's ID (can be None for anonymous context)
+            
+        Returns:
+            dict: Minimal context with basic information
+        """
         return {
-            'user_profile': {'preferred_name': preferred_name},
-            'recent_activity': {},
+            'user_profile': {
+                'preferred_name': 'User' if user_id else 'Anonymous',
+                'active_categories': [],
+                'messaging_service': '',
+                'active_schedules': []
+            },
+            'recent_activity': {
+                'recent_responses_count': 0,
+                'last_response_date': None,
+                'recent_messages_count': 0,
+                'last_message_date': None
+            },
+            'conversation_insights': {
+                'recent_topics': [],
+                'interaction_count': 0,
+                'avg_message_length': 0,
+                'engagement_level': 'low'
+            },
             'preferences': {},
             'mood_trends': {},
             'conversation_history': []
@@ -280,36 +321,46 @@ class UserContextManager:
     
     @handle_errors("formatting context for AI", default_return="User context unavailable")
     def format_context_for_ai(self, context: Dict[str, Any]) -> str:
-        """Format user context into a concise string for AI prompt."""
-        parts = []
+        """
+        Format user context into a concise string for AI prompt.
         
-        # User profile
+        Args:
+            context: User context dictionary
+            
+        Returns:
+            str: Formatted context string for AI consumption
+        """
+        if not context:
+            return "User context unavailable"
+        
         profile = context.get('user_profile', {})
+        activity = context.get('recent_activity', {})
+        insights = context.get('conversation_insights', {})
+        
+        context_parts = []
+        
+        # Basic profile info
         if profile.get('preferred_name'):
-            parts.append(f"User: {profile['preferred_name']}")
+            context_parts.append(f"User: {profile['preferred_name']}")
         
         if profile.get('active_categories'):
-            parts.append(f"Interests: {', '.join(profile['active_categories'])}")
+            context_parts.append(f"Active categories: {', '.join(profile['active_categories'])}")
         
         # Recent activity
-        activity = context.get('recent_activity', {})
         if activity.get('recent_responses_count', 0) > 0:
-            parts.append(f"Recent activity: {activity['recent_responses_count']} check-ins")
+            context_parts.append(f"Recent check-ins: {activity['recent_responses_count']}")
         
-        # Mood trends
-        mood = context.get('mood_trends', {})
-        if mood.get('average_mood') is not None:
-            avg_mood = mood['average_mood']
-            trend = mood.get('trend', 'stable')
-            parts.append(f"Recent mood: {avg_mood:.1f}/5 ({trend})")
+        if activity.get('last_response_date'):
+            context_parts.append(f"Last response: {activity['last_response_date']}")
         
-        # Recent conversation
-        conversation = context.get('conversation_history', [])
-        if conversation:
-            last_exchange = conversation[-1]
-            parts.append(f"Previous topic: {last_exchange['user_message'][:30]}...")
+        # Conversation insights
+        if insights.get('recent_topics'):
+            context_parts.append(f"Recent topics: {', '.join(insights['recent_topics'])}")
         
-        return " | ".join(parts) if parts else "New user"
+        if insights.get('engagement_level'):
+            context_parts.append(f"Engagement: {insights['engagement_level']}")
+        
+        return " | ".join(context_parts) if context_parts else "No recent activity"
 
 # Global instance
 user_context_manager = UserContextManager() 

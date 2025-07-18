@@ -23,6 +23,14 @@ logger = logging.getLogger(__name__)
 class MHMError(Exception):
     """Base exception for all MHM-specific errors."""
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None, recoverable: bool = True):
+        """
+        Initialize a new MHM error.
+        
+        Args:
+            message: Human-readable error message
+            details: Optional dictionary with additional error details
+            recoverable: Whether this error can be recovered from
+        """
         super().__init__(message)
         self.message = message
         self.details = details or {}
@@ -74,6 +82,13 @@ class ErrorRecoveryStrategy:
     """Base class for error recovery strategies."""
     
     def __init__(self, name: str, description: str):
+        """
+        Initialize an error recovery strategy.
+        
+        Args:
+            name: The name of the recovery strategy
+            description: A description of what this strategy does
+        """
         self.name = name
         self.description = description
     
@@ -89,14 +104,34 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for missing files."""
     
     def __init__(self):
+        """Initialize the FileNotFoundRecovery strategy."""
         super().__init__("File Not Found Recovery", "Creates missing files with default data")
     
     def can_handle(self, error: Exception) -> bool:
+        """
+        Check if this strategy can handle the given error.
+        
+        Args:
+            error: The exception to check
+            
+        Returns:
+            True if this strategy can handle FileNotFoundError or file operation errors containing "not found"
+        """
         return isinstance(error, FileNotFoundError) or (
             isinstance(error, FileOperationError) and "not found" in str(error).lower()
         )
     
     def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+        """
+        Attempt to recover from the error by creating missing files with default data.
+        
+        Args:
+            error: The exception that occurred
+            context: Additional context containing file_path and other relevant information
+            
+        Returns:
+            True if recovery was successful, False otherwise
+        """
         try:
             file_path = context.get('file_path')
             if not file_path:
@@ -148,15 +183,35 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
     """Recovery strategy for corrupted JSON files."""
     
     def __init__(self):
+        """Initialize the JSONDecodeRecovery strategy."""
         super().__init__("JSON Decode Recovery", "Attempts to fix corrupted JSON files")
     
     def can_handle(self, error: Exception) -> bool:
+        """
+        Check if this strategy can handle the given error.
+        
+        Args:
+            error: The exception to check
+            
+        Returns:
+            True if this strategy can handle JSON decode errors or JSON-related file operation errors
+        """
         import json
         return isinstance(error, json.JSONDecodeError) or (
             isinstance(error, FileOperationError) and "json" in str(error).lower()
         )
     
     def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+        """
+        Attempt to recover from the error by recreating corrupted JSON files.
+        
+        Args:
+            error: The exception that occurred
+            context: Additional context containing file_path and other relevant information
+            
+        Returns:
+            True if recovery was successful, False otherwise
+        """
         try:
             file_path = context.get('file_path')
             if not file_path:
@@ -213,6 +268,11 @@ class ErrorHandler:
     """Centralized error handler for MHM."""
     
     def __init__(self):
+        """
+        Initialize the ErrorHandler with default recovery strategies.
+        
+        Sets up recovery strategies for common error types like missing files and corrupted JSON.
+        """
         self.recovery_strategies: List[ErrorRecoveryStrategy] = [
             FileNotFoundRecovery(),
             JSONDecodeRecovery(),
@@ -387,21 +447,47 @@ def safe_file_operation(file_path: str, operation: str = "file operation",
             # file operations here
     """
     class SafeFileContext:
+        """Context manager for safe file operations."""
+        
         def __init__(self, file_path, operation, user_id, category):
+            """
+            Initialize the safe file context.
+            
+            Args:
+                file_path: Path to the file being operated on
+                operation: Description of the operation being performed
+                user_id: ID of the user performing the operation
+                category: Category of the operation
+            """
             self.file_path = file_path
             self.operation = operation
             self.user_id = user_id
             self.category = category
             self.context = {
                 'file_path': file_path,
+                'operation': operation,
                 'user_id': user_id,
                 'category': category
             }
         
         def __enter__(self):
+            """
+            Enter the context manager for safe file operations.
+            
+            Returns:
+                self: The SafeFileContext instance
+            """
             return self
         
         def __exit__(self, exc_type, exc_val, exc_tb):
+            """
+            Exit the context manager and handle any exceptions.
+            
+            Args:
+                exc_type: Type of exception if any occurred
+                exc_val: Exception value if any occurred
+                exc_tb: Exception traceback if any occurred
+            """
             if exc_val is not None:
                 error_handler.handle_error(exc_val, self.context, self.operation)
                 return True  # Suppress the exception

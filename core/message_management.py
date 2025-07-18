@@ -24,6 +24,9 @@ def get_message_categories():
     """
     Retrieves message categories from the environment variable CATEGORIES.
     Allows for either a comma-separated string or a JSON array.
+    
+    Returns:
+        List[str]: List of message categories
     """
     raw_categories = os.getenv('CATEGORIES')
     if not raw_categories:
@@ -53,7 +56,15 @@ def get_message_categories():
 
 @handle_errors("loading default messages", default_return=[])
 def load_default_messages(category):
-    """Load default messages for the given category."""
+    """
+    Load default messages for the given category.
+    
+    Args:
+        category: The message category to load defaults for
+        
+    Returns:
+        List[dict]: List of default messages for the category
+    """
     default_messages_file = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{category}.json")
     
     try:
@@ -75,6 +86,15 @@ def load_default_messages(category):
 
 @handle_errors("adding message")
 def add_message(user_id, category, message_data, index=None):
+    """
+    Add a new message to a user's category.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        message_data: Dictionary containing message data
+        index: Optional position to insert the message (None for append)
+    """
     if user_id is None:
         logger.error("add_message called with None user_id")
         return
@@ -109,6 +129,18 @@ def add_message(user_id, category, message_data, index=None):
 
 @handle_errors("editing message")
 def edit_message(user_id, category, message_id, updated_data):
+    """
+    Edit an existing message in a user's category.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        message_id: The ID of the message to edit
+        updated_data: Dictionary containing updated message data
+        
+    Raises:
+        ValidationError: If message ID is not found or category is invalid
+    """
     if user_id is None:
         logger.error("edit_message called with None user_id")
         return
@@ -142,7 +174,18 @@ def edit_message(user_id, category, message_id, updated_data):
 
 @handle_errors("updating message by ID")
 def update_message(user_id, category, message_id, new_message_data):
-    """Update a message by its message_id."""
+    """
+    Update a message by its message_id.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        message_id: The ID of the message to update
+        new_message_data: Complete new message data to replace the existing message
+        
+    Raises:
+        ValidationError: If message ID is not found or category is invalid
+    """
     if user_id is None:
         logger.error("update_message called with None user_id")
         return
@@ -165,6 +208,17 @@ def update_message(user_id, category, message_id, new_message_data):
 
 @handle_errors("deleting message")
 def delete_message(user_id, category, message_id):
+    """
+    Delete a specific message from a user's category.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        message_id: The ID of the message to delete
+        
+    Raises:
+        ValidationError: If the message ID is not found or the category is invalid
+    """
     if user_id is None:
         logger.error("delete_message called with None user_id")
         return
@@ -197,7 +251,16 @@ def delete_message(user_id, category, message_id):
 
 @handle_errors("getting last 10 messages", default_return=[])
 def get_last_10_messages(user_id, category):
-    """Get the last 10 messages for a user and category, sorted by timestamp descending."""
+    """
+    Get the last 10 messages for a user and category, sorted by timestamp descending.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        
+    Returns:
+        List[dict]: List of the last 10 sent messages for the category
+    """
     if user_id is None:
         logger.error("get_last_10_messages called with None user_id")
         return []
@@ -214,17 +277,6 @@ def get_last_10_messages(user_id, category):
         logger.info(f"No messages found in category {category} for user {user_id}.")
         return []
     # Sort by timestamp descending
-    def get_timestamp_for_sorting(item):
-        if isinstance(item, str):
-            return 0.0
-        elif not isinstance(item, dict):
-            return 0.0
-        timestamp = item.get('timestamp', '1970-01-01 00:00:00')
-        try:
-            dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
-            return dt.timestamp()
-        except (ValueError, TypeError):
-            return 0.0
     sorted_data = sorted(messages, key=get_timestamp_for_sorting, reverse=True)
     last_10_messages = sorted_data[:10]
     logger.debug(f"Retrieved last 10 messages for user {user_id} in category {category}.")
@@ -232,7 +284,15 @@ def get_last_10_messages(user_id, category):
 
 @handle_errors("storing sent message")
 def store_sent_message(user_id, category, message_id, message):
-    """Store a sent message for a user and category, with per-category grouping and cleanup."""
+    """
+    Store a sent message for a user and category, with per-category grouping and cleanup.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        message_id: The ID of the sent message
+        message: The message content that was sent
+    """
     file_path = determine_file_path('sent_messages', user_id)
     sent_messages = load_json_data(file_path) or {}
     # Add the new message under the correct category
@@ -395,3 +455,25 @@ def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
             "files_created": 0,
             "files_existing": 0
         }
+
+
+def get_timestamp_for_sorting(item):
+    """
+    Convert timestamp to float for consistent sorting.
+    
+    Args:
+        item: Dictionary containing a timestamp field or other data type
+        
+    Returns:
+        float: Timestamp as float for sorting, or 0.0 for invalid items
+    """
+    if isinstance(item, str):
+        return 0.0
+    elif not isinstance(item, dict):
+        return 0.0
+    timestamp = item.get('timestamp', '1970-01-01 00:00:00')
+    try:
+        dt = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
+        return dt.timestamp()
+    except (ValueError, TypeError):
+        return 0.0

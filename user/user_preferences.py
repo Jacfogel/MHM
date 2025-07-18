@@ -14,7 +14,20 @@ from core.error_handling import (
 logger = get_logger(__name__)
 
 class UserPreferences:
+    """
+    Manages user preferences and settings.
+    
+    Provides methods for loading, saving, and managing user preferences
+    including schedule period settings and general user preferences.
+    """
+    
     def __init__(self, user_id):
+        """
+        Initialize UserPreferences for a specific user.
+        
+        Args:
+            user_id: The user's unique identifier
+        """
         self.user_id = user_id
         self.preferences = self.load_preferences()
 

@@ -24,6 +24,11 @@ class BackupManager:
     """Manages automatic backups and rollback operations."""
     
     def __init__(self):
+        """
+        Initialize the BackupManager with default settings.
+        
+        Sets up backup directory, maximum backup count, and ensures backup directory exists.
+        """
         self.backup_dir = os.path.join(BASE_DATA_DIR, "backups")
         self.ensure_backup_directory()
         self.max_backups = 10  # Keep last 10 backups

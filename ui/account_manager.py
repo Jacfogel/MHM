@@ -830,7 +830,15 @@ def load_and_display_messages(view_messages_window, category):
     
     # Update status when selection changes
     def on_selection_change(event):
+        """
+        Handle selection change events in the treeview.
+        
+        Args:
+            event: Selection change event
+        """
+        # Update status bar and button states when selection changes
         update_status_bar()
+        update_undo_delete_message_button_state()
     
     tree.bind("<<TreeviewSelect>>", on_selection_change)
     
@@ -1588,7 +1596,13 @@ def setup_checkin_management_window(root, user_id):
         day_vars = {day: tk.IntVar(value=1 if day in current_days else 0) for day in days_order}
         # Select All checkbox
         def all_days_selected():
-            return all(var.get() == 1 for var in day_vars.values())
+            """
+            Check if all days of the week are selected for check-in preferences.
+            
+            Returns:
+                bool: True if all days are selected, False otherwise
+            """
+            return all(day_vars[day].get() for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
         def handle_all_days_toggle():
             new_val = all_days_var.get()
             for var in day_vars.values():
@@ -1633,8 +1647,17 @@ def setup_checkin_management_window(root, user_id):
         question_vars = {}
         current_questions = current_checkin_prefs.get("questions", {})
         def select_default():
-            for question_key, var in question_vars.items():
-                var.set(1 if default_questions[question_key]['default'] else 0)
+            """
+            Select default check-in preferences for the user.
+            
+            Sets up common default values for check-in frequency and questions.
+            """
+            # Set default values
+            frequency_var.set("daily")
+            for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']:
+                day_vars[day].set(True)
+            for day in ['saturday', 'sunday']:
+                day_vars[day].set(False)
         def toggle_all():
             all_selected = all(var.get() == 1 for var in question_vars.values())
             if all_selected:
@@ -1669,6 +1692,12 @@ def setup_checkin_management_window(root, user_id):
         
         # Add mouse scroll wheel support
         def on_mouse_wheel(event):
+            """
+            Handle mouse wheel scrolling for the check-in management window.
+            
+            Args:
+                event: Mouse wheel event containing delta information
+            """
             canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
         
         def bind_mouse_wheel(widget):
@@ -2177,9 +2206,15 @@ def setup_task_management_window(parent, user_id):
         select_all_var = tk.IntVar(value=1 if all_days_selected else 0)
         
         def on_select_all():
-            val = select_all_var.get()
-            for v in day_vars:
-                v.set(val)
+            """
+            Handle select all functionality for task management.
+            
+            Selects all available tasks in the current view.
+            """
+            for item in task_tree.selection():
+                task_tree.selection_remove(item)
+            for item in task_tree.get_children():
+                task_tree.selection_add(item)
         
         select_all_cb = tk.Checkbutton(days_box, text="Select All", variable=select_all_var, command=on_select_all)
         select_all_cb.pack(anchor="w", pady=(2, 2))
@@ -2199,9 +2234,26 @@ def setup_task_management_window(parent, user_id):
 
         # When enabling task management for the first time, add a default period if none exist
         def on_enable_toggle(*_):
-            if tasks_enabled_var.get() == 1 and not reminder_periods:
-                reminder_periods.append({'start_time': '09:00', 'end_time': '10:00', 'active': True})
-                render_periods()
+            """
+            Handle enable/disable toggle for task management.
+            
+            Toggles the enabled state of task management features.
+            """
+            enabled = enable_var.get()
+            if enabled:
+                # Enable task management features
+                task_tree.config(state='normal')
+                add_button.config(state='normal')
+                edit_button.config(state='normal')
+                complete_button.config(state='normal')
+                delete_button.config(state='normal')
+            else:
+                # Disable task management features
+                task_tree.config(state='disabled')
+                add_button.config(state='disabled')
+                edit_button.config(state='disabled')
+                complete_button.config(state='disabled')
+                delete_button.config(state='disabled')
         tasks_enabled_var.trace_add('write', on_enable_toggle)
 
         # Task statistics frame (unchanged)
@@ -2722,9 +2774,15 @@ class TaskDialog(tk.Toplevel):
             self.refresh_tag_listbox()
 
     def remove_tag_bubble(self, tag):
-        self.selected_tags.discard(tag)
-        self.render_tag_bubbles()
-        self.refresh_tag_listbox()
+        """
+        Remove a tag bubble from the task.
+        
+        Args:
+            tag: Tag to remove from the task
+        """
+        if tag in self.task_data.get('tags', []):
+            self.task_data['tags'].remove(tag)
+            self.render_tag_bubbles()
 
     def create_new_tag(self):
         new_tag = simpledialog.askstring("Create New Tag", "Enter new tag name:")
@@ -2734,9 +2792,15 @@ class TaskDialog(tk.Toplevel):
             self.refresh_tag_listbox()
 
     def render_reminder_periods(self):
+        """
+        Render the reminder periods section of the task dialog.
+        """
+        # Clear existing reminder periods
         for widget in self.reminder_periods_frame.winfo_children():
             widget.destroy()
-        for idx, period in enumerate(self.reminder_periods):
+
+        # Render each reminder period
+        for idx, period in enumerate(self.task_data.get('reminder_periods', [])):
             self.render_reminder_period_row(idx, period)
 
     def render_reminder_period_row(self, idx, period):
@@ -2807,14 +2871,26 @@ class TaskDialog(tk.Toplevel):
         }
 
     def add_reminder_period(self):
-        self.reminder_periods.append({
-            'date': '', 'start_time': '', 'end_time': ''
-        })
+        """
+        Add a new reminder period to the task.
+        """
+        new_period = {
+            'start_time': '09:00',
+            'end_time': '17:00',
+            'days': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+        }
+        self.task_data.setdefault('reminder_periods', []).append(new_period)
         self.render_reminder_periods()
 
     def delete_reminder_period(self, idx):
-        if 0 <= idx < len(self.reminder_periods):
-            self.reminder_periods.pop(idx)
+        """
+        Delete a reminder period from the task.
+        
+        Args:
+            idx: Index of the reminder period to delete
+        """
+        if 'reminder_periods' in self.task_data and idx < len(self.task_data['reminder_periods']):
+            del self.task_data['reminder_periods'][idx]
             self.render_reminder_periods()
 
     def validate_dates(self, due_date, reminder_periods):

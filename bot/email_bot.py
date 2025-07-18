@@ -23,6 +23,14 @@ class EmailBotError(Exception):
 
 class EmailBot(BaseChannel):
     def __init__(self, config: ChannelConfig = None):
+        """
+        Initialize the EmailBot with configuration.
+        
+        Args:
+            config: Channel configuration object. If None, creates default config
+                   with email-specific settings (max_retries=3, retry_delay=1.0,
+                   backoff_multiplier=2.0)
+        """
         # Initialize BaseChannel
         if config is None:
             config = ChannelConfig(
@@ -35,6 +43,12 @@ class EmailBot(BaseChannel):
 
     @property
     def channel_type(self) -> ChannelType:
+        """
+        Get the channel type for email bot.
+        
+        Returns:
+            ChannelType.SYNC: Email operations are synchronous
+        """
         return ChannelType.SYNC  # Email operations are synchronous
 
     @handle_errors("initializing email bot", default_return=False)
@@ -166,7 +180,11 @@ class EmailBot(BaseChannel):
     # Legacy methods for backward compatibility
     @handle_errors("starting email bot")
     def start(self):
-        """Legacy start method"""
+        """
+        Legacy start method.
+        
+        Initializes the email bot using the legacy interface.
+        """
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         success = loop.run_until_complete(self.initialize())
@@ -175,7 +193,11 @@ class EmailBot(BaseChannel):
 
     @handle_errors("stopping email bot")
     def stop(self):
-        """Legacy stop method"""
+        """
+        Legacy stop method.
+        
+        Shuts down the email bot using the legacy interface.
+        """
         if asyncio.get_event_loop().is_running():
             asyncio.create_task(self.shutdown())
         else:
@@ -184,5 +206,10 @@ class EmailBot(BaseChannel):
             loop.run_until_complete(self.shutdown())
 
     def is_initialized(self):
-        """Legacy method for backward compatibility"""
+        """
+        Legacy method for backward compatibility.
+        
+        Returns:
+            bool: True if the email bot is initialized and ready
+        """
         return self.is_ready()

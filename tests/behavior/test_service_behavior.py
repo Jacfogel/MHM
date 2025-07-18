@@ -165,7 +165,9 @@ class TestMHMService:
             
             # Verify real behavior - log file still exists after check
             assert os.path.exists(log_file)
-            mock_get_logger.assert_called_once()
+            # The function calls getLogger multiple times for different loggers
+            # (httpx, telegram, discord, etc.), so we check it was called at least once
+            assert mock_get_logger.call_count >= 1
     
     def test_start_service_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service startup with real state changes."""
@@ -182,6 +184,12 @@ class TestMHMService:
             
             # Mock start to actually change service state
             def mock_start_side_effect():
+                """
+                Mock side effect for service start that changes actual service state.
+                
+                Updates the service running status and startup time to simulate
+                real service startup behavior for testing.
+                """
                 service.running = True
                 service.startup_time = time.time()
             mock_start.side_effect = mock_start_side_effect
@@ -219,6 +227,12 @@ class TestMHMService:
         with patch('core.service.atexit.unregister') as mock_unregister:
             # Mock shutdown to actually change service state
             def mock_shutdown_side_effect():
+                """
+                Mock side effect for service shutdown that changes actual service state.
+                
+                Updates the service running status and calls stop methods on managers
+                to simulate real service shutdown behavior for testing.
+                """
                 service.running = False
                 service.communication_manager.stop_all()
                 service.scheduler_manager.stop_all()
@@ -448,7 +462,7 @@ class TestMHMService:
         ]
         
         for test_case in test_cases:
-            with patch('core.service.get_user_data', return_value=test_case['input']):
+            with patch('core.user_management.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 
                 # Verify real behavior - actual data structure returned
@@ -532,6 +546,15 @@ class TestMHMService:
             
             # Mock sleep to return quickly and limit loop iterations
             def mock_sleep_side_effect(seconds):
+                """
+                Mock side effect for time.sleep that breaks out of service loop.
+                
+                Tracks call count and stops the service after a few iterations
+                to prevent infinite loops during testing.
+                
+                Args:
+                    seconds: Number of seconds to sleep (ignored in mock)
+                """
                 # Break out of the loop after a few iterations
                 if mock_sleep.call_count > 5:
                     service.running = False
@@ -572,6 +595,18 @@ class TestMHMService:
             
             # Mock os.path.join to return our test file path
             def mock_join_side_effect(*args):
+                """
+                Mock side effect for os.path.join that returns test file path.
+                
+                Returns the test request file path when the specific filename
+                is requested, otherwise delegates to the real os.path.join.
+                
+                Args:
+                    *args: Path components to join
+                    
+                Returns:
+                    str: Joined path, or test file path for specific filename
+                """
                 if args[-1] == 'test_message_request_user1_motivational.flag':
                     return request_file
                 return os.path.join(*args)
@@ -619,6 +654,18 @@ class TestMHMService:
             
             # Mock os.path.join to return our test file path
             def mock_join_side_effect(*args):
+                """
+                Mock side effect for os.path.join that returns test file path.
+                
+                Returns the test request file path when the specific filename
+                is requested, otherwise delegates to the real os.path.join.
+                
+                Args:
+                    *args: Path components to join
+                    
+                Returns:
+                    str: Joined path, or test file path for specific filename
+                """
                 if args[-1] == 'test_message_request_user1_motivational.flag':
                     return request_file
                 return os.path.join(*args)
@@ -754,7 +801,7 @@ class TestMHMService:
         ]
         
         for test_case in test_cases:
-            with patch('core.service.get_user_data', return_value=test_case['input']):
+            with patch('core.user_management.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 assert result == test_case['expected']
                 assert isinstance(result, list)  # Verify return type

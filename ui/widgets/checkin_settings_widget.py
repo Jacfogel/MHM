@@ -48,6 +48,16 @@ class CheckinSettingsWidget(QWidget):
         self.ui.scrollAreaWidgetContents_checkin_time_periods.setVisible(True)
     
     def showEvent(self, event):
+        """
+        Handle widget show event.
+        
+        Called when the widget becomes visible. Currently just calls the parent
+        implementation but can be extended for initialization that needs to happen
+        when the widget is shown.
+        
+        Args:
+            event: The show event object
+        """
         super().showEvent(event)
     
     def setup_connections(self):

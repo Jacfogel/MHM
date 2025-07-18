@@ -10,6 +10,16 @@ import pytz
 
 class ChannelSelectionWidget(QWidget):
     def __init__(self, parent=None):
+        """
+        Initialize the ChannelSelectionWidget.
+        
+        Sets up the UI for channel selection with Discord, Email, and Telegram options,
+        along with timezone selection. Populates timezone options and sets default
+        timezone to America/Regina.
+        
+        Args:
+            parent: Parent widget (optional)
+        """
         super().__init__(parent)
         self.ui = Ui_Form_channel_selection()
         self.ui.setupUi(self)
