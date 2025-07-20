@@ -46,7 +46,13 @@
 ### What This Means for You
 This migration has established a solid foundation with the main admin panel working and core backend functionality solid. All UI files exist and dialogs can be instantiated successfully. The new UI is more responsive and looks better. Most dialogs are functional, but some may need testing to identify specific issues.
 
-## 🔧 Recent Fixes & Improvements (2025-07-16)
+## 🔧 Recent Fixes & Improvements (2025-07-18)
+
+#### ✅ **Centralized User-Data Handler Migration**
+- **Backend Refactor**: Implemented `core/user_data_handlers.py` to own `get_user_data` / `save_user_data` logic.
+- **UI Impact**: All UI and widget modules now import from the new handler module – legacy warnings during runtime have largely disappeared.
+- **Tests**: Full suite (244 tests) remains green after the migration, confirming no regressions.
+- **Next UI Task**: Watch `app.log` for any remaining `LEGACY …` warnings triggered by UI components and update those call-sites.
 
 ### ✅ **Channel Management Dialog Validation Fix**
 - **Problem**: Dialog was silently accepting invalid data without showing validation errors

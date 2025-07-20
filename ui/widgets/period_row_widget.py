@@ -113,7 +113,7 @@ class PeriodRowWidget(QWidget):
         if name.upper() == 'ALL':
             display_name = 'ALL'
         else:
-            from core.validation import title_case
+            from core.user_data_validation import title_case
             display_name = title_case(name)
         self.ui.lineEdit_time_period_name.setText(display_name)
         

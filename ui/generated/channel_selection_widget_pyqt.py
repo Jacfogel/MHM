@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QLabel,
     QLayout, QLineEdit, QRadioButton, QSizePolicy,
     QSpacerItem, QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Form_channel_selection(object):
     def setupUi(self, Form_channel_selection):
         if not Form_channel_selection.objectName():

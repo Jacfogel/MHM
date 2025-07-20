@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
     QHBoxLayout, QPushButton, QScrollArea, QSizePolicy,
     QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Form_checkin_settings(object):
     def setupUi(self, Form_checkin_settings):
         if not Form_checkin_settings.objectName():

@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 # Import core functionality
 from user.user_context import UserContext
 from core.message_management import get_message_categories
-from core.validation import title_case
+from core.user_data_validation import title_case
 from core.user_management import create_new_user, get_user_id_by_internal_username
 from core.file_operations import create_user_files
 from core.error_handling import handle_errors
@@ -491,14 +491,31 @@ class AccountCreatorDialog(QDialog):
                 
                 # Validate contact info format based on service type
                 if selected_service == 'Email':
-                    from core.validation import is_valid_email
+                    from core.user_data_validation import is_valid_email
                     if not is_valid_email(contact_value):
                         return False, "Please enter a valid email address."
                 elif selected_service == 'Telegram':
-                    from core.validation import is_valid_phone
+                    from core.user_data_validation import is_valid_phone
                     if not is_valid_phone(contact_value):
                         return False, "Please enter a valid phone number (digits only, minimum 10 digits)."
                 # Discord doesn't need format validation - any string is acceptable
+                
+                # Validate ALL contact fields that have values (not just the selected one)
+                email = self.channel_widget.ui.lineEdit_email.text().strip()
+                phone = self.channel_widget.ui.lineEdit_phone.text().strip()
+                discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
+                
+                from core.user_data_validation import is_valid_email, is_valid_phone
+                
+                # Validate email if provided
+                if email and not is_valid_email(email):
+                    return False, "Please enter a valid email address."
+                
+                # Validate phone if provided
+                if phone and not is_valid_phone(phone):
+                    return False, "Please enter a valid phone number (digits only, minimum 10 digits)."
+                
+                # Discord ID doesn't need format validation - any string is acceptable
             else:
                 return False, "Channel widget not loaded."
         
@@ -541,8 +558,9 @@ class AccountCreatorDialog(QDialog):
         contact_value = None
         contact_info = {}
         
-        if messages_enabled:
-            selected_categories = self.category_widget.get_selected_categories()
+        # Always collect contact information regardless of message enablement
+        # since it's needed for the communication channel
+        if hasattr(self, 'channel_widget'):
             selected_service, contact_value = self.channel_widget.get_selected_channel()
             
             # Collect ALL contact info fields, not just the selected one
@@ -558,6 +576,10 @@ class AccountCreatorDialog(QDialog):
                 contact_info['phone'] = phone
             if discord_id:
                 contact_info['discord'] = discord_id
+        
+        # Only collect categories if messages are enabled
+        if messages_enabled:
+            selected_categories = self.category_widget.get_selected_categories()
         
         task_settings = {}
         if tasks_enabled and hasattr(self, 'task_widget'):
@@ -669,10 +691,8 @@ class AccountCreatorDialog(QDialog):
                 'channel': account_data['channel'],
                 'categories': account_data['categories'],
                 'features': features,
-                # Add personalization data including preferred name
-                'personalization_data': {
-                    'preferred_name': account_data.get('preferred_name', '')
-                },
+                # Pass the complete personalization data structure
+                'personalization_data': account_data.get('personalization_data', {}),
                 # Add feature enablement information for create_user_files
                 'features_enabled': {
                     'messages': messages_enabled,

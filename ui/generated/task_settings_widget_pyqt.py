@@ -18,6 +18,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QPushButton,
     QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Form_task_settings(object):
     def setupUi(self, Form_task_settings):
         if not Form_task_settings.objectName():

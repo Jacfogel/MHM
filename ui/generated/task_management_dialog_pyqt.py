@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGridLayout, QGroupBox, QLabel, QSizePolicy,
     QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Dialog_task_management(object):
     def setupUi(self, Dialog_task_management):
         if not Dialog_task_management.objectName():

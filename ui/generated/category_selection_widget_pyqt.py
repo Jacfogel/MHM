@@ -18,20 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QSizePolicy,
     QVBoxLayout, QWidget)
 
-def qtTrId(id): 
-    """
-    Qt translation function stub.
-    
-    This is a placeholder function for Qt's translation system. In a real Qt
-    application, this would return the translated string for the given ID.
-    
-    Args:
-        id: The translation ID
-        
-    Returns:
-        The translation ID (no translation performed in this stub)
-    """
-    return id
+def qtTrId(id): return id
 
 class Ui_Form_category_selection_widget(object):
     def setupUi(self, Form_category_selection_widget):

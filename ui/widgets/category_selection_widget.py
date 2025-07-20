@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QCheckBox
 from ui.generated.category_selection_widget_pyqt import Ui_Form_category_selection_widget
-from core.validation import title_case
+from core.user_data_validation import title_case
 
 CATEGORY_KEYS = [
     'fun_facts',

@@ -18,7 +18,7 @@ from core.schedule_management import get_current_time_periods_with_validation, g
 from core.file_operations import determine_file_path, load_json_data
 import os
 from core.config import get_user_data_dir
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 
 logger = get_logger(__name__)
 
@@ -931,47 +931,48 @@ class LegacyChannelWrapper:
             The result of the coroutine
         """
         try:
-            # Try to get current event loop
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # We're in an event loop, need to run in thread
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            # If we are already inside a running loop (e.g., UI thread), off-load to a helper thread
+            if loop and loop.is_running():
                 import threading
-                import queue
-                
-                result_queue = queue.Queue()
-                exception_queue = queue.Queue()
-                
+
+                result_container = {}
+
                 def run_in_thread():
                     """
                     Run the coroutine in a separate thread with its own event loop.
                     
                     This nested function ensures async operations can run safely in a threaded environment.
                     """
+                    _loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(_loop)
                     try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        result = loop.run_until_complete(coro)
-                        self._result = result
-                        self._exception = None
-                    except Exception as e:
-                        self._exception = e
+                        result_container['result'] = _loop.run_until_complete(coro)
+                    except Exception as exc:
+                        result_container['error'] = exc
                     finally:
-                        loop.close()
-                
-                thread = threading.Thread(target=run_in_thread)
-                thread.start()
-                thread.join(timeout=30)
-                
-                if not exception_queue.empty():
-                    raise exception_queue.get()
-                
-                if not result_queue.empty():
-                    return result_queue.get()
-                else:
-                    raise TimeoutError("Async operation timed out")
-            else:
-                # No running loop, we can run directly
+                        _loop.close()
+
+                t = threading.Thread(target=run_in_thread, daemon=True)
+                t.start()
+                t.join(timeout=30)
+
+                if 'error' in result_container:
+                    raise result_container['error']
+                return result_container.get('result')
+
+            # Otherwise create a new loop in this thread
+            loop = loop or asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
                 return loop.run_until_complete(coro)
+            finally:
+                if not loop.is_closed():
+                    loop.close()
         except Exception as e:
             logger.error(f"Error running async operation: {e}")
             raise

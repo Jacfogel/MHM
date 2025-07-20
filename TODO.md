@@ -49,7 +49,8 @@
      - ✅ **Documentation** - Documented as expected behavior, no code changes needed
 
 ### Immediate Action Items (High Priority)
-These improvements will fix critical issues and make the app actually functional:
+- **Remove Thin Wrappers** – Delete `core.user_management.get_user_data/save_user_data` wrappers once log shows zero callers for a full day.
+- **Refactor Remaining Update Functions** – Move `update_user_*` helpers (preferences, context, account) into a new `core.user_data_handlers` section and update imports.
 
 1. **Channel Management Dialog Validation Fix** - ✅ **COMPLETED**
    - *What it means*: Fixed channel management dialog to show validation errors for invalid contact info
@@ -140,6 +141,19 @@ These improvements will fix critical issues and make the app actually functional
      - `bot/user_context_manager.py` (lines 97, 196)
      - `bot/telegram_bot.py` (line 671)
      - `bot/communication_manager.py` (lines 530, 814)
+
+9. **Legacy Wrapper Removal**
+    - *What it means*: Delete thin wrappers in `core/user_management.py` once no runtime code triggers them
+    - *Why it helps*: Removes dead code and avoids accidental usage
+    - *Priority*: High
+    - *Estimated effort*: Small
+    - *Status*: Pending – monitor `app.log` for any remaining "LEGACY …" warnings before removal
+
+10. **Log Rotation & Size Limits**
+    - *What it means*: Implement rotating file handler or size checks for `app.log`
+    - *Why it helps*: Prevent the "giant file of doom" and conserve disk space
+    - *Priority*: Medium
+    - *Estimated effort*: Small
 
 ### Medium Priority Items
 These improvements will enhance reliability and user experience:

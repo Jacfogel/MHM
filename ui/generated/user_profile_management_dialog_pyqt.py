@@ -18,6 +18,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
     QLabel, QSizePolicy, QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Dialog_user_profile(object):
     def setupUi(self, Dialog_user_profile):
         if not Dialog_user_profile.objectName():

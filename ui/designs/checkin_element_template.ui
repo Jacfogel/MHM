@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>341</width>
+    <width>317</width>
     <height>42</height>
    </rect>
   </property>
@@ -67,7 +67,10 @@
       <item>
        <widget class="QPushButton" name="pushButton_delete_element">
         <property name="text">
-         <string>Delete</string>
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset theme="QIcon::ThemeIcon::EditClear"/>
         </property>
        </widget>
       </item>

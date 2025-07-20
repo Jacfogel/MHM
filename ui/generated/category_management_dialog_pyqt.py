@@ -19,20 +19,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGroupBox, QHBoxLayout, QLabel, QSizePolicy,
     QVBoxLayout, QWidget)
 
-def qtTrId(id): 
-    """
-    Qt translation function stub.
-    
-    This is a placeholder function for Qt's translation system. In a real Qt
-    application, this would return the translated string for the given ID.
-    
-    Args:
-        id: The translation ID
-        
-    Returns:
-        The translation ID (no translation performed in this stub)
-    """
-    return id
+def qtTrId(id): return id
 
 class Ui_Dialog_category_management(object):
     def setupUi(self, Dialog_category_management):
@@ -47,7 +34,13 @@ class Ui_Dialog_category_management(object):
 
         self.verticalLayout.addWidget(self.label_categories)
 
-        self.groupBox_select_categories = QGroupBox(Dialog_category_management)
+        self.groupBox_enable_automated_messages = QGroupBox(Dialog_category_management)
+        self.groupBox_enable_automated_messages.setObjectName(u"groupBox_enable_automated_messages")
+        self.groupBox_enable_automated_messages.setCheckable(True)
+        self.groupBox_enable_automated_messages.setChecked(True)
+        self.verticalLayout_enable_messages = QVBoxLayout(self.groupBox_enable_automated_messages)
+        self.verticalLayout_enable_messages.setObjectName(u"verticalLayout_enable_messages")
+        self.groupBox_select_categories = QGroupBox(self.groupBox_enable_automated_messages)
         self.groupBox_select_categories.setObjectName(u"groupBox_select_categories")
         self.horizontalLayout = QHBoxLayout(self.groupBox_select_categories)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
@@ -59,7 +52,10 @@ class Ui_Dialog_category_management(object):
         self.horizontalLayout.addWidget(self.widget_placeholder_select_categories)
 
 
-        self.verticalLayout.addWidget(self.groupBox_select_categories)
+        self.verticalLayout_enable_messages.addWidget(self.groupBox_select_categories)
+
+
+        self.verticalLayout.addWidget(self.groupBox_enable_automated_messages)
 
         self.buttonBox_save_cancel = QDialogButtonBox(Dialog_category_management)
         self.buttonBox_save_cancel.setObjectName(u"buttonBox_save_cancel")
@@ -78,6 +74,7 @@ class Ui_Dialog_category_management(object):
         Dialog_category_management.setWindowTitle(QCoreApplication.translate("Dialog_category_management", u"Dialog", None))
         self.label_categories.setText(QCoreApplication.translate("Dialog_category_management", u"Categories", None))
         self.label_categories.setProperty(u"role", QCoreApplication.translate("Dialog_category_management", u"header", None))
+        self.groupBox_enable_automated_messages.setTitle(QCoreApplication.translate("Dialog_category_management", u"Enable Automated Messages", None))
         self.groupBox_select_categories.setTitle(QCoreApplication.translate("Dialog_category_management", u"Select Categories (at least one required)", None))
     # retranslateUi
 

@@ -4,7 +4,7 @@
 import json
 import os
 
-from core.user_management import get_user_data, update_user_preferences
+from core.user_data_handlers import get_user_data, update_user_preferences
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active
 from core.logger import get_logger
 from core.error_handling import (

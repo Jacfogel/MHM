@@ -16,6 +16,10 @@
 
 ## 🎯 Current State Assessment
 
+# Updated 2025-07-18
+
+**Test Totals**: **244 tests passing, 1 skipped, 0 failed** – framework still green after major user-data refactor.
+
 ### ✅ **What's Working Well**
 - **226 tests passing, 1 skipped, 0 failed** - Perfect success rate of 100% for the modules that are tested
 - **Comprehensive error handling tests** - All 24 error handling tests are passing with robust error recovery testing
@@ -34,6 +38,20 @@
 - **Warning suppression** - Pytest warnings properly suppressed for expected test cleanup warnings
 - **File organization** - Test files properly organized in appropriate directories (behavior/, integration/, ui/, scripts/)
 - **100% Function Documentation Coverage** - All 1349 functions in the codebase now have proper docstrings
+
+**Coverage Note**: Core refactor did not change overall coverage (≈29 %).  All new handler code is exercised indirectly by existing User-Management tests, but we still have no direct tests for UI/bot layers.
+
+### 🆕 Outstanding Todos (July 18)
+
+1. **Add regression tests for `core/user_data_handlers`**  
+   • Direct unit tests for `save_user_data` success/failure paths and validation interaction.  
+   • Edge-case tests for auto-create, backup creation, and transaction rollbacks.
+2. **Smoke tests for legacy wrapper removal**  
+   • Once wrappers are deleted, confirm no import errors in tests that patch `core.user_management.get_user_data`.
+3. **Log-rotation test**  
+   • Add test ensuring `app.log` rotates (or truncates) when growth threshold exceeded.
+4. **Remove Legacy Wrappers**
+   • After wrapper deletion, run full suite and audit logs to confirm zero missing imports.
 
 ### ⚠️ **What's Missing - Limited Module Coverage**
 **CRITICAL**: Only 9 out of 31+ modules have tests. The testing framework is excellent for the modules it covers, but most of the codebase is untested.

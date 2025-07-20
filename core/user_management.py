@@ -15,6 +15,7 @@ from core.file_operations import load_json_data, save_json_data, get_user_file_p
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
 from core.message_management import get_message_categories
+import inspect
 
 logger = get_logger(__name__)
 
@@ -468,8 +469,23 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     result = save_user_data(user_id, {'schedules': schedules_data})
     return result.get('schedules', False)
 
-def create_default_schedule_periods() -> Dict[str, Any]:
+def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
     """Create default schedule periods for a new category."""
+    if category:
+        # Use category-specific naming
+        if category in ("tasks", "checkin"):
+            # For tasks and check-ins, use the descriptive naming
+            if category == "tasks":
+                default_period_name = "Task Reminder Default"
+            else:  # checkin
+                default_period_name = "Check-in Reminder Default"
+        else:
+            # For message categories, use category-specific naming
+            default_period_name = f"{category.title()} Message Default"
+    else:
+        # Fallback to generic naming
+        default_period_name = "default"
+    
     return {
         "ALL": {
             "active": True,
@@ -477,7 +493,7 @@ def create_default_schedule_periods() -> Dict[str, Any]:
             "start_time": "00:00",
             "end_time": "23:59"
         },
-        "default": {
+        default_period_name: {
             "active": True,
             "days": ["ALL"],
             "start_time": "18:00",
@@ -503,7 +519,7 @@ def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[s
                 
                 # Add default periods if none exist
                 if not legacy_periods:
-                    legacy_periods = create_default_schedule_periods()
+                    legacy_periods = create_default_schedule_periods(category)
                 
                 # Convert legacy periods to include days
                 for period_name, period_data in legacy_periods.items():
@@ -518,7 +534,7 @@ def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[s
             # Invalid data, create default structure
             migrated_data[category] = {
                 "enabled": True,
-                "periods": create_default_schedule_periods()
+                "periods": create_default_schedule_periods(category)
             }
     
     return migrated_data
@@ -547,7 +563,7 @@ def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
         
         if not category_exists or not has_periods:
             # Create default periods for this category
-            default_periods = create_default_schedule_periods()
+            default_periods = create_default_schedule_periods(category)
             logger.debug(f"Creating default periods for category '{category}': {default_periods}")
             
             if not category_exists:
@@ -635,6 +651,17 @@ def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool
     # Use the centralized save_user_data function
     result = save_user_data(user_id, {'context': updates}, auto_create=auto_create)
     return result.get('context', False)
+
+@handle_errors("updating channel preferences")
+def update_channel_preferences(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:
+    """Update channel preferences without triggering category schedule creation."""
+    if not user_id:
+        logger.error("update_channel_preferences called with None user_id")
+        return False
+    
+    # Use the centralized save_user_data function directly to avoid category schedule creation
+    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    return result.get('preferences', False)
 
 @handle_errors("creating new user")
 def create_new_user(user_data: Dict[str, Any]) -> str:
@@ -796,527 +823,33 @@ def clear_user_caches(user_id: Optional[str] = None):
 # MAIN PUBLIC API - HYBRID APPROACH
 # ============================================================================
 
-@handle_errors("getting user data", default_return={})
-def get_user_data(
-    user_id: str, 
-    data_types: Union[str, List[str]] = 'all',
-    fields: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None,
-    auto_create: bool = True,
-    include_metadata: bool = False
-) -> Dict[str, Any]:
-    """
-    Central handler for all user data access.
-    
-    Args:
-        user_id: User identifier
-        data_types: 'all', single type, or list of types
-        fields: 
-            - None: Return full data
-            - "field_name": Extract single field from all types
-            - ["field1", "field2"]: Extract multiple fields from all types  
-            - {"account": "email", "preferences": ["categories", "channel"]}: Type-specific fields
-        auto_create: Whether to create missing files
-        include_metadata: Include file metadata (size, timestamps, etc.)
-    
-    Returns:
-        Dict with requested data types and fields
-    """
-    if not user_id:
-        logger.error("get_user_data called with None user_id")
-        return {}
-    
-    # Normalize data_types
-    if data_types == 'all':
-        data_types = list(USER_DATA_LOADERS.keys())
-    elif isinstance(data_types, str):
-        data_types = [data_types]
-    
-    # Validate data types
-    available_types = get_available_data_types()
-    invalid_types = [dt for dt in data_types if dt not in available_types]
-    if invalid_types:
-        logger.error(f"Invalid data types requested: {invalid_types}. Valid types: {available_types}")
-        return {}
-    
-    result = {}
-    
-    # Load requested data types using registry
-    for data_type in data_types:
-        loader_info = USER_DATA_LOADERS.get(data_type)
-        if not loader_info or not loader_info['loader']:
-            logger.warning(f"No loader registered for data type: {data_type}")
-            continue
-        
-        # Load data using registered loader
-        data = loader_info['loader'](user_id, auto_create=auto_create)
-        
-        # Handle field extraction
-        if fields is not None:
-            if isinstance(fields, str):
-                # Single field from all types
-                data = data.get(fields) if data else None
-            elif isinstance(fields, list):
-                # Multiple fields from all types
-                if data:
-                    extracted_data = {}
-                    for field in fields:
-                        if field in data:
-                            extracted_data[field] = data[field]
-                    data = extracted_data if extracted_data else None
-                else:
-                    data = None
-            elif isinstance(fields, dict) and data_type in fields:
-                # Type-specific field extraction
-                type_fields = fields[data_type]
-                if isinstance(type_fields, str):
-                    data = data.get(type_fields) if data else None
-                elif isinstance(type_fields, list):
-                    if data:
-                        extracted_data = {}
-                        for field in type_fields:
-                            if field in data:
-                                extracted_data[field] = data[field]
-                        data = extracted_data if extracted_data else None
-                    else:
-                        data = None
-        
-        # Add metadata if requested
-        if include_metadata and data is not None:
-            file_path = get_user_file_path(user_id, loader_info['file_type'])
-            if os.path.exists(file_path):
-                stat = os.stat(file_path)
-                metadata = {
-                    'file_size': stat.st_size,
-                    'modified_time': stat.st_mtime,
-                    'file_path': file_path,
-                    'data_type': data_type,
-                    'description': loader_info['description']
-                }
-                if isinstance(data, dict):
-                    data['_metadata'] = metadata
-                else:
-                    data = {'data': data, '_metadata': metadata}
-        
-        # Only include in result if data exists
-        if data is not None:
-            result[data_type] = data
-    
-    return result
+@handle_errors("getting user data (legacy)", default_return={})
+def get_user_data(*args, **kwargs):
+    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
+    if not caller.startswith("core.user_management"):
+        logger.warning("LEGACY get_user_data call – switch to core.user_data_handlers.get_user_data")
+    from core.user_data_handlers import get_user_data as _new
+    return _new(*args, **kwargs)
 
 # ============================================================================
 # UNIFIED SAVE API - MIRRORS GET_USER_DATA APPROACH
 # ============================================================================
 
-@handle_errors("saving user data", default_return={})
-def save_user_data(
-    user_id: str,
-    data_updates: Dict[str, Dict[str, Any]],
-    auto_create: bool = True,
-    update_index: bool = True,
-    create_backup: bool = True,
-    validate_data: bool = True
-) -> Dict[str, bool]:
-    """
-    Central handler for all user data saving.
-    
-    Args:
-        user_id: User identifier
-        data_updates: Dict of data type -> updates to apply
-            Example: {
-                'account': {'email': 'new@email.com'},
-                'preferences': {'categories': ['motivational']},
-                'context': {'preferred_name': 'John'}
-            }
-        auto_create: Whether to create missing files
-        update_index: Whether to update user index after saving
-        create_backup: Whether to create backup before major changes
-        validate_data: Whether to validate data before saving
-    
-    Returns:
-        Dict with success status for each data type
-        Example: {'account': True, 'preferences': True, 'context': False}
-    """
-    if not user_id:
-        logger.error("save_user_data called with None user_id")
-        return {}
-    
-    if not data_updates:
-        logger.warning("save_user_data called with empty data_updates")
-        return {}
-    
-    # Validate data types
-    available_types = get_available_data_types()
-    invalid_types = [dt for dt in data_updates.keys() if dt not in available_types]
-    if invalid_types:
-        logger.error(f"Invalid data types in save_user_data: {invalid_types}. Valid types: {available_types}")
-        return {}
-    
-    # Create backup if requested and this is a major change
-    if create_backup and len(data_updates) > 1:
-        try:
-            from core.user_data_manager import UserDataManager
-            data_manager = UserDataManager()
-            backup_path = data_manager.backup_user_data(user_id)
-            logger.info(f"Created backup before major data update: {backup_path}")
-        except Exception as e:
-            logger.warning(f"Failed to create backup before data update: {e}")
-    
-    result = {}
-    
-    # Check if this is a new user creation (user directory doesn't exist)
-    from core.config import get_user_data_dir
-    user_dir = get_user_data_dir(user_id)
-    is_new_user = not os.path.exists(user_dir)
-    
-    # Validate data if requested
-    if validate_data:
-        if is_new_user:
-            # Use new user validation for new user creation
-            is_valid, errors = validate_new_user_data(user_id, data_updates)
-            if not is_valid:
-                logger.error(f"New user validation failed: {errors}")
-                # Return False for all data types if validation fails
-                for data_type in data_updates.keys():
-                    result[data_type] = False
-                return result
-        else:
-            # Use update validation for existing users
-            failed_validations = set()
-            for data_type, updates in data_updates.items():
-                is_valid, errors = validate_user_update(user_id, data_type, updates)
-                if not is_valid:
-                    logger.error(f"Validation failed for {data_type}: {errors}")
-                    result[data_type] = False
-                    failed_validations.add(data_type)
-                    continue
-                # If validation passes, we'll save it below
-    
-    # Save each data type using registered save functions
-    for data_type, updates in data_updates.items():
-        # Skip data types that failed validation
-        if data_type in failed_validations:
-            continue
-        try:
-            
-            # Load existing data
-            current_data = get_user_data(user_id, data_type, auto_create=auto_create)
-            if not current_data or data_type not in current_data:
-                logger.warning(f"Could not load existing {data_type} data for user {user_id}")
-                result[data_type] = False
-                continue
-            
-            # Merge updates with existing data
-            updated_data = current_data[data_type].copy()
-            updated_data.update(updates)
-            
-            # Save using appropriate save function
-            if data_type == 'account':
-                success = save_user_account_data(user_id, updated_data)
-            elif data_type == 'preferences':
-                success = save_user_preferences_data(user_id, updated_data)
-            elif data_type == 'context':
-                success = save_user_context_data(user_id, updated_data)
-            elif data_type == 'schedules':
-                success = save_user_schedules_data(user_id, updated_data)
-            else:
-                logger.error(f"No save function registered for data type: {data_type}")
-                success = False
-            
-            result[data_type] = success
-            
-            if success:
-                logger.debug(f"Successfully saved {data_type} data for user {user_id}")
-            else:
-                logger.error(f"Failed to save {data_type} data for user {user_id}")
-                
-        except Exception as e:
-            logger.error(f"Error saving {data_type} data for user {user_id}: {e}")
-            result[data_type] = False
-    
-    # Update user index if requested and any saves were successful
-    if update_index and any(result.values()):
-        try:
-            from core.user_data_manager import update_user_index
-            update_user_index(user_id)
-            logger.debug(f"Updated user index after data save for user {user_id}")
-        except Exception as e:
-            logger.warning(f"Failed to update user index after data save for user {user_id}: {e}")
-    
-    return result
+@handle_errors("saving user data (legacy)", default_return={})
+def save_user_data(*args, **kwargs):
+    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
+    if not caller.startswith("core.user_management"):
+        logger.warning("LEGACY save_user_data call – switch to core.user_data_handlers.save_user_data")
+    from core.user_data_handlers import save_user_data as _new_save
+    return _new_save(*args, **kwargs)
 
-def validate_user_update(
-    user_id: str,
-    data_type: str,
-    updates: Dict[str, Any]
-) -> Tuple[bool, List[str]]:
-    """
-    Validate user data updates before saving (for updates only).
-    Only validates fields being updated, but if a full account object is being replaced, require required fields.
-    """
-    errors = []
-    if not user_id:
-        errors.append("user_id is required")
-    if not updates:
-        errors.append("updates cannot be empty")
-    if data_type == 'account':
-        # Validate email format if present
-        if 'email' in updates and updates['email']:
-            from core.validation import is_valid_email
-            if not is_valid_email(updates['email']):
-                errors.append("Invalid email format")
-        # Validate account status if present
-        if 'account_status' in updates:
-            valid_statuses = ['active', 'inactive', 'suspended']
-            if updates['account_status'] not in valid_statuses:
-                errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
-        # Validate channel structure if present
-        if 'channel' in updates:
-            if not isinstance(updates['channel'], dict):
-                errors.append("channel is required and must be a dictionary")
-            elif 'type' not in updates['channel'] or not updates['channel']['type']:
-                errors.append("channel.type is required")
-            else:
-                valid_channels = ['email', 'discord', 'telegram']
-                if updates['channel']['type'] not in valid_channels:
-                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
-        # Validate internal_username if present
-        if 'internal_username' in updates and not updates['internal_username']:
-            errors.append("internal_username is required")
-        # If this is a full account update, require required fields
-        account_fields = ['user_id', 'internal_username', 'account_status', 'channel', 'email', 'phone', 'discord_user_id', 'timezone']
-        provided_fields = [field for field in account_fields if field in updates]
-        if len(provided_fields) >= 2:
-            if 'internal_username' not in updates or not updates['internal_username']:
-                errors.append("internal_username is required for account updates")
-            if 'channel' not in updates:
-                errors.append("channel is required for account updates")
-            elif not isinstance(updates['channel'], dict):
-                errors.append("channel is required and must be a dictionary")
-            elif 'type' not in updates['channel'] or not updates['channel']['type']:
-                errors.append("channel.type is required for account updates")
-    elif data_type == 'preferences':
-        # Validate categories if present
-        if 'categories' in updates:
-            if not isinstance(updates['categories'], list):
-                errors.append("categories must be a list")
-            else:
-                # Check if categories are valid
-                valid_categories = get_message_categories()
-                invalid_categories = [cat for cat in updates['categories'] if cat not in valid_categories]
-                if invalid_categories:
-                    errors.append(f"Invalid categories: {invalid_categories}")
-        
-        # Validate channel type if present
-        if 'channel' in updates and isinstance(updates['channel'], dict):
-            channel_type = updates['channel'].get('type')
-            if channel_type:
-                valid_channels = ['email', 'discord', 'telegram']
-                if channel_type not in valid_channels:
-                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
-    
-    elif data_type == 'context':
-        # Validate date of birth if present
-        if 'date_of_birth' in updates and updates['date_of_birth']:
-            try:
-                from datetime import datetime
-                datetime.strptime(updates['date_of_birth'], '%Y-%m-%d')
-            except ValueError:
-                errors.append("date_of_birth must be in YYYY-MM-DD format")
-        
-        # Validate custom fields structure if present
-        if 'custom_fields' in updates:
-            if not isinstance(updates['custom_fields'], dict):
-                errors.append("custom_fields must be a dictionary")
-    
-    elif data_type == 'schedules':
-        # Validate schedule periods if present
-        for category, periods in updates.items():
-            if isinstance(periods, dict):
-                for period_name, period_data in periods.items():
-                    if isinstance(period_data, dict):
-                        # Validate time format
-                        for time_field in ['start_time', 'end_time']:
-                            if time_field in period_data:
-                                from core.validation import validate_time_format
-                                if not validate_time_format(period_data[time_field]):
-                                    errors.append(f"Invalid {time_field} format in {category}.{period_name}")
-                        
-                        # Validate days
-                        if 'days' in period_data:
-                            if not isinstance(period_data['days'], list):
-                                errors.append(f"days must be a list in {category}.{period_name}")
-                            else:
-                                valid_days = ['ALL', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-                                invalid_days = [day for day in period_data['days'] if day not in valid_days]
-                                if invalid_days:
-                                    errors.append(f"Invalid days in {category}.{period_name}: {invalid_days}")
-    
-    return len(errors) == 0, errors
-
-@handle_errors("validating new user data", default_return=(False, ["Validation failed"]))
-def validate_new_user_data(
-    user_id: str,
-    data_updates: Dict[str, Dict[str, Any]]
-) -> Tuple[bool, List[str]]:
-    """
-    Validate data for new user creation.
-    
-    Args:
-        user_id: User identifier
-        data_updates: Dict of data type -> data to validate
-    
-    Returns:
-        Tuple of (is_valid, list_of_errors)
-    """
-    errors = []
-    
-    if not user_id:
-        errors.append("user_id is required")
-    
-    if not data_updates:
-        errors.append("data_updates cannot be empty")
-    
-    # Check if user already exists
-    from core.config import get_user_data_dir
-    user_dir = get_user_data_dir(user_id)
-    if os.path.exists(user_dir):
-        errors.append(f"User {user_id} already exists")
-    
-    # Validate account data (required for new users)
-    if 'account' not in data_updates:
-        errors.append("account data is required for new user creation")
-    else:
-        account_data = data_updates['account']
-        
-        # Required fields for new user creation
-        if 'internal_username' not in account_data or not account_data['internal_username']:
-            errors.append("internal_username is required for new user creation")
-        
-        if 'channel' not in account_data:
-            errors.append("channel is required for new user creation")
-        elif not isinstance(account_data['channel'], dict):
-            errors.append("channel is required and must be a dictionary")
-        elif 'type' not in account_data['channel'] or not account_data['channel']['type']:
-            errors.append("channel.type is required for new user creation")
-        else:
-            valid_channels = ['email', 'discord', 'telegram']
-            if account_data['channel']['type'] not in valid_channels:
-                errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
-        
-        # Validate email format if present
-        if 'email' in account_data and account_data['email']:
-            from core.validation import is_valid_email
-            if not is_valid_email(account_data['email']):
-                errors.append("Invalid email format")
-        
-        # Validate account status if present
-        if 'account_status' in account_data:
-            valid_statuses = ['active', 'inactive', 'suspended']
-            if account_data['account_status'] not in valid_statuses:
-                errors.append(f"Invalid account_status. Must be one of: {valid_statuses}")
-    
-    # Validate preferences data if present
-    if 'preferences' in data_updates:
-        preferences_data = data_updates['preferences']
-        
-        # Validate categories if present
-        if 'categories' in preferences_data:
-            if not isinstance(preferences_data['categories'], list):
-                errors.append("categories must be a list")
-            else:
-                # Check if categories are valid
-                valid_categories = get_message_categories()
-                invalid_categories = [cat for cat in preferences_data['categories'] if cat not in valid_categories]
-                if invalid_categories:
-                    errors.append(f"Invalid categories: {invalid_categories}")
-        
-        # Validate channel type if present
-        if 'channel' in preferences_data and isinstance(preferences_data['channel'], dict):
-            channel_type = preferences_data['channel'].get('type')
-            if channel_type:
-                valid_channels = ['email', 'discord', 'telegram']
-                if channel_type not in valid_channels:
-                    errors.append(f"Invalid channel type. Must be one of: {valid_channels}")
-    
-    # Validate context data if present
-    if 'context' in data_updates:
-        context_data = data_updates['context']
-        
-        # Validate date of birth if present
-        if 'date_of_birth' in context_data and context_data['date_of_birth']:
-            try:
-                from datetime import datetime
-                datetime.strptime(context_data['date_of_birth'], '%Y-%m-%d')
-            except ValueError:
-                errors.append("date_of_birth must be in YYYY-MM-DD format")
-        
-        # Validate custom fields structure if present
-        if 'custom_fields' in context_data:
-            if not isinstance(context_data['custom_fields'], dict):
-                errors.append("custom_fields must be a dictionary")
-    
-    return len(errors) == 0, errors
-
-@handle_errors("saving user data with transaction", default_return=False)
-def save_user_data_transaction(
-    user_id: str,
-    data_updates: Dict[str, Dict[str, Any]],
-    auto_create: bool = True
-) -> bool:
-    """
-    Save multiple data types atomically - all succeed or all fail.
-    
-    Args:
-        user_id: User identifier
-        data_updates: Dict of data type -> updates to apply
-    
-    Returns:
-        True if all saves succeeded, False if any failed
-    """
-    if not user_id or not data_updates:
-        return False
-    
-    # Create backup before transaction
-    try:
-        from core.user_data_manager import UserDataManager
-        data_manager = UserDataManager()
-        backup_path = data_manager.backup_user_data(user_id)
-        logger.info(f"Created backup before transaction: {backup_path}")
-    except Exception as e:
-        logger.warning(f"Failed to create backup before transaction: {e}")
-    
-    # Attempt to save all data
-    result = save_user_data(
-        user_id=user_id,
-        data_updates=data_updates,
-        auto_create=auto_create,
-        update_index=False,  # We'll update index at the end
-        create_backup=False,  # Already created backup
-        validate_data=True
-    )
-    
-    # Check if all saves succeeded
-    all_succeeded = all(result.values())
-    
-    if all_succeeded:
-        # Update user index
-        try:
-            from core.user_data_manager import update_user_index
-            update_user_index(user_id)
-            logger.info(f"Transaction completed successfully for user {user_id}")
-        except Exception as e:
-            logger.error(f"Transaction succeeded but failed to update index: {e}")
-            # Consider this a partial failure
-            all_succeeded = False
-    else:
-        # Log which saves failed
-        failed_types = [data_type for data_type, success in result.items() if not success]
-        logger.error(f"Transaction failed for user {user_id}. Failed types: {failed_types}")
-        
-        # TODO: Implement rollback mechanism here
-        # For now, we just log the failure
-    
-    return all_succeeded
+@handle_errors("saving user data txn (legacy)", default_return=False)
+def save_user_data_transaction(*args, **kwargs):
+    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
+    if not caller.startswith("core.user_management"):
+        logger.warning("LEGACY save_user_data_transaction call – switch to core.user_data_handlers.save_user_data_transaction")
+    from core.user_data_handlers import save_user_data_transaction as _new_tx
+    return _new_tx(*args, **kwargs)
 
 # ============================================================================
 # UTILITY FUNCTIONS (Keep these)
@@ -1506,9 +1039,37 @@ TIMEZONE_OPTIONS = [
     "Pacific/Auckland", "UTC"
 ]
 
+# ---------------------------------------------------------------------------
+# PRESET OPTIONS – now loaded from JSON at runtime
+# ---------------------------------------------------------------------------
+
+_PRESETS_CACHE: Dict[str, List[str]] | None = None
+
+
+def _load_presets_json() -> Dict[str, List[str]]:
+    """Load presets from resources/presets.json (cached)."""
+    global _PRESETS_CACHE
+    if _PRESETS_CACHE is not None:
+        return _PRESETS_CACHE
+
+    import json, pkgutil, os
+    presets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "presets.json")
+    try:
+        with open(presets_path, "r", encoding="utf-8") as f:
+            _PRESETS_CACHE = json.load(f)
+    except FileNotFoundError:
+        logger.warning("presets.json not found – falling back to hard-coded options")
+        _PRESETS_CACHE = PREDEFINED_OPTIONS  # fallback
+    except Exception as e:
+        logger.error(f"Failed loading presets.json: {e}")
+        _PRESETS_CACHE = PREDEFINED_OPTIONS
+    return _PRESETS_CACHE
+
+
 def get_predefined_options(field: str) -> List[str]:
-    """Get predefined options for a specific personalization field."""
-    return PREDEFINED_OPTIONS.get(field, [])
+    """Return predefined options for a personalization field."""
+    presets = _load_presets_json()
+    return presets.get(field, [])
 
 def get_timezone_options() -> List[str]:
     """Get timezone options."""
@@ -1617,47 +1178,6 @@ def clear_personalization_cache(user_id: str = None) -> None:
     # Use the centralized cache clearing system
     clear_user_caches(user_id)
 
-def validate_personalization_data(data: Dict[str, Any]) -> tuple[bool, List[str]]:
-    """Validate personalization data structure and content. No fields are required, only type-checked if present."""
-    errors = []
-    
-    # Optional string fields
-    optional_string_fields = ["date_of_birth", "timezone"]
-    for field in optional_string_fields:
-        if field in data and not isinstance(data[field], str):
-            errors.append(f"Field {field} must be a string if present")
-    
-    # Optional list fields
-    optional_list_fields = [
-        "pronouns", "reminders_needed",
-        "loved_ones", "interests", "activities_for_encouragement", "notes_for_ai", "goals"
-    ]
-    for field in optional_list_fields:
-        if field in data and not isinstance(data[field], list):
-            errors.append(f"Field {field} must be a list if present")
-    
-    # Optional custom_fields
-    custom_fields = data.get('custom_fields', {})
-    if isinstance(custom_fields, dict):
-        if 'health_conditions' in custom_fields and not isinstance(custom_fields['health_conditions'], list):
-            errors.append("Field health_conditions (in custom_fields) must be a list if present")
-        if 'medications_treatments' in custom_fields and not isinstance(custom_fields['medications_treatments'], list):
-            errors.append("Field medications_treatments (in custom_fields) must be a list if present")
-    elif 'custom_fields' in data:
-        errors.append("custom_fields must be a dictionary if present")
-    
-    # Validate date_of_birth format if provided
-    if data.get("date_of_birth"):
-        try:
-            datetime.strptime(data["date_of_birth"], "%Y-%m-%d")
-        except ValueError:
-            errors.append("date_of_birth must be in YYYY-MM-DD format")
-    
-    # Validate loved_ones structure if present
-    loved_ones = data.get("loved_ones", [])
-    if isinstance(loved_ones, list):
-        for i, loved_one in enumerate(loved_ones):
-            if not isinstance(loved_one, dict):
-                errors.append(f"loved_one at index {i} must be a dictionary if present")
-    
-    return len(errors) == 0, errors
+# LEGACY shim – function now lives in core.user_data_validation
+from core.user_data_validation import validate_personalization_data  # type: ignore
+ 

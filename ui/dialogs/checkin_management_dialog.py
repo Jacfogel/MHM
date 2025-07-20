@@ -18,7 +18,8 @@ logger = get_logger(__name__)
 
 # Import core functionality
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
-from core.user_management import update_user_preferences, get_user_data, update_user_account
+from core.user_data_handlers import update_user_preferences, update_user_account
+from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 
 # Import widget
@@ -87,7 +88,17 @@ class CheckinManagementDialog(QDialog):
             return
         try:
             checkin_settings = self.checkin_widget.get_checkin_settings()
-            
+
+            # Duplicate period name validation
+            period_names = [w.get_period_data().get('name') for w in self.checkin_widget.period_widgets]
+            if len(period_names) != len(set(period_names)):
+                QMessageBox.warning(
+                    self,
+                    "Duplicate Names",
+                    "Two or more time periods have the same name.\n\nPlease rename duplicates before saving.",
+                )
+                return
+
             # Save time periods to schedule management
             time_periods = checkin_settings.get('time_periods', {})
             logger.info(f"Saving check-in time periods for user {self.user_id}: {time_periods}")

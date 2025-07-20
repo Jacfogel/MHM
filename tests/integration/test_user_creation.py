@@ -26,7 +26,7 @@ from core.user_management import (
     update_user_schedules
 )
 from core.file_operations import create_user_files
-from core.validation import is_valid_email, validate_time_format
+from core.user_data_validation import is_valid_email, validate_time_format
 
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""

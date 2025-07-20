@@ -4,6 +4,8 @@
 > **Status**: **ACTIVE** - Generated from audit data  
 > **Last Updated**: 2025-07-17
 
+> **NOTE (2025-07-18)**: Handler consolidation finished.  Rerun `ai_tools/audit_function_registry.py` to update this registry.
+
 ## 📋 **Overview**
 
 This registry documents all functions found in the MHM codebase, organized by module and purpose. Generated from audit data to ensure completeness and accuracy.

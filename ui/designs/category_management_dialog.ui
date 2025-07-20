@@ -31,14 +31,30 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="groupBox_select_categories">
+    <widget class="QGroupBox" name="groupBox_enable_automated_messages">
      <property name="title">
-      <string>Select Categories (at least one required)</string>
+      <string>Enable Automated Messages</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_enable_messages">
       <item>
-       <widget class="QWidget" name="widget_placeholder_select_categories" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout_10"/>
+       <widget class="QGroupBox" name="groupBox_select_categories">
+        <property name="title">
+         <string>Select Categories (at least one required)</string>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QWidget" name="widget_placeholder_select_categories" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_10">
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>

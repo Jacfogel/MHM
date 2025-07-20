@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
 from core.logger import get_logger
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
 from core.message_management import get_last_10_messages
 from core.error_handling import handle_errors

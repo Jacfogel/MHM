@@ -30,7 +30,7 @@ class TestAccountLifecycle:
             data_updates["schedules"] = schedules_data
         
         if data_updates:
-            from core.user_management import save_user_data
+            from core.user_data_handlers import save_user_data
             return save_user_data(user_id, data_updates)
         return {}
     
@@ -61,7 +61,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_create_basic_account(self, test_data_dir, mock_config):
         """Test creating a basic account with only messages enabled."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange
         user_id = "test-basic-user"
@@ -134,7 +134,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_create_full_account(self, test_data_dir, mock_config):
         """Test creating a full account with all features enabled."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create full user with all features
         user_id = "test-full-user"
@@ -216,7 +216,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_enable_checkins_for_basic_user(self, test_data_dir, mock_config):
         """Test enabling check-ins for a user who only has messages enabled."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create basic user
         user_id = "test-enable-checkins"
@@ -298,7 +298,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_disable_tasks_for_full_user(self, test_data_dir, mock_config):
         """Test disabling tasks for a user who has all features enabled."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create full user
         user_id = "test-disable-tasks"
@@ -371,7 +371,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_reenable_tasks_for_user(self, test_data_dir, mock_config):
         """Test re-enabling tasks for a user who previously had them disabled."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with tasks disabled
         user_id = "test-reenable-tasks"
@@ -450,7 +450,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_add_message_category(self, test_data_dir, mock_config, update_user_index_for_test):
         """Test adding a new message category to user preferences."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with automated_messages enabled and basic categories
         user_id = "test-add-category"
@@ -531,7 +531,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_message_category(self, test_data_dir, mock_config):
         """Test removing a message category from user preferences."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with multiple categories
         user_id = "test-remove-category"
@@ -586,7 +586,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_add_schedule_period(self, test_data_dir, mock_config):
         """Test adding a new schedule period to user schedules."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with basic schedule
         user_id = "test-add-period"
@@ -650,7 +650,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_modify_schedule_period(self, test_data_dir, mock_config):
         """Test modifying an existing schedule period."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with schedule
         user_id = "test-modify-period"
@@ -710,7 +710,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_remove_schedule_period(self, test_data_dir, mock_config):
         """Test removing a schedule period from user schedules."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Arrange - Create user with multiple periods
         user_id = "test-remove-period"
@@ -775,7 +775,7 @@ class TestAccountLifecycle:
     @pytest.mark.integration
     def test_complete_account_lifecycle(self, test_data_dir, mock_config):
         """Test complete account lifecycle: create, modify, disable, re-enable, delete."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # 1. Create account
         user_id = "test-lifecycle"

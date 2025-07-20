@@ -27,14 +27,9 @@ project_root = Path(__file__).parent.parent
 import sys
 sys.path.insert(0, str(project_root))
 
-from core.user_management import (
-    get_user_data,
-    save_user_data,
-    create_new_user,
-    get_user_id_by_internal_username
-)
+from core.user_data_handlers import save_user_data, get_user_data
 from core.file_operations import create_user_files, get_user_file_path
-from core.validation import is_valid_email, validate_time_format
+from core.user_data_validation import is_valid_email, validate_time_format
 from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
@@ -527,7 +522,7 @@ class TestAccountManagementRealBehavior:
     @pytest.mark.ui
     def test_user_index_integration_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test user index integration with real file operations."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         from core.user_data_manager import update_user_index, rebuild_user_index
         
         # Create test users for index testing
@@ -813,7 +808,7 @@ class TestAccountCreationIntegration:
     @pytest.mark.integration
     def test_full_account_lifecycle_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test complete account lifecycle with real file operations."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Create a test user with all features enabled
         user_id = "test-lifecycle-user"
@@ -898,7 +893,7 @@ class TestAccountCreationIntegration:
     @pytest.mark.integration
     def test_multiple_users_same_features_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test creating multiple users with same features."""
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         from core.user_data_manager import update_user_index, rebuild_user_index
         
         # Create multiple test users with same features

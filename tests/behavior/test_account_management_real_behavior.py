@@ -156,7 +156,7 @@ def test_user_data_loading_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Test loading basic user
         basic_data = get_user_data("test-user-basic", test_data_dir)
@@ -202,7 +202,7 @@ def test_feature_enablement_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Test enabling check-ins for basic user
         basic_data = get_user_data("test-user-basic", test_data_dir)
@@ -287,7 +287,7 @@ def test_category_management_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         from core.message_management import create_user_message_file
         
         # Create test user with automated_messages enabled
@@ -399,7 +399,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Test adding new schedule period
         basic_data = get_user_data("test-user-basic", test_data_dir)
@@ -473,7 +473,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Scenario 1: User opts into check-ins for the first time
         print("  Testing: User opts into check-ins for the first time")
@@ -604,7 +604,7 @@ def test_data_consistency_real_behavior(test_data_dir):
     results = {}
     
     try:
-        from core.user_management import save_user_data, get_user_data
+        from core.user_data_handlers import save_user_data, get_user_data
         
         # Test that user index stays consistent
         user_index_file = os.path.join(test_data_dir, "user_index.json")

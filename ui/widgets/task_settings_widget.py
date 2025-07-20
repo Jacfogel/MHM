@@ -18,7 +18,7 @@ from core.schedule_management import (
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
-from core.user_management import update_user_preferences
+from core.user_data_handlers import update_user_preferences
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 
@@ -80,11 +80,39 @@ class TaskSettingsWidget(QWidget):
         """
         super().showEvent(event)
     
+    def find_lowest_available_period_number(self):
+        """Find the lowest available integer (2+) that's not currently used in period names."""
+        used_numbers = set()
+        
+        # Check existing period widgets
+        for widget in self.period_widgets:
+            period_name = widget.get_period_data().get('name', '')
+            # Extract number from names like "Task Reminder 2", "Task Reminder 3", etc.
+            if 'Task Reminder ' in period_name:
+                try:
+                    number = int(period_name.split('Task Reminder ')[1])
+                    used_numbers.add(number)
+                except (ValueError, IndexError):
+                    pass
+        
+        # Find the lowest available number starting from 2
+        number = 2
+        while number in used_numbers:
+            number += 1
+        
+        return number
+    
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
         logger.info(f"TaskSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}")
         if period_name is None:
-            period_name = f"Period {len(self.period_widgets) + 1}"
+            # Use descriptive name for default periods
+            if len(self.period_widgets) == 0:
+                period_name = "Task Reminder Default"
+            else:
+                # Find the lowest available number for new periods
+                next_number = self.find_lowest_available_period_number()
+                period_name = f"Task Reminder {next_number}"
         if not isinstance(period_name, str):
             logger.warning(f"TaskSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})")
             period_name = str(period_name)

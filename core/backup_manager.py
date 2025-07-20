@@ -16,7 +16,7 @@ from pathlib import Path
 from core.logger import get_logger
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 from core.error_handling import handle_errors
-from core.user_management import get_user_data, get_all_user_ids
+from core.user_data_handlers import get_user_data, get_all_user_ids
 
 logger = get_logger(__name__)
 

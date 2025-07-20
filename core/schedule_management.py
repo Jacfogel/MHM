@@ -9,7 +9,7 @@ import calendar
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 from core.file_operations import determine_file_path, load_json_data, save_json_data, get_user_file_path
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
@@ -135,7 +135,7 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
     if period:
         period['active'] = active
         # Update schedules using new structure
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         # Guard: update only the relevant period
         if isinstance(category_data, dict):
             category_data['periods'] = periods
@@ -240,6 +240,12 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
     user_schedules = user_info.setdefault('schedules', {})
     category_data = user_schedules.setdefault(category, {})
     periods = category_data.setdefault('periods', {})
+    
+    # Validate that period name doesn't already exist
+    if period_name in periods:
+        logger.warning(f"Period '{period_name}' already exists in category '{category}' for user {user_id}")
+        raise ValueError(f"A period named '{period_name}' already exists in this category. Please choose a different name.")
+    
     # Guard: only update the relevant period
     periods[period_name] = {
         'start_time': start_time,
@@ -250,7 +256,7 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
     category_data['periods'] = periods
     user_schedules[category] = category_data
     user_info['schedules'] = user_schedules
-    from core.user_management import update_user_schedules
+    from core.user_data_handlers import update_user_schedules
     update_user_schedules(user_id, user_info.get('schedules', {}))
     clear_schedule_periods_cache(user_id, category)
     logger.info(f"Added/updated period {period_name} in category {category} for user {user_id}.")
@@ -281,7 +287,7 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
         category_data['periods'] = periods
         user_schedules[category] = category_data
         user_info['schedules'] = user_schedules
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         update_user_schedules(user_id, user_info.get('schedules', {}))
         clear_schedule_periods_cache(user_id, category)
         logger.info(f"Edited period {period_name} in category {category} for user {user_id}.")
@@ -313,7 +319,7 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
         category_data['periods'] = periods
         user_schedules[category] = category_data
         user_info['schedules'] = user_schedules
-        from core.user_management import update_user_schedules
+        from core.user_data_handlers import update_user_schedules
         update_user_schedules(user_id, user_info.get('schedules', {}))
         clear_schedule_periods_cache(user_id, category)
         logger.info(f"Deleted period {period_name} in category {category} for user {user_id}.")
@@ -501,7 +507,7 @@ def set_schedule_periods(user_id, category, periods_dict):
     logger.info(f"set_schedule_periods: Final schedules data: {schedules_data}")
     
     # Save the updated schedules
-    from core.user_management import update_user_schedules
+    from core.user_data_handlers import update_user_schedules
     update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
 
@@ -539,16 +545,16 @@ def set_schedule_days(user_id, category, days):
         user_info['schedules'][category] = {}
     user_info['schedules'][category]['days'] = days
     # Update schedules using new structure
-    from core.user_management import update_user_schedules
+    from core.user_data_handlers import update_user_schedules
     update_user_schedules(user_id, user_info.get('schedules', {}))
 
 @handle_errors("getting user info for schedule management", default_return=None)
 def get_user_info_for_schedule_management(user_id: str) -> Optional[Dict[str, Any]]:
     """Get user info for schedule management operations."""
     try:
-        from core.user_management import load_user_schedules_data
-        schedules_data = load_user_schedules_data(user_id) or {}
-        # Return in the expected format with 'schedules' key
+        from core.user_data_handlers import get_user_data
+        schedules_result = get_user_data(user_id, 'schedules')
+        schedules_data = schedules_result.get('schedules', {})
         return {'schedules': schedules_data}
     except Exception as e:
         logger.error(f"Error loading user schedules for schedule management: {e}")
@@ -559,7 +565,8 @@ def migrate_legacy_schedule_keys(user_id=None):
     Migrate all user schedule files from legacy 'start'/'end' keys to canonical 'start_time'/'end_time'.
     If user_id is None, migrate all users.
     """
-    from core.user_management import get_all_user_ids, get_user_file_path
+    from core.user_data_handlers import get_all_user_ids
+    from core.user_management import get_user_file_path
     from core.file_operations import load_json_data, save_json_data
     import copy
     user_ids = [user_id] if user_id else get_all_user_ids()

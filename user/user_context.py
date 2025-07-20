@@ -4,7 +4,12 @@ import json
 import os
 import threading
 from core.logger import get_logger
-from core.user_management import get_user_data, update_user_account, update_user_preferences, update_user_context
+from core.user_data_handlers import (
+    get_user_data,
+    update_user_account,
+    update_user_preferences,
+    update_user_context,
+)
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )

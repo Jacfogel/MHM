@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QDialog
     QSizePolicy, QSpacerItem, QTabWidget, QVBoxLayout,
     QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Dialog_create_account(object):
     def setupUi(self, Dialog_create_account):
         if not Dialog_create_account.objectName():

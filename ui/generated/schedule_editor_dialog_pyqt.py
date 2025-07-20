@@ -19,20 +19,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGroupBox, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
-def qtTrId(id): 
-    """
-    Qt translation function stub.
-    
-    This is a placeholder function for Qt's translation system. In a real Qt
-    application, this would return the translated string for the given ID.
-    
-    Args:
-        id: The translation ID
-        
-    Returns:
-        The translation ID (no translation performed in this stub)
-    """
-    return id
+def qtTrId(id): return id
 
 class Ui_Dialog_edit_schedule(object):
     def setupUi(self, Dialog_edit_schedule):

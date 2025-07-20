@@ -3,7 +3,8 @@ from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_mana
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from PySide6.QtCore import Signal
 from core.logger import get_logger
-from core.user_management import update_user_preferences, get_user_data
+from core.user_data_handlers import update_user_preferences, update_user_account
+from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 
 logger = get_logger(__name__)
@@ -26,6 +27,10 @@ class CategoryManagementDialog(QDialog):
             if w:
                 w.setParent(None)
         layout.addWidget(self.category_widget)
+        
+        # Connect checkbox to enable/disable category selection
+        self.ui.groupBox_enable_automated_messages.toggled.connect(self.on_enable_messages_toggled)
+        
         # Connect Save/Cancel
         self.ui.buttonBox_save_cancel.accepted.connect(self.save_category_settings)
         self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
@@ -35,14 +40,37 @@ class CategoryManagementDialog(QDialog):
     def load_user_category_data(self):
         """Load user's current category settings"""
         try:
+            # Load user account to check if automated messages are enabled
+            user_data_result = get_user_data(self.user_id, 'account')
+            account = user_data_result.get('account') or {}
+            features = account.get('features', {})
+            messages_enabled = features.get('automated_messages') == 'enabled'
+            
+            # Set groupbox checkbox state
+            self.ui.groupBox_enable_automated_messages.setChecked(messages_enabled)
+            
             # Load user preferences
             prefs_result = get_user_data(self.user_id, 'preferences')
             prefs = prefs_result.get('preferences') or {}
             current_categories = prefs.get('categories', [])
             self.category_widget.set_selected_categories(current_categories)
+            
+            # Enable/disable category selection based on checkbox
+            self.on_enable_messages_toggled(messages_enabled)
         except Exception as e:
             logger.error(f"Error loading user category data: {e}")
             # Set default categories if loading fails
+            self.category_widget.set_selected_categories([])
+            self.ui.groupBox_enable_automated_messages.setChecked(True)
+            self.on_enable_messages_toggled(True)
+
+    def on_enable_messages_toggled(self, checked):
+        """Handle enable automated messages checkbox toggle."""
+        # Enable/disable the category selection group box
+        self.ui.groupBox_select_categories.setEnabled(checked)
+        
+        # If disabled, clear selected categories
+        if not checked:
             self.category_widget.set_selected_categories([])
 
     def save_category_settings(self):
@@ -51,24 +79,35 @@ class CategoryManagementDialog(QDialog):
             self.accept()
             return
         try:
+            messages_enabled = self.ui.groupBox_enable_automated_messages.isChecked()
             selected_categories = self.category_widget.get_selected_categories()
             
-            # Validate that at least one category is selected
-            if not selected_categories:
+            # Validate that at least one category is selected if messages are enabled
+            if messages_enabled and not selected_categories:
                 QMessageBox.warning(self, "No Categories Selected", 
-                                   "Please select at least one category.")
+                                   "Please select at least one category when automated messages are enabled.")
                 return
             
             # Get current preferences and update categories
             prefs_result = get_user_data(self.user_id, 'preferences')
             prefs = prefs_result.get('preferences') or {}
-            prefs['categories'] = selected_categories
+            prefs['categories'] = selected_categories if messages_enabled else []
             
             # Save updated preferences
             update_user_preferences(self.user_id, prefs)
             
-            QMessageBox.information(self, "Categories Saved", 
-                                   f"Successfully saved {len(selected_categories)} categories.")
+            # Update account features
+            user_data_result = get_user_data(self.user_id, 'account')
+            account = user_data_result.get('account') or {}
+            features = account.get('features', {})
+            features['automated_messages'] = 'enabled' if messages_enabled else 'disabled'
+            account['features'] = features
+            update_user_account(self.user_id, account)
+            
+            status_text = "enabled" if messages_enabled else "disabled"
+            category_text = f" with {len(selected_categories)} categories" if selected_categories else ""
+            QMessageBox.information(self, "Settings Saved", 
+                                   f"Automated messages {status_text}{category_text}.")
             self.user_changed.emit()
             self.accept()
             

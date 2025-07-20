@@ -19,20 +19,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QHBoxLayout,
     QLineEdit, QPushButton, QSizePolicy, QVBoxLayout,
     QWidget)
 
-def qtTrId(id): 
-    """
-    Qt translation function stub.
-    
-    This is a placeholder function for Qt's translation system. In a real Qt
-    application, this would return the translated string for the given ID.
-    
-    Args:
-        id: The translation ID
-        
-    Returns:
-        The translation ID (no translation performed in this stub)
-    """
-    return id
+def qtTrId(id): return id
 
 class Ui_Form_checkin_element_template(object):
     def setupUi(self, Form_checkin_element_template):

@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import logging
 from typing import List, Dict, Any
 
-from core.user_management import get_all_user_ids
+from core.user_data_handlers import get_all_user_ids
 from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation, get_reminder_periods_and_days
 from core.service_utilities import load_and_localize_datetime
 from core.logger import get_logger
@@ -19,7 +19,7 @@ from user.user_context import UserContext
 from core.error_handling import (
     error_handler, SchedulerError, CommunicationError, handle_errors
 )
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 
 # Suppress debug logging from the schedule library to reduce log spam
 schedule_logger = logging.getLogger('schedule')

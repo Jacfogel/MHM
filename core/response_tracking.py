@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.config import (
     USER_INFO_DIR_PATH,

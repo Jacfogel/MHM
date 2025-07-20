@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogBu
     QGroupBox, QLabel, QSizePolicy, QVBoxLayout,
     QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Dialog_checkin_management(object):
     def setupUi(self, Dialog_checkin_management):
         if not Dialog_checkin_management.objectName():

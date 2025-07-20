@@ -7,8 +7,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "indexuser1": {
         "internal_username": "indexuser1",
@@ -18,8 +18,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "indexuser2": {
         "internal_username": "indexuser2",
@@ -29,8 +29,16 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
+    },
+    "invalid": {
+        "internal_username": "",
+        "active": true,
+        "channel_type": "email",
+        "enabled_features": [],
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "multiuser0": {
         "internal_username": "multiuser0",
@@ -40,8 +48,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "multiuser1": {
         "internal_username": "multiuser1",
@@ -51,8 +59,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "multiuser2": {
         "internal_username": "multiuser2",
@@ -62,8 +70,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-add-category": {
         "internal_username": "test-add-category",
@@ -73,8 +81,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-add-period": {
         "internal_username": "test-add-period",
@@ -84,8 +92,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-all-features-new": {
         "internal_username": "allfeaturesuser",
@@ -99,8 +107,8 @@
             "quotes_to_ponder",
             "word_of_the_day"
         ],
-        "last_interaction": "2025-07-17 22:41:59",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:08",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-basic-email": {
         "internal_username": "basicuser",
@@ -110,16 +118,16 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:06",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-basic-user": {
         "internal_username": "test-basic-user",
         "active": true,
         "channel_type": "discord",
         "enabled_features": [],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:04",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-corrupted": {
         "internal_username": "",
@@ -127,7 +135,7 @@
         "channel_type": "email",
         "enabled_features": [],
         "last_interaction": "1970-01-01 00:00:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-custom-fields": {
         "internal_username": "customuser",
@@ -137,8 +145,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-disable-tasks": {
         "internal_username": "test-disable-tasks",
@@ -149,8 +157,8 @@
             "checkins",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-discord-user": {
         "internal_username": "discorduser",
@@ -163,8 +171,8 @@
             "motivational",
             "quotes_to_ponder"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:06",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-duplicate-1": {
         "internal_username": "duplicateuser",
@@ -174,8 +182,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-duplicate-2": {
         "internal_username": "duplicateuser",
@@ -185,8 +193,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-duplicate-new": {
         "internal_username": "duplicateuser",
@@ -196,8 +204,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-email-1-new": {
         "internal_username": "emailuser1",
@@ -207,8 +215,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:59",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:08",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-email-2-new": {
         "internal_username": "emailuser2",
@@ -218,8 +226,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:59",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:08",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-email-3-new": {
         "internal_username": "emailuser3",
@@ -229,8 +237,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:59",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:08",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-enable-checkins": {
         "internal_username": "test-enable-checkins",
@@ -241,8 +249,8 @@
             "checkins",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-feature-persistence": {
         "internal_username": "featureuser",
@@ -253,16 +261,16 @@
             "checkins",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-fs-error": {
         "internal_username": "fsuser",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-full-user": {
         "internal_username": "test-full-user",
@@ -275,8 +283,8 @@
             "motivational",
             "task_management"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:04",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-lifecycle-new": {
         "internal_username": "lifecycleuser",
@@ -287,8 +295,8 @@
             "health",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:59",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-lifecycle-user": {
         "internal_username": "test-lifecycle-user",
@@ -301,8 +309,8 @@
             "health",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:01"
+        "last_interaction": "2025-07-19 16:37:11",
+        "last_updated": "2025-07-19 16:37:13"
     },
     "test-modify-period": {
         "internal_username": "test-modify-period",
@@ -312,8 +320,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-profile-integration": {
         "internal_username": "profileuser",
@@ -323,8 +331,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:10",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-reenable-tasks": {
         "internal_username": "test-reenable-tasks",
@@ -336,8 +344,8 @@
             "motivational",
             "task_management"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-remove-category": {
         "internal_username": "test-remove-category",
@@ -347,8 +355,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:57",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-remove-period": {
         "internal_username": "test-remove-period",
@@ -358,8 +366,8 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:05",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-schedule-user-new": {
         "internal_username": "scheduleuser",
@@ -370,8 +378,8 @@
             "health",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-telegram-user": {
         "internal_username": "telegramuser",
@@ -382,8 +390,8 @@
             "health",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-ui-creation-user": {
         "internal_username": "testuser",
@@ -394,31 +402,31 @@
             "motivational"
         ],
         "last_interaction": "1970-01-01 00:00:00",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_updated": "2025-07-19 16:37:11"
     },
-    "test-user-6bd2a0d6": {
-        "internal_username": "testuser_a0d6",
+    "test-user-3d4192f1": {
+        "internal_username": "testuser_92f1",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17T22:41:53.190859Z",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19T16:36:59.032917Z",
+        "last_updated": "2025-07-19 16:37:11"
     },
-    "test-user-d2cb6c64": {
-        "internal_username": "testuser_6c64",
+    "test-user-b3149801": {
+        "internal_username": "testuser_9801",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17T22:41:53.174914Z",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19T16:36:58.916148Z",
+        "last_updated": "2025-07-19 16:37:11"
     },
-    "test-user-e30055a9": {
-        "internal_username": "testuser_55a9",
+    "test-user-c46c70bb": {
+        "internal_username": "testuser_70bb",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17T22:41:53.195045Z",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19T16:36:58.908222Z",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-validation-new": {
         "internal_username": "",
@@ -428,24 +436,24 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:41:58",
-        "last_updated": "2025-07-17 22:42:00"
+        "last_interaction": "2025-07-19 16:37:07",
+        "last_updated": "2025-07-19 16:37:11"
     },
     "test-save-user": {
         "internal_username": "testuser",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17 22:42:01",
-        "last_updated": "2025-07-17 22:42:01"
+        "last_interaction": "2025-07-19 16:37:12",
+        "last_updated": "2025-07-19 16:37:12"
     },
-    "test-user-5dba7cb1": {
-        "internal_username": "testuser_7cb1",
+    "test-user-397bb948": {
+        "internal_username": "testuser_b948",
         "active": true,
         "channel_type": "email",
         "enabled_features": [],
-        "last_interaction": "2025-07-17T22:42:01.419209Z",
-        "last_updated": "2025-07-17 22:42:01"
+        "last_interaction": "2025-07-19T16:37:12.656791Z",
+        "last_updated": "2025-07-19 16:37:12"
     },
     "test-email-user": {
         "internal_username": "testuser",
@@ -455,7 +463,7 @@
             "automated_messages",
             "motivational"
         ],
-        "last_interaction": "2025-07-17 22:42:01",
-        "last_updated": "2025-07-17 22:42:01"
+        "last_interaction": "2025-07-19 16:37:12",
+        "last_updated": "2025-07-19 16:37:12"
     }
 }

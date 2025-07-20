@@ -325,14 +325,18 @@ def create_user_files(user_id, categories, user_preferences=None):
         # Get actual personalization data if available
         personalization_data = user_prefs.get('personalization_data', {})
         
+        # Get custom fields with proper nesting
+        custom_fields = personalization_data.get('custom_fields', {})
+        
         context_data = {
             "preferred_name": personalization_data.get('preferred_name', ""),
-            "pronouns": personalization_data.get('pronouns', []),
+            "gender_identity": personalization_data.get('gender_identity', []),
             "date_of_birth": personalization_data.get('date_of_birth', ""),
             "custom_fields": {
-                "health_conditions": personalization_data.get('health_conditions', []),
-                "medications_treatments": personalization_data.get('medications_treatments', []),
-                "reminders_needed": personalization_data.get('reminders_needed', [])
+                "health_conditions": custom_fields.get('health_conditions', []),
+                "medications_treatments": custom_fields.get('medications_treatments', []),
+                "reminders_needed": custom_fields.get('reminders_needed', []),
+                "allergies_sensitivities": custom_fields.get('allergies_sensitivities', [])
             },
             "interests": personalization_data.get('interests', []),
             "goals": personalization_data.get('goals', []),
@@ -368,7 +372,7 @@ def create_user_files(user_id, categories, user_preferences=None):
                         "start_time": "00:00",
                         "end_time": "23:59"
                     },
-                    "default": {
+                    f"{category.title()} Message Default": {
                         "active": True,
                         "days": ["ALL"],
                         "start_time": "18:00",

@@ -119,7 +119,7 @@ def test_account_management_data_structures():
     print("\n🔍 Testing Account Management Data Structures...")
     
     try:
-        from core.user_management import get_user_data, save_user_data
+        from core.user_data_handlers import get_user_data, save_user_data
         
         # Use a safe test user
         test_user = "test-user"
@@ -263,7 +263,7 @@ def test_account_management_safe_operations():
     print("\n🔍 Testing Account Management Safe Operations...")
     
     try:
-        from core.user_management import get_user_data, save_user_data
+        from core.user_data_handlers import get_user_data, save_user_data
         
         # Create a temporary test user for safe operations
         temp_user_id = f"temp-test-{int(time.time())}"
@@ -357,7 +357,7 @@ def test_account_management_integration():
     print("\n🔍 Testing Account Management Integration...")
     
     try:
-        from core.user_management import get_user_data, save_user_data
+        from core.user_data_handlers import get_user_data, save_user_data
         from core.user_data_manager import update_user_index
         from core.file_operations import get_user_file_path
         

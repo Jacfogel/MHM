@@ -34,8 +34,9 @@ from core.error_handling import (
 )
 
 from user.user_context import UserContext
-from core.user_management import get_all_user_ids, get_user_data
-from core.validation import title_case
+from core.user_data_handlers import get_all_user_ids
+from core.user_data_handlers import get_user_data
+from core.user_data_validation import title_case
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
 # Import generated UI for main window
@@ -713,7 +714,8 @@ class MHMManagerUI(QMainWindow):
         logger.info(f"Admin Panel: Opening personalization management for user {self.current_user}")
         try:
             from ui.dialogs.user_profile_dialog import UserProfileDialog
-            from core.user_management import get_user_data, update_user_context, save_user_account_data
+            from core.user_data_handlers import get_user_data, update_user_context
+            from core.user_management import save_user_account_data
             # Load user context and account data
             user_data = get_user_data(self.current_user, ['context', 'account'])
             context_data = user_data.get('context', {})
@@ -725,7 +727,7 @@ class MHMManagerUI(QMainWindow):
             def on_save(data):
                 tz = data.pop('timezone', None)
                 # Use centralized save_user_data for both context and account updates
-                from core.user_management import save_user_data
+                from core.user_data_handlers import save_user_data
                 updates = {'context': data}
                 if tz is not None:
                     updates['account'] = {'timezone': tz}

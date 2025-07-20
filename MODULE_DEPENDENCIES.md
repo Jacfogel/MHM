@@ -1,3 +1,5 @@
+> **NOTE (2025-07-18)**: Core refactor is complete.  Regenerate dependency map using `ai_tools/audit_module_dependencies.py` to reflect updated handlers structure.
+
 # Module Dependencies - MHM Project
 
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  

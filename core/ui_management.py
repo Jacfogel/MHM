@@ -199,7 +199,7 @@ def period_name_for_display(period_name: str, category: str) -> str:
         return ""
     
     # Use existing title_case logic from validation module
-    from core.validation import title_case
+    from core.user_data_validation import title_case
     
     # For tasks and checkins, use title_case for display
     if category in ("tasks", "checkin"):

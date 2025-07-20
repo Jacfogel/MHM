@@ -24,7 +24,7 @@ from core.config import (
 )
 # Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 from bot.user_context_manager import user_context_manager
 from datetime import datetime
 from core.error_handling import (

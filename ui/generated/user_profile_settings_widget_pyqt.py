@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (QApplication, QCalendarWidget, QCheckBox, QGridLa
     QGroupBox, QLabel, QLineEdit, QSizePolicy,
     QTabWidget, QTextEdit, QVBoxLayout, QWidget)
 
+def qtTrId(id): return id
+
 class Ui_Form_user_profile_settings(object):
     def setupUi(self, Form_user_profile_settings):
         if not Form_user_profile_settings.objectName():

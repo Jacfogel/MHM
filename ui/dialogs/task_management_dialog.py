@@ -5,7 +5,8 @@ from PySide6.QtCore import Signal
 
 # Import core functionality
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
-from core.user_management import update_user_preferences, update_user_account, get_user_data
+from core.user_data_handlers import update_user_preferences, update_user_account
+from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 
@@ -69,6 +70,16 @@ class TaskManagementDialog(QDialog):
             # Get task settings from widget
             task_settings = self.task_widget.get_task_settings()
             time_periods = task_settings.get('time_periods', {})
+
+            # Duplicate name validation
+            period_names = [w.get_period_data().get('name') for w in self.task_widget.period_widgets]
+            if len(period_names) != len(set(period_names)):
+                QMessageBox.warning(
+                    self,
+                    "Duplicate Names",
+                    "Two or more time periods have the same name.\n\nPlease rename duplicates before saving.",
+                )
+                return
             
             logger.info(f"Saving task time periods for user {self.user_id}: {time_periods}")
             # When saving periods

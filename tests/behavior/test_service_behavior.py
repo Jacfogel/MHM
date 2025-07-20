@@ -431,38 +431,32 @@ class TestMHMService:
         test_cases = [
             {
                 'input': {
-                    'preferences': {
-                        'categories': ['motivational', 'health', 'quotes']
-                    }
+                    'preferences': {'categories': ['motivational', 'health', 'quotes']}
                 },
                 'expected': ['motivational', 'health', 'quotes']
             },
             {
                 'input': {
-                    'preferences': {
-                        'categories': []
-                    }
+                    'preferences': {'categories': []}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {}
+                    'preferences': {'categories': []}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {
-                        'categories': None
-                    }
+                    'preferences': {'categories': None}
                 },
                 'expected': []
             }
         ]
         
         for test_case in test_cases:
-            with patch('core.user_management.get_user_data', return_value=test_case['input']):
+            with patch('core.user_data_handlers.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 
                 # Verify real behavior - actual data structure returned
@@ -770,38 +764,32 @@ class TestMHMService:
         test_cases = [
             {
                 'input': {
-                    'preferences': {
-                        'categories': ['motivational', 'health', 'quotes']
-                    }
+                    'preferences': {'categories': ['motivational', 'health', 'quotes']}
                 },
                 'expected': ['motivational', 'health', 'quotes']
             },
             {
                 'input': {
-                    'preferences': {
-                        'categories': []
-                    }
+                    'preferences': {'categories': []}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {}
+                    'preferences': {'categories': []}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {
-                        'categories': None
-                    }
+                    'preferences': {'categories': None}
                 },
                 'expected': []
             }
         ]
         
         for test_case in test_cases:
-            with patch('core.user_management.get_user_data', return_value=test_case['input']):
+            with patch('core.user_data_handlers.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 assert result == test_case['expected']
                 assert isinstance(result, list)  # Verify return type

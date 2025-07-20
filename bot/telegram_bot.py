@@ -23,7 +23,7 @@ from core.service_utilities import wait_for_network, title_case
 from core.user_management import get_user_id_by_chat_id
 from core.schedule_management import get_schedule_time_periods, add_schedule_period
 from core.message_management import add_message
-from core.validation import InvalidTimeFormatError
+from core.service_utilities import InvalidTimeFormatError
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )

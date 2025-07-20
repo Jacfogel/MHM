@@ -15,7 +15,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 from core.config import get_user_data_dir
-from core.user_management import get_user_data
+from core.user_data_handlers import get_user_data
 
 logger = get_logger(__name__)
 

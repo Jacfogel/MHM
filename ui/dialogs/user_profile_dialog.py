@@ -339,14 +339,14 @@ class UserProfileDialog(QDialog):
         interests_group = QGroupBox("Interests & Hobbies")
         interests_layout = QVBoxLayout(interests_group)
         
-        # Get predefined interest options
-        interest_options = get_predefined_options('interests')
+        from ui.widgets.dynamic_list_container import DynamicListContainer
+
         existing_interests = self.personalization_data.get('interests', [])
         
-        # Create interests list
-        self.interests_group_box = self.create_custom_field_list(
-            interests_layout, interest_options, existing_interests, "interests"
-        )
+        # Dynamic list container handles presets + custom entries
+        self.interests_container = DynamicListContainer(self, field_key='interests')
+        self.interests_container.set_values(existing_interests)
+        interests_layout.addWidget(self.interests_container)
         
         return interests_group
     
@@ -471,7 +471,7 @@ class UserProfileDialog(QDialog):
             if self.on_save:
                 self.on_save(data)
             else:
-                from core.user_management import update_user_context
+                from core.user_data_handlers import update_user_context
                 update_user_context(self.user_id, data)
             
             self.user_changed.emit()

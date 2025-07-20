@@ -31,7 +31,7 @@ from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
 from core.error_handling import handle_errors
-from core.validation import title_case
+from core.user_data_validation import title_case
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget

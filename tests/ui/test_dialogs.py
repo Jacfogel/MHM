@@ -140,7 +140,8 @@ def test_user_data_access():
     print("\n🔍 Testing User Data Access (Read-Only)...")
     
     try:
-        from core.user_management import get_all_user_ids, get_user_data
+        from core.user_data_handlers import get_user_data
+        from core.user_management import get_all_user_ids
         
         # Get all user IDs
         user_ids = get_all_user_ids()

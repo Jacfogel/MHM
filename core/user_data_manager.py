@@ -19,7 +19,8 @@ from core.config import (
     get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR
 )
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
-from core.user_management import get_user_data, get_all_user_ids
+from core.user_data_handlers import get_user_data
+from core.user_management import get_all_user_ids
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -234,43 +235,49 @@ class UserDataManager:
         Returns:
             Dict containing summary information about the user's data
         """
-        summary = {
+        # Resilient summary structure – nested dicts so we don’t hit KeyError when
+        # assigning sub-fields.
+        summary: Dict[str, Any] = {
             "user_id": user_id,
-            "profile_exists": False,
-            "preferences_exists": False,
-            "schedules_exists": False,
-            "message_files": {},
-            "sent_messages_exists": False,
+            "files": {},        # generic file-type map, e.g. files['profile']
+            "messages": {},     # per-category message file info
+            "logs": {},         # per-type log info
             "total_files": 0,
             "total_size_bytes": 0,
-            "last_modified": None
+            "last_modified": None,
         }
         
         # Check user directory files
         user_dir = get_user_data_dir(user_id)
         if os.path.exists(user_dir):
-            for file_type in ["profile", "preferences", "schedules", "sent_messages"]:
+            from core.user_management import USER_DATA_LOADERS
+
+            # Build list of core file types dynamically from registered loaders
+            dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
+
+            for file_type in dynamic_types:
                 file_path = get_user_file_path(user_id, file_type)
                 if os.path.exists(file_path):
                     size = os.path.getsize(file_path)
-                    summary[file_type]["exists"] = True
-                    summary[file_type]["size"] = size
+                    summary["files"].setdefault(file_type, {})
+                    summary["files"][file_type]["exists"] = True
+                    summary["files"][file_type]["size"] = size
                     summary["total_files"] += 1
-                    summary["total_size"] += size
+                    summary["total_size_bytes"] += size
                     
                     # Additional details for schedules
                     if file_type == "schedules":
                         data = load_json_data(file_path)
                         if data:
                             total_periods = sum(len(cat_schedules) for cat_schedules in data.values())
-                            summary[file_type]["periods"] = total_periods
+                            summary["files"][file_type]["periods"] = total_periods
                     
                     # Additional details for sent messages
                     if file_type == "sent_messages":
                         data = load_json_data(file_path)
                         if data:
                             total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
-                            summary[file_type]["count"] = total_messages
+                            summary["files"][file_type]["count"] = total_messages
         
         # Check message files using ensure_user_message_files
         prefs_result = get_user_data(user_id, 'preferences')
@@ -308,7 +315,7 @@ class UserDataManager:
                     "path": file_path
                 }
                 summary["total_files"] += 1
-                summary["total_size"] += size
+                summary["total_size_bytes"] += size
             else:
                 # File still missing after ensure_user_message_files
                 summary["messages"][category] = {
@@ -336,7 +343,7 @@ class UserDataManager:
                     "orphaned": True  # Mark as orphaned for potential cleanup
                 }
                 summary["total_files"] += 1
-                summary["total_size"] += size
+                summary["total_size_bytes"] += size
         
         # Check log files
         log_types = ["daily_checkins", "chat_interactions"]
@@ -353,7 +360,7 @@ class UserDataManager:
                     "entry_count": entry_count
                 }
                 summary["total_files"] += 1
-                summary["total_size"] += size
+                summary["total_size_bytes"] += size
         
         return summary
     
