@@ -19,6 +19,22 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 > **Status**: Active Development - 100% Function Documentation Coverage Achieved
 
 ## 🗓️ Recent Changes (Most Recent First)
+- **2025-07-18** – Legacy-import purge completed: all runtime & test code now uses `core.user_data_handlers` and `core.user_data_validation`; full test-suite passes (244 ✅, 1 skipped) with zero legacy warnings.
+- **2025-07-18** – Fixed event-loop issue in `LegacyChannelWrapper`, restoring outbound message delivery.
+- **2025-07-18 - Centralized User-Data Handlers & Circular-Import Fix ✅ **COMPLETED**
+- **Modularization**: Moved `get_user_data`, `save_user_data`, and `save_user_data_transaction` implementations into a new module `core/user_data_handlers.py`.  Added thin legacy wrappers in `core/user_management.py` that log warnings for remaining call-sites.
+- **Import Cleanup**: Updated all core, UI, bot, and task modules to import the new handlers.  Tests and runtime code no longer depend on the legacy paths.
+- **Circular Import Resolution**: Removed an early import of `core.user_data_handlers` inside `core/user_management` that created a circular-import during test collection.  Wrappers now perform lazy imports only when called.
+- **Validation Hardened**: Re-implemented `core/user_data_manager.get_user_data_summary` to build its report dynamically from the data-loader registry, eliminating `KeyError` crashes on startup.
+- **Legacy Warning Suppression**: Wrapper functions now log "LEGACY …" only for external callers, preventing noise from internal self-calls.
+- **Tests**: Entire suite passes (244 ✔ / 1 skipped).  No circular-import errors remain.
+- **Next Steps**: 1) Monitor logs for residual legacy warnings and migrate any stragglers. 2) Delete the wrappers once no runtime code relies on them.
+- **2025-07-18** – Centralized user-data API hardening:
+  - **Stricter Validation & Unified Results**: `core.user_data_handlers.save_user_data` now returns a predictable `{data_type: bool}` map for *all* requested data-types and performs per-type validation without early exits.
+  - **Atomic Behaviour Preserved**: Backup creation and index updates remain but now respect the new validation flow.
+  - **New High-Level Helpers**: Added `update_user_account`, `update_user_preferences`, `update_user_context`, and `update_channel_preferences` to `core.user_data_handlers` so callers can bypass the legacy wrappers in `core.user_management`.
+  - **Test Suite**: All 244 tests still pass – no functional regressions.
+  - **Next Steps**: 1) Update imports across modules to use the new helpers directly. 2) Remove legacy wrappers once logs show zero external callers for 24 h.
 
 ### 2025-07-17 - Legacy Code Cleanup Verification ✅ **COMPLETED**
 - **Legacy Code Cleanup Verification**: Confirmed that all legacy fallback references to `preferences['messaging_service']` have been removed
@@ -1034,42 +1050,27 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 When adding new changes, follow this format:
 
-```markdown
-### YYYY-MM-DD - Brief Title
-- **Feature**: What was added/changed
-- **Impact**: What this improves or fixes
+### 2025-07-17 - Account Creation and UI Fixes ✅ **COMPLETED**
+- **Profile Settings Fixes**:
+  - ✅ **Gender Identity Field**: Removed "pronouns" field from user_context.json, now uses "gender_identity" field
+  - ✅ **Date of Birth Auto-population**: Fixed to only save date if user actually selected one, not default current date
+  - ✅ **Time Period Naming**: Updated default period names to be more descriptive
+    - Task periods: "Task Reminder Default" instead of "Period 1"
+    - Check-in periods: "Check-in Reminder Default" instead of "Period 1"
+    - Message periods: "Message Reminder Default" instead of "Period 1"
+  - ✅ **Period Numbering Logic**: Implemented lowest available integer logic for new period names
+    - When deleting "Task Reminder 2" and adding new period, it uses "Task Reminder 2" (not 3)
+    - Prevents duplicate numbering gaps
 
-## [Unreleased] - Task Management Implementation
+- **Validation Fixes**:
+  - ✅ **Email Validation**: Fixed account creation to validate ALL contact fields, not just selected channel
+  - ✅ **Contact Information Validation**: Added validation for empty contact fields in account creation
+  - ✅ **Channel Management Validation**: Added validation requiring contact info for selected channel
 
-### Phase 1: Foundation (COMPLETED) ✅
-- **Core Task Management**: Implemented comprehensive task CRUD operations in `tasks/task_management.py`
-- **Task Data Structure**: Created modular file structure with `active_tasks.json`, `completed_tasks.json`, and `task_schedules.json`
-- **Scheduler Integration**: Added task reminder scheduling to `core/scheduler.py` with methods for scheduling and cleanup
-- **Communication Integration**: Integrated task reminders into `bot/communication_manager.py` with priority emojis and formatting
-- **User Preferences**: Added task management preferences to user settings with enable/disable toggle and default reminder time
-- **Error Handling**: Comprehensive error handling throughout task management system
-- **Admin UI Integration**: Added task management to account creation and user management interfaces
-  - Task management section in account creator with enable/disable toggle and default reminder time
-  - Task management window in account manager with settings and statistics
-  - Task management button in main admin UI
-  - Automatic task file creation during user setup
-- **File Operations**: Updated `core/file_operations.py` to support task file structure and creation
+- **UI Structure Fixes**:
+  - ✅ **Category Management Dialog**: Added "Enable Automated Messages" checkbox and group box structure
+  - ✅ **UI Regeneration**: Regenerated UI files to fix broken category management dialog
 
-### Phase 2: Advanced Features (PLANNED)
-- **Schedule Time Periods**: Allow users to set specific time periods for task reminders
-- **Individual Task Reminders**: Custom reminder times for individual tasks
-- **Recurring Tasks**: Support for daily, weekly, monthly, and custom recurring patterns
-- **Priority Escalation**: Automatic priority increase for overdue tasks
-- **AI Chatbot Integration**: Full integration with AI chatbot for task management
-
-### Phase 3: Communication Channel Integration (PLANNED)
-- **Discord Integration**: Full Discord bot integration for task management
-- **Email Integration**: Email-based task management
-- **Telegram Integration**: Telegram bot integration for task management
-- **Cross-Channel Sync**: Synchronize tasks across all communication channels
-
-### Phase 4: AI Enhancement (PLANNED)
-- **Smart Task Suggestions**: AI-powered task suggestions based on user patterns
-- **Natural Language Processing**: Create and manage tasks using natural language
-- **Intelligent Reminders**: AI-determined optimal reminder timing
-- **Task Analytics**: AI-powered insights into task completion patterns
+- **Data Structure Fixes**:
+  - ✅ **Personalization Data**: Fixed account creation to save complete personalization data structure
+  - ✅ **Contact Information**: Fixed account creation to always collect contact info regardless of message enablement

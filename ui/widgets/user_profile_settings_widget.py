@@ -46,6 +46,44 @@ class UserProfileSettingsWidget(QWidget):
         # Populate timezone options
         self.populate_timezones()
         
+        # ----------------------------------------------------------
+        # Replace legacy interests UI with DynamicListContainer
+        # ----------------------------------------------------------
+        try:
+            from ui.widgets.dynamic_list_container import DynamicListContainer
+            # Locate the layout that currently contains interest checkboxes.
+            interests_layout = None
+            if hasattr(self.ui, 'verticalLayout_interests'):
+                interests_layout = self.ui.verticalLayout_interests
+            elif hasattr(self.ui, 'tab_interests'):
+                # Fallback: get layout of the tab widget
+                interests_layout = self.ui.tab_interests.layout()
+
+            if interests_layout:
+                # Remove legacy widgets/spacers to avoid leftover blank space
+                while interests_layout.count():
+                    item = interests_layout.takeAt(0)
+                    if item.widget() is not None:
+                        item.widget().setParent(None)
+
+                self.interests_container = DynamicListContainer(self, field_key='interests')
+
+                from PySide6.QtWidgets import QScrollArea
+                scroll = QScrollArea(self)
+                scroll.setWidgetResizable(True)
+                scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+                scroll.setWidget(self.interests_container)
+
+                interests_layout.addWidget(scroll)
+
+                # Pre-populate saved interests if we already have existing_data
+                existing_interests = self.existing_data.get('interests', []) if self.existing_data else []
+                if existing_interests:
+                    self.interests_container.set_values(existing_interests)
+        except Exception as e:
+            logger.warning(f"Failed to set up DynamicListContainer for interests: {e}")
+        
         # Set default tab to Basic Info (index 0)
         if hasattr(self.ui, 'tabWidget'):
             self.ui.tabWidget.setCurrentIndex(0)
@@ -125,40 +163,6 @@ class UserProfileSettingsWidget(QWidget):
                     'Food Allergies', 'Medication Allergies', 'Environmental', 'Latex Allergy', 'Gluten Sensitivity', 'Lactose Intolerance']]
                 self.ui.lineEdit_custom_allergies.setText(', '.join(custom_allergies))
 
-            # Interests (available in UI)
-            interests = self.existing_data.get('interests', [])
-            self.set_checkbox_group('interests', interests)
-            # Custom interests
-            if hasattr(self.ui, 'lineEdit_custom_interest'):
-                custom_interests = [i for i in interests if i not in [
-                    'reading', 'writing', 'music', 'art', 'gaming', 'cooking', 'exercise', 'nature', 'technology', 'photography', 'travel', 'volunteering']]
-                self.ui.lineEdit_custom_interest.setText(', '.join(custom_interests))
-
-            # Goals (available in UI)
-            goals = self.existing_data.get('goals', [])
-            if hasattr(self.ui, 'checkBox_mental_health_goals'):
-                self.ui.checkBox_mental_health_goals.setChecked('mental_health' in goals)
-            if hasattr(self.ui, 'checkBox_physical_health_goals'):
-                self.ui.checkBox_physical_health_goals.setChecked('physical_health' in goals)
-            if hasattr(self.ui, 'checkBox_career_goals'):
-                self.ui.checkBox_career_goals.setChecked('career' in goals)
-            if hasattr(self.ui, 'checkBox_education_goals'):
-                self.ui.checkBox_education_goals.setChecked('education' in goals)
-            if hasattr(self.ui, 'checkBox_relationship_goals'):
-                self.ui.checkBox_relationship_goals.setChecked('relationships' in goals)
-            if hasattr(self.ui, 'checkBox_financial_goals'):
-                self.ui.checkBox_financial_goals.setChecked('financial' in goals)
-            if hasattr(self.ui, 'checkBox_creative_goals'):
-                self.ui.checkBox_creative_goals.setChecked('creative' in goals)
-            if hasattr(self.ui, 'checkBox_social_goals'):
-                self.ui.checkBox_social_goals.setChecked('social' in goals)
-            if hasattr(self.ui, 'checkBox_spiritual_goals'):
-                self.ui.checkBox_spiritual_goals.setChecked('spiritual' in goals)
-            if hasattr(self.ui, 'lineEdit_custom_goal'):
-                custom_goals = [g for g in goals if g not in [
-                    'mental_health', 'physical_health', 'career', 'education', 'relationships', 'financial', 'creative', 'social', 'spiritual']]
-                self.ui.lineEdit_custom_goal.setText(', '.join(custom_goals))
-
             # Loved Ones/Support Network
             loved_ones = self.existing_data.get('loved_ones', [])
             if hasattr(self.ui, 'textEdit_loved_ones'):
@@ -196,6 +200,11 @@ class UserProfileSettingsWidget(QWidget):
                     self.ui.textEdit_notes.setPlainText(notes_list[0])
                 else:
                     self.ui.textEdit_notes.setPlainText('')
+
+            # Interests prepopulation via container
+            if hasattr(self, 'interests_container'):
+                existing_interests = self.existing_data.get('interests', [])
+                self.interests_container.set_values(existing_interests)
         except Exception as e:
             logger.error(f"Error loading existing data: {e}")
     
@@ -316,9 +325,21 @@ class UserProfileSettingsWidget(QWidget):
             if hasattr(self.ui, 'calendarWidget_date_of_birth'):
                 selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
                 if selected_date.isValid():
+                    # Only save the date if it's different from the default (current date)
+                    # or if there was an existing date of birth
+                    current_date = QDate.currentDate()
+                    existing_dob = self.existing_data.get('date_of_birth', '')
+                    
                     # Convert QDate to ISO format string
                     dob_str = selected_date.toString(Qt.DateFormat.ISODate)
-                    data['date_of_birth'] = dob_str
+                    
+                    # Only save if user actually selected a date (not default current date)
+                    # or if there was an existing date of birth that we should preserve
+                    if selected_date != current_date or existing_dob:
+                        data['date_of_birth'] = dob_str
+                    else:
+                        # Clear date if user didn't actually select one
+                        data['date_of_birth'] = ''
                 else:
                     # Clear date if invalid
                     data['date_of_birth'] = ''
@@ -374,13 +395,17 @@ class UserProfileSettingsWidget(QWidget):
                     allergies.extend([a.strip() for a in custom_allergies.split(',') if a.strip()])
             data['custom_fields']['allergies_sensitivities'] = allergies
 
-            # Interests (checkbox group + custom)
-            interests = self.get_checkbox_group('interests')
-            if hasattr(self.ui, 'lineEdit_custom_interest'):
-                custom_interests = self.ui.lineEdit_custom_interest.text().strip()
-                if custom_interests:
-                    interests.extend([i.strip() for i in custom_interests.split(',') if i.strip()])
-            data['interests'] = interests
+                        # Interests via dynamic container (if present)
+            if hasattr(self, 'interests_container'):
+                data['interests'] = self.interests_container.get_values()
+            else:
+                # Legacy fallback
+                interests = self.get_checkbox_group('interests')
+                if hasattr(self.ui, 'lineEdit_custom_interest'):
+                    custom_interests = self.ui.lineEdit_custom_interest.text().strip()
+                    if custom_interests:
+                        interests.extend([i.strip() for i in custom_interests.split(',') if i.strip()])
+                data['interests'] = interests
 
             # Goals (checkbox group + custom)
             goals = []
