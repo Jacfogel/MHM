@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>950</width>
-    <height>814</height>
+    <height>750</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,7 +58,7 @@
            <x>0</x>
            <y>0</y>
            <width>906</width>
-           <height>459</height>
+           <height>395</height>
           </rect>
          </property>
          <property name="sizePolicy">
@@ -67,7 +67,7 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_scrollAreaWidgetContents_checkin_time_periods" stretch="">
+         <layout class="QVBoxLayout" name="verticalLayout_scrollAreaWidgetContents_checkin_time_periods">
           <property name="spacing">
            <number>4</number>
           </property>
@@ -166,132 +166,120 @@
          <property name="autoFillBackground">
           <bool>true</bool>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_widget_checkin_questions_container">
-          <item>
-           <widget class="QWidget" name="widget_checkin_questions" native="true">
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkBox_mood">
+            <property name="text">
+             <string>Mood (1-5 scale) (default)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="checkBox_brushed_teeth">
+            <property name="text">
+             <string>Brushed teeth (yes/no)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="checkBox_exercise">
+            <property name="text">
+             <string>Did exercise (yes/no)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkBox_stress_level">
+            <property name="text">
+             <string>Stress level (1-5 scale) (default)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QCheckBox" name="checkBox_sleep_hours">
+            <property name="text">
+             <string>Hours of sleep (number)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QCheckBox" name="checkBox_social_interaction">
+            <property name="text">
+             <string>Had social interaction (yes/no)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QCheckBox" name="checkBox_energy_level">
+            <property name="text">
+             <string>Energy level (1-5 scale) (default)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QCheckBox" name="checkBox_medication">
+            <property name="text">
+             <string>Took medication (yes/no)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QCheckBox" name="checkBox_reflection_notes">
+            <property name="text">
+             <string>Brief reflection/notes (text)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QCheckBox" name="checkBox_sleep_quality">
+            <property name="text">
+             <string>Sleep quality (1-5 scale) (default)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QCheckBox" name="checkBox_breakfast">
+            <property name="text">
+             <string>Had breakfast (yes/no)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="2">
+           <widget class="QWidget" name="widget_checkin_element_placeholder" native="true">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
-            <layout class="QGridLayout" name="gridLayout_widget_checkin_questions" columnstretch="1,1,1">
-             <item row="2" column="0">
-              <widget class="QCheckBox" name="checkBox_energy_level">
-               <property name="text">
-                <string>Energy level (1-5 scale) (default)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QCheckBox" name="checkBox_sleep_hours">
-               <property name="text">
-                <string>Hours of sleep (number)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="0">
-              <widget class="QCheckBox" name="checkBox_anxiety_level">
-               <property name="text">
-                <string>Anxiety level (1-5 scale)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="1">
-              <widget class="QCheckBox" name="checkBox_medication">
-               <property name="text">
-                <string>Took medication (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QCheckBox" name="checkBox_brushed_teeth">
-               <property name="text">
-                <string>Brushed teeth (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="1">
-              <widget class="QCheckBox" name="checkBox_breakfast">
-               <property name="text">
-                <string>Had breakfast (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QCheckBox" name="checkBox_stress_level">
-               <property name="text">
-                <string>Stress level (1-5 scale) (default)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QCheckBox" name="checkBox_mood">
-               <property name="text">
-                <string>Mood (1-5 scale) (default)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="0">
-              <widget class="QCheckBox" name="checkBox_sleep_quality">
-               <property name="text">
-                <string>Sleep quality (1-5 scale) (default)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="5" column="1">
-              <widget class="QCheckBox" name="checkBox_hydrated">
-               <property name="text">
-                <string>Staying hydrated (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="2">
-              <widget class="QCheckBox" name="checkBox_exercise">
-               <property name="text">
-                <string>Did exercise (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QCheckBox" name="checkBox_social_interaction">
-               <property name="text">
-                <string>Had social interaction (yes/no)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="2" column="2">
-              <widget class="QCheckBox" name="checkBox_reflection_notes">
-               <property name="text">
-                <string>Brief reflection/notes (text)</string>
-               </property>
-              </widget>
-             </item>
-             <item row="3" column="2">
-              <widget class="QWidget" name="widget_checkin_element_placeholder" native="true">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <layout class="QHBoxLayout" name="horizontalLayout_4">
-                <property name="leftMargin">
-                 <number>0</number>
-                </property>
-                <property name="topMargin">
-                 <number>0</number>
-                </property>
-                <property name="rightMargin">
-                 <number>10</number>
-                </property>
-                <property name="bottomMargin">
-                 <number>0</number>
-                </property>
-               </layout>
-              </widget>
-             </item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>10</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
             </layout>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QCheckBox" name="checkBox_anxiety_level">
+            <property name="text">
+             <string>Anxiety level (1-5 scale)</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QCheckBox" name="checkBox_hydrated">
+            <property name="text">
+             <string>Staying hydrated (yes/no)</string>
+            </property>
            </widget>
           </item>
          </layout>
