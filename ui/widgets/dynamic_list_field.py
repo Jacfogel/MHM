@@ -61,6 +61,8 @@ class DynamicListField(QWidget):
 
         # When finished editing text, notify container for duplicate validation
         self.ui.lineEdit_dynamic_list_field.editingFinished.connect(self.on_editing_finished)
+        
+
 
     # ------------------------------------------------------------------
     def on_text_changed(self):
@@ -111,16 +113,7 @@ class DynamicListField(QWidget):
     def set_checked(self, state: bool):
         self.ui.checkBox__dynamic_list_field.setChecked(state)
 
-    # Forward wheel events so container scrolls when hovered over row widgets
-    def wheelEvent(self, event):
-        from PySide6.QtWidgets import QApplication, QScrollArea
-        p = self.parent()
-        while p and not isinstance(p, QScrollArea):
-            p = p.parent()
-        if p:
-            QApplication.sendEvent(p, event)
-        else:
-            super().wheelEvent(event)
+
 
     def set_text(self, text: str):
         self.ui.lineEdit_dynamic_list_field.setText(text)

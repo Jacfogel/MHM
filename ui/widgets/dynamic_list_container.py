@@ -62,6 +62,8 @@ class DynamicListContainer(QWidget):
 
         # Add one blank custom row
         self._add_blank_row()
+        
+
 
     # ------------------------------------------------------------------
     def _add_blank_row(self):
@@ -220,27 +222,7 @@ class DynamicListContainer(QWidget):
                 return idx
         return len(self.rows)
 
-    # ------------------------------------------------------------------
-    # Ensure mouse-wheel scrolling works when cursor is over any child
-    def wheelEvent(self, event):
-        from PySide6.QtWidgets import QScrollArea
-        p = self.parent()
-        while p and not isinstance(p, QScrollArea):
-            p = p.parent()
-        if p:
-            # Send the wheel event to the scroll area
-            from PySide6.QtWidgets import QApplication
-            QApplication.sendEvent(p, event)
-        else:
-            super().wheelEvent(event)
 
-    # Event filter to capture wheel events from children
-    def eventFilter(self, obj, event):
-        from PySide6.QtCore import QEvent
-        if event.type() == QEvent.Type.Wheel:
-            self.wheelEvent(event)
-            return True
-        return super().eventFilter(obj, event)
 
     # Handle preset toggle to include duplicate validation
     def _on_preset_toggled(self, row: DynamicListField):

@@ -8,8 +8,8 @@ from typing import Dict, Any, Optional
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QScrollArea
+from PySide6.QtCore import Qt, QDate, QEvent
 from PySide6.QtGui import QFont
 
 # Import generated UI class
@@ -21,6 +21,10 @@ from core.logger import setup_logging, get_logger
 
 setup_logging()
 logger = get_logger(__name__)
+
+
+
+
 
 class UserProfileSettingsWidget(QWidget):
     """Widget for user profile settings configuration."""
@@ -47,42 +51,97 @@ class UserProfileSettingsWidget(QWidget):
         self.populate_timezones()
         
         # ----------------------------------------------------------
-        # Replace legacy interests UI with DynamicListContainer
+        # Setup dynamic list containers using Designer-created scroll areas
         # ----------------------------------------------------------
         try:
             from ui.widgets.dynamic_list_container import DynamicListContainer
-            # Locate the layout that currently contains interest checkboxes.
-            interests_layout = None
-            if hasattr(self.ui, 'verticalLayout_interests'):
-                interests_layout = self.ui.verticalLayout_interests
-            elif hasattr(self.ui, 'tab_interests'):
-                # Fallback: get layout of the tab widget
-                interests_layout = self.ui.tab_interests.layout()
+            
+            # Interests tab - replace content in existing scroll area
+            self.interests_container = DynamicListContainer(
+                parent=self.ui.scrollAreaWidgetContents_interests,
+                field_key='interests'
+            )
+            # Clear existing layout and add dynamic container
+            layout = self.ui.scrollAreaWidgetContents_interests.layout()
+            if layout:
+                # Remove all existing widgets
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().setParent(None)
+            else:
+                layout = QVBoxLayout()
+                self.ui.scrollAreaWidgetContents_interests.setLayout(layout)
+            
+            layout.addWidget(self.interests_container)
+            
+            # Health & Medical tab - replace content in existing scroll areas
+            self.health_conditions_container = DynamicListContainer(
+                parent=self.ui.scrollAreaWidgetContents_medical,
+                field_key='health_conditions'
+            )
+            layout = self.ui.scrollAreaWidgetContents_medical.layout()
+            if layout:
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().setParent(None)
+            else:
+                layout = QVBoxLayout()
+                self.ui.scrollAreaWidgetContents_medical.setLayout(layout)
+            layout.addWidget(self.health_conditions_container)
+            
+            self.allergies_container = DynamicListContainer(
+                parent=self.ui.scrollAreaWidgetContents_allergies,
+                field_key='allergies_sensitivities'
+            )
+            layout = self.ui.scrollAreaWidgetContents_allergies.layout()
+            if layout:
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().setParent(None)
+            else:
+                layout = QVBoxLayout()
+                self.ui.scrollAreaWidgetContents_allergies.setLayout(layout)
+            layout.addWidget(self.allergies_container)
+            
+            # Medications & Reminders tab - replace content in existing scroll areas
+            self.medications_container = DynamicListContainer(
+                parent=self.ui.scrollAreaWidgetContents_medications,
+                field_key='medications'
+            )
+            layout = self.ui.scrollAreaWidgetContents_medications.layout()
+            if layout:
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().setParent(None)
+            else:
+                layout = QVBoxLayout()
+                self.ui.scrollAreaWidgetContents_medications.setLayout(layout)
+            layout.addWidget(self.medications_container)
+            
+            # Goals tab - replace content in existing scroll areas
+            self.goals_container = DynamicListContainer(
+                parent=self.ui.scrollAreaWidgetContents_goals,
+                field_key='goals'
+            )
+            layout = self.ui.scrollAreaWidgetContents_goals.layout()
+            if layout:
+                while layout.count():
+                    child = layout.takeAt(0)
+                    if child.widget():
+                        child.widget().setParent(None)
+            else:
+                layout = QVBoxLayout()
+                self.ui.scrollAreaWidgetContents_goals.setLayout(layout)
+            layout.addWidget(self.goals_container)
+            
 
-            if interests_layout:
-                # Remove legacy widgets/spacers to avoid leftover blank space
-                while interests_layout.count():
-                    item = interests_layout.takeAt(0)
-                    if item.widget() is not None:
-                        item.widget().setParent(None)
-
-                self.interests_container = DynamicListContainer(self, field_key='interests')
-
-                from PySide6.QtWidgets import QScrollArea
-                scroll = QScrollArea(self)
-                scroll.setWidgetResizable(True)
-                scroll.setFrameShape(QScrollArea.Shape.NoFrame)
-                scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-                scroll.setWidget(self.interests_container)
-
-                interests_layout.addWidget(scroll)
-
-                # Pre-populate saved interests if we already have existing_data
-                existing_interests = self.existing_data.get('interests', []) if self.existing_data else []
-                if existing_interests:
-                    self.interests_container.set_values(existing_interests)
+            
         except Exception as e:
-            logger.warning(f"Failed to set up DynamicListContainer for interests: {e}")
+            logger.error(f"Failed to set up DynamicListContainer: {e}")
         
         # Set default tab to Basic Info (index 0)
         if hasattr(self.ui, 'tabWidget'):
@@ -95,6 +154,8 @@ class UserProfileSettingsWidget(QWidget):
         """Populate the timezone combo box with options and enable selection."""
         # Timezone functionality moved to channel selection widget
         pass
+    
+
     
     def load_existing_data(self):
         """Load existing personalization data into the form."""
@@ -120,48 +181,26 @@ class UserProfileSettingsWidget(QWidget):
                     'Woman', 'Man', 'Non-binary', 'None', 'Prefer not to say']]
                 self.ui.lineEdit_custom_gender.setText(', '.join(custom_genders))
 
-            # Health conditions (available in UI) - handle nested structure
+            # Health conditions - use dynamic list container
             custom_fields = self.existing_data.get('custom_fields', {})
             health_conditions = custom_fields.get('health_conditions', [])
-            self.set_checkbox_group('health_conditions', health_conditions)
+            if hasattr(self, 'health_conditions_container'):
+                self.health_conditions_container.set_values(health_conditions)
 
-            # Medications (if present in UI) - handle nested structure
+            # Medications - use dynamic list container
             medications = custom_fields.get('medications_treatments', [])
-            if hasattr(self.ui, 'checkBox_antidepressants'):
-                self.ui.checkBox_antidepressants.setChecked('Antidepressants' in medications)
-            if hasattr(self.ui, 'checkBox_anxiety_meds'):
-                self.ui.checkBox_anxiety_meds.setChecked('Anti-Anxiety' in medications)
-            if hasattr(self.ui, 'checkBox_adhd_meds'):
-                self.ui.checkBox_adhd_meds.setChecked('ADHD Medication' in medications)
-            if hasattr(self.ui, 'checkBox_mood_stabilizers'):
-                self.ui.checkBox_mood_stabilizers.setChecked('Mood Stabilizers' in medications)
-            if hasattr(self.ui, 'checkBox_sleep_meds'):
-                self.ui.checkBox_sleep_meds.setChecked('Sleep Medication' in medications)
-            if hasattr(self.ui, 'checkBox_pain_meds'):
-                self.ui.checkBox_pain_meds.setChecked('Pain Medication' in medications)
-            if hasattr(self.ui, 'lineEdit_custom_medications'):
-                custom_meds = [m for m in medications if m not in [
-                    'Antidepressants', 'Anti-Anxiety', 'ADHD Medication', 'Mood Stabilizers', 'Sleep Medication', 'Pain Medication']]
-                self.ui.lineEdit_custom_medications.setText(', '.join(custom_meds))
+            if hasattr(self, 'medications_container'):
+                self.medications_container.set_values(medications)
 
-            # Allergies/Sensitivities (handle nested structure)
+            # Allergies/Sensitivities - use dynamic list container
             allergies = custom_fields.get('allergies_sensitivities', [])
-            if hasattr(self.ui, 'checkBox_food_allergies'):
-                self.ui.checkBox_food_allergies.setChecked('Food Allergies' in allergies)
-            if hasattr(self.ui, 'checkBox_medication_allergies'):
-                self.ui.checkBox_medication_allergies.setChecked('Medication Allergies' in allergies)
-            if hasattr(self.ui, 'checkBox_environmental_allergies'):
-                self.ui.checkBox_environmental_allergies.setChecked('Environmental' in allergies)
-            if hasattr(self.ui, 'checkBox_latex_allergy'):
-                self.ui.checkBox_latex_allergy.setChecked('Latex Allergy' in allergies)
-            if hasattr(self.ui, 'checkBox_gluten_sensitivity'):
-                self.ui.checkBox_gluten_sensitivity.setChecked('Gluten Sensitivity' in allergies)
-            if hasattr(self.ui, 'checkBox_lactose_intolerance'):
-                self.ui.checkBox_lactose_intolerance.setChecked('Lactose Intolerance' in allergies)
-            if hasattr(self.ui, 'lineEdit_custom_allergies'):
-                custom_allergies = [a for a in allergies if a not in [
-                    'Food Allergies', 'Medication Allergies', 'Environmental', 'Latex Allergy', 'Gluten Sensitivity', 'Lactose Intolerance']]
-                self.ui.lineEdit_custom_allergies.setText(', '.join(custom_allergies))
+            if hasattr(self, 'allergies_container'):
+                self.allergies_container.set_values(allergies)
+
+            # Goals - use dynamic list container
+            goals = self.existing_data.get('goals', [])
+            if hasattr(self, 'goals_container'):
+                self.goals_container.set_values(goals)
 
             # Loved Ones/Support Network
             loved_ones = self.existing_data.get('loved_ones', [])
@@ -347,53 +386,62 @@ class UserProfileSettingsWidget(QWidget):
             # Timezone functionality moved to channel selection widget
             # Timezone is now handled by the channel selection widget
 
-            # Health conditions (checkbox group)
-            health_conditions = self.get_checkbox_group('health_conditions')
-            
-            # Handle nested custom_fields structure
+            # Health conditions - use dynamic list container
             if 'custom_fields' not in data:
                 data['custom_fields'] = {}
-            data['custom_fields']['health_conditions'] = health_conditions
+            if hasattr(self, 'health_conditions_container'):
+                data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
+            else:
+                # Legacy fallback
+                data['custom_fields']['health_conditions'] = self.get_checkbox_group('health_conditions')
 
-            # Medications (from checkboxes and custom field)
-            medications = []
-            if hasattr(self.ui, 'checkBox_antidepressants') and self.ui.checkBox_antidepressants.isChecked():
-                medications.append('Antidepressants')
-            if hasattr(self.ui, 'checkBox_anxiety_meds') and self.ui.checkBox_anxiety_meds.isChecked():
-                medications.append('Anti-Anxiety')
-            if hasattr(self.ui, 'checkBox_adhd_meds') and self.ui.checkBox_adhd_meds.isChecked():
-                medications.append('ADHD Medication')
-            if hasattr(self.ui, 'checkBox_mood_stabilizers') and self.ui.checkBox_mood_stabilizers.isChecked():
-                medications.append('Mood Stabilizers')
-            if hasattr(self.ui, 'checkBox_sleep_meds') and self.ui.checkBox_sleep_meds.isChecked():
-                medications.append('Sleep Medication')
-            if hasattr(self.ui, 'checkBox_pain_meds') and self.ui.checkBox_pain_meds.isChecked():
-                medications.append('Pain Medication')
-            if hasattr(self.ui, 'lineEdit_custom_medications'):
-                custom_meds = self.ui.lineEdit_custom_medications.text().strip()
-                if custom_meds:
-                    medications.extend([m.strip() for m in custom_meds.split(',') if m.strip()])
-            data['custom_fields']['medications_treatments'] = medications
+            # Medications - use dynamic list container
+            if hasattr(self, 'medications_container'):
+                data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
+            else:
+                # Legacy fallback
+                medications = []
+                if hasattr(self.ui, 'checkBox_antidepressants') and self.ui.checkBox_antidepressants.isChecked():
+                    medications.append('Antidepressants')
+                if hasattr(self.ui, 'checkBox_anxiety_meds') and self.ui.checkBox_anxiety_meds.isChecked():
+                    medications.append('Anti-Anxiety')
+                if hasattr(self.ui, 'checkBox_adhd_meds') and self.ui.checkBox_adhd_meds.isChecked():
+                    medications.append('ADHD Medication')
+                if hasattr(self.ui, 'checkBox_mood_stabilizers') and self.ui.checkBox_mood_stabilizers.isChecked():
+                    medications.append('Mood Stabilizers')
+                if hasattr(self.ui, 'checkBox_sleep_meds') and self.ui.checkBox_sleep_meds.isChecked():
+                    medications.append('Sleep Medication')
+                if hasattr(self.ui, 'checkBox_pain_meds') and self.ui.checkBox_pain_meds.isChecked():
+                    medications.append('Pain Medication')
+                if hasattr(self.ui, 'lineEdit_custom_medications'):
+                    custom_meds = self.ui.lineEdit_custom_medications.text().strip()
+                    if custom_meds:
+                        medications.extend([m.strip() for m in custom_meds.split(',') if m.strip()])
+                data['custom_fields']['medications_treatments'] = medications
 
-            # Allergies/Sensitivities (checkbox group)
-            allergies = []
-            if hasattr(self.ui, 'checkBox_food_allergies') and self.ui.checkBox_food_allergies.isChecked():
-                allergies.append('Food Allergies')
-            if hasattr(self.ui, 'checkBox_medication_allergies') and self.ui.checkBox_medication_allergies.isChecked():
-                allergies.append('Medication Allergies')
-            if hasattr(self.ui, 'checkBox_environmental_allergies') and self.ui.checkBox_environmental_allergies.isChecked():
-                allergies.append('Environmental')
-            if hasattr(self.ui, 'checkBox_latex_allergy') and self.ui.checkBox_latex_allergy.isChecked():
-                allergies.append('Latex Allergy')
-            if hasattr(self.ui, 'checkBox_gluten_sensitivity') and self.ui.checkBox_gluten_sensitivity.isChecked():
-                allergies.append('Gluten Sensitivity')
-            if hasattr(self.ui, 'checkBox_lactose_intolerance') and self.ui.checkBox_lactose_intolerance.isChecked():
-                allergies.append('Lactose Intolerance')
-            if hasattr(self.ui, 'lineEdit_custom_allergies'):
-                custom_allergies = self.ui.lineEdit_custom_allergies.text().strip()
-                if custom_allergies:
-                    allergies.extend([a.strip() for a in custom_allergies.split(',') if a.strip()])
-            data['custom_fields']['allergies_sensitivities'] = allergies
+            # Allergies/Sensitivities - use dynamic list container
+            if hasattr(self, 'allergies_container'):
+                data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
+            else:
+                # Legacy fallback
+                allergies = []
+                if hasattr(self.ui, 'checkBox_food_allergies') and self.ui.checkBox_food_allergies.isChecked():
+                    allergies.append('Food Allergies')
+                if hasattr(self.ui, 'checkBox_medication_allergies') and self.ui.checkBox_medication_allergies.isChecked():
+                    allergies.append('Medication Allergies')
+                if hasattr(self.ui, 'checkBox_environmental_allergies') and self.ui.checkBox_environmental_allergies.isChecked():
+                    allergies.append('Environmental')
+                if hasattr(self.ui, 'checkBox_latex_allergy') and self.ui.checkBox_latex_allergy.isChecked():
+                    allergies.append('Latex Allergy')
+                if hasattr(self.ui, 'checkBox_gluten_sensitivity') and self.ui.checkBox_gluten_sensitivity.isChecked():
+                    allergies.append('Gluten Sensitivity')
+                if hasattr(self.ui, 'checkBox_lactose_intolerance') and self.ui.checkBox_lactose_intolerance.isChecked():
+                    allergies.append('Lactose Intolerance')
+                if hasattr(self.ui, 'lineEdit_custom_allergies'):
+                    custom_allergies = self.ui.lineEdit_custom_allergies.text().strip()
+                    if custom_allergies:
+                        allergies.extend([a.strip() for a in custom_allergies.split(',') if a.strip()])
+                data['custom_fields']['allergies_sensitivities'] = allergies
 
                         # Interests via dynamic container (if present)
             if hasattr(self, 'interests_container'):
@@ -407,31 +455,35 @@ class UserProfileSettingsWidget(QWidget):
                         interests.extend([i.strip() for i in custom_interests.split(',') if i.strip()])
                 data['interests'] = interests
 
-            # Goals (checkbox group + custom)
-            goals = []
-            if hasattr(self.ui, 'checkBox_mental_health_goals') and self.ui.checkBox_mental_health_goals.isChecked():
-                goals.append('mental_health')
-            if hasattr(self.ui, 'checkBox_physical_health_goals') and self.ui.checkBox_physical_health_goals.isChecked():
-                goals.append('physical_health')
-            if hasattr(self.ui, 'checkBox_career_goals') and self.ui.checkBox_career_goals.isChecked():
-                goals.append('career')
-            if hasattr(self.ui, 'checkBox_education_goals') and self.ui.checkBox_education_goals.isChecked():
-                goals.append('education')
-            if hasattr(self.ui, 'checkBox_relationship_goals') and self.ui.checkBox_relationship_goals.isChecked():
-                goals.append('relationships')
-            if hasattr(self.ui, 'checkBox_financial_goals') and self.ui.checkBox_financial_goals.isChecked():
-                goals.append('financial')
-            if hasattr(self.ui, 'checkBox_creative_goals') and self.ui.checkBox_creative_goals.isChecked():
-                goals.append('creative')
-            if hasattr(self.ui, 'checkBox_social_goals') and self.ui.checkBox_social_goals.isChecked():
-                goals.append('social')
-            if hasattr(self.ui, 'checkBox_spiritual_goals') and self.ui.checkBox_spiritual_goals.isChecked():
-                goals.append('spiritual')
-            if hasattr(self.ui, 'lineEdit_custom_goal'):
-                custom_goals = self.ui.lineEdit_custom_goal.text().strip()
-                if custom_goals:
-                    goals.extend([g.strip() for g in custom_goals.split(',') if g.strip()])
-            data['goals'] = goals
+            # Goals - use dynamic list container
+            if hasattr(self, 'goals_container'):
+                data['goals'] = self.goals_container.get_values()
+            else:
+                # Legacy fallback
+                goals = []
+                if hasattr(self.ui, 'checkBox_mental_health_goals') and self.ui.checkBox_mental_health_goals.isChecked():
+                    goals.append('mental_health')
+                if hasattr(self.ui, 'checkBox_physical_health_goals') and self.ui.checkBox_physical_health_goals.isChecked():
+                    goals.append('physical_health')
+                if hasattr(self.ui, 'checkBox_career_goals') and self.ui.checkBox_career_goals.isChecked():
+                    goals.append('career')
+                if hasattr(self.ui, 'checkBox_education_goals') and self.ui.checkBox_education_goals.isChecked():
+                    goals.append('education')
+                if hasattr(self.ui, 'checkBox_relationship_goals') and self.ui.checkBox_relationship_goals.isChecked():
+                    goals.append('relationships')
+                if hasattr(self.ui, 'checkBox_financial_goals') and self.ui.checkBox_financial_goals.isChecked():
+                    goals.append('financial')
+                if hasattr(self.ui, 'checkBox_creative_goals') and self.ui.checkBox_creative_goals.isChecked():
+                    goals.append('creative')
+                if hasattr(self.ui, 'checkBox_social_goals') and self.ui.checkBox_social_goals.isChecked():
+                    goals.append('social')
+                if hasattr(self.ui, 'checkBox_spiritual_goals') and self.ui.checkBox_spiritual_goals.isChecked():
+                    goals.append('spiritual')
+                if hasattr(self.ui, 'lineEdit_custom_goal'):
+                    custom_goals = self.ui.lineEdit_custom_goal.text().strip()
+                    if custom_goals:
+                        goals.extend([g.strip() for g in custom_goals.split(',') if g.strip()])
+                data['goals'] = goals
 
             # Loved Ones/Support Network (multi-line text, parse as Name - Type - Relationship1,Relationship2)
             if hasattr(self.ui, 'textEdit_loved_ones'):

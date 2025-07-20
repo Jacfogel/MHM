@@ -92,104 +92,226 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_health">
+     <widget class="QWidget" name="tab_health_medical">
       <attribute name="title">
-       <string>Health</string>
+       <string>Health &amp; Medical</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_health">
+      <layout class="QVBoxLayout" name="verticalLayout_health_medical">
        <item>
         <widget class="QGroupBox" name="groupBox_medical">
          <property name="title">
           <string>Health and Medical</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_medical">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_depression">
-            <property name="text">
-             <string>Depression</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_anxiety">
-            <property name="text">
-             <string>Anxiety</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_adhd">
-            <property name="text">
-             <string>ADHD</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_bipolar">
-            <property name="text">
-             <string>Bipolar Disorder</string>
+           <widget class="QScrollArea" name="scrollArea_medical">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_ptsd">
-            <property name="text">
-             <string>PTSD</string>
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_ocd">
-            <property name="text">
-             <string>OCD</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_eating_disorder">
-            <property name="text">
-             <string>Eating Disorder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBox_substance_abuse">
-            <property name="text">
-             <string>Substance Abuse</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QCheckBox" name="checkBox_sleep_disorder">
-            <property name="text">
-             <string>Sleep Disorder</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="checkBox_chronic_pain">
-            <property name="text">
-             <string>Chronic Pain</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QCheckBox" name="checkBox_autism">
-            <property name="text">
-             <string>Autism Spectrum</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QCheckBox" name="checkBox_other_mental_health">
-            <property name="text">
-             <string>Other Mental Health</string>
-            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_medical">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_4">
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="checkBox_substance_abuse">
+                <property name="text">
+                 <string>Substance Abuse</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="checkBox_ocd">
+                <property name="text">
+                 <string>OCD</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="checkBox_autism">
+                <property name="text">
+                 <string>Autism Spectrum</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_depression">
+                <property name="text">
+                 <string>Depression</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="checkBox_eating_disorder">
+                <property name="text">
+                 <string>Eating Disorder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QCheckBox" name="checkBox_other_mental_health">
+                <property name="text">
+                 <string>Other Mental Health</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QCheckBox" name="checkBox_chronic_pain">
+                <property name="text">
+                 <string>Chronic Pain</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="checkBox_anxiety">
+                <property name="text">
+                 <string>Anxiety</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QCheckBox" name="checkBox_sleep_disorder">
+                <property name="text">
+                 <string>Sleep Disorder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="checkBox_adhd">
+                <property name="text">
+                 <string>ADHD</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_bipolar">
+                <property name="text">
+                 <string>Bipolar Disorder</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="checkBox_ptsd">
+                <property name="text">
+                 <string>PTSD</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="3">
+               <widget class="QLineEdit" name="lineEdit_custom_medical">
+                <property name="placeholderText">
+                 <string>Add custom health/medical condition</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
+       <item>
+        <widget class="QGroupBox" name="groupBox_allergies">
+         <property name="title">
+          <string>Allergies &amp; Sensitivities</string>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_allergies">
+          <item row="0" column="1">
+           <widget class="QScrollArea" name="scrollArea_allergies">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_allergies">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_5">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_food_allergies">
+                <property name="text">
+                 <string>Food Allergies</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="checkBox_medication_allergies">
+                <property name="text">
+                 <string>Medication Allergies</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="checkBox_environmental_allergies">
+                <property name="text">
+                 <string>Environmental</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_latex_allergy">
+                <property name="text">
+                 <string>Latex Allergy</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="checkBox_gluten_sensitivity">
+                <property name="text">
+                 <string>Gluten Sensitivity</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="checkBox_lactose_intolerance">
+                <property name="text">
+                 <string>Lactose Intolerance</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="3">
+               <widget class="QLineEdit" name="lineEdit_custom_allergies">
+                <property name="placeholderText">
+                 <string>Add custom allergy/sensitivity</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_medications_reminders">
+      <attribute name="title">
+       <string>Medications &amp; Reminders</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_medications_reminders">
        <item>
         <widget class="QGroupBox" name="groupBox_medications">
          <property name="title">
@@ -197,52 +319,77 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_medications">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_antidepressants">
-            <property name="text">
-             <string>Antidepressants</string>
+           <widget class="QScrollArea" name="scrollArea_medications">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_anxiety_meds">
-            <property name="text">
-             <string>Anti-Anxiety</string>
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_adhd_meds">
-            <property name="text">
-             <string>ADHD Medication</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_mood_stabilizers">
-            <property name="text">
-             <string>Mood Stabilizers</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_sleep_meds">
-            <property name="text">
-             <string>Sleep Medication</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_pain_meds">
-            <property name="text">
-             <string>Pain Medication</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="3">
-           <widget class="QLineEdit" name="lineEdit_custom_medications">
-            <property name="placeholderText">
-             <string>Add custom medication</string>
-            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_medications">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_6">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_antidepressants">
+                <property name="text">
+                 <string>Antidepressants</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="checkBox_anxiety_meds">
+                <property name="text">
+                 <string>Anti-Anxiety</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="checkBox_adhd_meds">
+                <property name="text">
+                 <string>ADHD Medication</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_mood_stabilizers">
+                <property name="text">
+                 <string>Mood Stabilizers</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="checkBox_sleep_meds">
+                <property name="text">
+                 <string>Sleep Medication</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="checkBox_pain_meds">
+                <property name="text">
+                 <string>Pain Medication</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0" colspan="3">
+               <widget class="QLineEdit" name="lineEdit_custom_medications">
+                <property name="placeholderText">
+                 <string>Add custom medication</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -255,68 +402,35 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_reminders_needed">
           <item>
-           <widget class="QLabel" name="label_reminders_placeholder">
-            <property name="text">
-             <string>Reminders feature coming soon...</string>
+           <widget class="QScrollArea" name="scrollArea_reminders">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_allergies">
-         <property name="title">
-          <string>Allergies &amp; Sensitivities</string>
-         </property>
-         <layout class="QGridLayout" name="gridLayout_allergies">
-          <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_food_allergies">
-            <property name="text">
-             <string>Food Allergies</string>
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_medication_allergies">
-            <property name="text">
-             <string>Medication Allergies</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_environmental_allergies">
-            <property name="text">
-             <string>Environmental</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_latex_allergy">
-            <property name="text">
-             <string>Latex Allergy</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_gluten_sensitivity">
-            <property name="text">
-             <string>Gluten Sensitivity</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_lactose_intolerance">
-            <property name="text">
-             <string>Lactose Intolerance</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0" colspan="3">
-           <widget class="QLineEdit" name="lineEdit_custom_allergies">
-            <property name="placeholderText">
-             <string>Add custom allergy/sensitivity</string>
-            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_reminders">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_7">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_reminders_placeholder">
+                <property name="text">
+                 <string>Reminders feature coming soon...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -336,110 +450,119 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_interests">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_reading">
-            <property name="text">
-             <string>Reading</string>
+           <widget class="QScrollArea" name="scrollArea_interests">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_writing">
-            <property name="text">
-             <string>Writing</string>
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_music">
-            <property name="text">
-             <string>Music</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_art">
-            <property name="text">
-             <string>Art &amp; Drawing</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_gaming">
-            <property name="text">
-             <string>Gaming</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_cooking">
-            <property name="text">
-             <string>Cooking</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_exercise">
-            <property name="text">
-             <string>Exercise</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBox_nature">
-            <property name="text">
-             <string>Nature &amp; Outdoors</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QCheckBox" name="checkBox_technology">
-            <property name="text">
-             <string>Technology</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QCheckBox" name="checkBox_photography">
-            <property name="text">
-             <string>Photography</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QCheckBox" name="checkBox_travel">
-            <property name="text">
-             <string>Travel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QCheckBox" name="checkBox_volunteering">
-            <property name="text">
-             <string>Volunteering</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0" colspan="3">
-           <widget class="QLineEdit" name="lineEdit_custom_interest">
-            <property name="placeholderText">
-             <string>Add custom interest</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_activities_for_encouragement">
-         <property name="title">
-          <string>Activities for Encouragement</string>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_activities_for_encouragement">
-          <item>
-           <widget class="QLabel" name="label_activities_placeholder">
-            <property name="text">
-             <string>Activities for encouragement coming soon...</string>
-            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_interests">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>593</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_8">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_reading">
+                <property name="text">
+                 <string>Reading</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="checkBox_writing">
+                <property name="text">
+                 <string>Writing</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="checkBox_music">
+                <property name="text">
+                 <string>Music</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_art">
+                <property name="text">
+                 <string>Art &amp; Drawing</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="checkBox_gaming">
+                <property name="text">
+                 <string>Gaming</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="checkBox_cooking">
+                <property name="text">
+                 <string>Cooking</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="checkBox_exercise">
+                <property name="text">
+                 <string>Exercise</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="checkBox_nature">
+                <property name="text">
+                 <string>Nature &amp; Outdoors</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QCheckBox" name="checkBox_technology">
+                <property name="text">
+                 <string>Technology</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0">
+               <widget class="QCheckBox" name="checkBox_photography">
+                <property name="text">
+                 <string>Photography</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QCheckBox" name="checkBox_travel">
+                <property name="text">
+                 <string>Travel</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QCheckBox" name="checkBox_volunteering">
+                <property name="text">
+                 <string>Volunteering</string>
+                </property>
+               </widget>
+              </item>
+              <item row="4" column="0" colspan="3">
+               <widget class="QLineEdit" name="lineEdit_custom_interest">
+                <property name="placeholderText">
+                 <string>Add custom interest</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -459,89 +582,139 @@
          </property>
          <layout class="QGridLayout" name="gridLayout_goals">
           <item row="0" column="0">
-           <widget class="QCheckBox" name="checkBox_mental_health_goals">
-            <property name="text">
-             <string>Mental Health</string>
+           <widget class="QScrollArea" name="scrollArea_goals">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QCheckBox" name="checkBox_physical_health_goals">
-            <property name="text">
-             <string>Physical Health</string>
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QCheckBox" name="checkBox_career_goals">
-            <property name="text">
-             <string>Career</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QCheckBox" name="checkBox_education_goals">
-            <property name="text">
-             <string>Education</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QCheckBox" name="checkBox_relationship_goals">
-            <property name="text">
-             <string>Relationships</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QCheckBox" name="checkBox_financial_goals">
-            <property name="text">
-             <string>Financial</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QCheckBox" name="checkBox_creative_goals">
-            <property name="text">
-             <string>Creative</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QCheckBox" name="checkBox_social_goals">
-            <property name="text">
-             <string>Social</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QCheckBox" name="checkBox_spiritual_goals">
-            <property name="text">
-             <string>Spiritual</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0" colspan="3">
-           <widget class="QLineEdit" name="lineEdit_custom_goal">
-            <property name="placeholderText">
-             <string>Add custom goal</string>
-            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_goals">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_2">
+              <item row="1" column="1">
+               <widget class="QCheckBox" name="checkBox_relationship_goals">
+                <property name="text">
+                 <string>Relationships</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="2">
+               <widget class="QCheckBox" name="checkBox_career_goals">
+                <property name="text">
+                 <string>Career</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="1">
+               <widget class="QCheckBox" name="checkBox_social_goals">
+                <property name="text">
+                 <string>Social</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="checkBox_creative_goals">
+                <property name="text">
+                 <string>Creative</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_education_goals">
+                <property name="text">
+                 <string>Education</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="checkBox_mental_health_goals">
+                <property name="text">
+                 <string>Mental Health</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QCheckBox" name="checkBox_spiritual_goals">
+                <property name="text">
+                 <string>Spiritual</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="checkBox_physical_health_goals">
+                <property name="text">
+                 <string>Physical Health</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="0" colspan="3">
+               <widget class="QLineEdit" name="lineEdit_custom_goal">
+                <property name="placeholderText">
+                 <string>Add custom goal</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="2">
+               <widget class="QCheckBox" name="checkBox_financial_goals">
+                <property name="text">
+                 <string>Financial</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
         </widget>
        </item>
        <item>
-        <widget class="QGroupBox" name="groupBox_goals_placeholder">
+        <widget class="QGroupBox" name="groupBox_activities_for_encouragement">
          <property name="title">
-          <string>Goals (detailed entry coming soon)</string>
+          <string>Activities for Encouragement</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_goals_placeholder">
+         <layout class="QVBoxLayout" name="verticalLayout_activities_for_encouragement">
           <item>
-           <widget class="QLabel" name="label_goals_placeholder">
-            <property name="text">
-             <string>Detailed goals entry coming soon...</string>
+           <widget class="QScrollArea" name="scrollArea_activities_for_encouragement">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_activities_for_encouragement">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QGridLayout" name="gridLayout_3">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_activities_placeholder">
+                <property name="text">
+                 <string>Activities for encouragement coming soon...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -561,10 +734,35 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_loved_ones">
           <item>
-           <widget class="QTextEdit" name="textEdit_loved_ones">
-            <property name="placeholderText">
-             <string>List important people in your life (family, friends, therapists, etc.) and their relationships to you...</string>
+           <widget class="QScrollArea" name="scrollArea_loved_ones">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_loved_ones">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout">
+              <item>
+               <widget class="QTextEdit" name="textEdit_loved_ones">
+                <property name="placeholderText">
+                 <string>List important people in your life (family, friends, therapists, etc.) and their relationships to you...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -577,10 +775,35 @@
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_notes">
           <item>
-           <widget class="QTextEdit" name="textEdit_notes">
-            <property name="placeholderText">
-             <string>Any additional information you'd like to share about yourself, your preferences, or anything else that might help personalize your experience...</string>
+           <widget class="QScrollArea" name="scrollArea_notes">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_notes">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>534</width>
+               <height>271</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <widget class="QTextEdit" name="textEdit_notes">
+                <property name="placeholderText">
+                 <string>Any additional information you'd like to share about yourself, your preferences, or anything else that might help personalize your experience...</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
            </widget>
           </item>
          </layout>
