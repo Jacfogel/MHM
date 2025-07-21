@@ -4,11 +4,7 @@
 > **Purpose**: Step-by-step setup and launch instructions  
 > **Style**: Clear, beginner-friendly, troubleshooting-focused
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - For ongoing development
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Architecture](ARCHITECTURE.md)** - System design and components
+> **See [README.md](README.md) for complete navigation and project overview**
 - **[Troubleshooting](README.md#troubleshooting)** - Common issues and solutions
 
 ## 🚀 Quick Start (Recommended)
@@ -44,7 +40,7 @@ This opens the admin panel so you can manage users and start the background serv
 Once your virtual environment is set up and activated:
 ```bash
 python core/service.py  # run service only (no UI)
-python ui/ui_app.py     # admin panel only (legacy Tkinter)
+python ui/ui_app_qt.py     # admin panel only (PySide6/Qt)
 ```
 
 ## 📁 Alternative Launch Methods
@@ -93,12 +89,11 @@ pip install -r requirements.txt
 ```
 
 ### **Q: Can I run the service without the admin panel?**
-**A**: Yes! Run `python core/service.py` for the background service only, or `python ui/ui_app.py` for the admin panel only.
+**A**: Yes! Run `python core/service.py` for the background service only, or `python ui/ui_app_qt.py` for the admin panel only.
 
 ### **Q: What's the difference between the two UI files?**
 **A**: 
-- `ui/ui_app_qt.py` - Modern PySide6/Qt interface (recommended)
-- `ui/ui_app.py` - Legacy Tkinter interface (deprecated)
+- `ui/ui_app_qt.py` - PySide6/Qt interface (current)
 
 ### **Q: How do I know if the service is running?**
 **A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`

@@ -4,30 +4,11 @@
 > **Purpose**: Essential commands and troubleshooting  
 > **Style**: Concise, scannable, action-oriented
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
-- **[Architecture](ARCHITECTURE.md)** - System design and components
-- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
-- **[Troubleshooting](README.md#troubleshooting)** - Common issues and solutions
+> **See [README.md](README.md) for complete navigation and project overview**
 
 ## 🚀 Essential Commands
 
-### Virtual Environment (Always Use!)
-```powershell
-# Create virtual environment (first time only)
-python -m venv venv
-
-# Activate virtual environment (every time you work on the project)
-venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Deactivate when done
-deactivate
-```
+> **See [HOW_TO_RUN.md](HOW_TO_RUN.md) for complete setup and installation instructions**
 
 ### Running the App
 ```powershell
@@ -37,8 +18,8 @@ python run_mhm.py
 # Service only (background)
 python core/service.py
 
-# Admin panel only (legacy Tkinter)
-python ui/ui_app.py
+# Admin panel only (PySide6/Qt)
+python ui/ui_app_qt.py
 ```
 
 ### Testing
@@ -68,13 +49,13 @@ pip freeze > requirements.txt
 ### Core Application Files
 - `run_mhm.py` - Main entry point
 - `core/service.py` - Background service
-- `ui/ui_app.py` - Admin interface
+- `ui/ui_app_qt.py` - Admin interface (PySide6/Qt)
 - `core/config.py` - Configuration settings
 
 ### User Data
 - `data/users/` - User profiles and preferences
-- `data/messages/` - Custom messages by category
-- `data/sent_messages/` - Message history
+- `data/users/{user_id}/messages/` - Per-user custom messages by category
+- `data/users/{user_id}/messages/sent_messages.json` - Per-user message history
 - `app.log` - Application logs
 
 ### Configuration
@@ -142,8 +123,8 @@ Get-ChildItem -Path . -Recurse -Include "__pycache__" | Remove-Item -Recurse -Fo
 4. Try running service directly: `python core/service.py`
 
 ### UI Issues
-1. Check if tkinter is available: `python -c "import tkinter"`
-2. Try running UI directly: `python ui/ui_app.py`
+1. Check if PySide6 is available: `python -c "import PySide6"`
+2. Try running UI directly: `python ui/ui_app_qt.py`
 3. Check for missing dependencies
 4. Restart the application
 
@@ -180,23 +161,7 @@ LM_STUDIO_BASE_URL=http://localhost:1234/v1
 
 ## 🎯 Development Tips
 
-### Before Making Changes
-1. Create a backup
-2. Test current functionality
-3. Plan your changes
-4. Make small, incremental changes
-
-### After Making Changes
-1. Test the specific feature
-2. Test related features
-3. Test the full application
-4. Update documentation
-
-### When Things Go Wrong
-1. Don't panic - we can always restore from backup
-2. Check the log files
-3. Try to reproduce the problem
-4. Ask for help with specific details
+> **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for detailed development practices and safety guidelines**
 
 ## 📞 Getting Help
 
@@ -213,14 +178,16 @@ LM_STUDIO_BASE_URL=http://localhost:1234/v1
 ## 🔄 Update Process
 
 ### When Adding New Features
-1. Update `CHANGELOG.md` with change details
+1. Update `CHANGELOG_DETAIL.md` with change details
+2. Update `CHANGELOG_BRIEF.md` with brief summary for AI context
 2. Update `README.md` if needed
 3. Update `requirements.txt` if adding dependencies
 4. Test thoroughly
 5. Create backup if it's a major change
 
 ### When Fixing Bugs
-1. Document the bug in `CHANGELOG.md`
+1. Document the bug in `CHANGELOG_DETAIL.md`
+2. Update `CHANGELOG_BRIEF.md` with brief summary for AI context
 2. Test the fix
 3. Test that you didn't break anything else
 4. Update documentation if needed

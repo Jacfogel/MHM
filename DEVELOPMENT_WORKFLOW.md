@@ -6,13 +6,7 @@
 
 This guide explains how to work safely and effectively on the MHM project, especially designed for beginner programmers.
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Architecture](ARCHITECTURE.md)** - System design and components
-- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
-- **[Testing Plan](TESTING_IMPROVEMENT_PLAN.md)** - Testing strategy and improvements
+> **See [README.md](README.md) for complete navigation and project overview**
 
 ## 🛡️ Safety First
 
@@ -20,7 +14,7 @@ This guide explains how to work safely and effectively on the MHM project, espec
 1. **Always use virtual environments** - Never install packages globally
 2. **Create backups before major changes** - Use PowerShell backup command
 3. **Test incrementally** - Make small changes and test after each one
-4. **Document everything** - Update CHANGELOG.md for all changes
+4. **Document everything** - Update CHANGELOG_DETAIL.md for all changes, CHANGELOG_BRIEF.md for AI context
 5. **Ask for help early** - Don't get stuck, ask specific questions
 6. **Use the Audit-First Protocol** - Run audit tools before creating documentation
 
@@ -107,7 +101,8 @@ deactivate
 - **Test communication channels**: Verify features work through communication channels, especially Discord
 
 ### Step 4: Document
-- Update `CHANGELOG.md` with what you changed
+- Update `CHANGELOG_DETAIL.md` with what you changed
+- Update `CHANGELOG_BRIEF.md` with brief summary for AI context
 - Update any relevant documentation
 - Note any new dependencies in `requirements.txt`
 - **Update communication docs**: Document how users interact with new features

@@ -46,14 +46,14 @@ Building a personal mental health assistant that helps manage executive function
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG.md` for all changes
+- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `CHANGELOG_BRIEF.md` for AI context
 
 ### **Key Files**
 - `run_mhm.py` - Main entry point
 - `core/service.py` - Background service
-- `ui/ui_app.py` - Admin interface (admin only)
+- `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
-- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`
+- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`, `core/user_data_validation.py`
 - `bot/` - Communication channel implementations
 - `data/users/` - User data
 
@@ -62,7 +62,7 @@ Building a personal mental health assistant that helps manage executive function
 2. **Create backup**: PowerShell backup command
 3. **Make incremental changes**
 4. **Test after each change**
-5. **Update documentation**: `CHANGELOG.md`
+5. **Update documentation**: `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 
 ## 🚨 Critical Rules
 
@@ -191,7 +191,7 @@ def test_changes():
 2. **Context**: Cursor rules provide guidance
 3. **Safety**: Error handling framework catches issues
 4. **Testing**: Testing framework verifies changes
-5. **Documentation**: Changes are documented in CHANGELOG.md
+5. **Documentation**: Changes are documented in CHANGELOG_DETAIL.md and CHANGELOG_BRIEF.md
 
 ### **For Problem Solving**
 1. **Analysis**: I use audit scripts to understand current state

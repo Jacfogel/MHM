@@ -1,24 +1,28 @@
-# MHM System Changelog
+# MHM System Changelog - Detailed
 
 > **Audience**: Developers and contributors  
-> **Purpose**: Track all changes, improvements, and system evolution  
+> **Purpose**: Complete detailed history of all changes, improvements, and system evolution  
 > **Style**: Chronological, detailed, reference-oriented
 
-This log tracks recent updates and improvements. See TODO.md for current priorities and ARCHITECTURE.md for system structure.
-
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Architecture](ARCHITECTURE.md)** - System design and components
-- **[Current Priorities](TODO.md)** - What we're working on next
+This is the complete detailed changelog. See CHANGELOG_BRIEF.md for brief summaries and TODO.md for current priorities.
 
 > **Version**: 1.0.0 - AI Collaboration System Active  
 > **Last Updated**: 2025-07-17  
 > **Status**: Active Development - 100% Function Documentation Coverage Achieved
 
 ## 🗓️ Recent Changes (Most Recent First)
+- **2025-07-20** – Documentation Cleanup & Audit Analysis ✅ **COMPLETED**
+  - **Quick Audit Completed**: Successfully ran comprehensive audit of codebase documentation and structure
+  - **Key Findings**: 
+    - ✅ **Function Documentation**: 100% coverage maintained (1349 functions documented)
+    - ✅ **Test Framework**: 226 tests passing with 100% success rate
+    - ⚠️ **Module Dependencies**: 0% documented (1160 imports across 133 files need documentation)
+    - ⚠️ **Documentation Redundancy**: Significant overlap across 11 documentation files identified
+  - **Actions Taken**:
+    - ✅ **Updated Status Indicators**: Fixed outdated "0% documentation coverage" references in UI_MIGRATION_PLAN.md and TESTING_IMPROVEMENT_PLAN.md
+    - ✅ **Created Consolidation Plan**: Developed DOCUMENTATION_CONSOLIDATION_PLAN.md to address redundancy
+    - ✅ **Updated MODULE_DEPENDENCIES.md**: Added note about audit findings and documentation gap
+  - **Next Steps**: Implement documentation consolidation to reduce redundancy and improve organization
 - **2025-07-18** – Legacy-import purge completed: all runtime & test code now uses `core.user_data_handlers` and `core.user_data_validation`; full test-suite passes (244 ✅, 1 skipped) with zero legacy warnings.
 - **2025-07-18** – Fixed event-loop issue in `LegacyChannelWrapper`, restoring outbound message delivery.
 - **2025-07-18 - Centralized User-Data Handlers & Circular-Import Fix ✅ **COMPLETED**
@@ -35,6 +39,32 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
   - **New High-Level Helpers**: Added `update_user_account`, `update_user_preferences`, `update_user_context`, and `update_channel_preferences` to `core.user_data_handlers` so callers can bypass the legacy wrappers in `core.user_management`.
   - **Test Suite**: All 244 tests still pass – no functional regressions.
   - **Next Steps**: 1) Update imports across modules to use the new helpers directly. 2) Remove legacy wrappers once logs show zero external callers for 24 h.
+
+### 2025-07-20 - User Profile Settings Scroll Area Fixes ✅ **COMPLETED**
+- **What it means**: Fixed mouse wheel scrolling in user profile settings dialog to work anywhere within group boxes, not just over scroll bars
+- **Why it helps**: Users can now scroll smoothly when hovering over checkboxes, text fields, and other interactive elements
+- **Status**: ✅ **COMPLETED** - Scrolling now works consistently across all tabs
+- **Progress**:
+  - ✅ **UI File Updates** - Added proper size policies (`vsizetype="Expanding"`) to all scroll areas in user_profile_settings_widget.ui
+  - ✅ **Generated UI Regeneration** - Updated user_profile_settings_widget_pyqt.py from modified UI file
+  - ✅ **Widget Code Updates** - Removed problematic custom wheel event handling that was causing crashes
+  - ✅ **Dynamic List Improvements** - Updated dynamic_list_container.py and dynamic_list_field.py to use standard Qt behavior
+  - ✅ **Preset Management** - Reduced preset interests to 20 items, limited other categories to 12 items max
+  - ✅ **Tab Structure** - Split health tab into 'Health & Medical' and 'Medications & Reminders' tabs
+  - ✅ **Git Commits** - Successfully committed all changes with comprehensive commit messages
+- **Technical Details**:
+  - Removed custom `WheelScrollArea` class that was causing application crashes
+  - Used standard Qt scroll areas with proper size policies like working task/checkin dialogs
+  - Fixed group box titles and layout structure for better organization
+  - Updated presets.json with alphabetically ordered, reduced preset options
+- **Files Modified**:
+  - `ui/designs/user_profile_settings_widget.ui` - Added size policies to scroll areas
+  - `ui/generated/user_profile_settings_widget_pyqt.py` - Regenerated from updated UI
+  - `ui/widgets/dynamic_list_container.py` - Removed custom wheel event handling
+  - `ui/widgets/dynamic_list_field.py` - Removed custom wheel event handling
+  - `ui/widgets/user_profile_settings_widget.py` - Updated to use Designer-created scroll areas
+  - `resources/presets.json` - Reduced and organized preset options
+- **Result**: Smooth scrolling now works anywhere within group boxes, matching the behavior of working task and checkin management dialogs
 
 ### 2025-07-17 - Legacy Code Cleanup Verification ✅ **COMPLETED**
 - **Legacy Code Cleanup Verification**: Confirmed that all legacy fallback references to `preferences['messaging_service']` have been removed
@@ -80,6 +110,31 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
   - **Impact**: Complete codebase documentation coverage enables better AI assistance, code maintenance, and developer onboarding
   - **Files Updated**: Multiple files across bot/, ui/, scripts/, and tests/ directories
 - **Status**: ✅ **COMPLETED** - 100% function documentation coverage achieved
+
+### 2025-07-17 - Account Creation and UI Fixes ✅ **COMPLETED**
+- **Profile Settings Fixes**:
+  - ✅ **Gender Identity Field**: Removed "pronouns" field from user_context.json, now uses "gender_identity" field
+  - ✅ **Date of Birth Auto-population**: Fixed to only save date if user actually selected one, not default current date
+  - ✅ **Time Period Naming**: Updated default period names to be more descriptive
+    - Task periods: "Task Reminder Default" instead of "Period 1"
+    - Check-in periods: "Check-in Reminder Default" instead of "Period 1"
+    - Message periods: "Message Reminder Default" instead of "Period 1"
+  - ✅ **Period Numbering Logic**: Implemented lowest available integer logic for new period names
+    - When deleting "Task Reminder 2" and adding new period, it uses "Task Reminder 2" (not 3)
+    - Prevents duplicate numbering gaps
+
+- **Validation Fixes**:
+  - ✅ **Email Validation**: Fixed account creation to validate ALL contact fields, not just selected channel
+  - ✅ **Contact Information Validation**: Added validation for empty contact fields in account creation
+  - ✅ **Channel Management Validation**: Added validation requiring contact info for selected channel
+
+- **UI Structure Fixes**:
+  - ✅ **Category Management Dialog**: Added "Enable Automated Messages" checkbox and group box structure
+  - ✅ **UI Regeneration**: Regenerated UI files to fix broken category management dialog
+
+- **Data Structure Fixes**:
+  - ✅ **Personalization Data**: Fixed account creation to save complete personalization data structure
+  - ✅ **Contact Information**: Fixed account creation to always collect contact info regardless of message enablement
 
 ### 2025-07-16 - Windows Python Process Behavior Investigation ✅ **COMPLETED**
 - **Windows Python Process Behavior Investigation**: Investigated and documented Windows-specific Python process behavior
@@ -171,15 +226,33 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
   - **Problem**: Timezone not prepopulating with data from file, default timezone changed from America/Regina
   - **Solution**: Fixed timezone population logic, restored America/Regina as default, improved set_timezone method
   - **Impact**: Timezone now properly loads from existing data and defaults to America/Regina
-- **Account Creation Dialog Fixes**: Fixed account creation dialog behavior and timezone handling
-  - **Problem**: Dialog not closing after successful account creation, inconsistent default timezone references
-  - **Solution**: Added success message and proper dialog closing, fixed all default timezone references to America/Regina
-  - **Impact**: Account creation now works as expected with proper feedback and dialog behavior
-- **Files Updated**: 
-  - `ui/designs/user_profile_settings_widget.ui` - Removed timezone group box
-  - `ui/widgets/channel_selection_widget.py` - Fixed timezone functionality
-  - `ui/dialogs/account_creator_dialog.py` - Fixed dialog behavior and timezone references
-- **Status**: ✅ **COMPLETED** - All timezone-related issues resolved
+
+### 2025-07-16 - Documentation System Improvements ✅ **COMPLETED**
+- **Function Registry Updates**: Updated FUNCTION_REGISTRY.md to reflect 100% documentation coverage
+  - **Problem**: Function registry was showing outdated 0% documentation coverage
+  - **Solution**: Updated to show accurate 100% documentation coverage achieved
+  - **Impact**: Accurate project status reporting and documentation tracking
+- **Temporary User ID Pattern Documentation**: Documented the temporary user ID pattern used in personalization dialogs
+  - **Problem**: Pattern was implemented but not documented as best practice
+  - **Solution**: Documented pattern and implemented consistently in user profile dialog
+  - **Impact**: Consistent implementation across personalization dialogs
+- **README.md Updates**: Fixed outdated module count references and improved clarity
+  - **Problem**: README.md showed outdated module count (22 modules)
+  - **Solution**: Updated to reflect current 31+ modules and improved clarity
+  - **Impact**: Provides accurate project information for new developers
+- **HOW_TO_RUN.md Updates**: Removed references to non-existent directories and improved clarity
+  - **Problem**: Referenced non-existent scripts/launchers directory
+  - **Solution**: Removed invalid references and improved alternative launch methods
+  - **Impact**: Prevents confusion and provides accurate setup instructions
+- **DEVELOPMENT_WORKFLOW.md Updates**: Updated testing checklist to reflect current features
+  - **Problem**: Testing checklist was outdated and didn't reflect current capabilities
+  - **Solution**: Updated with feature-based account creation and personalization
+  - **Impact**: Ensures testing covers actual current functionality
+- **TODO.md Numbering Fix**: Fixed inconsistent numbering in priority sections
+  - **Problem**: Inconsistent numbering made document harder to read and reference
+  - **Solution**: All sections now have consistent numbering
+  - **Impact**: Makes the document easier to read and reference
+- **Status**: ✅ **COMPLETED** - All documentation files updated to reflect current state
 
 ### 2025-07-16 - Timezone Reorganization ✅ **COMPLETED**
 - **Timezone Moved to Channel Selection Widget**: Reorganized timezone handling to eliminate duplication and improve logical grouping
@@ -495,6 +568,118 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 - **Impact**: Significantly improves AI effectiveness by providing better tool guidance, automated maintenance, and enhanced troubleshooting capabilities
 - **Status**: ✅ **COMPLETED** - AI documentation system now has automated maintenance and comprehensive tool guidance
 
+### 2025-07-15 - Core Module Refactoring & Configuration Centralization ✅ **COMPLETED**
+- **Core Module Refactoring**: Split monolithic `utils.py` into focused modules
+  - **Problem**: `utils.py` was a 1,492-line monolithic file with mixed responsibilities
+  - **Solution**: Split into 7 focused modules:
+    - `core/file_operations.py` - File I/O operations
+    - `core/user_management.py` - User account management
+    - `core/message_management.py` - Message handling
+    - `core/schedule_management.py` - Scheduling logic
+    - `core/response_tracking.py` - Response analytics
+    - `core/service_utilities.py` - Service management
+    - `core/validation.py` - Data validation
+  - **Impact**: Easier to understand and maintain the code, better separation of concerns
+- **Configuration Centralization**: Centralized all configuration in `core/config.py`
+  - **Problem**: Configuration was scattered across multiple files
+  - **Solution**: Put all settings in one place for easier management
+  - **Impact**: Easier to find and change settings, consistent configuration management
+- **Files Updated**: 
+  - `core/utils.py` - Split into 7 focused modules
+  - `core/config.py` - Centralized configuration management
+  - All files that imported from `utils.py` - Updated imports to use new modules
+- **Status**: ✅ **COMPLETED** - Core modules refactored and configuration centralized
+
+### 2025-07-14 - UI Migration Foundation & Widget Refactoring ✅ **COMPLETED**
+- **UI Migration Foundation**: Successfully migrated main admin interface from Tkinter to PySide6/Qt
+  - **Problem**: Legacy Tkinter UI was limiting future development and professional appearance
+  - **Solution**: Complete migration to PySide6/Qt with QSS theming
+  - **Impact**: Modern, responsive UI with better user experience and maintainability
+- **File Organization**: Implemented modular structure with clear separation of concerns
+  - **Problem**: Flat file structure was difficult to navigate and maintain
+  - **Solution**: Organized into logical modules (core/, ui/, bot/, tasks/, etc.)
+  - **Impact**: Better code organization and easier maintenance
+- **Widget Creation**: Created all reusable widget components
+  - **Problem**: UI components were duplicated across dialogs
+  - **Solution**: Created reusable widgets for common functionality
+  - **Impact**: Consistent UI behavior and easier maintenance
+- **User Index & Data Cleanup**: Redesigned user index and cleaned up data structure
+  - **Problem**: User index was outdated and survey responses cluttered the codebase
+  - **Solution**: Redesigned user index structure and removed unused survey functionality
+  - **Impact**: Cleaner data structure and better user management
+- **Signal-Based Updates**: Implemented real-time UI updates
+  - **Problem**: UI didn't update when data changed
+  - **Solution**: Implemented signal-based architecture for automatic UI refresh
+  - **Impact**: Real-time updates and better user experience
+- **Status**: ✅ **COMPLETED** - UI migration foundation established with modern architecture
+
+### 2025-07-14 - Widget Refactoring & Reusability ✅ **COMPLETED**
+- **Task Management Widget**: Created reusable widget for task management features
+  - **Problem**: Task management UI was duplicated across account creation and standalone dialogs
+  - **Solution**: Extracted into standalone widget with signal-based updates
+  - **Impact**: Eliminates code duplication, ensures consistent behavior, makes maintenance easier
+- **Check-in Settings Widget**: Created reusable widget for check-in configuration
+  - **Problem**: Check-in settings UI was duplicated and inconsistent
+  - **Solution**: Extracted into standalone widget (frequency logic removed, now every time period prompts a check-in)
+  - **Impact**: Single source of truth for check-in logic, consistent UI across all contexts
+- **Personalization Widget**: Created reusable widget for personalization settings
+  - **Problem**: Personalization UI was duplicated and inconsistent
+  - **Solution**: Extracted into standalone widget with signal-based updates
+  - **Impact**: Consistent personalization experience, easier to maintain and extend
+- **Status**: ✅ **COMPLETED** - All widgets refactored for reusability and consistency
+
+### 2025-07-14 - Task Management System Phase 1 Foundation ✅ **COMPLETED**
+- **Core Task Management**: Implemented comprehensive task CRUD operations
+  - **Problem**: No task management system existed
+  - **Solution**: Built complete task management with create, read, update, delete operations
+  - **Impact**: Full task management capabilities for executive functioning support
+- **Task Data Structure**: Created organized task storage with modular file structure
+  - **Problem**: No organized way to store task data
+  - **Solution**: Implemented structured task storage with proper file organization
+  - **Impact**: Scalable and maintainable task data management
+- **Scheduler Integration**: Added task reminder scheduling to core scheduler
+  - **Problem**: Tasks couldn't be scheduled for reminders
+  - **Solution**: Integrated task reminders with the core scheduling system
+  - **Impact**: Automated task reminders at scheduled times
+- **Communication Integration**: Added task reminder handling to communication manager
+  - **Problem**: Task reminders couldn't be sent through communication channels
+  - **Solution**: Integrated task reminders with all communication channels
+  - **Impact**: Task reminders delivered through user's preferred channels
+- **User Preferences**: Added task management preferences to user settings
+  - **Problem**: No user control over task management behavior
+  - **Solution**: Added comprehensive task management preferences
+  - **Impact**: Personalized task management experience
+- **Error Handling**: Implemented comprehensive error handling
+  - **Problem**: Task operations could fail without proper error handling
+  - **Solution**: Added robust error handling throughout task management
+  - **Impact**: Reliable task management with proper error recovery
+- **Admin UI Integration**: Added task management to account creation and management
+  - **Problem**: Task management wasn't accessible through admin interface
+  - **Solution**: Integrated task management into admin UI
+  - **Impact**: Easy task management setup and configuration
+- **File Operations**: Updated file operations to support task file structure
+  - **Problem**: File operations didn't support task data structure
+  - **Solution**: Extended file operations for task data management
+  - **Impact**: Proper task data persistence and management
+- **Smart Task Reminder Scheduling**: Implemented intelligent task reminder scheduling
+  - **Problem**: Task reminders weren't intelligently scheduled
+  - **Solution**: Implemented system that picks one random task per reminder period at random time
+  - **Impact**: Balanced task reminders without overwhelming users
+- **Schedule Time Periods**: Allow users to set specific time periods for task reminders
+  - **Problem**: Task reminders couldn't be scheduled for specific time periods
+  - **Solution**: Added time period configuration for task reminders
+  - **Impact**: Flexible task reminder scheduling
+- **Status**: ✅ **COMPLETED** - Task management system foundation fully implemented
+- **Account Creation Dialog Fixes**: Fixed account creation dialog behavior and timezone handling
+  - **Problem**: Dialog not closing after successful account creation, inconsistent default timezone references
+  - **Solution**: Added success message and proper dialog closing, fixed all default timezone references to America/Regina
+  - **Impact**: Account creation now works as expected with proper feedback and dialog behavior
+- **Files Updated**: 
+  - `ui/designs/user_profile_settings_widget.ui` - Removed timezone group box
+  - `ui/widgets/channel_selection_widget.py` - Fixed timezone functionality
+  - `ui/dialogs/account_creator_dialog.py` - Fixed dialog behavior and timezone references
+- **Status**: ✅ **COMPLETED** - All timezone-related issues resolved
+
 ### 2025-07-14 - AI Collaboration System Implementation ✅ **COMPLETED**
 - **Audit-First Protocol**: Implemented structural constraint system to prevent incomplete documentation
   - **New Cursor Rule**: Created `.cursor/rules/audit-first-protocol.mdc` that forces audit-first approach
@@ -775,7 +960,6 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 - **Impact**: Clearer setup instructions, better development practices, and more consistent documentation
 - **Status**: ✅ **COMPLETED** - Documentation updated and testing framework cleaned up
 
-
 ### 2025-07-11 - Sent Messages Directory Cleanup
 - **Global Directory References Removed**: Eliminated all references to the obsolete global `data/sent_messages` directory
   - Removed `SENT_MESSAGES_DIR_PATH` from core path validation in `core/config.py`
@@ -1013,7 +1197,7 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 
 ### 2025-06-26 - Documentation & Merge Resolution
 - **Documentation Reorganization**: Reorganized documentation structure and added future improvements roadmap
-- **Project Direction**: Clarified project direction and updated AGENTS.md with comprehensive instructions
+- **Project Direction**: Clarified project direction and updated AI_RULES.md with comprehensive instructions
 - **Merge Resolution**: Resolved conflicts and synchronized local and remote changes
 - **Impact**: Better project documentation and clearer development guidelines
 
@@ -1044,33 +1228,22 @@ This log tracks recent updates and improvements. See TODO.md for current priorit
 ### 2025-06-11 - Initial Commit
 - Initial commit: Mental Health Management (MHM) system
 
+
 ---
 
 ## 📝 How to Add Changes
 
 When adding new changes, follow this format:
 
-### 2025-07-17 - Account Creation and UI Fixes ✅ **COMPLETED**
-- **Profile Settings Fixes**:
-  - ✅ **Gender Identity Field**: Removed "pronouns" field from user_context.json, now uses "gender_identity" field
-  - ✅ **Date of Birth Auto-population**: Fixed to only save date if user actually selected one, not default current date
-  - ✅ **Time Period Naming**: Updated default period names to be more descriptive
-    - Task periods: "Task Reminder Default" instead of "Period 1"
-    - Check-in periods: "Check-in Reminder Default" instead of "Period 1"
-    - Message periods: "Message Reminder Default" instead of "Period 1"
-  - ✅ **Period Numbering Logic**: Implemented lowest available integer logic for new period names
-    - When deleting "Task Reminder 2" and adding new period, it uses "Task Reminder 2" (not 3)
-    - Prevents duplicate numbering gaps
+```markdown
+### YYYY-MM-DD - Brief Title
+- **Feature**: What was added/changed
+- **Impact**: What this improves or fixes
+```
 
-- **Validation Fixes**:
-  - ✅ **Email Validation**: Fixed account creation to validate ALL contact fields, not just selected channel
-  - ✅ **Contact Information Validation**: Added validation for empty contact fields in account creation
-  - ✅ **Channel Management Validation**: Added validation requiring contact info for selected channel
+**Important Notes:**
+- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
+- **Always add a corresponding entry** to CHANGELOG_BRIEF.md when adding to this detailed changelog
+- Keep entries **concise** and **action-oriented**
+- Maintain **chronological order** (most recent first)
 
-- **UI Structure Fixes**:
-  - ✅ **Category Management Dialog**: Added "Enable Automated Messages" checkbox and group box structure
-  - ✅ **UI Regeneration**: Regenerated UI files to fix broken category management dialog
-
-- **Data Structure Fixes**:
-  - ✅ **Personalization Data**: Fixed account creation to save complete personalization data structure
-  - ✅ **Contact Information**: Fixed account creation to always collect contact info regardless of message enablement

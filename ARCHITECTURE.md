@@ -4,39 +4,44 @@
 > **Purpose**: System design, data flow, and technical architecture  
 > **Style**: Technical, detailed, reference-oriented
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+> **See [README.md](README.md) for complete navigation and project overview**
 
 ---
 
 ## Directory Structure & Key Modules
 
+- **ai_tools/**: AI collaboration tools, audit scripts, and documentation management
 - **bot/**: Messaging and communication bots (Discord, Email, Telegram, etc.)
 - **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
-- **data/**: User data storage (per-user subdirectories: profile.json, preferences.json, schedules.json, etc.)
+- **custom_data/**: User data storage with backups and user index
+- **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
 - **default_messages/**: Default motivational, health, and other message templates
+- **resources/**: Application resources and presets
 - **scripts/**: One-off scripts, debug, and migration tools
+- **styles/**: QSS theme files for UI styling
 - **tasks/**: Task and reminder management
+- **test_logs/**: Test execution logs (isolated from application logs)
+- **tests/**: Testing framework with unit, integration, behavior, and UI tests
 - **ui/**: PySide6/Qt-based management UI with organized structure:
   - `ui/designs/`: Qt Designer files (.ui)
   - `ui/generated/`: Auto-generated Python classes (*_pyqt.py)
   - `ui/dialogs/`: Dialog implementations
   - `ui/widgets/`: Widget implementations
 - **user/**: User context and preferences management
+- **.cursor/rules/**: Cursor IDE rules for AI assistance (audit.mdc, context.mdc, critical.mdc)
 
 ---
 
 ## User Data Model & File Structure
 
 - **Each user has a directory:**
-  - `profile.json`: Core info (user_id, name, contact, etc.)
+  - `account.json`: Core info (user_id, name, contact, etc.)
   - `preferences.json`: FLAT dict of user preferences (categories, checkins, etc.)
   - `schedules.json`: User's schedule data
-  - (Other files: logs, messages, etc.)
+  - `user_context.json`: Personalization data (preferred name, health info, etc.)
+  - `messages/`: Per-category message files and sent message history
+  - `tasks/`: Task-specific data and settings
+  - (Other files: chat_interactions.json, daily_checkins.json, etc.)
 
 **Message File Handling (2025-07):**
 - Message files are only created for categories a user is opted into.
@@ -48,13 +53,15 @@
 - When loading all user data, code merges these files into a single dict, e.g.:
   ```python
   user_data = {
-    ... # from profile.json
+    ... # from account.json
     'preferences': { ... },  # from preferences.json
     'schedules': { ... },    # from schedules.json
+    'user_context': { ... }, # from user_context.json
   }
   ```
 - When saving, only the contents of `user_data['preferences']` are written to `preferences.json` (flat).
 - **All user data access is now handled exclusively through the unified `get_user_data()` handler. All legacy user data functions have been removed.**
+- **Message files are stored per-user in `data/users/{user_id}/messages/` directory, not in global directories.**
 
 ---
 
@@ -68,11 +75,11 @@
 
 ## Key Modules & Responsibilities
 
-- **core/file_operations.py, core/user_management.py, core/message_management.py, core/schedule_management.py, core/response_tracking.py, core/service_utilities.py, core/validation.py**: Data loading/saving, user info management, file path logic, and utility functions. Handles splitting/merging user data across files.
+- **core/file_operations.py, core/user_management.py, core/message_management.py, core/schedule_management.py, core/response_tracking.py, core/service_utilities.py, core/validation.py, core/user_data_validation.py**: Data loading/saving, user info management, file path logic, and utility functions. Handles splitting/merging user data across files. **Note**: `user_management.py` now contains legacy wrappers; new code should use `user_data_handlers.py` and `user_data_validation.py`.
 - **user/user_context.py**: Singleton for managing the current user's context in memory. Provides methods to get/set preferences and save/load user data.
 - **user/user_preferences.py**: (Planned) Class-based interface for managing user preferences.
-- **ui/account_manager.py**: UI logic for managing user accounts, categories, check-ins, and schedules. Uses the focused utility modules for all data operations.
-- **ui/ui_app.py**: Main Tkinter UI application, user selection, and admin panel.
+- **ui/ui_app_qt.py**: Main PySide6/Qt UI application, user selection, and admin panel.
+- **ui/dialogs/**: Dialog implementations for account creation, user management, etc.
 - **bot/**: Messaging bots for different platforms, using user data for personalized interactions.
 - **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery. Includes intelligent task reminder scheduling with random task selection and timing.
 - **core/checkin_analytics.py**: Analytics and insights on user check-in data.

@@ -12,7 +12,7 @@ MHM is a simple personal assistant created by and for a single beginner programm
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
 - **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
 - **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
-- **[Recent Changes](CHANGELOG.md)** - What's new and what's changed
+- **[Recent Changes](CHANGELOG_BRIEF.md)** - Brief summary of recent changes
 - **[Current Priorities](TODO.md)** - What we're working on next
 
 ## Features
@@ -47,19 +47,20 @@ See **HOW_TO_RUN.md** for more details.
 - **ARCHITECTURE.md** - System structure and data organization
 - **DEVELOPMENT_WORKFLOW.md** - Safe development practices for beginners
 - **QUICK_REFERENCE.md** - Essential commands and troubleshooting
-- **CHANGELOG.md** - Change log and recent updates
+- **CHANGELOG_BRIEF.md** - Brief summary of recent changes
+- **CHANGELOG_DETAIL.md** - Complete detailed change history
 - **TODO.md** - Current development priorities
 - **DOCUMENTATION_GUIDE.md** - Documentation organization and standards
 
 ### Documentation Categories
-- **🤖 AI-Focused**: `AGENTS.md` and `.cursor/rules/` - For AI assistants
+- **🤖 AI-Focused**: `AI_RULES.md` and `.cursor/rules/` - For AI assistants
 - **👤 User-Focused**: Development guides and references - For human developers
 - **🔧 Configuration**: `requirements.txt`, `.env` - For both
 
 See **DOCUMENTATION_GUIDE.md** for detailed organization and maintenance guidelines.
 
 ## Architecture
-The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app.py`). `run_mhm.py` starts both together. All data stays on your local machine.
+The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app_qt.py`). `run_mhm.py` starts both together. All data stays on your local machine.
 
 **Recent Improvements**:
 - **Error Handling**: Centralized error handling with automatic recovery across ALL modules
@@ -73,14 +74,20 @@ If LM Studio is installed with a compatible model, MHM can provide local AI chat
 ## Project Structure
 ```
 MHM/
-├── core/        # Backend service (refactored into focused modules)
-├── ui/          # Admin panel
+├── ai_tools/    # AI collaboration tools and audit scripts
 ├── bot/         # Communication handlers
-├── tasks/       # Task/reminder framework
-├── default_messages/
-├── user/        # User preferences
+├── core/        # Backend service (refactored into focused modules)
+├── custom_data/ # User data with backups and user index
 ├── data/        # User data (gitignored)
+├── default_messages/
+├── resources/   # Application resources and presets
 ├── scripts/     # Utilities and tools
+├── styles/      # QSS theme files
+├── tasks/       # Task/reminder framework
+├── test_logs/   # Test execution logs
+├── tests/       # Testing framework
+├── ui/          # Admin panel (PySide6/Qt)
+├── user/        # User preferences
 └── run_mhm.py   # Entry point
 ```
 
@@ -99,7 +106,7 @@ This project is personal. Keep forks private and respect mental health data.
 
 **Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This covers the entire application - from the UI to the background service to all communication channels.**
 
-For current development priorities and completed improvements, see **TODO.md** and **CHANGELOG.md**.
+For current development priorities and completed improvements, see **TODO.md** and **CHANGELOG_BRIEF.md**.
 
 ## 🆘 Troubleshooting
 

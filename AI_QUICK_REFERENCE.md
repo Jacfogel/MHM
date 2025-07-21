@@ -25,14 +25,14 @@ command; if ($LASTEXITCODE -ne 0) { "Failed" }
 2. `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. Make small changes
 4. `python run_mhm.py` (test after)
-5. Update `CHANGELOG.md`
+5. Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 6. **Sync versions:**
    - `python ai_tools/version_sync.py sync --scope=docs` (all docs)
    - `python ai_tools/version_sync.py sync --scope=core` (core system files)
 
 ### **Adding Dependencies**
 1. Add to `requirements.txt`
-2. Update `CHANGELOG.md`
+2. Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 3. Test: `pip install -r requirements.txt`
 
 ## 🔧 **VERSION SYNC BEST PRACTICES**

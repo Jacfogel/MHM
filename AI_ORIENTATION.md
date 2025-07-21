@@ -31,7 +31,7 @@ Building a personal mental health assistant that helps manage executive function
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG.md` for all changes
+- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `CHANGELOG_BRIEF.md` for AI context
 
 ### **Audit-First Protocol (CRITICAL)**
 **BEFORE** creating any documentation, function registry, or comprehensive analysis:

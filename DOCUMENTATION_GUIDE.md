@@ -15,19 +15,14 @@ This guide defines the audience and purpose of each documentation file in the MH
 | **DEVELOPMENT_WORKFLOW.md** | Developers & contributors | Safe development practices | Comprehensive, step-by-step, supportive |
 | **QUICK_REFERENCE.md** | Developers & contributors | Essential commands and troubleshooting | Concise, scannable, action-oriented |
 | **ARCHITECTURE.md** | Developers & contributors | System design and components | Technical, detailed, reference-oriented |
-| **CHANGELOG.md** | Developers & contributors | Track changes and system evolution | Chronological, detailed, reference-oriented |
+| **CHANGELOG_BRIEF.md** | AI collaborators & developers | Brief summaries of recent changes for AI context | Concise, action-oriented, scannable |
+| **CHANGELOG_DETAIL.md** | Developers & contributors | Complete detailed changelog history | Chronological, detailed, reference-oriented |
 | **TODO.md** | Developers & contributors | Current priorities and planned work | Organized, actionable, beginner-friendly |
 | **DOCUMENTATION_GUIDE.md** | Developers & contributors | Documentation organization and standards | Reference, organizational, comprehensive |
 | **TESTING_IMPROVEMENT_PLAN.md** | Developers & contributors | Testing strategy and improvements | Organized, actionable, beginner-friendly |
 | **UI_MIGRATION_PLAN.md** | Developers & contributors | UI migration and project reorganization | Comprehensive, step-by-step, beginner-friendly |
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Architecture](ARCHITECTURE.md)** - System design and components
-- **[Testing Plan](TESTING_IMPROVEMENT_PLAN.md)** - Testing strategy and improvements
+> **See [README.md](README.md) for complete navigation and project overview**
 
 ## 📋 Documentation Categories
 
@@ -35,15 +30,16 @@ This guide defines the audience and purpose of each documentation file in the MH
 *Intended for AI assistants (Cursor, Codex, etc.)*
 
 #### Core AI Guidelines
-- **`AGENTS.md`** - Essential rules and context for AI assistants
+- **`AI_RULES.md`** - Essential rules and context for AI assistants
+- **`AI_CONTEXT.md`** - Project context and user profile for AI assistants
+- **`AI_ORIENTATION.md`** - AI orientation and collaboration guidelines
+- **`AI_QUICK_REFERENCE.md`** - Quick reference for AI assistants
 - **`.cursor/rules/`** - Cursor-specific rules and guidelines
 
 #### AI-Specific Rules
-- **`.cursor/rules/mhm-development.mdc`** - Core development rules
-- **`.cursor/rules/about-me.mdc`** - User context and preferences
-- **`.cursor/rules/agent-instructions.mdc`** - Basic agent instructions
-- **`.cursor/rules/limit-new-md-files.mdc`** - Documentation organization rules
-- **`.cursor/rules/test-and-single-use-scripts.mdc`** - Script organization rules
+- **`.cursor/rules/audit.mdc`** - Audit rules for documentation and analysis
+- **`.cursor/rules/context.mdc`** - Context rules for development work
+- **`.cursor/rules/critical.mdc`** - Critical rules for development work
 
 ### 👤 User-Focused Documentation
 *Intended for the human developer (you)*
@@ -59,7 +55,8 @@ This guide defines the audience and purpose of each documentation file in the MH
 
 #### Technical Reference
 - **`ARCHITECTURE.md`** - System structure and data organization
-- **`CHANGELOG.md`** - Change log and recent updates (see 2025-07-10 for migration/backup best practices)
+- **`CHANGELOG_BRIEF.md`** - Brief summaries for AI context
+- **`CHANGELOG_DETAIL.md`** - Complete detailed changelog history
 - **`TODO.md`** - Current development priorities
 
 ### 🔧 Configuration Files
@@ -90,7 +87,7 @@ This guide defines the audience and purpose of each documentation file in the MH
 
 ### When Updating AI Documentation:
 - Keep it concise and focused
-- Update both `AGENTS.md` and relevant Cursor rules
+- Update both `AI_RULES.md` and relevant Cursor rules
 - Test that AI assistants can understand the changes
 - Remove any redundancy or duplication
 
@@ -134,7 +131,10 @@ The Audit-First Protocol is a mandatory system that ensures all documentation an
 ## 🎯 Quick Reference
 
 ### For AI Assistants:
-- Start with `AGENTS.md` for core rules
+- Start with `AI_RULES.md` for core rules
+- Check `AI_CONTEXT.md` for project context
+- Review `AI_ORIENTATION.md` for collaboration guidelines
+- Use `AI_QUICK_REFERENCE.md` for quick commands
 - Check `.cursor/rules/` for specific guidelines
 - Keep responses concise and focused
 - **ALWAYS** use Audit-First Protocol for documentation

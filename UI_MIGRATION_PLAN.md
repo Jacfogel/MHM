@@ -6,13 +6,12 @@
 > **Status**: **PARTIALLY COMPLETE** - Foundation solid, but many dialogs broken  
 > **Last Updated**: 2025-07-16
 
-## [Navigation](#navigation)
-- **[Project Overview](README.md)** - What MHM is and what it does
-- **[Quick Start](HOW_TO_RUN.md)** - Setup and installation instructions
-- **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - Safe development practices
-- **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
-- **[Architecture](ARCHITECTURE.md)** - System design and components
-- **[Current Priorities](TODO.md)** - What we're working on next
+> **See [README.md](README.md) for complete navigation and project overview**
+> **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
+> **See [TODO.md](TODO.md) for current UI priorities**
+> **See [TESTING_IMPROVEMENT_PLAN.md](TESTING_IMPROVEMENT_PLAN.md) for testing strategy**
+
+
 
 ## 📋 Executive Summary
 
@@ -124,10 +123,10 @@ This migration has established a solid foundation with the main admin panel work
    - **Priority**: High - Critical for understanding system architecture
    - **Impact**: Better system understanding and maintenance
 
-2. **Function Registry Updates** - Update FUNCTION_REGISTRY.md to reflect 100% documentation coverage
-   - **Current Status**: Shows 0% documentation coverage (outdated)
-   - **Actual Status**: 100% documentation coverage achieved
-   - **Priority**: Medium - Documentation accuracy
+2. **Function Registry Updates** - ✅ **COMPLETED** - FUNCTION_REGISTRY.md now reflects 100% documentation coverage
+   - **Previous Status**: Showed 0% documentation coverage (outdated)
+   - **Current Status**: 100% documentation coverage achieved ✅
+   - **Priority**: ✅ **COMPLETED** - Documentation accuracy
    - **Impact**: Accurate project status reporting
 
 3. **Documentation Consolidation** - Address redundancy identified in documentation analysis
@@ -900,6 +899,13 @@ python run_tests.py
   - **CHANGELOG.md**: Added entry for test file organization completion
 - **Impact**: Improved project organization and documentation accuracy
 - **Status**: ✅ **COMPLETED** - All test files properly organized and documentation updated
+
+### Completed Cleanup Tasks ✅
+- **User Profile Settings Scroll Area Fixes** - Fixed mouse wheel scrolling to work anywhere within group boxes, not just over scroll bars (July 2025)
+  - *What it means*: Users can now scroll smoothly when hovering over checkboxes, text fields, and other interactive elements
+  - *Why it helps*: Better user experience with consistent scrolling behavior across all tabs
+  - *Status*: ✅ **COMPLETED** - Scrolling now works consistently, matching task/checkin dialog behavior
+  - *Technical Details*: Removed custom wheel event handling, used standard Qt scroll areas with proper size policies
 
 ---
 

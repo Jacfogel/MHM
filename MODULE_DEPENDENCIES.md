@@ -6,16 +6,24 @@
 > **Status**: **ACTIVE** - Generated from audit data  
 > **Last Updated**: 2025-07-17
 
+> **See [README.md](README.md) for complete navigation and project overview**
+> **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
+> **See [TODO.md](TODO.md) for current documentation priorities**
+
 ## 📋 **Overview**
 
-This document maps all module dependencies found in the MHM codebase, showing import relationships and dependency chains. Generated from audit data to ensure completeness and accuracy.
+### **Module Dependencies Coverage: 0% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 133
+- **Total Imports Found**: 1,160
+- **Dependencies Documented**: 0 (0% coverage)
+- **Standard Library Imports**: 483
+- **Third-Party Imports**: 189
+- **Local Imports**: 488
+- **Last Updated**: 2025-07-20
 
-**Total Files Scanned**: 131  
-**Total Imports Found**: 1,204  
-**Standard Library Imports**: 495  
-**Third-party Imports**: 191  
-**Local Imports**: 518  
-**Dependencies Documented**: 0% (all missing) ⚠️ **NEEDS ATTENTION**
+**Status**: ⚠️ **CRITICAL GAP** - All 133 files need dependency documentation. This represents a significant documentation gap that affects system understanding and maintenance.
+
+**Note**: The audit shows that while this file contains some dependency information, it's not comprehensive and doesn't match the actual import structure found in the codebase. The audit found 1160 imports across 133 files that need to be properly documented.
 
 ## 🔍 **Import Statistics**
 

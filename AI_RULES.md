@@ -30,14 +30,14 @@ Building a personal mental health assistant that helps manage executive function
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG.md` for all changes
+- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `CHANGELOG_BRIEF.md` for AI context
 
 ### **Key Files**
 - `run_mhm.py` - Main entry point
 - `core/service.py` - Background service
-- `ui/ui_app.py` - Admin interface (admin only)
+- `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
-- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`
+- `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`, `core/user_data_validation.py`
 - `bot/` - Communication channel implementations
 - `data/users/` - User data
 
@@ -139,7 +139,7 @@ def test_changes():
 - Place testing, migration, debug, and utility scripts in `scripts/` directory
 - Use descriptive filenames and include comments
 - Remove obsolete scripts when no longer needed
-- Document significant scripts in `CHANGELOG.md`
+- Document significant scripts in `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 
 ## 🚨 Audit Rules (Auto-Attach to *.md, *.txt, *.mdc)
 
@@ -226,7 +226,7 @@ def test_changes():
 2. **Create backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. **Make incremental changes**
 4. **Test after each change**
-5. **Update documentation**: `CHANGELOG.md`
+5. **Update documentation**: `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 
 ### **Common Development Tasks**
 
@@ -235,7 +235,7 @@ def test_changes():
 2. Create backup: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. Implement incrementally
 4. Test: `python run_mhm.py`
-5. Update `CHANGELOG.md`
+5. Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 
 #### **Fixing Bug**
 1. Reproduce the bug
@@ -253,7 +253,7 @@ def test_changes():
 
 #### **Adding Dependencies**
 1. Add to `requirements.txt`
-2. Update `CHANGELOG.md`
+2. Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 3. Test installation: `pip install -r requirements.txt`
 4. Test functionality
 
@@ -292,7 +292,7 @@ def test_changes():
 2. **Run Tests** - `python run_mhm.py` to identify issues
 3. **Review Changes** - Check what was modified
 4. **Fix Incrementally** - Make small fixes and test
-5. **Document Issues** - Update `CHANGELOG.md`
+5. **Document Issues** - Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
 
 ### **If PowerShell Commands Fail**
 1. **Check Exit Code** - `if ($LASTEXITCODE -ne 0)`
