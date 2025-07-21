@@ -134,4 +134,9 @@ app.log
 app.log.*
 *.log
 *.log.*
-.last_cache_cleanup 
+.last_cache_cleanup
+
+# Test data and backups
+custom_data/user_index.json
+custom_data/backups/
+test_logs/ 
