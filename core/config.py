@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
     def __init__(self, message: str, missing_configs: List[str] = None, warnings: List[str] = None):
+        """Initialize the object."""
         super().__init__(message)
         self.missing_configs = missing_configs or []
         self.warnings = warnings or []

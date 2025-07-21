@@ -70,6 +70,7 @@ QUESTION_STATES = {
 class ConversationManager:
     def __init__(self):
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
+        """Initialize the object."""
         self.user_states = {}
 
     @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))

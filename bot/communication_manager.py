@@ -45,6 +45,7 @@ class CommunicationManager:
             return cls._instance
 
     def __init__(self):
+        """Initialize the object."""
         if self._initialized:
             return
             

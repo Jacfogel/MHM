@@ -49,6 +49,7 @@ class AccountCreatorDialog(QDialog):
     user_changed = Signal()
     
     def __init__(self, parent=None, communication_manager=None):
+        """Initialize the object."""
         super().__init__(parent)
         self.parent = parent
         self.communication_manager = communication_manager

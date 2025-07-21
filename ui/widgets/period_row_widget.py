@@ -36,6 +36,7 @@ class PeriodRowWidget(QWidget):
     delete_requested = Signal(object)  # Emits the widget instance
     
     def __init__(self, parent=None, period_name: str = "", period_data: Optional[Dict[str, Any]] = None):
+        """Initialize the object."""
         super().__init__(parent)
         
         # Initialize with default data if none provided

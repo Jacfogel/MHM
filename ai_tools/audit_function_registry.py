@@ -162,13 +162,20 @@ def parse_function_registry() -> Dict[str, List[str]]:
         with open(registry_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # Extract file sections and their functions
-        sections = re.findall(r'\*\*File\*\*: `([^`]+)`\n(.*?)(?=\*\*File\*\*:|$)', content, re.DOTALL)
+        # Extract file sections and their functions (new format)
+        # Pattern: #### `filename.py` followed by functions section
+        sections = re.findall(r'#### `([^`]+)`\n(.*?)(?=#### `|$)', content, re.DOTALL)
         
         for file_path, section_content in sections:
-            # Extract function names from the section
-            function_matches = re.findall(r'- `([^`]+)` -', section_content)
-            documented[file_path] = function_matches
+            # Extract function names from the functions section
+            # Look for the "Functions:" section and extract function names
+            funcs_section = re.search(r'\*\*Functions:\*\*\n(.*?)(?=\*\*Classes:\*\*|$)', section_content, re.DOTALL)
+            if funcs_section:
+                # Extract function names (lines starting with "- ✅" or "- ❌" followed by function name)
+                function_matches = re.findall(r'- [✅❌] `([^`]+)\([^)]*\)`', funcs_section.group(1))
+                documented[file_path] = function_matches
+            else:
+                documented[file_path] = []
             
     except Exception as e:
         print(f"Error parsing FUNCTION_REGISTRY.md: {e}")

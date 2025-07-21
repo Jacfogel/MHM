@@ -25,6 +25,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_create_account(object):
     def setupUi(self, Dialog_create_account):
+        """Auto-generated Qt UI setup function for account_creator_dialog."""
         if not Dialog_create_account.objectName():
             Dialog_create_account.setObjectName(u"Dialog_create_account")
         Dialog_create_account.resize(900, 700)
@@ -234,6 +235,7 @@ class Ui_Dialog_create_account(object):
     # setupUi
 
     def retranslateUi(self, Dialog_create_account):
+        """Auto-generated Qt UI translation function for account_creator_dialog."""
         Dialog_create_account.setWindowTitle(QCoreApplication.translate("Dialog_create_account", u"Create a New Account", None))
         Dialog_create_account.setProperty(u"role", QCoreApplication.translate("Dialog_create_account", u"header", None))
         self.label_create_a_new_account.setText(QCoreApplication.translate("Dialog_create_account", u"Create a New Account", None))

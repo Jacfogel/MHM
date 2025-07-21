@@ -10,6 +10,7 @@ class DynamicListField(QWidget):
     delete_requested = Signal(QWidget)
 
     def __init__(self, parent=None, preset_label: str = "", editable: bool = True, checked: bool = False):
+        """Initialize the object."""
         super().__init__(parent)
         self.ui = Ui_Form_dynamic_list_field_template()
         self.ui.setupUi(self)

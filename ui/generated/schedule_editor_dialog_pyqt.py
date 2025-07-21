@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_edit_schedule(object):
     def setupUi(self, Dialog_edit_schedule):
+        """Auto-generated Qt UI setup function for schedule_editor_dialog."""
         if not Dialog_edit_schedule.objectName():
             Dialog_edit_schedule.setObjectName(u"Dialog_edit_schedule")
         Dialog_edit_schedule.resize(950, 330)
@@ -117,6 +118,7 @@ class Ui_Dialog_edit_schedule(object):
     # setupUi
 
     def retranslateUi(self, Dialog_edit_schedule):
+        """Auto-generated Qt UI translation function for schedule_editor_dialog."""
         Dialog_edit_schedule.setWindowTitle(QCoreApplication.translate("Dialog_edit_schedule", u"Dialog", None))
         self.label_EditSchedule.setText(QCoreApplication.translate("Dialog_edit_schedule", u"Edit Schedule", None))
         self.label_EditSchedule.setProperty(u"role", QCoreApplication.translate("Dialog_edit_schedule", u"header", None))

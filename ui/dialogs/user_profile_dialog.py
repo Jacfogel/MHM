@@ -44,6 +44,7 @@ class UserProfileDialog(QDialog):
     user_changed = Signal()
 
     def __init__(self, parent, user_id: str, on_save: Optional[Callable] = None, existing_data: Optional[Dict[str, Any]] = None):
+        """Initialize the object."""
         super().__init__(parent)
         self.parent = parent
         self.user_id = user_id

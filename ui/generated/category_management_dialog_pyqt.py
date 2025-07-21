@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_category_management(object):
     def setupUi(self, Dialog_category_management):
+        """Auto-generated Qt UI setup function for category_management_dialog."""
         if not Dialog_category_management.objectName():
             Dialog_category_management.setObjectName(u"Dialog_category_management")
         Dialog_category_management.resize(400, 300)
@@ -71,6 +72,7 @@ class Ui_Dialog_category_management(object):
     # setupUi
 
     def retranslateUi(self, Dialog_category_management):
+        """Auto-generated Qt UI translation function for category_management_dialog."""
         Dialog_category_management.setWindowTitle(QCoreApplication.translate("Dialog_category_management", u"Dialog", None))
         self.label_categories.setText(QCoreApplication.translate("Dialog_category_management", u"Categories", None))
         self.label_categories.setProperty(u"role", QCoreApplication.translate("Dialog_category_management", u"header", None))

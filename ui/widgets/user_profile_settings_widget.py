@@ -30,6 +30,7 @@ class UserProfileSettingsWidget(QWidget):
     """Widget for user profile settings configuration."""
     
     def __init__(self, parent=None, user_id: Optional[str] = None, existing_data: Optional[Dict[str, Any]] = None):
+        """Initialize the object."""
         super().__init__(parent)
         self.user_id = user_id
         self.existing_data = existing_data or {}

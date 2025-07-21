@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Form_period_row_template(object):
     def setupUi(self, Form_period_row_template):
+        """Auto-generated Qt UI setup function for period_row_template."""
         if not Form_period_row_template.objectName():
             Form_period_row_template.setObjectName(u"Form_period_row_template")
         Form_period_row_template.resize(732, 97)
@@ -222,6 +223,7 @@ class Ui_Form_period_row_template(object):
     # setupUi
 
     def retranslateUi(self, Form_period_row_template):
+        """Auto-generated Qt UI translation function for period_row_template."""
         Form_period_row_template.setWindowTitle(QCoreApplication.translate("Form_period_row_template", u"Form", None))
         self.checkBox_active.setText(QCoreApplication.translate("Form_period_row_template", u"Active", None))
         self.label_start.setText(QCoreApplication.translate("Form_period_row_template", u"Start:", None))

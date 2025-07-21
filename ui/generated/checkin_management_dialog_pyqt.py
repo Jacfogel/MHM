@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_checkin_management(object):
     def setupUi(self, Dialog_checkin_management):
+        """Auto-generated Qt UI setup function for checkin_management_dialog."""
         if not Dialog_checkin_management.objectName():
             Dialog_checkin_management.setObjectName(u"Dialog_checkin_management")
         Dialog_checkin_management.resize(950, 700)
@@ -75,6 +76,7 @@ class Ui_Dialog_checkin_management(object):
     # setupUi
 
     def retranslateUi(self, Dialog_checkin_management):
+        """Auto-generated Qt UI translation function for checkin_management_dialog."""
         Dialog_checkin_management.setWindowTitle(QCoreApplication.translate("Dialog_checkin_management", u"Check-in Management", None))
         self.label_checkin_management.setText(QCoreApplication.translate("Dialog_checkin_management", u"Check-in Management", None))
         self.label_checkin_management.setProperty(u"role", QCoreApplication.translate("Dialog_checkin_management", u"header", None))

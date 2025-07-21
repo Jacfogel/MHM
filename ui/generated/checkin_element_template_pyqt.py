@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Form_checkin_element_template(object):
     def setupUi(self, Form_checkin_element_template):
+        """Auto-generated Qt UI setup function for checkin_element_template."""
         if not Form_checkin_element_template.objectName():
             Form_checkin_element_template.setObjectName(u"Form_checkin_element_template")
         Form_checkin_element_template.resize(341, 42)
@@ -71,6 +72,7 @@ class Ui_Form_checkin_element_template(object):
     # setupUi
 
     def retranslateUi(self, Form_checkin_element_template):
+        """Auto-generated Qt UI translation function for checkin_element_template."""
         Form_checkin_element_template.setWindowTitle(QCoreApplication.translate("Form_checkin_element_template", u"Form", None))
         self.checkBox_custom_entry_element.setText("")
 #if QT_CONFIG(tooltip)

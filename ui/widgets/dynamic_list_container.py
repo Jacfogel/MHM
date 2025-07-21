@@ -16,6 +16,7 @@ class DynamicListContainer(QWidget):
     _handling_duplicate = False
 
     def __init__(self, parent=None, field_key: str = ""):
+        """Initialize the object."""
         super().__init__(parent)
         self.field_key = field_key
         self.layout = QVBoxLayout(self)
@@ -231,4 +232,5 @@ class DynamicListContainer(QWidget):
         self.values_changed.emit()
 
     def __post_init__(self):
+        """Post-initialization setup."""
         self.installEventFilter(self)

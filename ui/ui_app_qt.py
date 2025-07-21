@@ -46,6 +46,7 @@ class ServiceManager:
     """Manages the MHM backend service process"""
     
     def __init__(self):
+        """Initialize the object."""
         self.service_process = None
         
     @handle_errors("validating configuration before start", default_return=False)
@@ -294,6 +295,7 @@ class MHMManagerUI(QMainWindow):
     """Main MHM Management UI using PySide6"""
     
     def __init__(self):
+        """Initialize the object."""
         super().__init__()
         self.service_manager = ServiceManager()
         self.current_user = None

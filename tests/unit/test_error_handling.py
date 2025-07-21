@@ -88,6 +88,7 @@ class TestErrorHandlerDecorator:
         """Test error_handler with successful function."""
         @handle_errors("test operation")
         def test_function():
+            """Test Function."""
             return "success"
         
         result = test_function()

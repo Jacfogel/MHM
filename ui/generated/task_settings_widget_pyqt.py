@@ -22,6 +22,7 @@ def qtTrId(id): return id
 
 class Ui_Form_task_settings(object):
     def setupUi(self, Form_task_settings):
+        """Auto-generated Qt UI setup function for task_settings_widget."""
         if not Form_task_settings.objectName():
             Form_task_settings.setObjectName(u"Form_task_settings")
         Form_task_settings.resize(950, 524)
@@ -91,6 +92,7 @@ class Ui_Form_task_settings(object):
     # setupUi
 
     def retranslateUi(self, Form_task_settings):
+        """Auto-generated Qt UI translation function for task_settings_widget."""
         Form_task_settings.setWindowTitle(QCoreApplication.translate("Form_task_settings", u"Form", None))
         self.groupBox_task_reminder_time_periods.setTitle(QCoreApplication.translate("Form_task_settings", u"Reminder Time Periods", None))
         self.pushButton_task_reminder_add_new_period.setText(QCoreApplication.translate("Form_task_settings", u"Add New Period", None))

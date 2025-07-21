@@ -30,6 +30,7 @@ logger = get_logger(__name__)
 
 class TaskSettingsWidget(QWidget):
     def __init__(self, parent=None, user_id=None):
+        """Initialize the object."""
         super().__init__(parent)
         self.user_id = user_id
         self.ui = Ui_Form_task_settings()

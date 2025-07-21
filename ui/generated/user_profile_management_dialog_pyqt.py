@@ -22,6 +22,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_user_profile(object):
     def setupUi(self, Dialog_user_profile):
+        """Auto-generated Qt UI setup function for user_profile_management_dialog."""
         if not Dialog_user_profile.objectName():
             Dialog_user_profile.setObjectName(u"Dialog_user_profile")
         Dialog_user_profile.resize(577, 867)
@@ -56,6 +57,7 @@ class Ui_Dialog_user_profile(object):
     # setupUi
 
     def retranslateUi(self, Dialog_user_profile):
+        """Auto-generated Qt UI translation function for user_profile_management_dialog."""
         Dialog_user_profile.setWindowTitle(QCoreApplication.translate("Dialog_user_profile", u"Dialog", None))
         self.label_profile.setText(QCoreApplication.translate("Dialog_user_profile", u"Profile", None))
         self.label_profile.setProperty(u"role", QCoreApplication.translate("Dialog_user_profile", u"header", None))

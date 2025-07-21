@@ -45,6 +45,7 @@ class ResponseCache:
     """Simple in-memory cache for AI responses to avoid repeated calculations."""
     
     def __init__(self, max_size: int = 100, ttl: int = 300):
+        """Initialize the object."""
         self.cache: Dict[str, Tuple[str, float]] = {}
         self.max_size = max_size
         self.ttl = ttl
@@ -121,12 +122,14 @@ class AIChatBotSingleton:
     _instance = None
 
     def __new__(cls):
+        """Create a new instance."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
 
     def __init__(self):
+        """Initialize the object."""
         if self._initialized:
             return
         logger.info("Initializing shared AIChatBot with LM Studio API (singleton).")

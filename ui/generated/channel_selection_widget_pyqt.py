@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Form_channel_selection(object):
     def setupUi(self, Form_channel_selection):
+        """Auto-generated Qt UI setup function for channel_selection_widget."""
         if not Form_channel_selection.objectName():
             Form_channel_selection.setObjectName(u"Form_channel_selection")
         Form_channel_selection.resize(400, 180)
@@ -110,6 +111,7 @@ class Ui_Form_channel_selection(object):
     # setupUi
 
     def retranslateUi(self, Form_channel_selection):
+        """Auto-generated Qt UI translation function for channel_selection_widget."""
         Form_channel_selection.setWindowTitle(QCoreApplication.translate("Form_channel_selection", u"Form", None))
         self.radioButton_telegram.setText(QCoreApplication.translate("Form_channel_selection", u"Telegram", None))
         self.label_select_service.setText(QCoreApplication.translate("Form_channel_selection", u"Select Service", None))

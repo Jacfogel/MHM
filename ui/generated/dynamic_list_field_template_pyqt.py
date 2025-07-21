@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QHBoxLayout, QLineEdit,
 
 class Ui_Form_dynamic_list_field_template(object):
     def setupUi(self, Form_dynamic_list_field_template):
+        """Auto-generated Qt UI setup function for dynamic_list_field_template."""
         if not Form_dynamic_list_field_template.objectName():
             Form_dynamic_list_field_template.setObjectName(u"Form_dynamic_list_field_template")
         Form_dynamic_list_field_template.resize(318, 42)
@@ -66,6 +67,7 @@ class Ui_Form_dynamic_list_field_template(object):
     # setupUi
 
     def retranslateUi(self, Form_dynamic_list_field_template):
+        """Auto-generated Qt UI translation function for dynamic_list_field_template."""
         Form_dynamic_list_field_template.setWindowTitle(QCoreApplication.translate("Form_dynamic_list_field_template", u"Form", None))
         self.checkBox__dynamic_list_field.setText("")
 #if QT_CONFIG(tooltip)

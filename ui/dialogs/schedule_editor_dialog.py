@@ -42,6 +42,7 @@ class ScheduleEditorDialog(QDialog):
     """Dialog for editing schedules."""
     
     def __init__(self, parent=None, user_id=None, category=None, on_save: Optional[Callable] = None):
+        """Initialize the object."""
         super().__init__(parent)
         self.user_id = user_id
         self.category = category

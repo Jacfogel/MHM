@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (QApplication, QCheckBox, QGridLayout, QGroupBox,
 
 class Ui_Form_checkin_settings(object):
     def setupUi(self, Form_checkin_settings):
+        """Auto-generated Qt UI setup function for checkin_settings_widget."""
         if not Form_checkin_settings.objectName():
             Form_checkin_settings.setObjectName(u"Form_checkin_settings")
         Form_checkin_settings.resize(950, 750)
@@ -219,6 +220,7 @@ class Ui_Form_checkin_settings(object):
     # setupUi
 
     def retranslateUi(self, Form_checkin_settings):
+        """Auto-generated Qt UI translation function for checkin_settings_widget."""
         Form_checkin_settings.setWindowTitle(QCoreApplication.translate("Form_checkin_settings", u"Form", None))
         self.groupBox_checkin_time_periods.setTitle(QCoreApplication.translate("Form_checkin_settings", u"Check-in Time Periods", None))
         self.pushButton_add_new_checkin_time_period.setText(QCoreApplication.translate("Form_checkin_settings", u"Add New Period", None))

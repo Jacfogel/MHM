@@ -12,6 +12,7 @@ CATEGORY_KEYS = [
 
 class CategorySelectionWidget(QWidget):
     def __init__(self, parent=None):
+        """Initialize the object."""
         super().__init__(parent)
         self.ui = Ui_Form_category_selection_widget()
         self.ui.setupUi(self)

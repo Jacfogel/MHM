@@ -33,6 +33,7 @@ class CheckinSettingsWidget(QWidget):
     """Widget for check-in settings configuration."""
     
     def __init__(self, parent=None, user_id=None):
+        """Initialize the object."""
         super().__init__(parent)
         self.user_id = user_id
         self.ui = Ui_Form_checkin_settings()

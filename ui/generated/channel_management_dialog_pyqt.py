@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
+        """Auto-generated Qt UI setup function for channel_management_dialog."""
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
         Dialog.resize(496, 300)
@@ -62,6 +63,7 @@ class Ui_Dialog(object):
     # setupUi
 
     def retranslateUi(self, Dialog):
+        """Auto-generated Qt UI translation function for channel_management_dialog."""
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
         self.label_channel_settings.setText(QCoreApplication.translate("Dialog", u"Channel Settings", None))
         self.label_channel_settings.setProperty(u"role", QCoreApplication.translate("Dialog", u"header", None))

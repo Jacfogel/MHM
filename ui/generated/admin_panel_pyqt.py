@@ -25,6 +25,7 @@ def qtTrId(id): return id
 
 class Ui_ui_app_mainwindow(object):
     def setupUi(self, ui_app_mainwindow):
+        """Auto-generated Qt UI setup function for admin_panel."""
         if not ui_app_mainwindow.objectName():
             ui_app_mainwindow.setObjectName(u"ui_app_mainwindow")
         ui_app_mainwindow.resize(879, 711)
@@ -230,6 +231,7 @@ class Ui_ui_app_mainwindow(object):
     # setupUi
 
     def retranslateUi(self, ui_app_mainwindow):
+        """Auto-generated Qt UI translation function for admin_panel."""
         ui_app_mainwindow.setWindowTitle(QCoreApplication.translate("ui_app_mainwindow", u"MainWindow", None))
         self.actionToggle_Verbos_Logging.setText(QCoreApplication.translate("ui_app_mainwindow", u"Toggle Verbose Logging", None))
         self.actionView_Log_File.setText(QCoreApplication.translate("ui_app_mainwindow", u"View Log File", None))

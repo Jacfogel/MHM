@@ -23,6 +23,7 @@ def qtTrId(id): return id
 
 class Ui_Dialog_task_management(object):
     def setupUi(self, Dialog_task_management):
+        """Auto-generated Qt UI setup function for task_management_dialog."""
         if not Dialog_task_management.objectName():
             Dialog_task_management.setObjectName(u"Dialog_task_management")
         Dialog_task_management.resize(950, 601)
@@ -92,6 +93,7 @@ class Ui_Dialog_task_management(object):
     # setupUi
 
     def retranslateUi(self, Dialog_task_management):
+        """Auto-generated Qt UI translation function for task_management_dialog."""
         Dialog_task_management.setWindowTitle(QCoreApplication.translate("Dialog_task_management", u"Dialog", None))
         self.label_task_management.setText(QCoreApplication.translate("Dialog_task_management", u"Task Management", None))
         self.label_task_management.setProperty(u"role", QCoreApplication.translate("Dialog_task_management", u"header", None))

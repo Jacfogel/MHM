@@ -21,6 +21,7 @@ class UserContext:
     _lock = threading.Lock()
 
     def __new__(cls):
+        """Create a new instance."""
         with cls._lock:
             if cls._instance is None:
                 cls._instance = super(UserContext, cls).__new__(cls)

@@ -27,6 +27,7 @@ intents.message_content = True
 class DiscordBot(BaseChannel):
     def __init__(self, config: ChannelConfig = None):
         # Initialize BaseChannel
+        """Initialize the object."""
         if config is None:
             config = ChannelConfig(
                 name='discord',

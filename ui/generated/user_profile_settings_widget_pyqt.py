@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (QApplication, QCalendarWidget, QCheckBox, QGridLa
 
 class Ui_Form_user_profile_settings(object):
     def setupUi(self, Form_user_profile_settings):
+        """Auto-generated Qt UI setup function for user_profile_settings_widget."""
         if not Form_user_profile_settings.objectName():
             Form_user_profile_settings.setObjectName(u"Form_user_profile_settings")
         Form_user_profile_settings.resize(600, 700)
@@ -584,6 +585,7 @@ class Ui_Form_user_profile_settings(object):
     # setupUi
 
     def retranslateUi(self, Form_user_profile_settings):
+        """Auto-generated Qt UI translation function for user_profile_settings_widget."""
         Form_user_profile_settings.setWindowTitle(QCoreApplication.translate("Form_user_profile_settings", u"User Profile Settings", None))
         self.groupBox_gender_identity.setTitle(QCoreApplication.translate("Form_user_profile_settings", u"Gender Identity", None))
         self.checkBox_woman.setText(QCoreApplication.translate("Form_user_profile_settings", u"Woman", None))

@@ -22,6 +22,7 @@ def qtTrId(id): return id
 
 class Ui_Form_category_selection_widget(object):
     def setupUi(self, Form_category_selection_widget):
+        """Auto-generated Qt UI setup function for category_selection_widget."""
         if not Form_category_selection_widget.objectName():
             Form_category_selection_widget.setObjectName(u"Form_category_selection_widget")
         Form_category_selection_widget.resize(400, 300)
@@ -64,6 +65,7 @@ class Ui_Form_category_selection_widget(object):
     # setupUi
 
     def retranslateUi(self, Form_category_selection_widget):
+        """Auto-generated Qt UI translation function for category_selection_widget."""
         Form_category_selection_widget.setWindowTitle(QCoreApplication.translate("Form_category_selection_widget", u"Form", None))
         self.checkBox_word_of_the_day.setText(QCoreApplication.translate("Form_category_selection_widget", u"Word of the Day", None))
         self.checkBox_quotes_to_ponder.setText(QCoreApplication.translate("Form_category_selection_widget", u"Quotes to Ponder", None))

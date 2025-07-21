@@ -13,6 +13,7 @@ from core.user_data_handlers import (
 class ChannelManagementDialog(QDialog):
     user_changed = Signal()
     def __init__(self, parent=None, user_id=None):
+        """Initialize the object."""
         super().__init__(parent)
         self.setWindowTitle("Channel Settings")
         self.user_id = user_id

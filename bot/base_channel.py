@@ -33,6 +33,7 @@ class ChannelConfig:
     custom_settings: Dict[str, Any] = None
 
     def __post_init__(self):
+        """Post-initialization setup."""
         if self.custom_settings is None:
             self.custom_settings = {}
 
@@ -40,6 +41,7 @@ class BaseChannel(ABC):
     """Abstract base class for all communication channels"""
     
     def __init__(self, config: ChannelConfig):
+        """Initialize the object."""
         self.config = config
         self.status = ChannelStatus.UNINITIALIZED
         self.error_message: Optional[str] = None

@@ -47,6 +47,7 @@ class TelegramBotError(Exception):
 class TelegramBot(BaseChannel):  # Now extends BaseChannel
     def __init__(self, config: ChannelConfig = None):
         # Suppress PTB warnings about ConversationHandler settings
+        """Initialize the object."""
         warnings.filterwarnings("ignore", category=PTBUserWarning)
         
         # Initialize BaseChannel
