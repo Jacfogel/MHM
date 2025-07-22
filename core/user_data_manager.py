@@ -20,7 +20,7 @@ from core.config import (
 )
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
 from core.user_data_handlers import get_user_data
-from core.user_management import get_all_user_ids
+from core.user_data_handlers import get_all_user_ids
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -250,7 +250,7 @@ class UserDataManager:
         # Check user directory files
         user_dir = get_user_data_dir(user_id)
         if os.path.exists(user_dir):
-            from core.user_management import USER_DATA_LOADERS
+            from core.user_data_handlers import USER_DATA_LOADERS
 
             # Build list of core file types dynamically from registered loaders
             dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]

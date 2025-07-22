@@ -67,6 +67,11 @@ class CheckinManagementDialog(QDialog):
         for child in self.ui.groupBox_checkBox_enable_checkins.findChildren(QWidget):
             if child is not self.ui.groupBox_checkBox_enable_checkins:
                 child.setEnabled(checked)
+        
+        # If check-ins are being enabled and no periods exist, create a default period
+        if checked and not self.checkin_widget.period_widgets:
+            logger.info("Check-ins enabled with no periods - creating default period")
+            self.checkin_widget.add_new_time_period()
     
     def load_user_checkin_data(self):
         """Load the user's current check-in settings"""
@@ -89,6 +94,12 @@ class CheckinManagementDialog(QDialog):
             return
         try:
             checkin_settings = self.checkin_widget.get_checkin_settings()
+
+            # Validate periods before saving
+            is_valid, error_message = self.checkin_widget.validate_periods()
+            if not is_valid:
+                QMessageBox.warning(self, "Validation Error", error_message)
+                return
 
             # Duplicate period name validation
             period_names = [w.get_period_data().get('name') for w in self.checkin_widget.period_widgets]

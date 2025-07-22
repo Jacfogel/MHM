@@ -198,18 +198,12 @@ def period_name_for_display(period_name: str, category: str) -> str:
     if not period_name:
         return ""
     
-    # Use existing title_case logic from validation module
-    from core.user_data_validation import title_case
-    
-    # For tasks and checkins, use title_case for display
-    if category in ("tasks", "checkin"):
-        return title_case(period_name)
-    
-    # For schedules, use title_case except for "ALL"
+    # For all categories, preserve the original case
+    # Users should be able to name their periods as they prefer
     if period_name.upper() == "ALL":
         return "ALL"
     else:
-        return title_case(period_name)
+        return period_name
 
 
 def period_name_for_storage(display_name: str, category: str) -> str:
@@ -221,16 +215,13 @@ def period_name_for_storage(display_name: str, category: str) -> str:
         category: The category (tasks, checkin, or schedule category)
     
     Returns:
-        Storage-formatted period name (lowercase for tasks/checkins)
+        Storage-formatted period name (preserve original case)
     """
     if not display_name:
         return ""
     
-    # For tasks and checkins, store in lowercase
-    if category in ("tasks", "checkin"):
-        return display_name.lower()
-    
-    # For schedules, preserve case except for "ALL"
+    # For all categories, preserve the original case
+    # The display name is already in the user's preferred format
     if display_name.upper() == "ALL":
         return "ALL"
     else:

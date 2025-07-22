@@ -51,7 +51,7 @@ def test_account_management_functions():
     print("\n🔍 Testing Account Management Functions...")
     
     try:
-        from core.user_management import (
+        from core.user_data_handlers import (
             get_user_data, update_user_account, update_user_preferences, 
             update_user_context, save_user_data, get_all_user_ids
         )
@@ -193,7 +193,7 @@ def test_account_management_validation():
     print("\n🔍 Testing Account Management Validation...")
     
     try:
-        from core.user_management import validate_user_data_updates
+        from core.user_data_validation import validate_user_update
         
         results = {}
         
@@ -204,7 +204,7 @@ def test_account_management_validation():
                 'email': 'test@example.com',
                 'channel': {'type': 'email'}
             }
-            is_valid, errors = validate_user_data_updates('test-user', 'account', valid_updates)
+            is_valid, errors = validate_user_update('test-user', 'account', valid_updates)
             
             if is_valid:
                 print(f"  ✅ Account validation: Valid updates accepted")
@@ -222,7 +222,7 @@ def test_account_management_validation():
                 'internal_username': '',  # Empty username should fail
                 'channel': {'type': 'invalid'}  # Invalid channel type
             }
-            is_valid, errors = validate_user_data_updates('test-user', 'account', invalid_updates)
+            is_valid, errors = validate_user_update('test-user', 'account', invalid_updates)
             
             if not is_valid:
                 print(f"  ✅ Account validation: Invalid updates correctly rejected")
@@ -240,7 +240,7 @@ def test_account_management_validation():
                 'categories': ['motivational'],
                 'channel': {'type': 'email'}
             }
-            is_valid, errors = validate_user_data_updates('test-user', 'preferences', valid_prefs)
+            is_valid, errors = validate_user_update('test-user', 'preferences', valid_prefs)
             
             if is_valid:
                 print(f"  ✅ Preferences validation: Valid updates accepted")

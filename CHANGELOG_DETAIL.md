@@ -12,55 +12,126 @@ This is the complete detailed changelog. See CHANGELOG_BRIEF.md for brief summar
 
 ## 🗓️ Recent Changes (Most Recent First)
 
-### 2025-07-21 - Enhanced Function Registry Generator and Coverage Analysis
+### 2025-07-21 - Unified API Refactoring and Test Fixes ✅ **COMPLETED**
 
-**Major Enhancement:**
-- Enhanced `ai_tools/generate_function_registry.py` with automatic template generation for improved documentation coverage
-- Added intelligent function type detection and template generation for various function categories
-- Improved coverage reporting with detailed statistics and template breakdown
-- Resolved coverage discrepancy between function registry generator and audit tools
+#### **Problem Identified**
+- Pylance errors in `core/user_data_handlers.py` due to undefined legacy save functions
+- 25 test failures due to caching issues and file path inconsistencies
+- Scripts directory disorganized with redundant files
 
-**New Automated Features:**
+#### **Root Cause Analysis**
+- `save_user_data` function was calling legacy `save_user_*_data` functions that no longer existed
+- Legacy loaders had caching that wasn't being cleared after new API saves
+- File mapping used `'user_context'` but new API used `'context'`
+- `save_json_data` returned `None` instead of `True` on success
+- Scripts directory contained many redundant and outdated files
 
-**Template Generation System:**
-- **Auto-generated Qt Functions**: Automatic documentation for `qtTrId`, `setupUi`, `retranslateUi` functions
-- **Test Function Templates**: Intelligent test function documentation with scenario-based descriptions
-- **Special Python Methods**: Automatic documentation for `__init__`, `__new__`, `__post_init__`, etc.
-- **Constructor and Main Functions**: Template generation for constructors and main entry points
-- **Function Type Detection**: Smart detection of function types based on name patterns, decorators, and context
+#### **Solutions Implemented**
 
-**Coverage Improvements:**
-- **Function Registry Generator**: Now reports 93.5% coverage (1718/1838 total items documented)
-- **Template-Generated Items**: 13 items automatically documented with appropriate templates
-- **Detailed Statistics**: Comprehensive reporting including functions, methods, classes, and template breakdown
-- **Coverage Analysis**: Resolved discrepancy between generator (93.5%) and audit (85.7%) by explaining different counting methodologies
+**1. Fixed Pylance Errors**
+- Updated `save_user_data` in `core/user_data_handlers.py` to use unified API directly
+- Replaced legacy function calls with direct `save_json_data` and `get_user_file_path` usage
+- Updated imports in UI and test files to use new API
 
-**Technical Implementation:**
-- Added `detect_function_type()` function with intelligent pattern recognition
-- Added `generate_function_template()` function with context-aware template generation
-- Enhanced `extract_functions_from_file()` to include template generation for undocumented functions
-- Enhanced `extract_classes_from_file()` to apply template generation to class methods
-- Updated `update_function_registry()` with comprehensive statistics and template breakdown
+**2. Fixed Caching Issues**
+- Added cache clearing after successful data saves in `save_user_data`
+- Imported and called `clear_user_caches(user_id)` from `core.user_management`
+- Ensures legacy loaders return fresh data after saves
 
-**Coverage Discrepancy Resolution:**
-- **Generator Methodology**: Counts functions + methods + classes (1838 total items)
-- **Audit Methodology**: Counts only functions with actual docstrings (1079 total functions)
-- **Both Correct**: Different but complementary approaches to documentation coverage
-- **Generator**: Broader view including template-generated and auto-generated content
-- **Audit**: More strict view focusing on actual source code documentation
+**3. Fixed File Path Inconsistencies**
+- Updated `get_user_file_path` mapping in `core/config.py` to use `'context'` instead of `'user_context'`
+- Updated legacy loaders in `core/user_management.py` to use `'context'` file type
+- Updated `create_user_files` in `core/file_operations.py` to use `'context'` file type
+- Updated test expectations to expect `context.json` instead of `user_context.json`
 
-**Benefits:**
-- **Improved Documentation Coverage**: 93.5% coverage achieved through template generation
-- **Reduced Manual Work**: Automatic documentation for common function types
-- **Better Function Understanding**: Context-aware templates provide meaningful descriptions
-- **Consistent Documentation**: Standardized templates for similar function types
-- **Clear Coverage Metrics**: Detailed statistics help track documentation progress
+**4. Fixed Return Value Expectations**
+- Updated `save_json_data` in `core/file_operations.py` to return `True` on success
+- Added `default_return=False` to `@handle_errors` decorator
+- Updated all file operations tests to expect `True` instead of `None`
 
-**Testing Results:**
-- Verified that template generation works correctly without introducing syntax errors
-- Confirmed that function registry generator produces stable results on repeated runs
-- Validated that application functionality is preserved after template generation
-- Tested that all generated documentation is syntactically correct and meaningful
+**5. Scripts Directory Cleanup**
+- Organized scripts into logical categories:
+  - `scripts/migration/` - Data migration scripts
+  - `scripts/testing/` - Testing and validation scripts
+  - `scripts/testing/ai/` - AI-specific testing scripts
+  - `scripts/debug/` - Debugging and troubleshooting scripts
+  - `scripts/utilities/` - General utility scripts
+  - `scripts/utilities/cleanup/` - Cleanup and maintenance scripts
+  - `scripts/utilities/refactoring/` - Refactoring tools
+  - `scripts/docs/` - Documentation files
+- Removed redundant scripts that duplicated `ai_tools` functionality
+- Removed one-time fix scripts that are no longer needed
+- Updated `scripts/README.md` with comprehensive documentation
+
+#### **Results Achieved**
+- **All tests passing**: 244 passed, 1 skipped (was 25 failed)
+- **No Pylance errors**: All undefined function errors resolved
+- **Consistent file paths**: All context data now uses `context.json`
+- **Proper caching**: Legacy loaders return fresh data after saves
+- **Clean scripts directory**: Organized and documented with no redundancy
+- **System stability**: `python run_mhm.py` works correctly
+
+#### **Files Modified**
+- `core/user_data_handlers.py` - Fixed save_user_data implementation
+- `core/config.py` - Updated file mapping
+- `core/user_management.py` - Updated legacy loaders
+- `core/file_operations.py` - Updated create_user_files and save_json_data
+- `tests/unit/test_file_operations.py` - Updated return value expectations
+- `tests/unit/test_user_management.py` - Updated file name expectations
+- `tests/integration/test_user_creation.py` - Updated imports
+- `scripts/` directory - Complete reorganization
+- `scripts/README.md` - Comprehensive documentation
+
+#### **Testing Verification**
+- Ran `python run_tests.py` - All 244 tests pass
+- Ran `python run_mhm.py` - System starts correctly
+- Ran `python ai_tools/quick_audit.py` - All audits pass
+- Verified no Pylance errors in VS Code
+
+### 2025-07-21 - Dialog Testing and Validation Fixes
+
+#### Category Management Dialog Fixes
+- **Fixed validation errors**: Resolved `channel.type is required for account updates` error by removing incorrect validation from `core/user_data_validation.py`
+- **Fixed category persistence**: Simplified category saving logic to always get categories from widget, ensuring proper updates to preferences.json
+- **Enhanced validation**: Added feature validation to prevent disabling all features without warning
+- **Added schedule cleanup**: Implemented clearing of schedule cache when automated messages are disabled
+
+#### Channel Management Dialog Testing
+- **Completed comprehensive testing**: All basic functionality, data persistence, and validation working correctly
+- **Identified minor enhancement**: Discord validation format rules not yet configured (low priority)
+- **Status**: Functionally complete and ready for production use
+
+#### Check-in Management Dialog Major Fixes
+- **Fixed day validation**: Modified `get_selected_days()` in `period_row_widget.py` to return empty list instead of defaulting to `['ALL']`
+- **Added comprehensive validation**: Implemented `validate_periods()` method with specific error messages for:
+  - Empty periods (no periods exist)
+  - All disabled periods (no active periods)
+  - Invalid period data (missing days for active periods)
+- **Fixed default period creation**: Added logic to create default period when check-ins are first enabled
+- **Fixed period name case preservation**: Modified `period_name_for_display()` and `period_name_for_storage()` to preserve original case
+- **Added last period protection**: Prevented deletion of the last period with clear warning message
+- **Enhanced "Add New Element"**: Replaced "not implemented" message with functional input dialog
+- **Updated default period names**: Changed from title case to lowercase to match user preferences
+
+#### Validation System Improvements
+- **Enhanced period validation**: Added `is_valid()` method to `PeriodRowWidget` with proper day validation
+- **Added save validation**: Integrated validation checks in dialog save methods to prevent invalid data
+- **Improved error messages**: Clear, specific validation error messages for better user experience
+
+#### Documentation Updates
+- **Updated TODO.md**: Added "Dynamic Check-in Question System" as high priority task with detailed implementation plan
+- **Created testing checklist**: Comprehensive manual testing framework for systematic dialog testing
+
+#### Files Modified
+- `ui/widgets/period_row_widget.py`: Fixed day validation and enhanced period validation
+- `ui/widgets/checkin_settings_widget.py`: Added validation methods and improved default period creation
+- `ui/dialogs/checkin_management_dialog.py`: Added validation integration and default period creation
+- `ui/dialogs/category_management_dialog.py`: Fixed validation errors and enhanced save logic
+- `core/ui_management.py`: Fixed period name case preservation
+- `core/user_data_validation.py`: Removed incorrect channel validation from account updates
+- `TODO.md`: Added dynamic question system implementation plan
+
+### 2025-07-21 - Manual Testing Framework Establishment
 
 ### 2025-07-20 - Fixed Manual Enhancement Preservation in Module Dependencies Generator
 

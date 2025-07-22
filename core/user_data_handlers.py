@@ -1,31 +1,24 @@
-"""Unified user-data handler (stable API)
+"""
+Centralized User Data Handlers for MHM.
 
-This module now *owns* the canonical implementations of
-`get_user_data`, `save_user_data`, and their helpers.  All new code
-should import these functions from :pymod:`core.user_data_handlers`
-instead of :pymod:`core.user_management`.  Thin wrappers remain in
-*user_management* solely for backward compatibility – they emit
-`LEGACY …` log warnings to help identify call-sites that still need to
-be updated.
+This module provides a unified API for loading, saving, and managing user data
+across all data types (account, preferences, context, schedules, etc.).
 """
 
 import os
-from typing import Union, List, Dict, Any, Optional
+import traceback
+from typing import Dict, Any, List, Union, Optional
+from core.logger import get_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path
-from core.logger import get_logger
 from core.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
 )
-# Added imports for loaders and per-type save helpers residing in user_management
+# Registry functions - these should stay in user_management for now
 from core.user_management import (
     USER_DATA_LOADERS,
     get_available_data_types,
-    save_user_account_data,
-    save_user_preferences_data,
-    save_user_context_data,
-    save_user_schedules_data,
 )
 
 # ---------------------------------------------------------------------------
@@ -79,7 +72,9 @@ def get_user_data(
     auto_create: bool = True,
     include_metadata: bool = False
 ) -> Dict[str, Any]:
-    """Central handler for all user data access (migrated from user_management)."""
+    """Migrated implementation of get_user_data."""
+    logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
+    
     if not user_id:
         logger.error("get_user_data called with None user_id")
         return {}
@@ -148,6 +143,7 @@ def get_user_data(
         if data is not None:
             result[data_type] = data
 
+    logger.debug(f"get_user_data returning: {result}")
     return result 
 
 @handle_errors("saving user data", default_return={})
@@ -200,6 +196,8 @@ def save_user_data(
     # -------------------------------------------------------------------
     from core.config import get_user_data_dir
     is_new_user = not os.path.exists(get_user_data_dir(user_id))
+    
+    logger.debug(f"save_user_data: user_id={user_id}, is_new_user={is_new_user}, valid_types={valid_types_to_process}")
 
     # a) Whole-dataset validation for a brand-new user
     if validate_data and is_new_user and valid_types_to_process:
@@ -212,15 +210,19 @@ def save_user_data(
     # b) Per-data-type validation for existing users
     if validate_data and not is_new_user:
         for dt in valid_types_to_process:
+            logger.debug(f"Validating {dt} for existing user {user_id}")
             ok, errors = validate_user_update(user_id, dt, data_updates[dt])
             if not ok:
                 logger.error(f"Validation failed for {dt}: {errors}")
                 # Mark as failed and remove from further processing
                 result[dt] = False
                 invalid_types.append(dt)
+            else:
+                logger.debug(f"Validation passed for {dt}")
 
     # Refresh valid list after validation failures
     valid_types_to_process = [dt for dt in valid_types_to_process if dt not in invalid_types]
+    logger.debug(f"After validation: valid_types_to_process={valid_types_to_process}")
 
     # -------------------------------------------------------------------
     # 3. Save Phase – iterate only over types that passed validation
@@ -231,22 +233,21 @@ def save_user_data(
             current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
             updated = current.copy() if isinstance(current, dict) else {}
             updated.update(updates)
+            
+            logger.debug(f"Save {dt}: current={current}, updates={updates}, merged={updated}")
 
-            if dt == 'account':
-                success = save_user_account_data(user_id, updated)
-            elif dt == 'preferences':
-                success = save_user_preferences_data(user_id, updated)
-            elif dt == 'context':
-                success = save_user_context_data(user_id, updated)
-            elif dt == 'schedules':
-                success = save_user_schedules_data(user_id, updated)
-            else:
-                logger.error(f"No save function registered for data type: {dt}")
-                success = False
-
+            # Use the unified save approach - save the data directly
+            from core.file_operations import save_json_data
+            from core.config import get_user_file_path
+            
+            file_path = get_user_file_path(user_id, dt)
+            success = save_json_data(updated, file_path)
             result[dt] = success
+            logger.debug(f"Saved {dt} data for user {user_id}: success={success}")
         except Exception as e:
             logger.error(f"Error saving {dt} data for user {user_id}: {e}")
+            logger.error(f"Exception type: {type(e).__name__}")
+            logger.error(f"Exception traceback: {traceback.format_exc()}")
             result[dt] = False
 
     # -------------------------------------------------------------------
@@ -258,6 +259,17 @@ def save_user_data(
             update_user_index(user_id)
         except Exception as e:
             logger.warning(f"Failed to update user index after data save for user {user_id}: {e}")
+
+    # -------------------------------------------------------------------
+    # 5. Cache clearing (if any saves succeeded)
+    # -------------------------------------------------------------------
+    if any(result.values()):
+        try:
+            from core.user_management import clear_user_caches
+            clear_user_caches(user_id)
+            logger.debug(f"Cleared cache for user {user_id} after data save")
+        except Exception as e:
+            logger.warning(f"Failed to clear cache for user {user_id}: {e}")
 
     return result
 
@@ -371,13 +383,12 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
     if "categories" in updates:
         try:
             from core.user_management import (
-                load_user_preferences_data,
                 ensure_category_has_default_schedule,
                 ensure_all_categories_have_schedules,
             )
             from core.message_management import ensure_user_message_files
 
-            preferences_data = load_user_preferences_data(user_id, auto_create=auto_create)
+            preferences_data = get_user_data(user_id, "preferences")
             if preferences_data is None:
                 logger.warning(f"Could not load or create preferences for user {user_id}")
             else:

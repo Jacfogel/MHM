@@ -170,7 +170,7 @@ def load_json_data(file_path):
         logger.error(f"Unexpected error loading data from {file_path}: {e}")
         return None
 
-@handle_errors("saving JSON data", user_friendly=False)
+@handle_errors("saving JSON data", user_friendly=False, default_return=False)
 def save_json_data(data, file_path):
     """
     Save data to a JSON file with comprehensive error handling.
@@ -178,6 +178,9 @@ def save_json_data(data, file_path):
     Args:
         data: Data to save (must be JSON serializable)
         file_path: Path where to save the file
+        
+    Returns:
+        bool: True if successful, False if failed
         
     Raises:
         FileOperationError: If saving fails
@@ -197,6 +200,7 @@ def save_json_data(data, file_path):
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
         logger.debug(f"Successfully saved data to {file_path}")
+        return True
     except Exception as e:
         raise FileOperationError(f"Failed to save data to {file_path}: {e}")
 
@@ -318,7 +322,7 @@ def create_user_files(user_id, categories, user_preferences=None):
         logger.debug(f"Created preferences file for user {user_id}")
     
     # Create user_context.json with actual personalization data
-    context_file = get_user_file_path(user_id, 'user_context')
+    context_file = get_user_file_path(user_id, 'context')
     if not os.path.exists(context_file):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         

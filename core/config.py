@@ -48,6 +48,10 @@ LM_STUDIO_BASE_URL = os.getenv('LM_STUDIO_BASE_URL', 'http://localhost:1234/v1')
 LM_STUDIO_API_KEY = os.getenv('LM_STUDIO_API_KEY', 'lm-studio')  # LM Studio uses any key
 LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'deepseek-llm-7b-chat')  # Model name for API calls
 
+# AI System Prompt Configuration
+AI_SYSTEM_PROMPT_PATH = os.getenv('AI_SYSTEM_PROMPT_PATH', 'resources/assistant_system_prompt.txt')
+AI_USE_CUSTOM_PROMPT = os.getenv('AI_USE_CUSTOM_PROMPT', 'true').lower() == 'true'
+
 # Legacy support for GPT4All (deprecated, keeping for fallback)
 HERMES_FILE_PATH = os.getenv('HERMES_FILE_PATH', os.path.expanduser('~/AppData/Local/nomic.ai/GPT4All/Nous-Hermes-2-Mistral-7B-DPO.Q4_0.gguf'))
 
@@ -421,7 +425,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         # New structure
         'account': 'account.json',
         'preferences': 'preferences.json',
-        'user_context': 'user_context.json',
+        'context': 'context.json',
         'schedules': 'schedules.json',
         # Other files
         'daily_checkins': 'daily_checkins.json',

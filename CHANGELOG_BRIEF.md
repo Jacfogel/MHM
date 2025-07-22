@@ -12,6 +12,28 @@ This file contains brief summaries of recent changes for AI context. See CHANGEL
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-21 - Unified API Refactoring and Test Fixes ✅ **COMPLETED**
+- **Fixed Pylance errors** in `core/user_data_handlers.py` by updating `save_user_data` to use unified API directly
+- **Fixed caching issues** by adding cache clearing after data saves to ensure legacy loaders return fresh data
+- **Fixed file path inconsistencies** by updating file mapping to use `'context'` instead of `'user_context'`
+- **Fixed return value expectations** by updating `save_json_data` to return `True` on success
+- **Updated test expectations** to match new API and file names
+- **All tests now passing**: 244 passed, 1 skipped (was 25 failed before fixes)
+- **Scripts directory cleanup**: Organized scripts into logical categories (migration, testing, debug, utilities, refactoring)
+- **Removed redundant scripts**: Eliminated duplicates of ai_tools functionality and one-time fixes
+
+### 2025-07-21 - Dialog Testing and Validation Fixes
+- **Category Management Dialog**: Fixed validation errors preventing account.json updates, resolved category persistence issues
+- **Channel Management Dialog**: Completed testing - all functionality working, minor Discord validation enhancement planned
+- **Check-in Management Dialog**: Fixed day validation, default period creation, period name case preservation, added comprehensive validation system
+- **Validation System**: Enhanced period validation across all dialogs with clear error messages and user protection
+- **Documentation**: Updated TODO.md with dynamic question system implementation plan
+
+### 2025-07-21 - Manual Testing Framework
+- Created comprehensive manual testing checklist for all dialogs
+- Established systematic testing approach for UI components
+- Fixed UI test script path issues and class references
+
 ### 2025-07-21 - Enhanced Function Registry Generator and Coverage Analysis
 - Enhanced `ai_tools/generate_function_registry.py` with automatic template generation for improved documentation coverage
 - Added intelligent function type detection for Qt functions, test functions, special methods, constructors, and main functions

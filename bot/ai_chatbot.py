@@ -20,6 +20,7 @@ from core.logger import get_logger
 from core.config import (
     LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, 
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
+    AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT,
     HERMES_FILE_PATH  # Keep for fallback compatibility
 )
 # Legacy import removed - using get_user_data() instead
@@ -40,6 +41,71 @@ except ImportError:
     gpt4all = None
 
 logger = get_logger(__name__)
+
+class SystemPromptLoader:
+    """
+    Handles loading and managing the AI system prompt from the custom prompt file.
+    Provides fallback prompts if the custom file is not available.
+    """
+    
+    def __init__(self):
+        self._custom_prompt = None
+        self._fallback_prompts = {
+            'wellness': ("You are a supportive wellness assistant. Keep responses helpful, "
+                        "encouraging, and under 150 words. Important: You cannot diagnose or treat "
+                        "medical conditions. For serious concerns, recommend professional help."),
+            'command': ("You extract structured commands from user requests. "
+                       "Respond ONLY in valid JSON like "
+                       '{"action": "<action>", "details": {...}}'),
+            'neurodivergent_support': ("You are an AI assistant with the personality and capabilities "
+                                      "of a calm, loyal, emotionally intelligent companion. Your purpose "
+                                      "is to support and motivate a neurodivergent user (with ADHD and depression), "
+                                      "helping them with task switching, emotional regulation, and personal development. "
+                                      "You are warm but not overbearing, intelligent but humble, and always context-aware. "
+                                      "Keep responses helpful, encouraging, and under 150 words.")
+        }
+        self._load_custom_prompt()
+    
+    def _load_custom_prompt(self):
+        """Load the custom system prompt from file."""
+        if not AI_USE_CUSTOM_PROMPT:
+            logger.info("Custom system prompt disabled via configuration")
+            return
+            
+        try:
+            if os.path.exists(AI_SYSTEM_PROMPT_PATH):
+                with open(AI_SYSTEM_PROMPT_PATH, 'r', encoding='utf-8') as f:
+                    self._custom_prompt = f.read().strip()
+                logger.info(f"Loaded custom system prompt from {AI_SYSTEM_PROMPT_PATH}")
+            else:
+                logger.warning(f"Custom system prompt file not found: {AI_SYSTEM_PROMPT_PATH}")
+        except Exception as e:
+            logger.error(f"Error loading custom system prompt: {e}")
+    
+    def get_system_prompt(self, prompt_type: str = 'wellness') -> str:
+        """
+        Get the appropriate system prompt for the given type.
+        
+        Args:
+            prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
+            
+        Returns:
+            The system prompt string
+        """
+        # If custom prompt is available and type is wellness/neurodivergent_support, use it
+        if self._custom_prompt and prompt_type in ['wellness', 'neurodivergent_support']:
+            return self._custom_prompt
+        
+        # Otherwise use fallback prompts
+        return self._fallback_prompts.get(prompt_type, self._fallback_prompts['wellness'])
+    
+    def reload_prompt(self):
+        """Reload the custom prompt from file (useful for development)."""
+        self._load_custom_prompt()
+        logger.info("System prompt reloaded")
+
+# Global system prompt loader instance
+system_prompt_loader = SystemPromptLoader()
 
 class ResponseCache:
     """Simple in-memory cache for AI responses to avoid repeated calculations."""
@@ -215,10 +281,10 @@ class AIChatBotSingleton:
         
         # Get user context
         context_result = get_user_data(user_id, 'context')
-        user_context = context_result.get('context')
+        user_context = context_result.get('context') if context_result else {}
         
         user_name = ""
-        if user_id:
+        if user_id and user_context:
             user_name = user_context.get('preferred_name', '').strip()
         
         name_prefix = f"{user_name}, " if user_name else ""
@@ -300,11 +366,12 @@ class AIChatBotSingleton:
         
         # Fall back to keyword-based responses if no data analysis possible
         # Mood and mental health inquiries
-        mood_keywords = ['depressed', 'anxious', 'sad', 'worried', 'stressed', 'overwhelmed']
+        mood_keywords = ['depressed', 'anxious', 'sad', 'worried', 'stressed', 'overwhelmed', 'down', 'hopeless']
         if any(keyword in prompt_lower for keyword in mood_keywords):
             return (f"{name_prefix}It sounds like you're going through a difficult time. "
-                   f"While I can offer general support, it's important to connect with friends, family, "
-                   f"or a mental health professional for personalized help. What helps you feel better when you're struggling?")
+                   f"Remember that your feelings are valid, and it's okay to not be okay. "
+                   f"What small thing could help you feel a bit better right now? "
+                   f"Sometimes just taking one tiny step is enough.")
         
         # Health and wellness topics
         health_keywords = ['sleep', 'exercise', 'diet', 'energy', 'tired', 'nutrition']
@@ -313,12 +380,19 @@ class AIChatBotSingleton:
                    f"Small, consistent changes often make the biggest difference. What aspect of your health "
                    f"would you like to focus on improving?")
         
+        # Executive function and focus support
+        focus_keywords = ['focus', 'concentrate', 'distracted', 'procrastinate', 'forget', 'remember', 'task', 'overwhelm']
+        if any(keyword in prompt_lower for keyword in focus_keywords):
+            return (f"{name_prefix}Tasks can feel overwhelming when focus is challenging. "
+                   f"Try breaking things into tiny steps - even 5 minutes of progress counts. "
+                   f"What's one small thing you could do right now?")
+        
         # Motivational and goal-related
-        goal_keywords = ['motivation', 'goal', 'habit', 'change', 'improve', 'better']
+        goal_keywords = ['motivation', 'goal', 'habit', 'change', 'improve', 'better', 'start', 'begin']
         if any(keyword in prompt_lower for keyword in goal_keywords):
             return (f"{name_prefix}It's wonderful that you're thinking about positive changes! "
-                   f"Small, consistent steps often lead to the most lasting improvements. "
-                   f"What's one small step you could take today toward your goal?")
+                   f"Big goals can feel overwhelming. Try starting with something tiny - "
+                   f"even 2 minutes of progress is real progress. What's one small step you could take today?")
         
         # Relationship and social topics
         social_keywords = ['lonely', 'friends', 'family', 'relationship', 'social', 'isolated']
@@ -387,12 +461,10 @@ class AIChatBotSingleton:
     @handle_errors("optimizing prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and under 150 words."}, {"role": "user", "content": "Hello"}])
     def _optimize_prompt(self, user_prompt: str, context: Optional[str] = None) -> list:
         """Create optimized messages array for LM Studio API."""
-        # Create system message for wellness assistant
+        # Create system message using the centralized prompt loader
         system_message = {
             "role": "system",
-            "content": ("You are a supportive wellness assistant. Keep responses helpful, "
-                       "encouraging, and under 150 words. Important: You cannot diagnose or treat "
-                       "medical conditions. For serious concerns, recommend professional help.")
+            "content": system_prompt_loader.get_system_prompt('wellness')
         }
         
         # Create user message with optional context
@@ -423,6 +495,29 @@ class AIChatBotSingleton:
             context_parts.append(f"User's name: {profile['preferred_name']}")
         if profile.get('active_categories'):
             context_parts.append(f"Interests: {', '.join(profile['active_categories'])}")
+        
+        # Neurodivergent-specific context from user data
+        user_context_data = context.get('user_context', {})
+        if user_context_data:
+            # Health conditions (ADHD, depression, etc.)
+            health_conditions = user_context_data.get('custom_fields', {}).get('health_conditions', [])
+            if health_conditions:
+                context_parts.append(f"Health conditions: {', '.join(health_conditions)}")
+            
+            # User's notes for AI (specific needs, preferences)
+            notes_for_ai = user_context_data.get('notes_for_ai', [])
+            if notes_for_ai:
+                context_parts.append(f"User notes for AI: {'; '.join(notes_for_ai)}")
+            
+            # Activities that encourage the user
+            encouraging_activities = user_context_data.get('activities_for_encouragement', [])
+            if encouraging_activities:
+                context_parts.append(f"Encouraging activities: {', '.join(encouraging_activities)}")
+            
+            # Goals and interests
+            goals = user_context_data.get('goals', [])
+            if goals:
+                context_parts.append(f"User goals: {', '.join(goals)}")
         
         # Recent check-in data analysis
         recent_checkins = get_recent_responses(user_id, limit=10)
@@ -492,22 +587,24 @@ class AIChatBotSingleton:
         # Create comprehensive context string
         context_str = "\n".join(context_parts) if context_parts else "New user with no data"
         
-        # Create system message with comprehensive context
+        # Create system message with comprehensive context using custom prompt
+        base_prompt = system_prompt_loader.get_system_prompt('wellness')
         system_message = {
             "role": "system",
-            "content": f"""You are a supportive wellness assistant with access to the user's comprehensive data. 
+            "content": f"""{base_prompt}
 
 User Context:
 {context_str}
 
-Instructions:
+Additional Instructions:
 - Use the user's actual data to provide personalized, specific responses
 - Reference specific numbers, percentages, and trends from their check-in data
 - Be encouraging and supportive while being honest about their patterns
 - Keep responses under 150 words
 - If they ask about their data, provide specific insights from their check-ins
 - If they ask about habits, reference their actual performance (e.g., "You've been eating breakfast 90% of the time")
-- For health advice, be general and recommend professional help for serious concerns"""
+- For health advice, be general and recommend professional help for serious concerns
+- Adapt your approach based on the user's specific needs and preferences from their context data"""
         }
         
         user_message = {
@@ -550,11 +647,7 @@ Instructions:
         """Create a prompt instructing the model to return strict JSON."""
         system_message = {
             "role": "system",
-            "content": (
-                "You extract structured commands from user requests. "
-                "Respond ONLY in valid JSON like "
-                '{"action": "<action>", "details": {...}}'
-            ),
+            "content": system_prompt_loader.get_system_prompt('command'),
         }
 
         user_message = {"role": "user", "content": user_prompt}
@@ -599,7 +692,8 @@ Instructions:
             return response
 
         # Prevent concurrent API calls which can cause rate limiting
-        if not self._generation_lock.acquire(blocking=False):
+        # Use a short timeout instead of immediately giving up
+        if not self._generation_lock.acquire(blocking=True, timeout=2):
             logger.warning("API is busy, using enhanced contextual fallback")
             response = self._get_contextual_fallback(user_prompt, user_id)
             self.response_cache.set(cache_key_prompt, response, user_id)
@@ -650,6 +744,37 @@ Instructions:
         Check if the AI model is available and functional.
         """
         return self.lm_studio_available
+    
+    def reload_system_prompt(self):
+        """
+        Reload the system prompt from file (useful for development and testing).
+        """
+        system_prompt_loader.reload_prompt()
+        logger.info("System prompt reloaded via AI chatbot")
+    
+    def test_system_prompt_integration(self) -> dict:
+        """
+        Test the system prompt integration and return status information.
+        """
+        test_results = {
+            'custom_prompt_enabled': AI_USE_CUSTOM_PROMPT,
+            'prompt_file_exists': os.path.exists(AI_SYSTEM_PROMPT_PATH),
+            'custom_prompt_loaded': system_prompt_loader._custom_prompt is not None,
+            'prompt_length': len(system_prompt_loader._custom_prompt) if system_prompt_loader._custom_prompt else 0,
+            'fallback_prompts_available': list(system_prompt_loader._fallback_prompts.keys()),
+        }
+        
+        # Test each prompt type
+        for prompt_type in ['wellness', 'command', 'neurodivergent_support']:
+            try:
+                prompt = system_prompt_loader.get_system_prompt(prompt_type)
+                test_results[f'{prompt_type}_prompt_works'] = True
+                test_results[f'{prompt_type}_prompt_length'] = len(prompt)
+            except Exception as e:
+                test_results[f'{prompt_type}_prompt_works'] = False
+                test_results[f'{prompt_type}_prompt_error'] = str(e)
+        
+        return test_results
 
     @handle_errors("getting AI status", default_return={})
     def get_ai_status(self) -> dict:
@@ -665,6 +790,12 @@ Instructions:
             'cache_enabled': AI_CACHE_RESPONSES,
             'cache_size': len(self.response_cache.cache),
             'timeout_seconds': AI_TIMEOUT_SECONDS,
+            # System prompt information
+            'custom_prompt_enabled': AI_USE_CUSTOM_PROMPT,
+            'custom_prompt_path': AI_SYSTEM_PROMPT_PATH,
+            'custom_prompt_loaded': system_prompt_loader._custom_prompt is not None,
+            'prompt_length': len(system_prompt_loader._custom_prompt) if system_prompt_loader._custom_prompt else 0,
+            'prompt_file_exists': os.path.exists(AI_SYSTEM_PROMPT_PATH),
             # Legacy GPT4All info for compatibility
             'gpt4all_library_available': GPT4ALL_AVAILABLE,
             'model_file_exists': os.path.exists(HERMES_FILE_PATH) if HERMES_FILE_PATH else False,

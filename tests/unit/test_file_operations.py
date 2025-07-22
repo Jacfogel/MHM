@@ -78,9 +78,8 @@ class TestFileOperations:
             assert not os.path.exists(temp_file), f"File should not exist initially: {temp_file}"
         
         result = save_json_data(test_data, temp_file)
-        # Function doesn't return anything explicitly, so it returns None
-        # The success is indicated by the file being created without errors
-        assert result is None
+        # Function returns True on success
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check that file was actually created
         assert os.path.exists(temp_file), f"File should be created at {temp_file}"
@@ -120,7 +119,7 @@ class TestFileOperations:
         test_data = {'test': 'data'}
         
         result = save_json_data(test_data, file_path)
-        assert result is None
+        assert result is True
         
         # Verify file and directory were created
         assert os.path.exists(file_path)
@@ -152,7 +151,7 @@ class TestFileOperations:
             pass
         
         result = save_json_data({'test': 'data'}, protected_path)
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check that the file was NOT created
         assert not os.path.exists(protected_path), f"File should not be created at protected path: {protected_path}"
@@ -414,7 +413,7 @@ class TestFileOperationsEdgeCases:
         }
         
         result = save_json_data(test_data, temp_file)
-        assert result is None
+        assert result is True
         
         # Verify data was saved correctly
         with open(temp_file, 'r') as f:
@@ -481,7 +480,7 @@ class TestFileOperationsEdgeCases:
         initial_file_exists = os.path.exists(account_file_path)
         
         result = save_json_data(test_account_data, account_file_path)
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check file was created
         assert os.path.exists(account_file_path), f"Account file should be created: {account_file_path}"
@@ -517,7 +516,7 @@ class TestFileOperationsEdgeCases:
         }
         
         result = save_json_data(updated_account_data, account_file_path)
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check data was updated
         with open(account_file_path, 'r') as f:
@@ -534,7 +533,7 @@ class TestFileOperationsEdgeCases:
         }
         
         result = save_json_data(test_preferences_data, preferences_file_path)
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check multiple files can coexist
         assert os.path.exists(account_file_path), f"Account file should still exist: {account_file_path}"
@@ -643,7 +642,7 @@ class TestFileOperationsPerformance:
         
         # Perform the operation
         result = save_json_data(large_data, temp_file)
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check operation completed successfully
         assert os.path.exists(temp_file), f"Large file should be created: {temp_file}"

@@ -566,7 +566,7 @@ def migrate_legacy_schedule_keys(user_id=None):
     If user_id is None, migrate all users.
     """
     from core.user_data_handlers import get_all_user_ids
-    from core.user_management import get_user_file_path
+    from core.config import get_user_file_path
     from core.file_operations import load_json_data, save_json_data
     import copy
     user_ids = [user_id] if user_id else get_all_user_ids()

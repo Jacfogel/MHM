@@ -34,8 +34,9 @@ logger = get_logger(__name__)
 
 # Import core functionality
 from core.user_management import (
-    get_predefined_options, get_timezone_options, validate_personalization_data
+    get_predefined_options, get_timezone_options
 )
+from core.user_data_validation import validate_personalization_data
 from core.error_handling import handle_errors
 
 

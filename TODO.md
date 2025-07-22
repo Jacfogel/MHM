@@ -10,6 +10,18 @@
 
 ## 🎯 Current Priority Tasks
 
+### ✅ Recently Completed (2025-07-21)
+
+#### Unified API Refactoring and Test Fixes ✅ **COMPLETED**
+- **Fixed Pylance errors** in `core/user_data_handlers.py` by updating `save_user_data` to use unified API directly
+- **Fixed caching issues** by adding cache clearing after data saves to ensure legacy loaders return fresh data
+- **Fixed file path inconsistencies** by updating file mapping to use `'context'` instead of `'user_context'`
+- **Fixed return value expectations** by updating `save_json_data` to return `True` on success
+- **Updated test expectations** to match new API and file names
+- **All tests now passing**: 244 passed, 1 skipped (was 25 failed before fixes)
+- **Scripts directory cleanup**: Organized scripts into logical categories (migration, testing, debug, utilities, refactoring)
+- **Removed redundant scripts**: Eliminated duplicates of ai_tools functionality and one-time fixes
+
 ### High Priority
 
 #### Documentation Cleanup
@@ -39,10 +51,13 @@
    - *Priority*: High
    - *Estimated effort*: Medium
    - *Remaining*:
-     - ⚠️ **Category Management Dialog** - Needs testing for category selection and persistence
-     - ⚠️ **Task Management Dialog** - Needs testing for task enablement and settings
-     - ⚠️ **Check-in Management Dialog** - Needs testing for check-in enablement and settings
-     - ⚠️ **Schedule Editor Dialog** - Needs testing for period management and time settings
+     - ✅ **Category Management Dialog** - Complete with validation fixes and category persistence
+     - ✅ **Channel Management Dialog** - Complete, all functionality working
+     - ✅ **Check-in Management Dialog** - Complete with comprehensive validation system
+     - ⚠️ **Task Management Dialog** - Ready for testing
+     - ⚠️ **Schedule Editor Dialog** - Ready for testing
+     - ⚠️ **User Profile Dialog** - Ready for testing
+     - ⚠️ **Account Creator Dialog** - Ready for testing
 
 5. **Widget Testing** - Test remaining widgets for proper data binding
    - *What it means*: Test all widgets to ensure they properly save and load data
@@ -60,9 +75,10 @@
    - *Why it helps*: Ensures users get proper feedback for invalid input
    - *Priority*: High
    - *Estimated effort*: Small
+   - *Status*: ✅ **COMPLETED** - Comprehensive validation system implemented across all dialogs
    - *Remaining*:
-     - ⚠️ **Required Field Validation** - Needs testing across all dialogs
-     - ⚠️ **Feature Enablement Validation** - Needs testing for conditional validation
+     - ✅ **Required Field Validation** - Implemented with clear error messages
+     - ✅ **Feature Enablement Validation** - Implemented with proper warnings
 
 #### Code Quality
 7. **Legacy Wrapper Removal**
@@ -71,52 +87,76 @@
    - *Priority*: High
    - *Estimated effort*: Small
    - *Status*: Pending – monitor `app.log` for any remaining "LEGACY …" warnings before removal
+   - *Note*: Cache clearing has been implemented, so legacy wrappers should be safe to remove once no warnings appear
+
+8. **Dynamic Check-in Question System** - Implement full custom question functionality
+   - *What it means*: Replace the current placeholder "Add New Element" with a proper dynamic system similar to the profile settings widget
+   - *Why it helps*: Allows users to create custom check-in questions beyond the predefined set
+   - *Priority*: High
+   - *Estimated effort*: Medium
+   - *Current status*: Basic input dialog implemented, needs full dynamic list container system
+   - *Implementation needed*: 
+     - Create `CheckinQuestionField` widget similar to `DynamicListField`
+     - Create `CheckinQuestionContainer` widget similar to `DynamicListContainer`
+     - Add question type selection (text, yes/no, 1-5 scale, number)
+     - Integrate with existing question management system
+     - Update data persistence to handle custom questions
+
+9. **Discord Validation Enhancement** - Add format validation for Discord usernames
+   - *What it means*: Implement validation rules for Discord username format in Channel Management Dialog
+   - *Why it helps*: Prevents users from entering invalid Discord usernames and provides better feedback
+   - *Priority*: Medium
+   - *Estimated effort*: Small
+   - *Current status*: No validation rules configured, basic functionality working
+   - *Implementation needed*:
+     - Define Discord username format rules (no spaces, valid characters, length limits)
+     - Add validation to Channel Management Dialog
 
 ### Medium Priority
 
-8. **Log Rotation & Size Limits**
+10. **Log Rotation & Size Limits**
    - *What it means*: Implement rotating file handler or size checks for `app.log`
    - *Why it helps*: Prevent the "giant file of doom" and conserve disk space
    - *Priority*: Medium
    - *Estimated effort*: Small
 
-9. **Expand Testing Framework** - Add tests for untested modules
+11. **Expand Testing Framework** - Add tests for untested modules
    - *What it means*: Currently only 9 out of 31+ modules have tests (29% coverage)
    - *Why it helps*: Ensures reliability and makes changes safer
    - *Priority*: Medium
    - *Estimated effort*: Large
 
-10. **Review and Update ARCHITECTURE.md** - Check for outdated information
+12. **Review and Update ARCHITECTURE.md** - Check for outdated information
    - *What it means*: Ensure architecture documentation reflects current system state
    - *Why it helps*: Provides accurate technical reference for development
    - *Priority*: Medium
    - *Estimated effort*: Small
 
-11. **Review and Update QUICK_REFERENCE.md** - Check for outdated commands
+13. **Review and Update QUICK_REFERENCE.md** - Check for outdated commands
    - *What it means*: Ensure quick reference contains current commands and procedures
    - *Why it helps*: Provides reliable quick access to common tasks
    - *Priority*: Medium
    - *Estimated effort*: Small
 
-12. **Fix Dialog Integration** - Ensure dialogs properly communicate with main window
+14. **Fix Dialog Integration** - Ensure dialogs properly communicate with main window
     - *What it means*: Make sure dialogs update the main window when data changes
     - *Why it helps*: Better user experience with immediate visual feedback
     - *Priority*: Medium
     - *Estimated effort*: Medium
 
-13. **Add Data Validation** - Validate user input in all forms
+15. **Add Data Validation** - Validate user input in all forms
     - *What it means*: Check that user input is valid before saving
     - *Why it helps*: Prevents data corruption and provides better error messages
     - *Priority*: Medium
     - *Estimated effort*: Medium
 
-14. **Improve Error Handling** - Add proper error handling to all dialogs
+16. **Improve Error Handling** - Add proper error handling to all dialogs
     - *What it means*: Make sure dialogs handle errors gracefully and show helpful messages
     - *Why it helps*: Better user experience when things go wrong
     - *Priority*: Medium
     - *Estimated effort*: Medium
 
-15. **Performance Optimization** - Monitor and optimize UI responsiveness
+17. **Performance Optimization** - Monitor and optimize UI responsiveness
     - *What it means*: Identify and fix slow operations in the UI
     - *Why it helps*: Better user experience with faster response times
     - *Priority*: Medium
@@ -288,17 +328,3 @@ When adding new tasks, follow this format:
 - *Priority*: High/Medium/Low
 - *Estimated effort*: Small/Medium/Large
 ```
-
-Keep entries **concise** and **actionable**. Focus on **what needs to be done** and **why it matters**.
-
-## 🎯 Success Tips
-
-1. **Start with high priority items** - tackle the most impactful improvements first
-2. **Break large tasks into smaller steps** - make progress manageable
-3. **Test after each change** - ensure nothing breaks
-4. **Update this file** - mark completed items and add new priorities
-5. **Ask for help** - don't get stuck on any single task
-
-Remember: This is your personal mental health assistant. Every improvement makes it better for you!
-
-- Note: The double service process issue when using the play/debug button in VS Code/Cursor is due to IDE/debugger quirks, not project code. Running from the terminal with venv activated is recommended.

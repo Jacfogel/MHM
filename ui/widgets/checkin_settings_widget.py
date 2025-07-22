@@ -181,13 +181,13 @@ class CheckinSettingsWidget(QWidget):
         """Add a new time period using the PeriodRowWidget."""
         logger.info(f"CheckinSettingsWidget: add_new_time_period called with period_name={period_name}, period_data={period_data}")
         if period_name is None:
-            # Use descriptive name for default periods
+            # Use descriptive name for default periods (lowercase to preserve user's preferred case)
             if len(self.period_widgets) == 0:
-                period_name = "Check-in Reminder Default"
+                period_name = "check-in reminder default"
             else:
                 # Find the lowest available number for new periods
                 next_number = self.find_lowest_available_period_number()
-                period_name = f"Check-in Reminder {next_number}"
+                period_name = f"check-in reminder {next_number}"
         if not isinstance(period_name, str):
             logger.warning(f"CheckinSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})")
             period_name = str(period_name)
@@ -210,6 +210,15 @@ class CheckinSettingsWidget(QWidget):
     
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
+        # Prevent deletion of the last period
+        if len(self.period_widgets) <= 1:
+            QMessageBox.warning(
+                self, 
+                "Cannot Delete Last Period", 
+                "You must have at least one time period. Please add another period before deleting this one."
+            )
+            return
+        
         # Store the deleted period data for undo
         if isinstance(row_widget, PeriodRowWidget):
             period_data = row_widget.get_period_data()
@@ -253,9 +262,30 @@ class CheckinSettingsWidget(QWidget):
     
     def add_new_question(self):
         """Add a new check-in question."""
-        # For now, this is a placeholder since we have a fixed set of questions
-        QMessageBox.information(self, "Add Question", 
-                               "Question addition is not yet implemented. The current set of questions is fixed.")
+        from PySide6.QtWidgets import QInputDialog, QMessageBox
+        
+        # Get question text from user
+        question_text, ok = QInputDialog.getText(
+            self, 
+            "Add New Question", 
+            "Enter your custom check-in question:"
+        )
+        
+        if ok and question_text.strip():
+            # For now, just show a message that this would be implemented
+            # In a full implementation, this would add to a dynamic list
+            QMessageBox.information(
+                self, 
+                "Question Added", 
+                f"Question '{question_text}' would be added to your check-ins.\n\n"
+                "Note: Custom question functionality is planned for future updates."
+            )
+        elif ok and not question_text.strip():
+            QMessageBox.warning(
+                self, 
+                "Empty Question", 
+                "Please enter a question."
+            )
     
     def undo_last_question_delete(self):
         """Undo the last question deletion."""
@@ -339,3 +369,21 @@ class CheckinSettingsWidget(QWidget):
         # Set questions
         questions = settings.get('questions', {})
         self.set_question_checkboxes(questions) 
+
+    def validate_periods(self) -> tuple[bool, str]:
+        """Validate all periods and return (is_valid, error_message)."""
+        if not self.period_widgets:
+            return False, "At least one time period is required."
+        
+        # Check if any periods are active
+        active_periods = [w for w in self.period_widgets if w.get_period_data().get('active', False)]
+        if not active_periods:
+            return False, "At least one time period must be enabled."
+        
+        # Validate each period
+        for i, widget in enumerate(self.period_widgets):
+            if not widget.is_valid():
+                period_name = widget.get_period_name() or f"Period {i+1}"
+                return False, f"Period '{period_name}' has validation errors. Please check the time settings and day selection."
+        
+        return True, "" 

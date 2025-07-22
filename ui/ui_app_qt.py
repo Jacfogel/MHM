@@ -717,7 +717,6 @@ class MHMManagerUI(QMainWindow):
         try:
             from ui.dialogs.user_profile_dialog import UserProfileDialog
             from core.user_data_handlers import get_user_data, update_user_context
-            from core.user_management import save_user_account_data
             # Load user context and account data
             user_data = get_user_data(self.current_user, ['context', 'account'])
             context_data = user_data.get('context', {})

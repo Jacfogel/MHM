@@ -262,7 +262,8 @@ class PeriodRowWidget(QWidget):
             if checkbox.isChecked():
                 days.append(day_name)
         
-        return days if days else ['ALL']  # Default to ALL if no days selected
+        # Return empty list if no days selected - let validation handle this
+        return days
     
     def request_delete(self):
         """Request deletion of this period row."""
@@ -281,12 +282,20 @@ class PeriodRowWidget(QWidget):
         """Check if the period data is valid."""
         try:
             data = self.get_period_data()
-            return (
-                bool(data['name']) and
-                bool(data['start']) and
-                bool(data['end']) and
-                len(data['days']) > 0
-            )
+            
+            # Basic validation
+            if not data['name']:
+                return False
+                
+            # Time validation
+            if not data['start_time'] or not data['end_time']:
+                return False
+                
+            # Day validation - active periods must have at least one day selected
+            if data['active'] and not data['days']:
+                return False
+                
+            return True
         except Exception as e:
             logger.error(f"Error validating period data: {e}")
             return False 

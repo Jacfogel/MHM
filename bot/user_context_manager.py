@@ -99,8 +99,8 @@ class UserContextManager:
             
         return {
             'preferred_name': user_context.get_preferred_name() or user_context_data.get('preferred_name', ''),
-            'active_categories': user_preferences.get_preference('categories') or user_preferences.get('categories', []),
-            'messaging_service': user_preferences.get_preference('channel', {}).get('type', ''),
+            'active_categories': user_preferences.get('categories', []),
+            'messaging_service': user_preferences.get('channel', {}).get('type', ''),
             'active_schedules': self._get_active_schedules({})  # Schedules handled separately
         }
     

@@ -17,7 +17,7 @@ from unittest.mock import patch, Mock
 from datetime import datetime
 from pathlib import Path
 
-from core.user_management import (
+from core.user_data_handlers import (
     get_user_data,
     save_user_data,
     update_user_account,

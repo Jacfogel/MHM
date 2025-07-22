@@ -11,16 +11,10 @@ import tempfile
 from unittest.mock import patch, Mock
 from datetime import datetime
 
-from core.user_management import (
+from core.user_data_handlers import (
     get_all_user_ids,
     get_user_data,
     update_user_preferences,
-    load_user_account_data,
-    load_user_preferences_data,
-    load_user_context_data,
-    save_user_account_data,
-    save_user_preferences_data,
-    save_user_context_data,
     save_user_data,
     update_user_account,
     update_user_context
@@ -171,7 +165,7 @@ class TestUserManagement:
         # Verify the files were created
         assert os.path.exists(os.path.join(user_dir, 'account.json'))
         assert os.path.exists(os.path.join(user_dir, 'preferences.json'))
-        assert os.path.exists(os.path.join(user_dir, 'user_context.json'))
+        assert os.path.exists(os.path.join(user_dir, 'context.json'))
         
         # Verify data can be loaded using the new hybrid function
         loaded_data = get_user_data(user_id, 'all')
@@ -202,7 +196,7 @@ class TestUserManagement:
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         assert os.path.exists(os.path.join(user_dir, 'account.json'))
         assert os.path.exists(os.path.join(user_dir, 'preferences.json'))
-        assert os.path.exists(os.path.join(user_dir, 'user_context.json'))
+        assert os.path.exists(os.path.join(user_dir, 'context.json'))
     
     @pytest.mark.unit
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
@@ -351,7 +345,7 @@ class TestUserManagementEdgeCases:
         assert os.access(user_dir, os.W_OK), f"User directory should be writable: {user_dir}"
         
         # ✅ VERIFY REAL BEHAVIOR: Check required files were created
-        expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json', 'daily_checkins.json', 'chat_interactions.json']
+        expected_files = ['account.json', 'preferences.json', 'context.json', 'schedules.json', 'daily_checkins.json', 'chat_interactions.json']
         expected_dirs = ['messages', 'tasks']
         
         for file_name in expected_files:

@@ -322,11 +322,11 @@ def load_user_context_data(user_id: str, auto_create: bool = True) -> Optional[D
             return cached_data
     
     # Check if user directory exists (indicates user was created before)
-    user_dir = os.path.dirname(get_user_file_path(user_id, 'user_context'))
+    user_dir = os.path.dirname(get_user_file_path(user_id, 'context'))
     user_dir_exists = os.path.exists(user_dir)
     
     # Check if file exists before loading
-    context_file = get_user_file_path(user_id, 'user_context')
+    context_file = get_user_file_path(user_id, 'context')
     if not os.path.exists(context_file):
         if not auto_create:
             if not user_dir_exists:
@@ -389,7 +389,7 @@ def save_user_context_data(user_id: str, context_data: Dict[str, Any]) -> bool:
         return False
     
     ensure_user_directory(user_id)
-    context_file = get_user_file_path(user_id, 'user_context')
+    context_file = get_user_file_path(user_id, 'context')
     
     # Add metadata
     context_data['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

@@ -6,6 +6,7 @@ from core.logger import get_logger
 from core.user_data_handlers import update_user_preferences, update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
+from core.schedule_management import clear_schedule_periods_cache
 
 logger = get_logger(__name__)
 
@@ -69,10 +70,6 @@ class CategoryManagementDialog(QDialog):
         """Handle enable automated messages checkbox toggle."""
         # Enable/disable the category selection group box
         self.ui.groupBox_select_categories.setEnabled(checked)
-        
-        # If disabled, clear selected categories
-        if not checked:
-            self.category_widget.set_selected_categories([])
 
     def save_category_settings(self):
         """Save the selected categories back to user preferences"""
@@ -81,7 +78,10 @@ class CategoryManagementDialog(QDialog):
             return
         try:
             messages_enabled = self.ui.groupBox_enable_automated_messages.isChecked()
+            
+            # Get selected categories from widget (should work regardless of groupbox state)
             selected_categories = self.category_widget.get_selected_categories()
+            logger.debug(f"Category dialog: Got categories from widget: {selected_categories}")
             
             # Validate that at least one category is selected if messages are enabled
             if messages_enabled and not selected_categories:
@@ -89,21 +89,42 @@ class CategoryManagementDialog(QDialog):
                                    "Please select at least one category when automated messages are enabled.")
                 return
             
+            # Validate that user has at least one feature enabled
+            if not messages_enabled:
+                # Check if user has other features enabled
+                account_result = get_user_data(self.user_id, 'account')
+                account = account_result.get('account') or {}
+                features = account.get('features', {})
+                other_features = [k for k, v in features.items() if k != 'automated_messages' and v == 'enabled']
+                
+                if not other_features:
+                    QMessageBox.warning(self, "No Features Enabled", 
+                                       "You must have at least one feature enabled. Please enable tasks, check-ins, or automated messages.")
+                    return
+            
             # Get current preferences and update categories
             prefs_result = get_user_data(self.user_id, 'preferences')
             prefs = prefs_result.get('preferences') or {}
-            prefs['categories'] = selected_categories if messages_enabled else []
+            # Always save the selected categories, regardless of whether messages are enabled
+            prefs['categories'] = selected_categories
             
             # Save updated preferences
             update_user_preferences(self.user_id, prefs)
             
-            # Update account features
+            # Update account features (preserve existing account data)
             user_data_result = get_user_data(self.user_id, 'account')
             account = user_data_result.get('account') or {}
             features = account.get('features', {})
             features['automated_messages'] = 'enabled' if messages_enabled else 'disabled'
             account['features'] = features
             update_user_account(self.user_id, account)
+            logger.debug(f"Category dialog: Updated account features - automated_messages: {features['automated_messages']}")
+            
+            # Clear schedule cache for categories if messages are disabled
+            if not messages_enabled:
+                # Clear cache for all categories to ensure schedules are updated
+                clear_schedule_periods_cache(self.user_id)
+                logger.info(f"Cleared schedule cache for user {self.user_id} after disabling automated messages")
             
             status_text = "enabled" if messages_enabled else "disabled"
             category_text = f" with {len(selected_categories)} categories" if selected_categories else ""
