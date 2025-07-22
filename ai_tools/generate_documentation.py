@@ -8,10 +8,11 @@ import sys
 import subprocess
 from pathlib import Path
 from datetime import datetime
+import config
 
 def run_generator(script_name: str, description: str) -> bool:
     """Run a documentation generator script."""
-    print(f"\n🔄 Running {description}...")
+    print(f"\nRunning {description}...")
     print("=" * 60)
     
     try:
@@ -37,7 +38,7 @@ def run_generator(script_name: str, description: str) -> bool:
 
 def generate_all_documentation():
     """Generate all documentation files."""
-    print("🚀 Starting Documentation Generation")
+    print("Starting Documentation Generation")
     print("=" * 60)
     print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     
@@ -49,7 +50,7 @@ def generate_all_documentation():
     
     # Summary
     print("\n" + "=" * 60)
-    print("📋 GENERATION SUMMARY")
+    print("GENERATION SUMMARY")
     print("=" * 60)
     
     if success1 and success2:

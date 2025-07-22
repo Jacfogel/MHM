@@ -12,49 +12,14 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# Configuration - File Categories
-AI_DOCS = [
-    "AI_ORIENTATION.md",
-    "AI_QUICK_REFERENCE.md", 
-    "AI_RULES.md",
-    "AI_CONTEXT.md",
-    "ai_tools/TRIGGER.md",
-    "ai_tools/README.md"
-]
+import config
 
-CURSOR_RULES = [
-    ".cursor/rules/critical.mdc",
-    ".cursor/rules/context.mdc", 
-    ".cursor/rules/audit.mdc"
-]
-
-# Core system files that should have version tracking
-CORE_SYSTEM_FILES = [
-    "run_mhm.py",
-    "core/service.py",
-    "core/config.py",
-    "requirements.txt"
-]
-
-# Documentation patterns to include
-DOCUMENTATION_PATTERNS = [
-    "*.md",           # All markdown files
-    "*.txt",          # Text files (like README)
-    "*.mdc",          # Cursor rules
-]
-
-# Files to exclude from version tracking
-EXCLUDE_PATTERNS = [
-    "*.pyc",          # Compiled Python files
-    "__pycache__/*",  # Python cache
-    ".git/*",         # Git files
-    ".venv/*",        # Virtual environment
-    "node_modules/*", # Node modules
-    "*.log",          # Log files
-    "*.tmp",          # Temporary files
-    "*.bak",          # Backup files
-    ".pytest_cache/*", # Pytest cache
-]
+# Configuration - File Categories from config
+AI_DOCS = config.VERSION_SYNC['ai_docs']
+CURSOR_RULES = config.VERSION_SYNC['cursor_rules']
+CORE_SYSTEM_FILES = config.VERSION_SYNC['core_system_files']
+DOCUMENTATION_PATTERNS = config.VERSION_SYNC['documentation_patterns']
+EXCLUDE_PATTERNS = config.VERSION_SYNC['exclude_patterns']
 
 def get_current_date():
     """Get current date in consistent format"""
@@ -188,7 +153,7 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
     
     current_date = get_current_date()
     
-    print(f"🔄 Synchronizing versions (scope: {scope})...")
+    print(f"Synchronizing versions (scope: {scope})...")
     print(f"   Target Version: {target_version}")
     print(f"   Current Date: {current_date}")
     print(f"   Force Date Update: {force_date_update}")
@@ -232,30 +197,30 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
                 if new_content != content:
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(new_content)
-                    updated_files.append(f"✅ {file_path} (v{old_version}→{target_version}, {date_reason})")
+                    updated_files.append(f"{file_path} (v{old_version}->{target_version}, {date_reason})")
                 else:
-                    updated_files.append(f"⏭️  {file_path} (already v{target_version}, {date_reason})")
+                    updated_files.append(f"{file_path} (already v{target_version}, {date_reason})")
                     
             except Exception as e:
-                updated_files.append(f"❌ {file_path} (error: {e})")
+                updated_files.append(f"{file_path} (error: {e})")
         else:
-            updated_files.append(f"⚠️  {file_path} (not found)")
+            updated_files.append(f"{file_path} (not found)")
     
     # Print results
-    print("📋 Version Synchronization Results:")
+    print("Version Synchronization Results:")
     for result in updated_files:
         print(f"   {result}")
     
     print()
-    print(f"🎯 Synchronization complete!")
+    print(f"Synchronization complete!")
     print(f"   Files processed: {len(files_to_process)}")
-    print(f"   Files updated: {len([f for f in updated_files if '✅' in f])}")
+    print(f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}")
     
     return updated_files
 
 def show_current_versions(scope="ai_docs"):
     """Show current versions of files based on scope"""
-    print(f"📊 Current Versions (scope: {scope}):")
+    print(f"Current Versions (scope: {scope}):")
     print()
     
     if scope == "ai_docs":
@@ -275,20 +240,20 @@ def show_current_versions(scope="ai_docs"):
                 # Show modification status
                 if is_recently_modified(file_path, days_back=1):
                     if file_mod_date == get_current_date():
-                        status = "📅 modified today"
+                        status = "modified today"
                     else:
-                        status = "📅 modified yesterday"
+                        status = "modified yesterday"
                 else:
-                    status = "📄 unchanged"
+                    status = "unchanged"
                 print(f"   {file_path}: v{version} (stated: {date}, {status})")
             except Exception as e:
-                print(f"   {file_path}: ❌ Error reading file")
+                print(f"   {file_path}: Error reading file")
         else:
-            print(f"   {file_path}: ⚠️  File not found")
+            print(f"   {file_path}:  File not found")
 
 def show_modification_status(scope="ai_docs"):
     """Show which files were modified recently"""
-    print(f"📅 File Modification Status (scope: {scope}):")
+    print(f"File Modification Status (scope: {scope}):")
     print()
     
     if scope == "ai_docs":
@@ -314,21 +279,21 @@ def show_modification_status(scope="ai_docs"):
             unchanged.append(f"{file_path} (not found)")
     
     if modified_today:
-        print("🔄 Modified Today:")
+        print("Modified Today:")
         for file_path in modified_today:
-            print(f"   ✅ {file_path}")
+            print(f"   UPDATED {file_path}")
         print()
     
     if modified_yesterday:
-        print("📅 Modified Yesterday:")
+        print("Modified Yesterday:")
         for file_path in modified_yesterday:
-            print(f"   ✅ {file_path}")
+            print(f"   UPDATED {file_path}")
         print()
     
     if unchanged:
-        print("📄 Unchanged:")
+        print("Unchanged:")
         for file_path in unchanged:
-            print(f"   ⏭️  {file_path}")
+            print(f"{file_path}")
 
 if __name__ == "__main__":
     import sys
@@ -366,11 +331,11 @@ if __name__ == "__main__":
         # Default: show current versions
         show_current_versions()
         print()
-        print("💡 To synchronize versions, run:")
+        print("To synchronize versions, run:")
         print("   python ai_tools/version_sync.py sync")
         print("   python ai_tools/version_sync.py status")
         print()
-        print("📋 Available scopes:")
+        print("Available scopes:")
         print("   ai_docs  - AI documentation and cursor rules (default)")
         print("   docs     - All documentation files (*.md, *.txt, *.mdc)")
         print("   core     - Core system files (run_mhm.py, core/service.py, etc.)")

@@ -3,8 +3,8 @@ alwaysApply: true
 description: "Critical development rules - always apply these for safety and consistency"
 globs: ["**/*"]
 priority: 1
-version: "1.1.0"
-lastUpdated: "2025-07-15"
+version: "--scope=docs"
+lastUpdated: "2025-07-21"
 relatedFiles: ["AI_RULES.md", "AI_CONTEXT.md", "AI_QUICK_REFERENCE.md"]
 ---
 

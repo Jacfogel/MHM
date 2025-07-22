@@ -109,7 +109,7 @@ This guide defines the audience and purpose of each documentation file in the MH
 The Audit-First Protocol is a mandatory system that ensures all documentation and analysis is based on actual data, not assumptions. Before creating any significant documentation, AI assistants must run audit tools to get accurate information.
 
 ### How It Works
-1. **Run Audit Tools**: Execute `python ai_tools/quick_audit.py` to get comprehensive system data
+1. **Run Audit Tools**: Execute `python ai_tools/ai_tools_runner.py audit` to get comprehensive system data
 2. **Show Results**: Display audit statistics and findings to the user
 3. **Get Approval**: Ask for user approval before proceeding with documentation
 4. **Use Real Data**: Base all documentation on actual audit results, not assumptions

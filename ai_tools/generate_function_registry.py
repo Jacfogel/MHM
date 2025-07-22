@@ -227,11 +227,12 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract function/class information."""
-    project_root = Path(__file__).parent.parent
+    import config
+    project_root = config.get_project_root()
     results = {}
     
-    # Directories to scan (excluding scripts as requested)
-    scan_dirs = ['core', 'bot', 'ui', 'user', 'tasks', 'tests']
+    # Directories to scan from configuration
+    scan_dirs = config.get_scan_directories()
     
     for scan_dir in scan_dirs:
         dir_path = project_root / scan_dir

@@ -2,7 +2,7 @@
 
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-07-21 02:58:15
+> **Last Updated**: 2025-07-21 22:56:45
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -10,17 +10,17 @@
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 93.5% ⚠️ NEEDS ATTENTION**
-- **Files Scanned**: 85
-- **Functions Found**: 1079
-- **Methods Found**: 759
-- **Classes Found**: 117
-- **Total Items**: 1838
-- **Functions Documented**: 999
-- **Methods Documented**: 719
-- **Classes Documented**: 85
-- **Total Documented**: 1718
-- **Template-Generated**: 13
+### **Function Documentation Coverage: 93.8% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 123
+- **Functions Found**: 1194
+- **Methods Found**: 775
+- **Classes Found**: 119
+- **Total Items**: 1969
+- **Functions Documented**: 1112
+- **Methods Documented**: 735
+- **Classes Documented**: 87
+- **Total Documented**: 1847
+- **Template-Generated**: 21
 - **Last Updated**: 2025-07-21
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
@@ -38,10 +38,10 @@
 ### **Core System Functions** (294)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (149)
+### **Communication Functions** (155)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (260)
+### **User Interface Functions** (261)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (24)
@@ -59,6 +59,7 @@ Test functions and testing utilities.
 
 #### `bot/ai_chatbot.py`
 **Functions:**
+- ✅ `__init__(self)` - Initialize the object
 - ✅ `__init__(self, max_size, ttl)` - Initialize the object.
 - ✅ `__init__(self)` - Initialize the object.
 - ✅ `__new__(cls)` - Create a new instance.
@@ -74,6 +75,7 @@ Test functions and testing utilities.
 Now actually analyzes user's check-in data for meaningful responses.
 - ✅ `_get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
 - ✅ `_get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
+- ✅ `_load_custom_prompt(self)` - Load the custom system prompt from file.
 - ✅ `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
 - ✅ `_test_lm_studio_connection(self)` - Test connection to LM Studio server.
 - ✅ `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
@@ -87,8 +89,18 @@ Uses adaptive timeout to prevent blocking for too long with improved performance
 - ✅ `get(self, prompt, user_id)` - Get cached response if available and not expired.
 - ✅ `get_ai_chatbot()` - Return the shared AIChatBot instance.
 - ✅ `get_ai_status(self)` - Get detailed status information about the AI system.
+- ✅ `get_system_prompt(self, prompt_type)` - Get the appropriate system prompt for the given type.
+
+Args:
+    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
+    
+Returns:
+    The system prompt string
 - ✅ `is_ai_available(self)` - Check if the AI model is available and functional.
+- ✅ `reload_prompt(self)` - Reload the custom prompt from file (useful for development).
+- ✅ `reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
 - ✅ `set(self, prompt, response, user_id)` - Cache a response.
+- ✅ `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
 **Classes:**
 - ✅ `AIChatBotSingleton` - A Singleton container for LM Studio API client (replacing GPT4All).
   - ✅ `AIChatBotSingleton.__init__(self)` - Initialize the object.
@@ -115,12 +127,26 @@ Uses shorter timeout optimized for responsiveness.
 Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
   - ✅ `AIChatBotSingleton.get_ai_status(self)` - Get detailed status information about the AI system.
   - ✅ `AIChatBotSingleton.is_ai_available(self)` - Check if the AI model is available and functional.
+  - ✅ `AIChatBotSingleton.reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
+  - ✅ `AIChatBotSingleton.test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
 - ✅ `ResponseCache` - Simple in-memory cache for AI responses to avoid repeated calculations.
   - ✅ `ResponseCache.__init__(self, max_size, ttl)` - Initialize the object.
   - ✅ `ResponseCache._cleanup_lru(self)` - Remove least recently used items.
   - ✅ `ResponseCache._generate_key(self, prompt, user_id)` - Generate cache key from prompt and optional user context.
   - ✅ `ResponseCache.get(self, prompt, user_id)` - Get cached response if available and not expired.
   - ✅ `ResponseCache.set(self, prompt, response, user_id)` - Cache a response.
+- ✅ `SystemPromptLoader` - Handles loading and managing the AI system prompt from the custom prompt file.
+Provides fallback prompts if the custom file is not available.
+  - ✅ `SystemPromptLoader.__init__(self)` - Initialize the object
+  - ✅ `SystemPromptLoader._load_custom_prompt(self)` - Load the custom system prompt from file.
+  - ✅ `SystemPromptLoader.get_system_prompt(self, prompt_type)` - Get the appropriate system prompt for the given type.
+
+Args:
+    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
+    
+Returns:
+    The system prompt string
+  - ✅ `SystemPromptLoader.reload_prompt(self)` - Reload the custom prompt from file (useful for development).
 
 #### `bot/base_channel.py`
 **Functions:**
@@ -1182,6 +1208,9 @@ Args:
     data: Data to save (must be JSON serializable)
     file_path: Path where to save the file
     
+Returns:
+    bool: True if successful, False if failed
+    
 Raises:
     FileOperationError: If saving fails
 - ✅ `verify_file_access(paths)` - Verify that files exist and are accessible.
@@ -1711,12 +1740,12 @@ Args:
     category: The category (tasks, checkin, or schedule category)
 
 Returns:
-    Storage-formatted period name (lowercase for tasks/checkins)
+    Storage-formatted period name (preserve original case)
 
 #### `core/user_data_handlers.py`
 **Functions:**
 - ✅ `get_all_user_ids()` - Return a list of *all* user IDs known to the system.
-- ✅ `get_user_data(user_id, data_types, fields, auto_create, include_metadata)` - Central handler for all user data access (migrated from user_management).
+- ✅ `get_user_data(user_id, data_types, fields, auto_create, include_metadata)` - Migrated implementation of get_user_data.
 - ✅ `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Proxy to the original *register_data_loader*.
 
 Imported here so callers can simply do::
@@ -1920,7 +1949,7 @@ Returns:
 No field is required; we only type-check fields that are present.
 This logic previously lived in ``core.user_management``.
 - ❌ `validate_time_format(time_str)` - No description
-- ✅ `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user’s data.
+- ✅ `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
 
 #### `core/user_management.py`
 **Functions:**
@@ -1995,6 +2024,258 @@ Args:
 - ✅ `run_test_categories()` - Run tests by category.
 - ✅ `run_tests_with_pytest(test_paths, markers, verbose, coverage)` - Run tests using pytest with specified options.
 - ✅ `show_test_summary()` - Show summary of available tests.
+
+### `scripts/` - Unknown Directory
+
+#### `scripts/debug/debug_category_dialog.py`
+**Functions:**
+- ✅ `main()` - Run all tests
+- ✅ `test_category_widget_clear()` - Test if CategorySelectionWidget.set_selected_categories([]) works
+- ✅ `test_preferences_update()` - Test if update_user_preferences works
+- ✅ `test_user_data_functions()` - Test if update_user_account and update_user_preferences work
+
+#### `scripts/debug/debug_comprehensive_prompt.py`
+**Functions:**
+- ✅ `debug_comprehensive_prompt()` - Debug the comprehensive context prompt generation.
+
+#### `scripts/debug/debug_lm_studio_timeout.py`
+**Functions:**
+- ✅ `check_lm_studio_process()` - Check if LM Studio process is running and using resources.
+- ✅ `test_chat_completions()` - Test the chat completions endpoint with different timeouts.
+- ✅ `test_models_endpoint()` - Test the models endpoint with different timeouts.
+- ✅ `test_network_connectivity()` - Test basic network connectivity to LM Studio.
+- ✅ `test_system_info()` - Test system information endpoints.
+
+#### `scripts/debug/debug_preferences.py`
+**Functions:**
+- ❌ `debug_preferences()` - No description
+
+#### `scripts/migration/migrate_messaging_service.py`
+**Functions:**
+- ✅ `migrate_messaging_service()` - Migrate messaging_service to channel.type for all users.
+- ✅ `verify_migration(users)` - Verify that the migration was successful.
+
+#### `scripts/migration/migrate_schedule_format.py`
+**Functions:**
+- ✅ `main()` - Main migration function.
+- ✅ `migrate_legacy_schedules_structure(schedules_data)` - Convert legacy flat schedule structure to new nested format.
+- ✅ `migrate_user_files()` - Migrate all user files to new format.
+- ✅ `remove_enabled_fields_from_preferences(prefs)` - Remove 'enabled' fields from preferences.
+- ✅ `remove_enabled_fields_from_schedules(schedules_data)` - Remove 'enabled' fields from schedule periods.
+
+#### `scripts/migration/migrate_schedules_cleanup.py`
+**Functions:**
+- ✅ `collapse_days(days)` - Collapse a list of days to ['ALL'] if all days of the week are present.
+
+If the days list contains all seven days of the week, it is collapsed
+to ['ALL'] for more efficient storage and processing.
+
+Args:
+    days: List of day names to check
+    
+Returns:
+    List containing either ['ALL'] if all days present, or the original days list
+- ✅ `find_all_schedules_files(base_dir)` - Find all user schedule files in the data directory.
+
+Searches for schedules.json files in user subdirectories
+within the specified base directory.
+
+Args:
+    base_dir: Base directory to search in (default: "data/users")
+    
+Returns:
+    List of file paths to user schedule files
+- ✅ `main()` - Main function to migrate all user schedule files.
+
+Finds all user schedule files and applies the migration
+to clean up schedule data structure and optimize day lists.
+- ❌ `migrate_schedules_file(schedules_path)` - No description
+
+#### `scripts/migration/migrate_sent_messages.py`
+**Functions:**
+- ✅ `main()` - Main migration function.
+- ✅ `migrate_sent_messages()` - Migrate sent_messages.json files from user root directories to messages folders.
+- ✅ `update_file_operations_code()` - Update the file operations code to use the new sent_messages path structure.
+
+#### `scripts/migration/migrate_user_data_structure.py`
+**Functions:**
+- ✅ `__init__(self, dry_run, backup)` - Initialize the object
+- ✅ `backup_user_data(self, user_id, user_dir)` - Create backup of user data before migration.
+- ✅ `cleanup_old_files(self, user_dir)` - Remove old files after successful migration.
+- ✅ `is_already_migrated(self, user_dir)` - Check if user data is already in new structure.
+- ✅ `load_current_data(self, user_id, user_dir)` - Load all current data files for a user.
+- ✅ `main()` - Main migration function.
+- ✅ `migrate_all_users(self)` - Migrate all users in the system.
+- ✅ `migrate_user(self, user_id)` - Migrate a single user's data.
+- ✅ `save_new_data(self, user_id, new_data)` - Save the new data structure for a user.
+- ✅ `transform_data(self, user_id, current_data)` - Transform current data structure to new structure.
+**Classes:**
+- ✅ `UserDataMigrator` - Handles migration of user data from old structure to new structure.
+  - ✅ `UserDataMigrator.__init__(self, dry_run, backup)` - Initialize the object
+  - ✅ `UserDataMigrator.backup_user_data(self, user_id, user_dir)` - Create backup of user data before migration.
+  - ✅ `UserDataMigrator.cleanup_old_files(self, user_dir)` - Remove old files after successful migration.
+  - ✅ `UserDataMigrator.is_already_migrated(self, user_dir)` - Check if user data is already in new structure.
+  - ✅ `UserDataMigrator.load_current_data(self, user_id, user_dir)` - Load all current data files for a user.
+  - ✅ `UserDataMigrator.migrate_all_users(self)` - Migrate all users in the system.
+  - ✅ `UserDataMigrator.migrate_user(self, user_id)` - Migrate a single user's data.
+  - ✅ `UserDataMigrator.save_new_data(self, user_id, new_data)` - Save the new data structure for a user.
+  - ✅ `UserDataMigrator.transform_data(self, user_id, current_data)` - Transform current data structure to new structure.
+
+#### `scripts/testing/ai/test_ai_with_clear_cache.py`
+**Functions:**
+- ✅ `test_ai_with_clear_cache()` - Test AI responses with cleared cache.
+- ✅ `test_direct_api_call()` - Test direct API call with comprehensive context.
+
+#### `scripts/testing/ai/test_comprehensive_ai.py`
+**Functions:**
+- ✅ `test_ai_status()` - Test the AI status to confirm it's using comprehensive context.
+- ✅ `test_comprehensive_ai_access()` - Test the comprehensive AI access to user data.
+
+#### `scripts/testing/ai/test_data_integrity.py`
+**Functions:**
+- ✅ `test_data_integrity()` - Test Data Integrity
+
+#### `scripts/testing/ai/test_lm_studio.py`
+**Functions:**
+- ✅ `test_ai_chatbot_status()` - Test the AI chatbot status.
+- ✅ `test_lm_studio_connection()` - Test the LM Studio connection directly.
+- ✅ `test_simple_response()` - Test a simple AI response.
+
+#### `scripts/testing/ai/test_new_modules.py`
+**Functions:**
+- ✅ `main()` - Run all tests
+- ✅ `test_file_operations_module()` - Test file_operations.py module
+- ✅ `test_message_management_module()` - Test message_management.py module
+- ✅ `test_response_tracking_module()` - Test response_tracking.py module
+- ✅ `test_schedule_management_module()` - Test schedule_management.py module
+- ✅ `test_service_utilities_module()` - Test service_utilities.py module
+- ✅ `test_user_management_module()` - Test user_management.py module
+- ✅ `test_validation_module()` - Test validation.py module
+
+#### `scripts/testing/analyze_documentation_overlap.py`
+**Functions:**
+- ✅ `analyze_file_purposes(docs)` - Analyze the purpose and content of each documentation file.
+- ✅ `extract_sections(content)` - Extract sections from markdown content.
+- ✅ `find_common_topics(docs)` - Find common topics across documentation files.
+- ✅ `generate_consolidation_report()` - Generate a report on documentation consolidation opportunities.
+- ✅ `get_documentation_files()` - Get all documentation files and their content.
+
+#### `scripts/testing/test_all_dialogs.py`
+
+#### `scripts/testing/test_category_dialog.py`
+
+#### `scripts/testing/test_migration.py`
+**Functions:**
+- ✅ `main()` - Test the migration in dry-run mode.
+
+#### `scripts/testing/test_user_data_analysis.py`
+**Functions:**
+- ✅ `test_fallback_directly()` - Test the fallback method directly.
+- ✅ `test_user_data_analysis()` - Test the enhanced fallback with user-specific questions.
+
+#### `scripts/testing/test_utils_functions.py`
+**Functions:**
+- ✅ `main()` - Run all tests
+- ✅ `test_basic_imports()` - Test that we can import all the key modules
+- ✅ `test_file_operations()` - Test basic file operations
+- ✅ `test_user_operations()` - Test user-related operations
+- ✅ `test_utility_functions()` - Test utility functions
+
+#### `scripts/testing/validate_config.py`
+**Functions:**
+- ✅ `main()` - Main entry point for the module
+
+#### `scripts/utilities/add_checkin_schedules.py`
+**Functions:**
+- ✅ `add_checkin_schedules_to_existing_users()` - Add check-in schedules to existing users who have check-ins enabled
+- ✅ `show_user_checkin_status()` - Show the current check-in status for all users
+
+#### `scripts/utilities/check_checkin_schedules.py`
+**Functions:**
+- ✅ `check_checkin_schedules()` - Check check-in schedules for all users
+- ✅ `show_management_commands()` - Show how to manage check-in schedules
+- ✅ `show_schedule_period_structure()` - Show the structure of check-in schedule periods
+
+#### `scripts/utilities/cleanup/cleanup_data_test_users.py`
+**Functions:**
+- ✅ `cleanup_data_test_users()` - Remove test users from the data/users directory
+- ✅ `main()` - Main cleanup function
+
+#### `scripts/utilities/cleanup/cleanup_real_test_users.py`
+**Functions:**
+- ✅ `cleanup_real_test_users()` - Clean up test users in the real data directory.
+
+#### `scripts/utilities/cleanup/cleanup_test_data.py`
+**Functions:**
+- ✅ `cleanup_backup_files()` - Remove backup files from migration and testing
+- ✅ `cleanup_old_scripts()` - Remove old migration and testing scripts that are no longer needed
+- ✅ `cleanup_test_users()` - Remove test user directories
+- ✅ `get_script_dir()` - Get the MHM root directory
+- ✅ `main()` - Run the cleanup process
+
+#### `scripts/utilities/cleanup/cleanup_user_message_files.py`
+**Functions:**
+- ✅ `check_message_file_format(file_path)` - Check if a message file is in the old format (list of strings).
+- ✅ `cleanup_user_message_files()` - Clean up user message files by removing unwanted files and ensuring proper ones exist.
+- ✅ `main()` - Main function to run the cleanup.
+
+#### `scripts/utilities/cleanup_duplicate_messages.py`
+**Functions:**
+- ✅ `check_duplicates_in_file(filepath)` - Check for duplicate messages in a single file.
+- ✅ `clean_duplicates(args)` - Main function to clean duplicates from all message files.
+- ✅ `create_backup(filepath)` - Create a backup of the file before modification.
+- ✅ `find_message_files()` - Find all JSON message files in the configured messages directory.
+- ✅ `main()` - Main entry point for the module
+
+#### `scripts/utilities/cleanup_test_users.py`
+**Functions:**
+- ✅ `cleanup_test_users()` - Remove test users from the real data directory
+- ✅ `main()` - Main cleanup function
+
+#### `scripts/utilities/fix_user_schedules.py`
+**Functions:**
+- ✅ `fix_user_schedules(user_id)` - Fix the schedule structure for a specific user.
+
+#### `scripts/utilities/rebuild_index.py`
+**Functions:**
+- ✅ `main()` - Rebuild the user index.
+
+#### `scripts/utilities/refactoring/analyze_migration_needs.py`
+**Functions:**
+- ✅ `analyze_migration_needs()` - Analyze what needs to be migrated from core.user_management.
+- ✅ `extract_imports_from_file(filepath)` - Extract all imports from a Python file.
+
+#### `scripts/utilities/refactoring/find_legacy_get_user_data.py`
+
+#### `scripts/utilities/refactoring/find_legacy_imports.py`
+
+#### `scripts/utilities/refactoring/fix_broken_imports.py`
+**Functions:**
+- ✅ `backup_file(filepath)` - Create a backup of the file.
+- ✅ `fix_imports_in_file(filepath)` - Fix broken imports in a single file.
+- ✅ `main()` - Main fix function.
+
+#### `scripts/utilities/refactoring/migrate_legacy_imports.py`
+**Functions:**
+- ✅ `backup_file(filepath)` - Create a backup of the file.
+- ✅ `main()` - Main migration function.
+- ✅ `migrate_imports_in_file(filepath)` - Migrate imports in a single file.
+
+#### `scripts/utilities/restore_custom_periods.py`
+**Functions:**
+- ✅ `main()` - Main restoration function.
+- ✅ `migrate_legacy_schedules_structure(schedules_data)` - Convert legacy flat schedule structure to new nested format.
+- ✅ `restore_custom_periods()` - Restore custom periods from backup for all users.
+
+#### `scripts/utilities/user_data_cli.py`
+**Functions:**
+- ✅ `cmd_backup_user(args)` - Create a backup of user data
+- ✅ `cmd_index(args)` - Manage user index
+- ✅ `cmd_list_users(args)` - List all users with basic info
+- ✅ `cmd_summary(args)` - Show user data summary
+- ✅ `cmd_update_references(args)` - Update message references for a user
+- ✅ `format_size(size_bytes)` - Format bytes to human readable format
+- ✅ `main()` - Main entry point for the module
 
 ### `tasks/` - Task Management
 
@@ -3382,6 +3663,7 @@ Args:
     event: The show event object
 - ✅ `undo_last_question_delete(self)` - Undo the last question deletion.
 - ✅ `undo_last_time_period_delete(self)` - Undo the last time period deletion.
+- ✅ `validate_periods(self)` - Validate all periods and return (is_valid, error_message).
 **Classes:**
 - ✅ `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - ✅ `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
@@ -3407,6 +3689,7 @@ Args:
     event: The show event object
   - ✅ `CheckinSettingsWidget.undo_last_question_delete(self)` - Undo the last question deletion.
   - ✅ `CheckinSettingsWidget.undo_last_time_period_delete(self)` - Undo the last time period deletion.
+  - ✅ `CheckinSettingsWidget.validate_periods(self)` - Validate all periods and return (is_valid, error_message).
 
 #### `ui/widgets/dynamic_list_container.py`
 **Functions:**

@@ -3,8 +3,8 @@ description: "Audit rules for documentation and analysis - mandatory audit-first
 globs: *.md,*.txt,*.mdc
 alwaysApply: false
 priority: 3
-version: "1.1.0"
-lastUpdated: "2025-07-15"
+version: "--scope=docs"
+lastUpdated: "2025-07-21"
 relatedFiles: ["ai_tools/TRIGGER.md", "AI_RULES.md"]
 ---
 # Audit Rules - Documentation & Analysis
@@ -12,7 +12,7 @@ relatedFiles: ["ai_tools/TRIGGER.md", "AI_RULES.md"]
 ## 🚨 Audit-First Protocol (CRITICAL)
 
 ### **BEFORE** creating any documentation, function registry, or comprehensive analysis:
-1. **ALWAYS** run `python ai_tools/quick_audit.py` first
+1. **ALWAYS** run `python ai_tools/ai_tools_runner.py audit` first
 2. **ALWAYS** show audit results to user with statistics
 3. **NEVER** create documentation from partial information
 4. **NEVER** assume patterns apply everywhere
@@ -46,7 +46,7 @@ relatedFiles: ["ai_tools/TRIGGER.md", "AI_RULES.md"]
 - **ALWAYS** ask: "Should I proceed with this data?"
 
 ## 🛠️ Required Audit Scripts
-- `python ai_tools/quick_audit.py` - For comprehensive overview
+- `python ai_tools/ai_tools_runner.py audit` - For comprehensive overview
 - `python ai_tools/function_discovery.py` - For function analysis
 - `python ai_tools/audit_function_registry.py` - For function documentation
 - `python ai_tools/audit_module_dependencies.py` - For dependency maps

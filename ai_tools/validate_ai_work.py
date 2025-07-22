@@ -10,6 +10,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 import json
+import config
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""
@@ -178,7 +179,7 @@ def validate_file_structure(created_files: List[str], modified_files: List[str])
 def generate_validation_report(validation_type: str, **kwargs) -> str:
     """Generate a comprehensive validation report."""
     report = []
-    report.append("🔍 AI WORK VALIDATION REPORT")
+    report.append("AI WORK VALIDATION REPORT")
     report.append("=" * 50)
     report.append(f"Validation Type: {validation_type}")
     report.append("")
@@ -189,30 +190,30 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
             kwargs.get('code_files', [])
         )
         
-        report.append(f"📄 Documentation File: {kwargs.get('doc_file', 'N/A')}")
-        report.append(f"✅ File Exists: {results['file_exists']}")
-        report.append(f"📊 Coverage: {results['coverage']:.1f}%")
+        report.append(f"Documentation File: {kwargs.get('doc_file', 'N/A')}")
+        report.append(f"File Exists: {results['file_exists']}")
+        report.append(f"Coverage: {results['coverage']:.1f}%")
         
         if results['missing_items']:
-            report.append(f"❌ Missing Items: {len(results['missing_items'])}")
+            report.append(f"Missing Items: {len(results['missing_items'])}")
             for item in results['missing_items'][:5]:
                 report.append(f"   - {item}")
         
         if results['extra_items']:
-            report.append(f"⚠️  Extra Items: {len(results['extra_items'])}")
+            report.append(f"Extra Items: {len(results['extra_items'])}")
             for item in results['extra_items'][:5]:
                 report.append(f"   - {item}")
     
     elif validation_type == "code_consistency":
         results = validate_code_consistency(kwargs.get('changed_files', []))
         
-        report.append(f"🔧 Code Consistency Check")
-        report.append(f"✅ Import Consistency: {results['import_consistency']}")
-        report.append(f"✅ Naming Consistency: {results['naming_consistency']}")
-        report.append(f"📝 Functions Found: {len(results['function_signatures'])}")
+        report.append(f"Code Consistency Check")
+        report.append(f"Import Consistency: {results['import_consistency']}")
+        report.append(f"Naming Consistency: {results['naming_consistency']}")
+        report.append(f"Functions Found: {len(results['function_signatures'])}")
         
         if results['warnings']:
-            report.append(f"⚠️  Warnings: {len(results['warnings'])}")
+            report.append(f"Warnings: {len(results['warnings'])}")
             for warning in results['warnings'][:3]:
                 report.append(f"   - {warning}")
     
@@ -222,38 +223,38 @@ def generate_validation_report(validation_type: str, **kwargs) -> str:
             kwargs.get('modified_files', [])
         )
         
-        report.append(f"📁 File Structure Validation")
-        report.append(f"✅ Appropriate Locations: {results['appropriate_locations']}")
-        report.append(f"✅ Naming Conventions: {results['naming_conventions']}")
+        report.append(f"File Structure Validation")
+        report.append(f"Appropriate Locations: {results['appropriate_locations']}")
+        report.append(f"Naming Conventions: {results['naming_conventions']}")
         
         if results['warnings']:
-            report.append(f"⚠️  Warnings: {len(results['warnings'])}")
+            report.append(f"Warnings: {len(results['warnings'])}")
             for warning in results['warnings'][:3]:
                 report.append(f"   - {warning}")
     
     # Overall assessment
     report.append("")
-    report.append("🎯 OVERALL ASSESSMENT:")
+    report.append("OVERALL ASSESSMENT:")
     
     if validation_type == "documentation":
         if results['coverage'] >= 80:
-            report.append("✅ GOOD - Documentation covers most items")
+            report.append("GOOD - Documentation covers most items")
         elif results['coverage'] >= 50:
-            report.append("⚠️  FAIR - Documentation needs improvement")
+            report.append("FAIR - Documentation needs improvement")
         else:
-            report.append("❌ POOR - Documentation is incomplete")
+            report.append("POOR - Documentation is incomplete")
     
     elif validation_type == "code_consistency":
         if results['naming_consistency'] and not results['warnings']:
-            report.append("✅ GOOD - Code is consistent")
+            report.append("GOOD - Code is consistent")
         else:
-            report.append("⚠️  NEEDS ATTENTION - Inconsistencies found")
+            report.append("NEEDS ATTENTION - Inconsistencies found")
     
     elif validation_type == "file_structure":
         if results['appropriate_locations'] and results['naming_conventions']:
-            report.append("✅ GOOD - File structure is appropriate")
+            report.append("GOOD - File structure is appropriate")
         else:
-            report.append("⚠️  NEEDS ATTENTION - File structure issues found")
+            report.append("NEEDS ATTENTION - File structure issues found")
     
     return "\n".join(report)
 
@@ -266,7 +267,7 @@ def validate_ai_work(work_type: str, **kwargs) -> str:
     elif work_type == "file_creation":
         return generate_validation_report("file_structure", **kwargs)
     else:
-        return "❌ Unknown validation type"
+        return "Unknown validation type"
 
 if __name__ == "__main__":
     # Example usage

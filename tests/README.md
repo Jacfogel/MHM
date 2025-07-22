@@ -3,6 +3,8 @@
 > **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side effect verification  
 > **Audience**: Developers and AI assistants working on MHM  
 > **Status**: **ACTIVE** - Real behavior testing implemented, expanding coverage  
+> **Version**: --scope=docs - AI Collaboration System Active
+> **Last Updated**: 2025-07-21
 > **Last Updated**: 2025-07-16
 
 This directory contains the comprehensive test suite for the Mental Health Management (MHM) system. The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
@@ -400,7 +402,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.12'
+          python-version: --scope=docs
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run tests

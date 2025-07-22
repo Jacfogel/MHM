@@ -1,0 +1,30 @@
+AUDIT SUMMARY FOR AI COLLABORATION
+==================================================
+Generated: 2025-07-22 17:20:50
+
+[DECISION_SUPPORT]
+  [WARN] High Complexity Functions (>50 nodes): 832
+
+[AUDIT_FUNCTION_REGISTRY]
+  doc_coverage: 100.0%
+  missing_docs: 
+
+[SYSTEM OVERVIEW]
+  Functions: ~1200 total, 832 high complexity (>50 nodes)
+  Documentation: 100.0% coverage
+  Status: Healthy - ready for development
+
+[PRIORITY ACTIONS]
+  1. Refactor high complexity functions for maintainability
+  2. Review TODO.md for next development priorities
+  3. Run comprehensive testing before major changes
+
+[DEVELOPMENT FOCUS]
+  Primary: Feature development and user functionality
+  Secondary: Code maintainability (complexity reduction)
+  Maintenance: Documentation and testing
+
+[QUICK COMMANDS]
+  Status: python ai_tools/ai_tools_runner.py status
+  Full audit: python ai_tools/ai_tools_runner.py audit
+  Quick check: python ai_tools/quick_status.py concise

@@ -2,6 +2,8 @@
 
 > **Purpose**: Systematic manual testing of all dialogs and UI components  
 > **Status**: Ready for testing  
+> **Version**: --scope=docs - AI Collaboration System Active
+> **Last Updated**: 2025-07-21
 > **Last Updated**: 2025-07-21
 
 ## 🎯 **Testing Strategy**

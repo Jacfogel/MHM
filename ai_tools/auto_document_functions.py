@@ -171,7 +171,8 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
 
 def scan_and_document_functions():
     """Scan all Python files and add docstrings where missing."""
-    project_root = Path(__file__).parent.parent
+    import config
+    project_root = config.get_project_root()
     results = {
         'files_processed': 0,
         'functions_documented': 0,
@@ -179,8 +180,8 @@ def scan_and_document_functions():
         'errors': 0
     }
     
-    # Directories to scan
-    scan_dirs = ['core', 'bot', 'ui', 'user', 'tasks', 'tests']
+    # Directories to scan from configuration
+    scan_dirs = config.get_scan_directories()
     
     for scan_dir in scan_dirs:
         dir_path = project_root / scan_dir

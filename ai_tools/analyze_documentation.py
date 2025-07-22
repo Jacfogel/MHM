@@ -10,7 +10,8 @@ import re
 
 def get_documentation_files() -> Dict[str, str]:
     """Get all documentation files and their content."""
-    project_root = Path(__file__).parent.parent
+    import config
+    project_root = config.get_project_root()
     docs = {}
     
     # Documentation files to analyze

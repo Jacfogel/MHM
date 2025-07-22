@@ -3,8 +3,8 @@ description: "Context rules for development work - PowerShell syntax, error hand
 globs: *.py,*.md,*.txt
 alwaysApply: false
 priority: 2
-version: "1.1.0"
-lastUpdated: "2025-07-15"
+version: "--scope=docs"
+lastUpdated: "2025-07-21"
 relatedFiles: ["AI_RULES.md", "AI_CONTEXT.md"]
 ---
 # Context Rules - Development Work

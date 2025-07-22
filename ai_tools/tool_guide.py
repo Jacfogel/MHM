@@ -11,31 +11,31 @@ import sys
 import subprocess
 import json
 from pathlib import Path
+import config
 
 # Tool configurations with usage guidance
 TOOL_GUIDE = {
-    "quick_audit.py": {
-        "purpose": "One-click comprehensive audit of entire codebase",
+    "ai_tools_runner.py": {
+        "purpose": "Comprehensive interface for all AI tools (single entry point)",
         "when_to_use": [
-            "Before any major decision or refactoring",
-            "When user asks for documentation or analysis",
-            "Before making architectural recommendations",
-            "When user expresses concern about accuracy",
-            "As a first step in any complex task"
+            "Primary tool for all AI tool operations",
+            "Simple commands for basic operations (audit, docs, validate, config)",
+            "Advanced commands for complex tasks (workflow, quick-audit, decision-support)",
+            "When you want a unified interface for all tools",
+            "For both simple user commands and advanced AI workflows"
         ],
         "output_interpretation": {
-            "function_count": "Total functions in codebase",
-            "handler_count": "Functions that handle user interactions",
-            "test_count": "Functions that are tests",
-            "complex_count": "Functions with high complexity",
-            "undocumented_count": "Functions without documentation",
-            "coverage_percentage": "Percentage of functions documented"
+            "audit": "Comprehensive audit results with statistics",
+            "docs": "Documentation update status and validation",
+            "validate": "AI work validation with scores",
+            "config": "Configuration consistency check",
+            "workflow": "Workflow execution with audit-first protocol"
         },
         "success_criteria": [
-            "Shows actual statistics, not estimates",
-            "Provides breakdown by function type",
-            "Identifies areas needing attention",
-            "Gives actionable insights"
+            "Provides appropriate output for each command type",
+            "Handles both simple and advanced operations",
+            "Enforces audit-first protocol when needed",
+            "Gives clear success/failure status"
         ]
     },
     
@@ -262,7 +262,7 @@ def show_recommendations(scenario):
     else:
         print("❌ No specific tool recommendations found.")
         print("💡 Try running the general audit first:")
-        print("   python ai_tools/quick_audit.py")
+        print("   python ai_tools/ai_tools_runner.py audit")
 
 def run_tool_with_guidance(tool_name):
     """Run a tool and provide guidance on interpreting results"""
@@ -316,14 +316,14 @@ if __name__ == "__main__":
             scenario = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "documentation"
             show_recommendations(scenario)
         elif command == "run":
-            tool_name = sys.argv[2] if len(sys.argv) > 2 else "quick_audit.py"
+            tool_name = sys.argv[2] if len(sys.argv) > 2 else "ai_tools_runner.py"
             run_tool_with_guidance(tool_name)
         else:
             print("Usage:")
             print("  python ai_tools/tool_guide.py guide                    # Show all tools")
-            print("  python ai_tools/tool_guide.py guide quick_audit.py     # Show specific tool")
+            print("  python ai_tools/tool_guide.py guide ai_tools_runner.py     # Show specific tool")
             print("  python ai_tools/tool_guide.py recommend 'documentation' # Get recommendations")
-            print("  python ai_tools/tool_guide.py run quick_audit.py       # Run with guidance")
+            print("  python ai_tools/tool_guide.py run ai_tools_runner.py       # Run with guidance")
     else:
         # Default: show all tools
         show_tool_guide()
