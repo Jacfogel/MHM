@@ -99,35 +99,31 @@ class TestDefaultMessages:
             assert messages == test_messages
     
     @pytest.mark.unit
-    def test_load_default_messages_file_not_found(self, test_data_dir):
+    def test_load_default_messages_file_not_found(self, test_data_dir, mock_config):
         """Test loading default messages when file doesn't exist."""
         category = "nonexistent"
         
-        # Create test default messages directory
-        default_dir = os.path.join(test_data_dir, 'default_messages')
-        os.makedirs(default_dir, exist_ok=True)
-        
-        # Patch the default messages path to use our test directory
-        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', default_dir):
-            messages = load_default_messages(category)
-            assert messages == []
+        # Use the mock_config fixture which already patches DEFAULT_MESSAGES_DIR_PATH
+        # The test directory structure is set up by mock_config
+        messages = load_default_messages(category)
+        assert messages == []
     
     @pytest.mark.unit
-    def test_load_default_messages_invalid_json(self, test_data_dir):
+    def test_load_default_messages_invalid_json(self, test_data_dir, mock_config):
         """Test loading default messages with invalid JSON."""
         category = "invalid"
         
         # Create test default messages file with invalid JSON
-        default_dir = os.path.join(test_data_dir, 'default_messages')
-        os.makedirs(default_dir, exist_ok=True)
+        # Use the path that mock_config sets up
+        from core.config import DEFAULT_MESSAGES_DIR_PATH
+        os.makedirs(DEFAULT_MESSAGES_DIR_PATH, exist_ok=True)
         
-        with open(os.path.join(default_dir, f'{category}.json'), 'w') as f:
+        with open(os.path.join(DEFAULT_MESSAGES_DIR_PATH, f'{category}.json'), 'w') as f:
             f.write("invalid json content")
         
-        # Patch the default messages path to use our test directory
-        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', default_dir):
-            messages = load_default_messages(category)
-            assert messages == []
+        # The mock_config fixture already patches DEFAULT_MESSAGES_DIR_PATH
+        messages = load_default_messages(category)
+        assert messages == []
 
 
 class TestMessageCRUD:

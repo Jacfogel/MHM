@@ -29,7 +29,17 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Launch the Application
+### Step 3: Configure Environment (Optional)
+The system uses sensible defaults, but you can customize settings in `.env`:
+```bash
+# Copy the example configuration (if it exists)
+cp .env.example .env
+# Edit .env with your preferred settings
+```
+
+**Note**: The `.env` file is in `.cursorignore` for security (contains API keys and passwords).
+
+### Step 4: Launch the Application
 ```bash
 python run_mhm.py
 ```

@@ -12,6 +12,37 @@ This is the complete detailed changelog. See CHANGELOG_BRIEF.md for brief summar
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Directory Organization: custom_data Migration ✅ **COMPLETED**
+- **Directory Reorganization**: Successfully moved `custom_data/` to `tests/data/` for better organization
+  - **Files Updated**: 15+ files with references updated across core, tests, and documentation
+  - **System Tested**: All functionality verified working after migration (200 tests passed, 1 skipped)
+  - **Configuration Verification**: Confirmed `.env` file functionality and added missing environment variables
+  - **Documentation Updated**: All references now point to new location
+  - **Migration Cleanup**: Removed migration plan files and updated all references
+  - **Risk Level**: Low - Successfully completed with no issues
+  - **Files Modified**: `core/config.py`, `tests/conftest.py`, `tests/unit/test_config.py`, `tests/behavior/test_account_management_real_behavior.py`, `tests/integration/test_account_lifecycle.py`, `tests/ui/test_dialogs.py`, `.gitignore`, `README.md`, `HOW_TO_RUN.md`, `CHANGELOG_BRIEF.md`, `CHANGELOG_DETAIL.md`, `TODO.md`, `FUNCTION_REGISTRY.md`, `scripts/utilities/cleanup_test_users.py`, `scripts/utilities/cleanup/cleanup_data_test_users.py`
+  - **Environment Variables Added**: Added missing variables to `.env` file including `BASE_DATA_DIR`, `AI_SYSTEM_PROMPT_PATH`, `AI_USE_CUSTOM_PROMPT`, `AI_TIMEOUT_SECONDS`, `AI_BATCH_SIZE`, `AI_CUDA_WARMUP`, `AI_CACHE_RESPONSES`, `CONTEXT_CACHE_TTL`, `CONTEXT_CACHE_MAX_SIZE`, `AUTO_CREATE_USER_DIRS`, `SCHEDULER_INTERVAL`
+
+### 2025-01-27 - Directory Organization: default_messages Migration ✅ **COMPLETED**
+- **Directory Reorganization**: Successfully moved `default_messages/` to `resources/default_messages/` for better organization
+  - **Files Updated**: 24 files with 89 references updated
+  - **System Tested**: All functionality verified working after migration
+  - **Documentation Updated**: All references now point to new location
+  - **Environment Fixed**: Corrected `.env` file to use new path
+  - **Test Paths Fixed**: Updated hardcoded paths in tests to use constants
+  - **Risk Level**: Low - Successfully completed with no issues
+  - **Files Modified**: `core/config.py`, `tests/conftest.py`, `tests/unit/test_config.py`, `tests/behavior/test_message_behavior.py`, `README.md`, `ARCHITECTURE.md`, `TODO.md`, `UI_MIGRATION_PLAN.md`, `scripts/find_directory_references.py`
+
+### 2025-01-27 - Directory Organization: test_logs Migration ✅ **COMPLETED**
+- **Directory Reorganization**: Successfully moved `test_logs/` to `tests/logs/` for better organization
+  - **Files Updated**: 12 files with 35 references updated
+  - **System Tested**: All functionality verified working after migration
+  - **Documentation Updated**: All references now point to new location
+  - **Backup Created**: Safety-first approach with complete backup before changes
+  - **Risk Level**: Low - Successfully completed with no issues
+  - **Files Modified**: `.gitignore`, `ARCHITECTURE.md`, `README.md`, `TODO.md`, `CHANGELOG_DETAIL.md`, `UI_MIGRATION_PLAN.md`, `pytest.ini`, `tests/conftest.py`, `tests/unit/test_cleanup.py`, `scripts/find_directory_references.py`
+  - **Migration Plan**: Created comprehensive plan in `scripts/test_logs_migration_plan.md`
+
 ### 2025-07-22 - Final AI Documentation Consolidation ✅ **COMPLETED**
 - **Created `AI_REFERENCE.md`** - Consolidated troubleshooting and system understanding from AI_RULES.md and AI_CONTEXT.md
 - **Deleted redundant files**: Removed AI_RULES.md and AI_CONTEXT.md after consolidation

@@ -25,13 +25,13 @@ def setup_test_environment(test_data_dir):
     # Create temporary test directory
     test_dir = tempfile.mkdtemp(prefix="mhm_test_")
     test_data_dir = os.path.join(test_dir, "data")
-    test_custom_data_dir = os.path.join(test_dir, "custom_data")
+    test_test_data_dir = os.path.join(test_dir, "tests", "data")
     
     # Create directory structure
     os.makedirs(test_data_dir, exist_ok=True)
-    os.makedirs(test_custom_data_dir, exist_ok=True)
+    os.makedirs(test_test_data_dir, exist_ok=True)
     os.makedirs(os.path.join(test_data_dir, "users"), exist_ok=True)
-    os.makedirs(os.path.join(test_custom_data_dir, "users"), exist_ok=True)
+    os.makedirs(os.path.join(test_test_data_dir, "users"), exist_ok=True)
     
     # Create test user index
     user_index = {
@@ -56,7 +56,7 @@ def setup_test_environment(test_data_dir):
     with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:
         json.dump(user_index, f, indent=2)
     
-    return test_dir, test_data_dir, test_custom_data_dir
+    return test_dir, test_data_dir, test_test_data_dir
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
     """Create test user data with specific base state"""
@@ -665,12 +665,11 @@ def main():
     print("=" * 60)
     
     # Setup test environment
-    test_dir, test_data_dir, test_custom_data_dir = setup_test_environment(test_data_dir)
+    test_dir, test_data_dir, test_test_data_dir = setup_test_environment(test_data_dir)
     
     # Override data paths for testing
     import core.config
     core.config.DATA_DIR = test_data_dir
-    core.config.CUSTOM_DATA_DIR = test_custom_data_dir
     
     # Create test users
     create_test_user_data("test-user-basic", test_data_dir, "basic")

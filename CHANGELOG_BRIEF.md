@@ -12,6 +12,17 @@ This file contains brief summaries of recent changes for AI context. See CHANGEL
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Directory Organization: custom_data Migration ✅ **COMPLETED**
+- **Moved `custom_data/` to `tests/data/`** - Better organization for test data, 15+ files updated, system tested
+- **Configuration Verification**: Confirmed `.env` file functionality and added missing environment variables
+- **System Health**: All tests passing (200 passed, 1 skipped), 100% documentation coverage maintained
+
+### 2025-01-27 - Directory Organization: default_messages Migration ✅ **COMPLETED**
+- **Moved `default_messages/` to `resources/default_messages/`** - Better organization, 24 files updated, system tested
+
+### 2025-01-27 - Directory Organization: test_logs Migration ✅ **COMPLETED**
+- **Moved `test_logs/` to `tests/logs/`** - Better organization, 12 files updated, system tested
+
 ### 2025-07-22 - Final AI Documentation Consolidation ✅ **COMPLETED**
 - **Created `AI_REFERENCE.md`** - Consolidated troubleshooting and system understanding
 - **Deleted redundant files**: Removed AI_RULES.md and AI_CONTEXT.md after consolidation

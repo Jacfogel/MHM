@@ -40,18 +40,17 @@ class TestAccountLifecycle:
         # Create temporary test directory
         self.test_dir = tempfile.mkdtemp(prefix="mhm_account_test_")
         test_data_dir = os.path.join(self.test_dir, "data")
-        self.test_custom_data_dir = os.path.join(self.test_dir, "custom_data")
+        self.test_test_data_dir = os.path.join(self.test_dir, "tests", "data")
         
         # Create directory structure
         os.makedirs(test_data_dir, exist_ok=True)
-        os.makedirs(self.test_custom_data_dir, exist_ok=True)
+        os.makedirs(self.test_test_data_dir, exist_ok=True)
         os.makedirs(os.path.join(test_data_dir, "users"), exist_ok=True)
-        os.makedirs(os.path.join(self.test_custom_data_dir, "users"), exist_ok=True)
+        os.makedirs(os.path.join(self.test_test_data_dir, "users"), exist_ok=True)
         
         # Override data paths for testing
         import core.config
         core.config.DATA_DIR = test_data_dir
-        core.config.CUSTOM_DATA_DIR = self.test_custom_data_dir
         
         yield
         

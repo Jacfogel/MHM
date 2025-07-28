@@ -34,7 +34,7 @@ class CleanupManager:
         """Initialize the cleanup manager."""
         self.test_data_dir = test_data_dir or BASE_DATA_DIR
         self.user_dir = USER_INFO_DIR_PATH
-        self.backup_dir = Path(project_root) / "test_logs" / "backups"
+        self.backup_dir = Path(project_root) / "tests" / "logs" / "backups"
         self.backup_dir.mkdir(parents=True, exist_ok=True)
         
     def cleanup_test_users(self, user_ids: Optional[List[str]] = None) -> bool:
@@ -161,7 +161,7 @@ class CleanupManager:
     def _cleanup_old_test_logs(self, keep_days: int = 7) -> None:
         """Clean up old test log files."""
         try:
-            test_logs_dir = Path(project_root) / "test_logs"
+            test_logs_dir = Path(project_root) / "tests" / "logs"
             if not test_logs_dir.exists():
                 return
                 

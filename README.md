@@ -57,6 +57,11 @@ See **HOW_TO_RUN.md** for more details.
 - **👤 User-Focused**: Development guides and references - For human developers
 - **🔧 Configuration**: `requirements.txt`, `.env` - For both
 
+### Configuration Files
+- **`.env`** - Environment variables and configuration (in `.cursorignore` for security)
+- **`requirements.txt`** - Python dependencies
+- **`core/config.py`** - Default configuration values and validation
+
 See **DOCUMENTATION_GUIDE.md** for detailed organization and maintenance guidelines.
 
 ## Architecture
@@ -79,12 +84,13 @@ MHM/
 ├── core/        # Backend service (refactored into focused modules)
 ├── custom_data/ # User data with backups and user index
 ├── data/        # User data (gitignored)
-├── default_messages/
+├── resources/
+│   └── default_messages/
 ├── resources/   # Application resources and presets
 ├── scripts/     # Utilities and tools
 ├── styles/      # QSS theme files
 ├── tasks/       # Task/reminder framework
-├── test_logs/   # Test execution logs
+├── tests/logs/   # Test execution logs
 ├── tests/       # Testing framework
 ├── ui/          # Admin panel (PySide6/Qt)
 ├── user/        # User preferences

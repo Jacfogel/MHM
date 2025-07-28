@@ -182,7 +182,7 @@ python -m pytest -m "integration"
 The testing framework provides several shared fixtures in `conftest.py`:
 
 - `test_data_dir` - Temporary test data directory
-- `test_custom_data_dir` - Temporary custom data directory
+- `test_test_data_dir` - Temporary test data directory
 - `mock_user_data` - Mock user data for testing
 - `mock_config` - Mock configuration for testing
 - `mock_logger` - Mock logger for testing

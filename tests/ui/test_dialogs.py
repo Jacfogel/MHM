@@ -148,24 +148,24 @@ def test_user_data_access():
         user_ids = get_all_user_ids()
         print(f"  ✅ Found {len(user_ids)} users total")
         
-        # Only test with custom_data users (test users)
+        # Only test with tests/data users (test users)
         test_users = []
-        custom_data_users = []
+        test_data_users = []
         
         for user_id in user_ids:
             if user_id.startswith('test-'):
                 test_users.append(user_id)
-            elif os.path.exists(f"custom_data/users/{user_id}"):
-                custom_data_users.append(user_id)
+            elif os.path.exists(f"tests/data/users/{user_id}"):
+                test_data_users.append(user_id)
         
         print(f"  ✅ Found {len(test_users)} test users: {test_users}")
-        print(f"  ✅ Found {len(custom_data_users)} custom data users: {custom_data_users}")
+        print(f"  ✅ Found {len(test_data_users)} test data users: {test_data_users}")
         
         # Test with a safe test user
         if test_users:
             test_user = test_users[0]  # Use first test user
-        elif custom_data_users:
-            test_user = custom_data_users[0]  # Use first custom data user
+        elif test_data_users:
+            test_user = test_data_users[0]  # Use first test data user
         else:
             print("  ⚠️ No safe test users found")
             return {"error": "No safe test users available"}
@@ -202,7 +202,7 @@ def test_user_data_access():
         return {
             "total_users": len(user_ids),
             "test_users": len(test_users),
-            "custom_data_users": len(custom_data_users),
+            "test_data_users": len(test_data_users),
             "test_user": test_user,
             "account_accessible": account_accessible,
             "preferences_accessible": preferences_accessible,

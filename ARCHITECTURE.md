@@ -15,12 +15,12 @@
 - **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
 - **custom_data/**: User data storage with backups and user index
 - **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
-- **default_messages/**: Default motivational, health, and other message templates
+- **resources/default_messages/**: Default motivational, health, and other message templates
 - **resources/**: Application resources and presets
 - **scripts/**: One-off scripts, debug, and migration tools
 - **styles/**: QSS theme files for UI styling
 - **tasks/**: Task and reminder management
-- **test_logs/**: Test execution logs (isolated from application logs)
+- **tests/logs/**: Test execution logs (isolated from application logs)
 - **tests/**: Testing framework with unit, integration, behavior, and UI tests
 - **ui/**: PySide6/Qt-based management UI with organized structure:
   - `ui/designs/`: Qt Designer files (.ui)
@@ -45,7 +45,7 @@
 
 **Message File Handling (2025-07):**
 - Message files are only created for categories a user is opted into.
-- All message files are always created from the corresponding file in `default_messages/` (never as a list of strings).
+- All message files are always created from the corresponding file in `resources/default_messages/` (never as a list of strings).
 - Legacy/invalid files can be fixed using `scripts/fix_user_message_formats.py` (migration) and `scripts/cleanup_user_message_files.py` (cleanup).
 
 **Important:**

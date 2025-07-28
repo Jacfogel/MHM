@@ -1,9 +1,9 @@
 AUDIT SUMMARY FOR AI COLLABORATION
 ==================================================
-Generated: 2025-07-22 17:23:52
+Generated: 2025-07-28 01:11:44
 
 [DECISION_SUPPORT]
-  [WARN] High Complexity Functions (>50 nodes): 832
+  [WARN] High Complexity Functions (>50 nodes): 831
 
 [AUDIT_FUNCTION_REGISTRY]
   doc_coverage: 100.0%

@@ -10,6 +10,14 @@
 
 ## 🎯 Current Priority Tasks
 
+### ✅ Recently Completed (2025-07-28)
+
+#### Directory Organization: custom_data Migration ✅ **COMPLETED**
+- **Moved `custom_data/` to `tests/data/`** - Better organization for test data, 15+ files updated
+- **Configuration Verification**: Confirmed `.env` file functionality and added missing environment variables
+- **System Health**: All tests passing (200 passed, 1 skipped), 100% documentation coverage maintained
+- **Migration Cleanup**: Removed migration plan files and updated all references
+
 ### ✅ Recently Completed (2025-07-21)
 
 #### Unified API Refactoring and Test Fixes ✅ **COMPLETED**
@@ -33,10 +41,14 @@
    - *Note*: All modules now documented with enhanced preservation system working correctly
 
 2. **Directory Organization Improvements** - Reorganize directories for better clarity
-   - *What it means*: Move `custom_data/` to `tests/` or rename to something more intuitive, move `test_logs/` to `tests/`, move `default_messages/` to `resources/`
+   - *What it means*: Move `custom_data/` to `tests/` or rename to something more intuitive
    - *Why it helps*: Better organization and clearer purpose for each directory
    - *Priority*: Medium - Documentation and organization
    - *Impact*: Cleaner project structure and easier navigation
+   - *Status*: ✅ **COMPLETED** - All directory migrations finished
+     - ✅ **test_logs/ → tests/logs/** - Completed successfully
+     - ✅ **default_messages/ → resources/default_messages/** - Completed successfully
+     - ✅ **custom_data/ → tests/data/** - Completed successfully
 
 3. **Documentation Cleanup - Outdated References** - Fix references to non-existent files and outdated patterns
    - *What it means*: Remove references to `AGENTS.md`, `ui_app.py`, `account_manager.py`, `account_creator.py`, `data/sent_messages`, `data/messages`, `messaging_service`, `editschedule`, `createaccount`, `core/utils.py`, and non-existent Cursor rules
@@ -94,13 +106,30 @@
    - *Why it helps*: Allows users to create custom check-in questions beyond the predefined set
    - *Priority*: High
    - *Estimated effort*: Medium
-   - *Current status*: Basic input dialog implemented, needs full dynamic list container system
-   - *Implementation needed*: 
-     - Create `CheckinQuestionField` widget similar to `DynamicListField`
-     - Create `CheckinQuestionContainer` widget similar to `DynamicListContainer`
-     - Add question type selection (text, yes/no, 1-5 scale, number)
-     - Integrate with existing question management system
-     - Update data persistence to handle custom questions
+
+9. **Hermes Model File Validation** - Check if local Hermes model file for GPT4All fallback actually exists and works
+   - *What it means*: Verify that `HERMES_FILE_PATH` points to a valid model file and test GPT4All fallback functionality
+   - *Why it helps*: Ensures the fallback AI system works when LM Studio is not available
+   - *Priority*: Medium - Fallback system validation
+   - *Estimated effort*: Small
+   - *Actions needed*:
+     - Check if file exists at configured path
+     - Test GPT4All integration
+     - Determine if it should be kept, fixed, or replaced with a different model
+
+9. **Fix Task Management Warning Messages** - Remove unnecessary warnings for disabled features
+   - *What it means*: Fix warnings like "WARNING - Task management not enabled for user [user_id]" that appear when features are intentionally disabled
+   - *Why it helps*: Reduces log noise and confusion when features are legitimately disabled
+   - *Priority*: Medium
+   - *Estimated effort*: Small
+   - *Status*: Needs investigation to find where these warnings are generated
+
+10. **Reduce Service Status Check Frequency** - Optimize debug logging frequency
+    - *What it means*: Reduce frequency of debug messages like "DEBUG - Status check: Found 2 service processes: [4056, 18260]" that appear too frequently
+    - *Why it helps*: Reduces log noise and improves performance by reducing unnecessary status checks
+    - *Priority*: Medium
+    - *Estimated effort*: Small
+    - *Status*: Needs investigation to find where these status checks are performed
 
 9. **Discord Validation Enhancement** - Add format validation for Discord usernames
    - *What it means*: Implement validation rules for Discord username format in Channel Management Dialog

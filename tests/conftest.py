@@ -56,7 +56,7 @@ from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 def setup_test_logging():
     """Set up dedicated logging for tests with complete isolation from main app logging."""
     # Create test logs directory
-    test_logs_dir = Path(project_root) / "test_logs"
+    test_logs_dir = Path(project_root) / "tests" / "logs"
     test_logs_dir.mkdir(exist_ok=True)
     
     # Create test log filename with timestamp
@@ -154,7 +154,7 @@ def mock_config(test_data_dir):
     # Patch the configuration to use the test data directory
     with patch('core.config.BASE_DATA_DIR', test_data_dir), \
          patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')), \
-         patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'default_messages')):
+         patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
         yield
 
 @pytest.fixture(scope="function")
@@ -441,25 +441,25 @@ def update_user_index_for_test(test_data_dir):
     
     return _update_index
 
-# --- GLOBAL PATCH: Force all user data to custom_data/users/ for all tests ---
+# --- GLOBAL PATCH: Force all user data to tests/data/users/ for all tests ---
 @pytest.fixture(autouse=True, scope="session")
 def patch_user_data_dirs():
-    """Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use custom_data/users/ for all tests."""
+    """Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use tests/data/users/ for all tests."""
     from unittest.mock import patch
     import core.config
-    custom_data_dir = os.path.abspath("custom_data")
-    users_dir = os.path.join(custom_data_dir, "users")
+    test_data_dir = os.path.abspath("tests/data")
+    users_dir = os.path.join(test_data_dir, "users")
     os.makedirs(users_dir, exist_ok=True)
-    with patch("core.config.BASE_DATA_DIR", custom_data_dir), \
+    with patch("core.config.BASE_DATA_DIR", test_data_dir), \
          patch("core.config.USER_INFO_DIR_PATH", users_dir):
         yield
 
-# --- CLEANUP FIXTURE: Remove test users from both data/users/ and custom_data/users/ after all tests ---
+# --- CLEANUP FIXTURE: Remove test users from both data/users/ and tests/data/users/ after all tests ---
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_users_after_session():
-    """Remove test users from both data/users/ and custom_data/users/ after all tests."""
+    """Remove test users from both data/users/ and tests/data/users/ after all tests."""
     yield  # Run all tests first
-    for base_dir in ["data/users", "custom_data/users"]:
+    for base_dir in ["data/users", "tests/data/users"]:
         abs_dir = os.path.abspath(base_dir)
         if os.path.exists(abs_dir):
             for item in os.listdir(abs_dir):

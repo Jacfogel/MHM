@@ -771,7 +771,7 @@ python run_tests.py
 - **Problem**: During migration, message files were unintentionally created for categories users were not opted into, and some files used the old (string list) format.
 - **Solution**: Added scripts to:
   - Delete unintentional/invalid message files for non-opted-in categories
-  - Ensure message files for enabled categories are always created from `default_messages/` with the correct dictionary format
+  - Ensure message files for enabled categories are always created from `resources/default_messages/` with the correct dictionary format
   - Preserve any existing message files that are already in the correct format
 - **Best Practice**: Message files are now only created for categories a user is opted into, and always use the default message library as the source (never create string-list files).
 - **Scripts**: See `scripts/fix_user_message_formats.py` (migration) and `scripts/cleanup_user_message_files.py` (cleanup)
@@ -820,10 +820,10 @@ python run_tests.py
   - **Test Isolation**: Improved test isolation and cleanup procedures
 - **Logging Isolation System**: Implemented comprehensive logging isolation to prevent test logs from contaminating main application logs
   - **Environment Variable Control**: Uses `MHM_TESTING=1` environment variable to signal test mode
-  - **Test Logging Setup**: Tests use dedicated test logger that writes to `test_logs/` directory
+  - **Test Logging Setup**: Tests use dedicated test logger that writes to `tests/logs/` directory
   - **Main Logger Isolation**: Main application logger setup is skipped when in test mode
   - **Failsafe Implementation**: Added failsafe in `core/logger.py` that forcibly removes all handlers from root logger and main logger when `MHM_TESTING=1` is set
-  - **Complete Separation**: Test logs go to `test_logs/` directory, application logs go to `app.log`
+  - **Complete Separation**: Test logs go to `tests/logs/` directory, application logs go to `app.log`
   - **No Cross-Contamination**: Test logs never appear in `app.log`, application logs never appear in test logs
   - **Automatic Cleanup**: Test logging isolation is automatically activated and deactivated during test runs
 - **Configuration Warning Suppression**: Eliminated intrusive configuration warning popups for non-critical warnings

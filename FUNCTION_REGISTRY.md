@@ -2764,7 +2764,7 @@ real service startup behavior for testing.
 #### `tests/unit/test_cleanup.py`
 **Functions:**
 - ✅ `__init__(self, test_data_dir)` - Initialize the cleanup manager.
-- ✅ `_cleanup_old_test_logs(self, keep_days)` - Clean up old test log files.
+- ✅ `_cleanup_old_test_logs(self, keep_days)` - Clean up old test log files in tests/logs/ directory.
 - ✅ `_cleanup_single_user(self, user_id)` - Clean up a single test user.
 - ✅ `_cleanup_temp_files(self)` - Clean up temporary test files.
 - ✅ `_create_user_backup(self, user_id, user_path)` - Create a backup of user data before cleanup.
@@ -2784,7 +2784,7 @@ Returns:
 **Classes:**
 - ✅ `CleanupManager` - Manages test data cleanup and isolation.
   - ✅ `CleanupManager.__init__(self, test_data_dir)` - Initialize the cleanup manager.
-  - ✅ `CleanupManager._cleanup_old_test_logs(self, keep_days)` - Clean up old test log files.
+  - ✅ `CleanupManager._cleanup_old_test_logs(self, keep_days)` - Clean up old test log files in tests/logs/ directory.
   - ✅ `CleanupManager._cleanup_single_user(self, user_id)` - Clean up a single test user.
   - ✅ `CleanupManager._cleanup_temp_files(self)` - Clean up temporary test files.
   - ✅ `CleanupManager._create_user_backup(self, user_id, user_path)` - Create a backup of user data before cleanup.

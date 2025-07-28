@@ -36,24 +36,24 @@ BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 # Paths - Updated for better organization
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
 USER_INFO_DIR_PATH = os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users'))
-DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'default_messages')  # Keep at root
+DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')  # Moved to resources
 
 # LM Studio Configuration (replacing GPT4All)
 # SETUP INSTRUCTIONS:
 # 1. Download and install LM Studio from https://lmstudio.ai/
-# 2. In LM Studio, load your downloaded DeepSeek LLM 7B Chat model
+# 2. In LM Studio, load your downloaded Phi 2 Chat model
 # 3. Start the local server (usually localhost:1234)
 # 4. The server will be available at http://localhost:1234/v1 with OpenAI-compatible API
 LM_STUDIO_BASE_URL = os.getenv('LM_STUDIO_BASE_URL', 'http://localhost:1234/v1')
 LM_STUDIO_API_KEY = os.getenv('LM_STUDIO_API_KEY', 'lm-studio')  # LM Studio uses any key
-LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'deepseek-llm-7b-chat')  # Model name for API calls
+LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'phi-2')  # Model name for API calls
 
 # AI System Prompt Configuration
 AI_SYSTEM_PROMPT_PATH = os.getenv('AI_SYSTEM_PROMPT_PATH', 'resources/assistant_system_prompt.txt')
 AI_USE_CUSTOM_PROMPT = os.getenv('AI_USE_CUSTOM_PROMPT', 'true').lower() == 'true'
 
 # Legacy support for GPT4All (deprecated, keeping for fallback)
-HERMES_FILE_PATH = os.getenv('HERMES_FILE_PATH', os.path.expanduser('~/AppData/Local/nomic.ai/GPT4All/Nous-Hermes-2-Mistral-7B-DPO.Q4_0.gguf'))
+HERMES_FILE_PATH = os.getenv('HERMES_FILE_PATH')
 
 # AI Performance Configuration
 AI_TIMEOUT_SECONDS = int(os.getenv('AI_TIMEOUT_SECONDS', '30'))  # Increased timeout for resource-constrained systems

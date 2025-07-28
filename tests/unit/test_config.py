@@ -34,10 +34,10 @@ class TestConfigValidation:
         """Test successful core path validation."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
                     # Check initial state - directories might not exist yet
                     users_dir = os.path.join(test_data_dir, 'users')
-                    messages_dir = os.path.join(test_data_dir, 'default_messages')
+                    messages_dir = os.path.join(test_data_dir, 'resources', 'default_messages')
                     
                     is_valid, errors, warnings = validate_core_paths()
                     
@@ -159,7 +159,7 @@ class TestConfigValidation:
         """Test comprehensive configuration validation."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
                     with patch.dict(os.environ, {
                         'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
                         'LM_STUDIO_API_KEY': 'test_key'
@@ -176,7 +176,7 @@ class TestConfigValidation:
         """Test successful validation with no exceptions."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
                     with patch.dict(os.environ, {
                         'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
                         'LM_STUDIO_API_KEY': 'test_key'
@@ -215,17 +215,20 @@ class TestConfigConstants:
     @pytest.mark.unit
     def test_default_messages_dir_path_default(self):
         """Test DEFAULT_MESSAGES_DIR_PATH default value."""
-        # Handle both relative and absolute paths
-        expected_relative = 'default_messages'
-        assert DEFAULT_MESSAGES_DIR_PATH == expected_relative or DEFAULT_MESSAGES_DIR_PATH.endswith('default_messages')
+        # Handle both relative and absolute paths, and Windows path separators
+        expected_relative = 'resources/default_messages'
+        path_normalized = DEFAULT_MESSAGES_DIR_PATH.replace('\\', '/')
+        assert (DEFAULT_MESSAGES_DIR_PATH == expected_relative or 
+                path_normalized.endswith('resources/default_messages') or 
+                'resources/default_messages' in path_normalized)
     
     @pytest.mark.unit
     def test_environment_override(self):
         """Test environment variable override."""
-        with patch.dict(os.environ, {'BASE_DATA_DIR': 'custom_data'}):
+        with patch.dict(os.environ, {'BASE_DATA_DIR': 'tests/data'}):
             # Re-import to get updated value
             import importlib
             import core.config
             importlib.reload(core.config)
             
-            assert core.config.BASE_DATA_DIR == 'custom_data' 
+            assert core.config.BASE_DATA_DIR == 'tests/data' 
