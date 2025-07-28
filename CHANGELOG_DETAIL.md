@@ -4,13 +4,49 @@
 > **Purpose**: Complete detailed history of all changes, improvements, and system evolution  
 > **Style**: Chronological, detailed, reference-oriented
 
-This is the complete detailed changelog. See CHANGELOG_BRIEF.md for brief summaries and TODO.md for current priorities.
+This is the complete detailed changelog. See AI_CHANGELOG.md for brief summaries and TODO.md for current priorities.
+
+## 📝 How to Add Changes
+
+When adding new changes, follow this format:
+
+```markdown
+### YYYY-MM-DD - Brief Title
+- **Feature**: What was added/changed
+- **Impact**: What this improves or fixes
+```
+
+**Important Notes:**
+- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
+- **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
+- Keep entries **concise** and **action-oriented**
+- Maintain **chronological order** (most recent first)
 
 > **Version**: 1.0.0 - AI Collaboration System Active  
 > **Last Updated**: 2025-07-17  
 > **Status**: Active Development - 100% Function Documentation Coverage Achieved
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-07-28 - AI Tool Enhancement and Documentation System Update ✅ **COMPLETED**
+- **Enhanced AI tools** to generate both DETAIL and AI versions of documentation files
+- **Updated audience identification** to "Human developer and AI collaborators" for accuracy
+- **Fixed outdated file references** across all documentation and tools
+- **Updated DOCUMENTATION_GUIDE.md** to reflect new naming convention and file structure
+- **Added new AI files** to AI_SESSION_STARTER.md and documentation references
+- **Files affected**: `ai_tools/generate_function_registry.py`, `ai_tools/generate_module_dependencies.py`, `DOCUMENTATION_GUIDE.md`, `AI_SESSION_STARTER.md`, `ai_tools/audit_function_registry.py`, `ai_tools/audit_module_dependencies.py`, `ai_tools/generate_documentation.py`, `ai_tools/analyze_documentation.py`
+- **New files created**: `AI_FUNCTION_REGISTRY.md`, `AI_MODULE_DEPENDENCIES.md`
+- **Files updated**: `FUNCTION_REGISTRY_DETAIL.md`, `MODULE_DEPENDENCIES_DETAIL.md` (regenerated with correct audience)
+
+### 2025-07-28 - Cursor Rules Update and Test Failure Documentation ✅ **COMPLETED**
+- **Updated Cursor rules** to reference correct files and remove outdated references
+- **Fixed file references** in `.cursor/rules/audit.mdc`, `context.mdc`, `critical.mdc`
+- **Updated relatedFiles** to point to `AI_REFERENCE.md` and `AI_SESSION_STARTER.md` instead of deleted files
+- **Fixed changelog references** in critical.mdc to use `CHANGELOG_DETAIL.md`
+- **Documented test failure** in account creation validation (task management validation bug)
+- **Updated testing status** across documentation to reflect current state (243 passing, 1 failed, 1 skipped)
+- **Added validation bug** to TODO.md and testing improvement plans for tracking
+- **Files affected**: `.cursor/rules/audit.mdc`, `.cursor/rules/context.mdc`, `.cursor/rules/critical.mdc`, `TODO.md`, `AI_TESTING_IMPROVEMENT_PLAN.md`, `AI_CHANGELOG.md`
 
 ### 2025-07-28 - Directory Organization: custom_data Migration ✅ **COMPLETED**
 - **Directory Reorganization**: Successfully moved `custom_data/` to `tests/data/` for better organization
@@ -1646,21 +1682,5 @@ This is the complete detailed changelog. See CHANGELOG_BRIEF.md for brief summar
 - **Complete dependency graph** now available for system analysis and maintenance
 
 
----
 
-## 📝 How to Add Changes
-
-When adding new changes, follow this format:
-
-```markdown
-### YYYY-MM-DD - Brief Title
-- **Feature**: What was added/changed
-- **Impact**: What this improves or fixes
-```
-
-**Important Notes:**
-- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
-- **Always add a corresponding entry** to CHANGELOG_BRIEF.md when adding to this detailed changelog
-- Keep entries **concise** and **action-oriented**
-- Maintain **chronological order** (most recent first)
 

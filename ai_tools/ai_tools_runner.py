@@ -590,7 +590,7 @@ class AIToolsRunner:
         actions.append("Run comprehensive testing before major changes")
         
         # Maintenance tasks (updated changelog reference)
-        actions.append("Update CHANGELOG_BRIEF.md and CHANGELOG_DETAIL.md with recent changes")
+        actions.append("Update AI_CHANGELOG.md and CHANGELOG_DETAIL.md with recent changes")
         
         return actions
     

@@ -11,9 +11,26 @@
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TODO.md](TODO.md) for current UI priorities**
-> **See [TESTING_IMPROVEMENT_PLAN.md](TESTING_IMPROVEMENT_PLAN.md) for testing strategy**
+> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](TESTING_IMPROVEMENT_PLAN_DETAIL.md) for testing strategy**
 
+## 📝 How to Update This Plan
 
+When updating this comprehensive UI migration plan, follow this format:
+
+```markdown
+### YYYY-MM-DD - UI Migration Progress Title
+- **What was completed**: Specific UI component or migration step
+- **Impact**: How this improves user experience, maintainability, or functionality
+- **Files affected**: Key files that were modified, added, or removed
+- **Testing status**: Whether the component was tested and verified working
+```
+
+**Important Notes:**
+- **Keep status current** - Update completion status and current priorities
+- **Document new patterns** - When adding new UI approaches, document them here
+- **Cross-reference AI version** - Update `AI_UI_MIGRATION_PLAN.md` with brief summaries
+- **Focus on user impact** - Emphasize how changes improve the user experience
+- **Maintain beginner-friendly style** - Keep explanations clear and step-by-step
 
 ## 📋 Executive Summary
 
@@ -119,7 +136,7 @@ This migration has established a solid foundation with the main admin panel work
    - Update status indicators to reflect recent improvements
 
 ### **Medium Priority - Documentation Quality**
-1. **Module Dependencies Documentation** - Update MODULE_DEPENDENCIES.md with current dependency information
+1. **Module Dependencies Documentation** - Update MODULE_DEPENDENCIES_DETAIL.md with current dependency information
    - **Current Status**: 0% of dependencies documented (1204 imports found, 0 documented)
    - **Files Missing**: All 131 files need dependency documentation
    - **Priority**: High - Critical for understanding system architecture

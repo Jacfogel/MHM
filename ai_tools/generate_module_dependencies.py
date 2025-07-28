@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate and update MODULE_DEPENDENCIES.md automatically.
+Generate and update MODULE_DEPENDENCIES_DETAIL.md automatically.
 Scans all .py files and creates comprehensive module dependency documentation.
 """
 
@@ -357,6 +357,7 @@ def generate_module_dependencies_content(actual_imports: Dict[str, Dict], existi
     # Header
     content.append("# Module Dependencies - MHM Project")
     content.append("")
+    content.append("> **Audience**: Human developer and AI collaborators  ")
     content.append("> **Purpose**: Complete dependency map for all modules in the MHM codebase  ")
     content.append("> **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  ")
     content.append("> **Last Updated**: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -774,42 +775,140 @@ def identify_modules_needing_enhancement(existing_content: str, actual_imports: 
     
     return enhancement_status
 
+def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
+    """Generate the content for AI_MODULE_DEPENDENCIES.md - concise AI-focused version."""
+    
+    # Calculate key statistics
+    total_files = len(actual_imports)
+    total_imports = sum(data['total_imports'] for data in actual_imports.values())
+    local_dependencies = sum(len(data['imports']['local']) for data in actual_imports.values())
+    
+    # Get most important modules (core, bot, ui modules)
+    important_modules = {}
+    for file_path, data in actual_imports.items():
+        if any(file_path.startswith(prefix) for prefix in ['core/', 'bot/', 'ui/', 'user/']):
+            important_modules[file_path] = data
+    
+    # Generate AI-focused content
+    content = f"""# AI Module Dependencies - Key Patterns & Status
+
+> **Audience**: AI Collaborators  
+> **Purpose**: Key module dependency patterns and current status for AI context  
+> **Style**: Concise, pattern-focused, actionable
+
+## 🎯 **Current Module Status**
+
+### **Dependency Overview**
+- **Total Modules**: {total_files}
+- **Total Imports**: {total_imports}
+- **Local Dependencies**: {local_dependencies}
+- **Coverage**: 100% (all modules documented)
+
+## 🔧 **Key Module Patterns**
+
+### **Core System Dependencies**
+"""
+    
+    # Add core system patterns
+    core_files = {k: v for k, v in important_modules.items() if k.startswith('core/')}
+    if core_files:
+        content += f"- **{len(core_files)} core modules** - System utilities and data management\n"
+        for file_path, data in core_files.items():
+            local_count = len(data['imports']['local'])
+            total_count = data['total_imports']
+            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
+    
+    content += "\n### **Communication Dependencies**\n"
+    bot_files = {k: v for k, v in important_modules.items() if k.startswith('bot/')}
+    if bot_files:
+        content += f"- **{len(bot_files)} bot modules** - Channel management and communication\n"
+        for file_path, data in bot_files.items():
+            local_count = len(data['imports']['local'])
+            total_count = data['total_imports']
+            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
+    
+    content += "\n### **UI Dependencies**\n"
+    ui_files = {k: v for k, v in important_modules.items() if k.startswith('ui/')}
+    if ui_files:
+        content += f"- **{len(ui_files)} UI modules** - User interface and interaction\n"
+        for file_path, data in ui_files.items():
+            local_count = len(data['imports']['local'])
+            total_count = data['total_imports']
+            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
+    
+    content += "\n## 🎯 **For AI Context**\n\n"
+    content += "### **When Working with Modules**\n"
+    content += "- **Check dependencies** before modifying modules\n"
+    content += "- **Understand import patterns** in similar modules\n"
+    content += "- **Follow dependency structure** established in core modules\n"
+    content += "- **Minimize circular dependencies** when adding new imports\n\n"
+    
+    content += "### **Key Module Categories**\n"
+    content += "- **Core Modules**: `core/` - System utilities and data management\n"
+    content += "- **Communication Modules**: `bot/` - Channel and message handling\n"
+    content += "- **UI Modules**: `ui/` - User interface and interaction\n"
+    content += "- **User Modules**: `user/` - User data and preferences\n"
+    content += "- **Task Modules**: `tasks/` - Task management and scheduling\n\n"
+    
+    content += "### **Dependency Patterns**\n"
+    content += "- **Core modules** are imported by most other modules\n"
+    content += "- **UI modules** depend on core and user modules\n"
+    content += "- **Bot modules** depend on core and communication modules\n"
+    content += "- **User modules** are imported by UI and core modules\n\n"
+    
+    content += f"> **For complete module dependencies and detailed information, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**\n"
+    content += f"> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    
+    return content
+
 def update_module_dependencies():
-    """Update MODULE_DEPENDENCIES.md with hybrid approach."""
+    """Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach."""
     print("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
     # Read existing content to preserve manual enhancements
-    registry_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES.md'
+    detail_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
     existing_content = ""
-    if registry_path.exists():
+    if detail_path.exists():
         try:
-            with open(registry_path, 'r', encoding='utf-8') as f:
+            with open(detail_path, 'r', encoding='utf-8') as f:
                 existing_content = f.read()
         except Exception as e:
             print(f"[WARN] Could not read existing file: {e}")
     
-    print("[GEN] Generating MODULE_DEPENDENCIES.md content...")
-    new_content = generate_module_dependencies_content(actual_imports, existing_content)
+    print("[GEN] Generating MODULE_DEPENDENCIES_DETAIL.md content...")
+    detail_content = generate_module_dependencies_content(actual_imports, existing_content)
+    
+    print("[GEN] Generating AI_MODULE_DEPENDENCIES.md content...")
+    ai_content = generate_ai_module_dependencies_content(actual_imports)
     
     # Identify modules needing enhancement
     enhancement_status = identify_modules_needing_enhancement(existing_content, actual_imports)
     
     # Preserve manual enhancements
-    final_content = preserve_manual_enhancements(existing_content, new_content)
+    final_detail_content = preserve_manual_enhancements(existing_content, detail_content)
     
-    # Write the updated content
+    # Write the DETAIL file
     try:
-        with open(registry_path, 'w', encoding='utf-8') as f:
-            f.write(final_content)
+        with open(detail_path, 'w', encoding='utf-8') as f:
+            f.write(final_detail_content)
         
-        print(f"[SUCCESS] MODULE_DEPENDENCIES.md updated successfully!")
+        # Write the AI file
+        ai_path = Path(__file__).parent.parent / 'AI_MODULE_DEPENDENCIES.md'
+        with open(ai_path, 'w', encoding='utf-8') as f:
+            f.write(ai_content)
+        
+        print(f"[SUCCESS] Both module dependency files updated successfully!")
+        print(f"[FILES] Generated:")
+        print(f"   MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies")
+        print(f"   AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies")
         print(f"[STATS] Statistics:")
         print(f"   Files scanned: {len(actual_imports)}")
         print(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}")
         print(f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}")
         print(f"   Coverage: 100% (all files documented)")
-        print(f"   File: {registry_path}")
+        print(f"   Detail file: {detail_path}")
+        print(f"   AI file: {ai_path}")
         
         # Report enhancement status
         print(f"\n[ENHANCEMENT] Manual Enhancement Status:")
@@ -844,7 +943,7 @@ def update_module_dependencies():
         return True
         
     except Exception as e:
-        print(f"[ERROR] Failed to write MODULE_DEPENDENCIES.md: {e}")
+        print(f"[ERROR] Failed to write MODULE_DEPENDENCIES_DETAIL.md: {e}")
         return False
 
 if __name__ == "__main__":

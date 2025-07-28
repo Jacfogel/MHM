@@ -1,8 +1,9 @@
 # Function Registry - MHM Project
 
+> **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-07-21 22:56:45
+> **Last Updated**: 2025-07-28 03:27:17
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -13,15 +14,15 @@
 ### **Function Documentation Coverage: 93.8% ⚠️ NEEDS ATTENTION**
 - **Files Scanned**: 123
 - **Functions Found**: 1194
-- **Methods Found**: 775
+- **Methods Found**: 774
 - **Classes Found**: 119
-- **Total Items**: 1969
+- **Total Items**: 1968
 - **Functions Documented**: 1112
-- **Methods Documented**: 735
+- **Methods Documented**: 734
 - **Classes Documented**: 87
-- **Total Documented**: 1847
+- **Total Documented**: 1846
 - **Template-Generated**: 21
-- **Last Updated**: 2025-07-21
+- **Last Updated**: 2025-07-28
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -35,13 +36,13 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (294)
+### **Core System Functions** (295)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (155)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (261)
+### **User Interface Functions** (260)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (24)
@@ -1948,6 +1949,14 @@ Returns:
 
 No field is required; we only type-check fields that are present.
 This logic previously lived in ``core.user_management``.
+- ✅ `validate_schedule_periods(periods, category)` - Validate schedule periods and return (is_valid, error_messages).
+
+Args:
+    periods: Dictionary of period_name -> period_data
+    category: Category name for error messages (e.g., "tasks", "check-ins")
+
+Returns:
+    Tuple of (is_valid, list_of_error_messages)
 - ❌ `validate_time_format(time_str)` - No description
 - ✅ `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
 
@@ -2366,16 +2375,16 @@ to clean up schedule data structure and optimize day lists.
 - ✅ `test_get_message_categories_default(self)` - Test getting default message categories.
 - ✅ `test_get_message_categories_empty(self)` - Test getting message categories when none are defined.
 - ✅ `test_get_message_categories_success(self)` - Test getting message categories successfully.
-- ✅ `test_load_default_messages_file_not_found(self, test_data_dir)` - Test loading default messages when file doesn't exist.
-- ✅ `test_load_default_messages_invalid_json(self, test_data_dir)` - Test loading default messages with invalid JSON.
+- ✅ `test_load_default_messages_file_not_found(self, test_data_dir, mock_config)` - Test loading default messages when file doesn't exist.
+- ✅ `test_load_default_messages_invalid_json(self, test_data_dir, mock_config)` - Test loading default messages with invalid JSON.
 - ✅ `test_load_default_messages_success(self, test_data_dir)` - Test loading default messages successfully.
 - ✅ `test_store_sent_message_file_error(self, test_data_dir)` - Test store_sent_message handles file errors gracefully.
 - ✅ `test_store_sent_message_success(self, test_data_dir)` - Test storing a sent message successfully.
 - ✅ `test_update_message_success(self, test_data_dir)` - Test updating a message successfully.
 **Classes:**
 - ✅ `TestDefaultMessages` - Test default message loading functionality.
-  - ✅ `TestDefaultMessages.test_load_default_messages_file_not_found(self, test_data_dir)` - Test loading default messages when file doesn't exist.
-  - ✅ `TestDefaultMessages.test_load_default_messages_invalid_json(self, test_data_dir)` - Test loading default messages with invalid JSON.
+  - ✅ `TestDefaultMessages.test_load_default_messages_file_not_found(self, test_data_dir, mock_config)` - Test loading default messages when file doesn't exist.
+  - ✅ `TestDefaultMessages.test_load_default_messages_invalid_json(self, test_data_dir, mock_config)` - Test loading default messages with invalid JSON.
   - ✅ `TestDefaultMessages.test_load_default_messages_success(self, test_data_dir)` - Test loading default messages successfully.
 - ✅ `TestErrorHandling` - Test error handling in message management functions.
   - ✅ `TestErrorHandling.test_add_message_file_error(self, test_data_dir)` - Test add_message handles file errors gracefully.
@@ -2599,7 +2608,7 @@ real service startup behavior for testing.
 #### `tests/conftest.py`
 **Functions:**
 - ❌ `_update_index(user_id)` - No description
-- ✅ `cleanup_test_users_after_session()` - Remove test users from both data/users/ and custom_data/users/ after all tests.
+- ✅ `cleanup_test_users_after_session()` - Remove test users from both data/users/ and tests/data/users/ after all tests.
 - ✅ `isolate_logging()` - Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log.
 - ✅ `mock_ai_response()` - Mock AI response for testing.
 - ✅ `mock_communication_data()` - Mock communication data for testing.
@@ -2611,7 +2620,7 @@ real service startup behavior for testing.
 - ✅ `mock_task_data()` - Mock task data for testing.
 - ✅ `mock_user_data(test_data_dir, mock_config, request)` - Create mock user data for testing with unique user ID for each test.
 - ✅ `mock_user_data_with_messages(test_data_dir, mock_config, request)` - Create mock user data for testing with automated_messages enabled and categories.
-- ✅ `patch_user_data_dirs()` - Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use custom_data/users/ for all tests.
+- ✅ `patch_user_data_dirs()` - Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use tests/data/users/ for all tests.
 - ✅ `pytest_collection_modifyitems(config, items)` - Modify test collection to add default markers.
 - ✅ `pytest_configure(config)` - Configure pytest for MHM testing.
 - ✅ `pytest_runtest_logreport(report)` - Log individual test results.
@@ -2764,7 +2773,7 @@ real service startup behavior for testing.
 #### `tests/unit/test_cleanup.py`
 **Functions:**
 - ✅ `__init__(self, test_data_dir)` - Initialize the cleanup manager.
-- ✅ `_cleanup_old_test_logs(self, keep_days)` - Clean up old test log files in tests/logs/ directory.
+- ✅ `_cleanup_old_test_logs(self, keep_days)` - Clean up old test log files.
 - ✅ `_cleanup_single_user(self, user_id)` - Clean up a single test user.
 - ✅ `_cleanup_temp_files(self)` - Clean up temporary test files.
 - ✅ `_create_user_backup(self, user_id, user_path)` - Create a backup of user data before cleanup.
@@ -2784,7 +2793,7 @@ Returns:
 **Classes:**
 - ✅ `CleanupManager` - Manages test data cleanup and isolation.
   - ✅ `CleanupManager.__init__(self, test_data_dir)` - Initialize the cleanup manager.
-  - ✅ `CleanupManager._cleanup_old_test_logs(self, keep_days)` - Clean up old test log files in tests/logs/ directory.
+  - ✅ `CleanupManager._cleanup_old_test_logs(self, keep_days)` - Clean up old test log files.
   - ✅ `CleanupManager._cleanup_single_user(self, user_id)` - Clean up a single test user.
   - ✅ `CleanupManager._cleanup_temp_files(self)` - Clean up temporary test files.
   - ✅ `CleanupManager._create_user_backup(self, user_id, user_path)` - Create a backup of user data before cleanup.
@@ -3663,7 +3672,6 @@ Args:
     event: The show event object
 - ✅ `undo_last_question_delete(self)` - Undo the last question deletion.
 - ✅ `undo_last_time_period_delete(self)` - Undo the last time period deletion.
-- ✅ `validate_periods(self)` - Validate all periods and return (is_valid, error_message).
 **Classes:**
 - ✅ `CheckinSettingsWidget` - Widget for check-in settings configuration.
   - ✅ `CheckinSettingsWidget.__init__(self, parent, user_id)` - Initialize the object.
@@ -3689,7 +3697,6 @@ Args:
     event: The show event object
   - ✅ `CheckinSettingsWidget.undo_last_question_delete(self)` - Undo the last question deletion.
   - ✅ `CheckinSettingsWidget.undo_last_time_period_delete(self)` - Undo the last time period deletion.
-  - ✅ `CheckinSettingsWidget.validate_periods(self)` - Validate all periods and return (is_valid, error_message).
 
 #### `ui/widgets/dynamic_list_container.py`
 **Functions:**

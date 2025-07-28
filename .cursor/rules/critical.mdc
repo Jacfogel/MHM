@@ -5,7 +5,7 @@ globs: ["**/*"]
 priority: 1
 version: "--scope=docs"
 lastUpdated: "2025-07-21"
-relatedFiles: ["AI_RULES.md", "AI_CONTEXT.md", "AI_QUICK_REFERENCE.md"]
+relatedFiles: ["AI_REFERENCE.md", "AI_SESSION_STARTER.md"]
 ---
 
 # Critical Rules - Always Apply
@@ -35,7 +35,7 @@ Building a personal mental health assistant that helps manage executive function
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG.md` for all changes
+- **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` for all changes
 - **Dependencies**: Update `requirements.txt` for new dependencies
 
 ### **Key Files**
@@ -52,7 +52,7 @@ Building a personal mental health assistant that helps manage executive function
 2. **Create backup**: PowerShell backup command
 3. **Make incremental changes**
 4. **Test after each change**
-5. **Update documentation**: `CHANGELOG.md`
+5. **Update documentation**: `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` 
 
 ## 💬 Communication Guidelines
 

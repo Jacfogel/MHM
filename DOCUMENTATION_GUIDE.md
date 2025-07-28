@@ -15,12 +15,14 @@ This guide defines the audience and purpose of each documentation file in the MH
 | **DEVELOPMENT_WORKFLOW.md** | Developers & contributors | Safe development practices | Comprehensive, step-by-step, supportive |
 | **QUICK_REFERENCE.md** | Developers & contributors | Essential commands and troubleshooting | Concise, scannable, action-oriented |
 | **ARCHITECTURE.md** | Developers & contributors | System design and components | Technical, detailed, reference-oriented |
-| **CHANGELOG_BRIEF.md** | AI collaborators & developers | Brief summaries of recent changes for AI context | Concise, action-oriented, scannable |
+| **AI_CHANGELOG.md** | AI collaborators & developers | Brief summaries of recent changes for AI context | Concise, action-oriented, scannable |
 | **CHANGELOG_DETAIL.md** | Developers & contributors | Complete detailed changelog history | Chronological, detailed, reference-oriented |
 | **TODO.md** | Developers & contributors | Current priorities and planned work | Organized, actionable, beginner-friendly |
 | **DOCUMENTATION_GUIDE.md** | Developers & contributors | Documentation organization and standards | Reference, organizational, comprehensive |
-| **TESTING_IMPROVEMENT_PLAN.md** | Developers & contributors | Testing strategy and improvements | Organized, actionable, beginner-friendly |
-| **UI_MIGRATION_PLAN.md** | Developers & contributors | UI migration and project reorganization | Comprehensive, step-by-step, beginner-friendly |
+| **TESTING_IMPROVEMENT_PLAN_DETAIL.md** | Human developer and AI collaborators | Testing strategy and improvements | Organized, actionable, beginner-friendly |
+| **UI_MIGRATION_PLAN_DETAIL.md** | Human developer and AI collaborators | UI migration and project reorganization | Comprehensive, step-by-step, beginner-friendly |
+| **FUNCTION_REGISTRY_DETAIL.md** | Human developer and AI collaborators | Complete function documentation | Comprehensive, detailed, reference-oriented |
+| **MODULE_DEPENDENCIES_DETAIL.md** | Human developer and AI collaborators | Complete module dependency map | Comprehensive, detailed, reference-oriented |
 
 > **See [README.md](README.md) for complete navigation and project overview**
 
@@ -30,10 +32,13 @@ This guide defines the audience and purpose of each documentation file in the MH
 *Intended for AI assistants (Cursor, Codex, etc.)*
 
 #### Core AI Guidelines
-- **`AI_RULES.md`** - Essential rules and context for AI assistants
-- **`AI_CONTEXT.md`** - Project context and user profile for AI assistants
-- **`AI_ORIENTATION.md`** - AI orientation and collaboration guidelines
-- **`AI_QUICK_REFERENCE.md`** - Quick reference for AI assistants
+- **`AI_SESSION_STARTER.md`** - Essential context for new AI sessions
+- **`AI_REFERENCE.md`** - Troubleshooting and system understanding
+- **`AI_CHANGELOG.md`** - Brief summaries for AI context
+- **`AI_TESTING_IMPROVEMENT_PLAN.md`** - Testing status and patterns
+- **`AI_UI_MIGRATION_PLAN.md`** - UI migration status and patterns
+- **`AI_FUNCTION_REGISTRY.md`** - Function patterns and documentation status
+- **`AI_MODULE_DEPENDENCIES.md`** - Module dependency patterns and status
 - **`.cursor/rules/`** - Cursor-specific rules and guidelines
 
 #### AI-Specific Rules
@@ -51,13 +56,17 @@ This guide defines the audience and purpose of each documentation file in the MH
 #### Development Guides
 - **`DEVELOPMENT_WORKFLOW.md`** - Safe development practices for beginners
 - **`QUICK_REFERENCE.md`** - Essential commands and troubleshooting
-- **`UI_MIGRATION_PLAN.md`** - UI migration, data migration, and backup best practices (see new section)
+- **`UI_MIGRATION_PLAN_DETAIL.md`** - UI migration, data migration, and backup best practices (see new section)
 
 #### Technical Reference
 - **`ARCHITECTURE.md`** - System structure and data organization
-- **`CHANGELOG_BRIEF.md`** - Brief summaries for AI context
+- **`AI_CHANGELOG.md`** - Brief summaries for AI context
 - **`CHANGELOG_DETAIL.md`** - Complete detailed changelog history
 - **`TODO.md`** - Current development priorities
+- **`TESTING_IMPROVEMENT_PLAN_DETAIL.md`** - Comprehensive testing strategy
+- **`UI_MIGRATION_PLAN_DETAIL.md`** - UI migration details and plans
+- **`FUNCTION_REGISTRY_DETAIL.md`** - Complete function documentation
+- **`MODULE_DEPENDENCIES_DETAIL.md`** - Complete module dependency map
 
 ### 🔧 Configuration Files
 *Used by both AI and human developers*

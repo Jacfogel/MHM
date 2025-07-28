@@ -181,6 +181,81 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
     return len(errors) == 0, errors
 
 
+@handle_errors("validating schedule periods", default_return=(False, ["Validation failed"]))
+def validate_schedule_periods(periods: Dict[str, Dict[str, Any]], category: str = "unknown") -> Tuple[bool, List[str]]:
+    """Validate schedule periods and return (is_valid, error_messages).
+    
+    Args:
+        periods: Dictionary of period_name -> period_data
+        category: Category name for error messages (e.g., "tasks", "check-ins")
+    
+    Returns:
+        Tuple of (is_valid, list_of_error_messages)
+    """
+    errors: List[str] = []
+    
+    if not periods:
+        return False, [f"At least one time period is required for {category}."]
+    
+    # Check if any periods are active
+    active_periods = [name for name, data in periods.items() 
+                     if isinstance(data, dict) and data.get('active', False)]
+    if not active_periods:
+        return False, [f"At least one time period must be enabled for {category}."]
+    
+    # Validate each period
+    valid_days = ['ALL', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    
+    for period_name, period_data in periods.items():
+        if not isinstance(period_data, dict):
+            errors.append(f"Period '{period_name}' data must be a dictionary")
+            continue
+            
+        # Check required fields
+        if not period_data.get('name'):
+            errors.append(f"Period '{period_name}' must have a name")
+            
+        # Validate times
+        start_time = period_data.get('start_time')
+        end_time = period_data.get('end_time')
+        
+        if not start_time or not end_time:
+            errors.append(f"Period '{period_name}' must have both start_time and end_time")
+            continue
+            
+        if not validate_time_format(start_time):
+            errors.append(f"Period '{period_name}' has invalid start_time format: {start_time}")
+            
+        if not validate_time_format(end_time):
+            errors.append(f"Period '{period_name}' has invalid end_time format: {end_time}")
+            
+        # Validate time ordering
+        if start_time and end_time and validate_time_format(start_time) and validate_time_format(end_time):
+            try:
+                from datetime import datetime as _dt
+                st = _dt.strptime(start_time, "%H:%M")
+                et = _dt.strptime(end_time, "%H:%M")
+                if st >= et:
+                    errors.append(f"Period '{period_name}' start_time must be before end_time")
+            except ValueError:
+                # Already caught by format validation
+                pass
+        
+        # Validate days for active periods
+        if period_data.get('active', False):
+            days = period_data.get('days', [])
+            if not isinstance(days, list):
+                errors.append(f"Period '{period_name}' days must be a list")
+            elif not days:
+                errors.append(f"Active period '{period_name}' must have at least one day selected")
+            else:
+                invalid_days = [d for d in days if d not in valid_days]
+                if invalid_days:
+                    errors.append(f"Period '{period_name}' has invalid days: {invalid_days}")
+    
+    return len(errors) == 0, errors
+
+
 @handle_errors("validating new user data", default_return=(False, ["Validation failed"]))
 def validate_new_user_data(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> Tuple[bool, List[str]]:
     """Validate complete dataset required for a brand-new user."""

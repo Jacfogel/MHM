@@ -220,4 +220,6 @@ class TaskSettingsWidget(QWidget):
             }
         except Exception as e:
             # Fallback to placeholder if there's an error
-            return {'active': 0, 'completed': 0, 'total': 0} 
+            return {'active': 0, 'completed': 0, 'total': 0}
+
+ 

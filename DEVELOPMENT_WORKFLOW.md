@@ -14,7 +14,7 @@ This guide explains how to work safely and effectively on the MHM project, espec
 1. **Always use virtual environments** - Never install packages globally
 2. **Create backups before major changes** - Use PowerShell backup command
 3. **Test incrementally** - Make small changes and test after each one
-4. **Document everything** - Update CHANGELOG_DETAIL.md for all changes, CHANGELOG_BRIEF.md for AI context
+4. **Document everything** - Update CHANGELOG_DETAIL.md for all changes, AI_CHANGELOG.md for AI context
 5. **Ask for help early** - Don't get stuck, ask specific questions
 6. **Use the Audit-First Protocol** - Run audit tools before creating documentation
 
@@ -102,7 +102,7 @@ deactivate
 
 ### Step 4: Document
 - Update `CHANGELOG_DETAIL.md` with what you changed
-- Update `CHANGELOG_BRIEF.md` with brief summary for AI context
+- Update `AI_CHANGELOG.md` with brief summary for AI context
 - Update any relevant documentation
 - Note any new dependencies in `requirements.txt`
 - **Update communication docs**: Document how users interact with new features

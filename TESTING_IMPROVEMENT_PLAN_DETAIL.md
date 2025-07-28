@@ -12,7 +12,24 @@
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TODO.md](TODO.md) for current testing priorities**
 
+## 📝 How to Update This Plan
 
+When updating this comprehensive testing plan, follow this format:
+
+```markdown
+### YYYY-MM-DD - Testing Improvement Title
+- **What was improved**: Specific testing enhancement or fix
+- **Impact**: How this improves test coverage, reliability, or maintainability
+- **Files affected**: Key files that were modified or added
+- **Test results**: Updated test counts and success rates
+```
+
+**Important Notes:**
+- **Keep status current** - Update test counts, success rates, and completion status
+- **Document new patterns** - When adding new testing approaches, document them here
+- **Cross-reference AI version** - Update `AI_TESTING_IMPROVEMENT_PLAN.md` with brief summaries
+- **Focus on actionable items** - Prioritize what needs to be done next
+- **Maintain beginner-friendly style** - Keep explanations clear and encouraging
 
 ## 🎯 Current State Assessment
 
@@ -311,7 +328,7 @@
    - **Schedule Data** - Test schedule period persistence
 
 ### **Outstanding Documentation Todos from Recent Development**
-1. **Module Dependencies Documentation** - Update MODULE_DEPENDENCIES.md with current dependency information
+1. **Module Dependencies Documentation** - Update MODULE_DEPENDENCIES_DETAIL.md with current dependency information
    - **Current Status**: 0% of dependencies documented (1204 imports found, 0 documented)
    - **Files Missing**: All 131 files need dependency documentation
    - **Priority**: High - Critical for understanding system architecture

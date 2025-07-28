@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Audit script to verify FUNCTION_REGISTRY.md completeness and accuracy.
+Audit script to verify FUNCTION_REGISTRY_DETAIL.md completeness and accuracy.
 Scans all .py files and extracts function information for comparison.
 """
 
@@ -155,8 +155,8 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return results
 
 def parse_function_registry() -> Dict[str, List[str]]:
-    """Parse the existing FUNCTION_REGISTRY.md to extract documented functions."""
-    registry_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY.md'
+    """Parse the existing FUNCTION_REGISTRY_DETAIL.md to extract documented functions."""
+    registry_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY_DETAIL.md'
     documented = {}
     
     try:
@@ -179,7 +179,7 @@ def parse_function_registry() -> Dict[str, List[str]]:
                 documented[file_path] = []
             
     except Exception as e:
-        print(f"Error parsing FUNCTION_REGISTRY.md: {e}")
+        print(f"Error parsing FUNCTION_REGISTRY_DETAIL.md: {e}")
     
     return documented
 
@@ -188,7 +188,7 @@ def generate_audit_report():
     print("[SCAN] Scanning all Python files...")
     actual_functions = scan_all_python_files()
     
-    print("[DOC] Parsing FUNCTION_REGISTRY.md...")
+    print("[DOC] Parsing FUNCTION_REGISTRY_DETAIL.md...")
     documented_functions = parse_function_registry()
     
     print("\n" + "="*80)

@@ -29,7 +29,7 @@
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `CHANGELOG_BRIEF.md` for AI context
+- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `AI_CHANGELOG.md` for AI context
 
 ### **Audit-First Protocol (CRITICAL)**
 **BEFORE** creating any documentation, function registry, or comprehensive analysis:
@@ -68,7 +68,7 @@ Personal mental health assistant that helps manage executive functioning deficit
 ### **System Health & Recent Activity**
 - **Check `ai_tools/audit_summary.txt`** for current system health and metrics
 - **Check `ai_tools/quick_status.py concise`** for real-time status
-- **Check `CHANGELOG_BRIEF.md`** for recent changes and activity
+- **Check `AI_CHANGELOG.md`** for recent changes and activity
 - **Check `TODO.md`** for current priorities and tasks
 
 ### **Known Issues & Priorities**
@@ -80,7 +80,11 @@ Personal mental health assistant that helps manage executive functioning deficit
 
 ### **Getting Current Information**
 - **Check `TODO.md`** for current high/medium/low priority tasks
-- **Check `CHANGELOG_BRIEF.md`** for recent development focus
+- **Check `AI_CHANGELOG.md`** for recent development focus
+- **Check `AI_TESTING_IMPROVEMENT_PLAN.md`** for testing status and patterns
+- **Check `AI_UI_MIGRATION_PLAN.md`** for UI migration status and patterns
+- **Check `AI_FUNCTION_REGISTRY.md`** for function patterns and documentation status
+- **Check `AI_MODULE_DEPENDENCIES.md`** for module dependency patterns and status
 - **Run `python ai_tools/ai_tools_runner.py audit`** for comprehensive system analysis
 
 ## 🔧 **QUICK COMMANDS**
@@ -163,8 +167,8 @@ python ai_tools/version_sync.py status core
 ### **When You Need Technical Details**
 - **`ARCHITECTURE.md`** - System architecture and design
 - **`DEVELOPMENT_WORKFLOW.md`** - Detailed development practices
-- **`FUNCTION_REGISTRY.md`** - Complete function documentation
-- **`MODULE_DEPENDENCIES.md`** - Module relationships and dependencies
+- **`FUNCTION_REGISTRY_DETAIL.md`** - Complete function documentation
+- **`MODULE_DEPENDENCIES_DETAIL.md`** - Module relationships and dependencies
 - **`ai_tools/README.md`** - Complete tool usage and configuration
 
 ---

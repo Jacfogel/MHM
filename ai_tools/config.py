@@ -126,13 +126,13 @@ VERSION_SYNC = {
     ],
     'docs': [
         "README.md",
-        "CHANGELOG_BRIEF.md",
+        "AI_CHANGELOG.md",
         "CHANGELOG_DETAIL.md",
         "TODO.md",
         "DEVELOPMENT_WORKFLOW.md",
-        "TESTING_IMPROVEMENT_PLAN.md",
-        "FUNCTION_REGISTRY.md",
-        "MODULE_DEPENDENCIES.md",
+        "TESTING_IMPROVEMENT_PLAN_DETAIL.md",
+        "FUNCTION_REGISTRY_DETAIL.md",
+        "MODULE_DEPENDENCIES_DETAIL.md",
         "ARCHITECTURE.md",
         "QUICK_REFERENCE.md",
         "HOW_TO_RUN.md"

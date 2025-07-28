@@ -21,6 +21,7 @@ from core.schedule_management import set_schedule_periods, clear_schedule_period
 from core.user_data_handlers import update_user_preferences, update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
+from core.user_data_validation import validate_schedule_periods
 
 # Import widget
 from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
@@ -94,11 +95,12 @@ class CheckinManagementDialog(QDialog):
             return
         try:
             checkin_settings = self.checkin_widget.get_checkin_settings()
+            time_periods = checkin_settings.get('time_periods', {})
 
             # Validate periods before saving
-            is_valid, error_message = self.checkin_widget.validate_periods()
+            is_valid, errors = validate_schedule_periods(time_periods, "check-ins")
             if not is_valid:
-                QMessageBox.warning(self, "Validation Error", error_message)
+                QMessageBox.warning(self, "Validation Error", errors[0])
                 return
 
             # Duplicate period name validation

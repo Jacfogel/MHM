@@ -370,20 +370,4 @@ class CheckinSettingsWidget(QWidget):
         questions = settings.get('questions', {})
         self.set_question_checkboxes(questions) 
 
-    def validate_periods(self) -> tuple[bool, str]:
-        """Validate all periods and return (is_valid, error_message)."""
-        if not self.period_widgets:
-            return False, "At least one time period is required."
-        
-        # Check if any periods are active
-        active_periods = [w for w in self.period_widgets if w.get_period_data().get('active', False)]
-        if not active_periods:
-            return False, "At least one time period must be enabled."
-        
-        # Validate each period
-        for i, widget in enumerate(self.period_widgets):
-            if not widget.is_valid():
-                period_name = widget.get_period_name() or f"Period {i+1}"
-                return False, f"Period '{period_name}' has validation errors. Please check the time settings and day selection."
-        
-        return True, "" 
+ 

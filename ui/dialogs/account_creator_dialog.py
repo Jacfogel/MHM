@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 # Import core functionality
 from user.user_context import UserContext
 from core.message_management import get_message_categories
-from core.user_data_validation import title_case
+from core.user_data_validation import title_case, validate_schedule_periods
 from core.user_management import create_new_user, get_user_id_by_internal_username
 from core.file_operations import create_user_files
 from core.error_handling import handle_errors
@@ -519,6 +519,28 @@ class AccountCreatorDialog(QDialog):
                 # Discord ID doesn't need format validation - any string is acceptable
             else:
                 return False, "Channel widget not loaded."
+        
+        # If task management is enabled, validate task-related fields
+        if tasks_enabled:
+            if hasattr(self, 'task_widget'):
+                task_settings = self.task_widget.get_task_settings()
+                time_periods = task_settings.get('time_periods', {})
+                is_valid, errors = validate_schedule_periods(time_periods, "tasks")
+                if not is_valid:
+                    return False, f"Task Management: {errors[0]}"
+            else:
+                return False, "Task widget not loaded."
+        
+        # If check-ins are enabled, validate check-in-related fields
+        if checkins_enabled:
+            if hasattr(self, 'checkin_widget'):
+                checkin_settings = self.checkin_widget.get_checkin_settings()
+                time_periods = checkin_settings.get('time_periods', {})
+                is_valid, errors = validate_schedule_periods(time_periods, "check-ins")
+                if not is_valid:
+                    return False, f"Check-ins: {errors[0]}"
+            else:
+                return False, "Check-in widget not loaded."
         
         return True, ""
     

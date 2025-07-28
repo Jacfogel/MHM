@@ -1,8 +1,9 @@
 # Module Dependencies - MHM Project
 
+> **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
 > **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  
-> **Last Updated**: 2025-07-21 22:56:46
+> **Last Updated**: 2025-07-28 03:23:41
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -12,12 +13,12 @@
 
 ### **Module Dependencies Coverage: 100.0% ✅ COMPLETED**
 - **Files Scanned**: 123
-- **Total Imports Found**: 1118
+- **Total Imports Found**: 1122
 - **Dependencies Documented**: 123 (100% coverage)
-- **Standard Library Imports**: 449
+- **Standard Library Imports**: 450
 - **Third-Party Imports**: 178
-- **Local Imports**: 491
-- **Last Updated**: 2025-07-21
+- **Local Imports**: 494
+- **Last Updated**: 2025-07-28
 
 **Status**: ✅ **COMPLETED** - All module dependencies have been documented with comprehensive dependency and usage information.
 
@@ -25,9 +26,9 @@
 
 ## 🔍 **Import Statistics**
 
-- **Standard Library**: 449 imports (40.2%)
+- **Standard Library**: 450 imports (40.1%)
 - **Third-party**: 178 imports (15.9%)
-- **Local**: 491 imports (43.9%)
+- **Local**: 494 imports (44.0%)
 
 ## 📁 **Module Dependencies by Directory**
 
@@ -1099,6 +1100,7 @@
     - `datetime`
     - `datetime`
     - `datetime`
+    - `datetime`
     - `os`
     - `os`
     - `re`
@@ -1112,7 +1114,9 @@
   - `tests/ui/test_account_creation_ui.py`
   - `ui/dialogs/account_creator_dialog.py`
   - `ui/dialogs/channel_management_dialog.py`
+  - `ui/dialogs/checkin_management_dialog.py`
   - `ui/dialogs/schedule_editor_dialog.py`
+  - `ui/dialogs/task_management_dialog.py`
   - `ui/dialogs/user_profile_dialog.py`
   - `ui/ui_app_qt.py`
   - `ui/widgets/category_selection_widget.py`
@@ -1120,7 +1124,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_handlers
-- Removed: core/user_data_handlers.py, core/user_management.py, core/validation.py, tests/integration/test_account_management.py, tests/integration/test_user_creation.py, tests/ui/test_account_creation_ui.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/period_row_widget.py
+- Removed: core/user_data_handlers.py, core/user_management.py, core/validation.py, tests/integration/test_account_management.py, tests/integration/test_user_creation.py, tests/ui/test_account_creation_ui.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/period_row_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: User data validation - validates user input and data integrity
@@ -2106,6 +2110,7 @@
 - **Dependencies**: 
   - **Local**:
     - `core.config (get_user_data_dir)` (🆕)
+    - `core.config (DEFAULT_MESSAGES_DIR_PATH)` (🆕)
     - `core.message_management (get_message_categories, load_default_messages, add_message, edit_message, update_message, delete_message, get_last_10_messages, store_sent_message, create_message_file_from_defaults, ensure_user_message_files)` (🆕)
   - **Standard Library**:
     - `json`
@@ -2598,7 +2603,7 @@
     - `core.logger (setup_logging, get_logger)` (🆕)
     - `core.message_management (get_message_categories)` (🆕)
     - `core.user_data_manager (update_user_index)` (🆕)
-    - `core.user_data_validation (title_case)` (🆕)
+    - `core.user_data_validation (title_case, validate_schedule_periods)` (🆕)
     - `core.user_data_validation (is_valid_email, is_valid_phone)` (🆕)
     - `core.user_data_validation (is_valid_email)` (🆕)
     - `core.user_data_validation (is_valid_phone)` (🆕)
@@ -2727,6 +2732,7 @@
     - `core.schedule_management (set_schedule_periods, clear_schedule_periods_cache)` (🆕)
     - `core.user_data_handlers (update_user_preferences, update_user_account)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_validation (validate_schedule_periods)` (🆕)
     - `ui.generated.checkin_management_dialog_pyqt (Ui_Dialog_checkin_management)` (🆕)
     - `ui.widgets.checkin_settings_widget (CheckinSettingsWidget)` (🆕)
   - **Standard Library**:
@@ -2740,7 +2746,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, ui.generated.checkin_management_dialog_pyqt, ui.widgets.checkin_settings_widget
+- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, core.user_data_validation, ui.generated.checkin_management_dialog_pyqt, ui.widgets.checkin_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2756,7 +2762,7 @@
     - `core.logger (setup_logging, get_logger)` (🆕)
     - `core.schedule_management (get_schedule_time_periods, set_schedule_periods, clear_schedule_periods_cache, validate_and_format_time, time_24h_to_12h_display, time_12h_display_to_24h)` (🆕)
     - `core.ui_management (load_period_widgets_for_category, collect_period_data_from_widgets)` (🆕)
-    - `core.user_data_validation (title_case)` (🆕)
+    - `core.user_data_validation (title_case, validate_schedule_periods)` (🆕)
     - `ui.generated.schedule_editor_dialog_pyqt (Ui_Dialog_edit_schedule)` (🆕)
     - `ui.widgets.period_row_widget (PeriodRowWidget)` (🆕)
   - **Standard Library**:
@@ -2788,6 +2794,7 @@
     - `core.schedule_management (set_schedule_periods, clear_schedule_periods_cache)` (🆕)
     - `core.user_data_handlers (update_user_preferences, update_user_account)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_validation (validate_schedule_periods)` (🆕)
     - `ui.generated.task_management_dialog_pyqt (Ui_Dialog_task_management)` (🆕)
     - `ui.widgets.task_settings_widget (TaskSettingsWidget)` (🆕)
   - **Third-party**:
@@ -2797,7 +2804,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, ui.generated.task_management_dialog_pyqt, ui.widgets.task_settings_widget
+- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_handlers, core.user_data_validation, ui.generated.task_management_dialog_pyqt, ui.widgets.task_settings_widget
 - Removed: PySide6.QtCore, PySide6.QtWidgets, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

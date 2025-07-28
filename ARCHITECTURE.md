@@ -1,6 +1,6 @@
 # MHM System Architecture
 
-> **Audience**: Developers and contributors  
+> **Audience**: Human Developer and AI Collaborators (Cursor, Codex, etc.)   
 > **Purpose**: System design, data flow, and technical architecture  
 > **Style**: Technical, detailed, reference-oriented
 

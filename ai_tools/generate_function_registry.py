@@ -271,7 +271,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return results
 
 def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str:
-    """Generate the complete FUNCTION_REGISTRY.md content."""
+    """Generate the complete FUNCTION_REGISTRY_DETAIL.md content."""
     
     # Calculate statistics
     total_files = len(actual_functions)
@@ -306,6 +306,7 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
     # Generate header
     content = f"""# Function Registry - MHM Project
 
+> **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
 > **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
@@ -419,18 +420,119 @@ def generate_file_section(file_path: str, data: Dict) -> str:
     content += "\n"
     return content
 
+def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> str:
+    """Generate the content for AI_FUNCTION_REGISTRY.md - concise AI-focused version."""
+    
+    # Calculate key statistics
+    total_files = len(actual_functions)
+    total_functions = sum(data['total_functions'] for data in actual_functions.values())
+    total_methods = sum(len(cls['methods']) for data in actual_functions.values() for cls in data['classes'])
+    total_items = total_functions + total_methods
+    documented_items = sum(1 for data in actual_functions.values() 
+                          for func in data['functions'] if func['has_docstring'])
+    documented_items += sum(1 for data in actual_functions.values() 
+                           for cls in data['classes'] 
+                           for method in cls['methods'] if method['has_docstring'])
+    coverage_percentage = (documented_items / total_items * 100) if total_items > 0 else 0
+    
+    # Get most important functions (core, bot, ui modules)
+    important_modules = {}
+    for file_path, data in actual_functions.items():
+        if any(file_path.startswith(prefix) for prefix in ['core/', 'bot/', 'ui/', 'user/']):
+            important_modules[file_path] = data
+    
+    # Generate AI-focused content
+    content = f"""# AI Function Registry - Key Patterns & Status
+
+> **Audience**: AI Collaborators  
+> **Purpose**: Key function patterns and current status for AI context  
+> **Style**: Concise, pattern-focused, actionable
+
+## 🎯 **Current Function Status**
+
+### **Documentation Coverage: {coverage_percentage:.1f}% {'✅ EXCELLENT' if coverage_percentage >= 95 else '⚠️ GOOD' if coverage_percentage >= 50 else '❌ NEEDS WORK'}**
+- **Total Functions**: {total_functions}
+- **Total Methods**: {total_methods}
+- **Documented**: {documented_items}/{total_items}
+- **Files Scanned**: {total_files}
+
+## 🔧 **Key Function Patterns**
+
+### **Core System Patterns**
+"""
+    
+    # Add core system patterns
+    core_files = {k: v for k, v in important_modules.items() if k.startswith('core/')}
+    if core_files:
+        content += f"- **{len(core_files)} core modules** - Configuration, error handling, data management\n"
+        for file_path, data in core_files.items():
+            func_count = data['total_functions']
+            documented = sum(1 for func in data['functions'] if func['has_docstring'])
+            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
+    
+    content += "\n### **Communication Patterns**\n"
+    bot_files = {k: v for k, v in important_modules.items() if k.startswith('bot/')}
+    if bot_files:
+        content += f"- **{len(bot_files)} bot modules** - Channel management, communication\n"
+        for file_path, data in bot_files.items():
+            func_count = data['total_functions']
+            documented = sum(1 for func in data['functions'] if func['has_docstring'])
+            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
+    
+    content += "\n### **UI Patterns**\n"
+    ui_files = {k: v for k, v in important_modules.items() if k.startswith('ui/')}
+    if ui_files:
+        content += f"- **{len(ui_files)} UI modules** - Dialogs, widgets, user interaction\n"
+        for file_path, data in ui_files.items():
+            func_count = data['total_functions']
+            documented = sum(1 for func in data['functions'] if func['has_docstring'])
+            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
+    
+    content += "\n## 🎯 **For AI Context**\n\n"
+    content += "### **When Working with Functions**\n"
+    content += "- **Check documentation status** before modifying functions\n"
+    content += "- **Use existing patterns** from well-documented modules\n"
+    content += "- **Follow naming conventions** established in core modules\n"
+    content += "- **Add docstrings** when creating new functions\n\n"
+    
+    content += "### **Key Function Categories**\n"
+    content += "- **Core Functions**: `core/` - System utilities and data management\n"
+    content += "- **Communication Functions**: `bot/` - Channel and message handling\n"
+    content += "- **UI Functions**: `ui/` - User interface and interaction\n"
+    content += "- **User Functions**: `user/` - User data and preferences\n"
+    content += "- **Task Functions**: `tasks/` - Task management and scheduling\n\n"
+    
+    content += "### **Documentation Standards**\n"
+    content += "- **All functions should have docstrings** explaining purpose and parameters\n"
+    content += "- **Use clear, action-oriented descriptions**\n"
+    content += "- **Include parameter types and return values** when relevant\n"
+    content += "- **Follow existing patterns** in similar modules\n\n"
+    
+    content += f"> **For complete function registry and detailed information, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**\n"
+    content += f"> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+    
+    return content
+
 def update_function_registry():
-    """Update FUNCTION_REGISTRY.md with current codebase analysis."""
+    """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""
     print("[SCAN] Scanning all Python files...")
     actual_functions = scan_all_python_files()
     
-    print("[GEN] Generating FUNCTION_REGISTRY.md content...")
-    content = generate_function_registry_content(actual_functions)
+    print("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")
+    detail_content = generate_function_registry_content(actual_functions)
     
-    # Write to file
-    registry_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY.md'
-    with open(registry_path, 'w', encoding='utf-8') as f:
-        f.write(content)
+    print("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
+    ai_content = generate_ai_function_registry_content(actual_functions)
+    
+    # Write DETAIL file
+    detail_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY_DETAIL.md'
+    with open(detail_path, 'w', encoding='utf-8') as f:
+        f.write(detail_content)
+    
+    # Write AI file
+    ai_path = Path(__file__).parent.parent / 'AI_FUNCTION_REGISTRY.md'
+    with open(ai_path, 'w', encoding='utf-8') as f:
+        f.write(ai_content)
     
     # Calculate statistics
     total_files = len(actual_functions)
@@ -457,7 +559,10 @@ def update_function_registry():
     template_items = template_functions + template_methods
     coverage_percentage = (documented_items / total_items * 100) if total_items > 0 else 0
     
-    print(f"\n[SUCCESS] FUNCTION_REGISTRY.md updated successfully!")
+    print(f"\n[SUCCESS] Both function registry files updated successfully!")
+    print(f"[FILES] Generated:")
+    print(f"   FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry")
+    print(f"   AI_FUNCTION_REGISTRY.md - Concise AI-focused registry")
     print(f"[STATS] Statistics:")
     print(f"   Files scanned: {total_files}")
     print(f"   Functions found: {total_functions}")
@@ -468,7 +573,8 @@ def update_function_registry():
     print(f"   Total documented: {documented_items}")
     print(f"   Template-generated: {template_items}")
     print(f"   Coverage: {coverage_percentage:.1f}%")
-    print(f"   File: {registry_path}")
+    print(f"   Detail file: {detail_path}")
+    print(f"   AI file: {ai_path}")
     
     # Template breakdown
     if template_items > 0:

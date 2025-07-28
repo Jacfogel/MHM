@@ -31,7 +31,7 @@ from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
 from core.error_handling import handle_errors
-from core.user_data_validation import title_case
+from core.user_data_validation import title_case, validate_schedule_periods
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -186,15 +186,15 @@ class ScheduleEditorDialog(QDialog):
             # Collect data from UI
             periods = self.collect_period_data()
             
-            # Validate times
-            for period_name, period_data in periods.items():
-                try:
-                    validate_and_format_time(period_data['start'])
-                    validate_and_format_time(period_data['end'])
-                except Exception as e:
-                    QMessageBox.warning(self, "Invalid Time", 
-                                       f"Invalid time format in {period_name}: {str(e)}")
-                    return
+            # Validate periods using centralized validation
+            is_valid, errors = validate_schedule_periods(periods, self.category)
+            if not is_valid:
+                QMessageBox.warning(
+                    self,
+                    "Validation Error",
+                    f"Schedule validation failed:\n\n{errors[0]}",
+                )
+                return
             
             # Save the schedule
             set_schedule_periods(self.user_id, self.category, periods)

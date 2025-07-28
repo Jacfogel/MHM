@@ -149,7 +149,7 @@ def safe_file_operation(file_path):
 2. **Run Tests** - `python run_mhm.py` to identify issues
 3. **Review Changes** - Check what was modified
 4. **Fix Incrementally** - Make small fixes and test
-5. **Document Issues** - Update `CHANGELOG_DETAIL.md` and `CHANGELOG_BRIEF.md`
+5. **Document Issues** - Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
 
 ### **If PowerShell Commands Fail**
 1. **Check Exit Code** - `if ($LASTEXITCODE -ne 0)`

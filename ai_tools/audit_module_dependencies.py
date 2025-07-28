@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Audit script to verify MODULE_DEPENDENCIES.md completeness and accuracy.
+Audit script to verify MODULE_DEPENDENCIES_DETAIL.md completeness and accuracy.
 Scans all .py files and extracts import information for comparison.
 """
 
@@ -114,8 +114,8 @@ def scan_all_python_files() -> Dict[str, Dict]:
     return results
 
 def parse_module_dependencies() -> Dict[str, List[str]]:
-    """Parse the existing MODULE_DEPENDENCIES.md to extract documented dependencies."""
-    deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES.md'
+    """Parse the existing MODULE_DEPENDENCIES_DETAIL.md to extract documented dependencies."""
+    deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
     documented = {}
     
     try:
@@ -142,7 +142,7 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
                     documented[file_path] = []
             
     except Exception as e:
-        print(f"Error parsing MODULE_DEPENDENCIES.md: {e}")
+        print(f"Error parsing MODULE_DEPENDENCIES_DETAIL.md: {e}")
     
     return documented
 
@@ -151,7 +151,7 @@ def generate_dependency_report():
     print("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
-    print("[DOC] Parsing MODULE_DEPENDENCIES.md...")
+    print("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
     documented_deps = parse_module_dependencies()
     
     print("\n" + "="*80)
@@ -261,7 +261,7 @@ def identify_enhancement_needs(documented_deps: Dict[str, List[str]], actual_imp
     for file_path in documented_deps.keys():
         if file_path in actual_imports:
             # Check if it has manual enhancement markers
-            deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES.md'
+            deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
             try:
                 with open(deps_path, 'r', encoding='utf-8') as f:
                     content = f.read()
@@ -390,7 +390,7 @@ def generate_dependency_report():
     print("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
-    print("[DOC] Parsing MODULE_DEPENDENCIES.md...")
+    print("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
     documented_deps = parse_module_dependencies()
     
     # Identify enhancement needs

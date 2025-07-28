@@ -5,7 +5,7 @@ alwaysApply: false
 priority: 3
 version: "--scope=docs"
 lastUpdated: "2025-07-21"
-relatedFiles: ["ai_tools/TRIGGER.md", "AI_RULES.md"]
+relatedFiles: ["ai_tools/README.md", "AI_REFERENCE.md"]
 ---
 # Audit Rules - Documentation & Analysis
 

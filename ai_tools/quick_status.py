@@ -94,8 +94,8 @@ class QuickStatus:
         
         # Check key documentation files
         key_docs = [
-            'README.md', 'CHANGELOG_BRIEF.md', 'CHANGELOG_DETAIL.md', 
-            'TODO.md', 'FUNCTION_REGISTRY.md', 'MODULE_DEPENDENCIES.md'
+            'README.md', 'AI_CHANGELOG.md', 'CHANGELOG_DETAIL.md', 
+            'TODO.md', 'FUNCTION_REGISTRY_DETAIL.md', 'MODULE_DEPENDENCIES_DETAIL.md'
         ]
         for doc_file in key_docs:
             full_path = self.project_root / doc_file
@@ -175,7 +175,7 @@ class QuickStatus:
                 pass
         
         # Check for recent changes in key files
-        key_files = ['CHANGELOG_BRIEF.md', 'TODO.md']
+        key_files = ['AI_CHANGELOG.md', 'TODO.md']
         for file_path in key_files:
             full_path = self.project_root / file_path
             if full_path.exists():

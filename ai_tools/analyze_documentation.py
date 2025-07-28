@@ -20,14 +20,14 @@ def get_documentation_files() -> Dict[str, str]:
         'CHANGELOG.md', 
         'DEVELOPMENT_WORKFLOW.md',
         'DOCUMENTATION_GUIDE.md',
-        'FUNCTION_REGISTRY.md',
+        'FUNCTION_REGISTRY_DETAIL.md',
         'HOW_TO_RUN.md',
         'QUICK_REFERENCE.md',
-        'UI_MIGRATION_PLAN.md',
+        'UI_MIGRATION_PLAN_DETAIL.md',
         'TODO.md',
-        'TESTING_IMPROVEMENT_PLAN.md',
+        'TESTING_IMPROVEMENT_PLAN_DETAIL.md',
         'DEVELOPMENT_GUIDELINES.md',
-        'MODULE_DEPENDENCIES.md'
+        'MODULE_DEPENDENCIES_DETAIL.md'
     ]
     
     for doc_file in doc_files:

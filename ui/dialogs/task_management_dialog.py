@@ -9,6 +9,7 @@ from core.user_data_handlers import update_user_preferences, update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
+from core.user_data_validation import validate_schedule_periods
 
 setup_logging()
 logger = get_logger(__name__)
@@ -71,6 +72,16 @@ class TaskManagementDialog(QDialog):
             # Get task settings from widget
             task_settings = self.task_widget.get_task_settings()
             time_periods = task_settings.get('time_periods', {})
+            
+            # Validate periods before saving
+            is_valid, errors = validate_schedule_periods(time_periods, "tasks")
+            if not is_valid:
+                QMessageBox.warning(
+                    self,
+                    "Validation Error",
+                    f"Task settings validation failed:\n\n{errors[0]}",
+                )
+                return
 
             # Duplicate name validation
             period_names = [w.get_period_data().get('name') for w in self.task_widget.period_widgets]
