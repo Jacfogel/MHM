@@ -466,7 +466,8 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
         return False
     
     # Use the centralized save_user_data function
-    result = save_user_data(user_id, {'schedules': schedules_data})
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {'schedules': schedules_data})
     return result.get('schedules', False)
 
 def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
@@ -593,7 +594,8 @@ def update_user_account(user_id: str, updates: Dict[str, Any], auto_create: bool
         return False
     
     # Use the centralized save_user_data function
-    result = save_user_data(user_id, {'account': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {'account': updates}, auto_create=auto_create)
     return result.get('account', False)
 
 @handle_errors("updating user preferences")
@@ -638,7 +640,8 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: 
                 logger.error(f"Error creating message files for user {user_id} after category update: {e}")
     
     # Use the centralized save_user_data function
-    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
     return result.get('preferences', False)
 
 @handle_errors("updating user context")
@@ -649,7 +652,8 @@ def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool
         return False
     
     # Use the centralized save_user_data function
-    result = save_user_data(user_id, {'context': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {'context': updates}, auto_create=auto_create)
     return result.get('context', False)
 
 @handle_errors("updating channel preferences")
@@ -660,7 +664,8 @@ def update_channel_preferences(user_id: str, updates: Dict[str, Any], auto_creat
         return False
     
     # Use the centralized save_user_data function directly to avoid category schedule creation
-    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
     return result.get('preferences', False)
 
 @handle_errors("creating new user")
@@ -723,7 +728,8 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
     }
     
     # Save all data using centralized save_user_data
-    save_user_data(user_id, {
+    from core.user_data_handlers import save_user_data as _save_user_data
+    _save_user_data(user_id, {
         'account': account_data,
         'preferences': preferences_data,
         'context': context_data
@@ -1118,7 +1124,8 @@ def update_personalization_field(user_id: str, field: str, value: Any) -> bool:
         return False
     
     # Use the centralized save system
-    result = save_user_data(user_id, {
+    from core.user_data_handlers import save_user_data as _save_user_data
+    result = _save_user_data(user_id, {
         'context': {field: value}
     })
     return result.get('context', False)
@@ -1141,7 +1148,8 @@ def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
     # Add item if not already present
     if item not in current_list:
         current_list.append(item)
-        result = save_user_data(user_id, {
+        from core.user_data_handlers import save_user_data as _save_user_data
+        result = _save_user_data(user_id, {
             'context': {field: current_list}
         })
         return result.get('context', False)
@@ -1165,7 +1173,8 @@ def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
     # Remove item if present
     if item in current_list:
         current_list.remove(item)
-        result = save_user_data(user_id, {
+        from core.user_data_handlers import save_user_data as _save_user_data
+        result = _save_user_data(user_id, {
             'context': {field: current_list}
         })
         return result.get('context', False)

@@ -96,9 +96,16 @@ class UserContext:
         }
         
         # Update all data using new functions
-        update_user_account(user_id, account_updates)
-        update_user_preferences(user_id, preferences_updates)
-        update_user_context(user_id, context_updates)
+        from core.user_data_handlers import save_user_data
+        
+        # Save account data
+        save_user_data(user_id, {'account': account_updates})
+        
+        # Save preferences data
+        save_user_data(user_id, {'preferences': preferences_updates})
+        
+        # Save context data
+        save_user_data(user_id, {'context': context_updates})
         
         logger.info(f"User data saved for user_id {user_id}")
 
