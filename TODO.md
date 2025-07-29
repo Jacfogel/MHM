@@ -161,6 +161,12 @@ When adding new tasks, follow this format:
   - Define Discord username format rules (no spaces, valid characters, length limits)
   - Add validation to Channel Management Dialog
 
+**Discord Connectivity Monitoring** - Add monitoring for Discord connection health
+- *What it means*: Implement periodic health checks and monitoring for Discord bot connectivity
+- *Why it helps*: Proactively detect and report connectivity issues before they affect users
+- *Estimated effort*: Small
+- *Status*: Basic connectivity checks implemented, monitoring system needed
+
 ### Low Priority
 
 **Scripts Directory Cleanup** - Clean up the scripts/ directory

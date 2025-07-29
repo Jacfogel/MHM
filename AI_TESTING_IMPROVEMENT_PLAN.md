@@ -28,6 +28,11 @@ When updating this AI-focused testing plan, follow this format:
 
 ## 🎯 **Current Testing Status**
 
+### **2025-07-28 - Discord Connectivity Testing Enhancement**
+- **Added Discord connectivity diagnostic script** for troubleshooting network and DNS issues
+- **Enhanced Discord bot testing** with comprehensive error handling and recovery mechanisms
+- **Updated test patterns** to include connectivity testing for communication channels
+
 ### **Test Coverage: 29% (9/31+ modules)**
 - **243 tests passing, 1 skipped, 1 failed** - 99.6% success rate
 - **Modules WITH Tests**: 9 (error_handling, file_operations, user_management, scheduler, configuration, message_management, communication_manager, task_management, service_management)
@@ -38,6 +43,7 @@ When updating this AI-focused testing plan, follow this format:
 - **Test Organization**: `tests/unit/`, `tests/integration/`, `tests/behavior/`, `tests/ui/`
 - **Manual Testing Framework**: Comprehensive dialog testing checklist established
 - **Validation System**: Enhanced across all dialogs with clear error messages
+- **Discord Connectivity Testing**: New diagnostic script available for troubleshooting connectivity issues
 
 ## 🔧 **Key Testing Architecture**
 
@@ -50,7 +56,7 @@ When updating this AI-focused testing plan, follow this format:
 ### **Critical Testing Gaps**
 - **Core Modules**: `message_management.py`, `schedule_management.py`, `response_tracking.py`
 - **UI Modules**: `ui_app_qt.py`, dialog implementations
-- **Bot Modules**: Communication channel implementations
+- **Bot Modules**: Communication channel implementations (Discord connectivity enhanced, testing needed)
 - **Account Creation Validation**: Task management validation bug causing test failure
 
 ## 📋 **Testing Priorities**
@@ -77,6 +83,7 @@ When updating this AI-focused testing plan, follow this format:
 - `python run_tests.py` - Run all tests
 - `python -m pytest tests/unit/` - Run unit tests only
 - `python -m pytest tests/behavior/` - Run behavior tests only
+- `python scripts/debug/debug_discord_connectivity.py` - Test Discord connectivity
 
 ### **Key Test Files**
 - `tests/conftest.py` - Test configuration and fixtures

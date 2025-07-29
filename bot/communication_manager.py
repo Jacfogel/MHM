@@ -175,8 +175,21 @@ class CommunicationManager:
                         return True
                     else:
                         logger.warning(f"Channel {channel.config.name} initialization returned False on attempt {attempt + 1}")
+                        
+                        # Special handling for Discord bot - check if it's actually connected
+                        if channel.config.name == 'discord' and hasattr(channel, 'is_actually_connected'):
+                            if channel.is_actually_connected():
+                                logger.info(f"Discord bot is actually connected despite initialization returning False")
+                                return True
+                        
                 except asyncio.TimeoutError:
                     logger.warning(f"Channel {channel.config.name} initialization timed out on attempt {attempt + 1}")
+                    
+                    # Special handling for Discord bot - check if it's actually connected after timeout
+                    if channel.config.name == 'discord' and hasattr(channel, 'is_actually_connected'):
+                        if channel.is_actually_connected():
+                            logger.info(f"Discord bot is actually connected despite initialization timeout")
+                            return True
                 
             except Exception as e:
                 logger.warning(f"Channel {channel.config.name} initialization attempt {attempt + 1} failed: {e}")
