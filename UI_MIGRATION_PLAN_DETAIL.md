@@ -127,7 +127,7 @@ This migration has established a solid foundation with the main admin panel work
 ### **Medium Priority - Code Quality**
 1. **Legacy Code Cleanup** - ✅ **COMPLETED** - Remove fallback references to `preferences['messaging_service']`
    - **Status**: ✅ **COMPLETED** - All files already use modern `preferences.get('channel', {}).get('type')` pattern
-   - **Files Verified**: `ui/ui_app_qt.py`, `ui/ui_app.py`, `core/response_tracking.py`, `bot/user_context_manager.py`, `bot/telegram_bot.py`, `bot/communication_manager.py`
+   - **Files Verified**: `ui/ui_app_qt.py`, `core/response_tracking.py`, `bot/user_context_manager.py`, `bot/telegram_bot.py`, `bot/communication_manager.py`
    - **Result**: No legacy code found - system already modernized
 
 2. **Documentation Updates** - Ensure all documentation reflects current state
@@ -180,7 +180,7 @@ MHM/
 │   ├── dialogs/            # Dialog implementations
 │   ├── widgets/            # Reusable widget components
 │   ├── ui_app_qt.py        # Main admin interface (PySide6)
-│   └── ui_app.py           # Legacy Tkinter interface (deprecated)
+│   └── ui_app_qt.py        # Modern Qt interface
 ├── bot/                    # Communication channel implementations
 ├── tasks/                  # Task management system
 ├── user/                   # User context and preferences
@@ -532,7 +532,7 @@ MHM/
 #### Legacy Code Cleanup (Low Priority)
 - **Legacy messaging_service field**: Remove fallback references to `preferences['messaging_service']` in multiple files:
   - `ui/ui_app_qt.py` (line 1243)
-  - `ui/account_manager.py` (lines 1170, 1294)
+  - `ui/dialogs/account_creator_dialog.py` (account creation functionality)
   - `core/response_tracking.py` (line 169)
   - `bot/user_context_manager.py` (lines 97, 196)
   - `bot/telegram_bot.py` (line 671)

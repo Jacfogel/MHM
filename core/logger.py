@@ -2,8 +2,9 @@
 
 import logging
 import os
+import shutil
 from logging.handlers import RotatingFileHandler
-from core.config import LOG_FILE_PATH
+from core.config import LOG_FILE_PATH, LOG_MAX_BYTES, LOG_BACKUP_COUNT, LOG_COMPRESS_BACKUPS, LOG_BACKUP_DIR
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
 # This ensures test logs never go to app.log, even if logging setup is triggered early
@@ -23,6 +24,47 @@ if os.getenv('MHM_TESTING') == '1':
     # Clear any cached handlers
     root_logger.handlers.clear()
     main_logger.handlers.clear()
+
+class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
+    """
+    Custom rotating file handler that moves rotated files to a backup directory.
+    """
+    
+    def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False):
+        super().__init__(filename, maxBytes, backupCount, encoding, delay)
+        self.backup_dir = backup_dir
+        # Ensure backup directory exists
+        os.makedirs(self.backup_dir, exist_ok=True)
+    
+    def doRollover(self):
+        """
+        Do a rollover, as described in __init__().
+        """
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+        
+        # Move existing backup files to backup directory
+        for i in range(self.backupCount - 1, 0, -1):
+            sfn = f"{self.baseFilename}.{i}"
+            dfn = f"{self.baseFilename}.{i + 1}"
+            if os.path.exists(sfn):
+                if os.path.exists(dfn):
+                    os.remove(dfn)
+                # Move to backup directory with timestamp
+                backup_name = f"{os.path.basename(self.baseFilename)}.{i}"
+                backup_path = os.path.join(self.backup_dir, backup_name)
+                shutil.move(sfn, backup_path)
+        
+        # Move current log file to backup directory
+        if os.path.exists(self.baseFilename):
+            backup_name = f"{os.path.basename(self.baseFilename)}.1"
+            backup_path = os.path.join(self.backup_dir, backup_name)
+            shutil.move(self.baseFilename, backup_path)
+        
+        # Create new log file
+        if not self.delay:
+            self.stream = self._open()
 
 # Global variable to track current verbosity mode
 _verbose_mode = False
@@ -74,7 +116,7 @@ def setup_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always logs everything)
-        file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=5000000, backupCount=5, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)  # File gets everything
 
@@ -230,6 +272,123 @@ def disable_module_logging(module_name):
     for handler in logger.handlers:
         handler.setLevel(logging.WARNING)
 
+def get_log_file_info():
+    """
+    Get information about current log files and their sizes.
+    
+    Returns:
+        dict: Information about log files including total size and file count
+    """
+    try:
+        import glob
+        
+        # Get current log file
+        current_log_size = 0
+        current_log_info = None
+        if os.path.exists(LOG_FILE_PATH):
+            current_log_size = os.path.getsize(LOG_FILE_PATH)
+            current_log_info = {
+                'name': os.path.basename(LOG_FILE_PATH),
+                'location': 'current',
+                'size_bytes': current_log_size,
+                'size_mb': round(current_log_size / (1024 * 1024), 2)
+            }
+        
+        # Get backup log files
+        backup_files = []
+        backup_total_size = 0
+        if os.path.exists(LOG_BACKUP_DIR):
+            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_FILE_PATH)}*")
+            backup_log_files = glob.glob(backup_pattern)
+            
+            for log_file in backup_log_files:
+                if os.path.exists(log_file):
+                    size = os.path.getsize(log_file)
+                    backup_total_size += size
+                    backup_files.append({
+                        'name': os.path.basename(log_file),
+                        'location': 'backup',
+                        'size_bytes': size,
+                        'size_mb': round(size / (1024 * 1024), 2)
+                    })
+        
+        # Calculate totals
+        total_size = current_log_size + backup_total_size
+        total_files = (1 if current_log_info else 0) + len(backup_files)
+        
+        return {
+            'total_files': total_files,
+            'total_size_bytes': total_size,
+            'total_size_mb': round(total_size / (1024 * 1024), 2),
+            'current_log': current_log_info,
+            'backup_files': backup_files,
+            'backup_directory': LOG_BACKUP_DIR
+        }
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Error getting log file info: {e}")
+        return None
+
+def cleanup_old_logs(max_total_size_mb=50):
+    """
+    Clean up old log files if total size exceeds the limit.
+    
+    Args:
+        max_total_size_mb (int): Maximum total size in MB before cleanup (default 50MB)
+    
+    Returns:
+        bool: True if cleanup was performed, False otherwise
+    """
+    try:
+        log_info = get_log_file_info()
+        if not log_info:
+            return False
+            
+        if log_info['total_size_mb'] <= max_total_size_mb:
+            return False
+            
+        # Get all backup log files sorted by modification time (oldest first)
+        import glob
+        backup_files = []
+        if os.path.exists(LOG_BACKUP_DIR):
+            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_FILE_PATH)}*")
+            backup_files = glob.glob(backup_pattern)
+        
+        log_files_with_time = []
+        
+        for log_file in backup_files:
+            if os.path.exists(log_file):
+                mtime = os.path.getmtime(log_file)
+                log_files_with_time.append((log_file, mtime))
+        
+        # Sort by modification time (oldest first)
+        log_files_with_time.sort(key=lambda x: x[1])
+        
+        # Remove oldest files until we're under the limit
+        removed_count = 0
+        for log_file, _ in log_files_with_time:
+            try:
+                os.remove(log_file)
+                removed_count += 1
+                logging.getLogger(__name__).info(f"Removed old log file: {log_file}")
+                
+                # Check if we're under the limit now
+                log_info = get_log_file_info()
+                if log_info and log_info['total_size_mb'] <= max_total_size_mb:
+                    break
+                    
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"Failed to remove log file {log_file}: {e}")
+        
+        if removed_count > 0:
+            logging.getLogger(__name__).info(f"Log cleanup completed: removed {removed_count} files")
+            return True
+            
+        return False
+        
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Error during log cleanup: {e}")
+        return False
+
 def force_restart_logging():
     """
     Force restart the logging system by clearing all handlers and reinitializing.
@@ -255,7 +414,7 @@ def force_restart_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always DEBUG)
-        file_handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=5000000, backupCount=5, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)
 

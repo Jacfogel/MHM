@@ -32,10 +32,7 @@ When adding new tasks, follow this format:
 
 ### High Priority
 
-#### Documentation Cleanup
-**Documentation Cleanup - Outdated References** - Fix references to non-existent files and outdated patterns
-- *What it means*: Remove references to `AGENTS.md`, `ui_app.py`, `account_manager.py`, `account_creator.py`, `data/sent_messages`, `data/messages`, `messaging_service`, `editschedule`, `createaccount`, `core/utils.py`, and non-existent Cursor rules
-- *Why it helps*: Eliminates confusion and ensures documentation accuracy
+
 
 #### Testing & Validation
 **Comprehensive Dialog Testing** - Test remaining dialogs for functionality and data persistence
@@ -86,38 +83,15 @@ When adding new tasks, follow this format:
 - *Why it helps*: Users can set up their complete message delivery schedule during initial account setup instead of having to do it later
 - *Estimated effort*: Medium
 
-**Account Creation Validation Bug** - Fix validation logic for task management feature
-- *What it means*: Task management validation is incorrectly requiring categories when only tasks are enabled
-- *Why it helps*: Fixes test failure and ensures proper validation behavior
-- *Estimated effort*: Small
 
-**Hermes Model File Validation** - Check if local Hermes model file for GPT4All fallback actually exists and works
-- *What it means*: Verify that `HERMES_FILE_PATH` points to a valid model file and test GPT4All fallback functionality
-- *Why it helps*: Ensures the fallback AI system works when LM Studio is not available
-- *Estimated effort*: Small
-- *Actions needed*:
-  - Check if file exists at configured path
-  - Test GPT4All integration
-  - Determine if it should be kept, fixed, or replaced with a different model
 
-**Fix Task Management Warning Messages** - Remove unnecessary warnings for disabled features
-- *What it means*: Fix warnings like "WARNING - Task management not enabled for user [user_id]" that appear when features are intentionally disabled
-- *Why it helps*: Reduces log noise and confusion when features are legitimately disabled
-- *Estimated effort*: Small
-- *Status*: Needs investigation to find where these warnings are generated
 
-**Reduce Service Status Check Frequency** - Optimize debug logging frequency
-- *What it means*: Reduce frequency of debug messages like "DEBUG - Status check: Found 2 service processes: [4056, 18260]" that appear too frequently
-- *Why it helps*: Reduces log noise and improves performance by reducing unnecessary status checks
-- *Estimated effort*: Small
-- *Status*: Needs investigation to find where these status checks are performed
+
+
 
 ### Medium Priority
 
-**Log Rotation & Size Limits**
-- *What it means*: Implement rotating file handler or size checks for `app.log`
-- *Why it helps*: Prevent the "giant file of doom" and conserve disk space
-- *Estimated effort*: Small
+
 
 **Expand Testing Framework** - Add tests for untested modules
 - *What it means*: Currently only 9 out of 31+ modules have tests (29% coverage)
@@ -261,10 +235,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Easier to debug problems when they occur
 - *Estimated effort*: Small
 
-**Improve app.log to prevent "giant file of doom"**
-- *What it means*: Implement log rotation, size limits, and better organization to prevent one massive log file
-- *Why it helps*: Easier debugging, better performance, and prevents disk space issues
-- *Estimated effort*: Medium
+
 
 **Fix "process already stopped" notification issue**
 - *What it means*: Investigate why shutdown attempts result in "process already stopped" messages

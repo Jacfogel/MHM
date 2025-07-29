@@ -21,7 +21,7 @@ from core.config import (
     LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, 
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
     AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT,
-    HERMES_FILE_PATH  # Keep for fallback compatibility
+
 )
 # Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
@@ -32,13 +32,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-# Optional import for GPT4All - graceful fallback if not available
-try:
-    import gpt4all
-    GPT4ALL_AVAILABLE = True
-except ImportError:
-    GPT4ALL_AVAILABLE = False
-    gpt4all = None
+
 
 logger = get_logger(__name__)
 
@@ -183,7 +177,7 @@ class ResponseCache:
 
 class AIChatBotSingleton:
     """
-    A Singleton container for LM Studio API client (replacing GPT4All).
+    A Singleton container for LM Studio API client.
     """
     _instance = None
 
@@ -796,10 +790,6 @@ Additional Instructions:
             'custom_prompt_loaded': system_prompt_loader._custom_prompt is not None,
             'prompt_length': len(system_prompt_loader._custom_prompt) if system_prompt_loader._custom_prompt else 0,
             'prompt_file_exists': os.path.exists(AI_SYSTEM_PROMPT_PATH),
-            # Legacy GPT4All info for compatibility
-            'gpt4all_library_available': GPT4ALL_AVAILABLE,
-            'model_file_exists': os.path.exists(HERMES_FILE_PATH) if HERMES_FILE_PATH else False,
-            'model_file_path': HERMES_FILE_PATH,
         }
 
     @handle_errors("generating personalized message", default_return="Wishing you a wonderful day! Remember that every small step toward your wellbeing matters.")

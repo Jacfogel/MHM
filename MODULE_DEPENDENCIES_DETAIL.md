@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
 > **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  
-> **Last Updated**: 2025-07-28 03:23:41
+> **Last Updated**: 2025-07-28 23:29:20
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -13,11 +13,11 @@
 
 ### **Module Dependencies Coverage: 100.0% ✅ COMPLETED**
 - **Files Scanned**: 123
-- **Total Imports Found**: 1122
+- **Total Imports Found**: 1144
 - **Dependencies Documented**: 123 (100% coverage)
-- **Standard Library Imports**: 450
-- **Third-Party Imports**: 178
-- **Local Imports**: 494
+- **Standard Library Imports**: 458
+- **Third-Party Imports**: 176
+- **Local Imports**: 510
 - **Last Updated**: 2025-07-28
 
 **Status**: ✅ **COMPLETED** - All module dependencies have been documented with comprehensive dependency and usage information.
@@ -26,9 +26,9 @@
 
 ## 🔍 **Import Statistics**
 
-- **Standard Library**: 450 imports (40.1%)
-- **Third-party**: 178 imports (15.9%)
-- **Local**: 494 imports (44.0%)
+- **Standard Library**: 458 imports (40.0%)
+- **Third-party**: 176 imports (15.4%)
+- **Local**: 510 imports (44.6%)
 
 ## 📁 **Module Dependencies by Directory**
 
@@ -39,7 +39,7 @@
 - **Dependencies**: 
   - **Local**:
     - `bot.user_context_manager (user_context_manager)` (🆕)
-    - `core.config (LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT, HERMES_FILE_PATH)` (🆕)
+    - `core.config (LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT)` (🆕)
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.logger (get_logger)` (🆕)
     - `core.response_tracking (get_recent_responses, store_chat_interaction)` (🆕)
@@ -55,8 +55,6 @@
     - `threading`
     - `time`
     - `typing (Dict, Optional, Tuple)`
-  - **Third-party**:
-    - `gpt4all`
 - **Used by**: 
   - `bot/communication_manager.py`
   - `bot/conversation_manager.py`
@@ -236,6 +234,7 @@
   - **Standard Library**:
     - `asyncio`
     - `os`
+    - `random`
     - `socket`
     - `threading`
     - `time`
@@ -460,13 +459,13 @@
   - `core/logger.py`
   - `core/message_management.py`
   - `core/response_tracking.py`
-  - `core/schedule_management.py`
   - `core/service.py`
   - `core/service_utilities.py`
   - `core/user_data_handlers.py`
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
   - `core/user_management.py`
+  - `scripts/debug/debug_discord_connectivity.py`
   - `scripts/debug/debug_lm_studio_timeout.py`
   - `scripts/migration/migrate_sent_messages.py`
   - `scripts/migration/migrate_user_data_structure.py`
@@ -648,6 +647,7 @@
   - `core/user_data_manager.py`
   - `core/user_data_validation.py`
   - `core/user_management.py`
+  - `scripts/debug/debug_discord_connectivity.py`
   - `scripts/migration/migrate_messaging_service.py`
   - `scripts/migration/migrate_schedule_format.py`
   - `scripts/migration/migrate_sent_messages.py`
@@ -764,18 +764,11 @@
 - **Purpose**: Schedule management and time period handling
 - **Dependencies**: 
   - **Local**:
-    - `core.config (get_user_file_path)` (🆕)
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.file_operations (determine_file_path, load_json_data, save_json_data, get_user_file_path)` (🆕)
-    - `core.file_operations (load_json_data, save_json_data)` (🆕)
     - `core.logger (get_logger)` (🆕)
     - `core.service_utilities (create_reschedule_request)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
-    - `core.user_data_handlers (update_user_schedules)` (🆕)
-    - `core.user_data_handlers (update_user_schedules)` (🆕)
-    - `core.user_data_handlers (update_user_schedules)` (🆕)
-    - `core.user_data_handlers (get_all_user_ids)` (🆕)
-    - `core.user_data_handlers (update_user_schedules)` (🆕)
     - `core.user_data_handlers (update_user_schedules)` (🆕)
     - `core.user_data_handlers (update_user_schedules)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
@@ -786,8 +779,6 @@
     - `re`
     - `time`
     - `typing (List, Dict, Any, Optional)`
-  - **Third-party**:
-    - `copy`
 - **Used by**: 
   - `bot/communication_manager.py`
   - `bot/telegram_bot.py`
@@ -805,7 +796,7 @@
   - `user/user_preferences.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.file_operations, core.logger, core.service_utilities, core.user_data_handlers, user.user_context
+- Added: core.error_handling, core.file_operations, core.logger, core.service_utilities, core.user_data_handlers, user.user_context
 - Removed: bot/communication_manager.py, bot/telegram_bot.py, core/scheduler.py, core/ui_management.py, scripts/testing/ai/test_new_modules.py, scripts/utilities/check_checkin_schedules.py, ui/dialogs/category_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_management_dialog.py, ui/widgets/checkin_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/task_settings_widget.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -869,7 +860,7 @@
     - `bot.communication_manager (CommunicationManager)` (🆕)
     - `core.auto_cleanup (auto_cleanup_if_needed)` (🆕)
     - `core.config (validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError)` (🆕)
-    - `core.config (LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir)` (🆕)
+    - `core.config (LOG_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir)` (🆕)
     - `core.config (LOG_FILE_PATH)` (🆕)
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.file_operations (verify_file_access, determine_file_path)` (🆕)
@@ -877,9 +868,6 @@
     - `core.logger (force_restart_logging)` (🆕)
     - `core.scheduler (SchedulerManager)` (🆕)
     - `core.user_data_handlers (get_all_user_ids)` (🆕)
-    - `core.user_data_handlers (get_user_data)` (🆕)
-    - `core.user_data_handlers (get_user_data)` (🆕)
-    - `core.user_data_handlers (get_user_data)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
   - **Standard Library**:
     - `atexit`
@@ -1120,7 +1108,6 @@
   - `ui/dialogs/user_profile_dialog.py`
   - `ui/ui_app_qt.py`
   - `ui/widgets/category_selection_widget.py`
-  - `ui/widgets/period_row_widget.py`
 
 **Dependency Changes**:
 - Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_handlers
@@ -1142,9 +1129,33 @@
     - `core.logger (get_logger)` (🆕)
     - `core.message_management (get_message_categories)` (🆕)
     - `core.message_management (ensure_user_message_files)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
     - `core.user_data_handlers (save_user_data)` (🆕)
     - `core.user_data_handlers (save_user_data_transaction)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
     - `core.user_data_manager (update_user_index)` (🆕)
     - `core.user_data_manager (update_user_index)` (🆕)
     - `core.user_data_manager (update_user_index)` (🆕)
@@ -1315,6 +1326,29 @@
 
 **Dependency Changes**:
 - Added: bot.ai_chatbot
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
+#### `scripts/debug/debug_discord_connectivity.py`
+- **Purpose**: Core system module with heavy core dependencies
+- **Dependencies**: 
+  - **Local**:
+    - `core.config (DISCORD_BOT_TOKEN)` (🆕)
+    - `core.logger (get_logger)` (🆕)
+  - **Standard Library**:
+    - `datetime`
+    - `json`
+    - `os`
+    - `requests`
+    - `socket`
+    - `sys`
+    - `time`
+- **Used by**: None (not imported by other modules)
+
+**Dependency Changes**:
+- Added: core.config, core.logger
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -2343,27 +2377,6 @@
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Integration tests for user creation
 
-<!-- MANUAL_ENHANCEMENT_END -->
-
-#### `tests/task_management.py`
-- **Purpose**: Test file for task management
-- **Dependencies**: None (no imports)
-- **Used by**: None (not imported by other modules)
-
-<!-- MANUAL_ENHANCEMENT_START -->
-**Enhanced Purpose**: Placeholder test file for task management functionality (currently empty)
-
-**Key Functions**:
-- No functions currently implemented
-
-**Special Considerations**:
-- **Empty File**: Currently contains no test code or functionality
-- **Future Implementation**: Intended for task management unit and integration tests
-- **Test Coverage**: Will need tests for task CRUD operations, scheduling, and data persistence
-- **Integration**: Should test integration with core.task_management module
-- **Data Validation**: Future tests should validate task data integrity and user isolation
-
-**Usage**: Future test file for validating task management functionality and ensuring data consistency.
 <!-- MANUAL_ENHANCEMENT_END -->
 
 #### `tests/ui/test_account_creation_ui.py`
@@ -3564,7 +3577,6 @@
     - `core.error_handling (handle_errors)` (🆕)
     - `core.logger (setup_logging, get_logger)` (🆕)
     - `core.schedule_management (time_24h_to_12h_display, time_12h_display_to_24h)` (🆕)
-    - `core.user_data_validation (title_case)` (🆕)
     - `ui.generated.period_row_template_pyqt (Ui_Form_period_row_template)` (🆕)
   - **Standard Library**:
     - `os`
@@ -3581,7 +3593,7 @@
   - `ui/widgets/task_settings_widget.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_management, core.user_data_validation, ui.generated.period_row_template_pyqt
+- Added: core.error_handling, core.logger, core.schedule_management, ui.generated.period_row_template_pyqt
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets, core/ui_management.py, ui/dialogs/schedule_editor_dialog.py, ui/widgets/checkin_settings_widget.py, ui/widgets/task_settings_widget.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -3660,6 +3672,7 @@
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.logger (get_logger)` (🆕)
     - `core.user_data_handlers (get_user_data, update_user_account, update_user_preferences, update_user_context)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
   - **Standard Library**:
     - `json`
     - `os`

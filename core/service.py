@@ -27,7 +27,7 @@ register_all_channels()
 
 # Now import the rest
 from bot.communication_manager import CommunicationManager
-from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
+from core.config import LOG_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
 from core.user_data_handlers import get_all_user_ids
@@ -84,7 +84,6 @@ class MHMService:
         """
         paths = [
             LOG_FILE_PATH,
-            HERMES_FILE_PATH,
             USER_INFO_DIR_PATH
         ]
         

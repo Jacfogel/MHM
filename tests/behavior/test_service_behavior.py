@@ -114,10 +114,9 @@ class TestMHMService:
         # Mock the data access functions to return real data
         with patch('core.service.get_all_user_ids', return_value=['user1', 'user2']), \
              patch('core.service.get_user_data') as mock_get_user_data, \
-             patch('core.service.get_user_data_dir', return_value=temp_dir), \
-             patch('core.service.LOG_FILE_PATH', os.path.join(temp_dir, 'log.txt')), \
-             patch('core.service.HERMES_FILE_PATH', os.path.join(temp_dir, 'hermes.txt')), \
-             patch('core.service.USER_INFO_DIR_PATH', temp_dir):
+                     patch('core.service.get_user_data_dir', return_value=temp_dir), \
+        patch('core.service.LOG_FILE_PATH', os.path.join(temp_dir, 'log.txt')), \
+        patch('core.service.USER_INFO_DIR_PATH', temp_dir):
             
             # Mock get_user_data to return real data structure
             def mock_get_user_data_side_effect(user_id, data_type):
@@ -135,7 +134,6 @@ class TestMHMService:
             # Verify real behavior - paths are actual strings and contain expected values
             assert isinstance(paths, list)
             assert os.path.join(temp_dir, 'log.txt') in paths
-            assert os.path.join(temp_dir, 'hermes.txt') in paths
             assert temp_dir in paths
             
             # Verify all paths are valid file system paths

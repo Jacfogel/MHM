@@ -38,7 +38,7 @@ LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
 USER_INFO_DIR_PATH = os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users'))
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')  # Moved to resources
 
-# LM Studio Configuration (replacing GPT4All)
+# LM Studio Configuration
 # SETUP INSTRUCTIONS:
 # 1. Download and install LM Studio from https://lmstudio.ai/
 # 2. In LM Studio, load your downloaded Phi 2 Chat model
@@ -52,8 +52,7 @@ LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'phi-2')  # Model name for API ca
 AI_SYSTEM_PROMPT_PATH = os.getenv('AI_SYSTEM_PROMPT_PATH', 'resources/assistant_system_prompt.txt')
 AI_USE_CUSTOM_PROMPT = os.getenv('AI_USE_CUSTOM_PROMPT', 'true').lower() == 'true'
 
-# Legacy support for GPT4All (deprecated, keeping for fallback)
-HERMES_FILE_PATH = os.getenv('HERMES_FILE_PATH')
+
 
 # AI Performance Configuration
 AI_TIMEOUT_SECONDS = int(os.getenv('AI_TIMEOUT_SECONDS', '30'))  # Increased timeout for resource-constrained systems
@@ -70,6 +69,10 @@ AUTO_CREATE_USER_DIRS = os.getenv('AUTO_CREATE_USER_DIRS', 'true').lower() == 't
 
 # Logging Configuration
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING').upper()  # Default to WARNING for quiet operation
+LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
+LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))  # Keep 5 backup files
+LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'  # Compress old logs
+LOG_BACKUP_DIR = os.getenv('LOG_BACKUP_DIR', os.path.join(BASE_DATA_DIR, 'backups'))  # Backup directory for rotated logs
 
 # Communication Channel Configurations (non-blocking)
 # TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated
@@ -235,6 +238,22 @@ def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
                 errors.append(f"Cannot create log directory {log_dir}: {e}")
     except Exception as e:
         errors.append(f"Error validating log file path {LOG_FILE_PATH}: {e}")
+    
+    # Validate log rotation settings
+    if LOG_MAX_BYTES < 1024 * 1024:  # Less than 1MB
+        warnings.append(f"LOG_MAX_BYTES ({LOG_MAX_BYTES}) is very small, consider increasing")
+    
+    if LOG_BACKUP_COUNT < 1:
+        errors.append("LOG_BACKUP_COUNT must be at least 1")
+    elif LOG_BACKUP_COUNT > 20:
+        warnings.append(f"LOG_BACKUP_COUNT ({LOG_BACKUP_COUNT}) is very high, consider reducing")
+    
+    # Check current log file size if it exists
+    if os.path.exists(LOG_FILE_PATH):
+        current_size = os.path.getsize(LOG_FILE_PATH)
+        current_size_mb = current_size / (1024 * 1024)
+        if current_size_mb > 10:  # More than 10MB
+            warnings.append(f"Current log file is {current_size_mb:.1f}MB, consider reducing LOG_LEVEL or increasing LOG_MAX_BYTES")
     
     return len(errors) == 0, errors, warnings
 

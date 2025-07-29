@@ -400,7 +400,6 @@ def are_tasks_enabled(user_id: str) -> bool:
         user_data_result = get_user_data(user_id, 'account')
         user_account = user_data_result.get('account')
         if not user_account or user_account.get('features', {}).get('task_management') != 'enabled':
-            logger.warning(f"Task management not enabled for user {user_id}")
             return False
         
         return True

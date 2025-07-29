@@ -41,7 +41,7 @@ Building a personal mental health assistant that helps manage executive function
 ### **Key Files**
 - `run_mhm.py` - Main entry point
 - `core/service.py` - Background service
-- `ui/ui_app.py` - Admin interface (admin only)
+- `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
 - `core/file_operations.py`, `core/user_management.py`, `core/message_management.py`, `core/schedule_management.py`, `core/response_tracking.py`, `core/service_utilities.py`, `core/validation.py`
 - `bot/` - Communication channel implementations

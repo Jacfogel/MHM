@@ -7,9 +7,9 @@
 ## 🎯 **Current Function Status**
 
 ### **Documentation Coverage: 93.8% ⚠️ GOOD**
-- **Total Functions**: 1194
-- **Total Methods**: 774
-- **Documented**: 1846/1968
+- **Total Functions**: 1204
+- **Total Methods**: 778
+- **Documented**: 1860/1982
 - **Files Scanned**: 123
 
 ## 🔧 **Key Function Patterns**
@@ -26,7 +26,7 @@
   - `core/message_management.py`: 11/11 functions documented
   - `core/response_tracking.py`: 13/13 functions documented
   - `core/scheduler.py`: 29/30 functions documented
-  - `core/schedule_management.py`: 17/19 functions documented
+  - `core/schedule_management.py`: 16/18 functions documented
   - `core/service.py`: 15/15 functions documented
   - `core/service_utilities.py`: 7/7 functions documented
   - `core/ui_management.py`: 6/6 functions documented
@@ -44,7 +44,7 @@
   - `bot/channel_registry.py`: 1/1 functions documented
   - `bot/communication_manager.py`: 36/36 functions documented
   - `bot/conversation_manager.py`: 12/12 functions documented
-  - `bot/discord_bot.py`: 8/8 functions documented
+  - `bot/discord_bot.py`: 12/12 functions documented
   - `bot/email_bot.py`: 9/9 functions documented
   - `bot/telegram_bot.py`: 29/35 functions documented
   - `bot/user_context_manager.py`: 13/13 functions documented
@@ -107,4 +107,4 @@
 - **Follow existing patterns** in similar modules
 
 > **For complete function registry and detailed information, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**
-> **Last Updated**: 2025-07-28 03:27:17
+> **Last Updated**: 2025-07-28 23:29:20

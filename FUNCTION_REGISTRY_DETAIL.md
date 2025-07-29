@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-07-28 03:27:17
+> **Last Updated**: 2025-07-28 23:29:20
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -13,14 +13,14 @@
 
 ### **Function Documentation Coverage: 93.8% ⚠️ NEEDS ATTENTION**
 - **Files Scanned**: 123
-- **Functions Found**: 1194
-- **Methods Found**: 774
+- **Functions Found**: 1204
+- **Methods Found**: 778
 - **Classes Found**: 119
-- **Total Items**: 1968
-- **Functions Documented**: 1112
-- **Methods Documented**: 734
+- **Total Items**: 1982
+- **Functions Documented**: 1122
+- **Methods Documented**: 738
 - **Classes Documented**: 87
-- **Total Documented**: 1846
+- **Total Documented**: 1860
 - **Template-Generated**: 21
 - **Last Updated**: 2025-07-28
 
@@ -36,10 +36,10 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (295)
+### **Core System Functions** (294)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (155)
+### **Communication Functions** (159)
 Bot implementations, channel management, and communication utilities.
 
 ### **User Interface Functions** (260)
@@ -103,7 +103,7 @@ Returns:
 - ✅ `set(self, prompt, response, user_id)` - Cache a response.
 - ✅ `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
 **Classes:**
-- ✅ `AIChatBotSingleton` - A Singleton container for LM Studio API client (replacing GPT4All).
+- ✅ `AIChatBotSingleton` - A Singleton container for LM Studio API client.
   - ✅ `AIChatBotSingleton.__init__(self)` - Initialize the object.
   - ✅ `AIChatBotSingleton.__new__(cls)` - Create a new instance.
   - ✅ `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
@@ -386,13 +386,17 @@ This is the proper way to initiate check-ins from external modules.
 #### `bot/discord_bot.py`
 **Functions:**
 - ✅ `__init__(self, config)` - Initialize the object.
+- ✅ `_check_dns_resolution(self, hostname)` - Check if DNS resolution is working for a given hostname.
+- ✅ `_check_network_connectivity(self, hostname, port)` - Check if network connectivity is available to a specific host and port.
 - ✅ `_register_commands(self)` - Register Discord commands
 - ✅ `_register_events(self)` - Register Discord event handlers
 - ✅ `_run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
+- ✅ `_wait_for_network_recovery(self, max_wait)` - Wait for network connectivity to recover.
 - ✅ `channel_type(self)` - Get the channel type for Discord bot.
 
 Returns:
     ChannelType.ASYNC: Discord bot operates asynchronously
+- ✅ `is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
 - ✅ `is_initialized(self)` - Legacy method for backward compatibility.
 
 Returns:
@@ -406,13 +410,17 @@ Stops the Discord bot and cleans up resources.
 **Classes:**
 - ❌ `DiscordBot` - No description
   - ✅ `DiscordBot.__init__(self, config)` - Initialize the object.
+  - ✅ `DiscordBot._check_dns_resolution(self, hostname)` - Check if DNS resolution is working for a given hostname.
+  - ✅ `DiscordBot._check_network_connectivity(self, hostname, port)` - Check if network connectivity is available to a specific host and port.
   - ✅ `DiscordBot._register_commands(self)` - Register Discord commands
   - ✅ `DiscordBot._register_events(self)` - Register Discord event handlers
   - ✅ `DiscordBot._run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
+  - ✅ `DiscordBot._wait_for_network_recovery(self, max_wait)` - Wait for network connectivity to recover.
   - ✅ `DiscordBot.channel_type(self)` - Get the channel type for Discord bot.
 
 Returns:
     ChannelType.ASYNC: Discord bot operates asynchronously
+  - ✅ `DiscordBot.is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
   - ✅ `DiscordBot.is_initialized(self)` - Legacy method for backward compatibility.
 
 Returns:
@@ -1420,8 +1428,6 @@ Args:
     
 Returns:
     bool: True if the period is active, False otherwise (defaults to True if field is missing)
-- ✅ `migrate_legacy_schedule_keys(user_id)` - Migrate all user schedule files from legacy 'start'/'end' keys to canonical 'start_time'/'end_time'.
-If user_id is None, migrate all users.
 - ✅ `set_reminder_periods_and_days(user_id, category, periods, days)` - Save reminder periods and days for a category to schedules.json.
 - ✅ `set_schedule_days(user_id, category, days)` - Set the schedule days for a user and category.
 
@@ -2046,6 +2052,16 @@ Args:
 #### `scripts/debug/debug_comprehensive_prompt.py`
 **Functions:**
 - ✅ `debug_comprehensive_prompt()` - Debug the comprehensive context prompt generation.
+
+#### `scripts/debug/debug_discord_connectivity.py`
+**Functions:**
+- ✅ `main()` - Run the Discord connectivity diagnostic.
+- ✅ `test_alternative_dns_servers()` - Test connectivity to alternative DNS servers.
+- ✅ `test_bot_token()` - Test if the Discord bot token is valid.
+- ✅ `test_discord_api()` - Test Discord API accessibility.
+- ✅ `test_discord_endpoints()` - Test connectivity to various Discord endpoints.
+- ✅ `test_dns_resolution(hostname)` - Test DNS resolution for a given hostname.
+- ✅ `test_network_connectivity(hostname, port, timeout)` - Test network connectivity to a specific host and port.
 
 #### `scripts/debug/debug_lm_studio_timeout.py`
 **Functions:**
@@ -2710,8 +2726,6 @@ real service startup behavior for testing.
   - ✅ `TestUserCreationValidation.test_required_fields_validation(self, test_data_dir, mock_config)` - Test that required fields are validated.
   - ✅ `TestUserCreationValidation.test_timezone_validation(self)` - Test timezone validation.
   - ✅ `TestUserCreationValidation.test_username_validation(self)` - Test username validation.
-
-#### `tests/task_management.py`
 
 #### `tests/ui/test_account_creation_ui.py`
 **Functions:**

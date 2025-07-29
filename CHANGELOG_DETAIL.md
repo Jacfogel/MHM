@@ -28,6 +28,64 @@ When adding new changes, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Log Rotation & Size Limits Enhancement ✅ **COMPLETED**
+- **Enhanced log rotation system** with configurable settings and monitoring capabilities
+  - Added configurable environment variables: `LOG_MAX_BYTES`, `LOG_BACKUP_COUNT`, `LOG_COMPRESS_BACKUPS`, `LOG_BACKUP_DIR`
+  - Implemented `get_log_file_info()` function to monitor log file sizes and usage
+  - Added `cleanup_old_logs()` function to automatically remove old log files when total size exceeds limits
+  - Enhanced logging configuration validation with size warnings and rotation settings validation
+  - **Prevents "giant file of doom"** by maintaining configurable file size limits and automatic cleanup
+- **Custom backup directory support** - Log files are now automatically moved to `data/backups/` directory
+  - Created `BackupDirectoryRotatingFileHandler` class for organized log storage
+  - Maintains user's existing backup organization pattern
+  - Provides detailed monitoring of both current and backup log files
+- **Improved log management** with better monitoring and maintenance capabilities
+- **Files affected**: `core/config.py`, `core/logger.py`
+- **Impact**: Better disk space management, configurable log rotation, organized backup storage, and automatic log cleanup
+
+### 2025-07-28 - Documentation Cleanup - Outdated References ✅ **COMPLETED**
+- **Removed outdated file references** throughout documentation to eliminate confusion
+  - Fixed Cursor rules to reference `ui/ui_app_qt.py` instead of non-existent `ui/ui_app.py`
+  - Updated QUICK_REFERENCE.md to remove outdated UI command references
+  - Fixed TESTING_IMPROVEMENT_PLAN_DETAIL.md to reference current files
+  - Updated UI_MIGRATION_PLAN_DETAIL.md to remove references to legacy files
+  - **Preserved historical accuracy** in CHANGELOG_DETAIL.md entries (changelog entries remain accurate to when they were created)
+- **Improved documentation accuracy** by ensuring all references point to existing files and current patterns
+- **Impact**: Eliminates confusion and ensures documentation accuracy without compromising historical record
+- **Files affected**: `.cursor/rules/critical.mdc`, `QUICK_REFERENCE.md`, `TESTING_IMPROVEMENT_PLAN_DETAIL.md`, `UI_MIGRATION_PLAN_DETAIL.md`
+
+### 2025-07-28 - Service Status Check Frequency Optimization ✅ **COMPLETED**
+- **Reduced frequent debug logging** by removing unnecessary status check messages
+  - Removed debug logging from `is_service_running()` function in `ui/ui_app_qt.py`
+  - Eliminates "DEBUG - Status check: Found X service processes" messages that appeared every 5 seconds
+  - UI status timer still works correctly but without log noise
+- **Improved log cleanliness** by removing redundant status reporting
+- **Files affected**: `ui/ui_app_qt.py`
+- **Impact**: Reduces log noise and improves performance without affecting functionality
+- **Testing**: All tests pass (244 passed, 1 skipped, 0 failed)
+
+### 2025-07-28 - Legacy GPT4All/Hermes Model Cleanup ✅ **COMPLETED**
+- **Removed legacy GPT4All fallback system** to clean up unused code and configuration
+  - Removed `HERMES_FILE_PATH` from `core/config.py` and all related imports
+  - Removed GPT4All import and availability checks from `bot/ai_chatbot.py`
+  - Removed legacy GPT4All status information from AI status reporting
+  - Updated test files to remove references to hermes.txt file
+- **Simplified AI system** - now uses only LM Studio as the primary AI backend
+- **Improved code maintainability** by removing deprecated/unused legacy code
+- **Files affected**: `core/config.py`, `core/service.py`, `bot/ai_chatbot.py`, `tests/behavior/test_service_behavior.py`
+- **Impact**: Cleaner codebase with no functional changes (LM Studio was already the primary system)
+- **Testing**: All tests pass (244 passed, 1 skipped, 0 failed)
+
+### 2025-07-28 - Task Management Warning Messages Fixed ✅ **COMPLETED**
+- **Fixed unnecessary warning messages** in task management by removing logging when features are disabled
+  - Removed `logger.warning()` call from `are_tasks_enabled()` function in `tasks/task_management.py`
+  - Now matches behavior of other features like check-ins which return silently when disabled
+  - Eliminates log noise when task management is legitimately disabled for users
+- **Improved consistency** with other feature enablement checks across the system
+- **Files affected**: `tasks/task_management.py`
+- **Impact**: Reduces log noise and improves system consistency
+- **Testing**: All tests still pass (244 passed, 1 skipped, 0 failed)
+
 ### 2025-07-28 - Test Data Expectations Fixed & Legacy Code Cleanup ✅ **COMPLETED**
 - **Fixed failing test data expectations** by correcting module patching in `tests/behavior/test_service_behavior.py`
   - Updated `test_get_user_categories_real_behavior` and `test_real_get_user_categories_returns_actual_data`

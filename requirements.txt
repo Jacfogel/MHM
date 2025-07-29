@@ -8,7 +8,7 @@ psutil>=5.9.0  # For process management in UI application
 
 # AI/ML dependencies  
 requests>=2.31.0  # For LM Studio HTTP API calls
-# gpt4all  # Deprecated - replaced with LM Studio API
+# gpt4all  # Removed - replaced with LM Studio API
 
 # UI dependencies
 tkcalendar>=1.6.1  # For date picker in UI dialogs

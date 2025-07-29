@@ -131,8 +131,8 @@ When updating this comprehensive testing plan, follow this format:
 
 **UI Modules:**
 - `ui_app_qt.py` - Main PySide6 admin interface
-- `ui_app.py` - Legacy Tkinter interface
-- `account_manager.py` - Account management
+- `ui_app_qt.py` - Modern Qt interface
+- `account_creator_dialog.py` - Account creation
 - `account_creator.py` - Account creation
 - All dialog modules (8 dialogs)
 - All widget modules (6 widgets)

@@ -8,8 +8,8 @@
 
 ### **Dependency Overview**
 - **Total Modules**: 123
-- **Total Imports**: 1122
-- **Local Dependencies**: 494
+- **Total Imports**: 1144
+- **Local Dependencies**: 510
 - **Coverage**: 100% (all modules documented)
 
 ## 🔧 **Key Module Patterns**
@@ -26,25 +26,25 @@
   - `core/message_management.py`: 7/13 local dependencies
   - `core/response_tracking.py`: 5/10 local dependencies
   - `core/scheduler.py`: 13/28 local dependencies
-  - `core/schedule_management.py`: 16/22 local dependencies
-  - `core/service.py`: 16/27 local dependencies
+  - `core/schedule_management.py`: 9/14 local dependencies
+  - `core/service.py`: 13/24 local dependencies
   - `core/service_utilities.py`: 3/12 local dependencies
   - `core/ui_management.py`: 5/6 local dependencies
   - `core/user_data_handlers.py`: 18/21 local dependencies
   - `core/user_data_manager.py`: 10/18 local dependencies
   - `core/user_data_validation.py`: 7/15 local dependencies
-  - `core/user_management.py`: 15/26 local dependencies
+  - `core/user_management.py`: 39/50 local dependencies
   - `core/validation.py`: 1/2 local dependencies
 
 ### **Communication Dependencies**
 - **10 bot modules** - Channel management and communication
-  - `bot/ai_chatbot.py`: 6/17 local dependencies
+  - `bot/ai_chatbot.py`: 6/16 local dependencies
   - `bot/base_channel.py`: 2/7 local dependencies
   - `bot/channel_factory.py`: 3/4 local dependencies
   - `bot/channel_registry.py`: 4/4 local dependencies
   - `bot/communication_manager.py`: 17/30 local dependencies
   - `bot/conversation_manager.py`: 4/6 local dependencies
-  - `bot/discord_bot.py`: 6/15 local dependencies
+  - `bot/discord_bot.py`: 6/16 local dependencies
   - `bot/email_bot.py`: 4/11 local dependencies
   - `bot/telegram_bot.py`: 12/27 local dependencies
   - `bot/user_context_manager.py`: 7/11 local dependencies
@@ -81,7 +81,7 @@
   - `ui/widgets/checkin_settings_widget.py`: 8/14 local dependencies
   - `ui/widgets/dynamic_list_container.py`: 2/5 local dependencies
   - `ui/widgets/dynamic_list_field.py`: 4/7 local dependencies
-  - `ui/widgets/period_row_widget.py`: 5/11 local dependencies
+  - `ui/widgets/period_row_widget.py`: 4/10 local dependencies
   - `ui/widgets/task_settings_widget.py`: 8/12 local dependencies
   - `ui/widgets/user_profile_settings_widget.py`: 4/12 local dependencies
 
@@ -107,4 +107,4 @@
 - **User modules** are imported by UI and core modules
 
 > **For complete module dependencies and detailed information, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**
-> **Last Updated**: 2025-07-28 03:23:41
+> **Last Updated**: 2025-07-28 23:29:20

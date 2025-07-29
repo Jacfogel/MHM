@@ -112,9 +112,6 @@ class ServiceManager:
                     service_pids.append(proc.info['pid'])
         
         if service_pids:
-            if len(service_pids) > 1:
-                logger.debug(f"Status check: Found {len(service_pids)} service processes: {service_pids}")
-            # Only log single process on DEBUG level if needed for troubleshooting
             return True, service_pids[0]  # Return first PID
         return False, None
     
