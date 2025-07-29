@@ -31,7 +31,8 @@ class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
     """
     
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False):
-        super().__init__(filename, maxBytes, backupCount, encoding, delay)
+        # RotatingFileHandler expects: filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, errors=None
+        super().__init__(filename, mode='a', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
         self.backup_dir = backup_dir
         # Ensure backup directory exists
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -62,9 +63,8 @@ class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
             backup_path = os.path.join(self.backup_dir, backup_name)
             shutil.move(self.baseFilename, backup_path)
         
-        # Create new log file
-        if not self.delay:
-            self.stream = self._open()
+        # Call parent's doRollover to handle the actual rollover logic
+        super().doRollover()
 
 # Global variable to track current verbosity mode
 _verbose_mode = False
@@ -116,7 +116,7 @@ def setup_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always logs everything)
-        file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8', delay=False)
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)  # File gets everything
 

@@ -34,6 +34,12 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Logging System Fix - Constructor Parameter Order ✅ **COMPLETED**
+- **Fixed logging system crash** caused by incorrect parameter order in BackupDirectoryRotatingFileHandler
+- **Corrected RotatingFileHandler constructor call** to include missing `mode='a'` parameter
+- **Resolved "encoding must be str or None, not bool" error** that prevented all logging
+- **Impact**: Logging system now works properly, service can start and log normally
+
 ### 2025-07-28 - Log Rotation & Size Limits Enhancement ✅ **COMPLETED**
 - **Enhanced log rotation system** with configurable settings and monitoring capabilities
 - Added configurable environment variables and automatic log cleanup functions
