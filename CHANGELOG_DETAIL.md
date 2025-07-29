@@ -28,6 +28,21 @@ When adding new changes, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Test Data Expectations Fixed & Legacy Code Cleanup ✅ **COMPLETED**
+- **Fixed failing test data expectations** by correcting module patching in `tests/behavior/test_service_behavior.py`
+  - Updated `test_get_user_categories_real_behavior` and `test_real_get_user_categories_returns_actual_data`
+  - Fixed patching to use `core.service.get_user_data` instead of `core.user_data_handlers.get_user_data`
+  - Removed duplicate test cases and improved test data structure
+- **Completed legacy code cleanup** including schedule management legacy format removal and unnecessary alias cleanup
+  - Removed legacy format handling for periods wrapper in `core/schedule_management.py`
+  - Removed legacy key support for `start`/`end` keys (all data now uses `start_time`/`end_time`)
+  - Deleted `migrate_legacy_schedule_keys()` function (no longer needed)
+  - Removed confusing aliases like `_new_get_user_data`, `_legacy_get_user_data`, etc.
+- **Improved test reliability** with proper module patching patterns
+- **Files affected**: `tests/behavior/test_service_behavior.py`, `core/schedule_management.py`, `core/user_management.py`, `core/service.py`, `core/user_data_handlers.py`, `core/user_data_validation.py`
+- **Impact**: All tests now pass (244 passed, 1 skipped, 0 failed) with improved code maintainability
+- **Testing**: System fully tested and verified working normally after cleanup
+
 ### 2025-07-28 - Discord Connectivity Resilience Enhancement ✅ **COMPLETED**
 - **Enhanced Discord bot error handling** with comprehensive DNS resolution checks and alternative DNS server testing
 - **Fixed initialization stuck state** by adding proper flag management and `finally` block to reset `_starting` flag

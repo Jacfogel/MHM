@@ -50,20 +50,8 @@ def get_schedule_time_periods(user_id, category):
     schedules = user_info.get('schedules', {})
     category_data = schedules.get(category, {})
     
-    # LEGACY COMPATIBILITY: Handle legacy format without periods wrapper
-    # TODO: Remove after all data is migrated to periods wrapper format
-    # REMOVAL PLAN:
-    # 1. Verify all user data uses periods wrapper (✅ COMPLETE)
-    # 2. Remove legacy format handling from get_schedule_time_periods
-    # 3. Remove legacy format handling from this function
-    # 4. Update all tests to use periods wrapper only
-    if isinstance(category_data, dict) and 'periods' not in category_data:
-        # This is legacy format - treat the category_data as periods directly
-        periods = category_data
-        logger.debug(f"get_schedule_time_periods: Using legacy format for category {category}")
-    else:
-        # This is new format - get periods from the wrapper
-        periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
+    # Get periods from the wrapper (all data now uses periods wrapper format)
+    periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
 
     if periods:
         # Sort periods by start_time (canonical)
@@ -72,20 +60,11 @@ def get_schedule_time_periods(user_id, category):
             if not isinstance(period_data, dict):
                 logger.warning(f"Period {period_name} in category {category} is not a dictionary: {period_data}")
                 continue
-            # LEGACY COMPATIBILITY: Support for old 'start'/'end' keys
-            # TODO: Remove after all data is migrated to 'start_time'/'end_time'
-            # REMOVAL PLAN: 
-            # 1. Run migration script to convert all legacy data
-            # 2. Remove legacy key support from this function
-            # 3. Remove migrate_legacy_schedule_keys function
-            # 4. Update all tests to use canonical keys only
-            start_time = period_data.get('start_time') or period_data.get('start')
-            end_time = period_data.get('end_time') or period_data.get('end')
-            # Log if legacy keys are used
-            if 'start' in period_data or 'end' in period_data:
-                logger.warning(f"[LEGACY] User {user_id}, category {category}, period {period_name} is using legacy keys: start={period_data.get('start')}, end={period_data.get('end')}")
+            # Get start and end times (all data now uses canonical keys)
+            start_time = period_data.get('start_time')
+            end_time = period_data.get('end_time')
             if not start_time or not end_time:
-                logger.warning(f"Missing start/end time for period {period_name} in category {category}")
+                logger.warning(f"Missing start_time/end_time for period {period_name} in category {category}")
                 continue
             try:
                 start_time_obj = datetime.strptime(start_time, "%H:%M")
@@ -479,33 +458,8 @@ def set_schedule_periods(user_id, category, periods_dict):
     if category not in schedules_data:
         schedules_data[category] = {}
     
-    # LEGACY COMPATIBILITY: Handle legacy format without periods wrapper
-    # TODO: Remove after all data is migrated to periods wrapper format
-    # REMOVAL PLAN:
-    # 1. Verify all user data uses periods wrapper (✅ COMPLETE)
-    # 2. Remove legacy format handling from get_schedule_time_periods
-    # 3. Remove legacy format handling from this function
-    # 4. Update all tests to use periods wrapper only
+    # All data now uses periods wrapper format - no legacy migration needed
     category_data = schedules_data[category]
-    if isinstance(category_data, dict) and 'periods' not in category_data:
-        # This is legacy format - migrate it
-        logger.info(f"set_schedule_periods: Migrating legacy format for category {category}")
-        legacy_periods = {}
-        for key, value in category_data.items():
-            if isinstance(value, dict) and ('start_time' in value or 'start' in value):
-                # This is a period, migrate it
-                legacy_periods[key] = {
-                    'active': value.get('active', True),
-                    'days': value.get('days', ['ALL']),
-                    'start_time': value.get('start_time') or value.get('start'),
-                    'end_time': value.get('end_time') or value.get('end')
-                }
-        
-        # Replace the category data with new format (all categories use periods wrapper)
-        schedules_data[category] = {
-            'periods': legacy_periods
-        }
-        logger.info(f"set_schedule_periods: Migrated {len(legacy_periods)} periods for category {category}")
     
     # Ensure periods sub-dict exists
     if 'periods' not in schedules_data[category]:
@@ -583,54 +537,4 @@ def get_user_info_for_schedule_management(user_id: str) -> Optional[Dict[str, An
         logger.error(f"Error loading user schedules for schedule management: {e}")
         return None 
 
-# LEGACY COMPATIBILITY: Migration function for old 'start'/'end' keys
-# TODO: Remove after all data is migrated to 'start_time'/'end_time'
-# REMOVAL PLAN:
-# 1. Run this function on all users to convert legacy data
-# 2. Verify no legacy keys remain in any user data
-# 3. Remove this function entirely
-# 4. Remove legacy key support from get_schedule_time_periods
-def migrate_legacy_schedule_keys(user_id=None):
-    """
-    Migrate all user schedule files from legacy 'start'/'end' keys to canonical 'start_time'/'end_time'.
-    If user_id is None, migrate all users.
-    
-    LEGACY COMPATIBILITY FUNCTION - REMOVE AFTER MIGRATION COMPLETE
-    """
-    from core.user_data_handlers import get_all_user_ids
-    from core.config import get_user_file_path
-    from core.file_operations import load_json_data, save_json_data
-    import copy
-    user_ids = [user_id] if user_id else get_all_user_ids()
-    migrated = 0
-    for uid in user_ids:
-        schedules_file = get_user_file_path(uid, 'schedules')
-        schedules_data = load_json_data(schedules_file) or {}
-        changed = False
-        for category, cat_data in schedules_data.items():
-            periods = cat_data.get('periods', {})
-            for period_name, period_data in list(periods.items()):
-                # Only migrate if legacy keys are present
-                if 'start' in period_data or 'end' in period_data:
-                    # Copy to canonical keys if not already present
-                    if 'start_time' not in period_data and 'start' in period_data:
-                        period_data['start_time'] = period_data['start']
-                        changed = True
-                    if 'end_time' not in period_data and 'end' in period_data:
-                        period_data['end_time'] = period_data['end']
-                        changed = True
-                    # Remove legacy keys
-                    if 'start' in period_data:
-                        del period_data['start']
-                        changed = True
-                    if 'end' in period_data:
-                        del period_data['end']
-                        changed = True
-                    periods[period_name] = period_data
-            cat_data['periods'] = periods
-            schedules_data[category] = cat_data
-        if changed:
-            save_json_data(schedules_data, schedules_file)
-            migrated += 1
-            logger.info(f"Migrated legacy schedule keys for user {uid}")
-    logger.info(f"Migration complete. {migrated} user(s) updated.") 
+ 

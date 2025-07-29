@@ -31,12 +31,10 @@ from core.config import LOG_FILE_PATH, HERMES_FILE_PATH, USER_INFO_DIR_PATH, get
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
 from core.user_data_handlers import get_all_user_ids
-from core.user_data_handlers import get_user_data as _new_get_user_data
-from core.user_data_handlers import get_user_data as _legacy_get_user_data  # alias maintained for tests, no legacy warning
+from core.user_data_handlers import get_user_data
 
-# Expose get_user_data at module level (points to legacy wrapper) so tests
+# Expose get_user_data at module level so tests
 # that patch core.service.get_user_data continue to work.
-get_user_data = _legacy_get_user_data
 
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -97,8 +95,7 @@ class MHMService:
                 logger.warning("Encountered None user_id in get_all_user_ids()")
                 continue
             # Get user categories
-            from core.user_data_handlers import get_user_data as _patched_get_user_data
-            user_data = _patched_get_user_data(user_id, 'preferences')
+            user_data = get_user_data(user_id, 'preferences')
             categories = user_data.get('preferences', {}).get('categories', [])
             if isinstance(categories, list):
                 if categories:  # Only process if list is not empty
@@ -570,8 +567,7 @@ def get_user_categories(user_id: str) -> List[str]:
         List[str]: List of message categories the user is subscribed to
     """
     try:
-        from core.user_data_handlers import get_user_data as _patched_get_user_data
-        user_data = _patched_get_user_data(user_id, 'preferences')
+        user_data = get_user_data(user_id, 'preferences')
         categories = user_data.get('preferences', {}).get('categories', [])
         return categories if isinstance(categories, list) else []
     except Exception as e:

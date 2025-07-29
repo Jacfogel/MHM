@@ -76,8 +76,8 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
         # Merge updates onto current account to enforce *resulting* state
         # --------------------------------------------------------------
         try:
-            from core.user_data_handlers import get_user_data as _get_ud
-            current_account = _get_ud(user_id, 'account').get('account', {})
+            from core.user_data_handlers import get_user_data
+            current_account = get_user_data(user_id, 'account').get('account', {})
         except Exception:
             current_account = {}
 

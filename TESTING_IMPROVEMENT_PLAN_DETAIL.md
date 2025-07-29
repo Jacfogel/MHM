@@ -33,9 +33,9 @@ When updating this comprehensive testing plan, follow this format:
 
 ## 🎯 Current State Assessment
 
-# Updated 2025-07-20
+# Updated 2025-07-28
 
-**Test Totals**: **243 tests passing, 1 skipped, 1 failed** – framework stable with Discord connectivity enhancements and one known validation bug.
+**Test Totals**: **244 tests passing, 1 skipped, 0 failed** – framework stable with all test data expectations fixed and legacy code cleanup completed.
 
 ### ✅ **What's Working Well**
 - **243 tests passing, 1 skipped, 1 failed** - Excellent success rate of 99.6% for the modules that are tested
@@ -63,7 +63,14 @@ When updating this comprehensive testing plan, follow this format:
 
 ### 🆕 Outstanding Todos (July 28)
 
-1. **Discord Connectivity Testing** ✅ **COMPLETED**
+1. **Test Data Expectations Fixed** ✅ **COMPLETED**
+   • Fixed failing tests in `tests/behavior/test_service_behavior.py` by correcting module patching
+   • Updated `test_get_user_categories_real_behavior` and `test_real_get_user_categories_returns_actual_data`
+   • Fixed patching to use `core.service.get_user_data` instead of `core.user_data_handlers.get_user_data`
+   • Improved test reliability with proper module patching patterns
+   • All tests now pass: 244 passed, 1 skipped, 0 failed
+
+2. **Discord Connectivity Testing** ✅ **COMPLETED**
    • Enhanced Discord bot with comprehensive error handling and DNS resolution checks
    • Added diagnostic script for troubleshooting connectivity issues
    • Implemented network connectivity validation and alternative DNS server testing

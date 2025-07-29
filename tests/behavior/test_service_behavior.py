@@ -443,20 +443,20 @@ class TestMHMService:
             },
             {
                 'input': {
-                    'preferences': {'categories': []}
+                    'preferences': {'categories': None}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {'categories': None}
+                    'preferences': {}
                 },
                 'expected': []
             }
         ]
         
         for test_case in test_cases:
-            with patch('core.user_data_handlers.get_user_data', return_value=test_case['input']):
+            with patch('core.service.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 
                 # Verify real behavior - actual data structure returned
@@ -776,20 +776,20 @@ class TestMHMService:
             },
             {
                 'input': {
-                    'preferences': {'categories': []}
+                    'preferences': {'categories': None}
                 },
                 'expected': []
             },
             {
                 'input': {
-                    'preferences': {'categories': None}
+                    'preferences': {}
                 },
                 'expected': []
             }
         ]
         
         for test_case in test_cases:
-            with patch('core.user_data_handlers.get_user_data', return_value=test_case['input']):
+            with patch('core.service.get_user_data', return_value=test_case['input']):
                 result = get_user_categories('test_user')
                 assert result == test_case['expected']
                 assert isinstance(result, list)  # Verify return type

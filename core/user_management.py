@@ -466,8 +466,8 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
         return False
     
     # Use the centralized save_user_data function
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {'schedules': schedules_data})
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {'schedules': schedules_data})
     return result.get('schedules', False)
 
 def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
@@ -597,8 +597,8 @@ def update_user_account(user_id: str, updates: Dict[str, Any], auto_create: bool
         return False
     
     # Use the centralized save_user_data function
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {'account': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {'account': updates}, auto_create=auto_create)
     return result.get('account', False)
 
 @handle_errors("updating user preferences")
@@ -643,8 +643,8 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: 
                 logger.error(f"Error creating message files for user {user_id} after category update: {e}")
     
     # Use the centralized save_user_data function
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
     return result.get('preferences', False)
 
 @handle_errors("updating user context")
@@ -655,8 +655,8 @@ def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool
         return False
     
     # Use the centralized save_user_data function
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {'context': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {'context': updates}, auto_create=auto_create)
     return result.get('context', False)
 
 @handle_errors("updating channel preferences")
@@ -667,8 +667,8 @@ def update_channel_preferences(user_id: str, updates: Dict[str, Any], auto_creat
         return False
     
     # Use the centralized save_user_data function directly to avoid category schedule creation
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
     return result.get('preferences', False)
 
 @handle_errors("creating new user")
@@ -731,8 +731,8 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
     }
     
     # Save all data using centralized save_user_data
-    from core.user_data_handlers import save_user_data as _save_user_data
-    _save_user_data(user_id, {
+    from core.user_data_handlers import save_user_data
+    save_user_data(user_id, {
         'account': account_data,
         'preferences': preferences_data,
         'context': context_data
@@ -761,6 +761,7 @@ def get_user_id_by_internal_username(internal_username: str) -> Optional[str]:
     
     user_ids = get_all_user_ids()
     for user_id in user_ids:
+        from core.user_data_handlers import get_user_data
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account')
         if account_data and account_data.get('internal_username') == internal_username:
@@ -776,6 +777,7 @@ def get_user_id_by_chat_id(chat_id: str) -> Optional[str]:
     
     user_ids = get_all_user_ids()
     for user_id in user_ids:
+        from core.user_data_handlers import get_user_data
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account')
         if account_data and account_data.get('chat_id') == chat_id:
@@ -791,6 +793,7 @@ def get_user_id_by_discord_user_id(discord_user_id: str) -> Optional[str]:
     
     user_ids = get_all_user_ids()
     for user_id in user_ids:
+        from core.user_data_handlers import get_user_data
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account')
         if account_data:
@@ -837,8 +840,8 @@ def get_user_data(*args, **kwargs):
     caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
     if not caller.startswith("core.user_management"):
         logger.warning("LEGACY get_user_data call – switch to core.user_data_handlers.get_user_data")
-    from core.user_data_handlers import get_user_data as _new
-    return _new(*args, **kwargs)
+    from core.user_data_handlers import get_user_data as handler_get_user_data
+    return handler_get_user_data(*args, **kwargs)
 
 # ============================================================================
 # UNIFIED SAVE API - MIRRORS GET_USER_DATA APPROACH
@@ -849,16 +852,16 @@ def save_user_data(*args, **kwargs):
     caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
     if not caller.startswith("core.user_management"):
         logger.warning("LEGACY save_user_data call – switch to core.user_data_handlers.save_user_data")
-    from core.user_data_handlers import save_user_data as _new_save
-    return _new_save(*args, **kwargs)
+    from core.user_data_handlers import save_user_data as handler_save_user_data
+    return handler_save_user_data(*args, **kwargs)
 
 @handle_errors("saving user data txn (legacy)", default_return=False)
 def save_user_data_transaction(*args, **kwargs):
     caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
     if not caller.startswith("core.user_management"):
         logger.warning("LEGACY save_user_data_transaction call – switch to core.user_data_handlers.save_user_data_transaction")
-    from core.user_data_handlers import save_user_data_transaction as _new_tx
-    return _new_tx(*args, **kwargs)
+    from core.user_data_handlers import save_user_data_transaction as handler_save_user_data_transaction
+    return handler_save_user_data_transaction(*args, **kwargs)
 
 # ============================================================================
 # UTILITY FUNCTIONS (Keep these)
@@ -881,6 +884,7 @@ def ensure_unique_ids(data):
 @handle_errors("loading and ensuring ids")
 def load_and_ensure_ids(user_id):
     """Load messages for all categories and ensure IDs are unique for a user."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'preferences')
     if not user_data or 'preferences' not in user_data:
         logger.warning(f"User preferences not found for user_id: {user_id}")
@@ -908,6 +912,7 @@ def ensure_all_categories_have_schedules(user_id: str) -> bool:
         return False
     
     try:
+        from core.user_data_handlers import get_user_data
         user_data = get_user_data(user_id, 'preferences')
         if not user_data or 'preferences' not in user_data:
             logger.warning(f"User preferences not found for user_id: {user_id}")
@@ -950,11 +955,13 @@ logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized re
 
 def get_user_email(user_id: str) -> Optional[str]:
     """Get user's email address using centralized system."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'account', fields='email')
     return user_data.get('account')
 
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories using centralized system."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'preferences', fields='categories')
     categories = user_data.get('preferences', [])
     if isinstance(categories, dict):
@@ -965,26 +972,31 @@ def get_user_categories(user_id: str) -> List[str]:
 
 def get_user_channel_type(user_id: str) -> str:
     """Get user's communication channel type using centralized system."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'preferences', fields={'preferences': ['channel']})
     channel_data = user_data.get('preferences', {}).get('channel', {})
     return channel_data.get('type', 'email')
 
 def get_user_preferred_name(user_id: str) -> str:
     """Get user's preferred name using centralized system."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'context', fields='preferred_name')
     return user_data.get('context', '')
 
 def get_user_account_status(user_id: str) -> str:
     """Get user's account status using centralized system."""
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'account', fields='account_status')
     return user_data.get('account', 'inactive')
 
 def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] = 'all') -> Dict[str, Any]:
     """Get user data with file metadata using centralized system."""
+    from core.user_data_handlers import get_user_data
     return get_user_data(user_id, data_types, include_metadata=True)
 
 def get_user_essential_info(user_id: str) -> Dict[str, Any]:
     """Get essential user information using centralized system."""
+    from core.user_data_handlers import get_user_data
     return get_user_data(user_id, 'all', fields={
         'account': ['user_id', 'internal_username', 'email', 'account_status'],
         'preferences': ['categories', 'channel'],
@@ -1115,6 +1127,7 @@ def get_personalization_field(user_id: str, field: str) -> Any:
         logger.error("get_personalization_field called with invalid parameters")
         return None
     
+    from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'context', fields=field)
     context_data = user_data.get('context', {})
     return context_data.get(field)
@@ -1127,8 +1140,8 @@ def update_personalization_field(user_id: str, field: str, value: Any) -> bool:
         return False
     
     # Use the centralized save system
-    from core.user_data_handlers import save_user_data as _save_user_data
-    result = _save_user_data(user_id, {
+    from core.user_data_handlers import save_user_data
+    result = save_user_data(user_id, {
         'context': {field: value}
     })
     return result.get('context', False)
@@ -1141,6 +1154,7 @@ def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
         return False
     
     # Get current list
+    from core.user_data_handlers import get_user_data
     current_data = get_user_data(user_id, 'context', fields=field)
     current_list = current_data.get('context', {}).get(field, [])
     
@@ -1148,14 +1162,14 @@ def add_personalization_item(user_id: str, field: str, item: Any) -> bool:
         logger.error(f"Field {field} is not a list")
         return False
     
-    # Add item if not already present
-    if item not in current_list:
-        current_list.append(item)
-        from core.user_data_handlers import save_user_data as _save_user_data
-        result = _save_user_data(user_id, {
-            'context': {field: current_list}
-        })
-        return result.get('context', False)
+            # Add item if not already present
+        if item not in current_list:
+            current_list.append(item)
+            from core.user_data_handlers import save_user_data
+            result = save_user_data(user_id, {
+                'context': {field: current_list}
+            })
+            return result.get('context', False)
     
     return True  # Item already exists
 
@@ -1167,6 +1181,7 @@ def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
         return False
     
     # Get current list
+    from core.user_data_handlers import get_user_data
     current_data = get_user_data(user_id, 'context', fields=field)
     current_list = current_data.get('context', {}).get(field, [])
     
@@ -1176,8 +1191,8 @@ def remove_personalization_item(user_id: str, field: str, item: Any) -> bool:
     # Remove item if present
     if item in current_list:
         current_list.remove(item)
-        from core.user_data_handlers import save_user_data as _save_user_data
-        result = _save_user_data(user_id, {
+        from core.user_data_handlers import save_user_data
+        result = save_user_data(user_id, {
             'context': {field: current_list}
         })
         return result.get('context', False)

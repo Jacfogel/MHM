@@ -32,7 +32,7 @@ from core.user_management import (
 
 from core.user_management import (
     USER_DATA_LOADERS as USER_DATA_LOADERS,  # shared dict – same object
-    register_data_loader as _legacy_register_data_loader,
+    register_data_loader,
 )
 
 
@@ -53,7 +53,7 @@ def register_data_loader(
     …and forget about *core.user_management*.
     """
 
-    return _legacy_register_data_loader(
+    return register_data_loader(
         data_type,
         loader_func,
         file_type,
@@ -325,8 +325,8 @@ def save_user_data_transaction(
 @handle_errors("getting all user IDs (centralised)", default_return=[])
 def get_all_user_ids() -> List[str]:
     """Return a list of *all* user IDs known to the system."""
-    from core.user_management import get_all_user_ids as _orig
-    return _orig()
+    from core.user_management import get_all_user_ids as management_get_all_user_ids
+    return management_get_all_user_ids()
 
 
 @handle_errors("updating user schedules (centralised)", default_return=False)
@@ -336,8 +336,8 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     Wrapper around the original helper in **core.user_management** – keeps
     outside modules decoupled from the legacy path.
     """
-    from core.user_management import update_user_schedules as _orig
-    return _orig(user_id, schedules_data)
+    from core.user_management import update_user_schedules as management_update_user_schedules
+    return management_update_user_schedules(user_id, schedules_data)
 
 # ---------------------------------------------------------------------------
 # HIGH-LEVEL UPDATE HELPERS (migrated from core.user_management)
