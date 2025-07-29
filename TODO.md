@@ -61,13 +61,33 @@ When adding new tasks, follow this format:
   - ⚠️ **Task Settings Widget** - Needs testing for task enablement and settings
   - ⚠️ **Check-in Settings Widget** - Needs testing for check-in enablement and settings
 
-#### Code Quality
-**Legacy Wrapper Removal**
-- *What it means*: Delete thin wrappers in `core/user_management.py` once no runtime code triggers them
-- *Why it helps*: Removes dead code and avoids accidental usage
-- *Estimated effort*: Small
-- *Status*: Pending – monitor `app.log` for any remaining "LEGACY …" warnings before removal
-- *Note*: Cache clearing has been implemented, so legacy wrappers should be safe to remove once no warnings appear
+## 🎯 **HIGH PRIORITY**
+
+### **Legacy Code Removal** - Remove all legacy/compatibility code with clear marking and plans
+- *What it means*: Remove all legacy compatibility code that's no longer needed, following the plan in `LEGACY_CODE_REMOVAL_PLAN.md`
+- *Why it helps*: Reduces code complexity, improves maintainability, and eliminates potential bugs from legacy code paths
+- *Estimated effort*: Medium
+- *Status*: **ACTIVE** - See `LEGACY_CODE_REMOVAL_PLAN.md` for detailed inventory and removal plans
+- *High Priority Tasks*:
+  - ✅ **Schedule Management Legacy Keys**: Marked with removal plan (complete by 2025-08-01)
+  - ✅ **Schedule Management Legacy Format**: Marked with removal plan (complete by 2025-08-01)
+  - ✅ **Legacy Format Verification**: Confirmed all users use periods wrapper
+  - ⚠️ **User Data Access Legacy Wrappers**: Monitor `app.log` for "LEGACY" warnings (complete when no warnings for 1 week)
+  - ⚠️ **Account Creator Dialog Compatibility**: Remove unused methods (complete by 2025-08-15)
+  - ⚠️ **User Profile Settings Widget Fallbacks**: Remove legacy fallbacks (complete by 2025-08-15)
+  - ⚠️ **Discord Bot Legacy Methods**: Remove unused methods (complete by 2025-08-15)
+- *Note*: All legacy code must be clearly marked with removal plans before removal
+
+### **Schedule Format Consistency** - Ensure consistent naming and structure
+- *What it means*: Standardize period naming (title case) and remove unnecessary "enabled" field from schedules
+- *Why it helps*: Improves data consistency and reduces complexity
+- *Estimated effort*: Low
+- *Status*: ✅ **COMPLETED** - All changes implemented and tested
+- *Completed Tasks*:
+  - ✅ **Title Case Period Names**: Auto-generated periods now use title case ("Task Reminder Default", "Check-in Reminder Default")
+  - ✅ **Removed "enabled" Field**: Schedules no longer include unnecessary "enabled" field
+  - ✅ **Updated UI Widgets**: Both task and check-in widgets generate consistent naming
+  - ✅ **Cleaned Up Scripts**: Removed one-off migration scripts after use
 
 **Dynamic Check-in Question System** - Implement full custom question functionality
 - *What it means*: Replace the current placeholder "Add New Element" with a proper dynamic system similar to the profile settings widget

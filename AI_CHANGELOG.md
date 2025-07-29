@@ -34,6 +34,24 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-28 - Schedule Format Consistency & Legacy Code Marking
+- **Schedule Period Naming**: Standardized auto-generated period names to use title case
+  - Task periods: "Task Reminder Default", "Task Reminder 2", etc.
+  - Check-in periods: "Check-in Reminder Default", "Check-in Reminder 2", etc.
+  - Updated `create_default_schedule_periods()` and UI widgets for consistency
+- **Schedule Structure**: Removed unnecessary "enabled" field from schedules dictionary
+  - Updated `set_schedule_periods()`, migration functions, and file creation
+  - Cleaner data structure without redundant fields
+- **Legacy Code Management**: Marked legacy compatibility code with removal plans
+  - Identified and marked legacy format handling in schedule management
+  - Created `LEGACY_CODE_REMOVAL_PLAN.md` with detailed removal steps
+  - All legacy code now has clear comments and removal timelines
+- **Code Cleanup**: Removed one-off migration scripts after use
+  - Deleted 6 temporary scripts that served their purpose
+  - Cleaner scripts directory structure
+- **Testing**: All tests passing (244 passed, 1 skipped)
+- **Status**: ✅ **COMPLETED** - Schedule format improvements fully implemented
+
 ### 2025-07-28 - Discord Connectivity Resilience Enhancement ✅ **COMPLETED**
 - **Enhanced Discord bot error handling** with DNS resolution checks, alternative DNS server testing, and network connectivity validation
 - **Fixed initialization stuck state** by adding proper flag management and `finally` block to reset `_starting` flag

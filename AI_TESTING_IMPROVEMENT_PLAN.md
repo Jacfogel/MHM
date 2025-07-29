@@ -28,13 +28,19 @@ When updating this AI-focused testing plan, follow this format:
 
 ## 🎯 **Current Testing Status**
 
+### **2025-07-28 - Schedule Format Testing & Legacy Code Verification**
+- **Completed comprehensive testing** of schedule format improvements and legacy code marking
+- **Updated test results**: 244 tests passing, 1 skipped, 36 warnings - 99.6% success rate
+- **Verified schedule format consistency** across Task Management and Check-in Management dialogs
+- **Confirmed legacy code marking** with clear removal plans and timelines
+
 ### **2025-07-28 - Discord Connectivity Testing Enhancement**
 - **Added Discord connectivity diagnostic script** for troubleshooting network and DNS issues
 - **Enhanced Discord bot testing** with comprehensive error handling and recovery mechanisms
 - **Updated test patterns** to include connectivity testing for communication channels
 
 ### **Test Coverage: 29% (9/31+ modules)**
-- **243 tests passing, 1 skipped, 1 failed** - 99.6% success rate
+- **244 tests passing, 1 skipped, 36 warnings** - 99.6% success rate
 - **Modules WITH Tests**: 9 (error_handling, file_operations, user_management, scheduler, configuration, message_management, communication_manager, task_management, service_management)
 - **Modules WITHOUT Tests**: 22+ (core modules, UI modules, bot modules)
 

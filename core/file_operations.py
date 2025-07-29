@@ -376,7 +376,7 @@ def create_user_files(user_id, categories, user_preferences=None):
                         "start_time": "00:00",
                         "end_time": "23:59"
                     },
-                    f"{category.title()} Message Default": {
+                    f"{category.replace('_', ' ').title()} Message Default": {
                         "active": True,
                         "days": ["ALL"],
                         "start_time": "18:00",
@@ -390,7 +390,9 @@ def create_user_files(user_id, categories, user_preferences=None):
         task_settings = user_prefs.get('task_settings', {})
         task_time_periods = task_settings.get('time_periods', {})
         if task_time_periods:
-            schedules_data['tasks'] = task_time_periods
+            schedules_data['tasks'] = {
+                'periods': task_time_periods
+            }
             logger.debug(f"Created task schedule periods for user {user_id}")
     
     # Create schedule periods for check-ins if enabled
@@ -398,7 +400,9 @@ def create_user_files(user_id, categories, user_preferences=None):
         checkin_settings = user_prefs.get('checkin_settings', {})
         checkin_time_periods = checkin_settings.get('time_periods', {})
         if checkin_time_periods:
-            schedules_data['checkin'] = checkin_time_periods
+            schedules_data['checkin'] = {
+                'periods': checkin_time_periods
+            }
             logger.debug(f"Created check-in schedule periods for user {user_id}")
     
     save_json_data(schedules_data, schedules_file)

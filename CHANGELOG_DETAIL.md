@@ -1693,6 +1693,63 @@ When adding new changes, follow this format:
 - **Most used modules** identified: `core/logger.py` (52 users), `core/error_handling.py` (43 users)
 - **Complete dependency graph** now available for system analysis and maintenance
 
+### 2025-07-28 - Schedule Format Consistency & Legacy Code Management
+
+#### **Schedule Period Naming Standardization** ✅ **COMPLETED**
+- **Problem**: Inconsistent period naming between Task Management and Check-in Management dialogs
+  - Task periods used title case: "Task Reminder Default", "Task Reminder 2"
+  - Check-in periods used lowercase: "check-in reminder default", "check-in reminder 2"
+- **Solution**: Standardized all auto-generated period names to use title case
+  - Updated `create_default_schedule_periods()` in `core/user_management.py` to use title case
+  - Updated `add_new_time_period()` in `ui/widgets/checkin_settings_widget.py` to use "Check-in Reminder Default" and "Check-in Reminder {number}"
+  - Both dialogs now generate consistent title case names
+- **Impact**: Improved user experience with consistent, professional-looking period names
+- **Files Modified**: `core/user_management.py`, `ui/widgets/checkin_settings_widget.py`
+
+#### **Schedule Structure Cleanup** ✅ **COMPLETED**
+- **Problem**: Schedules dictionary included unnecessary "enabled" field that served no purpose
+- **Solution**: Removed "enabled" field from all schedule creation and management functions
+  - Updated `set_schedule_periods()` in `core/schedule_management.py`
+  - Updated `migrate_legacy_schedules_structure()` and `ensure_category_has_default_schedule()` in `core/user_management.py`
+  - Updated `create_user_files()` in `core/file_operations.py`
+- **Impact**: Cleaner data structure without redundant fields
+- **Files Modified**: `core/schedule_management.py`, `core/user_management.py`, `core/file_operations.py`
+
+#### **Legacy Code Management** ✅ **COMPLETED**
+- **Problem**: Legacy compatibility code was scattered throughout the codebase without clear marking or removal plans
+- **Solution**: Comprehensive audit and marking of all legacy code
+  - Identified legacy format handling in schedule management functions
+  - Marked all legacy code with clear `LEGACY COMPATIBILITY` comments and removal plans
+  - Created `LEGACY_CODE_REMOVAL_PLAN.md` with detailed inventory and removal steps
+  - Verified all user data uses modern format (periods wrapper)
+- **Impact**: Clear roadmap for legacy code removal, improved code maintainability
+- **Files Modified**: `core/schedule_management.py`, `LEGACY_CODE_REMOVAL_PLAN.md`
+
+#### **Code Cleanup** ✅ **COMPLETED**
+- **Problem**: One-off migration and testing scripts cluttered the scripts directory
+- **Solution**: Removed temporary scripts after they served their purpose
+  - Deleted `scripts/check_legacy_format.py`
+  - Deleted `scripts/check_legacy_keys.py`
+  - Deleted `scripts/migrate_checkin_names.py`
+  - Deleted `scripts/migrate_schedule_formats.py`
+  - Deleted `scripts/remove_enabled_field.py`
+  - Deleted `scripts/test_checkin_names.py`
+  - Deleted empty `tests/task_management.py`
+- **Impact**: Cleaner project structure, reduced maintenance burden
+- **Files Deleted**: 7 temporary files
+
+#### **Testing Results**
+- **Test Status**: ✅ All tests passing (244 passed, 1 skipped, 36 warnings)
+- **System Health**: ✅ System starts and runs correctly
+- **Data Integrity**: ✅ All user data verified to use modern format
+- **UI Functionality**: ✅ Both Task Management and Check-in Management dialogs work correctly
+
+#### **Documentation Updates**
+- Updated `TODO.md` to reflect completed work and remaining legacy code removal tasks
+- Updated `AI_CHANGELOG.md` with brief summary for AI context
+- Updated `CHANGELOG_DETAIL.md` with comprehensive details
+- Created `LEGACY_CODE_REMOVAL_PLAN.md` for future legacy code removal work
+
 
 
 

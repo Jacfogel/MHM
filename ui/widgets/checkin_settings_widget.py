@@ -181,13 +181,13 @@ class CheckinSettingsWidget(QWidget):
         """Add a new time period using the PeriodRowWidget."""
         logger.info(f"CheckinSettingsWidget: add_new_time_period called with period_name={period_name}, period_data={period_data}")
         if period_name is None:
-            # Use descriptive name for default periods (lowercase to preserve user's preferred case)
+            # Use descriptive name for default periods (title case for consistency with task widget)
             if len(self.period_widgets) == 0:
-                period_name = "check-in reminder default"
+                period_name = "Check-in Reminder Default"
             else:
                 # Find the lowest available number for new periods
                 next_number = self.find_lowest_available_period_number()
-                period_name = f"check-in reminder {next_number}"
+                period_name = f"Check-in Reminder {next_number}"
         if not isinstance(period_name, str):
             logger.warning(f"CheckinSettingsWidget: period_name is not a string: {period_name} (type: {type(period_name)})")
             period_name = str(period_name)

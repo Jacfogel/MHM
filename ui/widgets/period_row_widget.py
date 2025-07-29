@@ -109,13 +109,17 @@ class PeriodRowWidget(QWidget):
     
     def load_period_data(self):
         """Load period data into the widget."""
-        # Set period name (title case except ALL)
+        # Set period name - preserve user's original case for custom entries
         name = self.period_name
+        if not name or not name.strip():
+            # If no name provided, use a default name
+            name = "Task Reminder"
+        
         if name.upper() == 'ALL':
             display_name = 'ALL'
         else:
-            from core.user_data_validation import title_case
-            display_name = title_case(name)
+            # Preserve user's original case - don't convert to title case
+            display_name = name
         self.ui.lineEdit_time_period_name.setText(display_name)
         
         # Set start time
@@ -214,7 +218,8 @@ class PeriodRowWidget(QWidget):
         # Get period name
         period_name = self.ui.lineEdit_time_period_name.text().strip()
         if not period_name:
-            period_name = "Period"
+            # Use a proper default name instead of "Period"
+            period_name = "Task Reminder"
         
         # Get start time
         start_hour = int(self.ui.comboBox_start_time_hours.currentText())

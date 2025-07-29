@@ -97,13 +97,19 @@ class CheckinManagementDialog(QDialog):
             checkin_settings = self.checkin_widget.get_checkin_settings()
             time_periods = checkin_settings.get('time_periods', {})
 
-            # Validate periods before saving
-            is_valid, errors = validate_schedule_periods(time_periods, "check-ins")
-            if not is_valid:
-                QMessageBox.warning(self, "Validation Error", errors[0])
-                return
+            # Only validate periods if check-ins are enabled
+            checkins_enabled = self.ui.groupBox_checkBox_enable_checkins.isChecked()
+            
+            if checkins_enabled:
+                # Validate periods before saving
+                is_valid, errors = validate_schedule_periods(time_periods, "check-ins")
+                if not is_valid:
+                    QMessageBox.warning(self, "Validation Error", errors[0])
+                    return
+            # Note: We always save time periods, even when disabled, so users don't lose their work
+            # If check-ins are disabled, the periods will be saved but not used by the system
 
-            # Duplicate period name validation
+            # Always validate duplicate names, regardless of enablement status
             period_names = [w.get_period_data().get('name') for w in self.checkin_widget.period_widgets]
             if len(period_names) != len(set(period_names)):
                 QMessageBox.warning(
@@ -114,7 +120,6 @@ class CheckinManagementDialog(QDialog):
                 return
 
             # Save time periods to schedule management
-            time_periods = checkin_settings.get('time_periods', {})
             logger.info(f"Saving check-in time periods for user {self.user_id}: {time_periods}")
             set_schedule_periods(self.user_id, "checkin", time_periods)
             clear_schedule_periods_cache(self.user_id, "checkin")
@@ -134,7 +139,7 @@ class CheckinManagementDialog(QDialog):
             account = user_data_result.get('account') or {}
             if 'features' not in account:
                 account['features'] = {}
-            account['features']['checkins'] = 'enabled' if self.ui.groupBox_checkBox_enable_checkins.isChecked() else 'disabled'
+            account['features']['checkins'] = 'enabled' if checkins_enabled else 'disabled'
             update_user_account(self.user_id, account)
             
             QMessageBox.information(self, "Check-in Settings Saved", 

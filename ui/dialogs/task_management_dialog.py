@@ -60,6 +60,11 @@ class TaskManagementDialog(QDialog):
         for child in self.ui.groupBox_checkBox_enable_task_management.findChildren(QWidget):
             if child is not self.ui.groupBox_checkBox_enable_task_management:
                 child.setEnabled(checked)
+        
+        # If enabling task management and no periods exist, add a default period
+        if checked and len(self.task_widget.period_widgets) == 0:
+            logger.info(f"Task management enabled for user {self.user_id} - adding default period")
+            self.task_widget.add_new_period()
 
     @handle_errors("saving task settings")
     def save_task_settings(self):
@@ -73,17 +78,23 @@ class TaskManagementDialog(QDialog):
             task_settings = self.task_widget.get_task_settings()
             time_periods = task_settings.get('time_periods', {})
             
-            # Validate periods before saving
-            is_valid, errors = validate_schedule_periods(time_periods, "tasks")
-            if not is_valid:
-                QMessageBox.warning(
-                    self,
-                    "Validation Error",
-                    f"Task settings validation failed:\n\n{errors[0]}",
-                )
-                return
-
-            # Duplicate name validation
+            # Only validate periods if task management is enabled
+            tasks_enabled = self.ui.groupBox_checkBox_enable_task_management.isChecked()
+            
+            if tasks_enabled:
+                # Validate periods before saving
+                is_valid, errors = validate_schedule_periods(time_periods, "tasks")
+                if not is_valid:
+                    QMessageBox.warning(
+                        self,
+                        "Validation Error",
+                        f"Task settings validation failed:\n\n{errors[0]}",
+                    )
+                    return
+            # Note: We always save time periods, even when disabled, so users don't lose their work
+            # If task management is disabled, the periods will be saved but not used by the system
+            
+            # Always validate duplicate names, regardless of enablement status
             period_names = [w.get_period_data().get('name') for w in self.task_widget.period_widgets]
             if len(period_names) != len(set(period_names)):
                 QMessageBox.warning(
@@ -103,7 +114,7 @@ class TaskManagementDialog(QDialog):
             account = user_data_result.get('account') or {}
             if 'features' not in account:
                 account['features'] = {}
-            account['features']['task_management'] = 'enabled' if self.ui.groupBox_checkBox_enable_task_management.isChecked() else 'disabled'
+            account['features']['task_management'] = 'enabled' if tasks_enabled else 'disabled'
             update_user_account(self.user_id, account)
             
             QMessageBox.information(self, "Task Settings Saved", 

@@ -475,17 +475,19 @@ def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
     if category:
         # Use category-specific naming
         if category in ("tasks", "checkin"):
-            # For tasks and check-ins, use the descriptive naming
+            # For tasks and check-ins, use the descriptive naming with title case
             if category == "tasks":
                 default_period_name = "Task Reminder Default"
             else:  # checkin
                 default_period_name = "Check-in Reminder Default"
         else:
             # For message categories, use category-specific naming
-            default_period_name = f"{category.title()} Message Default"
+            # Replace underscores with spaces for better readability and use title case
+            category_display = category.replace('_', ' ').title()
+            default_period_name = f"{category_display} Message Default"
     else:
         # Fallback to generic naming
-        default_period_name = "default"
+        default_period_name = "Default"
     
     return {
         "ALL": {
@@ -515,7 +517,7 @@ def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[s
                 # This is legacy format - convert to new format
                 legacy_periods = {}
                 for period_name, period_data in category_data.items():
-                    if isinstance(period_data, dict) and 'start' in period_data and 'end' in period_data:
+                    if isinstance(period_data, dict) and ('start_time' in period_data or 'start' in period_data):
                         legacy_periods[period_name] = period_data
                 
                 # Add default periods if none exist
@@ -527,15 +529,15 @@ def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[s
                     if 'days' not in period_data:
                         period_data['days'] = ["ALL"]
                 
+                # All categories use the periods wrapper for consistency
                 migrated_data[category] = {
-                    "enabled": True,
                     "periods": legacy_periods
                 }
         else:
             # Invalid data, create default structure
+            default_periods = create_default_schedule_periods(category)
             migrated_data[category] = {
-                "enabled": True,
-                "periods": create_default_schedule_periods(category)
+                "periods": default_periods
             }
     
     return migrated_data
@@ -568,11 +570,12 @@ def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
             logger.debug(f"Creating default periods for category '{category}': {default_periods}")
             
             if not category_exists:
+                # All categories use the periods wrapper for consistency
                 schedules_data[category] = {
-                    "enabled": True,
                     "periods": default_periods
                 }
             else:
+                # Category exists but has no periods
                 schedules_data[category]['periods'] = default_periods
             
             # Save the updated schedules

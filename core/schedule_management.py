@@ -49,7 +49,21 @@ def get_schedule_time_periods(user_id, category):
 
     schedules = user_info.get('schedules', {})
     category_data = schedules.get(category, {})
-    periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
+    
+    # LEGACY COMPATIBILITY: Handle legacy format without periods wrapper
+    # TODO: Remove after all data is migrated to periods wrapper format
+    # REMOVAL PLAN:
+    # 1. Verify all user data uses periods wrapper (✅ COMPLETE)
+    # 2. Remove legacy format handling from get_schedule_time_periods
+    # 3. Remove legacy format handling from this function
+    # 4. Update all tests to use periods wrapper only
+    if isinstance(category_data, dict) and 'periods' not in category_data:
+        # This is legacy format - treat the category_data as periods directly
+        periods = category_data
+        logger.debug(f"get_schedule_time_periods: Using legacy format for category {category}")
+    else:
+        # This is new format - get periods from the wrapper
+        periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
 
     if periods:
         # Sort periods by start_time (canonical)
@@ -58,7 +72,13 @@ def get_schedule_time_periods(user_id, category):
             if not isinstance(period_data, dict):
                 logger.warning(f"Period {period_name} in category {category} is not a dictionary: {period_data}")
                 continue
-            # Normalize keys for compatibility
+            # LEGACY COMPATIBILITY: Support for old 'start'/'end' keys
+            # TODO: Remove after all data is migrated to 'start_time'/'end_time'
+            # REMOVAL PLAN: 
+            # 1. Run migration script to convert all legacy data
+            # 2. Remove legacy key support from this function
+            # 3. Remove migrate_legacy_schedule_keys function
+            # 4. Update all tests to use canonical keys only
             start_time = period_data.get('start_time') or period_data.get('start')
             end_time = period_data.get('end_time') or period_data.get('end')
             # Log if legacy keys are used
@@ -120,35 +140,22 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
     Returns:
         bool: True if the period was found and updated, False otherwise
     """
-    # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
-    user_info = {'schedules': schedules_result.get('schedules', {})}
-    if not user_info:
-        logger.error(f"User {user_id} not found.")
-        return False
+    # Get current periods for this category
+    current_periods = get_schedule_time_periods(user_id, category)
     
-    schedules = user_info.get('schedules', {})
-    category_data = schedules.get(category, {})
-    periods = category_data.get('periods', {}) if isinstance(category_data, dict) else {}
-    period = periods.get(period_name)
-
-    if period:
-        period['active'] = active
-        # Update schedules using new structure
-        from core.user_data_handlers import update_user_schedules
-        # Guard: update only the relevant period
-        if isinstance(category_data, dict):
-            category_data['periods'] = periods
-            schedules[category] = category_data
-            user_info['schedules'] = schedules
-        update_user_schedules(user_id, user_info.get('schedules', {}))
-        clear_schedule_periods_cache(user_id, category)
+    if period_name in current_periods:
+        # Update the period's active status
+        current_periods[period_name]['active'] = active
+        
+        # Save using the consistent set_schedule_periods function
+        set_schedule_periods(user_id, category, current_periods)
+        
         status = "enabled" if active else "disabled"
         logger.info(f"Period {period_name} in category {category} for user {user_id} has been {status}.")
+        return True
     else:
         logger.error(f"Period {period_name} not found in category {category} for user {user_id}.")
         return False
-    return True
 
 @handle_errors("checking if schedule period active", default_return=False)
 def is_schedule_period_active(user_id, category, period_name):
@@ -229,37 +236,25 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
         logger.error("User ID is not set in UserContext (add_schedule_period).")
         return
     
-    # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
-    user_info = {'schedules': schedules_result.get('schedules', {})}
-
-    if user_info.get("user_id") != user_id:
-        logger.error(f"Mismatch in user_id for user info data: expected {user_id}, found {user_info.get('user_id')}")
-        return
-
-    user_schedules = user_info.setdefault('schedules', {})
-    category_data = user_schedules.setdefault(category, {})
-    periods = category_data.setdefault('periods', {})
+    # Get current periods for this category
+    current_periods = get_schedule_time_periods(user_id, category)
     
     # Validate that period name doesn't already exist
-    if period_name in periods:
+    if period_name in current_periods:
         logger.warning(f"Period '{period_name}' already exists in category '{category}' for user {user_id}")
         raise ValueError(f"A period named '{period_name}' already exists in this category. Please choose a different name.")
     
-    # Guard: only update the relevant period
-    periods[period_name] = {
+    # Add the new period
+    current_periods[period_name] = {
         'start_time': start_time,
         'end_time': end_time,
         'active': True,
         'days': ['ALL']
     }
-    category_data['periods'] = periods
-    user_schedules[category] = category_data
-    user_info['schedules'] = user_schedules
-    from core.user_data_handlers import update_user_schedules
-    update_user_schedules(user_id, user_info.get('schedules', {}))
-    clear_schedule_periods_cache(user_id, category)
-    logger.info(f"Added/updated period {period_name} in category {category} for user {user_id}.")
+    
+    # Save using the consistent set_schedule_periods function
+    set_schedule_periods(user_id, category, current_periods)
+    logger.info(f"Added period {period_name} in category {category} for user {user_id}.")
     
     # Only reset scheduler if available
     if scheduler_manager:
@@ -275,21 +270,17 @@ def edit_schedule_period(category, period_name, new_start_time, new_end_time, sc
     if not user_id:
         logger.error("User ID is not set in UserContext (edit_schedule_period).")
         return
-    # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
-    user_info = {'schedules': schedules_result.get('schedules', {})}
-    user_schedules = user_info.setdefault('schedules', {})
-    category_data = user_schedules.setdefault(category, {})
-    periods = category_data.setdefault('periods', {})
-    if period_name in periods:
-        periods[period_name]['start_time'] = new_start_time
-        periods[period_name]['end_time'] = new_end_time
-        category_data['periods'] = periods
-        user_schedules[category] = category_data
-        user_info['schedules'] = user_schedules
-        from core.user_data_handlers import update_user_schedules
-        update_user_schedules(user_id, user_info.get('schedules', {}))
-        clear_schedule_periods_cache(user_id, category)
+    
+    # Get current periods for this category
+    current_periods = get_schedule_time_periods(user_id, category)
+    
+    if period_name in current_periods:
+        # Update the period
+        current_periods[period_name]['start_time'] = new_start_time
+        current_periods[period_name]['end_time'] = new_end_time
+        
+        # Save using the consistent set_schedule_periods function
+        set_schedule_periods(user_id, category, current_periods)
         logger.info(f"Edited period {period_name} in category {category} for user {user_id}.")
     else:
         logger.warning(f"Period {period_name} not found in category {category} for user {user_id}.")
@@ -308,21 +299,25 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
     if not user_id:
         logger.error("User ID is not set in UserContext (delete_schedule_period).")
         return
-    # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
-    user_info = {'schedules': schedules_result.get('schedules', {})}
-    user_schedules = user_info.setdefault('schedules', {})
-    category_data = user_schedules.setdefault(category, {})
-    periods = category_data.setdefault('periods', {})
-    if period_name in periods:
-        del periods[period_name]
-        category_data['periods'] = periods
-        user_schedules[category] = category_data
-        user_info['schedules'] = user_schedules
-        from core.user_data_handlers import update_user_schedules
-        update_user_schedules(user_id, user_info.get('schedules', {}))
-        clear_schedule_periods_cache(user_id, category)
-        logger.info(f"Deleted period {period_name} in category {category} for user {user_id}.")
+    
+    # Get current periods for this category
+    current_periods = get_schedule_time_periods(user_id, category)
+    
+    if period_name in current_periods:
+        # Delete the period
+        del current_periods[period_name]
+        
+        # Save using the consistent set_schedule_periods function
+        set_schedule_periods(user_id, category, current_periods)
+        logger.info(f"Deleted period {period_name} from category {category} for user {user_id}.")
+        
+        # Only reset scheduler if available
+        if scheduler_manager:
+            scheduler_manager.reset_and_reschedule_daily_messages(category)
+        else:
+            logger.debug("No scheduler manager available for rescheduling")
+            # Create a reschedule request for the service to pick up
+            create_reschedule_request(user_id, category)
     else:
         logger.warning(f"Period {period_name} not found in category {category} for user {user_id}.")
 
@@ -484,6 +479,34 @@ def set_schedule_periods(user_id, category, periods_dict):
     if category not in schedules_data:
         schedules_data[category] = {}
     
+    # LEGACY COMPATIBILITY: Handle legacy format without periods wrapper
+    # TODO: Remove after all data is migrated to periods wrapper format
+    # REMOVAL PLAN:
+    # 1. Verify all user data uses periods wrapper (✅ COMPLETE)
+    # 2. Remove legacy format handling from get_schedule_time_periods
+    # 3. Remove legacy format handling from this function
+    # 4. Update all tests to use periods wrapper only
+    category_data = schedules_data[category]
+    if isinstance(category_data, dict) and 'periods' not in category_data:
+        # This is legacy format - migrate it
+        logger.info(f"set_schedule_periods: Migrating legacy format for category {category}")
+        legacy_periods = {}
+        for key, value in category_data.items():
+            if isinstance(value, dict) and ('start_time' in value or 'start' in value):
+                # This is a period, migrate it
+                legacy_periods[key] = {
+                    'active': value.get('active', True),
+                    'days': value.get('days', ['ALL']),
+                    'start_time': value.get('start_time') or value.get('start'),
+                    'end_time': value.get('end_time') or value.get('end')
+                }
+        
+        # Replace the category data with new format (all categories use periods wrapper)
+        schedules_data[category] = {
+            'periods': legacy_periods
+        }
+        logger.info(f"set_schedule_periods: Migrated {len(legacy_periods)} periods for category {category}")
+    
     # Ensure periods sub-dict exists
     if 'periods' not in schedules_data[category]:
         schedules_data[category]['periods'] = {}
@@ -501,7 +524,7 @@ def set_schedule_periods(user_id, category, periods_dict):
             'end_time': period_data.get('end_time')
         }
     
-    # Replace the periods for this category
+    # Replace the periods for this category (all categories use periods wrapper)
     schedules_data[category]['periods'] = cleaned_periods
     
     logger.info(f"set_schedule_periods: Final schedules data: {schedules_data}")
@@ -560,10 +583,19 @@ def get_user_info_for_schedule_management(user_id: str) -> Optional[Dict[str, An
         logger.error(f"Error loading user schedules for schedule management: {e}")
         return None 
 
+# LEGACY COMPATIBILITY: Migration function for old 'start'/'end' keys
+# TODO: Remove after all data is migrated to 'start_time'/'end_time'
+# REMOVAL PLAN:
+# 1. Run this function on all users to convert legacy data
+# 2. Verify no legacy keys remain in any user data
+# 3. Remove this function entirely
+# 4. Remove legacy key support from get_schedule_time_periods
 def migrate_legacy_schedule_keys(user_id=None):
     """
     Migrate all user schedule files from legacy 'start'/'end' keys to canonical 'start_time'/'end_time'.
     If user_id is None, migrate all users.
+    
+    LEGACY COMPATIBILITY FUNCTION - REMOVE AFTER MIGRATION COMPLETE
     """
     from core.user_data_handlers import get_all_user_ids
     from core.config import get_user_file_path

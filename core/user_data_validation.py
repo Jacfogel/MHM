@@ -211,10 +211,9 @@ def validate_schedule_periods(periods: Dict[str, Dict[str, Any]], category: str 
             errors.append(f"Period '{period_name}' data must be a dictionary")
             continue
             
-        # Check required fields
-        if not period_data.get('name'):
-            errors.append(f"Period '{period_name}' must have a name")
-            
+        # Check required fields - name is the dictionary key, so we don't need to check period_data.get('name')
+        # The period_name is already validated by being a valid dictionary key
+        
         # Validate times
         start_time = period_data.get('start_time')
         end_time = period_data.get('end_time')
