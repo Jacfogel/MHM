@@ -181,6 +181,27 @@ QCheckBox[role="header3"]::text {
     padding: 4px 8px;
 }
 
+/* READ-ONLY CHECKBOXES - Clearly checked but visually disabled */
+QCheckBox[readonly="true"] {
+    color: #333333;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+QCheckBox[readonly="true"]::indicator {
+    background-color: #666666;
+    border: 2px solid #555555;
+    border-radius: 3px;
+}
+
+QCheckBox[readonly="true"]::indicator:checked {
+    background-color: #666666;
+    border: 2px solid #555555;
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOSIgdmlld0JveD0iMCAwIDEyIDkiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik0xIDQuNUw0LjUgOEwxMSAxIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K);
+}
+
 QGroupBox::indicator {
     width: 16px;
     height: 16px;

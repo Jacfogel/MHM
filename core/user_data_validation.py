@@ -197,9 +197,9 @@ def validate_schedule_periods(periods: Dict[str, Dict[str, Any]], category: str 
     if not periods:
         return False, [f"At least one time period is required for {category}."]
     
-    # Check if any periods are active
+    # Check if any periods are active (excluding "ALL" period)
     active_periods = [name for name, data in periods.items() 
-                     if isinstance(data, dict) and data.get('active', False)]
+                     if isinstance(data, dict) and data.get('active', False) and name.upper() != "ALL"]
     if not active_periods:
         return False, [f"At least one time period must be enabled for {category}."]
     

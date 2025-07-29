@@ -48,6 +48,15 @@ class PeriodRowWidget(QWidget):
                 'days': ['ALL']
             }
         
+        # For ALL periods, ensure correct data
+        if period_name.upper() == "ALL":
+            period_data = {
+                'start_time': '00:00',
+                'end_time': '23:59',
+                'active': True,
+                'days': ['ALL']
+            }
+        
         self.period_name = period_name
         self.period_data = period_data
         
@@ -67,6 +76,23 @@ class PeriodRowWidget(QWidget):
         
         # Connect delete button
         self.ui.pushButton_delete.clicked.connect(self.request_delete)
+        
+        # If this is an ALL period, ensure it's properly configured as read-only
+        # Do this AFTER loading data to ensure proper state
+        if period_name.upper() == "ALL":
+            # Force the correct state for ALL periods
+            self.ui.checkBox_active.setChecked(True)
+            self.ui.checkBox_select_all_days.setChecked(True)
+            # Ensure all individual days are checked
+            self.ui.checkBox_sunday.setChecked(True)
+            self.ui.checkBox_monday.setChecked(True)
+            self.ui.checkBox_tuesday.setChecked(True)
+            self.ui.checkBox_wednesday.setChecked(True)
+            self.ui.checkBox_thursday.setChecked(True)
+            self.ui.checkBox_friday.setChecked(True)
+            self.ui.checkBox_saturday.setChecked(True)
+            # Now set read-only
+            self.set_read_only(True)
     
     def setup_functionality(self):
         """Setup the widget functionality and connect signals."""
@@ -303,4 +329,101 @@ class PeriodRowWidget(QWidget):
             return True
         except Exception as e:
             logger.error(f"Error validating period data: {e}")
-            return False 
+            return False
+    
+    def set_read_only(self, read_only: bool = True):
+        """Set the widget to read-only mode."""
+        # Disable all input widgets
+        self.ui.lineEdit_time_period_name.setReadOnly(read_only)
+        self.ui.comboBox_start_time_hours.setEnabled(not read_only)
+        self.ui.comboBox_start_time_minutes.setEnabled(not read_only)
+        self.ui.radioButton_start_time_am.setEnabled(not read_only)
+        self.ui.radioButton_start_time_pm.setEnabled(not read_only)
+        self.ui.comboBox_end_time_hours.setEnabled(not read_only)
+        self.ui.comboBox_end_time_minutes.setEnabled(not read_only)
+        self.ui.radioButton_end_time_am.setEnabled(not read_only)
+        self.ui.radioButton_end_time_pm.setEnabled(not read_only)
+        
+        # For read-only ALL periods, keep active and days visible but disabled
+        if read_only and self.get_period_name().upper() == "ALL":
+            # Ensure ALL period is active and has all days selected
+            self.ui.checkBox_active.setChecked(True)
+            self.ui.checkBox_active.setEnabled(False)
+            # Ensure all days are selected
+            self.ui.checkBox_select_all_days.setChecked(True)
+            self.ui.checkBox_select_all_days.setEnabled(False)
+            # Ensure individual days are all checked but disabled
+            self.ui.checkBox_sunday.setChecked(True)
+            self.ui.checkBox_sunday.setEnabled(False)
+            self.ui.checkBox_monday.setChecked(True)
+            self.ui.checkBox_monday.setEnabled(False)
+            self.ui.checkBox_tuesday.setChecked(True)
+            self.ui.checkBox_tuesday.setEnabled(False)
+            self.ui.checkBox_wednesday.setChecked(True)
+            self.ui.checkBox_wednesday.setEnabled(False)
+            self.ui.checkBox_thursday.setChecked(True)
+            self.ui.checkBox_thursday.setEnabled(False)
+            self.ui.checkBox_friday.setChecked(True)
+            self.ui.checkBox_friday.setEnabled(False)
+            self.ui.checkBox_saturday.setChecked(True)
+            self.ui.checkBox_saturday.setEnabled(False)
+        else:
+            # Normal behavior for non-ALL periods
+            self.ui.checkBox_active.setEnabled(not read_only)
+            self.ui.checkBox_select_all_days.setEnabled(not read_only)
+            self.ui.checkBox_sunday.setEnabled(not read_only)
+            self.ui.checkBox_monday.setEnabled(not read_only)
+            self.ui.checkBox_tuesday.setEnabled(not read_only)
+            self.ui.checkBox_wednesday.setEnabled(not read_only)
+            self.ui.checkBox_thursday.setEnabled(not read_only)
+            self.ui.checkBox_friday.setEnabled(not read_only)
+            self.ui.checkBox_saturday.setEnabled(not read_only)
+        
+        # Control delete button visibility
+        if read_only:
+            self.ui.pushButton_delete.setVisible(False)
+        else:
+            self.ui.pushButton_delete.setVisible(True)
+        
+        # Add visual indication for read-only state
+        if read_only:
+            self.setStyleSheet("QWidget { background-color: #f0f0f0; }")
+            self.ui.lineEdit_time_period_name.setStyleSheet("QLineEdit { background-color: #e0e0e0; color: #666666; }")
+            # Set readonly property for QSS styling
+            self.ui.checkBox_active.setProperty("readonly", True)
+            self.ui.checkBox_select_all_days.setProperty("readonly", True)
+            # Set readonly property for individual day checkboxes
+            day_checkboxes = [
+                self.ui.checkBox_sunday, self.ui.checkBox_monday, self.ui.checkBox_tuesday,
+                self.ui.checkBox_wednesday, self.ui.checkBox_thursday, self.ui.checkBox_friday,
+                self.ui.checkBox_saturday
+            ]
+            for checkbox in day_checkboxes:
+                checkbox.setProperty("readonly", True)
+        else:
+            self.setStyleSheet("")
+            self.ui.lineEdit_time_period_name.setStyleSheet("")
+            # Clear readonly property
+            self.ui.checkBox_active.setProperty("readonly", False)
+            self.ui.checkBox_select_all_days.setProperty("readonly", False)
+            day_checkboxes = [
+                self.ui.checkBox_sunday, self.ui.checkBox_monday, self.ui.checkBox_tuesday,
+                self.ui.checkBox_wednesday, self.ui.checkBox_thursday, self.ui.checkBox_friday,
+                self.ui.checkBox_saturday
+            ]
+            for checkbox in day_checkboxes:
+                checkbox.setProperty("readonly", False)
+        
+        # Force style update for all checkboxes
+        self.ui.checkBox_active.style().unpolish(self.ui.checkBox_active)
+        self.ui.checkBox_active.style().polish(self.ui.checkBox_active)
+        self.ui.checkBox_select_all_days.style().unpolish(self.ui.checkBox_select_all_days)
+        self.ui.checkBox_select_all_days.style().polish(self.ui.checkBox_select_all_days)
+        day_checkboxes = [
+            self.ui.checkBox_sunday, self.ui.checkBox_monday, self.ui.checkBox_tuesday,
+            self.ui.checkBox_wednesday, self.ui.checkBox_thursday, self.ui.checkBox_friday,
+            self.ui.checkBox_saturday
+        ]
+        for checkbox in day_checkboxes:
+            checkbox.style().unpolish(checkbox)
+            checkbox.style().polish(checkbox) 

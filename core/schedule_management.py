@@ -79,8 +79,16 @@ def get_schedule_time_periods(user_id, category):
                 'days': period_data.get('days', ['ALL'])
             }
             sorted_periods[period_name]['start_time_obj'] = start_time_obj
-        # Sort by start_time
-        sorted_periods = dict(sorted(sorted_periods.items(), key=lambda item: item[1]['start_time_obj']))
+        # Sort by start_time, but put "ALL" period at the end
+        def sort_key(item):
+            period_name, period_data = item
+            if period_name.upper() == "ALL":
+                # Put ALL period at the end by giving it a very high sort value
+                return (999999, period_data['start_time_obj'])
+            else:
+                return (0, period_data['start_time_obj'])
+        
+        sorted_periods = dict(sorted(sorted_periods.items(), key=sort_key))
         for period in sorted_periods:
             del sorted_periods[period]['start_time_obj']
         _schedule_periods_cache[cache_key] = (sorted_periods, current_time)
@@ -94,6 +102,7 @@ def get_schedule_time_periods(user_id, category):
                     "start_time": "00:00",
                     "end_time": "23:59",
                     "active": True,
+                    "days": ["ALL"],
                     "description": "Messages sent regardless of time of day"
                 }
             }

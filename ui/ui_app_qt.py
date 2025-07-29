@@ -469,7 +469,10 @@ class MHMManagerUI(QMainWindow):
                 if 'automated_messages' in enabled_features:
                     categories = [f for f in enabled_features if f not in ['automated_messages', 'checkins', 'task_management']]
                     if categories:
-                        feature_summary.append(f"Messages: {', '.join(categories)}")
+                        # Apply title_case to category names for display
+                        # Replace underscores with spaces before applying title_case
+                        formatted_categories = [title_case(cat.replace('_', ' ')) for cat in categories]
+                        feature_summary.append(f"Messages: {', '.join(formatted_categories)}")
                 if 'checkins' in enabled_features:
                     feature_summary.append("Check-ins")
                 if 'task_management' in enabled_features:
@@ -573,7 +576,10 @@ class MHMManagerUI(QMainWindow):
             self.ui.comboBox_user_categories.addItem("Select a category...")
             
             for category in self.current_user_categories:
-                self.ui.comboBox_user_categories.addItem(category)
+                # Store the original category name as data, display the formatted name
+                # Replace underscores with spaces before applying title_case
+                formatted_category = title_case(category.replace('_', ' '))
+                self.ui.comboBox_user_categories.addItem(formatted_category, category)
                 
         except Exception as e:
             logger.error(f"Error loading user categories: {e}")
@@ -581,8 +587,15 @@ class MHMManagerUI(QMainWindow):
     
     def on_category_selected(self, category):
         """Handle category selection"""
+        # Get the actual category value from the combo box data
+        current_index = self.ui.comboBox_user_categories.currentIndex()
+        if current_index > 0:  # Skip the "Select a category..." item
+            actual_category = self.ui.comboBox_user_categories.itemData(current_index)
+        else:
+            actual_category = None
+        
         # Enable/disable category action buttons based on selection
-        has_category = bool(category and category != "Select a category...")
+        has_category = bool(actual_category and actual_category != "Select a category...")
         
         self.ui.pushButton_edit_messages.setEnabled(has_category)
         self.ui.pushButton_edit_schedules.setEnabled(has_category)
@@ -785,7 +798,9 @@ class MHMManagerUI(QMainWindow):
         layout.addWidget(title_label)
         
         for category in categories:
-            button = QPushButton(title_case(category))
+            # Replace underscores with spaces before applying title_case
+            formatted_category = title_case(category.replace('_', ' '))
+            button = QPushButton(formatted_category)
             button.clicked.connect(lambda checked, c=category: self.open_message_editor(category_dialog, c))
             layout.addWidget(button)
         
@@ -815,11 +830,12 @@ class MHMManagerUI(QMainWindow):
             return
         
         # Check if a category is selected
-        selected_category = self.ui.comboBox_user_categories.currentText()
-        if not selected_category or selected_category == "Select a category...":
+        current_index = self.ui.comboBox_user_categories.currentIndex()
+        if current_index <= 0:  # No category selected or "Select a category..." selected
             QMessageBox.warning(self, "No Category Selected", "Please select a category from the dropdown first.")
             return
-            
+        
+        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
         logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user}, category {selected_category}")
         
         # Temporarily set the user context for editing
@@ -911,7 +927,9 @@ class MHMManagerUI(QMainWindow):
         layout.addWidget(title_label)
         
         for category in categories:
-            button = QPushButton(title_case(category))
+            # Replace underscores with spaces before applying title_case
+            formatted_category = title_case(category.replace('_', ' '))
+            button = QPushButton(formatted_category)
             button.clicked.connect(lambda checked, c=category: self.confirm_test_message(category_dialog, c))
             layout.addWidget(button)
         

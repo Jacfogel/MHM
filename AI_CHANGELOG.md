@@ -34,6 +34,28 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-29 - ALL Period System Improvements ✅ **COMPLETED**
+- **Made ALL periods read-only** for category messages with visual indication and deletion prevention
+- **Fixed delete button visibility** for non-ALL periods to ensure proper functionality
+- **Enhanced read-only logic** to keep ALL periods visually active with all days selected
+- **Improved display order** - ALL periods now appear at bottom of period list for better organization
+- **Fixed validation logic** to exclude ALL periods from active period requirements
+- **Enhanced QSS styling** for read-only checkboxes with dark gray indicators and consistent text formatting
+- **Fixed validation dialog closure** by properly handling save button clicks to prevent dialog closure on validation errors
+- **Impact**: Better user experience with clear distinction between system-managed and user-editable periods
+
+### 2025-07-29 - Time Period System Standardization ✅ **COMPLETED**
+- **Standardized method names** across all time period systems for consistency
+- **Standardized default period naming** for better user experience with descriptive names
+- **Improved code maintainability** with consistent patterns across Task Management, Check-in Management, and Schedule Editor
+- **Impact**: Better user experience with consistent naming and improved code maintainability
+
+### 2025-07-29 - Discord Network Resilience Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot network resilience** to reduce disconnection frequency
+- **Increased reconnection cooldown** from 30 to 60 seconds to prevent rapid reconnection attempts
+- **Added comprehensive network connectivity checks** to health monitoring system
+- **Impact**: Reduced Discord disconnection frequency and improved stability during network hiccups
+
 ### 2025-07-28 - Logging System Fix - Constructor Parameter Order ✅ **COMPLETED**
 - **Fixed logging system crash** caused by incorrect parameter order in BackupDirectoryRotatingFileHandler
 - **Corrected RotatingFileHandler constructor call** to include missing `mode='a'` parameter

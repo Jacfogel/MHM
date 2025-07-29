@@ -51,6 +51,7 @@ class ScheduleEditorDialog(QDialog):
         # Initialize data structures
         self.period_widgets = []  # Keep list of widgets like other dialogs
         self.deleted_periods = []  # For undo functionality
+        self.creation_counter = 0  # Track creation order for sorting
         
         # Setup window
         self.setWindowTitle(f"Edit Schedule - {category.title()}")
@@ -89,7 +90,7 @@ class ScheduleEditorDialog(QDialog):
         self.ui.pushButton_undo_last__time_period_delete.clicked.connect(self.undo_last_delete)
         
         # Connect dialog buttons
-        self.ui.buttonBox_save_cancel.accepted.connect(self.save_schedule)
+        self.ui.buttonBox_save_cancel.accepted.connect(self.handle_save)
         self.ui.buttonBox_save_cancel.rejected.connect(self.cancel)
         
         # Update title
@@ -110,13 +111,27 @@ class ScheduleEditorDialog(QDialog):
                 widget_list=self.period_widgets,
                 delete_callback=self.remove_period_row
             )
+            
+            # Assign creation order to existing widgets (older first)
+            for i, widget in enumerate(self.period_widgets):
+                widget.creation_order = i
+            self.creation_counter = len(self.period_widgets)
+            
         except Exception as e:
             logger.error(f"Error loading schedule data for user {self.user_id}, category {self.category}: {e}")
     
     def add_new_period(self, period_name=None, period_data=None):
         """Add a new period row using the PeriodRowWidget."""
         if period_name is None:
-            period_name = f"Period {len(self.period_widgets) + 1}"
+            # Use descriptive name for default periods (title case for consistency)
+            # Replace underscores with spaces before applying title case
+            category_display = self.category.replace('_', ' ').title()
+            if len(self.period_widgets) == 0:
+                period_name = f"{category_display} Message Default"
+            else:
+                # Find the lowest available number for new periods
+                next_number = self.find_lowest_available_period_number()
+                period_name = f"{category_display} Message {next_number}"
         if period_data is None:
             period_data = {'start_time': '18:00', 'end_time': '20:00', 'active': True, 'days': ['ALL']}
         
@@ -126,23 +141,80 @@ class ScheduleEditorDialog(QDialog):
         # Connect the delete signal
         period_widget.delete_requested.connect(self.remove_period_row)
         
-        # Add to layout
-        self.periods_layout.addWidget(period_widget)
+        # Assign creation order for sorting
+        period_widget.creation_order = self.creation_counter
+        self.creation_counter += 1
         
-        # Store reference
+        # Store reference first
         self.period_widgets.append(period_widget)
+        
+        # Re-sort the layout to maintain proper order (ALL at bottom)
+        self.resort_period_widgets()
         
         return period_widget
 
+    def resort_period_widgets(self):
+        """Re-sort the period widgets to maintain proper order (ALL at bottom)."""
+        # Remove all widgets from layout
+        while self.periods_layout.count():
+            item = self.periods_layout.takeAt(0)
+            if item.widget():
+                item.widget().setParent(None)
+        
+        # Sort widgets: ALL periods at bottom, others by creation order (newest at end, before ALL)
+        def sort_key(widget):
+            period_name = widget.get_period_name()
+            if period_name.upper() == "ALL":
+                return (999999, period_name)  # Put ALL at the end
+            else:
+                # For non-ALL periods, use creation order (newer periods at end, before ALL)
+                creation_order = getattr(widget, 'creation_order', 0)
+                return (0, creation_order)  # Positive so newer (higher numbers) come last
+        
+        sorted_widgets = sorted(self.period_widgets, key=sort_key)
+        
+        # Add widgets back to layout in sorted order
+        for widget in sorted_widgets:
+            self.periods_layout.addWidget(widget)
+
+    def find_lowest_available_period_number(self):
+        """Find the lowest available number for new period names."""
+        used_numbers = set()
+        for widget in self.period_widgets:
+            period_name = widget.get_period_name()
+            # Extract number from period name (e.g., "Category Message 2" -> 2)
+            import re
+            match = re.search(r'Message\s+(\d+)$', period_name)
+            if match:
+                used_numbers.add(int(match.group(1)))
+        
+        # Find the lowest available number starting from 2
+        number = 2
+        while number in used_numbers:
+            number += 1
+        return number
+
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
+        # Prevent deletion of "ALL" periods for category messages
+        if isinstance(row_widget, PeriodRowWidget):
+            period_name = row_widget.get_period_name()
+            if period_name.upper() == "ALL" and self.category not in ("tasks", "checkin"):
+                from PySide6.QtWidgets import QMessageBox
+                QMessageBox.information(
+                    self,
+                    "Cannot Delete ALL Period",
+                    "The 'ALL' period cannot be deleted as it is a system-managed period that ensures messages can always be sent."
+                )
+                return
+        
         # Store the deleted period data for undo
         if isinstance(row_widget, PeriodRowWidget):
             period_data = row_widget.get_period_data()
             deleted_data = {
                 'period_name': period_data['name'],
-                'start_time': period_data['start'],
-                'end_time': period_data['end'],
+                'start_time': period_data['start_time'],
+                'end_time': period_data['end_time'],
                 'active': period_data['active'],
                 'days': period_data['days']
             }
@@ -179,7 +251,12 @@ class ScheduleEditorDialog(QDialog):
         """Collect period data using the new reusable function."""
         return collect_period_data_from_widgets(self.period_widgets, self.category)
     
-    @handle_errors("saving schedule")
+    def handle_save(self):
+        """Handle save button click - prevents dialog closure on validation errors."""
+        if self.save_schedule():
+            # Only close dialog if save was successful
+            self.accept()
+    
     def save_schedule(self):
         """Save the schedule data."""
         try:
@@ -189,12 +266,16 @@ class ScheduleEditorDialog(QDialog):
             # Validate periods using centralized validation
             is_valid, errors = validate_schedule_periods(periods, self.category)
             if not is_valid:
-                QMessageBox.warning(
+                # Use information instead of warning to avoid modal issues
+                QMessageBox.information(
                     self,
                     "Validation Error",
                     f"Schedule validation failed:\n\n{errors[0]}",
                 )
-                return
+                # Ensure dialog stays active
+                self.raise_()
+                self.activateWindow()
+                return False
             
             # Save the schedule
             set_schedule_periods(self.user_id, self.category, periods)
@@ -207,11 +288,12 @@ class ScheduleEditorDialog(QDialog):
                 self.on_save()
             
             logger.info(f"Schedule saved for user {self.user_id}, category {self.category}")
-            self.accept()
+            return True
             
         except Exception as e:
             logger.error(f"Error saving schedule: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save schedule: {str(e)}")
+            return False
     
     def cancel(self):
         """Cancel the dialog."""

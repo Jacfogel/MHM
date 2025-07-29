@@ -48,7 +48,7 @@ class DiscordBot(BaseChannel):
         self._reconnect_attempts = 0
         self._max_reconnect_attempts = 10
         self._last_reconnect_time = 0
-        self._reconnect_cooldown = 30  # Minimum seconds between reconnection attempts
+        self._reconnect_cooldown = 60  # Increased to 60 seconds to reduce rapid reconnection attempts
 
     @property
     def channel_type(self) -> ChannelType:
@@ -462,9 +462,14 @@ class DiscordBot(BaseChannel):
             logger.warning("Discord bot is not ready")
             return False
         
-        # Additional network connectivity check
+        # Enhanced network connectivity check
         if not self._check_dns_resolution():
             logger.warning("DNS resolution failed during health check")
+            return False
+        
+        # Check actual network connectivity
+        if not self._check_network_connectivity():
+            logger.warning("Network connectivity failed during health check")
             return False
         
         return True

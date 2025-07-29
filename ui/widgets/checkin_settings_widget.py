@@ -64,7 +64,7 @@ class CheckinSettingsWidget(QWidget):
     def setup_connections(self):
         """Setup signal connections."""
         # Connect time period buttons
-        self.ui.pushButton_add_new_checkin_time_period.clicked.connect(lambda: self.add_new_time_period())
+        self.ui.pushButton_add_new_checkin_time_period.clicked.connect(lambda: self.add_new_period())
         self.ui.pushButton_undo_last__checkin_time_period_delete.clicked.connect(self.undo_last_time_period_delete)
         # Connect question buttons
         self.ui.pushButton_add_new_checkin_question.clicked.connect(self.add_new_question)
@@ -104,7 +104,7 @@ class CheckinSettingsWidget(QWidget):
         if not self.user_id:
             logger.info("CheckinSettingsWidget: No user_id provided - creating new user mode")
             # For new user creation, add a default period and set default questions
-            self.add_new_time_period()
+            self.add_new_period()
             self.set_question_checkboxes({})  # Use defaults
             return
             
@@ -177,9 +177,9 @@ class CheckinSettingsWidget(QWidget):
         
         return number
     
-    def add_new_time_period(self, checked=None, period_name=None, period_data=None):
+    def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
-        logger.info(f"CheckinSettingsWidget: add_new_time_period called with period_name={period_name}, period_data={period_data}")
+        logger.info(f"CheckinSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}")
         if period_name is None:
             # Use descriptive name for default periods (title case for consistency with task widget)
             if len(self.period_widgets) == 0:
@@ -258,7 +258,7 @@ class CheckinSettingsWidget(QWidget):
         }
         
         # Add it back
-        self.add_new_time_period(period_name=deleted_data['period_name'], period_data=period_data)
+        self.add_new_period(period_name=deleted_data['period_name'], period_data=period_data)
     
     def add_new_question(self):
         """Add a new check-in question."""
@@ -364,7 +364,7 @@ class CheckinSettingsWidget(QWidget):
         # Add time periods
         time_periods = settings.get('time_periods', {})
         for period_name, period_data in time_periods.items():
-            self.add_new_time_period(period_name, period_data)
+            self.add_new_period(period_name, period_data)
         
         # Set questions
         questions = settings.get('questions', {})

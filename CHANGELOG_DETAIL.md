@@ -1,32 +1,62 @@
 # MHM System Changelog - Detailed
 
-> **Audience**: Developers and contributors  
-> **Purpose**: Complete detailed history of all changes, improvements, and system evolution  
-> **Style**: Chronological, detailed, reference-oriented
-
-This is the complete detailed changelog. See AI_CHANGELOG.md for brief summaries and TODO.md for current priorities.
-
-## 📝 How to Add Changes
-
-When adding new changes, follow this format:
-
-```markdown
-### YYYY-MM-DD - Brief Title
-- **Feature**: What was added/changed
-- **Impact**: What this improves or fixes
-```
-
-**Important Notes:**
-- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
-- **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
-- Keep entries **concise** and **action-oriented**
-- Maintain **chronological order** (most recent first)
-
-> **Version**: 1.0.0 - AI Collaboration System Active  
-> **Last Updated**: 2025-07-28  
-> **Status**: Active Development - 99.1% Function Documentation Coverage Achieved
+> **Audience**: Developers and AI Assistants  
+> **Purpose**: Complete detailed history of all changes  
+> **Style**: Comprehensive, chronological, technical
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-07-29 - ALL Period System Improvements ✅ **COMPLETED**
+- **Made ALL periods read-only** for category messages to prevent accidental modification
+  - Added `set_read_only()` method to PeriodRowWidget for visual and functional read-only state
+  - ALL periods are now grayed out and non-editable in the Schedule Editor
+  - Delete button is hidden for ALL periods with informative message if deletion attempted
+  - **Fixed delete button visibility** for non-ALL periods to ensure they can be deleted
+- **Improved ALL period display order** - ALL periods now appear at the bottom of the period list
+  - Modified sorting logic in `get_schedule_time_periods()` to prioritize user-defined periods
+  - Better user experience with system-managed ALL period clearly separated
+- **Fixed ALL period configuration** to ensure proper active state and day selection
+  - ALL periods are now properly configured with `active: True` and `days: ["ALL"]`
+  - **Enhanced read-only logic** to keep ALL periods visually active with all days selected
+  - Consistent configuration across all default period creation functions
+- **Updated validation logic** to exclude ALL periods from active period requirements
+  - Validation now requires at least one user-defined active period (excluding ALL)
+  - Prevents confusion between system-managed and user-managed periods
+- **Enhanced QSS styling** for read-only checkboxes with dark gray indicators and consistent text formatting
+  - Added `QCheckBox[readonly="true"]` styles to `admin_theme.qss` for proper visual indication
+  - Replaced inline styles with QSS properties for better maintainability and consistency
+  - Dark gray checkboxes clearly show checked state while indicating read-only status
+- **Fixed validation dialog closure** by properly handling save button clicks to prevent dialog closure on validation errors
+  - Added `handle_save()` method to properly manage dialog closure only on successful saves
+  - Changed from `QMessageBox.warning` to `QMessageBox.information` to avoid modal issues
+  - Added `raise_()` and `activateWindow()` calls to ensure dialog stays active after validation errors
+- **Impact**: Better user experience with clear distinction between system-managed and user-editable periods
+- **Files Modified**: `ui/widgets/period_row_widget.py`, `core/ui_management.py`, `ui/dialogs/schedule_editor_dialog.py`, `core/schedule_management.py`, `core/user_data_validation.py`, `styles/admin_theme.qss`
+
+### 2025-07-29 - Time Period System Standardization ✅ **COMPLETED**
+- **Standardized method names** across all time period systems for consistency
+  - Changed `add_new_time_period()` to `add_new_period()` in Check-in Management
+  - All three systems now use consistent `add_new_period()` method name
+- **Standardized default period naming** for better user experience
+  - Schedule Editor now uses descriptive names like "Tasks Default", "Tasks 2" instead of "Period 1"
+  - Added `find_lowest_available_period_number()` helper method to Schedule Editor
+  - All systems now use title case and descriptive naming patterns
+- **Improved code maintainability** with consistent patterns across Task Management, Check-in Management, and Schedule Editor
+- **Impact**: Better user experience with consistent naming and improved code maintainability
+- **Files Modified**: `ui/widgets/checkin_settings_widget.py`, `ui/dialogs/checkin_management_dialog.py`, `ui/dialogs/schedule_editor_dialog.py`
+
+### 2025-07-28 - Discord Network Resilience Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot network resilience** to reduce disconnection frequency during network hiccups
+  - **Increased reconnection cooldown** from 30 to 60 seconds to prevent rapid reconnection attempts that can overwhelm Discord's servers
+  - **Added comprehensive network connectivity checks** to health monitoring system including both DNS resolution and actual network connectivity tests
+  - **Improved error handling** for network-related issues with better diagnostics and recovery mechanisms
+- **Root cause analysis** identified temporary DNS resolution failures (`getaddrinfo failed`) as the primary cause of disconnections
+  - Network tests confirmed current stability (DNS resolution and connectivity working properly)
+  - System already had good error handling but needed optimization for rapid reconnection scenarios
+- **Enhanced health monitoring** now includes both DNS resolution and network connectivity checks in the `health_check()` method
+- **Files affected**: `bot/discord_bot.py`
+- **Impact**: Reduced Discord disconnection frequency, improved stability during network hiccups, and better recovery mechanisms
+- **Testing**: System tested and running smoothly with no recent disconnection errors
 
 ### 2025-07-28 - Logging System Fix - Constructor Parameter Order ✅ **COMPLETED**
 - **Fixed logging system crash** caused by incorrect parameter order in BackupDirectoryRotatingFileHandler

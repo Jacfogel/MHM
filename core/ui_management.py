@@ -76,6 +76,9 @@ def add_period_widget_to_layout(layout, period_name: str, period_data: dict,
         # Create the period widget
         period_widget = PeriodRowWidget(parent_widget, display_name, period_data)
         
+        # Note: ALL periods are automatically made read-only in the PeriodRowWidget constructor
+        # No need to call set_read_only here as it's already handled
+        
         # Connect delete signal if callback provided
         if delete_callback:
             period_widget.delete_requested.connect(delete_callback)

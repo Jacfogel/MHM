@@ -72,7 +72,7 @@ class CheckinManagementDialog(QDialog):
         # If check-ins are being enabled and no periods exist, create a default period
         if checked and not self.checkin_widget.period_widgets:
             logger.info("Check-ins enabled with no periods - creating default period")
-            self.checkin_widget.add_new_time_period()
+            self.checkin_widget.add_new_period()
     
     def load_user_checkin_data(self):
         """Load the user's current check-in settings"""
