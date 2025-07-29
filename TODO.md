@@ -58,6 +58,12 @@ When adding new tasks, follow this format:
   - ⚠️ **Task Settings Widget** - Needs testing for task enablement and settings
   - ⚠️ **Check-in Settings Widget** - Needs testing for check-in enablement and settings
 
+**Schedule Editor Validation Dialog Closure** - Fix validation error popup closing the edit schedule dialog
+- *What it means*: When validation errors occur in the Schedule Editor, the error popup should not close the main dialog
+- *Why it helps*: Users can fix validation errors and try again without having to reopen the dialog
+- *Estimated effort*: Small
+- *Status*: ⚠️ **OUTSTANDING** - Previous fix attempt may not have fully resolved the issue
+
 ## 🎯 **HIGH PRIORITY**
 
 ### **Legacy Code Removal** - Remove all legacy/compatibility code with clear marking and plans
