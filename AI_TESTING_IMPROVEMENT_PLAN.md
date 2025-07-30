@@ -40,6 +40,12 @@ When updating this AI-focused testing plan, follow this format:
 - **Verified schedule format consistency** across Task Management and Check-in Management dialogs
 - **Confirmed legacy code marking** with clear removal plans and timelines
 
+### **2025-07-30 - Discord DNS Fallback & Diagnostic Tools Enhancement**
+- **Enhanced Discord connectivity testing** with alternative DNS server fallback and multiple endpoint testing
+- **Added comprehensive diagnostic tools**: `discord_connectivity_diagnostic.py` and `test_dns_fallback.py` for detailed connectivity analysis
+- **Updated test patterns** to include DNS fallback testing and endpoint resilience verification
+- **Improved diagnostic output** with organized file storage and detailed error reporting
+
 ### **2025-07-28 - Discord Connectivity Testing Enhancement**
 - **Added Discord connectivity diagnostic script** for troubleshooting network and DNS issues
 - **Enhanced Discord bot testing** with comprehensive error handling and recovery mechanisms
@@ -95,7 +101,8 @@ When updating this AI-focused testing plan, follow this format:
 - `python run_tests.py` - Run all tests
 - `python -m pytest tests/unit/` - Run unit tests only
 - `python -m pytest tests/behavior/` - Run behavior tests only
-- `python scripts/debug/debug_discord_connectivity.py` - Test Discord connectivity
+- `python scripts/debug/discord_connectivity_diagnostic.py` - Comprehensive Discord connectivity testing
+- `python scripts/debug/test_dns_fallback.py` - Test DNS fallback functionality
 
 ### **Key Test Files**
 - `tests/conftest.py` - Test configuration and fixtures

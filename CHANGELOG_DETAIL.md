@@ -6,6 +6,29 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Discord DNS Fallback & Network Resilience Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot with alternative DNS server fallback** for improved connectivity during DNS issues
+  - **Added alternative DNS servers**: Google (8.8.8.8), Cloudflare (1.1.1.1), OpenDNS (208.67.222.222), Quad9 (9.9.9.9)
+  - **Implemented DNS fallback logic** in `_check_dns_resolution()` method to try alternative servers when primary fails
+  - **Added detailed DNS error tracking** with information about which DNS server worked and which failed
+  - **Enhanced error reporting** shows which alternative DNS server successfully resolved the hostname
+- **Implemented multiple Discord endpoint fallback** system to try alternative gateways when one fails
+  - **Added endpoint prioritization** in `_check_network_connectivity()` method with problematic endpoints tried last
+  - **Enhanced network connectivity testing** tries multiple Discord endpoints in order of reliability
+  - **Improved error handling** for network failures with detailed information about which endpoints were tried
+- **Added comprehensive diagnostic tools** with detailed DNS and network connectivity testing
+  - **Enhanced diagnostic script**: `scripts/debug/discord_connectivity_diagnostic.py` now saves results to organized directory
+  - **Created test script**: `scripts/debug/test_dns_fallback.py` to verify DNS fallback functionality
+  - **Improved diagnostic output** with detailed information about DNS server attempts and endpoint connectivity
+- **Improved network recovery system** with faster detection and fallback to working endpoints
+  - **Enhanced `_wait_for_network_recovery()`** method with shorter check intervals (5 seconds instead of 10)
+  - **Better recovery messaging** indicates when alternative DNS servers or endpoints are being used
+  - **Faster recovery detection** with improved fallback logic
+- **Added new dependency**: `dnspython>=2.4.0` for enhanced DNS resolution capabilities
+- **Files affected**: `bot/discord_bot.py`, `requirements.txt`, `scripts/debug/discord_connectivity_diagnostic.py`, `scripts/debug/test_dns_fallback.py`
+- **Impact**: Much more resilient Discord connectivity that automatically works around DNS and endpoint issues, reducing disconnection frequency
+- **Testing**: Verified DNS fallback functionality working correctly with alternative servers and endpoint fallback system
+
 ### 2025-07-29 - ALL Period System Improvements ✅ **COMPLETED**
 - **Made ALL periods read-only** for category messages to prevent accidental modification
   - Added `set_read_only()` method to PeriodRowWidget for visual and functional read-only state
@@ -44,6 +67,29 @@
 - **Improved code maintainability** with consistent patterns across Task Management, Check-in Management, and Schedule Editor
 - **Impact**: Better user experience with consistent naming and improved code maintainability
 - **Files Modified**: `ui/widgets/checkin_settings_widget.py`, `ui/dialogs/checkin_management_dialog.py`, `ui/dialogs/schedule_editor_dialog.py`
+
+### 2025-07-30 - Discord Connectivity Error Handling & Health Monitoring Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot error handling** with detailed error messages and comprehensive connectivity status tracking
+  - **Added DiscordConnectionStatus enum** with specific status types (DNS_FAILURE, NETWORK_FAILURE, GATEWAY_ERROR, etc.)
+  - **Implemented detailed error tracking** with timestamps, error codes, and specific error messages for each failure type
+  - **Enhanced health monitoring** with rate-limited checks, latency monitoring, and detailed status reporting
+  - **Added connection status summary** providing human-readable status descriptions for troubleshooting
+- **Improved health monitoring system** with Discord-specific connectivity status integration
+  - **Enhanced CommunicationManager health checks** now return detailed status information including Discord connectivity
+  - **Service-level health monitoring** now includes Discord connectivity status in regular heartbeat logs
+  - **UI health check integration** displays Discord connectivity status with detailed error information
+- **Created comprehensive diagnostic tool** for Discord connectivity issues
+  - **New script**: `scripts/debug/discord_connectivity_diagnostic.py` provides detailed DNS, network, and bot status testing
+  - **Automated recommendations** based on test results to help troubleshoot connectivity issues
+  - **JSON output** for detailed analysis and logging of connectivity problems
+- **Better error categorization** with specific handling for:
+  - DNS resolution failures (with alternative DNS server testing)
+  - Network connectivity issues (with detailed error reporting)
+  - Gateway connection problems (with timeout and retry information)
+  - Authentication failures (with token validation)
+- **Files affected**: `bot/discord_bot.py`, `bot/communication_manager.py`, `core/service.py`, `ui/ui_app_qt.py`, `scripts/debug/discord_connectivity_diagnostic.py`
+- **Impact**: Much better visibility into Discord connectivity issues, faster troubleshooting, and more specific error messages for debugging
+- **Testing**: Enhanced error handling tested and verified working with detailed status reporting
 
 ### 2025-07-28 - Discord Network Resilience Enhancement ✅ **COMPLETED**
 - **Enhanced Discord bot network resilience** to reduce disconnection frequency during network hiccups

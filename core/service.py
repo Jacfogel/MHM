@@ -359,6 +359,27 @@ class MHMService:
             if loop_minutes % 10 == 0:
                 logger.info(f"Service running normally ({loop_minutes} minutes uptime)")
                 
+                # Enhanced health monitoring - check Discord connectivity status
+                if self.communication_manager:
+                    try:
+                        discord_status = self.communication_manager.get_discord_connectivity_status()
+                        if discord_status:
+                            connection_status = discord_status.get('connection_status', 'unknown')
+                            if connection_status != 'connected':
+                                logger.warning(f"Discord connectivity issue detected: {connection_status}")
+                                # Log detailed error information if available
+                                detailed_errors = discord_status.get('detailed_errors', {})
+                                if detailed_errors:
+                                    for error_type, error_info in detailed_errors.items():
+                                        logger.warning(f"Discord {error_type}: {error_info.get('error_message', 'Unknown error')}")
+                            else:
+                                # Log successful connection with metrics
+                                latency = discord_status.get('latency', 'unknown')
+                                guild_count = discord_status.get('guild_count', 'unknown')
+                                logger.debug(f"Discord healthy - Latency: {latency}s, Guilds: {guild_count}")
+                    except Exception as e:
+                        logger.warning(f"Could not check Discord connectivity status: {e}")
+                
         logger.info("Service loop ended.")
         # Clean up shutdown file if it exists
         try:

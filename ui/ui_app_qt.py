@@ -1413,6 +1413,36 @@ For detailed setup instructions, see the README.md file.
                 text_widget.append(f" (PID: {pid})")
             text_widget.append("\n")
             
+            # Check Discord connectivity status if service is running
+            if is_running:
+                try:
+                    # Import communication manager to check Discord status
+                    from bot.communication_manager import CommunicationManager
+                    comm_manager = CommunicationManager()
+                    discord_status = comm_manager.get_discord_connectivity_status()
+                    
+                    if discord_status:
+                        connection_status = discord_status.get('connection_status', 'unknown')
+                        if connection_status == 'connected':
+                            latency = discord_status.get('latency', 'unknown')
+                            guild_count = discord_status.get('guild_count', 'unknown')
+                            text_widget.append(f"✓ Discord Status: Connected (Latency: {latency}s, Guilds: {guild_count})\n")
+                        else:
+                            text_widget.append(f"⚠ Discord Status: {connection_status.title()}\n")
+                            
+                            # Show detailed error information
+                            detailed_errors = discord_status.get('detailed_errors', {})
+                            if detailed_errors:
+                                for error_type, error_info in detailed_errors.items():
+                                    error_msg = error_info.get('error_message', 'Unknown error')
+                                    text_widget.append(f"  - {error_type.title()}: {error_msg}\n")
+                    else:
+                        text_widget.append("? Discord Status: Unable to check\n")
+                except Exception as e:
+                    text_widget.append(f"? Discord Status: Error checking status - {e}\n")
+            else:
+                text_widget.append("? Discord Status: Service not running\n")
+            
             # Check user count
             user_ids = get_all_user_ids()
             text_widget.append(f"✓ Total Users: {len(user_ids)}\n")

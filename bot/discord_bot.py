@@ -5,11 +5,12 @@ import discord
 import asyncio
 import threading
 from discord.ext import commands
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import queue
 import time
 import socket
 import random
+import enum
 
 from core.config import DISCORD_BOT_TOKEN
 from core.logger import get_logger
@@ -25,6 +26,19 @@ logger = get_logger(__name__)
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
+
+class DiscordConnectionStatus(enum.Enum):
+    """Detailed Discord connection status for better error reporting"""
+    UNINITIALIZED = "uninitialized"
+    INITIALIZING = "initializing"
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    DNS_FAILURE = "dns_failure"
+    NETWORK_FAILURE = "network_failure"
+    AUTH_FAILURE = "authentication_failure"
+    RATE_LIMITED = "rate_limited"
+    GATEWAY_ERROR = "gateway_error"
+    UNKNOWN_ERROR = "unknown_error"
 
 class DiscordBot(BaseChannel):
     def __init__(self, config: ChannelConfig = None):
@@ -49,6 +63,10 @@ class DiscordBot(BaseChannel):
         self._max_reconnect_attempts = 10
         self._last_reconnect_time = 0
         self._reconnect_cooldown = 60  # Increased to 60 seconds to reduce rapid reconnection attempts
+        self._connection_status = DiscordConnectionStatus.UNINITIALIZED
+        self._last_health_check = 0
+        self._health_check_interval = 30  # Check health every 30 seconds
+        self._detailed_error_info = {}
 
     @property
     def channel_type(self) -> ChannelType:
@@ -61,40 +79,163 @@ class DiscordBot(BaseChannel):
         return ChannelType.ASYNC
 
     def _check_dns_resolution(self, hostname: str = "discord.com") -> bool:
-        """Check if DNS resolution is working for a given hostname."""
+        """Check DNS resolution for a hostname with fallback to alternative DNS servers"""
+        # Alternative DNS servers to try if primary fails
+        alternative_dns_servers = [
+            "8.8.8.8",      # Google DNS
+            "1.1.1.1",      # Cloudflare DNS
+            "208.67.222.222", # OpenDNS
+            "9.9.9.9"       # Quad9 DNS
+        ]
+        
+        # Try primary DNS first (system default)
         try:
             socket.gethostbyname(hostname)
             return True
-        except socket.gaierror:
+        except socket.gaierror as e:
+            primary_error = {
+                'hostname': hostname,
+                'error_code': e.errno,
+                'error_message': str(e),
+                'timestamp': time.time(),
+                'dns_server': 'system_default'
+            }
+            
+            # Try alternative DNS servers
+            for dns_server in alternative_dns_servers:
+                try:
+                    logger.info(f"Primary DNS failed for {hostname}, trying {dns_server}")
+                    
+                    # Create a custom resolver using the alternative DNS server
+                    import dns.resolver
+                    resolver = dns.resolver.Resolver()
+                    resolver.nameservers = [dns_server]
+                    resolver.timeout = 5
+                    resolver.lifetime = 10
+                    
+                    # Try to resolve the hostname
+                    answers = resolver.resolve(hostname, 'A')
+                    if answers:
+                        ip_address = str(answers[0])
+                        logger.info(f"Successfully resolved {hostname} to {ip_address} using {dns_server}")
+                        
+                        # Update error info to show which DNS server worked
+                        self._detailed_error_info['dns_error'] = {
+                            'hostname': hostname,
+                            'primary_error': primary_error,
+                            'resolved_with': dns_server,
+                            'resolved_ip': ip_address,
+                            'timestamp': time.time()
+                        }
+                        return True
+                        
+                except Exception as alt_e:
+                    logger.debug(f"Alternative DNS {dns_server} also failed: {alt_e}")
+                    continue
+            
+            # All DNS servers failed
+            self._detailed_error_info['dns_error'] = {
+                'hostname': hostname,
+                'primary_error': primary_error,
+                'alternative_dns_failed': alternative_dns_servers,
+                'timestamp': time.time()
+            }
+            logger.error(f"All DNS servers failed for {hostname}")
             return False
 
     def _check_network_connectivity(self, hostname: str = "discord.com", port: int = 443) -> bool:
-        """Check if network connectivity is available to a specific host and port."""
-        try:
-            socket.create_connection((hostname, port), timeout=10)
-            return True
-        except (socket.gaierror, socket.timeout, OSError):
-            return False
+        """Check if network connectivity is available to Discord servers with fallback endpoints"""
+        # Discord endpoints to try in order of preference
+        discord_endpoints = [
+            ("discord.com", 443),
+            ("gateway.discord.gg", 443),
+            ("gateway-us-east1-b.discord.gg", 443),
+            ("gateway-us-east1-c.discord.gg", 443),
+            ("gateway-us-east1-d.discord.gg", 443),
+            ("gateway-us-east1-a.discord.gg", 443)  # Try this last since it's been problematic
+        ]
+        
+        # If a specific hostname was requested, try it first
+        if hostname != "discord.com":
+            discord_endpoints.insert(0, (hostname, port))
+        
+        for endpoint_hostname, endpoint_port in discord_endpoints:
+            try:
+                socket.create_connection((endpoint_hostname, endpoint_port), timeout=10)
+                logger.info(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port}")
+                return True
+            except (socket.gaierror, socket.timeout, OSError) as e:
+                logger.debug(f"Network connectivity failed to {endpoint_hostname}:{endpoint_port} - {e}")
+                continue
+        
+        # All endpoints failed
+        self._detailed_error_info['network_error'] = {
+            'hostname': hostname,
+            'port': port,
+            'endpoints_tried': discord_endpoints,
+            'error_type': 'all_endpoints_failed',
+            'error_message': f"All Discord endpoints failed connectivity test",
+            'timestamp': time.time()
+        }
+        logger.error(f"All Discord endpoints failed network connectivity test")
+        return False
 
     def _wait_for_network_recovery(self, max_wait: int = 300) -> bool:
-        """Wait for network connectivity to recover."""
-        logger.info("Waiting for network connectivity to recover...")
+        """Wait for network connectivity to recover with enhanced DNS and endpoint fallback."""
+        logger.info("Waiting for network connectivity to recover with enhanced fallback...")
         start_time = time.time()
         
         while time.time() - start_time < max_wait:
-            # Check DNS resolution first
+            # Check DNS resolution with fallback servers
             if self._check_dns_resolution():
-                logger.info("DNS resolution restored")
-                # Then check actual connectivity
+                logger.info("DNS resolution restored (may be using alternative DNS server)")
+                # Then check actual connectivity with multiple endpoints
                 if self._check_network_connectivity():
-                    logger.info("Network connectivity restored")
+                    logger.info("Network connectivity restored (may be using alternative endpoint)")
                     return True
             
-            # Wait before next check
-            time.sleep(10)
+            # Wait before next check (shorter interval for faster recovery)
+            time.sleep(5)
         
-        logger.error("Network connectivity did not recover within timeout")
+        logger.error("Network recovery timeout - connectivity not restored after trying all fallbacks")
         return False
+
+    def _get_detailed_connection_status(self) -> Dict[str, Any]:
+        """Get detailed connection status information"""
+        status_info = {
+            'connection_status': self._connection_status.value,
+            'bot_initialized': self.bot is not None,
+            'bot_ready': self.bot.is_ready() if self.bot else False,
+            'bot_closed': self.bot.is_closed() if self.bot else True,
+            'reconnect_attempts': self._reconnect_attempts,
+            'max_reconnect_attempts': self._max_reconnect_attempts,
+            'last_reconnect_time': self._last_reconnect_time,
+            'dns_resolution': self._check_dns_resolution(),
+            'network_connectivity': self._check_network_connectivity(),
+            'detailed_errors': self._detailed_error_info.copy(),
+            'timestamp': time.time()
+        }
+        
+        # Add Discord-specific status if available
+        if self.bot:
+            try:
+                status_info['latency'] = self.bot.latency
+                status_info['guild_count'] = len(self.bot.guilds)
+            except Exception as e:
+                status_info['discord_status_error'] = str(e)
+        
+        return status_info
+
+    def _update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
+        """Update connection status with detailed error information"""
+        self._connection_status = status
+        if error_info:
+            self._detailed_error_info.update(error_info)
+        
+        # Log status change with details
+        logger.info(f"Discord connection status changed to: {status.value}")
+        if error_info:
+            logger.debug(f"Connection error details: {error_info}")
 
     @handle_errors("initializing Discord bot", default_return=False)
     async def initialize(self) -> bool:
@@ -110,11 +251,16 @@ class DiscordBot(BaseChannel):
         
         self._starting = True
         self._set_status(ChannelStatus.INITIALIZING)
+        self._update_connection_status(DiscordConnectionStatus.INITIALIZING)
         
         try:
             if not DISCORD_BOT_TOKEN:
                 error_msg = "DISCORD_BOT_TOKEN not configured"
                 self._set_status(ChannelStatus.ERROR, error_msg)
+                self._update_connection_status(DiscordConnectionStatus.AUTH_FAILURE, {
+                    'error': 'Missing bot token',
+                    'timestamp': time.time()
+                })
                 return False
 
             # Enhanced network connectivity check
@@ -123,6 +269,8 @@ class DiscordBot(BaseChannel):
             # Check DNS resolution first
             if not self._check_dns_resolution():
                 logger.warning("DNS resolution failed - checking alternative DNS servers")
+                self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
+                
                 # Try alternative DNS servers
                 alternative_hosts = ["8.8.8.8", "1.1.1.1", "208.67.222.222"]
                 dns_working = False
@@ -139,12 +287,19 @@ class DiscordBot(BaseChannel):
                 if not dns_working:
                     logger.error("All DNS servers unreachable - network may be down")
                     error_msg = "Network connectivity issues detected"
-                    self._set_status(ChannelStatus.ERROR, error_msg)
+                    self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE, {
+                        'error': 'All DNS servers unreachable',
+                        'timestamp': time.time()
+                    })
                     return False
             
             # Check Discord connectivity
             if not self._check_network_connectivity():
                 logger.warning("Direct Discord connectivity failed - will attempt connection anyway")
+                self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE, {
+                    'error': 'Direct Discord connectivity failed',
+                    'timestamp': time.time()
+                })
                 # Continue anyway as the check might be overly strict
 
             # Create bot instance with enhanced connection settings
@@ -184,6 +339,7 @@ class DiscordBot(BaseChannel):
                     self._set_status(ChannelStatus.READY)
                     self._reconnect_attempts = 0  # Reset reconnect attempts on successful connection
                     self._starting = False  # Reset starting flag
+                    self._update_connection_status(DiscordConnectionStatus.CONNECTED)
                     logger.info("Discord bot initialized successfully")
                     return True
                 
@@ -194,12 +350,22 @@ class DiscordBot(BaseChannel):
             # If we get here, the bot didn't become ready in time
             error_msg = f"Discord bot failed to become ready within {max_wait} seconds"
             self._set_status(ChannelStatus.ERROR, error_msg)
+            self._update_connection_status(DiscordConnectionStatus.GATEWAY_ERROR, {
+                'error': error_msg,
+                'timeout_seconds': max_wait,
+                'timestamp': time.time()
+            })
             logger.error(error_msg)
             return False
             
         except Exception as e:
             logger.error(f"Error during Discord bot initialization: {e}")
             self._set_status(ChannelStatus.ERROR, f"Initialization error: {e}")
+            self._update_connection_status(DiscordConnectionStatus.UNKNOWN_ERROR, {
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'timestamp': time.time()
+            })
             return False
         finally:
             # Always reset the starting flag, even if initialization fails
@@ -255,6 +421,7 @@ class DiscordBot(BaseChannel):
             # Reset reconnect attempts on successful connection
             self._reconnect_attempts = 0
             self._set_status(ChannelStatus.READY)
+            self._update_connection_status(DiscordConnectionStatus.CONNECTED)
 
         @self.bot.event
         async def on_disconnect():
@@ -269,6 +436,7 @@ class DiscordBot(BaseChannel):
                 
                 self._last_reconnect_time = current_time
                 self._set_status(ChannelStatus.INITIALIZING)
+                self._update_connection_status(DiscordConnectionStatus.INITIALIZING)
                 
                 # Wait a bit before attempting reconnection
                 await asyncio.sleep(random.uniform(1, 3))
@@ -276,15 +444,21 @@ class DiscordBot(BaseChannel):
                 # Check network connectivity before attempting reconnection
                 if not self._check_dns_resolution():
                     logger.error("DNS resolution failed during reconnection attempt")
+                    self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
                     if not self._wait_for_network_recovery(max_wait=60):
                         logger.error("Network recovery failed - will rely on discord.py auto-reconnection")
                         return
                 
                 logger.info("Network connectivity confirmed - discord.py will handle reconnection")
+                self._update_connection_status(DiscordConnectionStatus.CONNECTED)
             else:
                 if self._reconnect_attempts > self._max_reconnect_attempts:
                     logger.error(f"Maximum reconnection attempts ({self._max_reconnect_attempts}) exceeded")
                     self._set_status(ChannelStatus.ERROR, "Maximum reconnection attempts exceeded")
+                    self._update_connection_status(DiscordConnectionStatus.GATEWAY_ERROR, {
+                        'error': 'Maximum reconnection attempts exceeded',
+                        'timestamp': time.time()
+                    })
                 elif current_time - self._last_reconnect_time <= self._reconnect_cooldown:
                     logger.debug("Reconnection attempt skipped due to cooldown period")
 
@@ -298,7 +472,10 @@ class DiscordBot(BaseChannel):
                 logger.warning("Connection-related error detected - checking network status")
                 if not self._check_dns_resolution():
                     logger.error("DNS resolution failed during error recovery")
-                    self._set_status(ChannelStatus.ERROR, "Network connectivity issues detected")
+                    self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
+                if not self._check_network_connectivity():
+                    logger.error("Network connectivity failed during error recovery")
+                    self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
             
             # Let discord.py handle reconnection for most errors
 
@@ -449,30 +626,87 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("performing Discord health check", default_return=False)
     async def health_check(self) -> bool:
-        """Perform health check on Discord bot"""
+        """Perform comprehensive health check on Discord bot with detailed status"""
+        current_time = time.time()
+        
+        # Rate limit health checks to avoid spam
+        if current_time - self._last_health_check < self._health_check_interval:
+            return self._connection_status == DiscordConnectionStatus.CONNECTED
+        
+        self._last_health_check = current_time
+        
+        # Get detailed status information
+        status_info = self._get_detailed_connection_status()
+        
+        # Check basic bot state
         if not self.bot:
             logger.warning("Discord bot not initialized")
+            self._update_connection_status(DiscordConnectionStatus.UNINITIALIZED)
             return False
         
         if self.bot.is_closed():
             logger.warning("Discord bot is closed")
+            self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             return False
         
         if not self.bot.is_ready():
             logger.warning("Discord bot is not ready")
+            self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             return False
         
-        # Enhanced network connectivity check
-        if not self._check_dns_resolution():
+        # Enhanced network connectivity checks
+        dns_ok = self._check_dns_resolution()
+        network_ok = self._check_network_connectivity()
+        
+        if not dns_ok:
             logger.warning("DNS resolution failed during health check")
+            self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
             return False
         
-        # Check actual network connectivity
-        if not self._check_network_connectivity():
+        if not network_ok:
             logger.warning("Network connectivity failed during health check")
+            self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
             return False
         
+        # Check Discord-specific metrics
+        try:
+            latency = self.bot.latency
+            if latency > 1.0:  # High latency warning
+                logger.warning(f"Discord latency is high: {latency:.2f}s")
+                status_info['high_latency'] = True
+                status_info['latency'] = latency
+        except Exception as e:
+            logger.warning(f"Could not check Discord latency: {e}")
+        
+        # Update status to connected if all checks pass
+        self._update_connection_status(DiscordConnectionStatus.CONNECTED)
+        logger.debug("Discord health check passed")
         return True
+
+    def get_health_status(self) -> Dict[str, Any]:
+        """Get comprehensive health status information"""
+        return self._get_detailed_connection_status()
+
+    def get_connection_status_summary(self) -> str:
+        """Get a human-readable connection status summary"""
+        status_info = self._get_detailed_connection_status()
+        
+        if status_info['connection_status'] == 'connected':
+            latency = status_info.get('latency', 'unknown')
+            guild_count = status_info.get('guild_count', 'unknown')
+            return f"Connected (Latency: {latency}s, Guilds: {guild_count})"
+        elif status_info['connection_status'] == 'dns_failure':
+            error = status_info.get('detailed_errors', {}).get('dns_error', {})
+            return f"DNS Failure: {error.get('error_message', 'Unknown DNS error')}"
+        elif status_info['connection_status'] == 'network_failure':
+            error = status_info.get('detailed_errors', {}).get('network_error', {})
+            return f"Network Failure: {error.get('error_message', 'Unknown network error')}"
+        elif status_info['connection_status'] == 'gateway_error':
+            return "Gateway Error: Unable to connect to Discord servers"
+        elif status_info['connection_status'] == 'disconnected':
+            return "Disconnected: Bot is not ready or closed"
+        else:
+            return f"Status: {status_info['connection_status']}"
 
     def is_actually_connected(self) -> bool:
         """Check if the Discord bot is actually connected, regardless of initialization status"""

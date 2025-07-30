@@ -444,20 +444,50 @@ class CommunicationManager:
         """Get status of all channels"""
         return {name: channel.get_status() for name, channel in self.channels.items()}
 
-    async def health_check_all(self) -> Dict[str, bool]:
-        """Perform health check on all channels"""
-        logger.debug("Performing health check on all channels")
+    async def health_check_all(self) -> Dict[str, Any]:
+        """Perform comprehensive health check on all channels with detailed status"""
+        logger.debug("Performing comprehensive health check on all channels")
         results = {}
         
         for name, channel in self.channels.items():
             try:
-                results[name] = await channel.health_check()
-                logger.debug(f"Health check for {name}: {'PASS' if results[name] else 'FAIL'}")
+                # Basic health check
+                basic_health = await channel.health_check()
+                
+                # Get detailed status for Discord
+                detailed_status = {}
+                if name == 'discord' and hasattr(channel, 'get_health_status'):
+                    detailed_status = channel.get_health_status()
+                    status_summary = channel.get_connection_status_summary()
+                    detailed_status['status_summary'] = status_summary
+                
+                results[name] = {
+                    'healthy': basic_health,
+                    'status': channel.get_status().value if hasattr(channel, 'get_status') else 'unknown',
+                    'detailed_status': detailed_status
+                }
+                
+                logger.debug(f"Health check for {name}: {'PASS' if basic_health else 'FAIL'}")
+                if detailed_status:
+                    logger.debug(f"Detailed status for {name}: {detailed_status.get('status_summary', 'No summary')}")
+                    
             except Exception as e:
                 logger.error(f"Health check failed for {name}: {e}")
-                results[name] = False
+                results[name] = {
+                    'healthy': False,
+                    'status': 'error',
+                    'error': str(e)
+                }
         
         return results
+
+    def get_discord_connectivity_status(self) -> Optional[Dict[str, Any]]:
+        """Get detailed Discord connectivity status if available"""
+        if 'discord' in self.channels:
+            discord_channel = self.channels['discord']
+            if hasattr(discord_channel, 'get_health_status'):
+                return discord_channel.get_health_status()
+        return None
 
     async def _shutdown_all_async(self):
         """Async method to shutdown all channels"""

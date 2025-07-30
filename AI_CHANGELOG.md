@@ -34,6 +34,20 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Discord DNS Fallback & Network Resilience Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot with alternative DNS server fallback** (Google, Cloudflare, OpenDNS, Quad9) for improved connectivity
+- **Implemented multiple Discord endpoint fallback** system to try alternative gateways when one fails
+- **Added comprehensive diagnostic tools** with detailed DNS and network connectivity testing
+- **Improved network recovery system** with faster detection and fallback to working endpoints
+- **Impact**: Much more resilient Discord connectivity that automatically works around DNS and endpoint issues
+
+### 2025-07-30 - Discord Connectivity Error Handling & Health Monitoring Enhancement ✅ **COMPLETED**
+- **Enhanced Discord bot error handling** with detailed error messages and comprehensive connectivity status tracking
+- **Improved health monitoring system** with Discord-specific connectivity status integration in service and UI
+- **Created comprehensive diagnostic tool** for Discord connectivity issues with automated recommendations
+- **Better error categorization** for DNS, network, gateway, and authentication failures with specific handling
+- **Impact**: Much better visibility into Discord connectivity issues, faster troubleshooting, and more specific error messages
+
 ### 2025-07-29 - ALL Period System Improvements ✅ **COMPLETED**
 - **Made ALL periods read-only** for category messages with visual indication and deletion prevention
 - **Fixed delete button visibility** for non-ALL periods to ensure proper functionality
