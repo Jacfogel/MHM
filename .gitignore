@@ -130,6 +130,8 @@ desktop.ini
 # Project specific
 data/
 scripts/
+!scripts/debug/
+!scripts/debug/*.py
 app.log
 app.log.*
 *.log
