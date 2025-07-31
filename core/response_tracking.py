@@ -190,7 +190,20 @@ def track_user_response(user_id: str, category: str, response_data: Dict[str, An
             logger.error(f"User account not found for tracking: {user_id}")
             return
         
-        # Rest of tracking logic...
+        # Store the response data based on category
+        if category == "daily_checkin":
+            store_daily_checkin_response(user_id, response_data)
+        elif category == "chat_interaction":
+            # For chat interactions, we need user_message and ai_response
+            user_message = response_data.get('user_message', '')
+            ai_response = response_data.get('ai_response', '')
+            context_used = response_data.get('context_used', False)
+            store_chat_interaction(user_id, user_message, ai_response, context_used)
+        else:
+            # For other categories, store as generic response
+            store_user_response(user_id, response_data, category)
+        
+        logger.info(f"Tracked {category} response for user {user_id}")
         
     except Exception as e:
         logger.error(f"Error tracking user response: {e}") 

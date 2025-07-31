@@ -33,12 +33,14 @@ When updating this comprehensive testing plan, follow this format:
 
 ## 🎯 Current State Assessment
 
-# Updated 2025-07-28
+# Updated 2025-07-31
 
-**Test Totals**: **244 tests passing, 1 skipped, 0 failed** – framework stable with all test data expectations fixed and legacy code cleanup completed.
+**Test Totals**: **276 tests passing, 1 skipped, 0 failed** – framework stable with all account management tests fixed and excellent success rate maintained.
 
 ### ✅ **What's Working Well**
-- **243 tests passing, 1 skipped, 1 failed** - Excellent success rate of 99.6% for the modules that are tested
+- **276 tests passing, 1 skipped, 0 failed** - Excellent success rate of 99.6% for the modules that are tested
+- **Account Management Tests Fixed** - All 6 account management behavior tests now passing after data structure alignment
+- **Response Tracking Tests** - All 16 response tracking behavior tests passing with robust functionality
 - **UI Scroll Area Fixes** - Successfully fixed user profile settings scroll areas to work consistently across all tabs (July 2025)
 - **Comprehensive error handling tests** - All 24 error handling tests are passing with robust error recovery testing
 - **File operations tests** - Good coverage of file I/O operations with side effect verification
@@ -61,16 +63,24 @@ When updating this comprehensive testing plan, follow this format:
 
 **Coverage Note**: Core refactor did not change overall coverage (≈29 %).  All new handler code is exercised indirectly by existing User-Management tests, but we still have no direct tests for UI/bot layers.
 
-### 🆕 Outstanding Todos (July 28)
+### 🆕 Outstanding Todos (July 31)
 
-1. **Test Data Expectations Fixed** ✅ **COMPLETED**
+1. **Account Management Test Fixes** ✅ **COMPLETED**
+   • Fixed all 6 failing account management behavior tests by correcting data structure alignment
+   • Updated test data generation to use correct `features` dictionary structure instead of `enabled_features` array
+   • Corrected test environment setup with proper BASE_DATA_DIR configuration and user index creation
+   • Fixed function parameter usage for `get_user_data` and `save_user_data` calls throughout tests
+   • Resolved ImportError by updating to correct function name `create_message_file_from_defaults`
+   • All tests now passing: 276 passed, 1 skipped, 0 failed with excellent 99.6% success rate
+
+2. **Test Data Expectations Fixed** ✅ **COMPLETED**
    • Fixed failing tests in `tests/behavior/test_service_behavior.py` by correcting module patching
    • Updated `test_get_user_categories_real_behavior` and `test_real_get_user_categories_returns_actual_data`
    • Fixed patching to use `core.service.get_user_data` instead of `core.user_data_handlers.get_user_data`
    • Improved test reliability with proper module patching patterns
    • All tests now pass: 244 passed, 1 skipped, 0 failed
 
-2. **Discord Connectivity Testing** ✅ **COMPLETED**
+3. **Discord Connectivity Testing** ✅ **COMPLETED**
    • Enhanced Discord bot with comprehensive error handling and DNS resolution checks
    • Added diagnostic script for troubleshooting connectivity issues
    • Implemented network connectivity validation and alternative DNS server testing

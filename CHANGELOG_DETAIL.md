@@ -6,6 +6,28 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-31 - Account Management Behavior Test Fixes & Data Structure Alignment ✅ **COMPLETED**
+- **Fixed all 6 failing account management behavior tests** in `tests/behavior/test_account_management_real_behavior.py`
+  - **Root cause**: Test data generation was using legacy `enabled_features` array structure while system expected `features` dictionary
+  - **Solution**: Updated `create_test_user_data` function to generate account data with correct structure
+  - **Data structure alignment**: Changed from `"enabled_features": ["automated_messages"]` to `"features": {"automated_messages": "enabled", "checkins": "disabled", "task_management": "disabled"}`
+  - **Test assertions updated**: All assertions now correctly reference `features` dictionary instead of `enabled_features` array
+- **Corrected test environment setup** for individual pytest functions
+  - **BASE_DATA_DIR configuration**: Added `import core.config` and `core.config.BASE_DATA_DIR = test_data_dir` to each test function
+  - **User index creation**: Added explicit creation of `user_index.json` within each test function's setup
+  - **Test data isolation**: Ensured each test creates its own isolated test data with proper cleanup
+- **Fixed function parameter usage** throughout test suite
+  - **get_user_data calls**: Corrected from `get_user_data(user_id, test_data_dir)` to `get_user_data(user_id, "account")` or `get_user_data(user_id, "all")`
+  - **save_user_data calls**: Updated to use new dictionary format with proper data type separation
+  - **ImportError resolution**: Changed `from core.message_management import create_user_message_file` to `from core.message_management import create_message_file_from_defaults`
+- **Enhanced test reliability** with proper module patching and error handling
+  - **Module patching**: Updated patching to use correct module paths for service integration
+  - **Error handling**: Replaced `return results` statements with proper `raise` statements for explicit test failures
+  - **Test isolation**: Improved isolation by using unique user IDs and proper timestamp control
+- **Current test status**: 276 passed, 1 skipped, 30 warnings - excellent 99.6% success rate
+- **Files modified**: `tests/behavior/test_account_management_real_behavior.py`, `core/response_tracking.py`
+- **Impact**: All behavior tests now passing with robust account management functionality verified, improved test code quality following pytest best practices
+
 ### 2025-07-30 - Task Management UI Improvements (Continued) ✅ **COMPLETED**
 - **Fixed "Add Custom Reminder Period" button functionality** by enabling reminder periods section by default
   - **Root cause**: Reminder periods section was initially disabled, preventing button functionality
