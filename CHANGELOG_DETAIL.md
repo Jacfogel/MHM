@@ -6,6 +6,59 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Task-Specific Reminder System Implementation ✅ **COMPLETED**
+- **Task-Specific Reminder Scheduling**: Implemented comprehensive reminder scheduling system for individual tasks
+  - **Added `schedule_task_reminders()` function** to tasks/task_management.py for scheduling reminders based on task reminder periods
+  - **Added `cleanup_task_reminders()` function** to remove scheduled reminders when tasks are modified or deleted
+  - **Enhanced task lifecycle management** to automatically handle reminder scheduling throughout task operations
+  - **Integration with existing scheduler** using `schedule_task_reminder_at_datetime()` function for actual reminder scheduling
+- **Enhanced Task CRUD Operations**: Modified all task operations to handle reminder scheduling automatically
+  - **Task Creation**: Automatically schedules reminders when tasks are created with reminder periods
+  - **Task Updates**: Cleans up existing reminders and schedules new ones when reminder periods are modified
+  - **Task Completion**: Automatically cleans up reminders when tasks are marked as completed
+  - **Task Restoration**: Reschedules reminders when completed tasks are restored to active status
+  - **Task Deletion**: Cleans up all reminders when tasks are permanently deleted
+- **Scheduler Integration**: Created access mechanism for task management to interact with scheduler
+  - **Added `get_scheduler_manager()` function** to core/service.py to provide access to the global scheduler manager
+  - **Circular import prevention** by importing scheduler functions only when needed
+  - **Error handling** for cases where scheduler manager is not available
+- **Reminder Period Processing**: Enhanced reminder period handling for task-specific scheduling
+  - **Date and time validation** for reminder periods to ensure valid scheduling data
+  - **Multiple reminder support** allowing tasks to have multiple reminder periods
+  - **Error handling** for incomplete or invalid reminder period data
+  - **Logging and monitoring** for successful and failed reminder scheduling operations
+- **Technical Implementation**:
+  - **Files Modified**: tasks/task_management.py, core/service.py
+  - **New Functions**: schedule_task_reminders(), cleanup_task_reminders(), get_scheduler_manager()
+  - **Enhanced Functions**: create_task(), update_task(), complete_task(), restore_task(), delete_task()
+  - **Error Handling**: Comprehensive error handling with detailed logging for all reminder operations
+- **Impact**: Complete task-specific reminder system that automatically manages reminder scheduling throughout the entire task lifecycle, enabling users to set custom reminder schedules for individual tasks that are properly maintained as tasks are created, modified, completed, restored, or deleted
+
+### 2025-07-30 - Task CRUD UI Implementation ✅ **COMPLETED**
+- **Task CRUD Dialog**: Created comprehensive dialog for individual task management with tabs for active and completed tasks
+  - **Active Tasks Tab**: Table view with columns for title, description, due date/time, priority, category, created date
+  - **Completed Tasks Tab**: Table view with columns for title, description, due date, priority, category, completed date
+  - **Task Statistics**: Real-time display of active, completed, total tasks, and tasks due within 7 days
+  - **CRUD Operations**: Add new task, edit selected task, mark complete, delete task, restore completed task
+  - **Table Features**: Row selection, sorting, automatic refresh, task ID storage for operations
+- **Task Edit Dialog**: Comprehensive form for creating and editing individual tasks
+  - **Basic Fields**: Title (required), description, category, priority (Low/Medium/High)
+  - **Date/Time Fields**: Due date with calendar popup, due time with AM/PM format
+  - **Reminder Settings**: Optional reminder periods with dynamic UI for date and time ranges
+  - **Form Validation**: Required field validation, date/time format validation
+  - **Data Persistence**: Full integration with existing task management system
+- **UI Integration**: Connected task CRUD button in main admin interface
+  - **Button Activation**: Enabled previously disabled "Task CRUD" button in user management section
+  - **Dialog Integration**: Proper error handling and user feedback for all operations
+  - **User Context**: Full user-specific task management with proper data isolation
+- **Technical Implementation**:
+  - **UI Design**: Created task_crud_dialog.ui and task_edit_dialog.ui with proper Qt Designer structure
+  - **Generated Code**: Used pyside6-uic to generate Python UI classes from .ui files
+  - **Dialog Classes**: Implemented TaskCrudDialog and TaskEditDialog with full functionality
+  - **Error Handling**: Comprehensive error handling with user-friendly messages
+  - **Data Management**: Full integration with existing task management functions
+- **Impact**: Complete individual task management UI that provides full CRUD functionality beyond just scheduling, enabling users to create, edit, complete, and delete individual tasks through a modern Qt interface
+
 ### 2025-07-30 - Discord DNS Fallback & Network Resilience Enhancement ✅ **COMPLETED**
 - **Enhanced Discord bot with alternative DNS server fallback** for improved connectivity during DNS issues
   - **Added alternative DNS servers**: Google (8.8.8.8), Cloudflare (1.1.1.1), OpenDNS (208.67.222.222), Quad9 (9.9.9.9)

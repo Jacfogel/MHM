@@ -1,0 +1,191 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'task_crud_dialog.ui'
+##
+## Created by: Qt User Interface Compiler version 6.9.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QAbstractButton, QAbstractItemView, QApplication, QDialog,
+    QDialogButtonBox, QGridLayout, QGroupBox, QHBoxLayout,
+    QHeaderView, QLabel, QPushButton, QSizePolicy,
+    QSpacerItem, QTabWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
+
+class Ui_Dialog_task_crud(object):
+    def setupUi(self, Dialog_task_crud):
+        if not Dialog_task_crud.objectName():
+            Dialog_task_crud.setObjectName(u"Dialog_task_crud")
+        Dialog_task_crud.resize(1000, 700)
+        self.verticalLayout_Dialog_task_crud = QVBoxLayout(Dialog_task_crud)
+        self.verticalLayout_Dialog_task_crud.setObjectName(u"verticalLayout_Dialog_task_crud")
+        self.label_task_crud_header = QLabel(Dialog_task_crud)
+        self.label_task_crud_header.setObjectName(u"label_task_crud_header")
+        self.label_task_crud_header.setMinimumSize(QSize(0, 0))
+
+        self.verticalLayout_Dialog_task_crud.addWidget(self.label_task_crud_header)
+
+        self.tabWidget_task_crud = QTabWidget(Dialog_task_crud)
+        self.tabWidget_task_crud.setObjectName(u"tabWidget_task_crud")
+        self.tab_active_tasks = QWidget()
+        self.tab_active_tasks.setObjectName(u"tab_active_tasks")
+        self.verticalLayout_tab_active_tasks = QVBoxLayout(self.tab_active_tasks)
+        self.verticalLayout_tab_active_tasks.setObjectName(u"verticalLayout_tab_active_tasks")
+        self.widget_active_tasks_buttons = QWidget(self.tab_active_tasks)
+        self.widget_active_tasks_buttons.setObjectName(u"widget_active_tasks_buttons")
+        self.horizontalLayout_active_tasks_buttons = QHBoxLayout(self.widget_active_tasks_buttons)
+        self.horizontalLayout_active_tasks_buttons.setObjectName(u"horizontalLayout_active_tasks_buttons")
+        self.pushButton_add_new_task = QPushButton(self.widget_active_tasks_buttons)
+        self.pushButton_add_new_task.setObjectName(u"pushButton_add_new_task")
+
+        self.horizontalLayout_active_tasks_buttons.addWidget(self.pushButton_add_new_task)
+
+        self.pushButton_edit_selected_task = QPushButton(self.widget_active_tasks_buttons)
+        self.pushButton_edit_selected_task.setObjectName(u"pushButton_edit_selected_task")
+
+        self.horizontalLayout_active_tasks_buttons.addWidget(self.pushButton_edit_selected_task)
+
+        self.pushButton_complete_selected_task = QPushButton(self.widget_active_tasks_buttons)
+        self.pushButton_complete_selected_task.setObjectName(u"pushButton_complete_selected_task")
+
+        self.horizontalLayout_active_tasks_buttons.addWidget(self.pushButton_complete_selected_task)
+
+        self.pushButton_delete_selected_task = QPushButton(self.widget_active_tasks_buttons)
+        self.pushButton_delete_selected_task.setObjectName(u"pushButton_delete_selected_task")
+
+        self.horizontalLayout_active_tasks_buttons.addWidget(self.pushButton_delete_selected_task)
+
+        self.horizontalSpacer_active_tasks = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_active_tasks_buttons.addItem(self.horizontalSpacer_active_tasks)
+
+        self.pushButton_refresh_active_tasks = QPushButton(self.widget_active_tasks_buttons)
+        self.pushButton_refresh_active_tasks.setObjectName(u"pushButton_refresh_active_tasks")
+
+        self.horizontalLayout_active_tasks_buttons.addWidget(self.pushButton_refresh_active_tasks)
+
+
+        self.verticalLayout_tab_active_tasks.addWidget(self.widget_active_tasks_buttons)
+
+        self.tableWidget_active_tasks = QTableWidget(self.tab_active_tasks)
+        self.tableWidget_active_tasks.setObjectName(u"tableWidget_active_tasks")
+        self.tableWidget_active_tasks.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableWidget_active_tasks.setSortingEnabled(True)
+
+        self.verticalLayout_tab_active_tasks.addWidget(self.tableWidget_active_tasks)
+
+        self.tabWidget_task_crud.addTab(self.tab_active_tasks, "")
+        self.tab_completed_tasks = QWidget()
+        self.tab_completed_tasks.setObjectName(u"tab_completed_tasks")
+        self.verticalLayout_tab_completed_tasks = QVBoxLayout(self.tab_completed_tasks)
+        self.verticalLayout_tab_completed_tasks.setObjectName(u"verticalLayout_tab_completed_tasks")
+        self.widget_completed_tasks_buttons = QWidget(self.tab_completed_tasks)
+        self.widget_completed_tasks_buttons.setObjectName(u"widget_completed_tasks_buttons")
+        self.horizontalLayout_completed_tasks_buttons = QHBoxLayout(self.widget_completed_tasks_buttons)
+        self.horizontalLayout_completed_tasks_buttons.setObjectName(u"horizontalLayout_completed_tasks_buttons")
+        self.pushButton_restore_selected_task = QPushButton(self.widget_completed_tasks_buttons)
+        self.pushButton_restore_selected_task.setObjectName(u"pushButton_restore_selected_task")
+
+        self.horizontalLayout_completed_tasks_buttons.addWidget(self.pushButton_restore_selected_task)
+
+        self.pushButton_delete_completed_task = QPushButton(self.widget_completed_tasks_buttons)
+        self.pushButton_delete_completed_task.setObjectName(u"pushButton_delete_completed_task")
+
+        self.horizontalLayout_completed_tasks_buttons.addWidget(self.pushButton_delete_completed_task)
+
+        self.horizontalSpacer_completed_tasks = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_completed_tasks_buttons.addItem(self.horizontalSpacer_completed_tasks)
+
+        self.pushButton_refresh_completed_tasks = QPushButton(self.widget_completed_tasks_buttons)
+        self.pushButton_refresh_completed_tasks.setObjectName(u"pushButton_refresh_completed_tasks")
+
+        self.horizontalLayout_completed_tasks_buttons.addWidget(self.pushButton_refresh_completed_tasks)
+
+
+        self.verticalLayout_tab_completed_tasks.addWidget(self.widget_completed_tasks_buttons)
+
+        self.tableWidget_completed_tasks = QTableWidget(self.tab_completed_tasks)
+        self.tableWidget_completed_tasks.setObjectName(u"tableWidget_completed_tasks")
+        self.tableWidget_completed_tasks.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.tableWidget_completed_tasks.setSortingEnabled(True)
+
+        self.verticalLayout_tab_completed_tasks.addWidget(self.tableWidget_completed_tasks)
+
+        self.tabWidget_task_crud.addTab(self.tab_completed_tasks, "")
+
+        self.verticalLayout_Dialog_task_crud.addWidget(self.tabWidget_task_crud)
+
+        self.groupBox_task_statistics = QGroupBox(Dialog_task_crud)
+        self.groupBox_task_statistics.setObjectName(u"groupBox_task_statistics")
+        self.gridLayout_task_statistics = QGridLayout(self.groupBox_task_statistics)
+        self.gridLayout_task_statistics.setObjectName(u"gridLayout_task_statistics")
+        self.label_active_tasks_count = QLabel(self.groupBox_task_statistics)
+        self.label_active_tasks_count.setObjectName(u"label_active_tasks_count")
+
+        self.gridLayout_task_statistics.addWidget(self.label_active_tasks_count, 0, 0, 1, 1)
+
+        self.label_completed_tasks_count = QLabel(self.groupBox_task_statistics)
+        self.label_completed_tasks_count.setObjectName(u"label_completed_tasks_count")
+
+        self.gridLayout_task_statistics.addWidget(self.label_completed_tasks_count, 0, 1, 1, 1)
+
+        self.label_total_tasks_count = QLabel(self.groupBox_task_statistics)
+        self.label_total_tasks_count.setObjectName(u"label_total_tasks_count")
+
+        self.gridLayout_task_statistics.addWidget(self.label_total_tasks_count, 0, 2, 1, 1)
+
+        self.label_tasks_due_soon = QLabel(self.groupBox_task_statistics)
+        self.label_tasks_due_soon.setObjectName(u"label_tasks_due_soon")
+
+        self.gridLayout_task_statistics.addWidget(self.label_tasks_due_soon, 0, 3, 1, 1)
+
+
+        self.verticalLayout_Dialog_task_crud.addWidget(self.groupBox_task_statistics)
+
+        self.buttonBox_task_crud = QDialogButtonBox(Dialog_task_crud)
+        self.buttonBox_task_crud.setObjectName(u"buttonBox_task_crud")
+        self.buttonBox_task_crud.setOrientation(Qt.Orientation.Horizontal)
+        self.buttonBox_task_crud.setStandardButtons(QDialogButtonBox.StandardButton.Close)
+
+        self.verticalLayout_Dialog_task_crud.addWidget(self.buttonBox_task_crud)
+
+
+        self.retranslateUi(Dialog_task_crud)
+
+        self.tabWidget_task_crud.setCurrentIndex(0)
+
+
+        QMetaObject.connectSlotsByName(Dialog_task_crud)
+    # setupUi
+
+    def retranslateUi(self, Dialog_task_crud):
+        Dialog_task_crud.setWindowTitle(QCoreApplication.translate("Dialog_task_crud", u"Task Management - Create, Edit, Delete Tasks", None))
+        self.label_task_crud_header.setText(QCoreApplication.translate("Dialog_task_crud", u"Task Management - Create, Edit, Delete Tasks", None))
+        self.label_task_crud_header.setProperty(u"role", QCoreApplication.translate("Dialog_task_crud", u"header", None))
+        self.pushButton_add_new_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Add New Task", None))
+        self.pushButton_edit_selected_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Edit Selected", None))
+        self.pushButton_complete_selected_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Mark Complete", None))
+        self.pushButton_delete_selected_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Delete Selected", None))
+        self.pushButton_refresh_active_tasks.setText(QCoreApplication.translate("Dialog_task_crud", u"Refresh", None))
+        self.tabWidget_task_crud.setTabText(self.tabWidget_task_crud.indexOf(self.tab_active_tasks), QCoreApplication.translate("Dialog_task_crud", u"Active Tasks", None))
+        self.pushButton_restore_selected_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Restore Task", None))
+        self.pushButton_delete_completed_task.setText(QCoreApplication.translate("Dialog_task_crud", u"Delete Permanently", None))
+        self.pushButton_refresh_completed_tasks.setText(QCoreApplication.translate("Dialog_task_crud", u"Refresh", None))
+        self.tabWidget_task_crud.setTabText(self.tabWidget_task_crud.indexOf(self.tab_completed_tasks), QCoreApplication.translate("Dialog_task_crud", u"Completed Tasks", None))
+        self.groupBox_task_statistics.setTitle(QCoreApplication.translate("Dialog_task_crud", u"Task Statistics", None))
+        self.label_active_tasks_count.setText(QCoreApplication.translate("Dialog_task_crud", u"Active Tasks: 0", None))
+        self.label_completed_tasks_count.setText(QCoreApplication.translate("Dialog_task_crud", u"Completed Tasks: 0", None))
+        self.label_total_tasks_count.setText(QCoreApplication.translate("Dialog_task_crud", u"Total Tasks: 0", None))
+        self.label_tasks_due_soon.setText(QCoreApplication.translate("Dialog_task_crud", u"Due Soon (7 days): 0", None))
+    # retranslateUi
+

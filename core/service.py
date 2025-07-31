@@ -576,6 +576,13 @@ class MHMService:
                 except:
                     pass
 
+def get_scheduler_manager():
+    """Get the scheduler manager instance from the global service."""
+    global service
+    if service and hasattr(service, 'scheduler_manager'):
+        return service.scheduler_manager
+    return None
+
 def get_user_categories(user_id: str) -> List[str]:
     """
     Get the message categories for a specific user.

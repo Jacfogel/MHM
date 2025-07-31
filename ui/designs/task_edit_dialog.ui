@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_task_edit</class>
+ <widget class="QDialog" name="Dialog_task_edit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Edit Task</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_Dialog_task_edit">
+   <item>
+    <widget class="QLabel" name="label_task_edit_header">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Task Details</string>
+     </property>
+     <property name="role" stdset="0">
+      <string>header</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_task_details" native="true">
+     <layout class="QFormLayout" name="formLayout_task_details">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_task_title">
+        <property name="text">
+         <string>Title:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLineEdit" name="lineEdit_task_title">
+        <property name="placeholderText">
+         <string>Enter task title</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_task_description">
+        <property name="text">
+         <string>Description:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QTextEdit" name="textEdit_task_description">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>Enter task description (optional)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_task_category">
+        <property name="text">
+         <string>Category:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEdit_task_category">
+        <property name="placeholderText">
+         <string>Enter category (optional)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_task_priority">
+        <property name="text">
+         <string>Priority:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="comboBox_task_priority">
+        <item>
+         <property name="text">
+          <string>Low</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Medium</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>High</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_task_due_date">
+        <property name="text">
+         <string>Due Date:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="1">
+       <widget class="QDateEdit" name="dateEdit_task_due_date">
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_task_due_time">
+        <property name="text">
+         <string>Due Time:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="1">
+       <widget class="QTimeEdit" name="timeEdit_task_due_time">
+        <property name="displayFormat">
+         <string>h:mm AP</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_task_reminders">
+     <property name="title">
+      <string>Reminder Settings</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_groupBox_task_reminders">
+      <item>
+       <widget class="QCheckBox" name="checkBox_enable_reminders">
+        <property name="text">
+         <string>Enable reminders for this task</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_reminder_periods" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_widget_reminder_periods">
+         <item>
+          <widget class="QLabel" name="label_reminder_periods">
+           <property name="text">
+            <string>Reminder Time Periods:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QScrollArea" name="scrollArea_reminder_periods">
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents_reminder_periods">
+            <layout class="QVBoxLayout" name="verticalLayout_scrollAreaWidgetContents_reminder_periods">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>4</number>
+             </property>
+             <property name="rightMargin">
+              <number>4</number>
+             </property>
+             <property name="bottomMargin">
+              <number>4</number>
+             </property>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_add_reminder_period">
+           <property name="text">
+            <string>Add Reminder Period</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox_task_edit">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Save</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui> 

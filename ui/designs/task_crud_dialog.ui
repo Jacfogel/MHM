@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_task_crud</class>
+ <widget class="QDialog" name="Dialog_task_crud">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Task Management - Create, Edit, Delete Tasks</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_Dialog_task_crud">
+   <item>
+    <widget class="QLabel" name="label_task_crud_header">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="text">
+      <string>Task Management - Create, Edit, Delete Tasks</string>
+     </property>
+     <property name="role" stdset="0">
+      <string>header</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabWidget_task_crud">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_active_tasks">
+      <attribute name="title">
+       <string>Active Tasks</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_tab_active_tasks">
+       <item>
+        <widget class="QWidget" name="widget_active_tasks_buttons" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_active_tasks_buttons">
+          <item>
+           <widget class="QPushButton" name="pushButton_add_new_task">
+            <property name="text">
+             <string>Add New Task</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_edit_selected_task">
+            <property name="text">
+             <string>Edit Selected</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_complete_selected_task">
+            <property name="text">
+             <string>Mark Complete</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_delete_selected_task">
+            <property name="text">
+             <string>Delete Selected</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_active_tasks">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_refresh_active_tasks">
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="tableWidget_active_tasks">
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_completed_tasks">
+      <attribute name="title">
+       <string>Completed Tasks</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_tab_completed_tasks">
+       <item>
+        <widget class="QWidget" name="widget_completed_tasks_buttons" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_completed_tasks_buttons">
+          <item>
+           <widget class="QPushButton" name="pushButton_restore_selected_task">
+            <property name="text">
+             <string>Restore Task</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_delete_completed_task">
+            <property name="text">
+             <string>Delete Permanently</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_completed_tasks">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_refresh_completed_tasks">
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="tableWidget_completed_tasks">
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+         </property>
+         <property name="sortingEnabled">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_task_statistics">
+     <property name="title">
+      <string>Task Statistics</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_task_statistics">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_active_tasks_count">
+        <property name="text">
+         <string>Active Tasks: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QLabel" name="label_completed_tasks_count">
+        <property name="text">
+         <string>Completed Tasks: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_total_tasks_count">
+        <property name="text">
+         <string>Total Tasks: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QLabel" name="label_tasks_due_soon">
+        <property name="text">
+         <string>Due Soon (7 days): 0</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox_task_crud">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Close</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui> 

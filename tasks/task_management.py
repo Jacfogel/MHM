@@ -203,6 +203,11 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
         # Save updated tasks
         if save_active_tasks(user_id, tasks):
             logger.info(f"Created task '{title}' for user {user_id} with ID {task_id}")
+            
+            # Schedule task-specific reminders if provided
+            if reminder_periods:
+                schedule_task_reminders(user_id, task_id, reminder_periods)
+            
             return task_id
         else:
             logger.error(f"Failed to save task for user {user_id}")
@@ -239,6 +244,16 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
                 # Save updated tasks
                 if save_active_tasks(user_id, tasks):
                     logger.info(f"Updated task {task_id} for user {user_id}")
+                    
+                    # Handle reminder updates
+                    if 'reminder_periods' in updates:
+                        # Clean up existing reminders
+                        cleanup_task_reminders(user_id, task_id)
+                        # Schedule new reminders
+                        new_reminder_periods = updates['reminder_periods']
+                        if new_reminder_periods:
+                            schedule_task_reminders(user_id, task_id, new_reminder_periods)
+                    
                     return True
                 else:
                     logger.error(f"Failed to save updated task for user {user_id}")
@@ -288,6 +303,10 @@ def complete_task(user_id: str, task_id: str) -> bool:
         if (save_active_tasks(user_id, updated_active_tasks) and 
             save_completed_tasks(user_id, completed_tasks)):
             logger.info(f"Completed task {task_id} for user {user_id}")
+            
+            # Clean up task-specific reminders when task is completed
+            cleanup_task_reminders(user_id, task_id)
+            
             return True
         else:
             logger.error(f"Failed to save task completion for user {user_id}")
@@ -295,6 +314,57 @@ def complete_task(user_id: str, task_id: str) -> bool:
             
     except Exception as e:
         logger.error(f"Error completing task {task_id} for user {user_id}: {e}")
+        return False
+
+@handle_errors("restoring task")
+def restore_task(user_id: str, task_id: str) -> bool:
+    """Restore a completed task to active status."""
+    try:
+        if not user_id or not task_id:
+            logger.error("User ID and task ID are required for task restoration")
+            return False
+        
+        # Load completed tasks
+        completed_tasks = load_completed_tasks(user_id)
+        
+        # Find the task to restore
+        task_to_restore = None
+        updated_completed_tasks = []
+        
+        for task in completed_tasks:
+            if task.get('task_id') == task_id:
+                task_to_restore = task.copy()
+                task_to_restore['completed'] = False
+                task_to_restore['completed_at'] = None
+            else:
+                updated_completed_tasks.append(task)
+        
+        if not task_to_restore:
+            logger.warning(f"Completed task {task_id} not found for user {user_id}")
+            return False
+        
+        # Load active tasks
+        active_tasks = load_active_tasks(user_id)
+        
+        # Add to active tasks
+        active_tasks.append(task_to_restore)
+        
+        # Save both updated lists
+        if (save_completed_tasks(user_id, updated_completed_tasks) and 
+            save_active_tasks(user_id, active_tasks)):
+            logger.info(f"Restored task {task_id} for user {user_id}")
+            
+            # Reschedule task-specific reminders when task is restored
+            if task_to_restore.get('reminder_periods'):
+                schedule_task_reminders(user_id, task_id, task_to_restore['reminder_periods'])
+            
+            return True
+        else:
+            logger.error(f"Failed to save task restoration for user {user_id}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error restoring task {task_id} for user {user_id}: {e}")
         return False
 
 @handle_errors("deleting task")
@@ -319,6 +389,10 @@ def delete_task(user_id: str, task_id: str) -> bool:
         # Save updated tasks
         if save_active_tasks(user_id, tasks):
             logger.info(f"Deleted task {task_id} for user {user_id}")
+            
+            # Clean up task-specific reminders when task is deleted
+            cleanup_task_reminders(user_id, task_id)
+            
             return True
         else:
             logger.error(f"Failed to save task deletion for user {user_id}")
@@ -406,6 +480,67 @@ def are_tasks_enabled(user_id: str) -> bool:
         
     except Exception as e:
         logger.error(f"Error checking task status for user {user_id}: {e}")
+        return False
+
+@handle_errors("scheduling task-specific reminders")
+def schedule_task_reminders(user_id: str, task_id: str, reminder_periods: List[Dict[str, Any]]) -> bool:
+    """Schedule reminders for a specific task based on its reminder periods."""
+    try:
+        if not user_id or not task_id or not reminder_periods:
+            logger.debug(f"No reminder periods to schedule for task {task_id}")
+            return True
+        
+        # Import scheduler here to avoid circular imports
+        from core.service import get_scheduler_manager
+        
+        scheduler_manager = get_scheduler_manager()
+        if not scheduler_manager:
+            logger.error("Scheduler manager not available for scheduling task reminders")
+            return False
+        
+        scheduled_count = 0
+        
+        for period in reminder_periods:
+            date = period.get('date')
+            start_time = period.get('start_time')
+            end_time = period.get('end_time')
+            
+            if not date or not start_time or not end_time:
+                logger.warning(f"Incomplete reminder period data for task {task_id}: {period}")
+                continue
+            
+            # Schedule reminder at the start time of the period
+            if scheduler_manager.schedule_task_reminder_at_datetime(user_id, task_id, date, start_time):
+                scheduled_count += 1
+                logger.info(f"Scheduled reminder for task {task_id} at {date} {start_time}")
+            else:
+                logger.warning(f"Failed to schedule reminder for task {task_id} at {date} {start_time}")
+        
+        logger.info(f"Scheduled {scheduled_count} reminders for task {task_id}")
+        return scheduled_count > 0
+        
+    except Exception as e:
+        logger.error(f"Error scheduling task reminders for task {task_id}: {e}")
+        return False
+
+@handle_errors("cleaning up task reminders")
+def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
+    """Clean up all reminders for a specific task."""
+    try:
+        # Import scheduler here to avoid circular imports
+        from core.service import get_scheduler_manager
+        
+        scheduler_manager = get_scheduler_manager()
+        if not scheduler_manager:
+            logger.error("Scheduler manager not available for cleaning up task reminders")
+            return False
+        
+        scheduler_manager.cleanup_task_reminders(user_id, task_id)
+        logger.info(f"Cleaned up reminders for task {task_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up task reminders for task {task_id}: {e}")
         return False
 
 @handle_errors("getting user task statistics", default_return={})

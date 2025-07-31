@@ -359,7 +359,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_category_management.clicked.connect(self.manage_categories)
         self.ui.pushButton_checkin_settings.clicked.connect(self.manage_checkins)
         self.ui.pushButton_task_management.clicked.connect(self.manage_tasks)
-        # self.ui.pushButton_task_crud.clicked.connect(self.manage_task_crud)  # TODO: Implement task CRUD functionality
+        self.ui.pushButton_task_crud.clicked.connect(self.manage_task_crud)
         
         # Category actions
         self.ui.comboBox_user_categories.currentTextChanged.connect(self.on_category_selected)
@@ -717,6 +717,21 @@ class MHMManagerUI(QMainWindow):
         except Exception as e:
             logger.error(f"Error opening task management dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open task management: {str(e)}")
+
+    @handle_errors("managing task CRUD")
+    def manage_task_crud(self):
+        if not self.current_user:
+            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+            return
+        logger.info(f"Admin Panel: Opening task CRUD for user {self.current_user}")
+        try:
+            from ui.dialogs.task_crud_dialog import TaskCrudDialog
+            dialog = TaskCrudDialog(self, self.current_user)
+            dialog.setWindowTitle(f"Task CRUD - {self.current_user}")
+            dialog.exec()
+        except Exception as e:
+            logger.error(f"Error opening task CRUD dialog: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to open task CRUD: {str(e)}")
 
     @handle_errors("managing personalization")
     def manage_personalization(self):

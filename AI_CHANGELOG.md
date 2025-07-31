@@ -34,6 +34,22 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Task-Specific Reminder System Implementation ✅ **COMPLETED**
+- **Implemented comprehensive task-specific reminder scheduling** with automatic lifecycle management for individual tasks
+- **Added reminder scheduling functions** to tasks/task_management.py with integration to existing scheduler system
+- **Enhanced task CRUD operations** to automatically schedule/cleanup reminders when tasks are created, updated, completed, restored, or deleted
+- **Created scheduler manager access function** in core/service.py to enable task management integration
+- **Added reminder cleanup functionality** to prevent orphaned scheduled reminders when tasks are modified or removed
+- **Impact**: Complete task-specific reminder system that automatically manages reminder scheduling throughout task lifecycle
+
+### 2025-07-30 - Task CRUD UI Implementation ✅ **COMPLETED**
+- **Implemented comprehensive task CRUD dialog** with full create, read, update, delete operations for individual tasks
+- **Created task edit dialog** for adding and editing tasks with all fields (title, description, due date/time, priority, category, reminders)
+- **Added task management tables** showing active and completed tasks with sorting and selection capabilities
+- **Integrated with existing task management system** using all existing CRUD functions from tasks/task_management.py
+- **Added reminder period management** with dynamic UI for setting custom reminder schedules per task
+- **Impact**: Complete individual task management UI that provides full CRUD functionality beyond just scheduling
+
 ### 2025-07-30 - Discord DNS Fallback & Network Resilience Enhancement ✅ **COMPLETED**
 - **Enhanced Discord bot with alternative DNS server fallback** (Google, Cloudflare, OpenDNS, Quad9) for improved connectivity
 - **Implemented multiple Discord endpoint fallback** system to try alternative gateways when one fails
