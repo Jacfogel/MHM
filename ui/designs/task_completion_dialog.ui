@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_task_completion</class>
+ <widget class="QDialog" name="Dialog_task_completion">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Complete Task</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_Dialog_task_completion">
+   <item>
+    <widget class="QLabel" name="label_task_completion_header">
+     <property name="text">
+      <string>When did you complete this task?</string>
+     </property>
+     <property name="role" stdset="0">
+      <string>header</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QWidget" name="widget_completion_details" native="true">
+     <layout class="QFormLayout" name="formLayout_completion_details">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_completion_date">
+        <property name="text">
+         <string>Completion Date:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QDateEdit" name="dateEdit_completion_date">
+        <property name="calendarPopup">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_completion_time">
+        <property name="text">
+         <string>Completion Time:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QWidget" name="widget_completion_time" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_completion_time">
+         <item>
+          <widget class="QComboBox" name="comboBox_completion_hour">
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_completion_colon">
+           <property name="text">
+            <string>:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBox_completion_minute">
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_completion_am_pm" native="true">
+           <layout class="QVBoxLayout" name="verticalLayout_completion_am_pm">
+            <property name="spacing">
+             <number>2</number>
+            </property>
+            <property name="leftMargin">
+             <number>2</number>
+            </property>
+            <property name="topMargin">
+             <number>2</number>
+            </property>
+            <property name="rightMargin">
+             <number>2</number>
+            </property>
+            <property name="bottomMargin">
+             <number>2</number>
+            </property>
+            <item>
+             <widget class="QRadioButton" name="radioButton_completion_am">
+              <property name="text">
+               <string>AM</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_completion_pm">
+              <property name="text">
+               <string>PM</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_completion_notes">
+        <property name="text">
+         <string>Notes (Optional):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QTextEdit" name="textEdit_completion_notes">
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>80</height>
+         </size>
+        </property>
+        <property name="placeholderText">
+         <string>Add any notes about task completion...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox_task_completion">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui> 

@@ -6,13 +6,13 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>500</height>
+    <width>800</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Edit Task</string>
-  </property>
+   </property>
   <layout class="QVBoxLayout" name="verticalLayout_Dialog_task_edit">
    <item>
     <widget class="QLabel" name="label_task_edit_header">
@@ -68,28 +68,19 @@
        </widget>
       </item>
       <item row="2" column="0">
-       <widget class="QLabel" name="label_task_category">
-        <property name="text">
-         <string>Category:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEdit_task_category">
-        <property name="placeholderText">
-         <string>Enter category (optional)</string>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0">
        <widget class="QLabel" name="label_task_priority">
         <property name="text">
          <string>Priority:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="2" column="1">
        <widget class="QComboBox" name="comboBox_task_priority">
+        <item>
+         <property name="text">
+          <string>None</string>
+         </property>
+        </item>
         <item>
          <property name="text">
           <string>Low</string>
@@ -107,32 +98,179 @@
         </item>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="3" column="0">
        <widget class="QLabel" name="label_task_due_date">
         <property name="text">
          <string>Due Date:</string>
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="3" column="1">
        <widget class="QDateEdit" name="dateEdit_task_due_date">
         <property name="calendarPopup">
          <bool>true</bool>
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_task_due_time">
         <property name="text">
-         <string>Due Time:</string>
+         <string>Due Time (Optional):</string>
+        </property>
+       </widget>
+      </item>
+             <item row="4" column="1">
+        <widget class="QWidget" name="widget_due_time" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_due_time">
+          <property name="spacing">
+           <number>2</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QComboBox" name="comboBox_due_time_hour">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_due_time_colon">
+            <property name="text">
+             <string>:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="comboBox_due_time_minute">
+            <property name="maximumSize">
+             <size>
+              <width>50</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_due_time_am_pm" native="true">
+            <layout class="QHBoxLayout" name="horizontalLayout_due_time_am_pm">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+             <property name="leftMargin">
+              <number>4</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QRadioButton" name="radioButton_due_time_am">
+               <property name="text">
+                <string>AM</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QRadioButton" name="radioButton_due_time_pm">
+               <property name="text">
+                <string>PM</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_due_time">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_task_tags">
+        <property name="text">
+         <string>Tags:</string>
         </property>
        </widget>
       </item>
       <item row="5" column="1">
-       <widget class="QTimeEdit" name="timeEdit_task_due_time">
-        <property name="displayFormat">
-         <string>h:mm AP</string>
-        </property>
+       <widget class="QWidget" name="widget_tags" native="true">
+        <layout class="QVBoxLayout" name="verticalLayout_tags">
+         <item>
+          <widget class="QListWidget" name="listWidget_tags">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>80</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_add_tag" native="true">
+           <layout class="QHBoxLayout" name="horizontalLayout_add_tag">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_new_tag">
+              <property name="placeholderText">
+               <string>Enter new tag</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_add_tag">
+              <property name="text">
+               <string>Add Tag</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
      </layout>
@@ -141,14 +279,68 @@
    <item>
     <widget class="QGroupBox" name="groupBox_task_reminders">
      <property name="title">
-      <string>Reminder Settings</string>
+      <string>Task Reminder Settings</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_groupBox_task_reminders">
       <item>
        <widget class="QCheckBox" name="checkBox_enable_reminders">
         <property name="text">
-         <string>Enable reminders for this task</string>
+         <string>Use my default task reminder schedule</string>
         </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QGroupBox" name="groupBox_quick_reminders">
+        <property name="title">
+         <string>Quick Reminder Time Windows</string>
+        </property>
+                 <layout class="QGridLayout" name="gridLayout_quick_reminders">
+          <item row="0" column="0">
+           <widget class="QCheckBox" name="checkBox_reminder_5min">
+            <property name="text">
+             <string>5-10 minutes before</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QCheckBox" name="checkBox_reminder_10min">
+            <property name="text">
+             <string>1-2 hours before</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QCheckBox" name="checkBox_reminder_1hour">
+            <property name="text">
+             <string>1-2 days before</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QCheckBox" name="checkBox_reminder_2hour">
+            <property name="text">
+             <string>1-2 weeks before</string>
+            </property>
+           </widget>
+          </item>
+                     <item row="1" column="1">
+            <widget class="QCheckBox" name="checkBox_reminder_3hour">
+             <property name="text">
+              <string>30 minutes to 1 hour before</string>
+             </property>
+            </widget>
+           </item>
+          <item row="1" column="2">
+           <widget class="QCheckBox" name="checkBox_reminder_4hour">
+            <property name="text">
+             <string>3-5 days before</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
        </widget>
       </item>
       <item>
@@ -157,7 +349,7 @@
          <item>
           <widget class="QLabel" name="label_reminder_periods">
            <property name="text">
-            <string>Reminder Time Periods:</string>
+            <string>Custom Reminder Time Periods:</string>
            </property>
           </widget>
          </item>
@@ -190,7 +382,7 @@
          <item>
           <widget class="QPushButton" name="pushButton_add_reminder_period">
            <property name="text">
-            <string>Add Reminder Period</string>
+            <string>Add Custom Reminder Period</string>
            </property>
           </widget>
          </item>

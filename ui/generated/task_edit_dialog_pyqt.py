@@ -17,15 +17,16 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboBox,
     QDateEdit, QDialog, QDialogButtonBox, QFormLayout,
-    QGroupBox, QLabel, QLineEdit, QPushButton,
-    QScrollArea, QSizePolicy, QTextEdit, QTimeEdit,
-    QVBoxLayout, QWidget)
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QListWidget, QListWidgetItem, QPushButton,
+    QRadioButton, QScrollArea, QSizePolicy, QSpacerItem,
+    QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_Dialog_task_edit(object):
     def setupUi(self, Dialog_task_edit):
         if not Dialog_task_edit.objectName():
             Dialog_task_edit.setObjectName(u"Dialog_task_edit")
-        Dialog_task_edit.resize(600, 500)
+        Dialog_task_edit.resize(800, 700)
         self.verticalLayout_Dialog_task_edit = QVBoxLayout(Dialog_task_edit)
         self.verticalLayout_Dialog_task_edit.setObjectName(u"verticalLayout_Dialog_task_edit")
         self.label_task_edit_header = QLabel(Dialog_task_edit)
@@ -59,49 +60,122 @@ class Ui_Dialog_task_edit(object):
 
         self.formLayout_task_details.setWidget(1, QFormLayout.ItemRole.FieldRole, self.textEdit_task_description)
 
-        self.label_task_category = QLabel(self.widget_task_details)
-        self.label_task_category.setObjectName(u"label_task_category")
-
-        self.formLayout_task_details.setWidget(2, QFormLayout.ItemRole.LabelRole, self.label_task_category)
-
-        self.lineEdit_task_category = QLineEdit(self.widget_task_details)
-        self.lineEdit_task_category.setObjectName(u"lineEdit_task_category")
-
-        self.formLayout_task_details.setWidget(2, QFormLayout.ItemRole.FieldRole, self.lineEdit_task_category)
-
         self.label_task_priority = QLabel(self.widget_task_details)
         self.label_task_priority.setObjectName(u"label_task_priority")
 
-        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.LabelRole, self.label_task_priority)
+        self.formLayout_task_details.setWidget(2, QFormLayout.ItemRole.LabelRole, self.label_task_priority)
 
         self.comboBox_task_priority = QComboBox(self.widget_task_details)
         self.comboBox_task_priority.addItem("")
         self.comboBox_task_priority.addItem("")
         self.comboBox_task_priority.addItem("")
+        self.comboBox_task_priority.addItem("")
         self.comboBox_task_priority.setObjectName(u"comboBox_task_priority")
 
-        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.FieldRole, self.comboBox_task_priority)
+        self.formLayout_task_details.setWidget(2, QFormLayout.ItemRole.FieldRole, self.comboBox_task_priority)
 
         self.label_task_due_date = QLabel(self.widget_task_details)
         self.label_task_due_date.setObjectName(u"label_task_due_date")
 
-        self.formLayout_task_details.setWidget(4, QFormLayout.ItemRole.LabelRole, self.label_task_due_date)
+        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.LabelRole, self.label_task_due_date)
 
         self.dateEdit_task_due_date = QDateEdit(self.widget_task_details)
         self.dateEdit_task_due_date.setObjectName(u"dateEdit_task_due_date")
         self.dateEdit_task_due_date.setCalendarPopup(True)
 
-        self.formLayout_task_details.setWidget(4, QFormLayout.ItemRole.FieldRole, self.dateEdit_task_due_date)
+        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.FieldRole, self.dateEdit_task_due_date)
 
         self.label_task_due_time = QLabel(self.widget_task_details)
         self.label_task_due_time.setObjectName(u"label_task_due_time")
 
-        self.formLayout_task_details.setWidget(5, QFormLayout.ItemRole.LabelRole, self.label_task_due_time)
+        self.formLayout_task_details.setWidget(4, QFormLayout.ItemRole.LabelRole, self.label_task_due_time)
 
-        self.timeEdit_task_due_time = QTimeEdit(self.widget_task_details)
-        self.timeEdit_task_due_time.setObjectName(u"timeEdit_task_due_time")
+        self.widget_due_time = QWidget(self.widget_task_details)
+        self.widget_due_time.setObjectName(u"widget_due_time")
+        self.horizontalLayout_due_time = QHBoxLayout(self.widget_due_time)
+        self.horizontalLayout_due_time.setSpacing(2)
+        self.horizontalLayout_due_time.setObjectName(u"horizontalLayout_due_time")
+        self.horizontalLayout_due_time.setContentsMargins(0, 0, 0, 0)
+        self.comboBox_due_time_hour = QComboBox(self.widget_due_time)
+        self.comboBox_due_time_hour.setObjectName(u"comboBox_due_time_hour")
+        self.comboBox_due_time_hour.setMaximumSize(QSize(50, 16777215))
+        self.comboBox_due_time_hour.setMinimumSize(QSize(50, 0))
 
-        self.formLayout_task_details.setWidget(5, QFormLayout.ItemRole.FieldRole, self.timeEdit_task_due_time)
+        self.horizontalLayout_due_time.addWidget(self.comboBox_due_time_hour)
+
+        self.label_due_time_colon = QLabel(self.widget_due_time)
+        self.label_due_time_colon.setObjectName(u"label_due_time_colon")
+        self.label_due_time_colon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.horizontalLayout_due_time.addWidget(self.label_due_time_colon)
+
+        self.comboBox_due_time_minute = QComboBox(self.widget_due_time)
+        self.comboBox_due_time_minute.setObjectName(u"comboBox_due_time_minute")
+        self.comboBox_due_time_minute.setMaximumSize(QSize(50, 16777215))
+        self.comboBox_due_time_minute.setMinimumSize(QSize(50, 0))
+
+        self.horizontalLayout_due_time.addWidget(self.comboBox_due_time_minute)
+
+        self.widget_due_time_am_pm = QWidget(self.widget_due_time)
+        self.widget_due_time_am_pm.setObjectName(u"widget_due_time_am_pm")
+        self.horizontalLayout_due_time_am_pm = QHBoxLayout(self.widget_due_time_am_pm)
+        self.horizontalLayout_due_time_am_pm.setSpacing(4)
+        self.horizontalLayout_due_time_am_pm.setObjectName(u"horizontalLayout_due_time_am_pm")
+        self.horizontalLayout_due_time_am_pm.setContentsMargins(4, 0, 0, 0)
+        self.radioButton_due_time_am = QRadioButton(self.widget_due_time_am_pm)
+        self.radioButton_due_time_am.setObjectName(u"radioButton_due_time_am")
+
+        self.horizontalLayout_due_time_am_pm.addWidget(self.radioButton_due_time_am)
+
+        self.radioButton_due_time_pm = QRadioButton(self.widget_due_time_am_pm)
+        self.radioButton_due_time_pm.setObjectName(u"radioButton_due_time_pm")
+
+        self.horizontalLayout_due_time_am_pm.addWidget(self.radioButton_due_time_pm)
+
+
+        self.horizontalLayout_due_time.addWidget(self.widget_due_time_am_pm)
+
+        self.horizontalSpacer_due_time = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_due_time.addItem(self.horizontalSpacer_due_time)
+
+
+        self.formLayout_task_details.setWidget(4, QFormLayout.ItemRole.FieldRole, self.widget_due_time)
+
+        self.label_task_tags = QLabel(self.widget_task_details)
+        self.label_task_tags.setObjectName(u"label_task_tags")
+
+        self.formLayout_task_details.setWidget(5, QFormLayout.ItemRole.LabelRole, self.label_task_tags)
+
+        self.widget_tags = QWidget(self.widget_task_details)
+        self.widget_tags.setObjectName(u"widget_tags")
+        self.verticalLayout_tags = QVBoxLayout(self.widget_tags)
+        self.verticalLayout_tags.setObjectName(u"verticalLayout_tags")
+        self.listWidget_tags = QListWidget(self.widget_tags)
+        self.listWidget_tags.setObjectName(u"listWidget_tags")
+        self.listWidget_tags.setMaximumSize(QSize(16777215, 80))
+
+        self.verticalLayout_tags.addWidget(self.listWidget_tags)
+
+        self.widget_add_tag = QWidget(self.widget_tags)
+        self.widget_add_tag.setObjectName(u"widget_add_tag")
+        self.horizontalLayout_add_tag = QHBoxLayout(self.widget_add_tag)
+        self.horizontalLayout_add_tag.setObjectName(u"horizontalLayout_add_tag")
+        self.lineEdit_new_tag = QLineEdit(self.widget_add_tag)
+        self.lineEdit_new_tag.setObjectName(u"lineEdit_new_tag")
+
+        self.horizontalLayout_add_tag.addWidget(self.lineEdit_new_tag)
+
+        self.pushButton_add_tag = QPushButton(self.widget_add_tag)
+        self.pushButton_add_tag.setObjectName(u"pushButton_add_tag")
+
+        self.horizontalLayout_add_tag.addWidget(self.pushButton_add_tag)
+
+
+        self.verticalLayout_tags.addWidget(self.widget_add_tag)
+
+
+        self.formLayout_task_details.setWidget(5, QFormLayout.ItemRole.FieldRole, self.widget_tags)
 
 
         self.verticalLayout_Dialog_task_edit.addWidget(self.widget_task_details)
@@ -112,8 +186,46 @@ class Ui_Dialog_task_edit(object):
         self.verticalLayout_groupBox_task_reminders.setObjectName(u"verticalLayout_groupBox_task_reminders")
         self.checkBox_enable_reminders = QCheckBox(self.groupBox_task_reminders)
         self.checkBox_enable_reminders.setObjectName(u"checkBox_enable_reminders")
+        self.checkBox_enable_reminders.setChecked(True)
 
         self.verticalLayout_groupBox_task_reminders.addWidget(self.checkBox_enable_reminders)
+
+        self.groupBox_quick_reminders = QGroupBox(self.groupBox_task_reminders)
+        self.groupBox_quick_reminders.setObjectName(u"groupBox_quick_reminders")
+        self.gridLayout_quick_reminders = QGridLayout(self.groupBox_quick_reminders)
+        self.gridLayout_quick_reminders.setObjectName(u"gridLayout_quick_reminders")
+        self.checkBox_reminder_5min = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_5min.setObjectName(u"checkBox_reminder_5min")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_5min, 0, 0, 1, 1)
+
+        self.checkBox_reminder_10min = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_10min.setObjectName(u"checkBox_reminder_10min")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_10min, 0, 1, 1, 1)
+
+        self.checkBox_reminder_1hour = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_1hour.setObjectName(u"checkBox_reminder_1hour")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_1hour, 0, 2, 1, 1)
+
+        self.checkBox_reminder_2hour = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_2hour.setObjectName(u"checkBox_reminder_2hour")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_2hour, 1, 0, 1, 1)
+
+        self.checkBox_reminder_3hour = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_3hour.setObjectName(u"checkBox_reminder_3hour")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_3hour, 1, 1, 1, 1)
+
+        self.checkBox_reminder_4hour = QCheckBox(self.groupBox_quick_reminders)
+        self.checkBox_reminder_4hour.setObjectName(u"checkBox_reminder_4hour")
+
+        self.gridLayout_quick_reminders.addWidget(self.checkBox_reminder_4hour, 1, 2, 1, 1)
+
+
+        self.verticalLayout_groupBox_task_reminders.addWidget(self.groupBox_quick_reminders)
 
         self.widget_reminder_periods = QWidget(self.groupBox_task_reminders)
         self.widget_reminder_periods.setObjectName(u"widget_reminder_periods")
@@ -169,19 +281,30 @@ class Ui_Dialog_task_edit(object):
         self.lineEdit_task_title.setPlaceholderText(QCoreApplication.translate("Dialog_task_edit", u"Enter task title", None))
         self.label_task_description.setText(QCoreApplication.translate("Dialog_task_edit", u"Description:", None))
         self.textEdit_task_description.setPlaceholderText(QCoreApplication.translate("Dialog_task_edit", u"Enter task description (optional)", None))
-        self.label_task_category.setText(QCoreApplication.translate("Dialog_task_edit", u"Category:", None))
-        self.lineEdit_task_category.setPlaceholderText(QCoreApplication.translate("Dialog_task_edit", u"Enter category (optional)", None))
         self.label_task_priority.setText(QCoreApplication.translate("Dialog_task_edit", u"Priority:", None))
-        self.comboBox_task_priority.setItemText(0, QCoreApplication.translate("Dialog_task_edit", u"Low", None))
-        self.comboBox_task_priority.setItemText(1, QCoreApplication.translate("Dialog_task_edit", u"Medium", None))
-        self.comboBox_task_priority.setItemText(2, QCoreApplication.translate("Dialog_task_edit", u"High", None))
+        self.comboBox_task_priority.setItemText(0, QCoreApplication.translate("Dialog_task_edit", u"None", None))
+        self.comboBox_task_priority.setItemText(1, QCoreApplication.translate("Dialog_task_edit", u"Low", None))
+        self.comboBox_task_priority.setItemText(2, QCoreApplication.translate("Dialog_task_edit", u"Medium", None))
+        self.comboBox_task_priority.setItemText(3, QCoreApplication.translate("Dialog_task_edit", u"High", None))
 
         self.label_task_due_date.setText(QCoreApplication.translate("Dialog_task_edit", u"Due Date:", None))
-        self.label_task_due_time.setText(QCoreApplication.translate("Dialog_task_edit", u"Due Time:", None))
-        self.timeEdit_task_due_time.setDisplayFormat(QCoreApplication.translate("Dialog_task_edit", u"h:mm AP", None))
-        self.groupBox_task_reminders.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Reminder Settings", None))
-        self.checkBox_enable_reminders.setText(QCoreApplication.translate("Dialog_task_edit", u"Enable reminders for this task", None))
-        self.label_reminder_periods.setText(QCoreApplication.translate("Dialog_task_edit", u"Reminder Time Periods:", None))
-        self.pushButton_add_reminder_period.setText(QCoreApplication.translate("Dialog_task_edit", u"Add Reminder Period", None))
+        self.label_task_due_time.setText(QCoreApplication.translate("Dialog_task_edit", u"Due Time (Optional):", None))
+        self.label_due_time_colon.setText(QCoreApplication.translate("Dialog_task_edit", u":", None))
+        self.radioButton_due_time_am.setText(QCoreApplication.translate("Dialog_task_edit", u"AM", None))
+        self.radioButton_due_time_pm.setText(QCoreApplication.translate("Dialog_task_edit", u"PM", None))
+        self.label_task_tags.setText(QCoreApplication.translate("Dialog_task_edit", u"Tags:", None))
+        self.lineEdit_new_tag.setPlaceholderText(QCoreApplication.translate("Dialog_task_edit", u"Enter new tag", None))
+        self.pushButton_add_tag.setText(QCoreApplication.translate("Dialog_task_edit", u"Add Tag", None))
+        self.groupBox_task_reminders.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Task Reminder Settings", None))
+        self.checkBox_enable_reminders.setText(QCoreApplication.translate("Dialog_task_edit", u"Use my default task reminder schedule", None))
+        self.groupBox_quick_reminders.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Quick Reminder Time Windows", None))
+        self.checkBox_reminder_5min.setText(QCoreApplication.translate("Dialog_task_edit", u"5-10 minutes before", None))
+        self.checkBox_reminder_10min.setText(QCoreApplication.translate("Dialog_task_edit", u"1-2 hours before", None))
+        self.checkBox_reminder_1hour.setText(QCoreApplication.translate("Dialog_task_edit", u"1-2 days before", None))
+        self.checkBox_reminder_2hour.setText(QCoreApplication.translate("Dialog_task_edit", u"1-2 weeks before", None))
+        self.checkBox_reminder_3hour.setText(QCoreApplication.translate("Dialog_task_edit", u"30 minutes to 1 hour before", None))
+        self.checkBox_reminder_4hour.setText(QCoreApplication.translate("Dialog_task_edit", u"3-5 days before", None))
+        self.label_reminder_periods.setText(QCoreApplication.translate("Dialog_task_edit", u"Custom Reminder Time Periods:", None))
+        self.pushButton_add_reminder_period.setText(QCoreApplication.translate("Dialog_task_edit", u"Add Custom Reminder Period", None))
     # retranslateUi
 

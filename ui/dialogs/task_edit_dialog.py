@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QDialog, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QDateEdit, QTimeEdit, QCheckBox, QPushButton
+from PySide6.QtWidgets import QDialog, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QDateEdit, QTimeEdit, QCheckBox, QPushButton, QListWidget, QListWidgetItem, QButtonGroup, QRadioButton
 from PySide6.QtCore import Qt, QDate, QTime
 from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 
@@ -20,6 +20,7 @@ class TaskEditDialog(QDialog):
         self.task_data = task_data or {}
         self.is_edit = bool(task_data)
         self.reminder_periods = []
+        self.tags = []
         
         self.ui = Ui_Dialog_task_edit()
         self.ui.setupUi(self)
@@ -38,15 +39,74 @@ class TaskEditDialog(QDialog):
         # Set default date to today
         self.ui.dateEdit_task_due_date.setDate(QDate.currentDate())
         
-        # Set default time to current time
-        current_time = QTime.currentTime()
-        self.ui.timeEdit_task_due_time.setTime(current_time)
-        
-        # Set default priority to Medium
+        # Setup priority combo box with None option
+        self.ui.comboBox_task_priority.clear()
+        self.ui.comboBox_task_priority.addItems(["None", "Low", "Medium", "High"])
         self.ui.comboBox_task_priority.setCurrentText("Medium")
         
-        # Initially disable reminder periods section
-        self.ui.widget_reminder_periods.setEnabled(False)
+        # Setup due time components
+        self.setup_due_time_components()
+        
+        # Setup tags
+        self.setup_tags()
+        
+        # Enable reminders by default
+        self.ui.checkBox_enable_reminders.setChecked(True)
+        
+        # Enable reminder periods section by default since reminders are enabled
+        self.ui.widget_reminder_periods.setEnabled(True)
+    
+    def setup_due_time_components(self):
+        """Setup the due time input components."""
+        # Populate hour combo box with blank option first, then 1-12
+        self.ui.comboBox_due_time_hour.clear()
+        self.ui.comboBox_due_time_hour.addItem("")  # Blank option
+        self.ui.comboBox_due_time_hour.addItems([f"{h:02d}" for h in range(1, 13)])
+        self.ui.comboBox_due_time_hour.setCurrentText("")  # Default to blank
+        
+        # Populate minute combo box with blank option first, then 0, 15, 30, 45
+        self.ui.comboBox_due_time_minute.clear()
+        self.ui.comboBox_due_time_minute.addItem("")  # Blank option
+        self.ui.comboBox_due_time_minute.addItems([f"{m:02d}" for m in [0, 15, 30, 45]])
+        self.ui.comboBox_due_time_minute.setCurrentText("")  # Default to blank
+        
+        # Setup AM/PM radio buttons
+        self.due_time_am_pm_group = QButtonGroup(self)
+        self.due_time_am_pm_group.addButton(self.ui.radioButton_due_time_am)
+        self.due_time_am_pm_group.addButton(self.ui.radioButton_due_time_pm)
+        self.ui.radioButton_due_time_am.setChecked(True)
+        
+        # Connect hour/minute changes to auto-sync
+        self.ui.comboBox_due_time_hour.currentTextChanged.connect(self.on_hour_changed)
+        self.ui.comboBox_due_time_minute.currentTextChanged.connect(self.on_minute_changed)
+    
+    def on_hour_changed(self, hour_text):
+        """Handle hour selection change."""
+        if hour_text and not self.ui.comboBox_due_time_minute.currentText():
+            # If hour is set but minute is blank, set minute to 00
+            self.ui.comboBox_due_time_minute.setCurrentText("00")
+        elif not hour_text:
+            # If hour is blank, set minute to blank too
+            self.ui.comboBox_due_time_minute.setCurrentText("")
+    
+    def on_minute_changed(self, minute_text):
+        """Handle minute selection change."""
+        if minute_text and not self.ui.comboBox_due_time_hour.currentText():
+            # If minute is set but hour is blank, set hour to 12
+            self.ui.comboBox_due_time_hour.setCurrentText("12")
+        # Don't change hour when minute is set to blank
+    
+    def setup_tags(self):
+        """Setup the tags list widget."""
+        # Connect add tag button
+        self.ui.pushButton_add_tag.clicked.connect(self.add_tag)
+        
+        # Load existing tags if editing
+        if self.is_edit and self.task_data.get('tags'):
+            self.tags = self.task_data['tags'].copy()
+            self.refresh_tags_display()
+    
+
     
     def setup_connections(self):
         """Setup signal connections."""
@@ -60,6 +120,25 @@ class TaskEditDialog(QDialog):
         self.ui.buttonBox_task_edit.accepted.connect(self.save_task)
         self.ui.buttonBox_task_edit.rejected.connect(self.reject)
     
+
+    
+    def add_tag(self):
+        """Add a new tag to the list."""
+        tag_text = self.ui.lineEdit_new_tag.text().strip()
+        if tag_text and tag_text not in self.tags:
+            self.tags.append(tag_text)
+            self.refresh_tags_display()
+            self.ui.lineEdit_new_tag.clear()
+    
+    def refresh_tags_display(self):
+        """Refresh the tags list widget display."""
+        self.ui.listWidget_tags.clear()
+        for tag in self.tags:
+            item = QListWidgetItem(tag)
+            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            item.setCheckState(Qt.CheckState.Checked)
+            self.ui.listWidget_tags.addItem(item)
+    
     def load_task_data(self):
         """Load existing task data into the form."""
         if not self.task_data:
@@ -68,7 +147,6 @@ class TaskEditDialog(QDialog):
         # Load basic task data
         self.ui.lineEdit_task_title.setText(self.task_data.get('title', ''))
         self.ui.textEdit_task_description.setPlainText(self.task_data.get('description', ''))
-        self.ui.lineEdit_task_category.setText(self.task_data.get('category', ''))
         
         # Set priority
         priority = self.task_data.get('priority', 'medium')
@@ -94,7 +172,7 @@ class TaskEditDialog(QDialog):
             try:
                 time = QTime.fromString(due_time, 'HH:mm')
                 if time.isValid():
-                    self.ui.timeEdit_task_due_time.setTime(time)
+                    self.set_due_time_from_24h(time)
             except Exception:
                 pass
         
@@ -105,10 +183,59 @@ class TaskEditDialog(QDialog):
             self.reminder_periods = reminder_periods.copy()
             self.render_reminder_periods()
     
+    def set_due_time_from_24h(self, time):
+        """Set due time components from 24-hour time."""
+        hour = time.hour()
+        minute = time.minute()
+        
+        # Convert to 12-hour format
+        if hour == 0:
+            hour_12 = 12
+            is_pm = False
+        elif hour == 12:
+            hour_12 = 12
+            is_pm = True
+        elif hour > 12:
+            hour_12 = hour - 12
+            is_pm = True
+        else:
+            hour_12 = hour
+            is_pm = False
+        
+        # Set components
+        self.ui.comboBox_due_time_hour.setCurrentText(f"{hour_12:02d}")
+        self.ui.comboBox_due_time_minute.setCurrentText(f"{minute:02d}")
+        self.ui.radioButton_due_time_am.setChecked(not is_pm)
+        self.ui.radioButton_due_time_pm.setChecked(is_pm)
+    
+    def get_due_time_as_24h(self):
+        """Get due time as 24-hour format string."""
+        hour_text = self.ui.comboBox_due_time_hour.currentText()
+        minute_text = self.ui.comboBox_due_time_minute.currentText()
+        
+        # If either hour or minute is blank, no due time
+        if not hour_text or not minute_text:
+            return None
+        
+        try:
+            hour = int(hour_text)
+            minute = int(minute_text)
+            is_pm = self.ui.radioButton_due_time_pm.isChecked()
+            
+            # Convert to 24-hour format
+            if is_pm and hour != 12:
+                hour += 12
+            elif not is_pm and hour == 12:
+                hour = 0
+            
+            return f"{hour:02d}:{minute:02d}"
+        except ValueError:
+            return None
+    
     def add_reminder_period(self):
         """Add a new reminder period."""
         self.reminder_periods.append({
-            'date': '',
+            'date': QDate.currentDate().toString('yyyy-MM-dd'),
             'start_time': '',
             'end_time': ''
         })
@@ -225,97 +352,131 @@ class TaskEditDialog(QDialog):
     
     def validate_form(self):
         """Validate the form data."""
-        title = self.ui.lineEdit_task_title.text().strip()
-        if not title:
-            QMessageBox.warning(self, "Validation Error", "Title is required.")
-            self.ui.lineEdit_task_title.setFocus()
+        if not self.ui.lineEdit_task_title.text().strip():
+            QMessageBox.warning(self, "Validation Error", "Task title is required.")
             return False
-        
         return True
     
     def collect_reminder_periods(self):
         """Collect reminder period data from the UI."""
-        reminder_periods = []
-        
+        periods = []
         for period in self.reminder_periods:
             widgets = period.get('__widgets', {})
             
-            date = widgets.get('date', QDateEdit()).date().toString('yyyy-MM-dd')
+            # Get date
+            date_widget = widgets.get('date')
+            date = date_widget.date().toString('yyyy-MM-dd') if date_widget else ''
+            
+            # Get start time
             start_hour = widgets.get('start_hour', QComboBox()).currentText()
             start_minute = widgets.get('start_minute', QComboBox()).currentText()
             start_ampm = widgets.get('start_ampm', QComboBox()).currentText()
+            
+            start_time = ''
+            if start_hour and start_minute and start_ampm:
+                h = int(start_hour)
+                m = int(start_minute)
+                if start_ampm == 'PM' and h != 12:
+                    h += 12
+                elif start_ampm == 'AM' and h == 12:
+                    h = 0
+                start_time = f"{h:02d}:{m:02d}"
+            
+            # Get end time
             end_hour = widgets.get('end_hour', QComboBox()).currentText()
             end_minute = widgets.get('end_minute', QComboBox()).currentText()
             end_ampm = widgets.get('end_ampm', QComboBox()).currentText()
             
-            # Only save if both start and end hour are set
-            if date and start_hour and end_hour:
-                try:
-                    # Convert to 24-hour format
-                    sh24 = int(start_hour)
-                    sm = int(start_minute) if start_minute else 0
-                    eh24 = int(end_hour)
-                    em = int(end_minute) if end_minute else 0
-                    
-                    if start_ampm == 'PM' and sh24 != 12:
-                        sh24 += 12
-                    if start_ampm == 'AM' and sh24 == 12:
-                        sh24 = 0
-                    if end_ampm == 'PM' and eh24 != 12:
-                        eh24 += 12
-                    if end_ampm == 'AM' and eh24 == 12:
-                        eh24 = 0
-                    
-                    reminder_periods.append({
-                        'date': date,
-                        'start_time': f"{sh24:02d}:{sm:02d}",
-                        'end_time': f"{eh24:02d}:{em:02d}"
-                    })
-                except Exception:
-                    continue
+            end_time = ''
+            if end_hour and end_minute and end_ampm:
+                h = int(end_hour)
+                m = int(end_minute)
+                if end_ampm == 'PM' and h != 12:
+                    h += 12
+                elif end_ampm == 'AM' and h == 12:
+                    h = 0
+                end_time = f"{h:02d}:{m:02d}"
+            
+            if date and start_time and end_time:
+                periods.append({
+                    'date': date,
+                    'start_time': start_time,
+                    'end_time': end_time
+                })
         
-        return reminder_periods
+        return periods
+    
+    def collect_quick_reminders(self):
+        """Collect quick reminder options."""
+        quick_reminders = []
+        if self.ui.checkBox_reminder_5min.isChecked():
+            quick_reminders.append('5-10min')
+        if self.ui.checkBox_reminder_10min.isChecked():
+            quick_reminders.append('1-2hour')
+        if self.ui.checkBox_reminder_1hour.isChecked():
+            quick_reminders.append('1-2day')
+        if self.ui.checkBox_reminder_2hour.isChecked():
+            quick_reminders.append('1-2week')
+        if self.ui.checkBox_reminder_3hour.isChecked():
+            quick_reminders.append('30min-1hour')
+        if self.ui.checkBox_reminder_4hour.isChecked():
+            quick_reminders.append('3-5day')
+        return quick_reminders
+    
+    def collect_selected_tags(self):
+        """Collect selected tags from the list widget."""
+        selected_tags = []
+        for i in range(self.ui.listWidget_tags.count()):
+            item = self.ui.listWidget_tags.item(i)
+            if item.checkState() == Qt.CheckState.Checked:
+                selected_tags.append(item.text())
+        return selected_tags
     
     @handle_errors("saving task")
     def save_task(self):
         """Save the task data."""
+        if not self.validate_form():
+            return
+        
         try:
-            if not self.validate_form():
-                return
-            
             # Collect form data
             title = self.ui.lineEdit_task_title.text().strip()
             description = self.ui.textEdit_task_description.toPlainText().strip()
-            category = self.ui.lineEdit_task_category.text().strip()
             priority = self.ui.comboBox_task_priority.currentText().lower()
+            if priority == "none":
+                priority = ""
             
-            # Get due date and time
             due_date = self.ui.dateEdit_task_due_date.date().toString('yyyy-MM-dd')
-            due_time = self.ui.timeEdit_task_due_time.time().toString('HH:mm')
+            due_time = self.get_due_time_as_24h()
             
-            # Collect reminder periods if enabled
-            reminder_periods = None
+            # Collect tags
+            tags = self.collect_selected_tags()
+            
+            # Collect reminders
+            reminder_periods = []
             if self.ui.checkBox_enable_reminders.isChecked():
-                reminder_periods = self.collect_reminder_periods()
+                # Add custom reminder periods
+                reminder_periods.extend(self.collect_reminder_periods())
+                
+                # Add quick reminders
+                quick_reminders = self.collect_quick_reminders()
+                # TODO: Convert quick reminders to actual reminder periods based on due date/time
             
             # Prepare task data
             task_data = {
                 'title': title,
                 'description': description,
+                'priority': priority,
                 'due_date': due_date,
                 'due_time': due_time,
-                'priority': priority,
-                'category': category
+                'tags': tags,
+                'reminder_periods': reminder_periods
             }
             
-            if reminder_periods:
-                task_data['reminder_periods'] = reminder_periods
-            
-            # Save task
             if self.is_edit:
                 # Update existing task
-                task_id = self.task_data.get('task_id')
-                if update_task(self.user_id, task_id, task_data):
+                success = update_task(self.user_id, self.task_data['id'], task_data)
+                if success:
                     QMessageBox.information(self, "Success", "Task updated successfully!")
                     self.accept()
                 else:
@@ -323,14 +484,13 @@ class TaskEditDialog(QDialog):
             else:
                 # Create new task
                 task_id = create_task(
-                    self.user_id,
-                    title,
-                    description,
-                    due_date,
-                    due_time,
-                    priority,
-                    category,
-                    reminder_periods
+                    user_id=self.user_id,
+                    title=title,
+                    description=description,
+                    due_date=due_date,
+                    due_time=due_time,
+                    priority=priority,
+                    reminder_periods=reminder_periods
                 )
                 if task_id:
                     QMessageBox.information(self, "Success", "Task created successfully!")

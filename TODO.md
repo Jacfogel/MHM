@@ -278,6 +278,10 @@ When adding new tasks, follow this format:
 - [ ] **Priority Escalation**: Automatic priority increase for overdue tasks
 - [ ] **AI Chatbot Integration**: Full integration with AI chatbot for task management
 
+### Task Management UI Improvements (PLANNED)
+- [ ] **Recurring Tasks**: Set tasks to reoccur at set frequencies, or sometime after last completion
+- [ ] **Smart Reminder Randomization**: Randomize reminder timing based on priority and proximity to due date
+
 ### Phase 3: Communication Channel Integration (PLANNED)
 - [ ] **Discord Integration**: Full Discord bot integration for task management
 - [ ] **Email Integration**: Email-based task management

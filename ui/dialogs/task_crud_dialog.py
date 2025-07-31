@@ -225,14 +225,16 @@ class TaskCrudDialog(QDialog):
                 QMessageBox.critical(self, "Error", "Task not found.")
                 return
             
-            result = QMessageBox.question(
-                self, "Complete Task", 
-                f"Are you sure you want to mark '{task_data.get('title', '')}' as completed?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
+            # Show completion dialog
+            from ui.dialogs.task_completion_dialog import TaskCompletionDialog
+            completion_dialog = TaskCompletionDialog(self, task_data.get('title', ''))
             
-            if result == QMessageBox.StandardButton.Yes:
-                if complete_task(self.user_id, task_id):
+            if completion_dialog.exec() == QDialog.DialogCode.Accepted:
+                # Get completion data
+                completion_data = completion_dialog.get_completion_data()
+                
+                # Complete the task with completion details
+                if complete_task(self.user_id, task_id, completion_data):
                     QMessageBox.information(self, "Success", "Task marked as completed!")
                     self.refresh_active_tasks()
                     self.refresh_completed_tasks()

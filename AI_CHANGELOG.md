@@ -34,6 +34,18 @@ When adding new changes to this brief changelog, follow this format:
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Task Management UI Improvements ✅ **COMPLETED**
+- **Enhanced task edit dialog** with improved due time handling using blank options by default
+- **Removed category field** from task management, keeping only tags for better simplicity
+- **Improved reminder settings** with clearer separation between general task reminders and custom reminder periods
+- **Added task completion dialog** allowing users to specify completion date, time, and notes
+- **Updated quick reminder options** to reflect time windows (5-10 minutes, 1-2 hours, 1-2 days, 1-2 weeks, 30min-1hour, 3-5 days)
+- **Fixed due time behavior** - combo boxes now have blank options by default, auto-sync hour/minute selection
+- **Fixed "Add Custom Reminder Period" button** by enabling reminder periods section by default
+- **Improved due time layout** with better spacing, left alignment, and compact design
+- **Enhanced task completion workflow** with detailed completion tracking including notes
+- **Impact**: Much better user experience with more intuitive task management and completion tracking
+
 ### 2025-07-30 - Task-Specific Reminder System Implementation ✅ **COMPLETED**
 - **Implemented comprehensive task-specific reminder scheduling** with automatic lifecycle management for individual tasks
 - **Added reminder scheduling functions** to tasks/task_management.py with integration to existing scheduler system

@@ -6,6 +6,34 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-07-30 - Task Management UI Improvements (Continued) ✅ **COMPLETED**
+- **Fixed "Add Custom Reminder Period" button functionality** by enabling reminder periods section by default
+  - **Root cause**: Reminder periods section was initially disabled, preventing button functionality
+  - **Solution**: Modified setup_ui() to enable widget_reminder_periods by default when reminders are enabled
+  - **Impact**: Users can now successfully add custom reminder periods for tasks
+- **Updated quick reminder option** "30 minutes before" to "30 minutes to 1 hour before" for better time window representation
+  - **UI Update**: Modified task_edit_dialog.ui to change checkbox text
+  - **Code Update**: Updated collect_quick_reminders() to return "30min-1hour" instead of "30min"
+  - **Impact**: More accurate representation of time windows for better user understanding
+- **Improved due time layout** with better spacing, left alignment, and compact design
+  - **Reduced spacing**: Changed horizontal layout spacing from 4 to 2 pixels
+  - **Left alignment**: Added zero margins and horizontal spacer for better visual balance
+  - **Compact design**: Reduced combo box widths from 60 to 50 pixels with minimum size constraints
+  - **AM/PM layout**: Changed from vertical to horizontal radio button layout for better space usage
+  - **Impact**: More compact and visually appealing due time input section
+- **Regenerated UI files** to reflect all layout improvements using pyside6-uic
+- **Impact**: All task management UI improvements from this session are now complete and functional
+
+### 2025-07-30 - Task Management UI Improvements ✅ **COMPLETED**
+- **Enhanced task edit dialog** with improved due time handling using blank options by default
+- **Removed category field** from task management, keeping only tags for better simplicity
+- **Improved reminder settings** with clearer separation between general task reminders and custom reminder periods
+- **Added task completion dialog** allowing users to specify completion date, time, and notes
+- **Updated quick reminder options** to reflect time windows (5-10 minutes, 1-2 hours, 1-2 days, 1-2 weeks, 30min-1hour, 3-5 days)
+- **Fixed due time behavior** - combo boxes now have blank options by default, auto-sync hour/minute selection
+- **Enhanced task completion workflow** with detailed completion tracking including notes
+- **Impact**: Much better user experience with more intuitive task management and completion tracking
+
 ### 2025-07-30 - Task-Specific Reminder System Implementation ✅ **COMPLETED**
 - **Task-Specific Reminder Scheduling**: Implemented comprehensive reminder scheduling system for individual tasks
   - **Added `schedule_task_reminders()` function** to tasks/task_management.py for scheduling reminders based on task reminder periods

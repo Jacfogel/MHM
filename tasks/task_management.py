@@ -267,7 +267,7 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
         return False
 
 @handle_errors("completing task")
-def complete_task(user_id: str, task_id: str) -> bool:
+def complete_task(user_id: str, task_id: str, completion_data: Optional[Dict[str, Any]] = None) -> bool:
     """Mark a task as completed."""
     try:
         if not user_id or not task_id:
@@ -285,7 +285,22 @@ def complete_task(user_id: str, task_id: str) -> bool:
             if task.get('task_id') == task_id:
                 task_to_complete = task.copy()
                 task_to_complete['completed'] = True
-                task_to_complete['completed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                
+                # Use provided completion data or default to current time
+                if completion_data:
+                    completion_date = completion_data.get('completion_date')
+                    completion_time = completion_data.get('completion_time')
+                    completion_notes = completion_data.get('completion_notes', '')
+                    
+                    if completion_date and completion_time:
+                        task_to_complete['completed_at'] = f"{completion_date} {completion_time}:00"
+                    else:
+                        task_to_complete['completed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    if completion_notes:
+                        task_to_complete['completion_notes'] = completion_notes
+                else:
+                    task_to_complete['completed_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             else:
                 updated_active_tasks.append(task)
         
