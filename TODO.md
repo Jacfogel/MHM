@@ -32,12 +32,23 @@ When adding new tasks, follow this format:
 
 ### High Priority
 
-**UI Layer Testing** - Add comprehensive tests for admin interface and dialogs
-- *What it means*: Create tests for `ui/ui_app_qt.py` and individual dialogs to verify UI state management, dialog integration, and user data display/editing
-- *Why it helps*: Ensures the admin interface works correctly and provides reliable user experience
+**UI Layer Testing** - Add comprehensive tests for UI components (main application, dialogs, widgets)
+- *What it means*: Create behavior tests for the UI layer including the main UI application, individual dialogs, and custom widgets
+- *Why it helps*: Ensures UI components work correctly and handle user interactions properly
 - *Estimated effort*: Large
-- *Status*: ⚠️ **NEXT PRIORITY** - Conversation Manager module completed, ready to move to UI layer testing
+- *Status*: 🟡 **IN PROGRESS** - Main UI Application completed (21 tests), Individual Dialog Testing next priority
 
+**Individual Dialog Testing** - Add comprehensive tests for individual dialog components
+- *What it means*: Create behavior tests for each dialog (account creator, task management, user profile, etc.)
+- *Why it helps*: Ensures each dialog works correctly and handles data properly
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **NEXT PRIORITY** - Main UI Application completed, ready to test individual dialogs
+
+**Throttler Bug Fix** - Fix Service Utilities Throttler class that never sets last_run on first call
+- *What it means*: The Throttler class in `core/service_utilities.py` has a design issue where it never sets `last_run` on the first call, making it ineffective for throttling
+- *Why it helps*: Ensures the throttling mechanism works correctly to prevent operations from running too frequently
+- *Estimated effort*: Small
+- *Status*: ⚠️ **DISCOVERED** - Identified during Service Utilities testing, documented in test comments
 
 
 #### Testing & Validation
