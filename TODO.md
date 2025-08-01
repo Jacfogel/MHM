@@ -32,17 +32,11 @@ When adding new tasks, follow this format:
 
 ### High Priority
 
-**User Context Manager Testing** - Add comprehensive tests for user state and personalization management
-- *What it means*: Create tests for `bot/user_context_manager.py` to verify user context loading/saving, AI integration, and persistence across sessions
-- *Why it helps*: Ensures user personalization and state management work correctly for AI responses
-- *Estimated effort*: Medium
-- *Status*: ⚠️ **NEXT PRIORITY** - Discord bot and AI chatbot modules completed, ready to move to user context manager
-
 **UI Layer Testing** - Add comprehensive tests for admin interface and dialogs
 - *What it means*: Create tests for `ui/ui_app_qt.py` and individual dialogs to verify UI state management, dialog integration, and user data display/editing
 - *Why it helps*: Ensures the admin interface works correctly and provides reliable user experience
 - *Estimated effort*: Large
-- *Status*: ⚠️ **HIGH PRIORITY** - Critical for admin functionality as UI is primary management interface
+- *Status*: ⚠️ **NEXT PRIORITY** - Conversation Manager module completed, ready to move to UI layer testing
 
 
 
