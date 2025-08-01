@@ -10,6 +10,7 @@ from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 from core.user_data_validation import validate_schedule_periods
+from tasks.task_management import setup_default_task_tags
 
 setup_logging()
 logger = get_logger(__name__)
@@ -114,8 +115,18 @@ class TaskManagementDialog(QDialog):
             account = user_data_result.get('account') or {}
             if 'features' not in account:
                 account['features'] = {}
+            
+            # Check if task management is being enabled for the first time
+            was_disabled = account.get('features', {}).get('task_management') != 'enabled'
+            will_be_enabled = tasks_enabled
+            
             account['features']['task_management'] = 'enabled' if tasks_enabled else 'disabled'
             update_user_account(self.user_id, account)
+            
+            # Set up default tags if task management is being enabled for the first time
+            if was_disabled and will_be_enabled:
+                logger.info(f"Task management enabled for user {self.user_id} - setting up default tags")
+                setup_default_task_tags(self.user_id)
             
             QMessageBox.information(self, "Task Settings Saved", 
                                    "Task settings saved successfully.")

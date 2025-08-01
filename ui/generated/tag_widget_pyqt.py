@@ -1,0 +1,109 @@
+# -*- coding: utf-8 -*-
+
+################################################################################
+## Form generated from reading UI file 'tag_widget.ui'
+##
+## Created by: Qt User Interface Compiler version 6.9.1
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
+################################################################################
+
+from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
+    QMetaObject, QObject, QPoint, QRect,
+    QSize, QTime, QUrl, Qt)
+from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
+    QFont, QFontDatabase, QGradient, QIcon,
+    QImage, QKeySequence, QLinearGradient, QPainter,
+    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QListWidget, QListWidgetItem, QPushButton,
+    QSizePolicy, QVBoxLayout, QWidget)
+
+class Ui_Widget_tag(object):
+    def setupUi(self, Widget_tag):
+        if not Widget_tag.objectName():
+            Widget_tag.setObjectName(u"Widget_tag")
+        Widget_tag.resize(400, 300)
+        self.verticalLayout_Widget_tag = QVBoxLayout(Widget_tag)
+        self.verticalLayout_Widget_tag.setSpacing(4)
+        self.verticalLayout_Widget_tag.setObjectName(u"verticalLayout_Widget_tag")
+        self.verticalLayout_Widget_tag.setContentsMargins(4, 4, 4, 4)
+        self.groupBox_tags = QGroupBox(Widget_tag)
+        self.groupBox_tags.setObjectName(u"groupBox_tags")
+        self.verticalLayout_groupBox_tags = QVBoxLayout(self.groupBox_tags)
+        self.verticalLayout_groupBox_tags.setSpacing(4)
+        self.verticalLayout_groupBox_tags.setObjectName(u"verticalLayout_groupBox_tags")
+        self.verticalLayout_groupBox_tags.setContentsMargins(4, 4, 4, 4)
+        self.listWidget_tags = QListWidget(self.groupBox_tags)
+        self.listWidget_tags.setObjectName(u"listWidget_tags")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.listWidget_tags.sizePolicy().hasHeightForWidth())
+        self.listWidget_tags.setSizePolicy(sizePolicy)
+        self.listWidget_tags.setMaximumSize(QSize(16777215, 120))
+
+        self.verticalLayout_groupBox_tags.addWidget(self.listWidget_tags)
+
+        self.widget_tag_input = QWidget(self.groupBox_tags)
+        self.widget_tag_input.setObjectName(u"widget_tag_input")
+        self.horizontalLayout_tag_input = QHBoxLayout(self.widget_tag_input)
+        self.horizontalLayout_tag_input.setSpacing(4)
+        self.horizontalLayout_tag_input.setObjectName(u"horizontalLayout_tag_input")
+        self.horizontalLayout_tag_input.setContentsMargins(0, 0, 0, 0)
+        self.label_new_tag = QLabel(self.widget_tag_input)
+        self.label_new_tag.setObjectName(u"label_new_tag")
+
+        self.horizontalLayout_tag_input.addWidget(self.label_new_tag)
+
+        self.lineEdit_new_tag = QLineEdit(self.widget_tag_input)
+        self.lineEdit_new_tag.setObjectName(u"lineEdit_new_tag")
+
+        self.horizontalLayout_tag_input.addWidget(self.lineEdit_new_tag)
+
+
+        self.verticalLayout_groupBox_tags.addWidget(self.widget_tag_input)
+
+        self.widget_tag_buttons = QWidget(self.groupBox_tags)
+        self.widget_tag_buttons.setObjectName(u"widget_tag_buttons")
+        self.horizontalLayout_tag_buttons = QHBoxLayout(self.widget_tag_buttons)
+        self.horizontalLayout_tag_buttons.setSpacing(4)
+        self.horizontalLayout_tag_buttons.setObjectName(u"horizontalLayout_tag_buttons")
+        self.horizontalLayout_tag_buttons.setContentsMargins(0, 0, 0, 0)
+        self.pushButton_add_tag = QPushButton(self.widget_tag_buttons)
+        self.pushButton_add_tag.setObjectName(u"pushButton_add_tag")
+
+        self.horizontalLayout_tag_buttons.addWidget(self.pushButton_add_tag)
+
+        self.pushButton_edit_tag = QPushButton(self.widget_tag_buttons)
+        self.pushButton_edit_tag.setObjectName(u"pushButton_edit_tag")
+
+        self.horizontalLayout_tag_buttons.addWidget(self.pushButton_edit_tag)
+
+        self.pushButton_delete_tag = QPushButton(self.widget_tag_buttons)
+        self.pushButton_delete_tag.setObjectName(u"pushButton_delete_tag")
+
+        self.horizontalLayout_tag_buttons.addWidget(self.pushButton_delete_tag)
+
+
+        self.verticalLayout_groupBox_tags.addWidget(self.widget_tag_buttons)
+
+
+        self.verticalLayout_Widget_tag.addWidget(self.groupBox_tags)
+
+
+        self.retranslateUi(Widget_tag)
+
+        QMetaObject.connectSlotsByName(Widget_tag)
+    # setupUi
+
+    def retranslateUi(self, Widget_tag):
+        Widget_tag.setWindowTitle(QCoreApplication.translate("Widget_tag", u"Tag Widget", None))
+        self.groupBox_tags.setTitle(QCoreApplication.translate("Widget_tag", u"Task Tags", None))
+        self.label_new_tag.setText(QCoreApplication.translate("Widget_tag", u"New Tag:", None))
+        self.lineEdit_new_tag.setPlaceholderText(QCoreApplication.translate("Widget_tag", u"Enter tag name...", None))
+        self.pushButton_add_tag.setText(QCoreApplication.translate("Widget_tag", u"Add Tag", None))
+        self.pushButton_edit_tag.setText(QCoreApplication.translate("Widget_tag", u"Edit Tag", None))
+        self.pushButton_delete_tag.setText(QCoreApplication.translate("Widget_tag", u"Delete Tag", None))
+    # retranslateUi
+

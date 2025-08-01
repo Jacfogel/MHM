@@ -925,7 +925,7 @@ class CommunicationManager:
         description = task.get('description', '')
         due_date = task.get('due_date', '')
         priority = task.get('priority', 'medium')
-        category = task.get('category', '')
+        # Removed category - tasks now use tags instead
         
         # Create priority emoji
         priority_emoji = {

@@ -114,7 +114,7 @@ class TaskCrudDialog(QDialog):
                 self.ui.tableWidget_active_tasks.setItem(row, 2, QTableWidgetItem(task.get('due_date', '')))
                 self.ui.tableWidget_active_tasks.setItem(row, 3, QTableWidgetItem(task.get('due_time', '')))
                 self.ui.tableWidget_active_tasks.setItem(row, 4, QTableWidgetItem(task.get('priority', 'medium')))
-                self.ui.tableWidget_active_tasks.setItem(row, 5, QTableWidgetItem(task.get('category', '')))
+                # Removed category column - tasks now use tags instead
                 self.ui.tableWidget_active_tasks.setItem(row, 6, QTableWidgetItem(task.get('created_at', '')))
                 
                 # Store task ID in the first column for easy access
@@ -141,7 +141,7 @@ class TaskCrudDialog(QDialog):
                 self.ui.tableWidget_completed_tasks.setItem(row, 1, QTableWidgetItem(task.get('description', '')))
                 self.ui.tableWidget_completed_tasks.setItem(row, 2, QTableWidgetItem(task.get('due_date', '')))
                 self.ui.tableWidget_completed_tasks.setItem(row, 3, QTableWidgetItem(task.get('priority', 'medium')))
-                self.ui.tableWidget_completed_tasks.setItem(row, 4, QTableWidgetItem(task.get('category', '')))
+                # Removed category column - tasks now use tags instead
                 self.ui.tableWidget_completed_tasks.setItem(row, 5, QTableWidgetItem(task.get('completed_at', '')))
                 
                 # Store task ID in the first column for easy access

@@ -22,8 +22,9 @@ from core.user_data_handlers import update_user_preferences
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
 
-# Import our period row widget
+# Import our period row widget and tag widget
 from ui.widgets.period_row_widget import PeriodRowWidget
+from ui.widgets.tag_widget import TagWidget
 
 setup_logging()
 logger = get_logger(__name__)
@@ -39,6 +40,11 @@ class TaskSettingsWidget(QWidget):
         # Initialize data structures
         self.period_widgets = []
         self.deleted_periods = []  # For undo functionality
+        
+        # Add tag management widget to placeholder
+        self.tag_widget = TagWidget(self, user_id, mode="management", title="Task Tags")
+        layout = self.ui.verticalLayout_widget_tag_management_placeholder.layout()
+        layout.addWidget(self.tag_widget)
         
         self.setup_connections()
         self.load_existing_data()
@@ -221,5 +227,13 @@ class TaskSettingsWidget(QWidget):
         except Exception as e:
             # Fallback to placeholder if there's an error
             return {'active': 0, 'completed': 0, 'total': 0}
+
+    def get_available_tags(self):
+        """Get the current list of available tags from the tag widget."""
+        return self.tag_widget.get_available_tags()
+
+    def refresh_tags(self):
+        """Refresh the tags in the tag widget."""
+        self.tag_widget.refresh_tags()
 
  

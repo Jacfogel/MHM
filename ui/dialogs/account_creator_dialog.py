@@ -743,6 +743,11 @@ class AccountCreatorDialog(QDialog):
             # Create user files with actual data
             from core.file_operations import create_user_files
             create_user_files(user_id, account_data['categories'], user_preferences)
+            
+            # Set up default task tags if task management is enabled
+            if tasks_enabled:
+                from tasks.task_management import setup_default_task_tags
+                setup_default_task_tags(user_id)
 
             # Update user index
             try:

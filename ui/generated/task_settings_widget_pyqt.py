@@ -18,11 +18,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QPushButton,
     QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
 
-def qtTrId(id): return id
-
 class Ui_Form_task_settings(object):
     def setupUi(self, Form_task_settings):
-        """Auto-generated Qt UI setup function for task_settings_widget."""
         if not Form_task_settings.objectName():
             Form_task_settings.setObjectName(u"Form_task_settings")
         Form_task_settings.resize(950, 524)
@@ -85,6 +82,17 @@ class Ui_Form_task_settings(object):
 
         self.verticalLayout_Form_task_settings.addWidget(self.groupBox_task_reminder_time_periods)
 
+        self.widget_tag_management_placeholder = QWidget(Form_task_settings)
+        self.widget_tag_management_placeholder.setObjectName(u"widget_tag_management_placeholder")
+        sizePolicy.setHeightForWidth(self.widget_tag_management_placeholder.sizePolicy().hasHeightForWidth())
+        self.widget_tag_management_placeholder.setSizePolicy(sizePolicy)
+        self.verticalLayout_widget_tag_management_placeholder = QVBoxLayout(self.widget_tag_management_placeholder)
+        self.verticalLayout_widget_tag_management_placeholder.setSpacing(4)
+        self.verticalLayout_widget_tag_management_placeholder.setObjectName(u"verticalLayout_widget_tag_management_placeholder")
+        self.verticalLayout_widget_tag_management_placeholder.setContentsMargins(4, 4, 4, 4)
+
+        self.verticalLayout_Form_task_settings.addWidget(self.widget_tag_management_placeholder)
+
 
         self.retranslateUi(Form_task_settings)
 
@@ -92,7 +100,6 @@ class Ui_Form_task_settings(object):
     # setupUi
 
     def retranslateUi(self, Form_task_settings):
-        """Auto-generated Qt UI translation function for task_settings_widget."""
         Form_task_settings.setWindowTitle(QCoreApplication.translate("Form_task_settings", u"Form", None))
         self.groupBox_task_reminder_time_periods.setTitle(QCoreApplication.translate("Form_task_settings", u"Reminder Time Periods", None))
         self.pushButton_task_reminder_add_new_period.setText(QCoreApplication.translate("Form_task_settings", u"Add New Period", None))

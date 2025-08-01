@@ -28,6 +28,13 @@ When updating this AI-focused UI migration plan, follow this format:
 
 ## 🎯 **Current UI Migration Status**
 
+### **2025-08-01 - Unified TagWidget Implementation ✅**
+- **Created unified TagWidget**: Single flexible widget for both management and selection modes
+- **UI File Pattern**: Created `ui/designs/tag_widget.ui` and generated `ui/generated/tag_widget_pyqt.py`
+- **Dual Mode Support**: Management mode (full CRUD) and selection mode (checkbox selection)
+- **Integration Complete**: TagWidget integrated into both task settings and task editing dialogs
+- **Code Cleanup**: Removed redundant separate tag management and selection widgets
+
 ### **Foundation: COMPLETE ✅**
 - **PySide6/Qt Migration**: Main app launches successfully with QSS applied
 - **File Reorganization**: Modular structure implemented
@@ -43,8 +50,14 @@ When updating this AI-focused UI migration plan, follow this format:
 - **✅ Check-in Management Dialog** - Complete with comprehensive validation
 - **✅ User Profile Dialog** - Fully functional with all personalization fields
 - **✅ Account Creator Dialog** - Feature-based creation with validation
-- **⚠️ Task Management Dialog** - Ready for testing
+- **✅ Task Management Dialog** - Complete with unified TagWidget integration
 - **⚠️ Schedule Editor Dialog** - Ready for testing
+
+### **Widget Status**
+- **✅ TagWidget** - Unified widget for both management and selection modes
+- **✅ Task Settings Widget** - Complete with TagWidget integration
+- **⚠️ Category Selection Widget** - Needs testing
+- **⚠️ Channel Selection Widget** - Needs testing
 
 ## 🔧 **Key UI Architecture**
 

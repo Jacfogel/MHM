@@ -444,7 +444,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         # New structure
         'account': 'account.json',
         'preferences': 'preferences.json',
-        'context': 'context.json',
+        'context': 'user_context.json',
         'schedules': 'schedules.json',
         # Other files
         'daily_checkins': 'daily_checkins.json',

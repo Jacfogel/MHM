@@ -46,7 +46,7 @@ USER_DATA_LOADERS = {
     'context': {
         'loader': None,  # Will be set after function definition
         'file_type': 'user_context',
-        'default_fields': ['preferred_name', 'pronouns'],
+        'default_fields': ['preferred_name', 'gender_identity'],
         'metadata_fields': ['created_at', 'last_updated'],
         'description': 'User context and personal information'
     },
@@ -1009,9 +1009,9 @@ def get_user_essential_info(user_id: str) -> Dict[str, Any]:
 
 # Predefined options for various personalization fields
 PREDEFINED_OPTIONS = {
-    "pronouns": [
-        "she/her", "he/him", "they/them", "she/they", "he/they", 
-        "any pronouns", "prefer not to say"
+    "gender_identity": [
+        "Male", "Female", "Non-binary", "Genderfluid", "Agender", "Bigender", "Demiboy", "Demigirl",
+        "Genderqueer", "Two-spirit", "Other", "Prefer not to say"
     ],
     "health_conditions": [
         "ADHD", "Anxiety", "Depression", "Bipolar Disorder", "PTSD", 
@@ -1105,7 +1105,7 @@ def create_default_personalization_data() -> Dict[str, Any]:
     """Create default personalization data structure."""
     return {
         "preferred_name": "",
-        "pronouns": [],
+        "gender_identity": "",
         "date_of_birth": "",
         "custom_fields": {
             "health_conditions": [],

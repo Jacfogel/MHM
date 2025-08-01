@@ -539,7 +539,7 @@ class TestUserContextManagerIntegration:
         with open(os.path.join(user_dir, "preferences.json"), 'w') as f:
             json.dump(preferences_data, f)
         
-        # Create context.json
+        # Create user_context.json
         context_data = {
             "context": {
                 "preferred_name": "realuser",
@@ -548,7 +548,7 @@ class TestUserContextManagerIntegration:
                 "created_date": "2025-01-01"
             }
         }
-        with open(os.path.join(user_dir, "context.json"), 'w') as f:
+        with open(os.path.join(user_dir, "user_context.json"), 'w') as f:
             json.dump(context_data, f)
         
         # Mock UserContext and data retrieval to return the correct data

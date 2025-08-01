@@ -44,6 +44,12 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 - *Status*: ⚠️ **NEXT PRIORITY** - Main UI Application completed, ready to test individual dialogs
 
+**Tag Widget Testing** - Test the new unified TagWidget for both management and selection modes
+- *What it means*: Create behavior tests for the TagWidget in both management mode (CRUD operations) and selection mode (checkbox selection)
+- *Why it helps*: Ensures the unified tag system works correctly in both contexts and handles data properly
+- *Estimated effort*: Small
+- *Status*: ⚠️ **NEW PRIORITY** - TagWidget implementation completed, needs comprehensive testing
+
 **Throttler Bug Fix** - Fix Service Utilities Throttler class that never sets last_run on first call
 - *What it means*: The Throttler class in `core/service_utilities.py` has a design issue where it never sets `last_run` on the first call, making it ineffective for throttling
 - *Why it helps*: Ensures the throttling mechanism works correctly to prevent operations from running too frequently
@@ -86,6 +92,12 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures the new task management UI works correctly and provides full CRUD functionality
 - *Estimated effort*: Small
 - *Status*: ✅ **COMPLETED** - Task CRUD UI fully functional with all operations working
+
+**Unified Tag Widget Implementation** - Create single reusable tag widget for both management and selection
+- *What it means*: Replace separate tag management and selection widgets with one flexible widget
+- *Why it helps*: Eliminates code duplication and follows proper UI patterns with .ui files
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - Unified TagWidget implemented with dual-mode support and proper UI patterns
 
 **Task-Specific Reminder System Implementation** - Implement task-specific reminder scheduling functionality
 - *What it means*: Add functionality to schedule and manage reminders for individual tasks based on their reminder periods

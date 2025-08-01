@@ -6,6 +6,51 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-01 - Unified Tag Widget Implementation & Test Fixes ✅ **COMPLETED**
+- **Created unified TagWidget system** to eliminate redundancy and follow proper UI patterns
+  - **UI File Creation**: Created `ui/designs/tag_widget.ui` with comprehensive tag management interface
+    - **Group Box Layout**: Organized tag list, input field, and management buttons in logical structure
+    - **Responsive Design**: Proper spacing, margins, and size constraints for optimal user experience
+    - **Button Layout**: Horizontal layout for Add, Edit, and Delete buttons with consistent spacing
+  - **PyQt Generation**: Generated `ui/generated/tag_widget_pyqt.py` using pyside6-uic following project pattern
+    - **Proper Integration**: Generated UI class integrates seamlessly with existing PySide6 architecture
+    - **Consistent Naming**: Follows established naming conventions for UI elements
+  - **Flexible Widget Implementation**: Created `ui/widgets/tag_widget.py` with dual-mode support
+    - **Management Mode**: Full CRUD operations (add, edit, delete) for task settings context
+    - **Selection Mode**: Checkbox-based selection for task editing context
+    - **Mode Configuration**: Automatic UI adaptation based on mode parameter
+    - **Signal System**: `tags_changed` signal for proper event handling
+- **Integrated unified widget** into existing task management system
+  - **Task Settings Widget**: Updated `ui/widgets/task_settings_widget.py` to use TagWidget in management mode
+    - **Import Update**: Changed from `TagManagementWidget` to `TagWidget`
+    - **Mode Configuration**: Set mode="management" and title="Task Tags"
+    - **Layout Integration**: Properly integrated into existing placeholder layout
+  - **Task Edit Dialog**: Updated `ui/dialogs/task_edit_dialog.py` to use TagWidget in selection mode
+    - **Import Update**: Changed from `TagSelectionWidget` to `TagWidget`
+    - **Mode Configuration**: Set mode="selection" with selected_tags parameter
+    - **Automatic Selection**: Newly created tags are automatically selected for current task
+    - **Checkbox State**: Checkbox state properly informs which tags are saved to tasks
+- **Removed redundant widget files** to eliminate code duplication
+  - **Deleted**: `ui/widgets/tag_management_widget.py` (replaced by unified TagWidget)
+  - **Deleted**: `ui/widgets/tag_selection_widget.py` (replaced by unified TagWidget)
+  - **Cleanup Impact**: Reduced maintenance overhead and eliminated potential inconsistencies
+- **Fixed test failures** related to recent data model changes
+  - **Task Creation Test**: Updated `tests/behavior/test_task_behavior.py` to use `tags` parameter instead of `category`
+    - **Parameter Update**: Changed `category="work"` to `tags=["work"]` in test_create_task
+    - **Assertion Update**: Changed assertion from `tasks[0]['category']` to `tasks[0]['tags']`
+    - **Data Model Alignment**: Test now correctly reflects current task data structure
+  - **Validation Test**: Updated `tests/unit/test_validation.py` to use `gender_identity` instead of `pronouns`
+    - **Field Update**: Changed test data from `"pronouns": "she/her"` to `"gender_identity": "she/her"`
+    - **Error Message Update**: Changed assertion from "Field pronouns must be a list" to "Field gender_identity must be a list"
+    - **Validation Alignment**: Test now correctly reflects current personalization data structure
+- **Test Status**: 474 tests passing, 1 skipped, 34 warnings - excellent 99.8% success rate
+- **Files Modified**: 
+  - **New**: `ui/designs/tag_widget.ui`, `ui/generated/tag_widget_pyqt.py`, `ui/widgets/tag_widget.py`
+  - **Updated**: `ui/widgets/task_settings_widget.py`, `ui/dialogs/task_edit_dialog.py`
+  - **Fixed**: `tests/behavior/test_task_behavior.py`, `tests/unit/test_validation.py`
+  - **Deleted**: `ui/widgets/tag_management_widget.py`, `ui/widgets/tag_selection_widget.py`
+- **Impact**: Cleaner, more maintainable tag system with proper UI patterns, eliminated code duplication, and comprehensive test coverage ensuring system reliability
+
 ### 2025-07-31 - Discord Bot Module Testing Completed & Major Coverage Expansion ✅ **COMPLETED**
 - **Created comprehensive Discord bot behavior tests** in `tests/behavior/test_discord_bot_behavior.py` with 32 test cases covering all Discord bot functions
   - **TestDiscordBotBehavior**: 24 tests for bot initialization, DNS resolution, network connectivity, connection management, message handling, and error recovery

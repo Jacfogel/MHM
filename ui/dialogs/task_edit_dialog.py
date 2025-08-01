@@ -6,6 +6,7 @@ from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 from tasks.task_management import create_task, update_task
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger
+from ui.widgets.tag_widget import TagWidget
 
 setup_logging()
 logger = get_logger(__name__)
@@ -20,10 +21,26 @@ class TaskEditDialog(QDialog):
         self.task_data = task_data or {}
         self.is_edit = bool(task_data)
         self.reminder_periods = []
-        self.tags = []
+        
+        # Load existing tags if editing
+        if self.is_edit and self.task_data.get('tags'):
+            self.selected_tags = self.task_data['tags'].copy()
+        else:
+            self.selected_tags = []
         
         self.ui = Ui_Dialog_task_edit()
         self.ui.setupUi(self)
+        
+        # Replace the existing tag widget with our TagWidget in selection mode
+        self.tag_widget = TagWidget(self, user_id, mode="selection", selected_tags=self.selected_tags, title="Tags")
+        layout = self.ui.verticalLayout_tags.layout()
+        # Remove existing widgets
+        while layout.count():
+            item = layout.takeAt(0)
+            w = item.widget()
+            if w:
+                w.setParent(None)
+        layout.addWidget(self.tag_widget)
         
         self.setup_ui()
         self.setup_connections()
@@ -47,8 +64,7 @@ class TaskEditDialog(QDialog):
         # Setup due time components
         self.setup_due_time_components()
         
-        # Setup tags
-        self.setup_tags()
+        # Tags are now handled by TagSelectionWidget
         
         # Enable reminders by default
         self.ui.checkBox_enable_reminders.setChecked(True)
@@ -96,18 +112,6 @@ class TaskEditDialog(QDialog):
             self.ui.comboBox_due_time_hour.setCurrentText("12")
         # Don't change hour when minute is set to blank
     
-    def setup_tags(self):
-        """Setup the tags list widget."""
-        # Connect add tag button
-        self.ui.pushButton_add_tag.clicked.connect(self.add_tag)
-        
-        # Load existing tags if editing
-        if self.is_edit and self.task_data.get('tags'):
-            self.tags = self.task_data['tags'].copy()
-            self.refresh_tags_display()
-    
-
-    
     def setup_connections(self):
         """Setup signal connections."""
         # Connect checkbox to enable/disable reminder periods
@@ -122,22 +126,7 @@ class TaskEditDialog(QDialog):
     
 
     
-    def add_tag(self):
-        """Add a new tag to the list."""
-        tag_text = self.ui.lineEdit_new_tag.text().strip()
-        if tag_text and tag_text not in self.tags:
-            self.tags.append(tag_text)
-            self.refresh_tags_display()
-            self.ui.lineEdit_new_tag.clear()
-    
-    def refresh_tags_display(self):
-        """Refresh the tags list widget display."""
-        self.ui.listWidget_tags.clear()
-        for tag in self.tags:
-            item = QListWidgetItem(tag)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(Qt.CheckState.Checked)
-            self.ui.listWidget_tags.addItem(item)
+
     
     def load_task_data(self):
         """Load existing task data into the form."""
@@ -182,6 +171,24 @@ class TaskEditDialog(QDialog):
             self.ui.checkBox_enable_reminders.setChecked(True)
             self.reminder_periods = reminder_periods.copy()
             self.render_reminder_periods()
+        
+        # Load quick reminders
+        quick_reminders = self.task_data.get('quick_reminders', [])
+        if quick_reminders:
+            self.ui.checkBox_enable_reminders.setChecked(True)
+            # Set the appropriate checkboxes based on stored quick reminders
+            if '5-10min' in quick_reminders:
+                self.ui.checkBox_reminder_5min.setChecked(True)
+            if '1-2hour' in quick_reminders:
+                self.ui.checkBox_reminder_10min.setChecked(True)
+            if '1-2day' in quick_reminders:
+                self.ui.checkBox_reminder_1hour.setChecked(True)
+            if '1-2week' in quick_reminders:
+                self.ui.checkBox_reminder_2hour.setChecked(True)
+            if '30min-1hour' in quick_reminders:
+                self.ui.checkBox_reminder_3hour.setChecked(True)
+            if '3-5day' in quick_reminders:
+                self.ui.checkBox_reminder_4hour.setChecked(True)
     
     def set_due_time_from_24h(self, time):
         """Set due time components from 24-hour time."""
@@ -424,13 +431,8 @@ class TaskEditDialog(QDialog):
         return quick_reminders
     
     def collect_selected_tags(self):
-        """Collect selected tags from the list widget."""
-        selected_tags = []
-        for i in range(self.ui.listWidget_tags.count()):
-            item = self.ui.listWidget_tags.item(i)
-            if item.checkState() == Qt.CheckState.Checked:
-                selected_tags.append(item.text())
-        return selected_tags
+        """Collect selected tags from the tag widget."""
+        return self.tag_widget.get_selected_tags()
     
     @handle_errors("saving task")
     def save_task(self):
@@ -454,6 +456,7 @@ class TaskEditDialog(QDialog):
             
             # Collect reminders
             reminder_periods = []
+            quick_reminders = []
             if self.ui.checkBox_enable_reminders.isChecked():
                 # Add custom reminder periods
                 reminder_periods.extend(self.collect_reminder_periods())
@@ -470,12 +473,13 @@ class TaskEditDialog(QDialog):
                 'due_date': due_date,
                 'due_time': due_time,
                 'tags': tags,
-                'reminder_periods': reminder_periods
+                'reminder_periods': reminder_periods,
+                'quick_reminders': quick_reminders
             }
             
             if self.is_edit:
                 # Update existing task
-                success = update_task(self.user_id, self.task_data['id'], task_data)
+                success = update_task(self.user_id, self.task_data['task_id'], task_data)
                 if success:
                     QMessageBox.information(self, "Success", "Task updated successfully!")
                     self.accept()
@@ -490,7 +494,9 @@ class TaskEditDialog(QDialog):
                     due_date=due_date,
                     due_time=due_time,
                     priority=priority,
-                    reminder_periods=reminder_periods
+                    reminder_periods=reminder_periods,
+                    tags=tags,
+                    quick_reminders=quick_reminders
                 )
                 if task_id:
                     QMessageBox.information(self, "Success", "Task created successfully!")

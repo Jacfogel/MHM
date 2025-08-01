@@ -501,19 +501,34 @@ class DiscordBot(BaseChannel):
                 )
                 return
 
-            # All messages now default to contextual chat unless in a specific flow
-            reply_text, completed = conversation_manager.handle_inbound_message(
-                internal_user_id, message.content
-            )
-            if reply_text:
-                await message.channel.send(reply_text)
+            # Use the new interaction manager for enhanced user interactions
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, message.content, "discord")
+                
+                if response.message:
+                    await message.channel.send(response.message)
+                    
+                    # Add suggestions if provided
+                    if response.suggestions:
+                        suggestions_text = "\n💡 **Suggestions:**\n" + "\n".join([f"• {s}" for s in response.suggestions[:3]])
+                        await message.channel.send(suggestions_text)
+                        
+            except Exception as e:
+                logger.error(f"Error in enhanced interaction for user {internal_user_id}: {e}")
+                # Fall back to existing conversation manager
+                reply_text, completed = conversation_manager.handle_inbound_message(
+                    internal_user_id, message.content
+                )
+                if reply_text:
+                    await message.channel.send(reply_text)
 
     @handle_errors("registering Discord commands")
     def _register_commands(self):
         """Register Discord commands"""
         @self.bot.command(name="status")
         async def status(ctx):
-            await ctx.send("I'm up and running! Just send me any message and I'll respond with personalized, contextual chat.\n\nAvailable commands:\n• !dailycheckin - Start a check-in anytime\n• !cancel - Cancel current check-in\n• !status - Show this status")
+            await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
 
         @self.bot.command(name="dailycheckin")
         async def dailycheckin_cmd(ctx):
@@ -528,10 +543,18 @@ class DiscordBot(BaseChannel):
                 )
                 return
                 
-            reply_text, completed = conversation_manager.handle_inbound_message(
-                internal_user_id, "/dailycheckin"
-            )
-            await ctx.send(reply_text)
+            # Use new interaction system
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "start checkin", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in check-in command: {e}")
+                # Fall back to existing system
+                reply_text, completed = conversation_manager.handle_inbound_message(
+                    internal_user_id, "/dailycheckin"
+                )
+                await ctx.send(reply_text)
 
         @self.bot.command(name="cancel")
         async def cancel_cmd(ctx):
@@ -547,6 +570,42 @@ class DiscordBot(BaseChannel):
                 internal_user_id, "/cancel"
             )
             await ctx.send(reply_text)
+
+        @self.bot.command(name="help")
+        async def help_cmd(ctx):
+            """Show help information."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("I'm here to help! Try these commands:\n• !help - Show this help\n• !status - Show system status")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "help", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in help command: {e}")
+                await ctx.send("I'm here to help! Try typing naturally - I'll understand what you want to do.")
+
+        @self.bot.command(name="tasks")
+        async def tasks_cmd(ctx):
+            """Show user's tasks."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use task management features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "show my tasks", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in tasks command: {e}")
+                await ctx.send("I'm having trouble accessing your tasks right now. Please try again.")
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:

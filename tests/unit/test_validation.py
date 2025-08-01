@@ -763,7 +763,7 @@ class TestPersonalizationDataValidation:
     def test_validate_personalization_data_invalid_list_fields(self):
         """Test personalization data validation with invalid list field types."""
         data = {
-            "pronouns": "she/her",  # Should be list
+            "gender_identity": "she/her",  # Should be list
             "reminders_needed": "medication",  # Should be list
             "interests": "reading"  # Should be list
         }
@@ -771,7 +771,7 @@ class TestPersonalizationDataValidation:
         is_valid, errors = validate_personalization_data(data)
         
         assert is_valid is False, "Invalid list fields should be invalid"
-        assert "Field pronouns must be a list if present" in errors
+        assert "Field gender_identity must be a list if present" in errors
         assert "Field reminders_needed must be a list if present" in errors
         assert "Field interests must be a list if present" in errors
     

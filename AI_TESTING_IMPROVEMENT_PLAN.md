@@ -31,6 +31,11 @@
 - **User Profile Dialog** (`ui/dialogs/user_profile_dialog.py`)
 - **Other Dialogs** (checkin management, category management, etc.)
 
+## 🎯 New Priority: Tag Widget Testing
+- **TagWidget** (`ui/widgets/tag_widget.py`) - Test both management and selection modes
+- **Task Settings Integration** - Test TagWidget in task settings context
+- **Task Edit Integration** - Test TagWidget in task editing context
+
 ## 🔧 Key Patterns Established
 - **Real Behavior Testing**: Focus on side effects and actual system changes
 - **Comprehensive Mocking**: Mock file operations, external APIs, user data
@@ -42,5 +47,6 @@
 ## 📝 Known Issues
 - **Throttler Bug**: Service Utilities Throttler class never sets last_run on first call
 - **Individual Dialogs**: Need comprehensive testing for each dialog component
+- **Tag Widget Testing**: New unified TagWidget needs comprehensive testing for both modes
 - **Widget Testing**: Category selection, channel selection widgets need testing
 - **Supporting Modules**: Auto cleanup, check-in analytics, logger need testing

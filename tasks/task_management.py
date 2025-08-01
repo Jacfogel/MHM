@@ -16,6 +16,7 @@ from core.error_handling import (
 )
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
+from core.user_management import load_user_preferences_data
 
 logger = get_logger(__name__)
 
@@ -165,8 +166,9 @@ def save_completed_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
 
 @handle_errors("creating new task")
 def create_task(user_id: str, title: str, description: str = "", due_date: str = None, 
-                due_time: str = None, priority: str = "medium", category: str = "", 
-                reminder_periods: Optional[list] = None) -> Optional[str]:
+                due_time: str = None, priority: str = "medium", 
+                reminder_periods: Optional[list] = None, tags: Optional[list] = None,
+                quick_reminders: Optional[list] = None) -> Optional[str]:
     """Create a new task for a user."""
     try:
         if not user_id or not title:
@@ -186,13 +188,20 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
             "completed": False,
             "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             "completed_at": None,
-            "priority": priority,
-            "category": category
+            "priority": priority
         }
         
         # Only add reminder_periods if provided and non-empty
         if reminder_periods:
             task["reminder_periods"] = reminder_periods
+        
+        # Add tags if provided
+        if tags:
+            task["tags"] = tags
+        
+        # Add quick_reminders if provided
+        if quick_reminders:
+            task["quick_reminders"] = quick_reminders
         
         # Load existing tasks
         tasks = load_active_tasks(user_id)
@@ -233,7 +242,7 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
             if task.get('task_id') == task_id:
                 # Update allowed fields
                 allowed_fields = ['title', 'description', 'due_date', 'due_time', 
-                                'reminder_periods', 'priority', 'category']
+                                'reminder_periods', 'priority', 'tags', 'quick_reminders']
                 for field, value in updates.items():
                     if field in allowed_fields:
                         task[field] = value
@@ -556,6 +565,127 @@ def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
         
     except Exception as e:
         logger.error(f"Error cleaning up task reminders for task {task_id}: {e}")
+        return False
+
+@handle_errors("getting user task tags", default_return=[])
+def get_user_task_tags(user_id: str) -> List[str]:
+    """Get the list of available tags for a user from their preferences."""
+    try:
+        if not user_id:
+            logger.error("User ID is required for getting task tags")
+            return []
+        
+        preferences_data = load_user_preferences_data(user_id)
+        task_settings = preferences_data.get('task_settings', {})
+        tags = task_settings.get('tags', [])
+        
+        logger.debug(f"Loaded {len(tags)} tags for user {user_id}")
+        return tags
+        
+    except Exception as e:
+        logger.error(f"Error getting task tags for user {user_id}: {e}")
+        return []
+
+@handle_errors("adding user task tag")
+def add_user_task_tag(user_id: str, tag: str) -> bool:
+    """Add a new tag to the user's task settings."""
+    try:
+        if not user_id or not tag:
+            logger.error("User ID and tag are required for adding task tag")
+            return False
+        
+        from core.user_management import save_user_preferences_data
+        
+        preferences_data = load_user_preferences_data(user_id)
+        task_settings = preferences_data.get('task_settings', {})
+        tags = task_settings.get('tags', [])
+        
+        if tag not in tags:
+            tags.append(tag)
+            task_settings['tags'] = tags
+            preferences_data['task_settings'] = task_settings
+            
+            if save_user_preferences_data(user_id, preferences_data):
+                logger.info(f"Added tag '{tag}' for user {user_id}")
+                return True
+            else:
+                logger.error(f"Failed to save tag for user {user_id}")
+                return False
+        else:
+            logger.debug(f"Tag '{tag}' already exists for user {user_id}")
+            return True
+            
+    except Exception as e:
+        logger.error(f"Error adding task tag for user {user_id}: {e}")
+        return False
+
+@handle_errors("setting up default task tags")
+def setup_default_task_tags(user_id: str) -> bool:
+    """Set up default task tags for a user when task management is first enabled."""
+    try:
+        if not user_id:
+            logger.error("User ID is required for setting up default task tags")
+            return False
+        
+        from core.user_management import save_user_preferences_data
+        
+        # Default tags to set up
+        default_tags = ["work", "personal", "health"]
+        
+        preferences_data = load_user_preferences_data(user_id)
+        task_settings = preferences_data.get('task_settings', {})
+        existing_tags = task_settings.get('tags', [])
+        
+        # Only add default tags if no tags exist yet
+        if not existing_tags:
+            task_settings['tags'] = default_tags
+            preferences_data['task_settings'] = task_settings
+            
+            if save_user_preferences_data(user_id, preferences_data):
+                logger.info(f"Set up default task tags for user {user_id}: {default_tags}")
+                return True
+            else:
+                logger.error(f"Failed to save default task tags for user {user_id}")
+                return False
+        else:
+            logger.debug(f"User {user_id} already has task tags, skipping default setup")
+            return True
+            
+    except Exception as e:
+        logger.error(f"Error setting up default task tags for user {user_id}: {e}")
+        return False
+
+@handle_errors("removing user task tag")
+def remove_user_task_tag(user_id: str, tag: str) -> bool:
+    """Remove a tag from the user's task settings."""
+    try:
+        if not user_id or not tag:
+            logger.error("User ID and tag are required for removing task tag")
+            return False
+        
+        from core.user_management import save_user_preferences_data
+        
+        preferences_data = load_user_preferences_data(user_id)
+        task_settings = preferences_data.get('task_settings', {})
+        tags = task_settings.get('tags', [])
+        
+        if tag in tags:
+            tags.remove(tag)
+            task_settings['tags'] = tags
+            preferences_data['task_settings'] = task_settings
+            
+            if save_user_preferences_data(user_id, preferences_data):
+                logger.info(f"Removed tag '{tag}' for user {user_id}")
+                return True
+            else:
+                logger.error(f"Failed to save tag removal for user {user_id}")
+                return False
+        else:
+            logger.debug(f"Tag '{tag}' not found for user {user_id}")
+            return True
+            
+    except Exception as e:
+        logger.error(f"Error removing task tag for user {user_id}: {e}")
         return False
 
 @handle_errors("getting user task statistics", default_return={})

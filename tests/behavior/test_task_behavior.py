@@ -127,7 +127,7 @@ class TestTaskManagement:
             title="Test Task",
             description="Test Description",
             priority="high",
-            category="work"
+            tags=["work"]
         )
         
         assert task_id is not None
@@ -138,7 +138,7 @@ class TestTaskManagement:
         assert tasks[0]['title'] == "Test Task"
         assert tasks[0]['description'] == "Test Description"
         assert tasks[0]['priority'] == "high"
-        assert tasks[0]['category'] == "work"
+        assert tasks[0]['tags'] == ["work"]
         assert tasks[0]['completed'] is False
         # Verify file content
         task_dir = os.path.join(temp_dir, 'tasks')
