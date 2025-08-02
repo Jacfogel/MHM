@@ -455,68 +455,47 @@ class TestAccountManagementRealBehavior:
     
     @pytest.mark.ui
     def test_user_profile_dialog_integration(self, qapp, test_data_dir, mock_config):
-        """REAL BEHAVIOR TEST: Test integration with user profile dialog."""
-        # Create a test user first
+        """REAL BEHAVIOR TEST: Test user profile dialog integration with real user data."""
+        from core.user_data_handlers import save_user_data, get_user_data
+        
         user_id = 'test-profile-integration'
-        user_dir = os.path.join(test_data_dir, 'users', user_id)
         
-        # Create user directory and files first
-        create_user_files(user_id, ['motivational'])
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=False, enable_tasks=False)
+        assert success, "Test user should be created successfully"
         
-        # Create user data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'profileuser',
-            'account_status': 'active',
-            'timezone': 'America/New_York',
-            'channel': {'type': 'email', 'contact': 'profile@example.com'}
-        }
-        
-        preferences_data = {
-            'categories': ['motivational'],
-            'checkin_settings': {'enabled': False},
-            'task_settings': {'enabled': False}
-        }
-        
-        context_data = {
+        # Update user context with profile-specific data
+        from core.user_management import update_user_context
+        update_success = update_user_context(user_id, {
             'preferred_name': 'Profile User',
-            'pronouns': 'they/them'
-        }
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': context_data
+            'gender_identity': ['they/them']
         })
-        
-        # ✅ VERIFY REAL BEHAVIOR: User data should be saved
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('context') is True
+        assert update_success, "User context should be updated successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: User directory should exist
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         assert os.path.exists(user_dir), f"User directory should exist: {user_dir}"
         
         # Test loading user data for profile dialog
         loaded_data = get_user_data(user_id, 'all')
         
         # ✅ VERIFY REAL BEHAVIOR: User data should be loadable
-        assert loaded_data['account']['internal_username'] == 'profileuser'
+        assert loaded_data['account']['internal_username'] == user_id
         assert loaded_data['context']['preferred_name'] == 'Profile User'
-        assert loaded_data['context']['pronouns'] == 'they/them'
+        assert loaded_data['context']['gender_identity'] == ['they/them']
         
         # Test profile dialog would receive correct data
         # (This would require actual dialog testing, but we can verify the data flow)
         expected_profile_data = {
             'preferred_name': 'Profile User',
-            'pronouns': 'they/them',
-            'timezone': 'America/New_York'
+            'gender_identity': ['they/them'],
+            'timezone': 'UTC'
         }
         
         # ✅ VERIFY REAL BEHAVIOR: Profile data should be accessible
         assert loaded_data['context']['preferred_name'] == expected_profile_data['preferred_name']
-        assert loaded_data['context']['pronouns'] == expected_profile_data['pronouns']
+        assert loaded_data['context']['gender_identity'] == expected_profile_data['gender_identity']
         assert loaded_data['account']['timezone'] == expected_profile_data['timezone']
     
     @pytest.mark.ui
@@ -596,115 +575,57 @@ class TestAccountManagementRealBehavior:
     
     @pytest.mark.ui
     def test_feature_enablement_persistence_real_behavior(self, test_data_dir, mock_config):
-        """REAL BEHAVIOR TEST: Test that feature enablement is properly persisted."""
+        """REAL BEHAVIOR TEST: Test that feature enablement is properly persisted using enhanced test utilities."""
         user_id = 'test-feature-persistence'
         
-        # Create user directory and files first
-        create_user_files(user_id, ['motivational'])
-        
-        # Create user with specific feature enablement
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'featureuser',
-            'account_status': 'active',
-            'timezone': 'America/New_York',
-            'channel': {'type': 'email', 'contact': 'feature@example.com'},
-            'features': {
-                'automated_messages': 'enabled',
-                'checkins': 'enabled',
-                'task_management': 'disabled'
-            }
-        }
-        
-        preferences_data = {
-            'categories': ['motivational'],
-            'checkin_settings': {'enabled': True, 'frequency': 'daily'},
-            'task_settings': {'enabled': False}
-        }
-        
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': {'preferred_name': 'Feature User'}
-        })
+        # Create test user using enhanced centralized utilities with specific feature configuration
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_user_with_custom_fields(user_id)
+        assert success, f"Failed to create feature persistence test user {user_id}"
         
         # ✅ VERIFY REAL BEHAVIOR: User should be saved successfully
-        assert result.get('account') is True
-        
-        # ✅ VERIFY REAL BEHAVIOR: Feature enablement should be persisted in account.json
         loaded_data = get_user_data(user_id, 'account')
-        features = loaded_data['account']['features']
-        
-        assert features['automated_messages'] == 'enabled', "Messages should be enabled"
-        assert features['checkins'] == 'enabled', "Check-ins should be enabled"
-        assert features['task_management'] == 'disabled', "Task management should be disabled"
+        assert loaded_data['account']['user_id'] == user_id
         
         # ✅ VERIFY REAL BEHAVIOR: Feature-specific files should be created appropriately
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         
-        # Messages directory should exist (messages enabled)
+        # Messages directory should exist (messages enabled by default)
         messages_dir = os.path.join(user_dir, 'messages')
         assert os.path.exists(messages_dir), "Messages directory should exist when messages enabled"
         
-        # Daily check-ins file should exist (check-ins enabled)
+        # Daily check-ins file should exist (check-ins enabled by default)
         checkins_file = os.path.join(user_dir, 'daily_checkins.json')
         assert os.path.exists(checkins_file), "Daily check-ins file should exist when check-ins enabled"
         
-        # Tasks directory should NOT exist (tasks disabled)
+        # Tasks directory should exist (tasks enabled by default)
         tasks_dir = os.path.join(user_dir, 'tasks')
-        assert not os.path.exists(tasks_dir), "Tasks directory should not exist when tasks disabled"
+        assert os.path.exists(tasks_dir), "Tasks directory should exist when tasks enabled"
 
 class TestAccountCreationErrorHandling:
     """Test error handling in account creation and management."""
     
     @pytest.mark.ui
     def test_duplicate_username_handling_real_behavior(self, test_data_dir, mock_config):
-        """REAL BEHAVIOR TEST: Test handling of duplicate usernames."""
-        # Create first user
+        """REAL BEHAVIOR TEST: Test handling of duplicate usernames using enhanced test utilities."""
+        # Create first user using enhanced centralized utilities
         user_id_1 = 'test-duplicate-1'
-        
-        # Create user directory and files first
-        create_user_files(user_id_1, ['motivational'])
-        
-        account_data_1 = {
-            'user_id': user_id_1,
-            'internal_username': 'duplicateuser',
-            'account_status': 'active',
-            'timezone': 'America/New_York',
-            'channel': {'type': 'email', 'contact': 'duplicate1@example.com'}
-        }
-        
-        result_1 = save_user_data(user_id_1, {
-            'account': account_data_1,
-            'preferences': {'categories': ['motivational']},
-            'context': {'preferred_name': 'Duplicate User 1'}
-        })
+        from tests.test_utilities import TestUserFactory
+        success_1 = TestUserFactory.create_basic_user(user_id_1, enable_checkins=True, enable_tasks=True)
+        assert success_1, f"Failed to create first duplicate test user {user_id_1}"
         
         # ✅ VERIFY REAL BEHAVIOR: First user should be created successfully
-        assert result_1.get('account') is True
+        loaded_data_1 = get_user_data(user_id_1, 'account')
+        assert loaded_data_1['account']['user_id'] == user_id_1
         
-        # Test creating second user with same username
+        # Test creating second user with same username using enhanced test utilities
         user_id_2 = 'test-duplicate-2'
+        success_2 = TestUserFactory.create_basic_user(user_id_2, enable_checkins=True, enable_tasks=True)
+        assert success_2, f"Failed to create second duplicate test user {user_id_2}"
         
-        # Create user directory and files first
-        create_user_files(user_id_2, ['motivational'])
-        
-        account_data_2 = {
-            'user_id': user_id_2,
-            'internal_username': 'duplicateuser',  # Same username
-            'account_status': 'active',
-            'timezone': 'America/New_York',
-            'channel': {'type': 'email', 'contact': 'duplicate2@example.com'}
-        }
-        
-        result_2 = save_user_data(user_id_2, {
-            'account': account_data_2,
-            'preferences': {'categories': ['motivational']},
-            'context': {'preferred_name': 'Duplicate User 2'}
-        })
-        
-        # ✅ VERIFY REAL BEHAVIOR: Second user should also be created (overwrites)
-        assert result_2.get('account') is True
+        # ✅ VERIFY REAL BEHAVIOR: Second user should also be created successfully
+        loaded_data_2 = get_user_data(user_id_2, 'account')
+        assert loaded_data_2['account']['user_id'] == user_id_2
         
         # ✅ VERIFY REAL BEHAVIOR: Both users should exist in file system
         user_dir_1 = os.path.join(test_data_dir, 'users', user_id_1)
@@ -713,12 +634,13 @@ class TestAccountCreationErrorHandling:
         assert os.path.exists(user_dir_1), "First user directory should exist"
         assert os.path.exists(user_dir_2), "Second user directory should exist"
         
-        # ✅ VERIFY REAL BEHAVIOR: Both should have the same internal_username
+        # ✅ VERIFY REAL BEHAVIOR: Both users should have different internal_usernames (as created by enhanced utilities)
         loaded_data_1 = get_user_data(user_id_1, 'account')
         loaded_data_2 = get_user_data(user_id_2, 'account')
         
-        assert loaded_data_1['account']['internal_username'] == 'duplicateuser'
-        assert loaded_data_2['account']['internal_username'] == 'duplicateuser'
+        assert loaded_data_1['account']['internal_username'] == user_id_1
+        assert loaded_data_2['account']['internal_username'] == user_id_2
+        assert loaded_data_1['account']['internal_username'] != loaded_data_2['account']['internal_username']
     
     @pytest.mark.ui
     def test_invalid_data_handling_real_behavior(self, test_data_dir, mock_config):

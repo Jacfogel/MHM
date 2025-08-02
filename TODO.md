@@ -32,23 +32,37 @@ When adding new tasks, follow this format:
 
 ### High Priority
 
+**TestUserFactory Fix** - Fix widespread test failures caused by TestUserFactory methods not properly creating users
+- *What it means*: The TestUserFactory methods are returning success but not actually saving user data correctly, causing 23 test failures across behavior, integration, and UI tests
+- *Why it helps*: Restores test reliability and ensures the test utilities work correctly for all test scenarios
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **CRITICAL** - 23 test failures due to empty user data being returned by get_user_data calls
+- *Root Cause*: TestUserFactory methods not properly patching BASE_DATA_DIR during user creation, leading to data being saved in wrong location
+
+**Test Fixture Conflicts Resolution** - Resolve conflicts between session-scoped and function-scoped test fixtures
+- *What it means*: The patch_user_data_dirs (session-scoped) and mock_config (function-scoped) fixtures are conflicting, causing inconsistent test behavior
+- *Why it helps*: Ensures consistent test environment and reliable test results across all test types
+- *Estimated effort*: Small
+- *Status*: ⚠️ **CRITICAL** - Contributing to TestUserFactory failures and inconsistent test behavior
+
 **UI Layer Testing** - Add comprehensive tests for UI components (main application, dialogs, widgets)
 - *What it means*: Create behavior tests for the UI layer including the main UI application, individual dialogs, and custom widgets
 - *Why it helps*: Ensures UI components work correctly and handle user interactions properly
 - *Estimated effort*: Large
 - *Status*: 🟡 **IN PROGRESS** - Main UI Application completed (21 tests), Individual Dialog Testing next priority
+- *Note*: Blocked by TestUserFactory issues - many UI tests depend on proper user creation
 
 **Individual Dialog Testing** - Add comprehensive tests for individual dialog components
 - *What it means*: Create behavior tests for each dialog (account creator, task management, user profile, etc.)
 - *Why it helps*: Ensures each dialog works correctly and handles data properly
 - *Estimated effort*: Medium
-- *Status*: ⚠️ **NEXT PRIORITY** - Main UI Application completed, ready to test individual dialogs
+- *Status*: ⚠️ **BLOCKED** - Depends on TestUserFactory fix for proper user data creation
 
 **Tag Widget Testing** - Test the new unified TagWidget for both management and selection modes
 - *What it means*: Create behavior tests for the TagWidget in both management mode (CRUD operations) and selection mode (checkbox selection)
 - *Why it helps*: Ensures the unified tag system works correctly in both contexts and handles data properly
 - *Estimated effort*: Small
-- *Status*: ⚠️ **NEW PRIORITY** - TagWidget implementation completed, needs comprehensive testing
+- *Status*: ⚠️ **BLOCKED** - Depends on TestUserFactory fix for proper user data creation
 
 **Throttler Bug Fix** - Fix Service Utilities Throttler class that never sets last_run on first call
 - *What it means*: The Throttler class in `core/service_utilities.py` has a design issue where it never sets `last_run` on the first call, making it ineffective for throttling
@@ -60,13 +74,13 @@ When adding new tasks, follow this format:
 - *What it means*: Create behavior tests for the interaction manager to ensure conversational AI works correctly and suggestions appear appropriately
 - *Why it helps*: Ensures users get natural conversational responses and helpful suggestions only when needed
 - *Estimated effort*: Small
-- *Status*: ⚠️ **NEW PRIORITY** - Interaction manager refined with suggestion system improvements, needs comprehensive testing
+- *Status*: ⚠️ **BLOCKED** - Depends on TestUserFactory fix for proper user data creation
 
 **AI Chatbot Lock Management Testing** - Test the improved lock management and fallback system
 - *What it means*: Create behavior tests for the AI chatbot to ensure lock management works correctly and fallback responses are appropriate
 - *Why it helps*: Ensures reliable AI responses and proper fallback when AI is busy
 - *Estimated effort*: Small
-- *Status*: ⚠️ **NEW PRIORITY** - AI chatbot lock management improved, needs comprehensive testing
+- *Status*: ⚠️ **BLOCKED** - Depends on TestUserFactory fix for proper user data creation
 
 
 #### Testing & Validation

@@ -437,44 +437,35 @@ class TestFileOperationsEdgeCases:
         assert result is None  # Should return None due to error handling decorator
     
     @pytest.mark.integration
-    def test_file_operations_lifecycle(self, test_data_dir):
-        """Test complete file operations lifecycle with real side effects."""
-        user_id = 'test-lifecycle-user'
-        category = 'motivational'
-        
-        # ✅ VERIFY INITIAL STATE: Check test environment
-        assert os.path.exists(test_data_dir), f"Test directory should exist: {test_data_dir}"
-        assert os.path.isdir(test_data_dir), f"Test path should be a directory: {test_data_dir}"
+    def test_file_operations_lifecycle(self, test_data_dir, mock_config):
+        """Test complete file operations lifecycle using centralized utilities."""
+        from tests.test_utilities import TestUserDataFactory
         
         # Step 1: Test user directory creation
+        user_id = 'test-file-ops-user'
         user_dir = os.path.join(test_data_dir, 'users', user_id)
-        initial_user_dir_exists = os.path.exists(user_dir)
         
-        # Create the user directory manually for this test
-        os.makedirs(user_dir, exist_ok=True)
+        # ✅ VERIFY INITIAL STATE: Check directory doesn't exist initially
+        initial_dir_exists = os.path.exists(user_dir)
         
-        # ✅ VERIFY REAL BEHAVIOR: Check user directory was created
+        # Create user directory
+        ensure_user_directory(user_id)
+        
+        # ✅ VERIFY REAL BEHAVIOR: Check directory was created
         assert os.path.exists(user_dir), f"User directory should be created: {user_dir}"
         assert os.path.isdir(user_dir), f"User path should be a directory: {user_dir}"
-        
-        # ✅ VERIFY REAL BEHAVIOR: Check directory permissions
-        assert os.access(user_dir, os.R_OK), f"User directory should be readable: {user_dir}"
-        assert os.access(user_dir, os.W_OK), f"User directory should be writable: {user_dir}"
         
         # Step 2: Test file path determination
         account_file_path = get_user_file_path(user_id, 'account')
         
         # ✅ VERIFY REAL BEHAVIOR: Check path structure
-        assert user_id in account_file_path, f"Path should contain user ID: {account_file_path}"
-        assert 'account.json' in account_file_path, f"Path should contain account.json: {account_file_path}"
         assert account_file_path.endswith('account.json'), f"Path should end with account.json: {account_file_path}"
         
-        # Step 3: Test saving user data
-        test_account_data = {
-            'user_id': user_id,
-            'email': 'test@example.com',
-            'created_at': '2025-01-01T00:00:00Z'
-        }
+        # Step 3: Test saving user data using centralized utilities
+        test_account_data = TestUserDataFactory.create_account_data(
+            user_id=user_id,
+            email='test@example.com'
+        )
         
         # ✅ VERIFY INITIAL STATE: Check file doesn't exist initially
         initial_file_exists = os.path.exists(account_file_path)
@@ -508,12 +499,11 @@ class TestFileOperationsEdgeCases:
         assert os.access(account_file_path, os.R_OK), f"File should still be readable: {account_file_path}"
         
         # Step 6: Test data modification
-        updated_account_data = {
-            'user_id': user_id,
-            'email': 'updated@example.com',
-            'created_at': '2025-01-01T00:00:00Z',
-            'updated_at': '2025-01-02T00:00:00Z'
-        }
+        updated_account_data = TestUserDataFactory.create_account_data(
+            user_id=user_id,
+            email='updated@example.com',
+            updated_at='2025-01-02T00:00:00Z'
+        )
         
         result = save_json_data(updated_account_data, account_file_path)
         assert result is True
@@ -527,10 +517,11 @@ class TestFileOperationsEdgeCases:
         
         # Step 7: Test file operations with multiple files
         preferences_file_path = get_user_file_path(user_id, 'preferences')
-        test_preferences_data = {
-            'categories': ['motivational', 'health'],
-            'timezone': 'America/Regina'
-        }
+        test_preferences_data = TestUserDataFactory.create_preferences_data(
+            user_id=user_id,
+            categories=['motivational', 'health'],
+            timezone='America/Regina'
+        )
         
         result = save_json_data(test_preferences_data, preferences_file_path)
         assert result is True

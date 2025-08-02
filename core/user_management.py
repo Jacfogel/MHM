@@ -145,7 +145,7 @@ def load_user_account_data(user_id: str, auto_create: bool = True) -> Optional[D
         
         # Only auto-create if user directory exists (user was created before)
         if not user_dir_exists:
-            logger.warning(f"User directory doesn't exist for {user_id}, not auto-creating account file")
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating account file")
             return None
         
         # Auto-create the file with default data
@@ -241,7 +241,7 @@ def load_user_preferences_data(user_id: str, auto_create: bool = True) -> Option
         
         # Only auto-create if user directory exists (user was created before)
         if not user_dir_exists:
-            logger.warning(f"User directory doesn't exist for {user_id}, not auto-creating preferences file")
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating preferences file")
             return None
         
         # Auto-create the file with default data
@@ -336,7 +336,7 @@ def load_user_context_data(user_id: str, auto_create: bool = True) -> Optional[D
         
         # Only auto-create if user directory exists (user was created before)
         if not user_dir_exists:
-            logger.warning(f"User directory doesn't exist for {user_id}, not auto-creating user context file")
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating user context file")
             return None
         
         # Auto-create the file with default data
@@ -427,7 +427,7 @@ def load_user_schedules_data(user_id: str, auto_create: bool = True) -> Optional
             else:
                 return None
         if not user_dir_exists:
-            logger.warning(f"User directory doesn't exist for {user_id}, not auto-creating schedules file")
+            logger.debug(f"User directory doesn't exist for {user_id}, not auto-creating schedules file")
             return None
         # Auto-create the file with default data
         logger.info(f"Auto-creating missing schedules file for user {user_id} (user directory exists)")
@@ -701,14 +701,15 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
         "channel": {
             "type": user_data.get('channel', {}).get('type', 'email')
         },
-        "checkin_settings": user_data.get('checkin_settings', {})
+        "checkin_settings": user_data.get('checkin_settings', {}),
+        "task_settings": user_data.get('task_settings', {})
     }
     
     # Remove redundant enabled flags from preferences since they're in account.json features
     if 'checkin_settings' in preferences_data and 'enabled' in preferences_data['checkin_settings']:
         del preferences_data['checkin_settings']['enabled']
-    if 'task_management' in preferences_data and 'enabled' in preferences_data['task_management']:
-        del preferences_data['task_management']['enabled']
+    if 'task_settings' in preferences_data and 'enabled' in preferences_data['task_settings']:
+        del preferences_data['task_settings']['enabled']
     
     # Create user context data
     context_data = {
@@ -732,11 +733,16 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
     
     # Save all data using centralized save_user_data
     from core.user_data_handlers import save_user_data
-    save_user_data(user_id, {
+    save_result = save_user_data(user_id, {
         'account': account_data,
         'preferences': preferences_data,
         'context': context_data
     })
+    
+    # Check if save was successful
+    if not all(save_result.values()):
+        logger.error(f"Failed to save user data for {user_id}: {save_result}")
+        return None
     
     # Create default schedule periods for initial categories
     categories = user_data.get('categories', [])

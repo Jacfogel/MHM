@@ -126,29 +126,31 @@ class TestUserManagement:
     
     @pytest.mark.unit
     def test_save_user_data_success(self, test_data_dir, mock_config):
-        """Test saving user data successfully using new system."""
+        """Test saving user data successfully using centralized utilities."""
+        from tests.test_utilities import TestUserDataFactory
+        
         user_id = 'test-save-user'
         user_dir = os.path.join(test_data_dir, 'users', user_id)
         os.makedirs(user_dir, exist_ok=True)  # Ensure user directory exists
         
-        # Test data for each type (new system)
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'testuser',
-            'account_status': 'active',
-            'email': 'test@example.com',
-            'channel': {'type': 'email', 'contact': 'test@example.com'}
-        }
+        # Create test data using centralized utilities
+        account_data = TestUserDataFactory.create_account_data(
+            user_id=user_id,
+            internal_username='testuser',
+            email='test@example.com',
+            channel_type='email'
+        )
         
-        preferences_data = {
-            'categories': ['motivational', 'health'],
-            'test': 'data',
-            'number': 42
-        }
+        preferences_data = TestUserDataFactory.create_preferences_data(
+            user_id=user_id,
+            categories=['motivational', 'health'],
+            test='data',
+            number=42
+        )
         
-        context_data = {
-            'preferred_name': 'Test User'
-        }
+        context_data = TestUserDataFactory.create_context_data(
+            preferred_name='Test User'
+        )
         
         # Save all data types using centralized save_user_data function
         result = save_user_data(user_id, {

@@ -554,7 +554,6 @@ class TestNewUserDataValidation:
         data_updates = {
             "account": {
                 "internal_username": "newuser",
-                "channel": {"type": "email"},
                 "email": "newuser@example.com",
                 "account_status": "active"
             },
@@ -581,7 +580,9 @@ class TestNewUserDataValidation:
         """Test new user data validation with missing user_id."""
         data_updates = {
             "account": {
-                "internal_username": "newuser",
+                "internal_username": "newuser"
+            },
+            "preferences": {
                 "channel": {"type": "email"}
             }
         }
@@ -605,7 +606,9 @@ class TestNewUserDataValidation:
         user_id = "existing-user"
         data_updates = {
             "account": {
-                "internal_username": "existinguser",
+                "internal_username": "existinguser"
+            },
+            "preferences": {
                 "channel": {"type": "email"}
             }
         }
@@ -640,6 +643,9 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
+                "email": "test@example.com"  # Provide some account data but no username
+            },
+            "preferences": {
                 "channel": {"type": "email"}
             }
         }
@@ -668,7 +674,9 @@ class TestNewUserDataValidation:
         user_id = "new-user"
         data_updates = {
             "account": {
-                "internal_username": "newuser",
+                "internal_username": "newuser"
+            },
+            "preferences": {
                 "channel": {"type": "invalid_channel"}
             }
         }
@@ -684,8 +692,10 @@ class TestNewUserDataValidation:
         data_updates = {
             "account": {
                 "internal_username": "newuser",
-                "channel": {"type": "email"},
                 "email": "invalid-email"
+            },
+            "preferences": {
+                "channel": {"type": "email"}
             }
         }
         
@@ -700,8 +710,10 @@ class TestNewUserDataValidation:
         data_updates = {
             "account": {
                 "internal_username": "newuser",
-                "channel": {"type": "email"},
                 "account_status": "invalid_status"
+            },
+            "preferences": {
+                "channel": {"type": "email"}
             }
         }
         

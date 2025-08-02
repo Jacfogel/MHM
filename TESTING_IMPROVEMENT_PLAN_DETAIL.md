@@ -409,6 +409,60 @@ When updating this comprehensive testing plan, follow this format:
    - **Priority**: Low - Documentation organization
    - **Impact**: Cleaner, more maintainable documentation
 
+## 🚨 **CRITICAL ISSUES - IMMEDIATE ACTION REQUIRED**
+
+### TestUserFactory Widespread Failures ⚠️ **CRITICAL**
+
+**Issue Summary**: 23 test failures across behavior, integration, and UI test suites due to TestUserFactory methods not properly creating users despite returning success indicators.
+
+**Technical Details**:
+- **Affected Test Suites**:
+  - `tests/behavior/test_utilities_demo.py`: 5 test failures in comprehensive user type testing
+  - `tests/integration/test_user_creation.py`: 3 test failures in user creation scenarios  
+  - `tests/integration/test_account_lifecycle.py`: 1 test failure in account lifecycle testing
+  - `tests/ui/test_account_creation_ui.py`: 3 test failures in UI integration testing
+  - Other behavior tests: Multiple failures in account management, conversation, interaction handlers, and user context tests
+
+- **Root Cause Analysis**:
+  - **TestUserFactory Methods**: All failing tests use `TestUserFactory` methods (`create_basic_user`, `create_email_user`, etc.)
+  - **Success Indicators**: Methods return `True` or user IDs, indicating successful user creation
+  - **Data Persistence Issue**: `get_user_data()` calls return empty dictionaries `{}` instead of user data
+  - **File System Investigation**: User data files not being created in expected test directories
+
+- **Test Fixture Conflicts**:
+  - **Session-Scoped Fixture**: `patch_user_data_dirs` in `tests/conftest.py` patches `BASE_DATA_DIR` to `tests/data`
+  - **Function-Scoped Fixture**: `mock_config` patches `BASE_DATA_DIR` to temporary test directories
+  - **Conflict Resolution**: Fixtures not properly coordinated, leading to inconsistent test environments
+  - **Module-Level Imports**: `core.user_management` imports `core.config` at module level, making `patch()` ineffective
+
+**Error Patterns**:
+- **KeyError: 'account'**: Tests expecting user data structure but getting empty dictionaries
+- **KeyError: 'preferences'**: Same pattern for preferences data
+- **KeyError: 'context'**: Same pattern for context data
+- **AssertionError**: Tests failing when trying to access expected user data fields
+
+**Impact Assessment**:
+- **Test Reliability**: 95.5% success rate (488 passing, 23 failed) - significant degradation from 99.8%
+- **Development Blockers**: All UI testing, interaction manager testing, and AI chatbot testing blocked
+- **Test Coverage**: Behavior tests for core functionality cannot be trusted until resolved
+- **Integration Testing**: User creation and account lifecycle tests unreliable
+
+**Immediate Actions Required**:
+1. **TestUserFactory Fix**: Ensure proper BASE_DATA_DIR patching during user creation
+2. **Fixture Coordination**: Resolve conflicts between session-scoped and function-scoped fixtures
+3. **Module Import Analysis**: Investigate module-level imports affecting patch effectiveness
+4. **Test Environment Validation**: Verify test data directories are properly configured
+
+**Files Affected**:
+- **Test Files**: Multiple behavior, integration, and UI test files
+- **Test Utilities**: `tests/test_utilities.py` - TestUserFactory methods
+- **Test Configuration**: `tests/conftest.py` - fixture definitions
+- **Core Modules**: `core/user_management.py`, `core/config.py` - module-level imports
+
+**Status**: Critical blocker requiring immediate attention before any further testing work can proceed
+
+## 🎯 Current Testing Priorities
+
 ## 🎯 **Success Criteria - SIGNIFICANTLY IMPROVED** ✅
 
 ### **Quantitative Goals - MAJOR PROGRESS**

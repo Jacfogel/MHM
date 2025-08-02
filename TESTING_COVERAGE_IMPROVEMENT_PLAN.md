@@ -33,7 +33,31 @@
 1. ✅ **Error Handling** - 10 behavior tests
 2. ✅ **Config** - 5 behavior tests
 
-## 🎯 Next Priority: Individual Dialog Testing
+## 🚨 **CRITICAL BLOCKERS - IMMEDIATE ACTION REQUIRED**
+
+### TestUserFactory Widespread Failures ⚠️ **CRITICAL**
+
+**Issue**: 23 test failures across behavior, integration, and UI test suites due to TestUserFactory methods not properly creating users.
+
+**Impact**: 
+- Test success rate dropped from 99.8% to 95.5% (488 passing, 23 failed)
+- All UI testing, interaction manager testing, and AI chatbot testing blocked
+- Behavior tests for core functionality cannot be trusted
+
+**Root Cause**: 
+- TestUserFactory methods return success but don't actually save user data
+- BASE_DATA_DIR patching issues during user creation
+- Test fixture conflicts between session-scoped and function-scoped fixtures
+- Module-level imports affecting patch effectiveness
+
+**Solution Required**: 
+- Fix TestUserFactory methods to properly patch BASE_DATA_DIR during user creation
+- Resolve fixture conflicts and ensure consistent test environments
+- Investigate module-level imports and their impact on patching
+
+**Priority**: **CRITICAL** - Must be resolved before any further testing work can proceed
+
+## 🎯 Current Testing Priorities
 
 ### **Priority 1: Individual Dialog Testing (0/8 modules)**
 - **Account Creator Dialog** (`ui/dialogs/account_creator_dialog.py`)

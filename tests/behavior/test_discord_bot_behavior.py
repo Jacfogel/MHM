@@ -154,17 +154,20 @@ class TestDiscordBotBehavior:
                     assert bot.bot is not None, "Bot instance should be created"
                     assert bot.get_status() == ChannelStatus.READY, "Status should be READY"
 
+    @pytest.mark.slow
     def test_discord_bot_initialization_without_token(self, test_data_dir):
         """Test that Discord bot initialization fails gracefully without token"""
         bot = DiscordBot()
         
         with patch('core.config.DISCORD_BOT_TOKEN', None):
-            result = asyncio.run(bot.initialize())
-            
-            # The bot might still succeed if it has a real token, so we test the behavior
-            assert isinstance(result, bool), "Initialization should return boolean"
-            # Note: In a real environment without token, this would fail
+            with patch.object(bot, '_check_dns_resolution', return_value=False):
+                with patch.object(bot, '_check_network_connectivity', return_value=False):
+                    result = asyncio.run(bot.initialize())
+                    
+                    # Should fail gracefully without token and network connectivity
+                    assert isinstance(result, bool), "Initialization should return boolean"
 
+    @pytest.mark.slow
     def test_discord_bot_initialization_with_dns_failure(self, test_data_dir):
         """Test that Discord bot initialization handles DNS failures gracefully"""
         bot = DiscordBot()
@@ -172,11 +175,13 @@ class TestDiscordBotBehavior:
         with patch('core.config.DISCORD_BOT_TOKEN', 'valid_token'):
             with patch.object(bot, '_check_dns_resolution', return_value=False):
                 with patch.object(bot, '_check_network_connectivity', return_value=False):
-                    result = asyncio.run(bot.initialize())
-                    
-                    # The bot might still succeed due to fallback mechanisms
-                    assert isinstance(result, bool), "Initialization should return boolean"
-                    # Note: In a real environment with DNS issues, this would fail
+                    with patch('discord.ext.commands.Bot') as mock_bot_class:
+                        mock_bot = MagicMock()
+                        mock_bot_class.return_value = mock_bot
+                        result = asyncio.run(bot.initialize())
+                        
+                        # Should handle DNS failure gracefully
+                        assert isinstance(result, bool), "Initialization should return boolean"
 
     def test_discord_bot_shutdown_actually_cleans_up(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot shutdown actually cleans up resources"""
@@ -327,21 +332,11 @@ class TestDiscordBotIntegration:
     @pytest.fixture
     def test_user_setup(self, test_data_dir):
         """Set up test user data for integration tests"""
+        from tests.test_utilities import TestUserFactory
+        
         user_id = "test_discord_user"
-        ensure_user_directory(user_id)
-        
-        account_data = {
-            "name": "Test Discord User",
-            "discord_user_id": "123456789",
-            "email": "test@example.com"
-        }
-        save_user_account_data(user_id, account_data)
-        
-        preferences_data = {
-            "discord_enabled": True,
-            "discord_channel": "test-channel"
-        }
-        save_user_preferences_data(user_id, preferences_data)
+        success = TestUserFactory.create_discord_user(user_id)
+        assert success, f"Failed to create Discord test user {user_id}"
         
         return user_id
 
@@ -392,6 +387,7 @@ class TestDiscordBotIntegration:
             assert isinstance(all_user_ids, list), "get_all_user_ids should return a list"
             assert len(all_user_ids) > 0, "Should have at least one user for testing"
 
+    @pytest.mark.slow
     def test_discord_bot_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that Discord bot error handling preserves system stability"""
         bot = DiscordBot()
@@ -442,6 +438,7 @@ class TestDiscordBotIntegration:
         assert "connection_status" in health_status, "Should provide health status"
         assert isinstance(health_status["connection_status"], str), "Connection status should be string"
 
+    @pytest.mark.slow
     def test_discord_bot_error_recovery_with_real_files(self, test_data_dir):
         """Test Discord bot error recovery with real files"""
         bot = DiscordBot()

@@ -49,7 +49,7 @@ class TestServiceUtilitiesBehavior:
     
     def test_throttler_should_run_respects_interval(self, test_data_dir):
         """Test that Throttler should_run respects the time interval."""
-        throttler = Throttler(0.1)  # 100ms interval for faster testing
+        throttler = Throttler(0.01)  # 10ms interval for faster testing
 
         # Current Throttler behavior: always returns True when last_run is None
         # This is a known issue - the Throttler never sets last_run on first call
@@ -58,7 +58,7 @@ class TestServiceUtilitiesBehavior:
         assert throttler.last_run is None, "last_run remains None (known issue)"
 
         # Wait for interval to pass
-        time.sleep(0.15)
+        time.sleep(0.015)  # Wait longer than interval
         
         # Even after waiting, should_run still returns True because last_run is None
         assert throttler.should_run() is True
@@ -294,7 +294,7 @@ class TestServiceUtilitiesBehavior:
         with patch('core.service_utilities.socket.create_connection') as mock_socket:
             mock_socket.side_effect = OSError("Connection timeout")
             # Should not raise exception
-            result = wait_for_network(timeout=1)
+            result = wait_for_network(timeout=0.1)  # Reduced timeout for faster testing
             assert result is False, "Should handle network timeout gracefully"
         
         # Test 2: Process iteration error
@@ -313,30 +313,30 @@ class TestServiceUtilitiesBehavior:
     def test_service_utilities_performance_under_load(self, test_data_dir):
         """Test that service utilities perform well under load."""
         # Arrange - Create throttler with short interval
-        throttler = Throttler(0.1)  # 100ms interval
+        throttler = Throttler(0.01)  # 10ms interval for faster testing
         
         # Act - Test multiple rapid calls
         results = []
         for i in range(10):
             results.append(throttler.should_run())
-            time.sleep(0.05)  # 50ms between calls
+            time.sleep(0.005)  # 5ms between calls for faster testing
         
         # Assert - Should throttle appropriately
         assert results[0] is True, "First call should succeed"
         assert results[1] is True, "Second call should succeed (no last_run set yet)"
         # After the interval passes, some calls should be throttled
-        # Note: With 50ms delays and 100ms interval, we might not see throttling in this test
+        # Note: With 5ms delays and 10ms interval, we might not see throttling in this test
         # The important thing is that the function handles multiple calls without errors
         assert len(results) == 10, "Should handle all calls without errors"
     
     def test_service_utilities_data_integrity(self, test_data_dir):
         """Test that service utilities maintain data integrity."""
         # Arrange - Test throttler state persistence
-        throttler = Throttler(0.1)  # 100ms interval for testing
+        throttler = Throttler(0.01)  # 10ms interval for faster testing
         
         # Act - Multiple operations
         first_result = throttler.should_run()
-        time.sleep(0.05)  # Small delay
+        time.sleep(0.005)  # Small delay
         second_result = throttler.should_run()
         
         # Assert - State should be maintained correctly
@@ -344,7 +344,7 @@ class TestServiceUtilitiesBehavior:
         assert second_result is True, "Second call should succeed (no last_run set yet)"
         
         # Wait for interval to pass and set last_run
-        time.sleep(0.15)  # Wait longer than interval
+        time.sleep(0.015)  # Wait longer than interval
         third_result = throttler.should_run()
         assert third_result is True, "Third call should succeed (after interval)"
         # Note: last_run timing might vary, focus on core functionality

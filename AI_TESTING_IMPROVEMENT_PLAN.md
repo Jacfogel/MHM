@@ -25,6 +25,52 @@
 16. **Error Handling** - 10 behavior tests
 17. **Config** - 5 behavior tests
 
+## 🎯 Current Testing Priorities
+
+### ⚠️ **CRITICAL - IMMEDIATE ACTION REQUIRED**
+
+**TestUserFactory Fix** - Fix widespread test failures affecting 23 tests
+- **Issue**: TestUserFactory methods return success but don't actually save user data
+- **Impact**: 95.5% test success rate (down from 99.8%), blocking all dependent testing
+- **Root Cause**: BASE_DATA_DIR patching issues during user creation
+- **Solution**: Proper fixture coordination and module-level import handling
+- **Priority**: **CRITICAL** - All UI testing, interaction manager testing, and AI chatbot testing blocked
+
+**Test Fixture Conflicts Resolution** - Resolve session-scoped vs function-scoped fixture conflicts
+- **Issue**: patch_user_data_dirs and mock_config fixtures conflicting
+- **Impact**: Inconsistent test environments and unreliable results
+- **Solution**: Proper fixture coordination and BASE_DATA_DIR patching strategy
+- **Priority**: **CRITICAL** - Contributing to TestUserFactory failures
+
+### 🟡 **IN PROGRESS**
+
+**UI Layer Testing** - Main UI Application completed (21 tests)
+- **Status**: Main UI Application testing complete
+- **Next**: Individual Dialog Testing (blocked by TestUserFactory fix)
+- **Impact**: Ensures UI components work correctly and handle user interactions properly
+
+### ⚠️ **BLOCKED - DEPENDS ON TESTUSERFACTORY FIX**
+
+**Individual Dialog Testing** - Account creator, task management, user profile dialogs
+- **Status**: Ready to start but blocked by TestUserFactory issues
+- **Dependency**: TestUserFactory fix for proper user data creation
+- **Impact**: Ensures each dialog works correctly and handles data properly
+
+**Tag Widget Testing** - Unified TagWidget for both management and selection modes
+- **Status**: TagWidget implementation complete, testing blocked
+- **Dependency**: TestUserFactory fix for proper user data creation
+- **Impact**: Ensures unified tag system works correctly in both contexts
+
+**Interaction Manager Testing** - Refined interaction manager and suggestion system
+- **Status**: Interaction manager refined, testing blocked
+- **Dependency**: TestUserFactory fix for proper user data creation
+- **Impact**: Ensures conversational AI works correctly and suggestions appear appropriately
+
+**AI Chatbot Lock Management Testing** - Improved lock management and fallback system
+- **Status**: Lock management improved, testing blocked
+- **Dependency**: TestUserFactory fix for proper user data creation
+- **Impact**: Ensures reliable AI responses and proper fallback when AI is busy
+
 ## 🎯 Next Priority: Individual Dialog Testing
 - **Account Creator Dialog** (`ui/dialogs/account_creator_dialog.py`)
 - **Task Management Dialog** (`ui/dialogs/task_management_dialog.py`)

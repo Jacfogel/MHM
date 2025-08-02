@@ -163,24 +163,10 @@ class TestAIChatBotBehavior:
         """Test that AI chatbot actually uses user context for personalized responses."""
         user_id = "test_context_user"
         
-        # Create user directory first
-        from core.config import ensure_user_directory
-        ensure_user_directory(user_id)
-        
-        # Create test user data with correct structure
-        account_data = {
-            "name": "Test User",
-            "email": "test@example.com"
-        }
-        preferences_data = {
-            "communication_style": "encouraging",
-            "ai_interaction": "enabled"
-        }
-        
-        # Save user data using correct structure
-        from core.user_management import save_user_account_data, save_user_preferences_data
-        save_user_account_data(user_id, account_data)
-        save_user_preferences_data(user_id, preferences_data)
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True)
+        assert success, "Test user should be created successfully"
         
         chatbot = AIChatBotSingleton()
         
@@ -332,16 +318,10 @@ class TestAIChatBotBehavior:
         context_manager = UserContextManager()
         user_id = "test_context_integration_user"
         
-        # Create user directory and data
-        from core.config import ensure_user_directory
-        from core.user_management import save_user_account_data, save_user_preferences_data
-        ensure_user_directory(user_id)
-        
-        account_data = {"name": "Test User", "email": "test@example.com"}
-        preferences_data = {"communication_style": "supportive", "ai_interaction": "enabled"}
-        
-        save_user_account_data(user_id, account_data)
-        save_user_preferences_data(user_id, preferences_data)
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True)
+        assert success, "Test user should be created successfully"
         
         # Get user context
         context = context_manager.get_user_context(user_id, include_conversation_history=True)
@@ -434,31 +414,16 @@ class TestAIChatBotIntegration:
         """Test AI chatbot with real user data files."""
         user_id = "integration_test_user"
         
-        # Create user directory and data
-        from core.config import ensure_user_directory
-        from core.user_management import save_user_account_data, save_user_preferences_data, load_user_account_data
-        ensure_user_directory(user_id)
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_full_featured_user(user_id)
+        assert success, "Test user should be created successfully"
         
-        # Create comprehensive user data with correct structure
-        account_data = {
-            "name": "Integration Test User",
-            "email": "test@example.com",
-            "timezone": "UTC"
-        }
-        preferences_data = {
-            "communication_style": "encouraging",
-            "message_frequency": "daily",
-            "ai_interaction": "enabled"
-        }
-        
-        # Save user data
-        save_user_account_data(user_id, account_data)
-        save_user_preferences_data(user_id, preferences_data)
-        
-        # Verify user data was saved
+        # Verify user data was saved by loading it
+        from core.user_management import load_user_account_data
         loaded_account = load_user_account_data(user_id)
         assert loaded_account is not None, "User account should be saved and retrievable"
-        assert loaded_account.get('name') == "Integration Test User", "User account should be correct"
+        assert loaded_account.get('internal_username') == user_id, "User account should be correct"
         
         # Test AI chatbot with this user data
         chatbot = AIChatBotSingleton()

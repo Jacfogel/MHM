@@ -451,22 +451,21 @@ class TestConversationManagerIntegration:
         manager = ConversationManager()
         test_user_id = "real-user-test"
         
-        # Create real user data files
-        user_dir = os.path.join(test_data_dir, "users", test_user_id)
-        os.makedirs(user_dir, exist_ok=True)
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True)
+        assert success, "Test user should be created successfully"
         
-        # Create preferences.json with check-in settings
-        preferences_data = {
-            "preferences": {
-                "checkins": {
-                    "enabled": True,
-                    "questions": ["mood", "energy", "daily_reflection"],
-                    "welcome_message": "Welcome to your daily check-in!"
-                }
+        # Update user preferences with check-in settings
+        from core.user_management import update_user_preferences
+        update_success = update_user_preferences(test_user_id, {
+            "checkin_settings": {
+                "enabled": True,
+                "questions": ["mood", "energy", "daily_reflection"],
+                "welcome_message": "Welcome to your daily check-in!"
             }
-        }
-        with open(os.path.join(user_dir, "preferences.json"), 'w') as f:
-            json.dump(preferences_data, f)
+        })
+        assert update_success, "User preferences should be updated successfully"
         
         # Mock response tracking functions
         with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \

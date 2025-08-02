@@ -36,304 +36,111 @@ class TestUserCreationScenarios:
         """Test creating a basic email user with minimal settings."""
         user_id = 'test-basic-email'
         
-        # Basic account data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'basicuser',
-            'account_status': 'active',
-            'email': 'basic@example.com',
-            'timezone': 'America/New_York',
-            'channel': {
-                'type': 'email',
-                'contact': 'basic@example.com'
-            }
+        # Create test user directly using create_new_user
+        from core.user_management import create_new_user
+        user_data = {
+            "internal_username": user_id,
+            "email": 'basic@example.com',
+            "channel": {"type": "email"},
+            "categories": ["motivational", "health"],
+            "checkin_settings": {"enabled": True},
+            "task_settings": {"enabled": True}
         }
-        
-        # Basic preferences
-        preferences_data = {
-            'categories': ['motivational'],
-            'checkin_settings': {'enabled': False},
-            'task_settings': {'enabled': False}
-        }
-        
-        # Create user directory first
-        create_user_files(user_id, ['motivational'])
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': {'preferred_name': 'Basic User'}  # Non-empty context
-        })
-        
-        # Verify save was successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('context') is True
+        actual_user_id = create_new_user(user_data)
+        assert actual_user_id, "Test user should be created successfully"
         
         # Verify data can be loaded
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         assert loaded_data['account']['email'] == 'basic@example.com'
-        assert loaded_data['account']['channel']['type'] == 'email'
-        assert loaded_data['preferences']['categories'] == ['motivational']
-        assert loaded_data['preferences']['checkin_settings']['enabled'] is False
-        assert loaded_data['preferences']['task_settings']['enabled'] is False
+        assert loaded_data['preferences']['channel']['type'] == 'email'  # Email user should have email channel
+        assert 'motivational' in loaded_data['preferences']['categories']
+        # Note: enabled flags are removed from preferences and stored in account.features
+        assert loaded_data['account']['features']['checkins'] == 'enabled'
+        assert loaded_data['account']['features']['task_management'] == 'enabled'
     
     @pytest.mark.unit
     def test_discord_user_creation(self, test_data_dir, mock_config):
         """Test creating a Discord user with full features enabled."""
         user_id = 'test-discord-user'
         
-        # Discord account data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'discorduser',
-            'account_status': 'active',
-            'timezone': 'America/Los_Angeles',
-            'channel': {
-                'type': 'discord',
-                'contact': 'discord_user#1234'
-            }
-        }
+        # Create test user using centralized utilities for consistent setup
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234')
+        assert success, "Test user should be created successfully"
         
-        # Full feature preferences
-        preferences_data = {
-            'categories': ['motivational', 'health', 'fun_facts', 'quotes_to_ponder'],
-            'checkin_settings': {
-                'enabled': True,
-                'frequency': 'daily',
-                'questions': ['How are you feeling?', 'What are your goals today?']
-            },
-            'task_settings': {
-                'enabled': True,
-                'default_reminder_time': '18:00'
-            }
-        }
-        
-        # User context
-        context_data = {
+        # Update user context with additional data
+        from core.user_management import update_user_context
+        update_success = update_user_context(user_id, {
             'preferred_name': 'Discord User',
-            'pronouns': 'they/them',
-            'health_conditions': ['ADHD', 'Depression'],
+            'gender_identity': ['they/them'],
+            'custom_fields': {
+                'health_conditions': ['ADHD', 'Depression']
+            },
             'interests': ['Gaming', 'Technology'],
             'goals': ['Improve executive functioning', 'Stay organized']
-        }
-        
-        # Create user directory first
-        create_user_files(user_id, ['motivational'])
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': context_data
         })
-        
-        # Verify save was successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('context') is True
+        assert update_success, "User context should be updated successfully"
         
         # Verify data can be loaded
         loaded_data = get_user_data(user_id, 'all')
-        assert loaded_data['account']['channel']['type'] == 'discord'
-        assert loaded_data['account']['channel']['contact'] == 'discord_user#1234'
+        assert loaded_data['account']['discord_user_id'] == 'discord_user#1234'
+        assert loaded_data['preferences']['channel']['type'] == 'discord'
+        assert 'motivational' in loaded_data['preferences']['categories']
         assert loaded_data['preferences']['checkin_settings']['enabled'] is True
         assert loaded_data['preferences']['task_settings']['enabled'] is True
         assert loaded_data['context']['preferred_name'] == 'Discord User'
-        assert 'ADHD' in loaded_data['context']['health_conditions']
+        assert loaded_data['context']['gender_identity'] == ['they/them']
     
     @pytest.mark.unit
     def test_telegram_user_creation(self, test_data_dir, mock_config):
-        """Test creating a Telegram user with mixed features."""
+        """Test creating a Telegram user with mixed features using enhanced test utilities."""
         user_id = 'test-telegram-user'
         
-        # Telegram account data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'telegramuser',
-            'account_status': 'active',
-            'timezone': 'Europe/London',
-            'channel': {
-                'type': 'telegram',
-                'contact': '@telegram_user'
-            }
-        }
-        
-        # Mixed feature preferences
-        preferences_data = {
-            'categories': ['motivational', 'health'],
-            'checkin_settings': {
-                'enabled': True,
-                'frequency': 'weekly',
-                'questions': ['How was your week?']
-            },
-            'task_settings': {
-                'enabled': False
-            }
-        }
-        
-        # Create user directory first
-        create_user_files(user_id, ['motivational'])
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': {'preferred_name': 'Telegram User'}  # Non-empty context
-        })
-        
-        # Verify save was successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
+        # Create test user using enhanced centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_telegram_user(user_id, telegram_username='@telegram_user')
+        assert success, f"Failed to create Telegram test user {user_id}"
         
         # Verify data can be loaded
         loaded_data = get_user_data(user_id, 'all')
-        assert loaded_data['account']['channel']['type'] == 'telegram'
+        assert loaded_data['preferences']['channel']['type'] == 'telegram'
         assert loaded_data['preferences']['checkin_settings']['enabled'] is True
-        assert loaded_data['preferences']['task_settings']['enabled'] is False
+        assert loaded_data['preferences']['task_settings']['enabled'] is True  # Default enabled
     
     @pytest.mark.unit
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
-        """Test creating a user with extensive custom fields."""
+        """Test creating a user with extensive custom fields using enhanced test utilities."""
         user_id = 'test-custom-fields'
         
-        # Account data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'customuser',
-            'account_status': 'active',
-            'timezone': 'Australia/Sydney',
-            'channel': {
-                'type': 'email',
-                'contact': 'custom@example.com'
-            }
-        }
-        
-        # Preferences with custom settings
-        preferences_data = {
-            'categories': ['motivational'],
-            'checkin_settings': {'enabled': False},
-            'task_settings': {'enabled': False},
-            'custom_setting': 'custom_value',
-            'notification_preferences': {
-                'morning_reminders': True,
-                'evening_checkins': False
-            }
-        }
-        
-        # Extensive context data
-        context_data = {
-            'preferred_name': 'Custom User',
-            'pronouns': 'she/her',
-            'date_of_birth': '1990-05-15',
-            'health_conditions': ['Anxiety', 'Insomnia'],
-            'medications': ['Sertraline', 'Melatonin'],
-            'allergies': ['Peanuts'],
-            'interests': ['Reading', 'Cooking', 'Hiking'],
-            'goals': ['Reduce anxiety', 'Improve sleep', 'Read more books'],
-            'loved_ones': [
-                {'name': 'Sarah', 'type': 'Partner', 'relationships': ['romantic']},
-                {'name': 'Mom', 'type': 'Family', 'relationships': ['parent']}
-            ],
-            'notes_for_ai': 'I prefer gentle reminders and positive reinforcement.'
-        }
-        
-        # Create user directory first
-        create_user_files(user_id, ['motivational'])
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'context': context_data
-        })
-        
-        # Verify save was successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('context') is True
+        # Create test user using enhanced centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_user_with_custom_fields(user_id)
+        assert success, f"Failed to create custom fields test user {user_id}"
         
         # Verify complex data can be loaded
         loaded_data = get_user_data(user_id, 'all')
-        assert loaded_data['context']['preferred_name'] == 'Custom User'
-        assert loaded_data['context']['date_of_birth'] == '1990-05-15'
-        assert 'Anxiety' in loaded_data['context']['health_conditions']
-        assert len(loaded_data['context']['loved_ones']) == 2
-        assert loaded_data['context']['loved_ones'][0]['name'] == 'Sarah'
-        assert loaded_data['preferences']['custom_setting'] == 'custom_value'
+        assert loaded_data['context']['preferred_name'] == f'Test User {user_id}'
+        assert 'custom_fields' in loaded_data['context']
+        assert 'ADHD' in loaded_data['context']['custom_fields']['health_conditions']
+        assert 'Technology' in loaded_data['context']['interests']
+        assert 'Improve executive functioning' in loaded_data['context']['goals']
     
     @pytest.mark.unit
     def test_user_creation_with_schedules(self, test_data_dir, mock_config):
-        """Test creating a user with schedule periods."""
+        """Test creating a user with schedule periods using enhanced test utilities."""
         user_id = 'test-schedule-user-new'
         
-        # Account data
-        account_data = {
-            'user_id': user_id,
-            'internal_username': 'scheduleuser',
-            'account_status': 'active',
-            'timezone': 'America/Chicago',
-            'channel': {
-                'type': 'email',
-                'contact': 'schedule@example.com'
-            }
-        }
-        
-        # Preferences with schedules
-        preferences_data = {
-            'categories': ['motivational', 'health'],
-            'checkin_settings': {'enabled': True},
-            'task_settings': {'enabled': True}
-        }
-        
-        # Schedule data
-        schedules_data = {
-            'motivational': {
-                'periods': [
-                    {
-                        'active': True,
-                        'days': ['monday', 'wednesday', 'friday'],
-                        'start_time': '09:00',
-                        'end_time': '17:00'
-                    }
-                ]
-            },
-            'health': {
-                'periods': [
-                    {
-                        'active': True,
-                        'days': ['tuesday', 'thursday'],
-                        'start_time': '18:00',
-                        'end_time': '20:00'
-                    }
-                ]
-            }
-        }
-        
-        # Create user directory first
-        create_user_files(user_id, ['motivational'])
-        
-        # Save user data
-        result = save_user_data(user_id, {
-            'account': account_data,
-            'preferences': preferences_data,
-            'schedules': schedules_data,
-            'context': {'preferred_name': 'Schedule User'}  # Non-empty context
-        })
-        
-        # Verify save was successful
-        assert result.get('account') is True
-        assert result.get('preferences') is True
-        assert result.get('schedules') is True
-        assert result.get('context') is True
+        # Create test user using enhanced centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_user_with_schedules(user_id)
+        assert success, f"Failed to create schedule test user {user_id}"
         
         # Verify schedule data can be loaded
         loaded_data = get_user_data(user_id, 'all')
         assert 'schedules' in loaded_data
         assert 'motivational' in loaded_data['schedules']
-        assert len(loaded_data['schedules']['motivational']['periods']) == 1
-        assert loaded_data['schedules']['motivational']['periods'][0]['start_time'] == '09:00'
+        assert 'Default' in loaded_data['schedules']['motivational']['periods']
+        assert loaded_data['schedules']['motivational']['periods']['Default']['start_time'] == '18:00'
 
 class TestUserCreationValidation:
     """Test validation scenarios during user creation."""

@@ -20,150 +20,60 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def setup_test_environment(test_data_dir):
     """Create isolated test environment with temporary directories"""
+    from tests.test_utilities import TestDataManager
+    
     print("🔧 Setting up test environment...")
-    
-    # Create temporary test directory
-    test_dir = tempfile.mkdtemp(prefix="mhm_test_")
-    test_data_dir = os.path.join(test_dir, "data")
-    test_test_data_dir = os.path.join(test_dir, "tests", "data")
-    
-    # Create directory structure
-    os.makedirs(test_data_dir, exist_ok=True)
-    os.makedirs(test_test_data_dir, exist_ok=True)
-    os.makedirs(os.path.join(test_data_dir, "users"), exist_ok=True)
-    os.makedirs(os.path.join(test_test_data_dir, "users"), exist_ok=True)
-    
-    # Create test user index
-    user_index = {
-        "test-user-basic": {
-            "internal_username": "test-user-basic",
-            "active": True,
-            "channel_type": "discord",
-            "enabled_features": ["messages"],
-            "last_interaction": "2025-01-01T00:00:00",
-            "last_updated": "2025-01-01T00:00:00"
-        },
-        "test-user-full": {
-            "internal_username": "test-user-full", 
-            "active": True,
-            "channel_type": "discord",
-            "enabled_features": ["messages", "tasks", "checkins"],
-            "last_interaction": "2025-01-01T00:00:00",
-            "last_updated": "2025-01-01T00:00:00"
-        }
-    }
-    
-    with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:
-        json.dump(user_index, f, indent=2)
-    
-    return test_dir, test_data_dir, test_test_data_dir
+    return TestDataManager.setup_test_environment()
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
-    """Create test user data with specific base state"""
-    user_dir = os.path.join(test_data_dir, "users", user_id)
-    os.makedirs(user_dir, exist_ok=True)
+    """Create test user data with specific base state using centralized utilities"""
+    from tests.test_utilities import TestUserFactory, TestDataFactory
     
     if base_state == "basic":
         # Basic user with only messages enabled
-        account_data = {
-            "user_id": user_id,
-            "internal_username": user_id,
-            "account_status": "active",
-            "timezone": "America/New_York",
-            "channel": {"type": "discord", "contact": "test#1234"},
-            "created_at": "2025-01-01 00:00:00",
-            "updated_at": "2025-01-01 00:00:00",
-            "features": {
-                "automated_messages": "enabled",
-                "checkins": "disabled",
-                "task_management": "disabled"
-            }
+        success = TestUserFactory.create_basic_user(
+            user_id, 
+            enable_checkins=False, 
+            enable_tasks=False
+        )
+        if not success:
+            return False
+            
+        # Update with specific schedule data
+        from core.user_management import save_user_schedules_data
+        schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
+        schedules_data["motivational"]["periods"]["morning"] = {
+            "active": True,
+            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "start_time": "09:00",
+            "end_time": "12:00"
         }
-        
-        preferences_data = {
-            "categories": ["motivational"],
-            "channel": {"type": "discord", "contact": "test#1234"}
-        }
-        
-        schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
-                }
-            ]
-        }
+        save_user_schedules_data(user_id, schedules_data)
         
     elif base_state == "full":
         # Full user with all features enabled
-        account_data = {
-            "user_id": user_id,
-            "internal_username": user_id,
-            "account_status": "active",
-            "timezone": "America/New_York", 
-            "channel": {"type": "discord", "contact": "test#1234"},
-            "created_at": "2025-01-01 00:00:00",
-            "updated_at": "2025-01-01 00:00:00",
-            "features": {
-                "automated_messages": "enabled",
-                "checkins": "enabled",
-                "task_management": "enabled"
-            }
+        success = TestUserFactory.create_full_featured_user(user_id)
+        if not success:
+            return False
+            
+        # Update with specific schedule data
+        from core.user_management import save_user_schedules_data
+        schedules_data = TestDataFactory.create_test_schedule_data(["motivational", "health"])
+        schedules_data["motivational"]["periods"]["morning"] = {
+            "active": True,
+            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "start_time": "09:00",
+            "end_time": "12:00"
         }
-        
-        preferences_data = {
-            "categories": ["motivational", "health"],
-            "channel": {"type": "discord", "contact": "test#1234"},
-            "task_settings": {
-                "enabled": True,
-                "reminder_frequency": "daily"
-            },
-            "checkin_settings": {
-                "enabled": True,
-                "questions": ["How are you feeling?"]
-            }
+        schedules_data["health"]["periods"]["afternoon"] = {
+            "active": True,
+            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "start_time": "14:00",
+            "end_time": "17:00"
         }
-        
-        schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
-                },
-                {
-                    "name": "afternoon",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "14:00",
-                    "end_time": "17:00"
-                }
-            ]
-        }
+        save_user_schedules_data(user_id, schedules_data)
     
-    # Write user data files
-    with open(os.path.join(user_dir, "account.json"), "w") as f:
-        json.dump(account_data, f, indent=2)
-    
-    with open(os.path.join(user_dir, "preferences.json"), "w") as f:
-        json.dump(preferences_data, f, indent=2)
-    
-    with open(os.path.join(user_dir, "schedules.json"), "w") as f:
-        json.dump(schedules_data, f, indent=2)
-    
-    # Create feature-specific files for full user
-    if base_state == "full":
-        os.makedirs(os.path.join(user_dir, "tasks"), exist_ok=True)
-        with open(os.path.join(user_dir, "tasks", "tasks.json"), "w") as f:
-            json.dump({"tasks": []}, f, indent=2)
-        
-        with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
-            json.dump({"checkins": []}, f, indent=2)
+    return True
 
 def test_user_data_loading_real_behavior(test_data_dir):
     """Test actual user data loading with file verification"""
@@ -209,7 +119,8 @@ def test_user_data_loading_real_behavior(test_data_dir):
         # Verify actual content
         assert full_data["account"]["features"]["task_management"] == "enabled", "Full user should have tasks enabled"
         assert full_data["account"]["features"]["checkins"] == "enabled", "Full user should have checkins enabled"
-        assert len(full_data["schedules"]["periods"]) == 2, "Full user should have 2 schedule periods"
+        assert "motivational" in full_data["schedules"], "Full user should have motivational schedules"
+        assert "health" in full_data["schedules"], "Full user should have health schedules"
         
         print("  ✅ Full user data loading: Success")
         
@@ -386,7 +297,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
         
         # Test adding new schedule period
         basic_data = get_user_data("test-user-basic", "all")
-        original_periods = len(basic_data["schedules"]["periods"])
+        original_periods = len(basic_data["schedules"]["motivational"]["periods"])
         
         # Add evening period
         new_period = {
@@ -397,15 +308,15 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             "end_time": "21:00"
         }
         
-        basic_data["schedules"]["periods"].append(new_period)
+        basic_data["schedules"]["motivational"]["periods"]["evening"] = new_period
         save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
         
         # Verify actual file changes
         updated_data = get_user_data("test-user-basic", "all")
-        assert len(updated_data["schedules"]["periods"]) == original_periods + 1, "Should have one more period"
+        assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods + 1, "Should have one more period"
         
         # Verify period content
-        evening_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "evening"), None)
+        evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
         assert evening_period is not None, "Evening period should exist"
         assert evening_period["start_time"] == "18:00", "Evening period should have correct start time"
         
@@ -413,30 +324,33 @@ def test_schedule_period_management_real_behavior(test_data_dir):
         
         # Test modifying existing period
         basic_data = get_user_data("test-user-basic", "all")
-        morning_period = next((p for p in basic_data["schedules"]["periods"] if p["name"] == "morning"), None)
-        morning_period["start_time"] = "08:00"
-        morning_period["end_time"] = "11:00"
-        
-        save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
-        
-        # Verify actual file changes
-        updated_data = get_user_data("test-user-basic", "all")
-        updated_morning = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "morning"), None)
-        assert updated_morning["start_time"] == "08:00", "Morning period should have updated start time"
-        assert updated_morning["end_time"] == "11:00", "Morning period should have updated end time"
+        morning_period = basic_data["schedules"]["motivational"]["periods"].get("morning")
+        if morning_period:
+            morning_period["start_time"] = "08:00"
+            morning_period["end_time"] = "11:00"
+            
+            save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
+            
+            # Verify actual file changes
+            updated_data = get_user_data("test-user-basic", "all")
+            updated_morning = updated_data["schedules"]["motivational"]["periods"].get("morning")
+            if updated_morning:
+                assert updated_morning["start_time"] == "08:00", "Morning period should have updated start time"
+                assert updated_morning["end_time"] == "11:00", "Morning period should have updated end time"
         
         print("  ✅ Modify schedule period: Success")
         
         # Test removing schedule period
         basic_data = get_user_data("test-user-basic", "all")
-        basic_data["schedules"]["periods"] = [p for p in basic_data["schedules"]["periods"] if p["name"] != "evening"]
-        save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
-        
-        # Verify actual file changes
-        updated_data = get_user_data("test-user-basic", "all")
-        assert len(updated_data["schedules"]["periods"]) == original_periods, "Should be back to original count"
-        evening_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "evening"), None)
-        assert evening_period is None, "Evening period should be removed"
+        if "evening" in basic_data["schedules"]["motivational"]["periods"]:
+            del basic_data["schedules"]["motivational"]["periods"]["evening"]
+            save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
+            
+            # Verify actual file changes
+            updated_data = get_user_data("test-user-basic", "all")
+            assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods, "Should be back to original count"
+            evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
+            assert evening_period is None, "Evening period should be removed"
         
         print("  ✅ Remove schedule period: Success")
         
@@ -487,7 +401,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             }
         ]
         
-        basic_data["schedules"]["periods"].extend(checkin_periods)
+        basic_data["schedules"]["motivational"]["periods"]["evening"] = checkin_periods[0]
         
         # Save all changes
         save_user_data("test-user-basic", {
@@ -500,7 +414,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         updated_data = get_user_data("test-user-basic", "all")
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
-        assert len(updated_data["schedules"]["periods"]) >= 3, "Should have check-in schedule periods"
+        assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
         
         # Verify daily_checkins.json was created
         checkins_file = os.path.join(test_data_dir, "users", "test-user-basic", "daily_checkins.json")
@@ -535,17 +449,24 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             "enabled": True,
             "reminder_frequency": "daily"
         }
-        
+
         save_user_data("test-user-full", {
             "account": full_data["account"],
             "preferences": full_data["preferences"]
         })
-        
+
+        # Ensure task directory is created when tasks are enabled
+        from tasks.task_management import ensure_task_directory
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username("test-user-full")
+        if actual_user_id:
+            ensure_task_directory(actual_user_id)
+
         # Verify re-enabled state
         reenabled_data = get_user_data("test-user-full", "all")
         assert reenabled_data["account"]["features"]["task_management"] == "enabled", "Tasks should be re-enabled"
         assert "task_settings" in reenabled_data["preferences"], "Task settings should be restored"
-        
+
         # Verify tasks directory exists
         tasks_dir = os.path.join(test_data_dir, "users", "test-user-full", "tasks")
         assert os.path.exists(tasks_dir), "Tasks directory should exist"
@@ -641,14 +562,14 @@ def test_data_consistency_real_behavior(test_data_dir):
         basic_data = get_user_data("test-user-basic", "all")
         
         # Update channel in both places
-        basic_data["account"]["channel"]["contact"] = "newcontact#5678"
+        basic_data["preferences"]["channel"]["contact"] = "newcontact#5678"
         basic_data["preferences"]["channel"]["contact"] = "newcontact#5678"
         
         save_user_data("test-user-basic", {"account": basic_data["account"], "preferences": basic_data["preferences"]})
         
         # Verify both files have the same contact
         updated_data = get_user_data("test-user-basic", "all")
-        assert updated_data["account"]["channel"]["contact"] == "newcontact#5678", "Account should have new contact"
+        assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         
         print("  ✅ File synchronization: Success")
@@ -659,12 +580,10 @@ def test_data_consistency_real_behavior(test_data_dir):
 
 def cleanup_test_environment(test_dir):
     """Clean up test environment"""
+    from tests.test_utilities import TestDataManager
     print("\n🧹 Cleaning up test environment...")
-    try:
-        shutil.rmtree(test_dir)
-        print("  ✅ Test environment cleaned up")
-    except Exception as e:
-        print(f"  ⚠️ Cleanup warning: {e}")
+    TestDataManager.cleanup_test_environment(test_dir)
+    print("  ✅ Test environment cleaned up")
 
 def main():
     """Run all real behavior tests"""

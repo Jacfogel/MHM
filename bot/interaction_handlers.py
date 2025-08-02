@@ -215,7 +215,7 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
         
         # Complete the task
-        if complete_task(user_id, task['task_id']):
+        if complete_task(user_id, task.get('task_id', task.get('id'))):
             return InteractionResponse(f"✅ Completed: {task['title']}", True)
         else:
             return InteractionResponse("❌ Failed to complete task. Please try again.", True)
@@ -237,7 +237,7 @@ class TaskManagementHandler(InteractionHandler):
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
         
         # Delete the task
-        if delete_task(user_id, task['task_id']):
+        if delete_task(user_id, task.get('task_id', task.get('id'))):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
             return InteractionResponse("❌ Failed to delete task. Please try again.", True)
@@ -277,7 +277,7 @@ class TaskManagementHandler(InteractionHandler):
             )
         
         # Update the task
-        if update_task(user_id, task['task_id'], updates):
+        if update_task(user_id, task.get('task_id', task.get('id')), updates):
             return InteractionResponse(f"✅ Updated: {task['title']}", True)
         else:
             return InteractionResponse("❌ Failed to update task. Please try again.", True)
@@ -295,8 +295,13 @@ class TaskManagementHandler(InteractionHandler):
         return InteractionResponse(response, True)
     
     def _find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
-        """Find a task by number or name"""
-        # Try as number first
+        """Find a task by number, name, or task_id"""
+        # Try as task_id first (UUID)
+        for task in tasks:
+            if task.get('task_id') == identifier or task.get('id') == identifier:
+                return task
+        
+        # Try as number
         try:
             task_num = int(identifier)
             if 1 <= task_num <= len(tasks):
@@ -313,7 +318,7 @@ class TaskManagementHandler(InteractionHandler):
         return None
     
     def get_help(self) -> str:
-        return "Manage your tasks - create, list, complete, delete, and update tasks"
+        return "Help with task management - create, list, complete, delete, and update tasks"
     
     def get_examples(self) -> List[str]:
         return [
@@ -422,7 +427,7 @@ class CheckinHandler(InteractionHandler):
         return InteractionResponse(response, True)
     
     def get_help(self) -> str:
-        return "Manage your daily check-ins - start check-ins and view your status"
+        return "Help with daily check-ins - start check-ins and view your status"
     
     def get_examples(self) -> List[str]:
         return [
@@ -537,7 +542,7 @@ class ProfileHandler(InteractionHandler):
         return InteractionResponse(response, True)
     
     def get_help(self) -> str:
-        return "Manage your profile - view and update your information"
+        return "Help with profile management - view and update your information"
     
     def get_examples(self) -> List[str]:
         return [
@@ -716,6 +721,7 @@ class HelpHandler(InteractionHandler):
         return [
             "help",
             "help tasks",
+            "help checkin",
             "commands",
             "examples",
             "examples tasks"
@@ -920,7 +926,7 @@ class ScheduleManagementHandler(InteractionHandler):
             return InteractionResponse(f"I'm having trouble editing the schedule period: {str(e)}", True)
     
     def get_help(self) -> str:
-        return "Manage your message, task, and check-in schedules"
+        return "Help with schedule management - manage your message, task, and check-in schedules"
     
     def get_examples(self) -> List[str]:
         return [
@@ -1155,7 +1161,7 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse("I'm having trouble calculating your wellness score right now. Please try again.", True)
     
     def get_help(self) -> str:
-        return "View analytics and insights about your wellness patterns"
+        return "Help with analytics - view analytics and insights about your wellness patterns"
     
     def get_examples(self) -> List[str]:
         return [
@@ -1168,12 +1174,12 @@ class AnalyticsHandler(InteractionHandler):
 
 # Registry of all interaction handlers
 INTERACTION_HANDLERS = {
-    'task': TaskManagementHandler(),
-    'checkin': CheckinHandler(),
-    'profile': ProfileHandler(),
-    'help': HelpHandler(),
-    'schedule': ScheduleManagementHandler(),
-    'analytics': AnalyticsHandler(),
+    'TaskManagementHandler': TaskManagementHandler(),
+    'CheckinHandler': CheckinHandler(),
+    'ProfileHandler': ProfileHandler(),
+    'HelpHandler': HelpHandler(),
+    'ScheduleManagementHandler': ScheduleManagementHandler(),
+    'AnalyticsHandler': AnalyticsHandler(),
 }
 
 def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:

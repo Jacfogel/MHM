@@ -275,33 +275,32 @@ def validate_new_user_data(user_id: str, data_updates: Dict[str, Dict[str, Any]]
     else:
         if not account.get('internal_username'):
             errors.append("internal_username is required for new user creation")
-        channel = account.get('channel')
-        if not isinstance(channel, dict) or not channel.get('type'):
-            errors.append("channel.type is required for new user creation")
-        elif channel['type'] not in ['email', 'discord', 'telegram']:
-            errors.append("Invalid channel type. Must be one of: email, discord, telegram")
         if account.get('email') and not is_valid_email(account['email']):
             errors.append("Invalid email format")
         if 'account_status' in account and account['account_status'] not in ['active', 'inactive', 'suspended']:
             errors.append("Invalid account_status. Must be one of: active, inactive, suspended")
 
-    # PREFERENCES (optional)
+    # PREFERENCES (mandatory for channel type)
     prefs = data_updates.get('preferences', {})
     if 'categories' in prefs and isinstance(prefs['categories'], list):
         from core.message_management import get_message_categories
         invalid = [c for c in prefs['categories'] if c not in get_message_categories()]
         if invalid:
             errors.append(f"Invalid categories: {invalid}")
-    if 'channel' in prefs and isinstance(prefs['channel'], dict):
-        if prefs['channel'].get('type') not in ['email', 'discord', 'telegram']:
-            errors.append("Invalid channel type. Must be one of: email, discord, telegram")
+    
+    # Channel type validation - moved from account to preferences where it actually belongs
+    channel = prefs.get('channel')
+    if not isinstance(channel, dict) or not channel.get('type'):
+        errors.append("channel.type is required for new user creation")
+    elif channel['type'] not in ['email', 'discord', 'telegram']:
+        errors.append("Invalid channel type. Must be one of: email, discord, telegram")
 
     # CONTEXT (optional)
     context = data_updates.get('context', {})
     if context.get('date_of_birth') and not validate_user_update(user_id, 'context', {'date_of_birth': context['date_of_birth']})[0]:
         errors.append("Invalid date_of_birth format")
 
-    return len(errors) == 0, errors 
+    return len(errors) == 0, errors
 
 # ---------------------------------------------------------------------------
 # PERSONALIZATION VALIDATOR (moved from core.user_management)

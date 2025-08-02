@@ -450,8 +450,10 @@ def patch_user_data_dirs():
     test_data_dir = os.path.abspath("tests/data")
     users_dir = os.path.join(test_data_dir, "users")
     os.makedirs(users_dir, exist_ok=True)
-    with patch("core.config.BASE_DATA_DIR", test_data_dir), \
-         patch("core.config.USER_INFO_DIR_PATH", users_dir):
+    
+    # Patch the module attributes directly
+    with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+         patch.object(core.config, "USER_INFO_DIR_PATH", users_dir):
         yield
 
 # --- CLEANUP FIXTURE: Remove test users from both data/users/ and tests/data/users/ after all tests ---

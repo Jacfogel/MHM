@@ -511,45 +511,18 @@ class TestUserContextManagerIntegration:
         manager = UserContextManager()
         test_user_id = "real-user-test"
         
-        # Create real user data files
-        user_dir = os.path.join(test_data_dir, "users", test_user_id)
-        os.makedirs(user_dir, exist_ok=True)
+        # Create test user using centralized utilities
+        from tests.test_utilities import TestUserFactory
+        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True)
+        assert success, "Test user should be created successfully"
         
-        # Create account.json
-        account_data = {
-            "account": {
-                "user_id": test_user_id,
-                "username": "realuser",
-                "email": "real@example.com",
-                "status": "active"
-            }
-        }
-        with open(os.path.join(user_dir, "account.json"), 'w') as f:
-            json.dump(account_data, f)
-        
-        # Create preferences.json
-        preferences_data = {
-            "preferences": {
-                "categories": ["motivational", "health"],
-                "channel": {"type": "discord"},
-                "notifications": True,
-                "language": "en"
-            }
-        }
-        with open(os.path.join(user_dir, "preferences.json"), 'w') as f:
-            json.dump(preferences_data, f)
-        
-        # Create user_context.json
-        context_data = {
-            "context": {
-                "preferred_name": "realuser",
-                "timezone": "America/New_York",
-                "language": "en",
-                "created_date": "2025-01-01"
-            }
-        }
-        with open(os.path.join(user_dir, "user_context.json"), 'w') as f:
-            json.dump(context_data, f)
+        # Update user context with specific data for testing
+        from core.user_management import update_user_context
+        update_success = update_user_context(test_user_id, {
+            'preferred_name': 'realuser',
+            'gender_identity': ['they/them']
+        })
+        assert update_success, "User context should be updated successfully"
         
         # Mock UserContext and data retrieval to return the correct data
         with patch('bot.user_context_manager.UserContext') as mock_user_context_class, \
@@ -562,8 +535,8 @@ class TestUserContextManagerIntegration:
             # Mock get_user_data to return the correct structure
             mock_get_user_data.side_effect = lambda user_id, data_type: {
                 'preferences': {'preferences': {'categories': ['motivational', 'health'], 'channel': {'type': 'discord'}}},
-                'account': {'account': {'username': 'realuser', 'email': 'real@example.com'}},
-                'context': {'context': {'preferred_name': 'realuser', 'timezone': 'America/New_York'}}
+                'account': {'account': {'username': 'realuser', 'email': f'{test_user_id}@example.com'}},
+                'context': {'context': {'preferred_name': 'realuser', 'timezone': 'UTC'}}
             }.get(data_type, {})
             
             # Act
