@@ -56,6 +56,18 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 - *Status*: ⚠️ **DISCOVERED** - Identified during Service Utilities testing, documented in test comments
 
+**Interaction Manager Testing** - Test the refined interaction manager and suggestion system
+- *What it means*: Create behavior tests for the interaction manager to ensure conversational AI works correctly and suggestions appear appropriately
+- *Why it helps*: Ensures users get natural conversational responses and helpful suggestions only when needed
+- *Estimated effort*: Small
+- *Status*: ⚠️ **NEW PRIORITY** - Interaction manager refined with suggestion system improvements, needs comprehensive testing
+
+**AI Chatbot Lock Management Testing** - Test the improved lock management and fallback system
+- *What it means*: Create behavior tests for the AI chatbot to ensure lock management works correctly and fallback responses are appropriate
+- *Why it helps*: Ensures reliable AI responses and proper fallback when AI is busy
+- *Estimated effort*: Small
+- *Status*: ⚠️ **NEW PRIORITY** - AI chatbot lock management improved, needs comprehensive testing
+
 
 #### Testing & Validation
 **Comprehensive Dialog Testing** - Test remaining dialogs for functionality and data persistence

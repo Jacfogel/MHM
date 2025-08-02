@@ -6,6 +6,32 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-01 - Conversational AI Improvements & Suggestion System Refinement ✅ **COMPLETED**
+
+**Summary**: Enhanced the AI chatbot's reliability and refined the suggestion system to provide more natural conversational experiences while maintaining helpful guidance when appropriate.
+
+**Technical Changes**:
+- **AI Chatbot Lock Management** (`bot/ai_chatbot.py`):
+  - Extended generation lock timeouts from 2-3 seconds to 5-8 seconds for better reliability
+  - Added proper `finally` blocks to ensure locks are always released, preventing deadlocks
+  - Improved error handling and fallback responses when AI is busy
+  - Resolved process contention issues that were causing fallback responses
+
+- **Suggestion System Refinement** (`bot/interaction_manager.py`):
+  - Restricted suggestion triggers to only clear greetings, help requests, or explicit uncertainty
+  - Implemented exact phrase matching instead of substring matching to prevent false triggers
+  - General conversational messages no longer show suggestions, making interactions more natural
+  - Made fallback responses more generic and clearly distinguishable from AI responses
+
+**User Experience Improvements**:
+- Conversational messages like "I'm off work, but I don't feel like doing anything" now receive supportive AI responses without intrusive suggestions
+- Suggestions only appear when users actually need guidance (greetings, help requests, uncertainty)
+- More natural and engaging conversation flow through Discord and other channels
+- Better distinction between AI-generated responses and fallback responses
+
+**Testing**: All 474 tests passing with 99.8% success rate
+**Impact**: Users now experience natural, supportive conversations while still getting helpful guidance when needed
+
 ### 2025-08-01 - Unified Tag Widget Implementation & Test Fixes ✅ **COMPLETED**
 - **Created unified TagWidget system** to eliminate redundancy and follow proper UI patterns
   - **UI File Creation**: Created `ui/designs/tag_widget.ui` with comprehensive tag management interface

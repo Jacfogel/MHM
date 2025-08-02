@@ -2,6 +2,56 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-01 - Conversational AI Improvements & Suggestion System Refinement ✅ **COMPLETED**
+- **AI Chatbot Lock Management**: Improved generation lock handling for better reliability
+  - **Extended Timeouts**: Increased lock acquisition timeouts from 2-3 seconds to 5-8 seconds
+  - **Proper Lock Release**: Added finally blocks to ensure locks are always released
+  - **Better Error Handling**: Improved fallback responses when AI is busy
+  - **Process Contention Fix**: Resolved issues with lock contention between processes
+- **Suggestion System Refinement**: Made suggestions contextually appropriate
+  - **Restricted Triggers**: Suggestions now only appear for clear greetings, help requests, or explicit uncertainty
+  - **Exact Matching**: Used exact phrase matching instead of substring matching to prevent false triggers
+  - **Conversational Flow**: General conversation no longer shows suggestions, making interactions more natural
+  - **Smart Fallbacks**: Improved fallback responses to be more generic and clearly distinguishable from AI responses
+- **Enhanced Command Parser**: Extended natural language understanding
+  - **Schedule Patterns**: Added patterns for schedule management commands
+  - **Analytics Patterns**: Added patterns for analytics and insights commands
+  - **Entity Extraction**: Enhanced entity extraction for time periods, categories, and days
+  - **Improved Recognition**: Better recognition of natural language variations
+- **Updated Help System**: Enhanced help and examples
+  - **New Command Categories**: Added schedule management and analytics sections
+  - **Comprehensive Examples**: Added examples for all new functionality
+  - **Better Organization**: Organized commands by functional categories
+- **Test Status**: 474 tests passing, 1 skipped, 34 warnings - 99.8% success rate
+- **Impact**: Users now experience natural, supportive conversations without intrusive suggestions, while still getting guidance when needed
+
+### 2025-08-01 - Schedule Management & Analytics Handlers Implementation ✅ **COMPLETED**
+- **Schedule Management Handler**: Added comprehensive schedule management through channels
+  - **Show Schedule**: View schedules for all categories or specific categories with detailed period information
+  - **Update Schedule**: Enable/disable schedule periods for tasks, check-ins, and messages
+  - **Schedule Status**: Check active/inactive status of all schedule categories
+  - **Add Schedule Period**: Create new time periods with custom names and times
+  - **Edit Schedule Period**: Modify existing schedule periods
+  - **Natural Language Support**: Full natural language parsing for schedule commands
+- **Analytics Handler**: Added comprehensive analytics and insights through channels
+  - **Show Analytics**: Comprehensive wellness overview with scores and recommendations
+  - **Mood Trends**: Detailed mood analysis with trends, distribution, and insights
+  - **Habit Analysis**: Habit completion rates, streaks, and individual habit breakdown
+  - **Sleep Analysis**: Sleep patterns, quality metrics, and recommendations
+  - **Wellness Score**: Overall wellness calculation with component scores
+  - **Data-Driven Insights**: Personalized recommendations based on user patterns
+- **Enhanced Command Parser**: Extended natural language understanding
+  - **Schedule Patterns**: Added patterns for schedule management commands
+  - **Analytics Patterns**: Added patterns for analytics and insights commands
+  - **Entity Extraction**: Enhanced entity extraction for time periods, categories, and days
+  - **Improved Recognition**: Better recognition of natural language variations
+- **Updated Help System**: Enhanced help and examples
+  - **New Command Categories**: Added schedule management and analytics sections
+  - **Comprehensive Examples**: Added examples for all new functionality
+  - **Better Organization**: Organized commands by functional categories
+- **Test Status**: 474 tests passing, 1 skipped, 34 warnings - 99.8% success rate
+- **Impact**: Users can now manage schedules and view analytics entirely through communication channels, supporting the communication-first design principle
+
 ### 2025-08-01 - Unified Tag Widget Implementation & Test Fixes ✅ **COMPLETED**
 - **Created unified TagWidget**: Single flexible widget for both management and selection modes
   - **UI File Pattern**: Created `ui/designs/tag_widget.ui` and generated `ui/generated/tag_widget_pyqt.py`

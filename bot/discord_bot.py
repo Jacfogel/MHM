@@ -571,7 +571,7 @@ class DiscordBot(BaseChannel):
             )
             await ctx.send(reply_text)
 
-        @self.bot.command(name="help")
+        @self.bot.command(name="mhm_help")
         async def help_cmd(ctx):
             """Show help information."""
             discord_user_id = str(ctx.author.id)

@@ -359,6 +359,14 @@ class AIChatBotSingleton:
                                f"Your energy has been {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'} overall.")
         
         # Fall back to keyword-based responses if no data analysis possible
+        
+        # Handle work-related fatigue and lack of motivation
+        work_fatigue_keywords = ['off work', 'don\'t feel like', 'tired', 'exhausted', 'no energy', 'can\'t motivate', 'don\'t want to']
+        if any(keyword in prompt_lower for keyword in work_fatigue_keywords):
+            return (f"{name_prefix}I understand you're feeling unmotivated. "
+                   f"That's a common experience, especially after work. "
+                   f"What small thing might help you feel a bit better?")
+        
         # Mood and mental health inquiries
         mood_keywords = ['depressed', 'anxious', 'sad', 'worried', 'stressed', 'overwhelmed', 'down', 'hopeless']
         if any(keyword in prompt_lower for keyword in mood_keywords):
@@ -408,10 +416,9 @@ class AIChatBotSingleton:
                    f"Remember that seeking support and taking care of yourself shows real strength. "
                    f"Keep up the great work!")
         
-        # Default contextual response
-        return (f"{name_prefix}I'd like to help with that! While my AI capabilities may be limited, "
-               f"I can offer encouragement and general wellness tips. Could you tell me more about "
-               f"what you're looking for support with?")
+        # Default contextual response - more generic fallback
+        return (f"{name_prefix}I'm here to listen and support you. "
+               f"What's on your mind?")
 
     @handle_errors("getting fallback response", default_return="I'd like to help with that! While my AI capabilities may be limited, I can offer encouragement and general wellness tips.")
     def _get_fallback_response(self, user_prompt: str) -> str:
@@ -685,9 +692,10 @@ Additional Instructions:
             self.response_cache.set(cache_key_prompt, response, user_id)
             return response
 
-        # Prevent concurrent API calls which can cause rate limiting
-        # Use a short timeout instead of immediately giving up
-        if not self._generation_lock.acquire(blocking=True, timeout=2):
+        # Use a more permissive lock approach for better reliability
+        # Try to acquire lock, but don't fail immediately if busy
+        lock_acquired = self._generation_lock.acquire(blocking=True, timeout=3)
+        if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             response = self._get_contextual_fallback(user_prompt, user_id)
             self.response_cache.set(cache_key_prompt, response, user_id)
@@ -706,24 +714,29 @@ Additional Instructions:
             max_tokens = min(120, max(50, len(user_prompt) // 2))
             temperature = 0.2
         
-        # Call LM Studio API with adaptive timeout
-        result = self._call_lm_studio_api(
-            messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            timeout=timeout,
-        )
-        
-        if result:
-            response = result.strip()
-            # Cache successful responses
-            self.response_cache.set(cache_key_prompt, response, user_id)
-            return response
-        else:
-            # API failed, use contextual fallback
-            response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(cache_key_prompt, response, user_id)
-            return response
+        try:
+            # Call LM Studio API with adaptive timeout
+            result = self._call_lm_studio_api(
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                timeout=timeout,
+            )
+            
+            if result:
+                response = result.strip()
+                # Cache successful responses
+                self.response_cache.set(cache_key_prompt, response, user_id)
+                return response
+            else:
+                # API failed, use contextual fallback
+                response = self._get_contextual_fallback(user_prompt, user_id)
+                self.response_cache.set(cache_key_prompt, response, user_id)
+                return response
+        finally:
+            # Always release the lock
+            if lock_acquired:
+                self._generation_lock.release()
 
     @handle_errors("generating async AI response")
     async def async_generate_response(self, user_prompt: str, user_id: Optional[str] = None) -> str:
@@ -914,7 +927,9 @@ Additional Instructions:
                 return cached_response
 
         # Generate AI response with context
-        if not self._generation_lock.acquire(blocking=False):
+        # Use a more permissive lock approach for better reliability
+        lock_acquired = self._generation_lock.acquire(blocking=True, timeout=5)
+        if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             fallback_response = self._get_contextual_fallback(user_prompt, user_id)
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -924,34 +939,39 @@ Additional Instructions:
 
         logger.debug(f"Generating contextual response for user {user_id} with context: {context_str[:60]}...")
         
-        # Call LM Studio API with context
-        result = self._call_lm_studio_api(
-            messages=messages,
-            max_tokens=80,  # Shorter responses for faster generation
-            temperature=0.2,  # Lower temperature for focused responses
-            timeout=timeout
-        )
-        
-        if result:
-            response = result.strip()
-            # Ensure response acknowledges the user by name if available
-            user_name = profile.get('preferred_name', '')
-            if user_name and user_name.lower() not in response.lower():
-                # Prepend name if not already included
-                response = f"{user_name}, {response}"
+        try:
+            # Call LM Studio API with context
+            result = self._call_lm_studio_api(
+                messages=messages,
+                max_tokens=80,  # Shorter responses for faster generation
+                temperature=0.2,  # Lower temperature for focused responses
+                timeout=timeout
+            )
             
-            # Cache successful responses
+            if result:
+                response = result.strip()
+                # Ensure response acknowledges the user by name if available
+                user_name = profile.get('preferred_name', '')
+                if user_name and user_name.lower() not in response.lower():
+                    # Prepend name if not already included
+                    response = f"{user_name}, {response}"
+                
+                # Cache successful responses
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                store_chat_interaction(user_id, user_prompt, response, context_used=True)
+            else:
+                response = self._get_contextual_fallback(user_prompt, user_id)
+            
+            # Store the chat interaction and add to conversation history
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             store_chat_interaction(user_id, user_prompt, response, context_used=True)
-        else:
-            response = self._get_contextual_fallback(user_prompt, user_id)
-        
-        # Store the chat interaction and add to conversation history
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        store_chat_interaction(user_id, user_prompt, response, context_used=True)
-        user_context_manager.add_conversation_exchange(user_id, user_prompt, response)
-        
-        return response
+            user_context_manager.add_conversation_exchange(user_id, user_prompt, response)
+            
+            return response
+        finally:
+            # Always release the lock
+            if lock_acquired:
+                self._generation_lock.release()
 
     @handle_errors("detecting resource constraints", default_return=False)
     def _detect_resource_constraints(self) -> bool:

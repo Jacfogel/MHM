@@ -129,6 +129,75 @@ class EnhancedCommandParser:
                 r'show\s+examples?',
                 r'give\s+me\s+examples?',
             ],
+            # Schedule Management Patterns
+            'show_schedule': [
+                r'show\s+(?:my\s+)?schedule',
+                r'my\s+schedule',
+                r'view\s+(?:my\s+)?schedule',
+                r'display\s+(?:my\s+)?schedule',
+                r'schedule\s+for\s+(tasks?|check.?ins?|messages?)',
+                r'when\s+are\s+(?:my\s+)?(tasks?|check.?ins?|messages?)\s+scheduled',
+            ],
+            'update_schedule': [
+                r'update\s+(?:my\s+)?schedule',
+                r'change\s+(?:my\s+)?schedule',
+                r'enable\s+(?:my\s+)?(tasks?|check.?ins?|messages?)\s+schedule',
+                r'disable\s+(?:my\s+)?(tasks?|check.?ins?|messages?)\s+schedule',
+                r'turn\s+(on|off)\s+(?:my\s+)?(tasks?|check.?ins?|messages?)\s+schedule',
+            ],
+            'schedule_status': [
+                r'schedule\s+status',
+                r'are\s+(?:my\s+)?schedules?\s+active',
+                r'check\s+schedule\s+status',
+                r'schedule\s+info',
+            ],
+            'add_schedule_period': [
+                r'add\s+(?:a\s+)?(?:new\s+)?schedule\s+period',
+                r'add\s+(?:a\s+)?period\s+called\s+(\w+)\s+to\s+(?:my\s+)?(\w+)\s+schedule',
+                r'create\s+(?:a\s+)?new\s+period\s+for\s+(?:my\s+)?(\w+)\s+schedule',
+            ],
+            'edit_schedule_period': [
+                r'edit\s+(?:the\s+)?(\w+)\s+period\s+in\s+(?:my\s+)?(\w+)\s+schedule',
+                r'change\s+(?:the\s+)?(\w+)\s+period\s+to\s+(.+)',
+                r'update\s+(?:the\s+)?(\w+)\s+period\s+time',
+            ],
+            # Analytics Patterns
+            'show_analytics': [
+                r'show\s+(?:my\s+)?analytics',
+                r'my\s+analytics',
+                r'view\s+(?:my\s+)?analytics',
+                r'display\s+(?:my\s+)?analytics',
+                r'analytics\s+(?:for\s+)?(\d+)\s+days?',
+                r'how\s+am\s+i\s+doing\s+(?:overall|in\s+general)',
+            ],
+            'mood_trends': [
+                r'mood\s+trends?',
+                r'how\s+has\s+(?:my\s+)?mood\s+been',
+                r'mood\s+analysis',
+                r'mood\s+over\s+time',
+                r'mood\s+(?:for\s+)?(\d+)\s+days?',
+            ],
+            'habit_analysis': [
+                r'habit\s+analysis',
+                r'how\s+am\s+i\s+doing\s+with\s+habits?',
+                r'habit\s+progress',
+                r'habit\s+completion',
+                r'habit\s+(?:for\s+)?(\d+)\s+days?',
+            ],
+            'sleep_analysis': [
+                r'sleep\s+analysis',
+                r'how\s+am\s+i\s+sleeping',
+                r'sleep\s+patterns?',
+                r'sleep\s+quality',
+                r'sleep\s+(?:for\s+)?(\d+)\s+days?',
+            ],
+            'wellness_score': [
+                r'wellness\s+score',
+                r'my\s+wellness\s+score',
+                r'calculate\s+(?:my\s+)?wellness\s+score',
+                r'overall\s+wellness',
+                r'wellness\s+(?:for\s+)?(\d+)\s+days?',
+            ],
         }
         
         # Compile patterns for performance
@@ -266,6 +335,74 @@ class EnhancedCommandParser:
                 field = match.group(1).strip()
                 value = match.group(2).strip()
                 entities[field] = value
+        
+        # Schedule Management Entity Extraction
+        elif intent == 'show_schedule':
+            # Extract category if specified
+            if match.groups():
+                category = match.group(1).strip()
+                entities['category'] = category
+            else:
+                entities['category'] = 'all'
+        
+        elif intent == 'update_schedule':
+            # Extract action and category
+            if match.groups():
+                if len(match.groups()) >= 2:
+                    action = match.group(1).strip()
+                    category = match.group(2).strip()
+                    entities['action'] = action
+                    entities['category'] = category
+                else:
+                    # Handle enable/disable patterns
+                    action_match = re.search(r'(enable|disable|turn\s+(on|off))', message.lower())
+                    if action_match:
+                        action = action_match.group(1)
+                        if 'turn' in action:
+                            action = 'enable' if 'on' in action else 'disable'
+                        entities['action'] = action
+                    
+                    # Extract category
+                    category_match = re.search(r'(tasks?|check.?ins?|messages?)', message.lower())
+                    if category_match:
+                        entities['category'] = category_match.group(1)
+        
+        elif intent == 'add_schedule_period':
+            # Extract period name and category
+            if len(match.groups()) >= 2:
+                period_name = match.group(1).strip()
+                category = match.group(2).strip()
+                entities['period_name'] = period_name
+                entities['category'] = category
+                
+                # Extract time information
+                time_match = re.search(r'from\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s+to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)', message.lower())
+                if time_match:
+                    entities['start_time'] = time_match.group(1)
+                    entities['end_time'] = time_match.group(2)
+        
+        elif intent == 'edit_schedule_period':
+            # Extract period name and category
+            if len(match.groups()) >= 2:
+                period_name = match.group(1).strip()
+                category = match.group(2).strip()
+                entities['period_name'] = period_name
+                entities['category'] = category
+                
+                # Extract new time information
+                time_match = re.search(r'to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s+to\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)', message.lower())
+                if time_match:
+                    entities['new_start_time'] = time_match.group(1)
+                    entities['new_end_time'] = time_match.group(2)
+        
+        # Analytics Entity Extraction
+        elif intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score']:
+            # Extract number of days if specified
+            days_match = re.search(r'(\d+)\s+days?', message.lower())
+            if days_match:
+                entities['days'] = int(days_match.group(1))
+            else:
+                entities['days'] = 30  # Default to 30 days
         
         elif intent == 'help':
             # Extract help topic
@@ -410,8 +547,8 @@ class EnhancedCommandParser:
                 "Create a task to call mom tomorrow",
                 "Show me my tasks",
                 "Start a check-in",
-                "Show my profile",
-                "Help with tasks"
+                "Show my analytics",
+                "Show my schedule"
             ]
         else:
             partial_lower = partial_message.lower()
@@ -431,7 +568,8 @@ class EnhancedCommandParser:
                 suggestions = [
                     "Start a check-in",
                     "Show my check-in history",
-                    "How am I doing this week?"
+                    "How am I doing this week?",
+                    "Mood trends for 7 days"
                 ]
             
             # Profile suggestions
@@ -443,12 +581,33 @@ class EnhancedCommandParser:
                     "Show my statistics"
                 ]
             
+            # Schedule suggestions
+            elif any(word in partial_lower for word in ['schedule', 'time', 'when', 'reminder']):
+                suggestions = [
+                    "Show my schedule",
+                    "Schedule status",
+                    "Enable my task schedule",
+                    "Add a new period called morning to my task schedule from 9am to 11am"
+                ]
+            
+            # Analytics suggestions
+            elif any(word in partial_lower for word in ['analytics', 'trend', 'analysis', 'how am i doing', 'progress']):
+                suggestions = [
+                    "Show my analytics",
+                    "Mood trends for 7 days",
+                    "Habit analysis",
+                    "Sleep analysis",
+                    "Wellness score"
+                ]
+            
             # Help suggestions
             elif any(word in partial_lower for word in ['help', 'how', 'what']):
                 suggestions = [
                     "Help with tasks",
                     "Help with check-ins",
                     "Help with profile",
+                    "Help with schedule",
+                    "Help with analytics",
                     "Show available commands",
                     "Show examples"
                 ]

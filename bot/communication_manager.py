@@ -2,25 +2,40 @@
 
 import asyncio
 import threading
-from typing import Dict, Optional, List, Any
+import time
+import queue
+import random
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+from core.logger import get_logger
+from core.error_handling import handle_errors
 from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from bot.channel_factory import ChannelFactory
-from core.logger import get_logger
-from user.user_context import UserContext
-import random
-import time
-from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN
-from core.service_utilities import wait_for_network
-# Legacy import removed - use get_user_data instead
+from core.user_data_handlers import get_user_data, get_all_user_ids
 from core.response_tracking import get_recent_daily_checkins
 from core.message_management import store_sent_message
 from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
 from core.file_operations import determine_file_path, load_json_data
 import os
-from core.config import get_user_data_dir
-from core.user_data_handlers import get_user_data
+from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
+from core.service_utilities import wait_for_network
 
 logger = get_logger(__name__)
+
+@dataclass
+class QueuedMessage:
+    """Represents a message that failed to send and is queued for retry"""
+    user_id: str
+    category: str
+    message: str
+    recipient: str
+    channel_name: str
+    timestamp: datetime
+    retry_count: int = 0
+    max_retries: int = 3
+    retry_delay: int = 300  # 5 minutes
 
 class BotInitializationError(Exception):
     """Custom exception for bot initialization failures."""
@@ -35,7 +50,7 @@ class CommunicationManager:
     
     _instance = None
     _lock = threading.Lock()
-
+    
     def __new__(cls, *args, **kwargs):
         """Ensure that only one instance of the CommunicationManager exists (Singleton pattern)."""
         with cls._lock:
@@ -60,6 +75,11 @@ class CommunicationManager:
             self._main_loop = None
             self._loop_thread = None
             self._setup_event_loop()
+            
+            # Message retry queue
+            self._failed_message_queue = queue.Queue()
+            self._retry_thread = None
+            self._retry_running = False
             
             # For backward compatibility
             self._legacy_channels = {}
@@ -113,6 +133,94 @@ class CommunicationManager:
         """Set the scheduler manager for the communication manager."""
         self.scheduler_manager = scheduler_manager
         logger.debug("Scheduler manager set in CommunicationManager.")
+
+    def _queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
+        """Queue a failed message for retry"""
+        queued_message = QueuedMessage(
+            user_id=user_id,
+            category=category,
+            message=message,
+            recipient=recipient,
+            channel_name=channel_name,
+            timestamp=datetime.now()
+        )
+        self._failed_message_queue.put(queued_message)
+        logger.info(f"Queued failed message for user {user_id}, category {category} for retry")
+
+    def _start_retry_thread(self):
+        """Start the retry thread for failed messages"""
+        if self._retry_thread and self._retry_thread.is_alive():
+            return
+        
+        self._retry_running = True
+        self._retry_thread = threading.Thread(target=self._retry_loop, daemon=True)
+        self._retry_thread.start()
+        logger.info("Started message retry thread")
+
+    def _stop_retry_thread(self):
+        """Stop the retry thread"""
+        self._retry_running = False
+        if self._retry_thread and self._retry_thread.is_alive():
+            self._retry_thread.join(timeout=5)
+        logger.info("Stopped message retry thread")
+
+    def _retry_loop(self):
+        """Main retry loop for failed messages"""
+        while self._retry_running:
+            try:
+                # Check for messages to retry
+                self._process_retry_queue()
+                time.sleep(60)  # Check every minute
+            except Exception as e:
+                logger.error(f"Error in retry loop: {e}")
+                time.sleep(60)
+
+    def _process_retry_queue(self):
+        """Process the retry queue and attempt to send failed messages"""
+        while not self._failed_message_queue.empty():
+            try:
+                queued_message = self._failed_message_queue.get_nowait()
+                
+                # Check if it's time to retry
+                time_since_queued = datetime.now() - queued_message.timestamp
+                if time_since_queued.total_seconds() < queued_message.retry_delay:
+                    # Put it back in the queue
+                    self._failed_message_queue.put(queued_message)
+                    break
+                
+                # Check if channel is ready
+                channel = self.channels.get(queued_message.channel_name)
+                if not channel or not channel.is_ready():
+                    # Put it back in the queue for later
+                    queued_message.retry_count += 1
+                    if queued_message.retry_count < queued_message.max_retries:
+                        self._failed_message_queue.put(queued_message)
+                    else:
+                        logger.warning(f"Message for user {queued_message.user_id} failed after {queued_message.max_retries} retries")
+                    continue
+                
+                # Attempt to send the message
+                success = self.send_message_sync(
+                    queued_message.channel_name,
+                    queued_message.recipient,
+                    queued_message.message
+                )
+                
+                if success:
+                    logger.info(f"Successfully retried message for user {queued_message.user_id}, category {queued_message.category}")
+                else:
+                    # Increment retry count and put back in queue
+                    queued_message.retry_count += 1
+                    if queued_message.retry_count < queued_message.max_retries:
+                        self._failed_message_queue.put(queued_message)
+                    else:
+                        logger.warning(f"Message for user {queued_message.user_id} failed after {queued_message.max_retries} retries")
+                        
+            except queue.Empty:
+                break
+            except Exception as e:
+                logger.error(f"Error processing retry queue: {e}")
+                break
 
     def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
         """Initialize channels from configuration"""
@@ -260,6 +368,9 @@ class CommunicationManager:
             # Create legacy channel access for backward compatibility
             self._create_legacy_channel_access()
             
+            # Start the retry thread for failed messages
+            self._start_retry_thread()
+            
             self._running = True
             logger.info(f"Communication channels ready ({len(self.channels)} active)")
             return True
@@ -403,6 +514,15 @@ class CommunicationManager:
             
         except Exception as e:
             logger.error(f"Error in simplified send_message_sync: {e}")
+            # Queue for retry if this is a scheduled message
+            if 'user_id' in kwargs and 'category' in kwargs:
+                self._queue_failed_message(
+                    kwargs['user_id'],
+                    kwargs['category'],
+                    message,
+                    recipient,
+                    channel_name
+                )
             return False
 
     async def broadcast_message(self, recipients: Dict[str, str], message: str) -> Dict[str, bool]:
@@ -508,6 +628,9 @@ class CommunicationManager:
         logger.debug("Stopping all communication channels.")
         
         try:
+            # Stop the retry thread first
+            self._stop_retry_thread()
+            
             # Try async shutdown first
             try:
                 loop = asyncio.get_running_loop()
@@ -654,7 +777,9 @@ class CommunicationManager:
     def _should_send_checkin_prompt(self, user_id: str, checkin_prefs: dict) -> bool:
         """
         Determine if it's time to send a check-in prompt based on user preferences.
-        This checks if enough time has passed since the last check-in.
+        For check-ins, we respect the schedule-based approach - if the scheduler
+        triggered this function, it means it's time for a check-in during the
+        scheduled period.
         """
         try:
             frequency = checkin_prefs.get('frequency', 'daily')
@@ -664,41 +789,11 @@ class CommunicationManager:
                 logger.debug(f"User {user_id} has check-in frequency set to '{frequency}', skipping auto-prompt")
                 return False
             
-            # Get the most recent check-in
-            recent_checkins = get_recent_daily_checkins(user_id, limit=1)
-            
-            if not recent_checkins:
-                # No previous check-ins, so it's time for one
-                logger.debug(f"No previous check-ins found for user {user_id}, prompting check-in")
-                return True
-            
-            from datetime import datetime, timedelta
-            last_checkin = recent_checkins[0]
-            
-            # Parse human-readable timestamp format
-            timestamp_value = last_checkin.get('timestamp', '1970-01-01 00:00:00')
-            last_checkin_date = datetime.strptime(timestamp_value, '%Y-%m-%d %H:%M:%S')
-            
-            now = datetime.now()
-            
-            if frequency == 'daily':
-                # Check if it's been at least 18 hours since last check-in (allows for some flexibility)
-                time_since_last = now - last_checkin_date
-                should_prompt = time_since_last.total_seconds() > (18 * 3600)  # 18 hours
-                logger.debug(f"Daily check-in: {time_since_last.total_seconds()/3600:.1f} hours since last, should_prompt={should_prompt}")
-                return should_prompt
-            elif frequency == 'weekly':
-                # Check if it's been at least 6 days since last check-in
-                time_since_last = now - last_checkin_date
-                should_prompt = time_since_last.days >= 6
-                logger.debug(f"Weekly check-in: {time_since_last.days} days since last, should_prompt={should_prompt}")
-                return should_prompt
-            else:
-                # For custom or unknown frequencies, default to daily behavior
-                time_since_last = now - last_checkin_date
-                should_prompt = time_since_last.total_seconds() > (18 * 3600)
-                logger.debug(f"Custom frequency check-in: should_prompt={should_prompt}")
-                return should_prompt
+            # For check-ins, we trust the scheduler to determine timing
+            # The scheduler only calls this during the scheduled time period
+            # So if we get here, it's time for a check-in
+            logger.debug(f"Check-in scheduled for user {user_id} during scheduled time period")
+            return True
                 
         except Exception as e:
             logger.error(f"Error determining if check-in prompt should be sent for user {user_id}: {e}")
@@ -755,8 +850,9 @@ class CommunicationManager:
             # Use the dynamic check-in initialization instead of hardcoded values
             reply_text, completed = conversation_manager.start_daily_checkin(user_id)
             
-            # Send the initial message to the user
-            success = self.send_message_sync(messaging_service, recipient, reply_text)
+            # Send the initial message to the user with retry support
+            success = self.send_message_sync(messaging_service, recipient, reply_text, 
+                                           user_id=user_id, category="checkin")
             
             if success:
                 logger.info(f"Successfully sent check-in prompt to user {user_id} and initialized flow")
@@ -789,7 +885,8 @@ class CommunicationManager:
             import uuid
             message_id = str(uuid.uuid4())
 
-            success = self.send_message_sync(messaging_service, recipient, message_to_send)
+            success = self.send_message_sync(messaging_service, recipient, message_to_send, 
+                                           user_id=user_id, category=category)
             if success:
                 store_sent_message(user_id, category, message_id, message_to_send)
                 logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category}")
@@ -833,7 +930,8 @@ class CommunicationManager:
             
             # IMPROVED: Better success/failure tracking
             try:
-                success = self.send_message_sync(messaging_service, recipient, message_to_send['message'])
+                success = self.send_message_sync(messaging_service, recipient, message_to_send['message'], 
+                                               user_id=user_id, category=category)
                 
                 if success:
                     store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
@@ -925,7 +1023,7 @@ class CommunicationManager:
         description = task.get('description', '')
         due_date = task.get('due_date', '')
         priority = task.get('priority', 'medium')
-        # Removed category - tasks now use tags instead
+        # Tasks now use tags instead of categories
         
         # Create priority emoji
         priority_emoji = {
@@ -943,9 +1041,6 @@ class CommunicationManager:
         
         if due_date:
             message += f"📅 **Due:** {due_date}\n"
-        
-        if category:
-            message += f"📂 **Category:** {category}\n"
         
         message += f"⚡ **Priority:** {priority.title()}\n\n"
         message += "Use 'complete task' or 'list tasks' to manage your tasks."

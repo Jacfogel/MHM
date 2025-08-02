@@ -70,13 +70,17 @@ class InteractionManager:
         
         # Handle structured commands
         if parsing_result.confidence >= self.min_command_confidence:
+            logger.debug(f"Handling as structured command: {parsing_result.parsed_command.intent}")
             return self._handle_structured_command(user_id, parsing_result, channel_type)
         
         # Fall back to contextual chat
         if self.fallback_to_chat:
+            logger.debug(f"Handling as contextual chat: confidence {parsing_result.confidence} < {self.min_command_confidence}")
+            print(f"DEBUG: Going to contextual chat with confidence {parsing_result.confidence}")
             return self._handle_contextual_chat(user_id, message, channel_type)
         
         # No fallback, return help
+        logger.debug("No fallback to chat, returning help")
         return self._get_help_response(user_id, message)
     
     def _handle_structured_command(self, user_id: str, parsing_result: ParsingResult, channel_type: str) -> InteractionResponse:
@@ -121,8 +125,31 @@ class InteractionManager:
             # Use existing AI chatbot for contextual responses
             response_text = self.ai_chatbot.generate_contextual_response(user_id, message)
             
-            # Add suggestions for next actions
-            suggestions = self.command_parser.get_suggestions(message)
+            # Only add suggestions for certain types of messages
+            # Don't add suggestions for general conversational responses
+            suggestions = []
+            
+            # Add suggestions only for:
+            # 1. Greetings (to guide new users)
+            # 2. Help requests
+            # 3. When user seems unsure what to do
+            message_lower = message.lower()
+            print(f"DEBUG: Checking message: '{message}'")
+            print(f"DEBUG: Message lower: '{message_lower}'")
+            
+            greeting_triggers = ['hello', 'hi', 'hey']
+            help_triggers = ['help', 'what can you do']
+            if message_lower.strip() in greeting_triggers or \
+               any(message_lower.strip().startswith(trigger) for trigger in help_triggers):
+                suggestions = self.command_parser.get_suggestions(message)
+                print(f"DEBUG: Adding suggestions for greeting/help")
+            elif any(phrase in message_lower for phrase in [
+                "i don't know what to do", "i don't know how", "what should i do", "i'm not sure"
+            ]):
+                suggestions = self.command_parser.get_suggestions(message)
+                print(f"DEBUG: Adding suggestions for uncertainty")
+            else:
+                print(f"DEBUG: No suggestions for message: {message}")
             
             return InteractionResponse(
                 response_text,
@@ -183,6 +210,14 @@ while keeping the core information intact. Make it warm and encouraging.
             "👤 **Profile:**\n"
             "• View profile: 'Show my profile'\n"
             "• Update info: 'Update my name to Julie'\n\n"
+            "📅 **Schedule Management:**\n"
+            "• View schedule: 'Show my schedule'\n"
+            "• Check status: 'Schedule status'\n"
+            "• Enable/disable: 'Enable my task schedule'\n\n"
+            "📊 **Analytics & Insights:**\n"
+            "• View analytics: 'Show my analytics'\n"
+            "• Mood trends: 'Mood trends for 7 days'\n"
+            "• Habit analysis: 'Habit analysis'\n\n"
             "Try one of these or ask for 'help' to learn more!"
         )
         
@@ -227,6 +262,26 @@ while keeping the core information intact. Make it warm and encouraging.
             if is_user_checkins_enabled(user_id):
                 suggestions.append("Start a check-in")
                 suggestions.append("Show my check-in history")
+        except Exception:
+            pass
+        
+        # Get schedule suggestions
+        try:
+            from core.user_management import get_user_categories
+            categories = get_user_categories(user_id)
+            if categories:
+                suggestions.append("Show my schedule")
+                suggestions.append("Schedule status")
+        except Exception:
+            pass
+        
+        # Get analytics suggestions
+        try:
+            from core.response_tracking import get_recent_daily_checkins
+            checkins = get_recent_daily_checkins(user_id, limit=5)
+            if checkins:
+                suggestions.append("Show my analytics")
+                suggestions.append("Mood trends")
         except Exception:
             pass
         
