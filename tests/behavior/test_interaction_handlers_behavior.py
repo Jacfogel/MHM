@@ -28,9 +28,9 @@ from tests.test_utilities import TestUserFactory, create_test_user
 class TestInteractionHandlersBehavior:
     """Test interaction handlers real behavior and side effects."""
     
-    def _create_test_user(self, user_id: str, enable_checkins: bool = True) -> bool:
+    def _create_test_user(self, user_id: str, enable_checkins: bool = True, test_data_dir: str = None) -> bool:
         """Create a test user with proper account setup."""
-        return TestUserFactory.create_basic_user(user_id, enable_checkins=enable_checkins)
+        return TestUserFactory.create_basic_user(user_id, enable_checkins=enable_checkins, test_data_dir=test_data_dir)
     
     def test_handler_registry_creates_all_handlers(self):
         """Test that all handlers are properly registered and accessible."""
@@ -141,7 +141,7 @@ class TestInteractionHandlersBehavior:
         user_id = "test_user_123"
         
         # Create test user
-        assert self._create_test_user(user_id), "Failed to create test user"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a parsed command for creating a task
         parsed_command = ParsedCommand(
@@ -168,7 +168,7 @@ class TestInteractionHandlersBehavior:
         user_id = "test_user_456"
         
         # Create test user
-        assert self._create_test_user(user_id), "Failed to create test user"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create some test tasks first
         create_task(user_id, "Task 1", "2025-08-02")
@@ -195,7 +195,7 @@ class TestInteractionHandlersBehavior:
         user_id = "test_user_789"
 
         # Create test user with tasks enabled
-        assert self._create_test_user(user_id), "Failed to create test user"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Get the actual UUID for the created user
         from core.user_management import get_user_id_by_internal_username
@@ -236,7 +236,7 @@ class TestInteractionHandlersBehavior:
         
         # Create test user with check-ins enabled and questions configured
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_user_with_complex_checkins(user_id)
+        success = TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir=test_data_dir)
         assert success, "Failed to create test user with check-ins"
         
         # Create a parsed command for starting check-in
@@ -263,7 +263,7 @@ class TestInteractionHandlersBehavior:
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_internal_username
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True)
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the created user
@@ -338,13 +338,13 @@ class TestInteractionHandlersBehavior:
                 assert isinstance(example, str), f"{handler_name} examples should be strings"
                 assert len(example) > 3, f"{handler_name} examples should be substantial (minimum 4 characters)"
     
-    def test_handler_error_handling(self):
+    def test_handler_error_handling(self, test_data_dir):
         """Test that handlers handle errors gracefully."""
         handler = TaskManagementHandler()
         user_id = "test_user_error"
         
         # Create test user
-        assert self._create_test_user(user_id), "Failed to create test user"
+        assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Create a parsed command with invalid data
         parsed_command = ParsedCommand(

@@ -513,12 +513,17 @@ class TestUserContextManagerIntegration:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True)
+        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
+        
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(test_user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {test_user_id}"
         
         # Update user context with specific data for testing
         from core.user_management import update_user_context
-        update_success = update_user_context(test_user_id, {
+        update_success = update_user_context(actual_user_id, {
             'preferred_name': 'realuser',
             'gender_identity': ['they/them']
         })

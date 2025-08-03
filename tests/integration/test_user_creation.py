@@ -68,9 +68,14 @@ class TestUserCreationScenarios:
         success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234')
         assert success, "Test user should be created successfully"
         
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
+        
         # Update user context with additional data
         from core.user_management import update_user_context
-        update_success = update_user_context(user_id, {
+        update_success = update_user_context(actual_user_id, {
             'preferred_name': 'Discord User',
             'gender_identity': ['they/them'],
             'custom_fields': {
@@ -82,12 +87,12 @@ class TestUserCreationScenarios:
         assert update_success, "User context should be updated successfully"
         
         # Verify data can be loaded
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         assert loaded_data['account']['discord_user_id'] == 'discord_user#1234'
         assert loaded_data['preferences']['channel']['type'] == 'discord'
         assert 'motivational' in loaded_data['preferences']['categories']
-        assert loaded_data['preferences']['checkin_settings']['enabled'] is True
-        assert loaded_data['preferences']['task_settings']['enabled'] is True
+        assert loaded_data['account']['features']['checkins'] == 'enabled'
+        assert loaded_data['account']['features']['task_management'] == 'enabled'
         assert loaded_data['context']['preferred_name'] == 'Discord User'
         assert loaded_data['context']['gender_identity'] == ['they/them']
     
@@ -101,11 +106,16 @@ class TestUserCreationScenarios:
         success = TestUserFactory.create_telegram_user(user_id, telegram_username='@telegram_user')
         assert success, f"Failed to create Telegram test user {user_id}"
         
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
+        
         # Verify data can be loaded
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         assert loaded_data['preferences']['channel']['type'] == 'telegram'
-        assert loaded_data['preferences']['checkin_settings']['enabled'] is True
-        assert loaded_data['preferences']['task_settings']['enabled'] is True  # Default enabled
+        assert loaded_data['account']['features']['checkins'] == 'enabled'
+        assert loaded_data['account']['features']['task_management'] == 'enabled'  # Default enabled
     
     @pytest.mark.unit
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
@@ -117,8 +127,13 @@ class TestUserCreationScenarios:
         success = TestUserFactory.create_user_with_custom_fields(user_id)
         assert success, f"Failed to create custom fields test user {user_id}"
         
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
+        
         # Verify complex data can be loaded
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         assert loaded_data['context']['preferred_name'] == f'Test User {user_id}'
         assert 'custom_fields' in loaded_data['context']
         assert 'ADHD' in loaded_data['context']['custom_fields']['health_conditions']
@@ -135,8 +150,13 @@ class TestUserCreationScenarios:
         success = TestUserFactory.create_user_with_schedules(user_id)
         assert success, f"Failed to create schedule test user {user_id}"
         
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
+        
         # Verify schedule data can be loaded
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         assert 'schedules' in loaded_data
         assert 'motivational' in loaded_data['schedules']
         assert 'Default' in loaded_data['schedules']['motivational']['periods']

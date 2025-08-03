@@ -335,7 +335,7 @@ class TestDiscordBotIntegration:
         from tests.test_utilities import TestUserFactory
         
         user_id = "test_discord_user"
-        success = TestUserFactory.create_discord_user(user_id)
+        success = TestUserFactory.create_discord_user(user_id, test_data_dir=test_data_dir)
         assert success, f"Failed to create Discord test user {user_id}"
         
         return user_id

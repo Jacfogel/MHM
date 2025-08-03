@@ -24,7 +24,7 @@ class TestUserFactory:
     """Factory for creating test users with different configurations"""
     
     @staticmethod
-    def create_basic_user(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True) -> bool:
+    def create_basic_user(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
         """
         Create a test user with basic functionality enabled
         
@@ -32,10 +32,230 @@ class TestUserFactory:
             user_id: Unique identifier for the test user
             enable_checkins: Whether to enable check-ins for this user
             enable_tasks: Whether to enable task management for this user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, temporarily patch the config to use it
+            if test_data_dir:
+                return TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_basic_user_impl(user_id, enable_checkins, enable_tasks)
+            
+        except Exception as e:
+            print(f"Error creating basic user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
+        """Helper function to create user files directly in test directory"""
+        # Create test users directory
+        test_users_dir = os.path.join(test_data_dir, "users")
+        os.makedirs(test_users_dir, exist_ok=True)
+        
+        # Generate UUID for the user
+        import uuid
+        actual_user_id = str(uuid.uuid4())
+        
+        # Create user directory
+        user_dir = os.path.join(test_users_dir, actual_user_id)
+        os.makedirs(user_dir, exist_ok=True)
+        
+        # Create account data
+        account_data = {
+            "user_id": actual_user_id,
+            "internal_username": user_id,
+            "account_status": "active",
+            "chat_id": user_data.get('chat_id', ''),
+            "phone": user_data.get('phone', ''),
+            "email": user_data.get('email', ''),
+            "discord_user_id": user_data.get('discord_user_id', ''),
+            "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "updated_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "features": {
+                "automated_messages": "enabled" if user_data.get('categories') else "disabled",
+                "checkins": "enabled" if user_data.get('checkin_settings', {}).get('enabled', False) else "disabled",
+                "task_management": "enabled" if user_data.get('task_settings', {}).get('enabled', False) else "disabled"
+            },
+            "timezone": user_data.get("timezone", "")
+        }
+        
+        # Create preferences data
+        preferences_data = {
+            "categories": user_data.get('categories', []),
+            "channel": {
+                "type": user_data.get('channel', {}).get('type', 'email')
+            },
+            "checkin_settings": user_data.get('checkin_settings', {}),
+            "task_settings": user_data.get('task_settings', {})
+        }
+        
+        # Remove redundant enabled flags from preferences since they're in account.json features
+        if 'checkin_settings' in preferences_data and 'enabled' in preferences_data['checkin_settings']:
+            del preferences_data['checkin_settings']['enabled']
+        if 'task_settings' in preferences_data and 'enabled' in preferences_data['task_settings']:
+            del preferences_data['task_settings']['enabled']
+        
+        # Create user context data
+        context_data = {
+            "preferred_name": user_data.get('preferred_name', ''),
+            "gender_identity": user_data.get('gender_identity', []),
+            "date_of_birth": user_data.get('date_of_birth', ''),
+            "custom_fields": {
+                "reminders_needed": user_data.get('reminders_needed', []),
+                "health_conditions": user_data.get('custom_fields', {}).get('health_conditions', []),
+                "medications_treatments": user_data.get('custom_fields', {}).get('medications_treatments', []),
+                "allergies_sensitivities": user_data.get('custom_fields', {}).get('allergies_sensitivities', [])
+            },
+            "interests": user_data.get('interests', []),
+            "goals": user_data.get('goals', []),
+            "loved_ones": user_data.get('loved_ones', []),
+            "activities_for_encouragement": user_data.get('activities_for_encouragement', []),
+            "notes_for_ai": user_data.get('notes_for_ai', []),
+            "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+        # Save files directly to test directory
+        account_file = os.path.join(user_dir, "account.json")
+        preferences_file = os.path.join(user_dir, "preferences.json")
+        context_file = os.path.join(user_dir, "user_context.json")
+        
+        with open(account_file, 'w', encoding='utf-8') as f:
+            json.dump(account_data, f, indent=2, ensure_ascii=False)
+        
+        with open(preferences_file, 'w', encoding='utf-8') as f:
+            json.dump(preferences_data, f, indent=2, ensure_ascii=False)
+        
+        with open(context_file, 'w', encoding='utf-8') as f:
+            json.dump(context_data, f, indent=2, ensure_ascii=False)
+        
+        # Create default schedule periods for initial categories
+        categories = user_data.get('categories', [])
+        if categories:
+            schedules_data = {}
+            for category in categories:
+                schedules_data[category] = {
+                    "enabled": True,
+                    "periods": [
+                        {
+                            "name": "Morning",
+                            "start_time": "09:00",
+                            "end_time": "12:00",
+                            "enabled": True
+                        },
+                        {
+                            "name": "Afternoon",
+                            "start_time": "13:00",
+                            "end_time": "17:00",
+                            "enabled": True
+                        },
+                        {
+                            "name": "Evening",
+                            "start_time": "18:00",
+                            "end_time": "21:00",
+                            "enabled": True
+                        }
+                    ]
+                }
+            
+            schedules_file = os.path.join(user_dir, "schedules.json")
+            with open(schedules_file, 'w', encoding='utf-8') as f:
+                json.dump(schedules_data, f, indent=2, ensure_ascii=False)
+        
+        # Create messages directory and default message files
+        messages_dir = os.path.join(user_dir, "messages")
+        os.makedirs(messages_dir, exist_ok=True)
+        
+        for category in categories:
+            category_file = os.path.join(messages_dir, f"{category}.json")
+            if not os.path.exists(category_file):
+                with open(category_file, 'w', encoding='utf-8') as f:
+                    json.dump([], f, indent=2, ensure_ascii=False)
+        
+        # Create sent_messages.json
+        sent_messages_file = os.path.join(messages_dir, "sent_messages.json")
+        if not os.path.exists(sent_messages_file):
+            with open(sent_messages_file, 'w', encoding='utf-8') as f:
+                json.dump([], f, indent=2, ensure_ascii=False)
+        
+        # Create or update user index to map internal_username to UUID
+        user_index_file = os.path.join(test_data_dir, "user_index.json")
+        user_index = {}
+        if os.path.exists(user_index_file):
+            try:
+                with open(user_index_file, 'r', encoding='utf-8') as f:
+                    user_index = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                user_index = {}
+        
+        # Add the new user to the index
+        user_index[user_id] = actual_user_id
+        
+        # Save the updated index
+        with open(user_index_file, 'w', encoding='utf-8') as f:
+            json.dump(user_index, f, indent=2, ensure_ascii=False)
+        
+        return actual_user_id
+    
+    @staticmethod
+    def _create_basic_user_with_test_dir(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
+        """Create basic user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": enable_checkins,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": enable_tasks,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Test User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology", "Gaming"],
+                "goals": ["Improve mental health", "Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating basic user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_basic_user_impl(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True) -> bool:
+        """Internal implementation of basic user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -91,51 +311,45 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_discord_user(user_id: str, discord_user_id: str = None) -> bool:
+    def create_discord_user(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
         """
         Create a test user specifically configured for Discord testing
         
         Args:
             user_id: Unique identifier for the test user
             discord_user_id: Discord user ID (defaults to user_id if not provided)
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_discord_user_impl(user_id, discord_user_id)
+            
+        except Exception as e:
+            print(f"Error creating discord user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_discord_user_with_test_dir(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
+        """Create discord user with test directory by directly saving files"""
+        try:
             if discord_user_id is None:
                 discord_user_id = user_id
             
-            # Create the user data structure that matches what the system expects
-            from core.user_data_handlers import save_user_data
-            from core.config import get_user_data_dir
-            import os
-            
-            # Create user directory if it doesn't exist
-            user_dir = get_user_data_dir(user_id)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            # Create account data with Discord-specific information
-            account_data = {
-                "user_id": user_id,
+            # Create user data in the format expected by create_new_user
+            user_data = {
                 "internal_username": user_id,
-                "account_status": "active",
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
                 "discord_user_id": discord_user_id,
-                "created_at": "2025-01-01 00:00:00",
-                "updated_at": "2025-01-01 00:00:00",
-                "features": {
-                    "automated_messages": "enabled",
-                    "checkins": "enabled",
-                    "task_management": "enabled"
-                },
-                "timezone": "UTC"
-            }
-            
-            # Create preferences data
-            preferences_data = {
+                "timezone": "UTC",
                 "categories": ["motivational", "health"],
                 "channel": {
                     "type": "discord"
@@ -150,21 +364,11 @@ class TestUserFactory:
                     "default_priority": "medium",
                     "reminder_enabled": True
                 },
-                "notification_settings": {
-                    "morning_reminders": True,
-                    "evening_reminders": False,
-                    "task_reminders": True,
-                    "checkin_reminders": True
-                }
-            }
-            
-            # Create context data
-            context_data = {
                 "preferred_name": f"Discord User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
+                "reminders_needed": [],
                 "custom_fields": {
-                    "reminders_needed": [],
                     "health_conditions": [],
                     "medications_treatments": [],
                     "allergies_sensitivities": []
@@ -173,77 +377,117 @@ class TestUserFactory:
                 "goals": ["Improve mental health", "Stay organized"],
                 "loved_ones": [],
                 "activities_for_encouragement": [],
-                "notes_for_ai": [],
-                "created_at": "2025-01-01 00:00:00",
-                "last_updated": "2025-01-01 00:00:00"
+                "notes_for_ai": []
             }
             
-            # Save all data using the centralized save function
-            result = save_user_data(user_id, {
-                'account': account_data,
-                'preferences': preferences_data,
-                'context': context_data
-            })  # Now validation should work correctly
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
-            # Check if all data types were saved successfully
-            success = all(result.values())
-            
-            if success:
-                # Update user index
-                try:
-                    from core.user_data_manager import update_user_index
-                    update_user_index(user_id)
-                except Exception as e:
-                    print(f"Warning: Failed to update user index for {user_id}: {e}")
-            
-            return success
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating Discord user {user_id}: {e}")
+            print(f"Error creating discord user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_full_featured_user(user_id: str) -> bool:
+    def _create_discord_user_impl(user_id: str, discord_user_id: str = None) -> bool:
+        """Internal implementation of discord user creation"""
+        try:
+            if discord_user_id is None:
+                discord_user_id = user_id
+            
+            # Use the proper create_new_user function to generate UUID and register user
+            from core.user_management import create_new_user
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": discord_user_id,
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Discord User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology", "Gaming"],
+                "goals": ["Improve mental health", "Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
+            
+            if actual_user_id:
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            print(f"Error creating discord user {user_id}: {e}")
+            return False
+            
+
+    
+    @staticmethod
+    def create_full_featured_user(user_id: str, test_data_dir: str = None) -> bool:
         """
         Create a test user with all features enabled and comprehensive data
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # Create the user data structure that matches what the system expects
-            from core.user_data_handlers import save_user_data
-            from core.config import get_user_data_dir
-            import os
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_full_featured_user_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_full_featured_user_impl(user_id)
             
-            # Create user directory if it doesn't exist
-            user_dir = get_user_data_dir(user_id)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            # Create account data with all features enabled
-            account_data = {
-                "user_id": user_id,
+        except Exception as e:
+            print(f"Error creating full featured user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_full_featured_user_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create full featured user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
                 "internal_username": user_id,
-                "account_status": "active",
                 "chat_id": "",
                 "phone": "",
                 "email": f"{user_id}@example.com",
                 "discord_user_id": "",
-                "created_at": "2025-01-01 00:00:00",
-                "updated_at": "2025-01-01 00:00:00",
-                "features": {
-                    "automated_messages": "enabled",
-                    "checkins": "enabled",
-                    "task_management": "enabled"
-                },
-                "timezone": "America/New_York"
-            }
-            
-            # Create comprehensive preferences data
-            preferences_data = {
+                "timezone": "America/New_York",
                 "categories": ["motivational", "health", "fun_facts", "quotes_to_ponder", "word_of_the_day"],
                 "channel": {
                     "type": "discord"
@@ -258,56 +502,88 @@ class TestUserFactory:
                     "enabled": True,
                     "default_priority": "high",
                     "reminder_enabled": True,
-                    "auto_categorize": True
+                    "auto_escalation": True
                 },
-                "notification_settings": {
-                    "morning_reminders": True,
-                    "evening_reminders": True,
-                    "task_reminders": True,
-                    "checkin_reminders": True,
-                    "motivational_messages": True
-                }
-            }
-            
-            # Create comprehensive context data
-            context_data = {
                 "preferred_name": f"Full Featured User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "1990-01-01",
+                "reminders_needed": ["medication", "appointments", "exercise"],
                 "custom_fields": {
-                    "reminders_needed": ["Take medication", "Drink water", "Take breaks"],
-                    "health_conditions": ["Anxiety", "Depression"],
-                    "medications_treatments": ["Therapy", "Medication A"],
-                    "allergies_sensitivities": ["Pollen"]
+                    "health_conditions": ["ADHD", "Depression"],
+                    "medications_treatments": ["Adderall", "Therapy"],
+                    "allergies_sensitivities": ["Peanuts"]
                 },
-                "interests": ["Technology", "Gaming", "Reading", "Music"],
-                "goals": ["Improve mental health", "Stay organized", "Exercise regularly", "Read more books"],
+                "interests": ["Technology", "Gaming", "Reading", "Cooking"],
+                "goals": ["Improve mental health", "Stay organized", "Build better habits"],
                 "loved_ones": ["Family", "Friends"],
-                "activities_for_encouragement": ["Going for walks", "Reading", "Playing games"],
-                "notes_for_ai": ["Prefers gentle reminders", "Responds well to humor", "Likes detailed explanations"],
-                "created_at": "2025-01-01 00:00:00",
-                "last_updated": "2025-01-01 00:00:00"
+                "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
+                "notes_for_ai": ["Prefers gentle encouragement", "Responds well to humor"]
             }
             
-            # Save all data using the centralized save function
-            result = save_user_data(user_id, {
-                'account': account_data,
-                'preferences': preferences_data,
-                'context': context_data
-            })  # Now validation should work correctly
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
-            # Check if all data types were saved successfully
-            success = all(result.values())
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
             
-            if success:
-                # Update user index
-                try:
-                    from core.user_data_manager import update_user_index
-                    update_user_index(user_id)
-                except Exception as e:
-                    print(f"Warning: Failed to update user index for {user_id}: {e}")
+        except Exception as e:
+            print(f"Error creating full featured user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_full_featured_user_impl(user_id: str) -> bool:
+        """Internal implementation of full featured user creation"""
+        try:
+            # Use the proper create_new_user function to generate UUID and register user
+            from core.user_management import create_new_user
             
-            return success
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "America/New_York",
+                "categories": ["motivational", "health", "fun_facts", "quotes_to_ponder", "word_of_the_day"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00",
+                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?"]
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "high",
+                    "reminder_enabled": True,
+                    "auto_escalation": True
+                },
+                "preferred_name": f"Full Featured User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "1990-01-01",
+                "reminders_needed": ["medication", "appointments", "exercise"],
+                "custom_fields": {
+                    "health_conditions": ["ADHD", "Depression"],
+                    "medications_treatments": ["Adderall", "Therapy"],
+                    "allergies_sensitivities": ["Peanuts"]
+                },
+                "interests": ["Technology", "Gaming", "Reading", "Cooking"],
+                "goals": ["Improve mental health", "Stay organized", "Build better habits"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
+                "notes_for_ai": ["Prefers gentle encouragement", "Responds well to humor"]
+            }
+            
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
+            
+            if actual_user_id:
+                return True
+            else:
+                return False
             
         except Exception as e:
             print(f"Error creating full featured user {user_id}: {e}")
@@ -320,12 +596,82 @@ class TestUserFactory:
         
         Args:
             user_id: Unique identifier for the test user
-            email: Email address for the test user (defaults to user_id@example.com)
-            test_data_dir: Optional test data directory to use for configuration
+            email: Email address (defaults to user_id@example.com if not provided)
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
-            bool: True if user was created successfully, False otherwise
+            str: User ID if user was created successfully, None otherwise
         """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_email_user_with_test_dir(user_id, email, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_email_user_impl(user_id, email)
+            
+        except Exception as e:
+            print(f"Error creating email user {user_id}: {e}")
+            return None
+    
+    @staticmethod
+    def _create_email_user_with_test_dir(user_id: str, email: str = None, test_data_dir: str = None) -> str:
+        """Create email user with test directory by directly saving files"""
+        try:
+            if email is None:
+                email = f"{user_id}@example.com"
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": email,
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Email User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology", "Reading"],
+                "goals": ["Improve mental health", "Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_email_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating email user with test dir {user_id}: {e}")
+            return None
+    
+    @staticmethod
+    def _create_email_user_impl(user_id: str, email: str = None) -> str:
+        """Internal implementation of email user creation"""
         try:
             if email is None:
                 email = f"{user_id}@example.com"
@@ -355,7 +701,7 @@ class TestUserFactory:
                     "default_priority": "medium",
                     "reminder_enabled": True
                 },
-                "preferred_name": f"Test User {user_id}",
+                "preferred_name": f"Email User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
                 "reminders_needed": [],
@@ -364,45 +710,60 @@ class TestUserFactory:
                     "medications_treatments": [],
                     "allergies_sensitivities": []
                 },
-                "interests": ["Technology", "Gaming"],
+                "interests": ["Technology", "Reading"],
                 "goals": ["Improve mental health", "Stay organized"],
                 "loved_ones": [],
                 "activities_for_encouragement": [],
                 "notes_for_ai": []
             }
             
-            # If test_data_dir is provided, patch the configuration during user creation
-            if test_data_dir:
-                from unittest.mock import patch
-                import core.config
-                with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
-                     patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, "users")):
-                    actual_user_id = create_new_user(user_data)
-            else:
-                # Create the user using the proper function
-                actual_user_id = create_new_user(user_data)
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
             
-            if actual_user_id:
-                return actual_user_id
-            else:
-                return None
+            return actual_user_id
             
         except Exception as e:
-            print(f"Error creating email test user {user_id}: {e}")
-            return False
+            print(f"Error creating email user {user_id}: {e}")
+            return None
     
     @staticmethod
-    def create_user_with_custom_fields(user_id: str, custom_fields: Dict[str, Any] = None) -> bool:
+    def create_user_with_custom_fields(user_id: str, custom_fields: Dict[str, Any] = None, test_data_dir: str = None) -> bool:
         """
         Create a test user with custom fields for testing custom field functionality
         
         Args:
             user_id: Unique identifier for the test user
             custom_fields: Dictionary of custom fields to add to user context
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, temporarily patch the config to use it
+            if test_data_dir:
+                from unittest.mock import patch
+                import core.config
+                
+                # Create test users directory
+                test_users_dir = os.path.join(test_data_dir, "users")
+                os.makedirs(test_users_dir, exist_ok=True)
+                
+                # Temporarily patch the config to use test directory
+                with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+                     patch.object(core.config, "USER_INFO_DIR_PATH", test_users_dir):
+                    return TestUserFactory._create_user_with_custom_fields_impl(user_id, custom_fields)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_custom_fields_impl(user_id, custom_fields)
+            
+        except Exception as e:
+            print(f"Error creating custom fields test user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_custom_fields_impl(user_id: str, custom_fields: Dict[str, Any] = None) -> bool:
+        """Internal implementation of custom fields user creation"""
         try:
             if custom_fields is None:
                 custom_fields = {
@@ -465,20 +826,91 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_telegram_user(user_id: str, telegram_username: str = None) -> bool:
+    def create_telegram_user(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
         """
         Create a test user specifically configured for Telegram testing
         
         Args:
             user_id: Unique identifier for the test user
-            telegram_username: Telegram username for the test user
+            telegram_username: Telegram username (defaults to user_id if not provided)
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_telegram_user_with_test_dir(user_id, telegram_username, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_telegram_user_impl(user_id, telegram_username)
+            
+        except Exception as e:
+            print(f"Error creating telegram user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_telegram_user_with_test_dir(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
+        """Create telegram user with test directory by directly saving files"""
+        try:
             if telegram_username is None:
-                telegram_username = f"test_user_{user_id}"
+                telegram_username = user_id
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "telegram"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Telegram User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology", "Gaming"],
+                "goals": ["Improve mental health", "Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating telegram user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_telegram_user_impl(user_id: str, telegram_username: str = None) -> bool:
+        """Internal implementation of telegram user creation"""
+        try:
+            if telegram_username is None:
+                telegram_username = user_id
             
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -493,8 +925,7 @@ class TestUserFactory:
                 "timezone": "UTC",
                 "categories": ["motivational", "health"],
                 "channel": {
-                    "type": "telegram",
-                    "contact": telegram_username
+                    "type": "telegram"
                 },
                 "checkin_settings": {
                     "enabled": True,
@@ -506,7 +937,7 @@ class TestUserFactory:
                     "default_priority": "medium",
                     "reminder_enabled": True
                 },
-                "preferred_name": f"Test User {user_id}",
+                "preferred_name": f"Telegram User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
                 "reminders_needed": [],
@@ -531,21 +962,47 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating Telegram test user {user_id}: {e}")
+            print(f"Error creating telegram user {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_schedules(user_id: str, schedule_config: Dict[str, Any] = None) -> bool:
+    def create_user_with_schedules(user_id: str, schedule_config: Dict[str, Any] = None, test_data_dir: str = None) -> bool:
         """
         Create a test user with comprehensive schedule configuration
         
         Args:
             user_id: Unique identifier for the test user
             schedule_config: Custom schedule configuration
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, temporarily patch the config to use it
+            if test_data_dir:
+                from unittest.mock import patch
+                import core.config
+                
+                # Create test users directory
+                test_users_dir = os.path.join(test_data_dir, "users")
+                os.makedirs(test_users_dir, exist_ok=True)
+                
+                # Temporarily patch the config to use test directory
+                with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+                     patch.object(core.config, "USER_INFO_DIR_PATH", test_users_dir):
+                    return TestUserFactory._create_user_with_schedules_impl(user_id, schedule_config)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_schedules_impl(user_id, schedule_config)
+            
+        except Exception as e:
+            print(f"Error creating schedules test user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_schedules_impl(user_id: str, schedule_config: Dict[str, Any] = None) -> bool:
+        """Internal implementation of schedules user creation"""
         try:
             if schedule_config is None:
                 schedule_config = {
@@ -628,114 +1085,217 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def create_minimal_user(user_id: str) -> bool:
+    def create_minimal_user(user_id: str, test_data_dir: str = None) -> bool:
         """
         Create a minimal test user with only basic messaging enabled
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # Create the user data structure that matches what the system expects
-            from core.user_data_handlers import save_user_data
-            from core.config import get_user_data_dir
-            import os
-            
-            # Create user directory if it doesn't exist
-            user_dir = get_user_data_dir(user_id)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            # Create minimal account data
-            account_data = {
-                "user_id": user_id,
-                "internal_username": user_id,
-                "account_status": "active",
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "created_at": "2025-01-01 00:00:00",
-                "updated_at": "2025-01-01 00:00:00",
-                "features": {
-                    "automated_messages": "enabled",
-                    "checkins": "disabled",
-                    "task_management": "disabled"
-                },
-                "timezone": "UTC"
-            }
-            
-            # Create minimal preferences data
-            preferences_data = {
-                "categories": ["motivational"],
-                "channel": {
-                    "type": "email"
-                },
-                "checkin_settings": {},
-                "task_management": {},
-                "timezone": "",
-                "ai_settings": {
-                    "model": "deepseek-llm-7b-chat",
-                    "temperature": 0.7
-                }
-            }
-            
-            # Create minimal context data
-            context_data = {
-                "preferred_name": "",
-                "pronouns": [],
-                "date_of_birth": "",
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "reminders_needed": []
-                },
-                "interests": [],
-                "goals": [],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": [],
-                "created_at": "2025-01-01 00:00:00",
-                "last_updated": "2025-01-01 00:00:00"
-            }
-            
-            # Save all data using the centralized save function
-            result = save_user_data(user_id, {
-                'account': account_data,
-                'preferences': preferences_data,
-                'context': context_data
-            })
-            
-            # Check if all data types were saved successfully
-            success = all(result.values())
-            
-            if success:
-                # Update user index
-                try:
-                    from core.user_data_manager import update_user_index
-                    update_user_index(user_id)
-                except Exception as e:
-                    print(f"Warning: Failed to update user index for {user_id}: {e}")
-            
-            return success
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_minimal_user_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_minimal_user_impl(user_id)
             
         except Exception as e:
             print(f"Error creating minimal user {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_complex_checkins(user_id: str) -> bool:
+    def _create_minimal_user_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create minimal user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Minimal User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": [],
+                "goals": [],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating minimal user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_minimal_user_impl(user_id: str) -> bool:
+        """Internal implementation of minimal user creation"""
+        try:
+            # Use the proper create_new_user function to generate UUID and register user
+            from core.user_management import create_new_user
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Minimal User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": [],
+                "goals": [],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
+            
+            if actual_user_id:
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            print(f"Error creating minimal user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def create_user_with_complex_checkins(user_id: str, test_data_dir: str = None) -> bool:
         """
         Create a test user with complex check-in configurations
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_complex_checkins_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_complex_checkins_impl(user_id)
+            
+        except Exception as e:
+            print(f"Error creating complex checkins user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_complex_checkins_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create complex checkins user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00",
+                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?", "How did you sleep?", "Did you exercise?"]
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Complex Checkins User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": ["medication", "meals", "sleep"],
+                "custom_fields": {
+                    "health_conditions": ["Depression", "Anxiety"],
+                    "medications_treatments": ["Therapy", "Medication"],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Health", "Wellness", "Self-care"],
+                "goals": ["Improve mental health", "Build healthy habits", "Track progress"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
+                "notes_for_ai": ["Prefers detailed check-ins", "Health-focused approach"]
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating complex checkins user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_complex_checkins_impl(user_id: str) -> bool:
+        """Internal implementation of complex checkins user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -756,80 +1316,27 @@ class TestUserFactory:
                     "enabled": True,
                     "frequency": "daily",
                     "reminder_time": "09:00",
-                    "questions": {
-                        "mood": {
-                            "enabled": True,
-                            "label": "Mood (1-5 scale)"
-                        },
-                        "energy_level": {
-                            "enabled": True,
-                            "label": "Energy level (1-5 scale)"
-                        },
-                        "hydrated": {
-                            "enabled": False,
-                            "label": "Staying hydrated (yes/no)"
-                        },
-                        "brushed_teeth": {
-                            "enabled": True,
-                            "label": "Brushed teeth (yes/no)"
-                        },
-                        "sleep_quality": {
-                            "enabled": True,
-                            "label": "Sleep quality (1-5 scale)"
-                        },
-                        "stress_level": {
-                            "enabled": True,
-                            "label": "Stress level (1-5 scale)"
-                        },
-                        "anxiety_level": {
-                            "enabled": True,
-                            "label": "Anxiety level (1-5 scale)"
-                        },
-                        "sleep_hours": {
-                            "enabled": False,
-                            "label": "Hours of sleep (number)"
-                        },
-                        "medication": {
-                            "enabled": False,
-                            "label": "Took medication (yes/no)"
-                        },
-                        "breakfast": {
-                            "enabled": False,
-                            "label": "Had breakfast (yes/no)"
-                        },
-                        "exercise": {
-                            "enabled": False,
-                            "label": "Did exercise (yes/no)"
-                        },
-                        "social_interaction": {
-                            "enabled": False,
-                            "label": "Had social interaction (yes/no)"
-                        },
-                        "reflection_notes": {
-                            "enabled": False,
-                            "label": "Brief reflection/notes (text)"
-                        }
-                    }
+                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?", "How did you sleep?", "Did you exercise?"]
                 },
                 "task_settings": {
                     "enabled": False,
                     "default_priority": "medium",
                     "reminder_enabled": True
                 },
-                "preferred_name": f"Complex Check-in User {user_id}",
+                "preferred_name": f"Complex Checkins User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
-                "reminders_needed": ["Daily check-ins", "Mood tracking"],
+                "reminders_needed": ["medication", "meals", "sleep"],
                 "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
+                    "health_conditions": ["Depression", "Anxiety"],
+                    "medications_treatments": ["Therapy", "Medication"],
                     "allergies_sensitivities": []
                 },
-                "interests": ["Mental health", "Self-reflection"],
-                "goals": ["Track mood patterns", "Improve self-awareness"],
-                "loved_ones": [],
-                "activities_for_encouragement": ["Journaling", "Meditation"],
-                "notes_for_ai": ["Prefers detailed check-ins", "Likes mood tracking"]
+                "interests": ["Health", "Wellness", "Self-care"],
+                "goals": ["Improve mental health", "Build healthy habits", "Track progress"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
+                "notes_for_ai": ["Prefers detailed check-ins", "Health-focused approach"]
             }
             
             # Create the user using the proper function
@@ -841,20 +1348,88 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating user with complex check-ins {user_id}: {e}")
+            print(f"Error creating complex checkins user {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_health_focus(user_id: str) -> bool:
+    def create_user_with_health_focus(user_id: str, test_data_dir: str = None) -> bool:
         """
-        Create a test user focused on health and wellness features
+        Create a test user with health-focused features and data
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_health_focus_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_health_focus_impl(user_id)
+            
+        except Exception as e:
+            print(f"Error creating health focus user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_health_focus_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create health focus user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["health", "motivational"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00",
+                    "custom_questions": ["How are you feeling today?", "Did you take your medication?", "How did you sleep?"]
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "high",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Health Focus User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "1990-01-01",
+                "reminders_needed": ["medication", "appointments", "exercise", "sleep"],
+                "custom_fields": {
+                    "health_conditions": ["Anxiety", "Depression"],
+                    "medications_treatments": ["Therapy", "Medication"],
+                    "allergies_sensitivities": ["Pollen"]
+                },
+                "interests": ["Health", "Exercise", "Meditation"],
+                "goals": ["Improve mental health", "Build healthy habits", "Manage stress"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Exercise", "Meditation", "Socializing"],
+                "notes_for_ai": ["Prefers gentle encouragement", "Health-focused approach"]
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating health focus user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_health_focus_impl(user_id: str) -> bool:
+        """Internal implementation of health focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -875,36 +1450,27 @@ class TestUserFactory:
                     "enabled": True,
                     "frequency": "daily",
                     "reminder_time": "09:00",
-                    "questions": {
-                        "mood": {"enabled": True, "label": "Mood (1-5 scale)"},
-                        "energy_level": {"enabled": True, "label": "Energy level (1-5 scale)"},
-                        "sleep_quality": {"enabled": True, "label": "Sleep quality (1-5 scale)"},
-                        "stress_level": {"enabled": True, "label": "Stress level (1-5 scale)"},
-                        "medication": {"enabled": True, "label": "Took medication (yes/no)"},
-                        "exercise": {"enabled": True, "label": "Did exercise (yes/no)"},
-                        "hydrated": {"enabled": True, "label": "Staying hydrated (yes/no)"}
-                    }
+                    "custom_questions": ["How are you feeling today?", "Did you take your medication?", "How did you sleep?"]
                 },
                 "task_settings": {
                     "enabled": True,
                     "default_priority": "high",
-                    "reminder_enabled": True,
-                    "health_reminders": True
+                    "reminder_enabled": True
                 },
-                "preferred_name": f"Health User {user_id}",
+                "preferred_name": f"Health Focus User {user_id}",
                 "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": ["Take medication", "Exercise", "Stay hydrated"],
+                "date_of_birth": "1990-01-01",
+                "reminders_needed": ["medication", "appointments", "exercise", "sleep"],
                 "custom_fields": {
                     "health_conditions": ["Anxiety", "Depression"],
                     "medications_treatments": ["Therapy", "Medication"],
-                    "allergies_sensitivities": []
+                    "allergies_sensitivities": ["Pollen"]
                 },
-                "interests": ["Health", "Wellness", "Exercise"],
-                "goals": ["Improve mental health", "Stay active", "Maintain medication schedule"],
-                "loved_ones": ["Family", "Therapist"],
-                "activities_for_encouragement": ["Exercise", "Meditation", "Walking"],
-                "notes_for_ai": ["Health-focused user", "Prefers gentle health reminders"]
+                "interests": ["Health", "Exercise", "Meditation"],
+                "goals": ["Improve mental health", "Build healthy habits", "Manage stress"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Exercise", "Meditation", "Socializing"],
+                "notes_for_ai": ["Prefers gentle encouragement", "Health-focused approach"]
             }
             
             # Create the user using the proper function
@@ -916,20 +1482,88 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating health focus test user {user_id}: {e}")
-
+            print(f"Error creating health focus user {user_id}: {e}")
+            return False
     
     @staticmethod
-    def create_user_with_task_focus(user_id: str) -> bool:
+    def create_user_with_task_focus(user_id: str, test_data_dir: str = None) -> bool:
         """
-        Create a test user focused on task management and productivity
+        Create a test user with task management focus
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_task_focus_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_task_focus_impl(user_id)
+            
+        except Exception as e:
+            print(f"Error creating task focus user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_task_focus_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create task focus user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "high",
+                    "reminder_enabled": True,
+                    "auto_escalation": True
+                },
+                "preferred_name": f"Task Focus User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": ["deadlines", "meetings", "follow-ups"],
+                "custom_fields": {
+                    "health_conditions": ["ADHD"],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Productivity", "Organization", "Technology"],
+                "goals": ["Improve productivity", "Stay organized", "Meet deadlines"],
+                "loved_ones": [],
+                "activities_for_encouragement": ["Planning", "Organization", "Time management"],
+                "notes_for_ai": ["Task-focused approach", "Prefers clear deadlines"]
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating task focus user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_task_focus_impl(user_id: str) -> bool:
+        """Internal implementation of task focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -953,26 +1587,24 @@ class TestUserFactory:
                 },
                 "task_settings": {
                     "enabled": True,
-                    "default_priority": "medium",
+                    "default_priority": "high",
                     "reminder_enabled": True,
-                    "auto_categorize": True,
-                    "default_reminder_time": "19:00",
-                    "productivity_tracking": True
+                    "auto_escalation": True
                 },
-                "preferred_name": f"Productivity User {user_id}",
+                "preferred_name": f"Task Focus User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
-                "reminders_needed": ["Complete tasks", "Review goals", "Plan next day"],
+                "reminders_needed": ["deadlines", "meetings", "follow-ups"],
                 "custom_fields": {
-                    "health_conditions": [],
+                    "health_conditions": ["ADHD"],
                     "medications_treatments": [],
                     "allergies_sensitivities": []
                 },
                 "interests": ["Productivity", "Organization", "Technology"],
-                "goals": ["Stay organized", "Complete daily tasks", "Improve productivity"],
+                "goals": ["Improve productivity", "Stay organized", "Meet deadlines"],
                 "loved_ones": [],
-                "activities_for_encouragement": ["Task planning", "Goal setting", "Time management"],
-                "notes_for_ai": ["Prefers structured task reminders", "Likes productivity tips"]
+                "activities_for_encouragement": ["Planning", "Organization", "Time management"],
+                "notes_for_ai": ["Task-focused approach", "Prefers clear deadlines"]
             }
             
             # Create the user using the proper function
@@ -984,20 +1616,87 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating task-focused user {user_id}: {e}")
+            print(f"Error creating task focus user {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_disabilities(user_id: str) -> bool:
+    def create_user_with_disabilities(user_id: str, test_data_dir: str = None) -> bool:
         """
-        Create a test user with accessibility and disability considerations
+        Create a test user with disability-focused features and data
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_disabilities_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_disabilities_impl(user_id)
+            
+        except Exception as e:
+            print(f"Error creating disability user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_disabilities_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create disability user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational", "health"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Disability User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": ["medication", "appointments", "accessibility"],
+                "custom_fields": {
+                    "health_conditions": ["ADHD", "Autism"],
+                    "medications_treatments": ["Therapy", "Medication"],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology", "Gaming", "Art"],
+                "goals": ["Improve executive functioning", "Build routines", "Stay organized"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Creative projects", "Socializing", "Exercise"],
+                "notes_for_ai": ["Prefers clear instructions", "Needs routine reminders"]
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating disability user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_disabilities_impl(user_id: str) -> bool:
+        """Internal implementation of disability user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
             from core.user_management import create_new_user
@@ -1017,34 +1716,27 @@ class TestUserFactory:
                 "checkin_settings": {
                     "enabled": True,
                     "frequency": "daily",
-                    "reminder_time": "09:00",
-                    "questions": {
-                        "mood": {"enabled": True, "label": "Mood (1-5 scale)"},
-                        "energy_level": {"enabled": True, "label": "Energy level (1-5 scale)"},
-                        "medication": {"enabled": True, "label": "Took medication (yes/no)"},
-                        "accessibility_needs": {"enabled": True, "label": "Accessibility needs met (yes/no)"},
-                        "pain_level": {"enabled": True, "label": "Pain level (1-5 scale)"}
-                    }
+                    "reminder_time": "09:00"
                 },
                 "task_settings": {
                     "enabled": True,
                     "default_priority": "medium",
                     "reminder_enabled": True
                 },
-                "preferred_name": f"Accessibility User {user_id}",
+                "preferred_name": f"Disability User {user_id}",
                 "gender_identity": ["they/them"],
                 "date_of_birth": "",
-                "reminders_needed": ["Take medication", "Accessibility breaks", "Therapy appointments"],
+                "reminders_needed": ["medication", "appointments", "accessibility"],
                 "custom_fields": {
-                    "health_conditions": ["ADHD", "Anxiety"],
-                    "medications_treatments": ["Medication A", "Therapy"],
+                    "health_conditions": ["ADHD", "Autism"],
+                    "medications_treatments": ["Therapy", "Medication"],
                     "allergies_sensitivities": []
                 },
-                "interests": ["Accessibility", "Technology", "Advocacy"],
-                "goals": ["Improve accessibility", "Manage ADHD", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": ["Accessibility advocacy", "Self-care", "Organization"],
-                "notes_for_ai": ["Prefers clear, simple instructions", "Needs frequent reminders", "Responds well to accessibility-focused support"]
+                "interests": ["Technology", "Gaming", "Art"],
+                "goals": ["Improve executive functioning", "Build routines", "Stay organized"],
+                "loved_ones": ["Family", "Friends"],
+                "activities_for_encouragement": ["Creative projects", "Socializing", "Exercise"],
+                "notes_for_ai": ["Prefers clear instructions", "Needs routine reminders"]
             }
             
             # Create the user using the proper function
@@ -1056,210 +1748,380 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating user with disabilities {user_id}: {e}")
+            print(f"Error creating disability user {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_limited_data(user_id: str) -> bool:
+    def create_user_with_limited_data(user_id: str, test_data_dir: str = None) -> bool:
         """
-        Create a test user with minimal data (like real users who don't fill out much)
+        Create a test user with minimal data for testing edge cases
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # Create the user data structure that matches what the system expects
-            from core.user_data_handlers import save_user_data
-            from core.config import get_user_data_dir
-            import os
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_limited_data_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_limited_data_impl(user_id)
             
-            # Create user directory if it doesn't exist
-            user_dir = get_user_data_dir(user_id)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            # Create minimal account data
-            account_data = {
-                "user_id": user_id,
+        except Exception as e:
+            print(f"Error creating limited data user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_limited_data_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create limited data user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
                 "internal_username": user_id,
-                "account_status": "active",
                 "chat_id": "",
                 "phone": "",
-                "email": f"{user_id}@example.com",
+                "email": "",
                 "discord_user_id": "",
-                "created_at": "2025-01-01 00:00:00",
-                "updated_at": "2025-01-01 00:00:00",
-                "features": {
-                    "automated_messages": "enabled",
-                    "checkins": "disabled",
-                    "task_management": "disabled"
-                },
-                "timezone": "UTC"
-            }
-            
-            # Create minimal preferences data (like real users)
-            preferences_data = {
+                "timezone": "UTC",
                 "categories": ["motivational"],
                 "channel": {
                     "type": "email"
                 },
-                "checkin_settings": {},
-                "task_management": {},
-                "timezone": "",
-                "ai_settings": {
-                    "model": "deepseek-llm-7b-chat",
-                    "temperature": 0.7
-                }
-            }
-            
-            # Create minimal context data (like real users)
-            context_data = {
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
                 "preferred_name": "",
-                "pronouns": [],
+                "gender_identity": [],
                 "date_of_birth": "",
+                "reminders_needed": [],
                 "custom_fields": {
                     "health_conditions": [],
                     "medications_treatments": [],
-                    "reminders_needed": []
+                    "allergies_sensitivities": []
                 },
                 "interests": [],
                 "goals": [],
                 "loved_ones": [],
                 "activities_for_encouragement": [],
-                "notes_for_ai": [],
-                "created_at": "2025-01-01 00:00:00",
-                "last_updated": "2025-01-01 00:00:00"
+                "notes_for_ai": []
             }
             
-            # Save all data using the centralized save function
-            result = save_user_data(user_id, {
-                'account': account_data,
-                'preferences': preferences_data,
-                'context': context_data
-            })
-            
-            # Check if all data types were saved successfully
-            success = all(result.values())
-            
-            if success:
-                # Update user index
-                try:
-                    from core.user_data_manager import update_user_index
-                    update_user_index(user_id)
-                except Exception as e:
-                    print(f"Warning: Failed to update user index for {user_id}: {e}")
-            
-            return success
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating user with limited data {user_id}: {e}")
+            print(f"Error creating limited data user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
-    def create_user_with_inconsistent_data(user_id: str) -> bool:
+    def _create_user_with_limited_data_impl(user_id: str) -> bool:
+        """Internal implementation of limited data user creation"""
+        try:
+            # Use the proper create_new_user function to generate UUID and register user
+            from core.user_management import create_new_user
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": "",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": "",
+                "gender_identity": [],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": [],
+                "goals": [],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
+            
+            if actual_user_id:
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            print(f"Error creating limited data user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def create_user_with_inconsistent_data(user_id: str, test_data_dir: str = None) -> bool:
         """
-        Create a test user with inconsistent or partially filled data (like real users)
+        Create a test user with inconsistent data for testing edge cases
         
         Args:
             user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
             
         Returns:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # Create the user data structure that matches what the system expects
-            from core.user_data_handlers import save_user_data
-            from core.config import get_user_data_dir
-            import os
-            
-            # Create user directory if it doesn't exist
-            user_dir = get_user_data_dir(user_id)
-            os.makedirs(user_dir, exist_ok=True)
-            
-            # Create account data with some inconsistencies
-            account_data = {
-                "user_id": user_id,
-                "internal_username": user_id,
-                "account_status": "active",
-                "chat_id": "",
-                "phone": "3062619228",  # Has phone but no email
-                "email": "",  # Empty email
-                "discord_user_id": "",
-                "created_at": "2025-01-01 00:00:00",
-                "updated_at": "2025-01-01 00:00:00",
-                "features": {
-                    "automated_messages": "enabled",
-                    "checkins": "enabled",
-                    "task_management": "disabled"
-                },
-                "timezone": "America/Regina"
-            }
-            
-            # Create preferences with some inconsistencies
-            preferences_data = {
-                "categories": ["health", "motivational"],  # Has categories
-                "channel": {
-                    "type": "email"
-                },
-                "checkin_settings": {
-                    "questions": {
-                        "mood": {"enabled": True, "label": "Mood (1-5 scale)"},
-                        "energy_level": {"enabled": True, "label": "Energy level (1-5 scale)"}
-                    }
-                },
-                "task_management": {},  # Empty task management
-                "timezone": "",  # Empty timezone
-                "ai_settings": {
-                    "model": "deepseek-llm-7b-chat",
-                    "temperature": 0.7
-                },
-                "test_field": None  # Extra field like real users
-            }
-            
-            # Create context with some inconsistencies
-            context_data = {
-                "preferred_name": "",  # Empty preferred name
-                "pronouns": [],  # Empty pronouns
-                "date_of_birth": "",  # Empty date of birth
-                "custom_fields": {
-                    "health_conditions": [],  # Empty health conditions
-                    "medications_treatments": [],  # Empty medications
-                    "reminders_needed": []  # Empty reminders
-                },
-                "interests": [],  # Empty interests
-                "goals": [],  # Empty goals
-                "loved_ones": [],  # Empty loved ones
-                "activities_for_encouragement": [],  # Empty activities
-                "notes_for_ai": [],  # Empty notes
-                "created_at": "2025-01-01 00:00:00",
-                "last_updated": "2025-01-01 00:00:00"
-            }
-            
-            # Save all data using the centralized save function
-            result = save_user_data(user_id, {
-                'account': account_data,
-                'preferences': preferences_data,
-                'context': context_data
-            })
-            
-            # Check if all data types were saved successfully
-            success = all(result.values())
-            
-            if success:
-                # Update user index
-                try:
-                    from core.user_data_manager import update_user_index
-                    update_user_index(user_id)
-                except Exception as e:
-                    print(f"Warning: Failed to update user index for {user_id}: {e}")
-            
-            return success
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory._create_user_with_inconsistent_data_with_test_dir(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                return TestUserFactory._create_user_with_inconsistent_data_impl(user_id)
             
         except Exception as e:
-            print(f"Error creating user with inconsistent data {user_id}: {e}")
+            print(f"Error creating inconsistent data user {user_id}: {e}")
             return False
+    
+    @staticmethod
+    def _create_user_with_inconsistent_data_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+        """Create inconsistent data user with test directory by directly saving files"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "3062619228",
+                "email": "",
+                "discord_user_id": "",
+                "timezone": "America/Regina",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Inconsistent User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology"],
+                "goals": ["Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            # Verify user creation with proper configuration patching
+            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            print(f"Error creating inconsistent data user with test dir {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def _create_user_with_inconsistent_data_impl(user_id: str) -> bool:
+        """Internal implementation of inconsistent data user creation"""
+        try:
+            # Use the proper create_new_user function to generate UUID and register user
+            from core.user_management import create_new_user
+            
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "3062619228",
+                "email": "",
+                "discord_user_id": "",
+                "timezone": "America/Regina",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "discord"
+                },
+                "checkin_settings": {
+                    "enabled": True,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": True,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Inconsistent User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": ["Technology"],
+                "goals": ["Stay organized"],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Create the user using the proper function
+            actual_user_id = create_new_user(user_data)
+            
+            if actual_user_id:
+                return True
+            else:
+                return False
+            
+        except Exception as e:
+            print(f"Error creating inconsistent data user {user_id}: {e}")
+            return False
+    
+    @staticmethod
+    def get_test_user_data(user_id: str, test_data_dir: str) -> Dict[str, Any]:
+        """Get user data from test directory"""
+        try:
+            # First try to find the user by internal username in the user index
+            user_index_file = os.path.join(test_data_dir, "user_index.json")
+            if os.path.exists(user_index_file):
+                with open(user_index_file, 'r', encoding='utf-8') as f:
+                    user_index = json.load(f)
+                
+                if user_id in user_index:
+                    actual_user_id = user_index[user_id]
+                    user_dir = os.path.join(test_data_dir, "users", actual_user_id)
+                    
+                    # Load all user data files
+                    result = {}
+                    
+                    # Load account data
+                    account_file = os.path.join(user_dir, "account.json")
+                    if os.path.exists(account_file):
+                        with open(account_file, 'r', encoding='utf-8') as f:
+                            result['account'] = json.load(f)
+                    
+                    # Load preferences data
+                    preferences_file = os.path.join(user_dir, "preferences.json")
+                    if os.path.exists(preferences_file):
+                        with open(preferences_file, 'r', encoding='utf-8') as f:
+                            result['preferences'] = json.load(f)
+                    
+                    # Load context data
+                    context_file = os.path.join(user_dir, "user_context.json")
+                    if os.path.exists(context_file):
+                        with open(context_file, 'r', encoding='utf-8') as f:
+                            result['context'] = json.load(f)
+                    
+                    # Load schedules data
+                    schedules_file = os.path.join(user_dir, "schedules.json")
+                    if os.path.exists(schedules_file):
+                        with open(schedules_file, 'r', encoding='utf-8') as f:
+                            result['schedules'] = json.load(f)
+                    
+                    return result
+            
+            return {}
+            
+        except Exception as e:
+            print(f"Error getting test user data for {user_id}: {e}")
+            return {}
+    
+    @staticmethod
+    def get_test_user_id_by_internal_username(internal_username: str, test_data_dir: str) -> Optional[str]:
+        """Get user ID by internal username from test directory"""
+        try:
+            user_index_file = os.path.join(test_data_dir, "user_index.json")
+            if os.path.exists(user_index_file):
+                with open(user_index_file, 'r', encoding='utf-8') as f:
+                    user_index = json.load(f)
+                
+                return user_index.get(internal_username)
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error getting test user ID for {internal_username}: {e}")
+            return None
+    
+    @staticmethod
+    def _verify_user_creation_with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> bool:
+        """Helper function to verify user creation with proper configuration patching"""
+        # CRITICAL FIX: Patch the configuration to use the test data directory
+        # This ensures that system functions can find the created users
+        from unittest.mock import patch
+        import core.config
+        
+        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            
+            # Verify the user was created successfully by trying to find it
+            from core.user_management import get_user_id_by_internal_username
+            found_user_id = get_user_id_by_internal_username(user_id)
+            
+            if found_user_id:
+                return True
+            else:
+                print(f"Warning: User {user_id} was created but not found by get_user_id_by_internal_username")
+                return actual_user_id is not None
+
+    @staticmethod
+    def _verify_email_user_creation_with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> str:
+        """Helper function to verify email user creation with proper configuration patching"""
+        # CRITICAL FIX: Patch the configuration to use the test data directory
+        # This ensures that system functions can find the created users
+        from unittest.mock import patch
+        import core.config
+        
+        with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+             patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
+            
+            # Verify the user was created successfully by trying to find it
+            from core.user_management import get_user_id_by_internal_username
+            found_user_id = get_user_id_by_internal_username(user_id)
+            
+            if found_user_id:
+                return actual_user_id
+            else:
+                print(f"Warning: Email user {user_id} was created but not found by get_user_id_by_internal_username")
+                return actual_user_id if actual_user_id else None
 
 
 class TestDataManager:

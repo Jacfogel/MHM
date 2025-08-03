@@ -82,7 +82,9 @@ def test_user_data_loading_real_behavior(test_data_dir):
     # Setup test environment and create test users
     import core.config
     core.config.BASE_DATA_DIR = test_data_dir
+    core.config.USER_INFO_DIR_PATH = os.path.join(test_data_dir, 'users')
     print(f"  Setting BASE_DATA_DIR to: {test_data_dir}")
+    print(f"  Setting USER_INFO_DIR_PATH to: {core.config.USER_INFO_DIR_PATH}")
     create_test_user_data("test-user-basic", test_data_dir, "basic")
     create_test_user_data("test-user-full", test_data_dir, "full")
     print(f"  Test users created. Checking if files exist...")
@@ -91,9 +93,14 @@ def test_user_data_loading_real_behavior(test_data_dir):
     
     try:
         from core.user_data_handlers import get_user_data
+        from core.user_management import get_user_id_by_internal_username
+        
+        # Get the UUID for the basic user
+        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        assert basic_user_id is not None, "Should be able to get UUID for basic user"
         
         # Test loading basic user
-        basic_data = get_user_data("test-user-basic", "all")
+        basic_data = get_user_data(basic_user_id, "all")
 
         # Verify actual data structure
         assert "account" in basic_data, "Account data should be loaded"
@@ -108,8 +115,12 @@ def test_user_data_loading_real_behavior(test_data_dir):
         
         print("  ✅ Basic user data loading: Success")
         
+        # Get the UUID for the full user
+        full_user_id = get_user_id_by_internal_username("test-user-full")
+        assert full_user_id is not None, "Should be able to get UUID for full user"
+        
         # Test loading full user
-        full_data = get_user_data("test-user-full", "all")
+        full_data = get_user_data(full_user_id, "all")
         
         # Verify actual data structure
         assert "account" in full_data, "Account data should be loaded"
@@ -132,17 +143,23 @@ def test_feature_enablement_real_behavior(test_data_dir):
     """Test actual feature enablement with file creation/deletion"""
     print("\n🔍 Testing Feature Enablement (Real Behavior)...")
     
-    # Setup test environment and create test users
+        # Setup test environment and create test users
     import core.config
     core.config.BASE_DATA_DIR = test_data_dir
+    core.config.USER_INFO_DIR_PATH = os.path.join(test_data_dir, 'users')
     create_test_user_data("test-user-basic", test_data_dir, "basic")
     create_test_user_data("test-user-full", test_data_dir, "full")
-    
+
     try:
         from core.user_data_handlers import save_user_data, get_user_data
+        from core.user_management import get_user_id_by_internal_username
+        
+        # Get the UUID for the basic user
+        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        assert basic_user_id is not None, "Should be able to get UUID for basic user"
         
         # Test enabling check-ins for basic user
-        basic_data = get_user_data("test-user-basic", "all")
+        basic_data = get_user_data(basic_user_id, "all")
         
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
@@ -152,21 +169,25 @@ def test_feature_enablement_real_behavior(test_data_dir):
         }
         
         # Save changes
-        save_user_data("test-user-basic", {"account": basic_data["account"], "preferences": basic_data["preferences"]})
+        save_user_data(basic_user_id, {"account": basic_data["account"], "preferences": basic_data["preferences"]})
         
         # Verify actual file changes
-        updated_data = get_user_data("test-user-basic", "all")
+        updated_data = get_user_data(basic_user_id, "all")
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         
         # Verify daily_checkins.json was created
-        checkins_file = os.path.join(test_data_dir, "users", "test-user-basic", "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "daily_checkins.json")
         assert os.path.exists(checkins_file), "daily_checkins.json should be created"
         
         print("  ✅ Enable check-ins: Success")
         
+        # Get the UUID for the full user
+        full_user_id = get_user_id_by_internal_username("test-user-full")
+        assert full_user_id is not None, "Should be able to get UUID for full user"
+        
         # Test disabling tasks for full user
-        full_data = get_user_data("test-user-full", "all")
+        full_data = get_user_data(full_user_id, "all")
         
         # Disable tasks
         full_data["account"]["features"]["task_management"] = "disabled"
@@ -174,10 +195,10 @@ def test_feature_enablement_real_behavior(test_data_dir):
             del full_data["preferences"]["task_settings"]
         
         # Save changes
-        save_user_data("test-user-full", {"account": full_data["account"], "preferences": full_data["preferences"]})
+        save_user_data(full_user_id, {"account": full_data["account"], "preferences": full_data["preferences"]})
         
         # Verify actual file changes
-        updated_data = get_user_data("test-user-full", "all")
+        updated_data = get_user_data(full_user_id, "all")
         assert updated_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled"
         assert "task_settings" not in updated_data["preferences"], "Task settings should be removed"
         
@@ -362,19 +383,25 @@ def test_integration_scenarios_real_behavior(test_data_dir):
     """Test complex integration scenarios with multiple operations"""
     print("\n🔍 Testing Integration Scenarios (Real Behavior)...")
     
-    # Setup test environment and create test users
+        # Setup test environment and create test users
     import core.config
     core.config.BASE_DATA_DIR = test_data_dir
+    core.config.USER_INFO_DIR_PATH = os.path.join(test_data_dir, 'users')
     create_test_user_data("test-user-basic", test_data_dir, "basic")
     create_test_user_data("test-user-full", test_data_dir, "full")
-    
+
     try:
         from core.user_data_handlers import save_user_data, get_user_data
-        
+        from core.user_management import get_user_id_by_internal_username
+
+        # Get the UUID for the basic user
+        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        assert basic_user_id is not None, "Should be able to get UUID for basic user"
+
         # Scenario 1: User opts into check-ins for the first time
         print("  Testing: User opts into check-ins for the first time")
-        
-        basic_data = get_user_data("test-user-basic", "all")
+
+        basic_data = get_user_data(basic_user_id, "all")
         
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
@@ -403,21 +430,21 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         
         basic_data["schedules"]["motivational"]["periods"]["evening"] = checkin_periods[0]
         
-        # Save all changes
-        save_user_data("test-user-basic", {
+                # Save all changes
+        save_user_data(basic_user_id, {
             "account": basic_data["account"],
             "preferences": basic_data["preferences"],
             "schedules": basic_data["schedules"]
         })
-        
+
         # Verify integration
-        updated_data = get_user_data("test-user-basic", "all")
+        updated_data = get_user_data(basic_user_id, "all")
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
         
         # Verify daily_checkins.json was created
-        checkins_file = os.path.join(test_data_dir, "users", "test-user-basic", "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "daily_checkins.json")
         assert os.path.exists(checkins_file), "daily_checkins.json should be created"
         
         print("    ✅ Check-in opt-in scenario: Success")
@@ -425,32 +452,36 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         # Scenario 2: User disables task management and re-enables it
         print("  Testing: User disables task management and re-enables it")
         
-        full_data = get_user_data("test-user-full", "all")
+        # Get the UUID for the full user
+        full_user_id = get_user_id_by_internal_username("test-user-full")
+        assert full_user_id is not None, "Should be able to get UUID for full user"
+        
+        full_data = get_user_data(full_user_id, "all")
         
         # Disable tasks
         full_data["account"]["features"]["task_management"] = "disabled"
         if "task_settings" in full_data["preferences"]:
             del full_data["preferences"]["task_settings"]
         
-        save_user_data("test-user-full", {
+        save_user_data(full_user_id, {
             "account": full_data["account"],
             "preferences": full_data["preferences"]
         })
         
         # Verify disabled state
-        disabled_data = get_user_data("test-user-full", "all")
+        disabled_data = get_user_data(full_user_id, "all")
         assert disabled_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled"
         assert "task_settings" not in disabled_data["preferences"], "Task settings should be removed"
         
         # Re-enable tasks
-        full_data = get_user_data("test-user-full", "all")
+        full_data = get_user_data(full_user_id, "all")
         full_data["account"]["features"]["task_management"] = "enabled"
         full_data["preferences"]["task_settings"] = {
             "enabled": True,
             "reminder_frequency": "daily"
         }
 
-        save_user_data("test-user-full", {
+        save_user_data(full_user_id, {
             "account": full_data["account"],
             "preferences": full_data["preferences"]
         })
@@ -463,12 +494,12 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             ensure_task_directory(actual_user_id)
 
         # Verify re-enabled state
-        reenabled_data = get_user_data("test-user-full", "all")
+        reenabled_data = get_user_data(full_user_id, "all")
         assert reenabled_data["account"]["features"]["task_management"] == "enabled", "Tasks should be re-enabled"
         assert "task_settings" in reenabled_data["preferences"], "Task settings should be restored"
 
         # Verify tasks directory exists
-        tasks_dir = os.path.join(test_data_dir, "users", "test-user-full", "tasks")
+        tasks_dir = os.path.join(test_data_dir, "users", full_user_id, "tasks")
         assert os.path.exists(tasks_dir), "Tasks directory should exist"
         
         print("    ✅ Task disable/re-enable scenario: Success")
@@ -476,23 +507,23 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         # Scenario 3: User adds new message category and then removes it
         print("  Testing: User adds new message category and then removes it")
         
-        basic_data = get_user_data("test-user-basic", "all")
+        basic_data = get_user_data(basic_user_id, "all")
         
         # Add new category
         basic_data["preferences"]["categories"].append("quotes")
-        save_user_data("test-user-basic", {"preferences": basic_data["preferences"]})
+        save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
         
         # Verify category added
-        updated_data = get_user_data("test-user-basic", "all")
+        updated_data = get_user_data(basic_user_id, "all")
         assert "quotes" in updated_data["preferences"]["categories"], "Quotes category should be added"
         
         # Remove category
-        basic_data = get_user_data("test-user-basic", "all")
+        basic_data = get_user_data(basic_user_id, "all")
         basic_data["preferences"]["categories"].remove("quotes")
-        save_user_data("test-user-basic", {"preferences": basic_data["preferences"]})
+        save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
         
         # Verify category removed
-        final_data = get_user_data("test-user-basic", "all")
+        final_data = get_user_data(basic_user_id, "all")
         assert "quotes" not in final_data["preferences"]["categories"], "Quotes category should be removed"
         
         print("    ✅ Category add/remove scenario: Success")

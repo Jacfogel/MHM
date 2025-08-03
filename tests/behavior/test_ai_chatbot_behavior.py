@@ -165,7 +165,7 @@ class TestAIChatBotBehavior:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True)
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
         chatbot = AIChatBotSingleton()
@@ -320,7 +320,7 @@ class TestAIChatBotBehavior:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True)
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
         # Get user context
@@ -416,12 +416,17 @@ class TestAIChatBotIntegration:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_full_featured_user(user_id)
+        success = TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
+        
+        # Get the UUID for the user
+        from core.user_management import get_user_id_by_internal_username
+        actual_user_id = get_user_id_by_internal_username(user_id)
+        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify user data was saved by loading it
         from core.user_management import load_user_account_data
-        loaded_account = load_user_account_data(user_id)
+        loaded_account = load_user_account_data(actual_user_id)
         assert loaded_account is not None, "User account should be saved and retrievable"
         assert loaded_account.get('internal_username') == user_id, "User account should be correct"
         
