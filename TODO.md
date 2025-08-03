@@ -32,6 +32,27 @@ When adding new tasks, follow this format:
 
 ### High Priority
 
+**Dynamic Time Period Support for Task Statistics** - Implement flexible time period parsing for task statistics
+- *What it means*: Replace the fixed "task_weekly_stats" with dynamic parsing that handles "this week", "last month", "2 weeks", "this time last year", etc.
+- *Why it helps*: Users can ask for task statistics in natural language with various time periods, making the system more flexible and user-friendly
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - Dynamic time period parsing implemented with comprehensive pattern matching and entity extraction
+- *Implementation*: Enhanced command parser with `_parse_time_period` method, updated task stats handler to support dynamic periods
+
+**Test User Cleanup** - Remove test users from production user directory
+- *What it means*: Clean up the 15+ test user directories that were created during testing and left in the data/users directory
+- *Why it helps*: Keeps the production user directory clean and prevents confusion between test and real user data
+- *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - Created cleanup script and removed 15 test users from data/users directory
+- *Implementation*: Created `cleanup_test_users.py` script with pattern matching and confirmation prompts
+
+**Dynamic Time Period Testing** - Test the new dynamic time period functionality for task statistics
+- *What it means*: Create comprehensive tests for the dynamic time period parsing and task statistics with various time expressions
+- *Why it helps*: Ensures the new flexible time period functionality works correctly with all supported patterns
+- *Estimated effort*: Small
+- *Status*: ⚠️ **PENDING** - Need to create behavior tests for time period parsing and task statistics
+- *Test Cases*: "this week", "last month", "2 weeks", "this time last year", numeric periods, edge cases
+
 **TestUserFactory Fix** - Fix widespread test failures caused by TestUserFactory methods not properly creating users
 - *What it means*: The TestUserFactory methods are returning success but not actually saving user data correctly, causing 23 test failures across behavior, integration, and UI tests
 - *Why it helps*: Restores test reliability and ensures the test utilities work correctly for all test scenarios

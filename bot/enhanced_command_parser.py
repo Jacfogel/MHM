@@ -50,9 +50,11 @@ class EnhancedCommandParser:
                 r'show\s+(?:my\s+)?tasks?',
                 r'list\s+(?:my\s+)?tasks?',
                 r'what\s+(?:are\s+)?(?:my\s+)?tasks?',
-                r'my\s+tasks?',
+                r'^my\s+tasks?$',
                 r'tasks?\s+due',
-                r'what\s+do\s+i\s+have\s+to\s+do',
+                r'what\s+do\s+i\s+have\s+to\s+do\s+(?:today|tomorrow)',
+                r'what\s+are\s+my\s+tasks?\s+(?:for\s+today|for\s+tomorrow)',
+                r'show\s+me\s+my\s+tasks?',
             ],
             'complete_task': [
                 r'complete\s+(?:task\s+)?(\d+|[^0-9]+)',
@@ -60,6 +62,10 @@ class EnhancedCommandParser:
                 r'finished\s+(?:task\s+)?(\d+|[^0-9]+)',
                 r'mark\s+(?:task\s+)?(\d+|[^0-9]+)\s+complete',
                 r'task\s+(\d+|[^0-9]+)\s+done',
+                # Natural language patterns for task completion
+                r'i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now)?(?:\s*,?\s*we\s+can\s+complete\s+that\s+task)?',
+                r'i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now)?(?:\s*,?\s*so\s+we\s+can\s+complete\s+that\s+task)?',
+                r'(?:we\s+can\s+complete\s+that\s+task|so\s+we\s+can\s+complete\s+that\s+task)(?:\s*because\s+i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?))?',
             ],
             'delete_task': [
                 r'delete\s+(?:task\s+)?(\d+|[^0-9]+)',
@@ -77,6 +83,11 @@ class EnhancedCommandParser:
                 r'show\s+task\s+stats',
                 r'my\s+task\s+progress',
                 r'how\s+am\s+i\s+doing\s+with\s+tasks',
+                # Dynamic time period patterns
+                r'how\s+am\s+i\s+doing\s+with\s+(?:my\s+)?tasks?\s+(this\s+week|last\s+week|this\s+month|last\s+month|this\s+year|last\s+year|\d+\s+weeks?|\d+\s+months?|\d+\s+days?)',
+                r'task\s+stats\s+(?:for\s+)?(this\s+week|last\s+week|this\s+month|last\s+month|this\s+year|last\s+year|\d+\s+weeks?|\d+\s+months?|\d+\s+days?)',
+                r'my\s+task\s+progress\s+(?:for\s+)?(this\s+week|last\s+week|this\s+month|last\s+month|this\s+year|last\s+year|\d+\s+weeks?|\d+\s+months?|\d+\s+days?)',
+                r'task\s+summary\s+(?:for\s+)?(this\s+week|last\s+week|this\s+month|last\s+month|this\s+year|last\s+year|\d+\s+weeks?|\d+\s+months?|\d+\s+days?)',
             ],
             'start_checkin': [
                 r'start\s+(?:a\s+)?check.?in',
@@ -90,8 +101,24 @@ class EnhancedCommandParser:
                 r'check.?in\s+status',
                 r'show\s+check.?ins?',
                 r'my\s+check.?in\s+history',
-                r'how\s+am\s+i\s+doing',
+                r'how\s+am\s+i\s+doing\s+(?:overall|in\s+general|with\s+check.?ins?)',
                 r'check.?in\s+progress',
+            ],
+            'checkin_history': [
+                r'check.?in\s+history',
+                r'show\s+(?:my\s+)?check.?in\s+history',
+                r'my\s+check.?in\s+history',
+                r'check.?in\s+records',
+                r'past\s+check.?ins?',
+                r'check.?in\s+log',
+            ],
+            'completion_rate': [
+                r'completion\s+rate',
+                r'what\s+is\s+my\s+completion\s+rate',
+                r'how\s+am\s+i\s+doing\s+with\s+completion',
+                r'task\s+completion\s+rate',
+                r'my\s+completion\s+rate',
+                r'completion\s+percentage',
             ],
             'show_profile': [
                 r'show\s+(?:my\s+)?profile',
@@ -116,6 +143,10 @@ class EnhancedCommandParser:
                 r'help\s+(tasks?|check.?in|profile)',
                 r'what\s+can\s+you\s+do',
                 r'how\s+do\s+i\s+use\s+this',
+                r'how\s+do\s+i\s+create\s+a\s+task',
+                r'how\s+do\s+i\s+create\s+tasks?',
+                r'how\s+to\s+create\s+a\s+task',
+                r'how\s+to\s+create\s+tasks?',
             ],
             'commands': [
                 r'commands?',
@@ -322,7 +353,17 @@ class EnhancedCommandParser:
             # Extract task identifier
             if match.groups():
                 identifier = match.group(1).strip()
-                entities['task_identifier'] = identifier
+                
+                # Handle natural language patterns for task completion
+                if intent == 'complete_task' and identifier.lower() in ['that task', 'the task', 'this task']:
+                    # Extract the actual task name from the message context
+                    task_name = self._extract_task_name_from_context(message)
+                    if task_name:
+                        entities['task_identifier'] = task_name
+                    else:
+                        entities['task_identifier'] = identifier
+                else:
+                    entities['task_identifier'] = identifier
                 
                 # For update_task, extract update details
                 if intent == 'update_task' and len(match.groups()) > 1:
@@ -335,6 +376,17 @@ class EnhancedCommandParser:
                 field = match.group(1).strip()
                 value = match.group(2).strip()
                 entities[field] = value
+        
+        elif intent == 'task_stats':
+            # Extract time period if specified
+            if match.groups():
+                time_period = match.group(1).strip()
+                parsed_period = self._parse_time_period(time_period)
+                entities.update(parsed_period)
+            else:
+                # Default to current week if no time period specified
+                entities['days'] = 7
+                entities['period_name'] = 'this week'
         
         # Schedule Management Entity Extraction
         elif intent == 'show_schedule':
@@ -451,6 +503,21 @@ class EnhancedCommandParser:
         
         return entities
     
+    def _extract_task_name_from_context(self, message: str) -> Optional[str]:
+        """Extract task name from natural language context"""
+        # Look for patterns like "I brushed my teeth" -> extract "teeth" or "brush teeth"
+        patterns = [
+            r'i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now|\s*,?\s*we\s+can\s+complete|\s*,?\s*so\s+we\s+can\s+complete)',
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, message.lower())
+            if match:
+                task_name = match.group(1).strip()
+                return task_name
+        
+        return None
+    
     def _extract_update_entities(self, update_text: str) -> Dict[str, Any]:
         """Extract update entities from update text"""
         entities = {}
@@ -511,24 +578,27 @@ class EnhancedCommandParser:
         return entities
     
     def _calculate_confidence(self, intent: str, match: re.Match, message: str) -> float:
-        """Calculate confidence score for rule-based parsing"""
+        """Calculate confidence score for a parsed command"""
         base_confidence = 0.8
         
         # Boost confidence for exact matches
         if match.group(0).lower() == message.lower().strip():
-            base_confidence += 0.1
+            base_confidence = 1.0
         
-        # Boost confidence for longer, more specific patterns
-        pattern_length = len(match.group(0))
-        message_length = len(message)
-        if pattern_length / message_length > 0.8:
-            base_confidence += 0.1
+        # Boost confidence for specific intents
+        high_confidence_intents = ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']
+        if intent in high_confidence_intents:
+            base_confidence = min(1.0, base_confidence + 0.1)
         
-        # Reduce confidence for ambiguous patterns
-        if intent in ['create_task', 'update_task'] and not match.groups():
-            base_confidence -= 0.2
+        # Reduce confidence for very short matches
+        if len(match.group(0)) < 5:
+            base_confidence *= 0.8
         
-        return min(1.0, max(0.0, base_confidence))
+        # Boost confidence for question marks (indicates intent)
+        if '?' in message:
+            base_confidence = min(1.0, base_confidence + 0.1)
+        
+        return min(1.0, base_confidence)
     
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""

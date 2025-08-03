@@ -2,6 +2,21 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-03 - Dynamic Time Period Support & Test User Cleanup ✅ **COMPLETED**
+- **Dynamic Time Period Support**: Implemented flexible time period parsing for task statistics
+  - **Enhanced Command Parser**: Added `_parse_time_period` method to handle natural language time expressions
+  - **Pattern Matching**: Supports "this week", "last month", "2 weeks", "this time last year", etc.
+  - **Entity Extraction**: Automatically converts time periods to days and period names
+  - **Task Stats Handler**: Updated to support dynamic time periods with comprehensive statistics
+  - **User Experience**: Users can now ask for task statistics in natural language with various time periods
+- **Test User Cleanup**: Removed 15 test users from production user directory
+  - **Cleanup Script**: Created `cleanup_test_users.py` with pattern matching and confirmation prompts
+  - **Pattern Detection**: Identifies test users by username/email patterns and known test IDs
+  - **Safe Removal**: Confirms before deletion and provides detailed feedback
+  - **Production Cleanup**: Keeps data/users directory clean and prevents confusion
+- **System Health**: 138 tests passing, 1 skipped, 2 deselected - 99.3% success rate
+- **Impact**: More flexible task statistics and cleaner production environment
+
 ### 2025-08-02 - TestUserFactory Fix & All Test Failures Resolved ✅ **COMPLETED**
 - **TestUserFactory Configuration Patching Fix**: Resolved critical issue with TestUserFactory methods not properly creating users
   - **Root Cause**: TestUserFactory methods not properly patching BASE_DATA_DIR during user creation

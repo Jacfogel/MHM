@@ -185,7 +185,7 @@ class CheckinAnalytics:
     
     @handle_errors("calculating wellness score", default_return={"error": "Calculation failed"})
     def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
-        """Calculate a comprehensive wellness score based on recent check-ins"""
+        """Calculate overall wellness score from check-in data"""
         checkins = get_recent_daily_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
@@ -195,18 +195,104 @@ class CheckinAnalytics:
         habit_score = self._calculate_habit_score(checkins)
         sleep_score = self._calculate_sleep_score(checkins)
         
-        # Weight the components
-        overall_score = (mood_score * 0.4 + habit_score * 0.3 + sleep_score * 0.3)
+        # Calculate overall score (weighted average)
+        overall_score = (mood_score * 0.4) + (habit_score * 0.4) + (sleep_score * 0.2)
         
         return {
-            "overall_score": round(overall_score, 1),
-            "mood_score": round(mood_score, 1),
-            "habit_score": round(habit_score, 1),
-            "sleep_score": round(sleep_score, 1),
+            "score": round(overall_score, 1),
+            "level": self._get_score_level(overall_score),
+            "components": {
+                "mood_score": round(mood_score, 1),
+                "habit_score": round(habit_score, 1),
+                "sleep_score": round(sleep_score, 1)
+            },
             "period_days": days,
-            "score_level": self._get_score_level(overall_score),
             "recommendations": self._get_wellness_recommendations(mood_score, habit_score, sleep_score)
         }
+    
+    @handle_errors("getting check-in history", default_return={"error": "History retrieval failed"})
+    def get_checkin_history(self, user_id: str, days: int = 30) -> List[Dict]:
+        """Get check-in history with proper date formatting"""
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return []
+        
+        formatted_history = []
+        for checkin in checkins:
+            if 'timestamp' in checkin:
+                try:
+                    timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
+                    formatted_date = timestamp.strftime('%Y-%m-%d')
+                    
+                    formatted_checkin = {
+                        'date': formatted_date,
+                        'mood': checkin.get('mood', 'No mood recorded'),
+                        'timestamp': checkin['timestamp']
+                    }
+                    
+                    # Add habit information if available
+                    habits = ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'social_interaction']
+                    for habit in habits:
+                        if habit in checkin:
+                            formatted_checkin[habit] = checkin[habit]
+                    
+                    formatted_history.append(formatted_checkin)
+                except (ValueError, TypeError):
+                    continue
+        
+        return formatted_history
+    
+    @handle_errors("calculating completion rate", default_return={"error": "Calculation failed"})
+    def get_completion_rate(self, user_id: str, days: int = 30) -> Dict:
+        """Calculate overall completion rate for check-ins"""
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        total_days = len(checkins)
+        completed_days = sum(1 for checkin in checkins if checkin.get('completed', False))
+        missed_days = total_days - completed_days
+        
+        completion_rate = (completed_days / total_days * 100) if total_days > 0 else 0
+        
+        return {
+            "rate": round(completion_rate, 1),
+            "days_completed": completed_days,
+            "days_missed": missed_days,
+            "total_days": total_days,
+            "period_days": days
+        }
+    
+    @handle_errors("calculating task weekly stats", default_return={"error": "Calculation failed"})
+    def get_task_weekly_stats(self, user_id: str, days: int = 7) -> Dict:
+        """Calculate weekly statistics for tasks"""
+        checkins = get_recent_daily_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Define tasks to track
+        tasks = {
+            'ate_breakfast': 'Breakfast',
+            'brushed_teeth': 'Teeth Brushing', 
+            'medication_taken': 'Medication',
+            'exercise': 'Exercise',
+            'hydration': 'Hydration',
+            'social_interaction': 'Social Interaction'
+        }
+        
+        task_stats = {}
+        for task_key, task_name in tasks.items():
+            completed_days = sum(1 for checkin in checkins if checkin.get(task_key, False))
+            missed_days = len(checkins) - completed_days
+            
+            task_stats[task_name] = {
+                "completed_days": completed_days,
+                "missed_days": missed_days,
+                "total_days": len(checkins),
+                "completion_rate": round((completed_days / len(checkins) * 100) if len(checkins) > 0 else 0, 1)
+            }
+        
+        return task_stats
     
     def _get_mood_distribution(self, moods: List[int]) -> Dict:
         """Calculate distribution of mood scores"""

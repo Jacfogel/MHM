@@ -50,6 +50,12 @@
 - **Conversational AI**: Natural language responses with contextual suggestions ✅
 - **Suggestion System**: Smart suggestions that appear only when helpful ✅
 
+#### **1.4 Dynamic Time Period Support** ✅ **COMPLETED**
+- **Natural Language Time Parsing**: Parse time expressions like "this week", "last month", "2 weeks" ✅
+- **Flexible Task Statistics**: Support dynamic time periods for task statistics and analytics ✅
+- **Entity Extraction**: Automatically convert time periods to days and period names ✅
+- **Pattern Matching**: Comprehensive regex patterns for various time expressions ✅
+
 ### **Phase 1.5: Conversational AI Enhancement** ✅ **COMPLETED**
 
 #### **1.5.1 AI Chatbot Improvements** ✅ **COMPLETED**

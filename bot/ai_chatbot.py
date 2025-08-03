@@ -49,6 +49,8 @@ class SystemPromptLoader:
                         "encouraging, and under 150 words. Important: You cannot diagnose or treat "
                         "medical conditions. For serious concerns, recommend professional help."),
             'command': ("You extract structured commands from user requests. "
+                       "For task completion, understand natural language like 'I brushed my teeth, we can complete that task' "
+                       "as a request to complete a task with a similar name. "
                        "Respond ONLY in valid JSON like "
                        '{"action": "<action>", "details": {...}}'),
             'neurodivergent_support': ("You are an AI assistant with the personality and capabilities "

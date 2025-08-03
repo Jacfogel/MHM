@@ -395,8 +395,17 @@ class DiscordBot(BaseChannel):
                     command, args = self._command_queue.get_nowait()
                     
                     if command == "send_message":
-                        recipient, message = args
-                        result = await self._send_message_internal(recipient, message)
+                        if len(args) == 2:
+                            # Backward compatibility: just message
+                            recipient, message = args
+                            result = await self._send_message_internal(recipient, message)
+                        elif len(args) == 4:
+                            # New format: message with rich data and suggestions
+                            recipient, message, rich_data, suggestions = args
+                            result = await self._send_message_internal(recipient, message, rich_data, suggestions)
+                        else:
+                            logger.error(f"Invalid send_message args: {args}")
+                            result = False
                         self._result_queue.put(result)
                     elif command == "stop":
                         logger.info("Discord bot received stop command")
@@ -507,6 +516,7 @@ class DiscordBot(BaseChannel):
                 response = handle_user_message(internal_user_id, message.content, "discord")
                 
                 if response.message:
+                    # Send the main message
                     await message.channel.send(response.message)
                     
                     # Add suggestions if provided
@@ -623,13 +633,17 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
-        """Send message via Discord using thread-safe queue communication"""
+        """Send message via Discord using thread-safe queue communication with rich response support"""
         if not self.is_ready():
             logger.error("Discord bot is not ready to send messages")
             return False
 
-        # Send command to Discord thread
-        self._command_queue.put(("send_message", (recipient, message)))
+        # Check for rich response data
+        rich_data = kwargs.get('rich_data', {})
+        suggestions = kwargs.get('suggestions', [])
+        
+        # Send command to Discord thread with rich data
+        self._command_queue.put(("send_message", (recipient, message, rich_data, suggestions)))
         
         # Wait for result with timeout
         timeout = 10  # 10 seconds
@@ -646,14 +660,34 @@ class DiscordBot(BaseChannel):
         return False
 
     @handle_errors("sending Discord message internally", default_return=False)
-    async def _send_message_internal(self, recipient: str, message: str) -> bool:
-        """Send message safely within async context"""
+    async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
+        """Send message safely within async context with rich response support"""
+        rich_data = rich_data or {}
+        suggestions = suggestions or []
+        
+        # Create Discord embed if rich data is provided
+        embed = None
+        if rich_data:
+            embed = self._create_discord_embed(message, rich_data)
+        
+        # Create action row with buttons if suggestions are provided
+        action_row = None
+        if suggestions:
+            action_row = self._create_action_row(suggestions)
+        
         # Try as a channel first
         try:
             channel_id = int(recipient)
             channel = self.bot.get_channel(channel_id)
             if channel:
-                await channel.send(message)
+                if embed and action_row:
+                    await channel.send(embed=embed, components=[action_row])
+                elif embed:
+                    await channel.send(embed=embed)
+                elif action_row:
+                    await channel.send(message, components=[action_row])
+                else:
+                    await channel.send(message)
                 logger.info(f"Message sent to Discord channel {recipient}")
                 return True
         except (ValueError, TypeError):
@@ -667,7 +701,14 @@ class DiscordBot(BaseChannel):
                 user = await self.bot.fetch_user(user_id)
             
             if user:
-                await user.send(message)
+                if embed and action_row:
+                    await user.send(embed=embed, components=[action_row])
+                elif embed:
+                    await user.send(embed=embed)
+                elif action_row:
+                    await user.send(message, components=[action_row])
+                else:
+                    await user.send(message)
                 logger.info(f"DM sent to Discord user {recipient}")
                 return True
         except (ValueError, TypeError):
@@ -675,6 +716,75 @@ class DiscordBot(BaseChannel):
         
         logger.error(f"Could not find Discord channel or user with ID {recipient}")
         return False
+    
+    def _create_discord_embed(self, message: str, rich_data: Dict[str, Any]) -> discord.Embed:
+        """Create a Discord embed from rich data"""
+        embed = discord.Embed()
+        
+        # Set title
+        if 'title' in rich_data:
+            embed.title = rich_data['title']
+        else:
+            # Extract title from message if it starts with **
+            if message.startswith('**') and '**' in message[2:]:
+                title_end = message.find('**', 2)
+                embed.title = message[2:title_end]
+                message = message[title_end + 2:].strip()
+        
+        # Set description
+        if 'description' in rich_data:
+            embed.description = rich_data['description']
+        else:
+            embed.description = message
+        
+        # Set color based on type or use default
+        color_map = {
+            'success': 0x00ff00,  # Green
+            'error': 0xff0000,    # Red
+            'warning': 0xffff00,  # Yellow
+            'info': 0x0099ff,     # Blue
+            'task': 0x9932cc,     # Purple
+            'profile': 0xff6b35,  # Orange
+            'schedule': 0x00bfff, # Deep Sky Blue
+            'analytics': 0x32cd32 # Lime Green
+        }
+        
+        embed_type = rich_data.get('type', 'info')
+        embed.color = color_map.get(embed_type, 0x0099ff)
+        
+        # Add fields
+        if 'fields' in rich_data:
+            for field in rich_data['fields']:
+                name = field.get('name', '')
+                value = field.get('value', '')
+                inline = field.get('inline', False)
+                embed.add_field(name=name, value=value, inline=inline)
+        
+        # Add footer
+        if 'footer' in rich_data:
+            embed.set_footer(text=rich_data['footer'])
+        
+        # Add timestamp
+        if 'timestamp' in rich_data:
+            embed.timestamp = rich_data['timestamp']
+        
+        return embed
+    
+    def _create_action_row(self, suggestions: List[str]) -> discord.ActionRow:
+        """Create a Discord action row with buttons from suggestions"""
+        action_row = discord.ActionRow()
+        
+        # Limit to 5 buttons (Discord limit)
+        for i, suggestion in enumerate(suggestions[:5]):
+            # Create a button with a unique custom_id
+            button = discord.Button(
+                style=discord.ButtonStyle.primary,
+                label=suggestion[:80],  # Discord button label limit
+                custom_id=f"suggestion_{i}_{hash(suggestion) % 10000}"
+            )
+            action_row.add_item(button)
+        
+        return action_row
 
     @handle_errors("receiving Discord messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:

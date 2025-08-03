@@ -94,7 +94,7 @@ class TaskManagementHandler(InteractionHandler):
         elif intent == 'update_task':
             return self._handle_update_task(user_id, entities)
         elif intent == 'task_stats':
-            return self._handle_task_stats(user_id)
+            return self._handle_task_stats(user_id, entities)
         else:
             return InteractionResponse(f"I don't understand that task command. Try: {', '.join(self.get_examples())}", True)
     
@@ -112,19 +112,27 @@ class TaskManagementHandler(InteractionHandler):
         description = entities.get('description', '')
         due_date = entities.get('due_date')
         priority = entities.get('priority', 'medium')
+        tags = entities.get('tags', [])
         
         # Convert relative dates to proper dates
         if due_date:
             due_date = self._parse_relative_date(due_date)
         
-        # Create the task
-        task_id = create_task(
-            user_id=user_id,
-            title=title,
-            description=description,
-            due_date=due_date,
-            priority=priority
-        )
+        # Validate priority
+        valid_priorities = ['low', 'medium', 'high']
+        if priority not in valid_priorities:
+            priority = 'medium'
+        
+        # Create the task with enhanced properties
+        task_data = {
+            'title': title,
+            'description': description,
+            'due_date': due_date,
+            'priority': priority,
+            'tags': tags
+        }
+        
+        task_id = create_task(user_id=user_id, **task_data)
         
         if task_id:
             response = f"✅ Task created: '{title}'"
@@ -132,6 +140,8 @@ class TaskManagementHandler(InteractionHandler):
                 response += f" (due: {due_date})"
             if priority != 'medium':
                 response += f" (priority: {priority})"
+            if tags:
+                response += f" (tags: {', '.join(tags)})"
             
             # Ask about reminder periods
             response += "\n\nWould you like to set reminder periods for this task? (e.g., '1 hour before', '30 minutes before', '1 day before')"
@@ -171,32 +181,157 @@ class TaskManagementHandler(InteractionHandler):
             return date_str
     
     def _handle_list_tasks(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
-        """Handle task listing"""
+        """Handle task listing with enhanced filtering and details"""
         tasks = load_active_tasks(user_id)
         
         if not tasks:
             return InteractionResponse("You have no active tasks. Great job staying on top of things! 🎉", True)
         
-        # Filter tasks if specified
+        # Apply filters
         filter_type = entities.get('filter')
+        priority_filter = entities.get('priority')
+        tag_filter = entities.get('tag')
+        
         if filter_type == 'due_soon':
             tasks = get_tasks_due_soon(user_id, days=7)
             if not tasks:
                 return InteractionResponse("No tasks due in the next 7 days! 🎉", True)
+        elif filter_type == 'overdue':
+            from datetime import datetime
+            today = datetime.now().strftime('%Y-%m-%d')
+            tasks = [task for task in tasks if task.get('due_date') and task['due_date'] < today]
+            if not tasks:
+                return InteractionResponse("No overdue tasks! 🎉", True)
+        elif filter_type == 'high_priority':
+            tasks = [task for task in tasks if task.get('priority') == 'high']
+            if not tasks:
+                return InteractionResponse("No high priority tasks! 🎉", True)
         
-        # Format task list
+        # Apply priority filter
+        if priority_filter and priority_filter in ['low', 'medium', 'high']:
+            tasks = [task for task in tasks if task.get('priority') == priority_filter]
+            if not tasks:
+                return InteractionResponse(f"No {priority_filter} priority tasks! 🎉", True)
+        
+        # Apply tag filter
+        if tag_filter:
+            tasks = [task for task in tasks if tag_filter in task.get('tags', [])]
+            if not tasks:
+                return InteractionResponse(f"No tasks with tag '{tag_filter}'! 🎉", True)
+        
+        # Sort tasks by priority and due date
+        priority_order = {'high': 0, 'medium': 1, 'low': 2}
+        tasks.sort(key=lambda x: (
+            priority_order.get(x.get('priority', 'medium'), 1),
+            x.get('due_date', '9999-12-31')  # No due date goes last
+        ))
+        
+        # Format task list with enhanced details
         task_list = []
         for i, task in enumerate(tasks[:10], 1):  # Limit to 10 tasks
             priority_emoji = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(task.get('priority', 'medium'), '🟡')
-            due_info = f" (due: {task.get('due_date', 'No due date')})" if task.get('due_date') else ""
-            task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}")
+            
+            # Format due date with urgency indicator
+            due_date = task.get('due_date')
+            if due_date:
+                from datetime import datetime
+                today = datetime.now().strftime('%Y-%m-%d')
+                if due_date < today:
+                    due_info = f" (OVERDUE: {due_date})"
+                elif due_date == today:
+                    due_info = f" (due TODAY: {due_date})"
+                else:
+                    due_info = f" (due: {due_date})"
+            else:
+                due_info = ""
+            
+            # Add tags if present
+            tags = task.get('tags', [])
+            tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
+            
+            # Add description preview if present
+            description = task.get('description', '')
+            desc_info = f" - {description[:50]}..." if description and len(description) > 50 else f" - {description}" if description else ""
+            
+            task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}{tags_info}{desc_info}")
         
-        response = "**Your Active Tasks:**\n" + "\n".join(task_list)
+        # Build response with filter info
+        filter_info = []
+        if filter_type:
+            filter_info.append(f"filter: {filter_type}")
+        if priority_filter:
+            filter_info.append(f"priority: {priority_filter}")
+        if tag_filter:
+            filter_info.append(f"tag: {tag_filter}")
+        
+        response = "**Your Active Tasks"
+        if filter_info:
+            response += f" ({', '.join(filter_info)})"
+        response += ":**\n" + "\n".join(task_list)
         
         if len(tasks) > 10:
             response += f"\n... and {len(tasks) - 10} more tasks"
         
-        return InteractionResponse(response, True)
+        # Add suggestions for further filtering
+        suggestions = []
+        if not filter_type:
+            suggestions.extend(["Show tasks due soon", "Show high priority tasks", "Show overdue tasks"])
+        if not priority_filter:
+            suggestions.extend(["Show low priority tasks", "Show medium priority tasks"])
+        
+        # Add contextual suggestions based on current state
+        if len(tasks) > 5:
+            suggestions.append("Show fewer tasks")
+        if any(task.get('due_date') for task in tasks):
+            suggestions.append("Show tasks without due dates")
+        if any(task.get('tags') for task in tasks):
+            suggestions.append("Show tasks without tags")
+        
+        # Limit suggestions to 3 most relevant
+        suggestions = suggestions[:3]
+        
+        # Create rich data for Discord embeds
+        rich_data = {
+            'type': 'task',
+            'title': 'Your Active Tasks',
+            'fields': []
+        }
+        
+        # Add filter info as a field if filters are applied
+        if filter_info:
+            rich_data['fields'].append({
+                'name': 'Filters Applied',
+                'value': ', '.join(filter_info),
+                'inline': True
+            })
+        
+        # Add task count as a field
+        rich_data['fields'].append({
+            'name': 'Task Count',
+            'value': f"{len(tasks)} tasks",
+            'inline': True
+        })
+        
+        # Add priority breakdown as a field
+        priority_counts = {}
+        for task in tasks:
+            priority = task.get('priority', 'medium')
+            priority_counts[priority] = priority_counts.get(priority, 0) + 1
+        
+        if priority_counts:
+            priority_str = ', '.join([f"{count} {priority}" for priority, count in priority_counts.items()])
+            rich_data['fields'].append({
+                'name': 'Priority Breakdown',
+                'value': priority_str,
+                'inline': True
+            })
+        
+        return InteractionResponse(
+            response, 
+            True,
+            rich_data=rich_data,
+            suggestions=suggestions if suggestions else None
+        )
     
     def _handle_complete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task completion"""
@@ -282,17 +417,66 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to update task. Please try again.", True)
     
-    def _handle_task_stats(self, user_id: str) -> InteractionResponse:
-        """Handle task statistics"""
-        stats = get_user_task_stats(user_id)
+    def _handle_task_stats(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Handle task statistics with dynamic time periods"""
+        # Get time period information
+        days = entities.get('days', 7)
+        period_name = entities.get('period_name', 'this week')
+        offset = entities.get('offset', 0)
         
-        response = f"**Task Statistics:**\n"
-        response += f"📋 Active tasks: {stats.get('active_count', 0)}\n"
-        response += f"✅ Completed tasks: {stats.get('completed_count', 0)}\n"
-        response += f"📅 Due soon (7 days): {stats.get('due_soon_count', 0)}\n"
-        response += f"📊 Completion rate: {stats.get('completion_rate', 0):.1f}%"
-        
-        return InteractionResponse(response, True)
+        try:
+            from core.checkin_analytics import CheckinAnalytics
+            analytics = CheckinAnalytics()
+            
+            # Get task statistics for the specified period
+            task_stats = analytics.get_task_weekly_stats(user_id, days)
+            if 'error' in task_stats:
+                return InteractionResponse(f"You don't have enough check-in data for {period_name} statistics yet. Try completing some daily check-ins first!", True)
+            
+            # Get overall task stats
+            overall_stats = get_user_task_stats(user_id)
+            
+            response = f"**📊 Task Statistics for {period_name.title()}:**\n\n"
+            
+            # Show habit-based task completion
+            if task_stats:
+                response += "**Daily Habits:**\n"
+                for task_name, stats in task_stats.items():
+                    completion_rate = stats.get('completion_rate', 0)
+                    completed_days = stats.get('completed_days', 0)
+                    total_days = stats.get('total_days', 0)
+                    
+                    # Add emoji based on completion rate
+                    if completion_rate >= 80:
+                        emoji = "🟢"
+                    elif completion_rate >= 60:
+                        emoji = "🟡"
+                    else:
+                        emoji = "🔴"
+                    
+                    response += f"{emoji} **{task_name}:** {completion_rate}% ({completed_days}/{total_days} days)\n"
+                
+                response += "\n"
+            
+            # Show overall task statistics
+            active_tasks = overall_stats.get('active_tasks', 0)
+            completed_tasks = overall_stats.get('completed_tasks', 0)
+            total_tasks = active_tasks + completed_tasks
+            
+            if total_tasks > 0:
+                overall_completion_rate = (completed_tasks / total_tasks) * 100
+                response += f"**Overall Task Progress:**\n"
+                response += f"📋 **Active Tasks:** {active_tasks}\n"
+                response += f"✅ **Completed Tasks:** {completed_tasks}\n"
+                response += f"📊 **Completion Rate:** {overall_completion_rate:.1f}%\n"
+            else:
+                response += "**No tasks found.** Create some tasks to get started!\n"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error showing task statistics for user {user_id}: {e}")
+            return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
     def _find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
@@ -309,11 +493,44 @@ class TaskManagementHandler(InteractionHandler):
         except ValueError:
             pass
         
-        # Try as name
-        identifier_lower = identifier.lower()
+        # Try as name with improved matching
+        identifier_lower = identifier.lower().strip()
+        
+        # First try exact match
+        for task in tasks:
+            if identifier_lower == task['title'].lower():
+                return task
+        
+        # Then try contains match
         for task in tasks:
             if identifier_lower in task['title'].lower():
                 return task
+        
+        # Then try word-based matching for common task patterns
+        identifier_words = set(identifier_lower.split())
+        for task in tasks:
+            task_words = set(task['title'].lower().split())
+            # Check if any identifier words match task words
+            if identifier_words & task_words:  # Set intersection
+                return task
+        
+        # Finally try fuzzy matching for common variations
+        common_variations = {
+            'teeth': ['brush', 'brushing', 'tooth', 'dental'],
+            'hair': ['wash', 'washing', 'shampoo'],
+            'dishes': ['wash', 'washing', 'clean', 'cleaning'],
+            'laundry': ['wash', 'washing', 'clothes'],
+            'exercise': ['workout', 'gym', 'run', 'running', 'walk', 'walking'],
+            'medication': ['meds', 'medicine', 'pill', 'pills'],
+            'appointment': ['doctor', 'dentist', 'meeting', 'call'],
+        }
+        
+        for task in tasks:
+            task_lower = task['title'].lower()
+            for variation_key, variations in common_variations.items():
+                if identifier_lower in variations or identifier_lower == variation_key:
+                    if any(var in task_lower for var in variations + [variation_key]):
+                        return task
         
         return None
     
@@ -457,7 +674,7 @@ class ProfileHandler(InteractionHandler):
             return InteractionResponse(f"I don't understand that profile command. Try: {', '.join(self.get_examples())}", True)
     
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
-        """Handle showing user profile"""
+        """Handle showing user profile with comprehensive personalization data"""
         # Load user data
         account_data = load_user_account_data(user_id)
         context_data = load_user_context_data(user_id)
@@ -469,61 +686,293 @@ class ProfileHandler(InteractionHandler):
         # Basic info
         if context_data:
             name = context_data.get('preferred_name', 'Not set')
-            gender_identity = context_data.get('gender_identity', 'Not set')
-            response += f"👤 Name: {name}\n"
-            response += f"🎭 Gender Identity: {gender_identity}\n"
+            gender_identity = context_data.get('gender_identity', [])
+            date_of_birth = context_data.get('date_of_birth', 'Not set')
+            
+            response += f"👤 **Name:** {name}\n"
+            
+            # Format gender identity (can be a list)
+            if isinstance(gender_identity, list) and gender_identity:
+                gender_str = ', '.join(gender_identity)
+            elif isinstance(gender_identity, str):
+                gender_str = gender_identity
+            else:
+                gender_str = 'Not set'
+            response += f"🎭 **Gender Identity:** {gender_str}\n"
+            
+            if date_of_birth and date_of_birth != 'Not set':
+                response += f"📅 **Date of Birth:** {date_of_birth}\n"
         
         # Account info
         if account_data:
             email = account_data.get('email', 'Not set')
             status = account_data.get('account_status', 'Unknown')
-            response += f"📧 Email: {email}\n"
-            response += f"📊 Status: {status}\n"
+            response += f"📧 **Email:** {email}\n"
+            response += f"📊 **Status:** {status}\n"
         
-        # Preferences - check account features instead of preferences
+        # Health & Medical Information
+        if context_data:
+            custom_fields = context_data.get('custom_fields', {})
+            
+            # Health conditions
+            health_conditions = custom_fields.get('health_conditions', [])
+            if health_conditions:
+                response += f"🏥 **Health Conditions:** {', '.join(health_conditions)}\n"
+            
+            # Medications
+            medications = custom_fields.get('medications_treatments', [])
+            if medications:
+                response += f"💊 **Medications/Treatments:** {', '.join(medications)}\n"
+            
+            # Allergies
+            allergies = custom_fields.get('allergies_sensitivities', [])
+            if allergies:
+                response += f"⚠️ **Allergies/Sensitivities:** {', '.join(allergies)}\n"
+        
+        # Interests
+        interests = context_data.get('interests', []) if context_data else []
+        if interests:
+            response += f"🎯 **Interests:** {', '.join(interests)}\n"
+        
+        # Goals
+        goals = context_data.get('goals', []) if context_data else []
+        if goals:
+            response += f"🎯 **Goals:** {', '.join(goals)}\n"
+        
+        # Loved Ones/Support Network
+        loved_ones = context_data.get('loved_ones', []) if context_data else []
+        if loved_ones:
+            response += f"💕 **Support Network:**\n"
+            for person in loved_ones[:3]:  # Show first 3
+                name = person.get('name', 'Unknown')
+                person_type = person.get('type', '')
+                relationships = person.get('relationships', [])
+                rel_str = f" ({', '.join(relationships)})" if relationships else ""
+                response += f"  • {name} - {person_type}{rel_str}\n"
+            if len(loved_ones) > 3:
+                response += f"  ... and {len(loved_ones) - 3} more\n"
+        
+        # Notes for AI
+        notes = context_data.get('notes_for_ai', []) if context_data else []
+        if notes and notes[0]:
+            response += f"📝 **Notes for AI:** {notes[0][:100]}{'...' if len(notes[0]) > 100 else ''}\n"
+        
+        # Account features
         if account_data:
             features = account_data.get('features', {})
             checkins_enabled = features.get('checkins') == 'enabled'
             tasks_enabled = features.get('task_management') == 'enabled'
+            response += f"\n**Account Features:**\n"
             response += f"✅ Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}\n"
             response += f"📋 Tasks: {'Enabled' if tasks_enabled else 'Disabled'}\n"
         
-        return InteractionResponse(response, True)
+        # Create rich data for Discord embeds
+        rich_data = {
+            'type': 'profile',
+            'title': 'Your Profile',
+            'fields': []
+        }
+        
+        # Add basic info fields
+        if context_data:
+            name = context_data.get('preferred_name', 'Not set')
+            if name != 'Not set':
+                rich_data['fields'].append({
+                    'name': 'Name',
+                    'value': name,
+                    'inline': True
+                })
+            
+            gender_identity = context_data.get('gender_identity', [])
+            if gender_identity and isinstance(gender_identity, list):
+                gender_str = ', '.join(gender_identity)
+                rich_data['fields'].append({
+                    'name': 'Gender Identity',
+                    'value': gender_str,
+                    'inline': True
+                })
+        
+        # Add feature status fields
+        if account_data:
+            features = account_data.get('features', {})
+            checkins_enabled = features.get('checkins') == 'enabled'
+            tasks_enabled = features.get('task_management') == 'enabled'
+            
+            rich_data['fields'].append({
+                'name': 'Check-ins',
+                'value': '✅ Enabled' if checkins_enabled else '❌ Disabled',
+                'inline': True
+            })
+            
+            rich_data['fields'].append({
+                'name': 'Tasks',
+                'value': '✅ Enabled' if tasks_enabled else '❌ Disabled',
+                'inline': True
+            })
+        
+        # Add health info summary
+        if context_data:
+            custom_fields = context_data.get('custom_fields', {})
+            health_count = len(custom_fields.get('health_conditions', []))
+            med_count = len(custom_fields.get('medications_treatments', []))
+            allergy_count = len(custom_fields.get('allergies_sensitivities', []))
+            
+            if health_count > 0 or med_count > 0 or allergy_count > 0:
+                health_summary = []
+                if health_count > 0:
+                    health_summary.append(f"{health_count} conditions")
+                if med_count > 0:
+                    health_summary.append(f"{med_count} medications")
+                if allergy_count > 0:
+                    health_summary.append(f"{allergy_count} allergies")
+                
+                rich_data['fields'].append({
+                    'name': 'Health Summary',
+                    'value': ', '.join(health_summary),
+                    'inline': False
+                })
+        
+        return InteractionResponse(
+            response, 
+            True,
+            rich_data=rich_data,
+            suggestions=["Update my name", "Add health conditions", "Update interests", "Show profile stats"]
+        )
     
     def _handle_update_profile(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
-        """Handle profile updates"""
+        """Handle comprehensive profile updates"""
         if not entities:
             return InteractionResponse(
-                "What would you like to update? (name, gender_identity, email)",
-                completed=False
+                "What would you like to update? Available fields:\n"
+                "• Basic: name, gender_identity, date_of_birth\n"
+                "• Health: health_conditions, medications, allergies\n"
+                "• Personal: interests, goals\n"
+                "• Support: loved_ones, notes_for_ai",
+                completed=False,
+                suggestions=["Update my name", "Add health conditions", "Update interests", "Add goals"]
             )
         
         # Load current context data
         context_data = load_user_context_data(user_id) or {}
         
+        # Initialize custom_fields if not present
+        if 'custom_fields' not in context_data:
+            context_data['custom_fields'] = {}
+        
         # Apply updates
-        updates = {}
+        updates = []
+        
+        # Basic info updates
         if 'name' in entities:
             context_data['preferred_name'] = entities['name']
-            updates['name'] = entities['name']
+            updates.append('name')
         
         if 'gender_identity' in entities:
-            context_data['gender_identity'] = entities['gender_identity']
-            updates['gender_identity'] = entities['gender_identity']
+            # Handle both string and list formats
+            gender_identity = entities['gender_identity']
+            if isinstance(gender_identity, str):
+                # Convert comma-separated string to list
+                gender_identity = [g.strip() for g in gender_identity.split(',') if g.strip()]
+            context_data['gender_identity'] = gender_identity
+            updates.append('gender identity')
         
+        if 'date_of_birth' in entities:
+            context_data['date_of_birth'] = entities['date_of_birth']
+            updates.append('date of birth')
+        
+        # Health & Medical updates
+        if 'health_conditions' in entities:
+            health_conditions = entities['health_conditions']
+            if isinstance(health_conditions, str):
+                health_conditions = [h.strip() for h in health_conditions.split(',') if h.strip()]
+            context_data['custom_fields']['health_conditions'] = health_conditions
+            updates.append('health conditions')
+        
+        if 'medications' in entities:
+            medications = entities['medications']
+            if isinstance(medications, str):
+                medications = [m.strip() for m in medications.split(',') if m.strip()]
+            context_data['custom_fields']['medications_treatments'] = medications
+            updates.append('medications')
+        
+        if 'allergies' in entities:
+            allergies = entities['allergies']
+            if isinstance(allergies, str):
+                allergies = [a.strip() for a in allergies.split(',') if a.strip()]
+            context_data['custom_fields']['allergies_sensitivities'] = allergies
+            updates.append('allergies')
+        
+        # Personal info updates
+        if 'interests' in entities:
+            interests = entities['interests']
+            if isinstance(interests, str):
+                interests = [i.strip() for i in interests.split(',') if i.strip()]
+            context_data['interests'] = interests
+            updates.append('interests')
+        
+        if 'goals' in entities:
+            goals = entities['goals']
+            if isinstance(goals, str):
+                goals = [g.strip() for g in goals.split(',') if g.strip()]
+            context_data['goals'] = goals
+            updates.append('goals')
+        
+        # Support network updates
+        if 'loved_ones' in entities:
+            # Handle loved ones as a list of dictionaries or string format
+            loved_ones = entities['loved_ones']
+            if isinstance(loved_ones, str):
+                # Parse simple format: "Name - Type - Relationship1,Relationship2"
+                loved_ones_list = []
+                for line in loved_ones.split('\n'):
+                    parts = [p.strip() for p in line.split('-')]
+                    if len(parts) >= 1:
+                        name = parts[0]
+                        person_type = parts[1] if len(parts) > 1 else ''
+                        relationships = []
+                        if len(parts) > 2:
+                            relationships = [r.strip() for r in parts[2].split(',') if r.strip()]
+                        loved_ones_list.append({
+                            'name': name,
+                            'type': person_type,
+                            'relationships': relationships
+                        })
+                context_data['loved_ones'] = loved_ones_list
+            else:
+                context_data['loved_ones'] = loved_ones
+            updates.append('support network')
+        
+        if 'notes_for_ai' in entities:
+            notes = entities['notes_for_ai']
+            if isinstance(notes, str):
+                notes = [notes]  # Store as list
+            context_data['notes_for_ai'] = notes
+            updates.append('notes for AI')
+        
+        # Email update (stored in account data)
         if 'email' in entities:
-            # Email is stored in account data, not context
             account_data = load_user_account_data(user_id) or {}
             account_data['email'] = entities['email']
             # Note: Would need to implement save_user_account_data
-            updates['email'] = entities['email']
+            updates.append('email')
         
         # Save updates
-        if save_user_context_data(user_id, context_data):
-            response = "✅ Profile updated: " + ", ".join(updates.keys())
-            return InteractionResponse(response, True)
+        if updates:
+            if save_user_context_data(user_id, context_data):
+                response = f"✅ Profile updated: {', '.join(updates)}"
+                return InteractionResponse(
+                    response, 
+                    True,
+                    suggestions=["Show my profile", "Add more health conditions", "Update goals", "Show profile stats"]
+                )
+            else:
+                return InteractionResponse("❌ Failed to update profile. Please try again.", True)
         else:
-            return InteractionResponse("❌ Failed to update profile. Please try again.", True)
+            return InteractionResponse(
+                "No valid updates found. Please specify what you'd like to update.",
+                completed=False,
+                suggestions=["Update my name", "Add health conditions", "Update interests", "Add goals"]
+            )
     
     def _handle_profile_stats(self, user_id: str) -> InteractionResponse:
         """Handle profile statistics"""
@@ -548,7 +997,12 @@ class ProfileHandler(InteractionHandler):
         return [
             "show profile",
             "update name 'Julie'",
-            "update gender_identity 'Non-binary'",
+            "update gender_identity 'Non-binary, Woman'",
+            "add health_conditions 'Depression, Anxiety'",
+            "update interests 'Reading, Gaming, Hiking'",
+            "add goals 'mental_health, career'",
+            "add loved_ones 'Mom - Family - Mother, Support'",
+            "update notes_for_ai 'I prefer gentle reminders'",
             "profile stats"
         ]
 
@@ -583,7 +1037,8 @@ class HelpHandler(InteractionHandler):
                 "• Complete tasks: 'complete task 1' or 'complete \"Call mom\"'\n"
                 "• Delete tasks: 'delete task 2' or 'delete \"Buy groceries\"'\n"
                 "• Update tasks: 'update task 1 priority high'\n"
-                "• Task stats: 'task stats' or 'show task statistics'",
+                "• Task stats: 'task stats' or 'show task statistics'\n"
+                "• Weekly progress: 'how am I doing with my tasks this week?'",
                 True
             )
         elif topic == 'checkin':
@@ -591,6 +1046,7 @@ class HelpHandler(InteractionHandler):
                 "**Check-in Help:**\n"
                 "• Start check-in: 'start checkin' or 'daily checkin'\n"
                 "• Check-in status: 'checkin status' or 'show checkins'\n"
+                "• Check-in history: 'show my check-in history'\n"
                 "• Cancel check-in: 'cancel' or '/cancel'",
                 True
             )
@@ -598,9 +1054,9 @@ class HelpHandler(InteractionHandler):
             return InteractionResponse(
                 "**Profile Management Help:**\n"
                 "• Show profile: 'show profile' or 'my profile'\n"
-                            "• Update name: 'update name \"Julie\"'\n"
-            "• Update gender identity: 'update gender_identity \"Non-binary\"'\n"
-            "• Profile stats: 'profile stats' or 'my statistics'",
+                "• Update name: 'update name \"Julie\"'\n"
+                "• Update gender identity: 'update gender_identity \"Non-binary\"'\n"
+                "• Profile stats: 'profile stats' or 'my statistics'",
                 True
             )
         else:
@@ -611,12 +1067,20 @@ class HelpHandler(InteractionHandler):
                 "**Main Categories:**\n"
                 "• **Tasks**: Create, manage, and track your tasks\n"
                 "• **Check-ins**: Daily wellness check-ins\n"
-                "• **Profile**: View and update your information\n\n"
-                "Try these commands:\n"
+                "• **Profile**: View and update your information\n"
+                "• **Analytics**: View your progress and insights\n"
+                "• **Schedule**: Manage your daily routines\n\n"
+                "**Try these commands:**\n"
                 "• 'help tasks' - Task management help\n"
                 "• 'help checkin' - Check-in help\n"
                 "• 'help profile' - Profile management help\n"
-                "• 'commands' - List all available commands\n\n"
+                "• 'commands' - List all available commands\n"
+                "• 'examples' - See example commands\n\n"
+                "**Natural Language Examples:**\n"
+                "• 'I need to create a task to call mom tomorrow'\n"
+                "• 'Show me my tasks'\n"
+                "• 'How am I doing with my tasks this week?'\n"
+                "• 'What's my completion rate?'\n\n"
                 "Just start typing naturally - I'll understand what you want to do!",
                 True
             )
@@ -627,11 +1091,12 @@ class HelpHandler(InteractionHandler):
         
         # Task commands
         response += "📋 **Task Management:**\n"
-        response += "• create task, list tasks, complete task, delete task, update task, task stats\n\n"
+        response += "• create task, list tasks, complete task, delete task, update task, task stats\n"
+        response += "• task weekly stats, how am I doing with my tasks this week\n\n"
         
         # Check-in commands
         response += "✅ **Check-ins:**\n"
-        response += "• start checkin, checkin status\n\n"
+        response += "• start checkin, checkin status, checkin history\n\n"
         
         # Profile commands
         response += "👤 **Profile:**\n"
@@ -643,13 +1108,20 @@ class HelpHandler(InteractionHandler):
         
         # Analytics commands
         response += "📊 **Analytics & Insights:**\n"
-        response += "• show analytics, mood trends, habit analysis, sleep analysis, wellness score\n\n"
+        response += "• show analytics, mood trends, habit analysis, sleep analysis, wellness score\n"
+        response += "• completion rate, checkin history, task weekly stats\n\n"
         
         # Help commands
         response += "❓ **Help:**\n"
         response += "• help, commands, examples\n\n"
         
-        response += "You can also use natural language! Try 'I need to create a task' or 'Show me my profile'"
+        response += "**Natural Language Support:**\n"
+        response += "You can also use natural language! Try:\n"
+        response += "• 'I need to create a task'\n"
+        response += "• 'Show me my profile'\n"
+        response += "• 'How am I doing with my tasks this week?'\n"
+        response += "• 'What's my completion rate?'\n"
+        response += "• 'Show my check-in history'"
         
         return InteractionResponse(response, True)
     
@@ -797,7 +1269,57 @@ class ScheduleManagementHandler(InteractionHandler):
                 else:
                     response = f"No schedule periods configured for {category.title()}."
             
-            return InteractionResponse(response, True)
+            # Create rich data for Discord embeds
+            rich_data = {
+                'type': 'schedule',
+                'title': f'Schedule for {category.title()}' if category != 'all' else 'Your Current Schedules',
+                'fields': []
+            }
+            
+            if category == 'all':
+                # Add summary fields for all schedules
+                total_periods = 0
+                active_periods = 0
+                for cat in categories:
+                    periods = get_schedule_time_periods(user_id, cat)
+                    total_periods += len(periods)
+                    active_periods += sum(1 for p in periods.values() if p.get('active', True))
+                
+                rich_data['fields'].append({
+                    'name': 'Total Categories',
+                    'value': str(len(categories)),
+                    'inline': True
+                })
+                
+                rich_data['fields'].append({
+                    'name': 'Total Periods',
+                    'value': str(total_periods),
+                    'inline': True
+                })
+                
+                rich_data['fields'].append({
+                    'name': 'Active Periods',
+                    'value': f"{active_periods}/{total_periods}",
+                    'inline': True
+                })
+            else:
+                # Add fields for specific category
+                periods = get_schedule_time_periods(user_id, category)
+                active_count = sum(1 for p in periods.values() if p.get('active', True))
+                
+                rich_data['fields'].append({
+                    'name': 'Total Periods',
+                    'value': str(len(periods)),
+                    'inline': True
+                })
+                
+                rich_data['fields'].append({
+                    'name': 'Active Periods',
+                    'value': f"{active_count}/{len(periods)}",
+                    'inline': True
+                })
+            
+            return InteractionResponse(response, True, rich_data=rich_data)
             
         except Exception as e:
             logger.error(f"Error showing schedule for user {user_id}: {e}")
@@ -876,51 +1398,194 @@ class ScheduleManagementHandler(InteractionHandler):
             return InteractionResponse("I'm having trouble checking your schedule status right now. Please try again.", True)
     
     def _handle_add_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
-        """Add a new schedule period"""
+        """Add a new schedule period with enhanced options"""
         category = entities.get('category')
         period_name = entities.get('period_name')
         start_time = entities.get('start_time')
         end_time = entities.get('end_time')
+        days = entities.get('days', ['ALL'])  # Default to all days
+        active = entities.get('active', True)  # Default to active
         
         if not all([category, period_name, start_time, end_time]):
             return InteractionResponse(
                 "Please provide all details for the new schedule period. "
-                "Try: 'Add a new period called morning to my task schedule from 9am to 11am'",
-                True
+                "Try: 'Add a new period called morning to my task schedule from 9am to 11am' or "
+                "'Add a weekday period called work to my check-in schedule from 8am to 5pm on Monday, Tuesday, Wednesday, Thursday, Friday'",
+                completed=False,
+                suggestions=["Add morning period 9am-11am", "Add work period 8am-5pm weekdays", "Add evening period 7pm-9pm"]
             )
         
         try:
-            from core.schedule_management import add_schedule_period
-            add_schedule_period(category, period_name, start_time, end_time)
+            from core.schedule_management import add_schedule_period, get_schedule_time_periods, set_schedule_periods
+            
+            # Parse and validate time formats
+            start_time = self._parse_time_format(start_time)
+            end_time = self._parse_time_format(end_time)
+            
+            # Parse days if provided
+            if isinstance(days, str):
+                days = [d.strip() for d in days.split(',') if d.strip()]
+            
+            # Validate days
+            valid_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'ALL']
+            if days and not all(day in valid_days for day in days):
+                return InteractionResponse(
+                    f"Invalid days specified. Valid days are: {', '.join(valid_days)}",
+                    True
+                )
+            
+            # Create period data
+            period_data = {
+                'start_time': start_time,
+                'end_time': end_time,
+                'days': days,
+                'active': active
+            }
+            
+            # Get existing periods and add new one
+            periods = get_schedule_time_periods(user_id, category)
+            periods[period_name] = period_data
+            set_schedule_periods(user_id, category, periods)
+            
+            # Format response
+            days_str = ', '.join(days) if days != ['ALL'] else 'all days'
+            status = "active" if active else "inactive"
+            response = f"✅ Added new schedule period '{period_name}' to {category.title()}:\n"
+            response += f"  • Time: {start_time} - {end_time}\n"
+            response += f"  • Days: {days_str}\n"
+            response += f"  • Status: {status}"
+            
             return InteractionResponse(
-                f"✅ Added new schedule period '{period_name}' to {category.title()} from {start_time} to {end_time}.",
-                True
+                response, 
+                True,
+                suggestions=["Show my schedule", "Edit this period", "Add another period", "Schedule status"]
             )
+            
         except Exception as e:
             logger.error(f"Error adding schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble adding the schedule period: {str(e)}", True)
     
+    def _parse_time_format(self, time_str: str) -> str:
+        """Parse various time formats and convert to standard format"""
+        if not time_str:
+            return time_str
+        
+        time_str = time_str.lower().strip()
+        
+        # Handle common time formats
+        if 'am' in time_str or 'pm' in time_str:
+            # Already in 12-hour format, just standardize
+            return time_str.upper()
+        elif ':' in time_str:
+            # Assume 24-hour format, convert to 12-hour
+            try:
+                from datetime import datetime
+                time_obj = datetime.strptime(time_str, '%H:%M')
+                return time_obj.strftime('%I:%M %p')
+            except ValueError:
+                return time_str
+        else:
+            # Try to parse as hour only
+            try:
+                hour = int(time_str)
+                if 0 <= hour <= 23:
+                    from datetime import datetime
+                    time_obj = datetime.strptime(f"{hour:02d}:00", '%H:%M')
+                    return time_obj.strftime('%I:%M %p')
+            except ValueError:
+                pass
+            
+            return time_str
+    
     def _handle_edit_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
-        """Edit an existing schedule period"""
+        """Edit an existing schedule period with enhanced options"""
         category = entities.get('category')
         period_name = entities.get('period_name')
         new_start_time = entities.get('new_start_time')
         new_end_time = entities.get('new_end_time')
+        new_days = entities.get('new_days')
+        new_active = entities.get('new_active')
         
-        if not all([category, period_name, new_start_time, new_end_time]):
+        if not category or not period_name:
             return InteractionResponse(
-                "Please provide all details for editing the schedule period. "
-                "Try: 'Edit the morning period in my task schedule to 8am to 10am'",
-                True
+                "Please specify which schedule period you want to edit. "
+                "Try: 'Edit the morning period in my task schedule'",
+                completed=False,
+                suggestions=["Edit morning period", "Edit work period", "Show my schedule"]
             )
         
         try:
-            from core.schedule_management import edit_schedule_period
-            edit_schedule_period(category, period_name, new_start_time, new_end_time)
-            return InteractionResponse(
-                f"✅ Updated schedule period '{period_name}' in {category.title()} to {new_start_time} - {new_end_time}.",
-                True
-            )
+            from core.schedule_management import get_schedule_time_periods, set_schedule_periods
+            
+            # Get existing periods
+            periods = get_schedule_time_periods(user_id, category)
+            
+            if period_name not in periods:
+                return InteractionResponse(
+                    f"Schedule period '{period_name}' not found in {category.title()}. "
+                    f"Available periods: {', '.join(periods.keys())}",
+                    True
+                )
+            
+            # Get current period data
+            current_period = periods[period_name]
+            
+            # Apply updates
+            updates = []
+            
+            if new_start_time:
+                new_start_time = self._parse_time_format(new_start_time)
+                current_period['start_time'] = new_start_time
+                updates.append(f"start time to {new_start_time}")
+            
+            if new_end_time:
+                new_end_time = self._parse_time_format(new_end_time)
+                current_period['end_time'] = new_end_time
+                updates.append(f"end time to {new_end_time}")
+            
+            if new_days is not None:
+                if isinstance(new_days, str):
+                    new_days = [d.strip() for d in new_days.split(',') if d.strip()]
+                
+                # Validate days
+                valid_days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'ALL']
+                if not all(day in valid_days for day in new_days):
+                    return InteractionResponse(
+                        f"Invalid days specified. Valid days are: {', '.join(valid_days)}",
+                        True
+                    )
+                
+                current_period['days'] = new_days
+                days_str = ', '.join(new_days) if new_days != ['ALL'] else 'all days'
+                updates.append(f"days to {days_str}")
+            
+            if new_active is not None:
+                current_period['active'] = new_active
+                status = "active" if new_active else "inactive"
+                updates.append(f"status to {status}")
+            
+            # Save changes
+            set_schedule_periods(user_id, category, periods)
+            
+            if updates:
+                response = f"✅ Updated schedule period '{period_name}' in {category.title()}:\n"
+                response += f"  • Changed: {', '.join(updates)}\n"
+                response += f"  • Current: {current_period['start_time']} - {current_period['end_time']}\n"
+                response += f"  • Days: {', '.join(current_period['days']) if current_period['days'] != ['ALL'] else 'all days'}\n"
+                response += f"  • Status: {'active' if current_period['active'] else 'inactive'}"
+                
+                return InteractionResponse(
+                    response, 
+                    True,
+                    suggestions=["Show my schedule", "Edit another period", "Schedule status"]
+                )
+            else:
+                return InteractionResponse(
+                    f"No changes specified for period '{period_name}'. "
+                    f"Current settings: {current_period['start_time']} - {current_period['end_time']}",
+                    True
+                )
+                
         except Exception as e:
             logger.error(f"Error editing schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble editing the schedule period: {str(e)}", True)
@@ -934,14 +1599,18 @@ class ScheduleManagementHandler(InteractionHandler):
             "show my task schedule",
             "schedule status",
             "enable my check-in schedule",
-            "add schedule period"
+            "add morning period 9am-11am to task schedule",
+            "add work period 8am-5pm weekdays to check-in schedule",
+            "edit morning period start time to 8am",
+            "edit work period days to Monday, Tuesday, Wednesday, Thursday, Friday",
+            "disable evening period in task schedule"
         ]
 
 class AnalyticsHandler(InteractionHandler):
     """Handler for analytics and insights interactions"""
     
     def can_handle(self, intent: str) -> bool:
-        return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score']
+        return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'completion_rate']
     
     @handle_errors("handling analytics interaction", default_return=InteractionResponse("I'm having trouble with analytics right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
@@ -958,6 +1627,10 @@ class AnalyticsHandler(InteractionHandler):
             return self._handle_sleep_analysis(user_id, entities)
         elif intent == 'wellness_score':
             return self._handle_wellness_score(user_id, entities)
+        elif intent == 'checkin_history':
+            return self._handle_checkin_history(user_id, entities)
+        elif intent == 'completion_rate':
+            return self._handle_completion_rate(user_id, entities)
         else:
             return InteractionResponse(f"I don't understand that analytics command. Try: {', '.join(self.get_examples())}", True)
     
@@ -1160,6 +1833,57 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing wellness score for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble calculating your wellness score right now. Please try again.", True)
     
+    def _handle_checkin_history(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Show check-in history"""
+        days = entities.get('days', 30)
+        
+        try:
+            from core.checkin_analytics import CheckinAnalytics
+            analytics = CheckinAnalytics()
+            
+            checkin_history = analytics.get_checkin_history(user_id, days)
+            if 'error' in checkin_history:
+                return InteractionResponse("You don't have enough check-in data for history yet. Try completing some daily check-ins first!", True)
+            
+            response = f"**📅 Check-in History (Last {days} days):**\n\n"
+            for checkin in checkin_history[:5]:  # Show last 5 check-ins
+                date = checkin.get('date', 'Unknown date')
+                mood = checkin.get('mood', 'No mood recorded')
+                response += f"📅 {date}: Mood {mood}/10\n"
+            
+            if len(checkin_history) > 5:
+                response += f"... and {len(checkin_history) - 5} more check-ins\n"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error showing check-in history for user {user_id}: {e}")
+            return InteractionResponse("I'm having trouble showing your check-in history right now. Please try again.", True)
+    
+    def _handle_completion_rate(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Show completion rate"""
+        days = entities.get('days', 30)
+        
+        try:
+            from core.checkin_analytics import CheckinAnalytics
+            analytics = CheckinAnalytics()
+            
+            completion_rate = analytics.get_completion_rate(user_id, days)
+            if 'error' in completion_rate:
+                return InteractionResponse("You don't have enough check-in data for completion rate yet. Try completing some daily check-ins first!", True)
+            
+            response = f"**📊 Completion Rate (Last {days} days):**\n\n"
+            response += f"🎯 **Overall Completion Rate:** {completion_rate.get('rate', 0)}%\n"
+            response += f"📅 **Days Completed:** {completion_rate.get('days_completed', 0)}\n"
+            response += f"📅 **Days Missed:** {completion_rate.get('days_missed', 0)}\n"
+            response += f"📅 **Total Days:** {completion_rate.get('total_days', 0)}\n"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error showing completion rate for user {user_id}: {e}")
+            return InteractionResponse("I'm having trouble calculating your completion rate right now. Please try again.", True)
+    
     def get_help(self) -> str:
         return "Help with analytics - view analytics and insights about your wellness patterns"
     
@@ -1169,7 +1893,9 @@ class AnalyticsHandler(InteractionHandler):
             "mood trends",
             "habit analysis",
             "sleep analysis",
-            "wellness score"
+            "wellness score",
+            "checkin history",
+            "completion rate"
         ]
 
 # Registry of all interaction handlers

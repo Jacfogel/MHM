@@ -30,7 +30,7 @@ class InteractionManager:
         
         # Configuration
         self.min_command_confidence = 0.3  # Lowered from 0.6 to catch more commands
-        self.enable_ai_enhancement = False  # Temporarily disabled to test raw responses
+        self.enable_ai_enhancement = True   # Enable AI enhancement for better command parsing
         self.fallback_to_chat = True        # Whether to fall back to contextual chat
     
     @handle_errors("handling user interaction", default_return=InteractionResponse(
@@ -168,13 +168,22 @@ class InteractionManager:
     def _enhance_response_with_ai(self, user_id: str, response: InteractionResponse, parsed_command: ParsedCommand) -> InteractionResponse:
         """Enhance a structured response with AI contextual information"""
         try:
+            # Only enhance certain types of responses
+            if not self.enable_ai_enhancement:
+                return response
+            
+            # Don't enhance help responses or command lists
+            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']:
+                return response
+            
             # Create a context prompt for AI enhancement
             context_prompt = f"""
 User requested: {parsed_command.original_message}
-System response: {response.message}
+Current response: {response.message}
 
 Please enhance this response to be more personal and contextual for the user, 
 while keeping the core information intact. Make it warm and encouraging.
+Return ONLY the enhanced response, no prefixes or formatting.
 """
             
             enhanced_text = self.ai_chatbot.generate_response(
@@ -183,9 +192,9 @@ while keeping the core information intact. Make it warm and encouraging.
                 timeout=3  # Short timeout for enhancement
             )
             
-            # Only use enhanced response if it's reasonable
-            if enhanced_text and len(enhanced_text) > 10:
-                response.message = enhanced_text
+            # Only use enhanced response if it's reasonable and doesn't contain "System response:"
+            if enhanced_text and len(enhanced_text) > 10 and "System response:" not in enhanced_text:
+                response.message = enhanced_text.strip()
             
         except Exception as e:
             logger.debug(f"AI enhancement failed: {e}")
