@@ -42,6 +42,14 @@ class TestUserFactory:
             if test_data_dir:
                 return TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
             else:
+                # LEGACY COMPATIBILITY PATH - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all tests use test_data_dir parameter
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy path usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire legacy path
+                # 4. Update any remaining tests to use test_data_dir parameter
+                logger.warning("LEGACY test user creation path used - switch to test_data_dir parameter")
                 # Use real user directory (for backward compatibility)
                 return TestUserFactory._create_basic_user_impl(user_id, enable_checkins, enable_tasks)
             

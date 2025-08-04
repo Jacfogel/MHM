@@ -2,6 +2,23 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-03 - Legacy Code Standards Implementation & Comprehensive Marking ✅ **COMPLETED**
+- **Legacy Code Standards Implementation**: Established comprehensive standards for handling legacy and backward compatibility code
+  - **User Preferences Documented**: Added detailed legacy code preferences to `.cursor/rules/critical.mdc`
+  - **Core Principle**: "I always prefer the code to be cleaner and more honest about what it actually needs. Backwards compatibility is fine, if it's necessary, clearly marked, and usage logged for future removal"
+  - **Requirements**: All legacy code must be necessary, clearly marked, usage logged, have removal plans, and be monitored
+  - **Documentation Format**: Established standard format with `LEGACY COMPATIBILITY` comments, `REMOVAL PLAN`s, and `logger.warning` calls
+- **Comprehensive Legacy Code Survey**: Identified and marked 6 major legacy code sections across the codebase
+  - **Communication Manager Legacy Wrappers**: `LegacyChannelWrapper` class and related methods in `bot/communication_manager.py`
+  - **Account Creator Dialog Compatibility**: 5 unused methods in `ui/dialogs/account_creator_dialog.py`
+  - **User Profile Settings Widget Fallbacks**: 5 legacy fallback blocks in `ui/widgets/user_profile_settings_widget.py`
+  - **User Context Legacy Format**: Format conversion and extraction in `user/user_context.py`
+  - **Test Utilities Backward Compatibility**: Legacy path in `tests/test_utilities.py`
+  - **UI App Legacy Communication Manager**: Legacy handling in `ui/ui_app_qt.py`
+- **Legacy Code Removal Plan**: Updated `LEGACY_CODE_REMOVAL_PLAN.md` with detailed removal plans and 1-week monitoring timelines
+- **System Health**: 139 tests passing, 1 skipped, 2 deselected - 99.3% success rate
+- **Impact**: All legacy code now properly marked, logged, and scheduled for removal, improving code maintainability and transparency
+
 ### 2025-08-03 - Dynamic Time Period Support & Test User Cleanup ✅ **COMPLETED**
 - **Dynamic Time Period Support**: Implemented flexible time period parsing for task statistics
   - **Enhanced Command Parser**: Added `_parse_time_period` method to handle natural language time expressions

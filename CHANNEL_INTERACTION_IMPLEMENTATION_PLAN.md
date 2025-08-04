@@ -70,6 +70,14 @@
 - **Natural Conversation**: General conversation no longer shows intrusive suggestions ✅
 - **Smart Fallbacks**: Improved fallback responses that are clearly distinguishable from AI responses ✅
 
+### **Phase 1.6: Legacy Code Standards Implementation** ✅ **COMPLETED**
+
+#### **1.6.1 Communication Manager Legacy Wrappers** ✅ **COMPLETED**
+- **LegacyChannelWrapper**: Marked with comprehensive legacy warnings and removal plans ✅
+- **Usage Logging**: Added logger.warning calls for all legacy method access ✅
+- **Removal Planning**: Detailed 1-week monitoring timeline with specific removal steps ✅
+- **Code Transparency**: All legacy code now properly marked and scheduled for removal ✅
+
 ### **Phase 2: Discord Enhancement** ⚠️ **PRIMARY FOCUS**
 
 #### **2.1 Enhanced Discord Commands**

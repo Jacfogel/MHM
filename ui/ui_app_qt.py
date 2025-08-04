@@ -368,7 +368,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_send_test_message.clicked.connect(self.send_test_message)
         
         # Menu actions
-        self.ui.actionToggle_Verbos_Logging.triggered.connect(self.toggle_logging_verbosity)
+        self.ui.actionToggle_Verbose_Logging.triggered.connect(self.toggle_logging_verbosity)
         self.ui.actionView_Log_File.triggered.connect(self.view_log_file)
         self.ui.actionView_Cache_Status.triggered.connect(self.view_cache_status)
         self.ui.actionForce_Clean_Cache.triggered.connect(self.force_clean_cache)
@@ -919,42 +919,26 @@ class MHMManagerUI(QMainWindow):
                                "The admin panel does not create its own communication channels.")
             return
         
-        logger.info(f"Admin Panel: Preparing test message for user {self.current_user}")
-        # Get user categories
-        prefs_result = get_user_data(self.current_user, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        
-        if not categories:
-            logger.info(f"Admin Panel: User {self.current_user} has no message categories for test")
-            QMessageBox.information(self, "No Categories", "This user has no message categories configured.")
+        # Get the currently selected category from the dropdown
+        current_index = self.ui.comboBox_user_categories.currentIndex()
+        if current_index <= 0:  # No category selected or "Select a category..." is selected
+            QMessageBox.warning(self, "No Category Selected", "Please select a category from the dropdown above.")
             return
         
-        # Open category selection dialog for test message
-        category_dialog = QDialog(self)
-        category_dialog.setWindowTitle(f"Send Test Message - {self.current_user}")
-        category_dialog.setModal(True)
-        category_dialog.resize(300, 200)
+        # Get the actual category value from the combo box data
+        category = self.ui.comboBox_user_categories.itemData(current_index)
+        if not category:
+            QMessageBox.warning(self, "Invalid Category", "Please select a valid category from the dropdown.")
+            return
         
-        layout = QVBoxLayout(category_dialog)
+        logger.info(f"Admin Panel: Preparing test message for user {self.current_user}, category {category}")
         
-        title_label = QLabel("Select category for test message:")
-        title_label.setFont(QFont("Arial", 12))
-        layout.addWidget(title_label)
-        
-        for category in categories:
-            # Replace underscores with spaces before applying title_case
-            formatted_category = title_case(category.replace('_', ' '))
-            button = QPushButton(formatted_category)
-            button.clicked.connect(lambda checked, c=category: self.confirm_test_message(category_dialog, c))
-            layout.addWidget(button)
-        
-        category_dialog.exec()
+        # Confirm the test message
+        self.confirm_test_message(category)
 
     @handle_errors("confirming test message")
-    def confirm_test_message(self, parent_dialog, category):
+    def confirm_test_message(self, category):
         """Confirm and send test message"""
-        parent_dialog.accept()
-        
         result = QMessageBox.question(self, "Confirm Test Message", 
                                      f"Send a test {category} message to {self.current_user}?\n\n"
                                      f"This will send a random message from their {category} collection.",
@@ -1036,7 +1020,7 @@ class MHMManagerUI(QMainWindow):
         
         # Update the menu text
         verbose_status = "ON" if is_verbose else "OFF"
-        self.ui.actionToggle_Verbos_Logging.setText(f"Toggle Verbose Logging (Currently: {verbose_status})")
+        self.ui.actionToggle_Verbose_Logging.setText(f"Toggle Verbose Logging (Currently: {verbose_status})")
         
         # Show status message
         status = "enabled" if is_verbose else "disabled"
@@ -1510,6 +1494,14 @@ For detailed setup instructions, see the README.md file.
         """Shutdown any UI-created components gracefully"""
         logger.info("Shutting down admin panel.")
         if communication_manager:
+            # LEGACY COMPATIBILITY PATH - REMOVE AFTER VERIFYING NO USAGE
+            # TODO: Remove after confirming no UI creates communication manager instances
+            # REMOVAL PLAN:
+            # 1. Add usage logging to track legacy path usage
+            # 2. Monitor app.log for legacy usage warnings for 1 week
+            # 3. If no usage detected, remove entire legacy path
+            # 4. Update any remaining code to use service-based communication
+            logger.warning("LEGACY UI communication manager instance used - switch to service-based communication")
             logger.debug("Stopping communication manager (legacy UI instance).")
             communication_manager.stop_all()
         # Admin panel no longer creates its own communication manager

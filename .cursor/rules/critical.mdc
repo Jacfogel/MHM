@@ -99,5 +99,36 @@ Building a personal mental health assistant that helps manage executive function
 ## 🔄 Flexibility
 You can always ask if you think deviating from a rule would be a better option.
 
+## 🚫 Legacy Code Standards
+
+### **User's Legacy Code Preferences**
+The user has **strong preferences** about legacy and backward compatibility code:
+
+**Core Principle**: "I always prefer the code to be cleaner and more honest about what it actually needs. Backwards compatibility is fine, if it's necessary, clearly marked, and usage logged for future removal."
+
+**Requirements for ANY Legacy Code:**
+1. **Necessary**: Must serve an actual purpose, not just defensive programming
+2. **Clearly Marked**: Must have explicit `LEGACY COMPATIBILITY` comments
+3. **Usage Logged**: Must log warnings when legacy code paths are accessed
+4. **Removal Plan**: Must have documented removal plan with timeline
+5. **Monitoring**: Must monitor usage and remove when no longer needed
+
+**When Encountering Legacy Code:**
+- **Question necessity**: "Is this actually needed or just defensive programming?"
+- **Add proper marking**: Include `LEGACY COMPATIBILITY` headers and removal plans
+- **Add usage logging**: Log warnings when legacy interfaces are accessed
+- **Document removal**: Create clear removal plans with timelines
+- **Monitor and remove**: Track usage and remove when safe
+
+**Legacy Code Documentation Format:**
+```python
+# LEGACY COMPATIBILITY: [Brief description]
+# TODO: Remove after [specific condition]
+# REMOVAL PLAN:
+# 1. [Step 1]
+# 2. [Step 2]
+# 3. [Step 3]
+```
+
 **TESTING**: If you can see this rule, please confirm by saying "I can see the critical.mdc rule"
 

@@ -155,16 +155,35 @@ When adding new tasks, follow this format:
 
 ## 🎯 **HIGH PRIORITY**
 
-### **Legacy Code Removal** - Remove all legacy/compatibility code with clear marking and plans
-- *What it means*: Remove all legacy compatibility code that's no longer needed, following the plan in `LEGACY_CODE_REMOVAL_PLAN.md`
-- *Why it helps*: Reduces code complexity, improves maintainability, and eliminates potential bugs from legacy code paths
+### **Legacy Code Standards Implementation** ✅ **COMPLETED** - Comprehensive marking and logging implemented
+- *What it means*: Established comprehensive standards for handling legacy and backward compatibility code
+- *Why it helps*: All legacy code now properly marked, logged, and scheduled for removal, improving code maintainability and transparency
 - *Estimated effort*: Medium
-- *Status*: **ACTIVE** - See `LEGACY_CODE_REMOVAL_PLAN.md` for detailed inventory and removal plans
-- *High Priority Tasks*:
-  - ⚠️ **Account Creator Dialog Compatibility**: Remove unused methods (complete by 2025-08-15)
-  - ⚠️ **User Profile Settings Widget Fallbacks**: Remove legacy fallbacks (complete by 2025-08-15)
-  - ⚠️ **Discord Bot Legacy Methods**: Remove unused methods (complete by 2025-08-15)
-- *Note*: All legacy code must be clearly marked with removal plans before removal
+- *Status*: ✅ **COMPLETED** - See `LEGACY_CODE_REMOVAL_PLAN.md` for detailed inventory and removal plans
+- *Completed Tasks*:
+  - ✅ **Legacy Code Standards Documentation**: Added user preferences to `.cursor/rules/critical.mdc`
+  - ✅ **Communication Manager Legacy Wrappers**: Marked `LegacyChannelWrapper` and related methods
+  - ✅ **Account Creator Dialog Compatibility**: Marked 5 unused methods with legacy warnings
+  - ✅ **User Profile Settings Widget Fallbacks**: Marked 5 legacy fallback blocks
+  - ✅ **User Context Legacy Format**: Marked format conversion and extraction
+  - ✅ **Test Utilities Backward Compatibility**: Marked legacy path with warnings
+  - ✅ **UI App Legacy Communication Manager**: Marked legacy handling in shutdown
+- *Next Phase*: Monitor logs for 1 week to verify no usage, then remove legacy code sections
+
+### **Legacy Code Removal Monitoring** - Monitor legacy code usage and remove unused sections
+- *What it means*: Monitor app.log for "LEGACY" warnings to verify no usage of marked legacy code sections
+- *Why it helps*: Ensures safe removal of legacy code by confirming it's not actually used
+- *Estimated effort*: Small
+- *Status*: ⚠️ **PENDING** - 1-week monitoring period started 2025-08-03
+- *Monitoring Tasks*:
+  - ⚠️ **Communication Manager Legacy Wrappers**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **Account Creator Dialog Compatibility**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **User Profile Settings Widget Fallbacks**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **User Context Legacy Format**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **Test Utilities Backward Compatibility**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **UI App Legacy Communication Manager**: Monitor for 1 week (complete by 2025-08-10)
+- *Removal Tasks* (after monitoring period):
+  - ⚠️ **Remove Legacy Code Sections**: Remove all unused legacy code (complete by 2025-08-17)
 
 
 

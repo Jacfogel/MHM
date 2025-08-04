@@ -393,14 +393,28 @@ class UserProfileSettingsWidget(QWidget):
             if hasattr(self, 'health_conditions_container'):
                 data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
             else:
-                # Legacy fallback
+                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all UI uses dynamic list containers
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy fallback usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire fallback block
+                # 4. Update any remaining UI to use dynamic list containers
+                logger.warning("LEGACY health_conditions fallback used - switch to dynamic list container")
                 data['custom_fields']['health_conditions'] = self.get_checkbox_group('health_conditions')
 
             # Medications - use dynamic list container
             if hasattr(self, 'medications_container'):
                 data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
             else:
-                # Legacy fallback
+                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all UI uses dynamic list containers
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy fallback usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire fallback block
+                # 4. Update any remaining UI to use dynamic list containers
+                logger.warning("LEGACY medications fallback used - switch to dynamic list container")
                 medications = []
                 if hasattr(self.ui, 'checkBox_antidepressants') and self.ui.checkBox_antidepressants.isChecked():
                     medications.append('Antidepressants')
@@ -424,7 +438,14 @@ class UserProfileSettingsWidget(QWidget):
             if hasattr(self, 'allergies_container'):
                 data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
             else:
-                # Legacy fallback
+                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all UI uses dynamic list containers
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy fallback usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire fallback block
+                # 4. Update any remaining UI to use dynamic list containers
+                logger.warning("LEGACY allergies fallback used - switch to dynamic list container")
                 allergies = []
                 if hasattr(self.ui, 'checkBox_food_allergies') and self.ui.checkBox_food_allergies.isChecked():
                     allergies.append('Food Allergies')
@@ -448,7 +469,14 @@ class UserProfileSettingsWidget(QWidget):
             if hasattr(self, 'interests_container'):
                 data['interests'] = self.interests_container.get_values()
             else:
-                # Legacy fallback
+                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all UI uses dynamic list containers
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy fallback usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire fallback block
+                # 4. Update any remaining UI to use dynamic list containers
+                logger.warning("LEGACY interests fallback used - switch to dynamic list container")
                 interests = self.get_checkbox_group('interests')
                 if hasattr(self.ui, 'lineEdit_custom_interest'):
                     custom_interests = self.ui.lineEdit_custom_interest.text().strip()
@@ -460,7 +488,14 @@ class UserProfileSettingsWidget(QWidget):
             if hasattr(self, 'goals_container'):
                 data['goals'] = self.goals_container.get_values()
             else:
-                # Legacy fallback
+                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
+                # TODO: Remove after confirming all UI uses dynamic list containers
+                # REMOVAL PLAN:
+                # 1. Add usage logging to track legacy fallback usage
+                # 2. Monitor app.log for legacy usage warnings for 1 week
+                # 3. If no usage detected, remove entire fallback block
+                # 4. Update any remaining UI to use dynamic list containers
+                logger.warning("LEGACY goals fallback used - switch to dynamic list container")
                 goals = []
                 if hasattr(self.ui, 'checkBox_mental_health_goals') and self.ui.checkBox_mental_health_goals.isChecked():
                     goals.append('mental_health')

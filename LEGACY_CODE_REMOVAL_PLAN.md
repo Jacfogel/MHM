@@ -114,6 +114,129 @@
 
 **Timeline**: Complete by 2025-08-15
 
+### **6. Communication Manager Legacy Wrappers** ⚠️ **HIGH PRIORITY**
+
+**Location**: `bot/communication_manager.py`
+**Issue**: LegacyChannelWrapper and legacy channel access for backward compatibility
+
+**Legacy Code Found:**
+- `LegacyChannelWrapper` class (Lines 1064-1216): Complete legacy wrapper
+- `_create_legacy_channel_access()` method (Lines 390-398): Creates legacy wrappers
+- `channels` property (Lines 410-420): Returns legacy wrappers when available
+- Legacy method calls: `is_initialized()`, `start()`, `stop()`, `send_message()`, `receive_messages()`
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm no code actually uses legacy interface
+3. **Remove LegacyChannelWrapper**: Delete entire class if unused
+4. **Remove Legacy Access**: Remove `_create_legacy_channel_access()` method
+5. **Update Channels Property**: Return `_channels_dict` directly
+6. **Update Tests**: Remove legacy wrapper tests
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
+### **7. Account Creator Dialog Compatibility Methods** ⚠️ **HIGH PRIORITY**
+
+**Location**: `ui/dialogs/account_creator_dialog.py`
+**Issue**: Multiple methods kept for compatibility but no longer needed
+
+**Legacy Code Found:**
+- `on_category_changed()` method (Lines 326-340): Legacy signal-based category handling
+- `on_service_changed()` method (Lines 342-356): Legacy signal-based service handling
+- `on_contact_info_changed()` method (Lines 358-372): Legacy signal-based contact handling
+- `on_task_group_toggled()` method (Lines 374-388): Legacy group toggle approach
+- `on_checkin_group_toggled()` method (Lines 390-404): Legacy group toggle approach
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm no code actually uses legacy signal-based methods
+3. **Remove Methods**: Delete all 5 compatibility methods if unused
+4. **Update Documentation**: Remove references to legacy signal-based approach
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
+### **8. User Profile Settings Widget Legacy Fallbacks** ⚠️ **HIGH PRIORITY**
+
+**Location**: `ui/widgets/user_profile_settings_widget.py`
+**Issue**: Multiple legacy fallbacks for dynamic list containers
+
+**Legacy Code Found:**
+- Health conditions fallback (Lines 395-402): Legacy checkbox group approach
+- Medications fallback (Lines 404-426): Legacy checkbox and text field approach
+- Allergies fallback (Lines 428-450): Legacy checkbox and text field approach
+- Interests fallback (Lines 452-462): Legacy checkbox group approach
+- Goals fallback (Lines 464-486): Legacy checkbox and text field approach
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm all UI uses dynamic list containers
+3. **Remove Fallbacks**: Delete all 5 legacy fallback blocks if unused
+4. **Update UI**: Ensure all dialogs use dynamic list containers
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
+### **9. User Context Legacy Format Conversion** ⚠️ **MEDIUM PRIORITY**
+
+**Location**: `user/user_context.py`
+**Issue**: Converting between legacy and new data formats
+
+**Legacy Code Found:**
+- Legacy format conversion (Lines 50-65): Converting new data structure to legacy format
+- Legacy format extraction (Lines 81-95): Converting legacy format to new data structure
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm no code uses legacy data format
+3. **Remove Conversion**: Delete format conversion and extraction code
+4. **Update Code**: Ensure all code uses new data structure directly
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
+### **10. Test Utilities Backward Compatibility** ⚠️ **LOW PRIORITY**
+
+**Location**: `tests/test_utilities.py`
+**Issue**: Multiple backward compatibility paths for test data directories
+
+**Legacy Code Found:**
+- Multiple "Use real user directory (for backward compatibility)" comments throughout file
+- Legacy test user creation paths that don't use test_data_dir parameter
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm all tests use test_data_dir parameter
+3. **Remove Paths**: Delete legacy test user creation paths
+4. **Update Tests**: Ensure all tests use modern test data directory approach
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
+### **11. UI App Legacy Communication Manager** ⚠️ **LOW PRIORITY**
+
+**Location**: `ui/ui_app_qt.py`
+**Issue**: Legacy communication manager instance handling
+
+**Legacy Code Found:**
+- Legacy communication manager shutdown (Line 1496): Handling UI-created communication manager instances
+
+**Current Status**: ✅ **MARKED** - Clear comments and removal plan added with usage logging
+
+**Removal Plan:**
+1. **Monitor Logs**: Watch for "LEGACY" warnings in `app.log` for 1 week
+2. **Verify Unused**: Confirm no UI creates communication manager instances
+3. **Remove Handling**: Delete legacy communication manager shutdown code
+4. **Update Code**: Ensure all code uses service-based communication
+
+**Timeline**: Complete after 1 week of monitoring (no legacy usage detected)
+
 ## 📋 **Legacy Code Marking Standards**
 
 ### **Required Comments for All Legacy Code:**
@@ -171,8 +294,18 @@ def legacy_function():
 - [ ] **Remove Schedule Legacy Format**: Remove legacy format handling
 - [ ] **Remove Migration Function**: Delete migration function
 - [ ] **Monitor User Data Wrappers**: Watch for legacy warnings
-- [ ] **Remove Account Creator Compatibility**: Remove unused methods
-- [ ] **Remove Profile Widget Fallbacks**: Remove legacy fallbacks
+- [ ] **Monitor Communication Manager Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove Communication Manager Legacy**: Remove wrappers if unused
+- [ ] **Monitor Account Creator Dialog Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove Account Creator Dialog Legacy**: Remove unused methods if no usage detected
+- [ ] **Monitor User Profile Widget Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove User Profile Widget Legacy**: Remove fallbacks if no usage detected
+- [ ] **Monitor User Context Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove User Context Legacy**: Remove format conversion if no usage detected
+- [ ] **Monitor Test Utilities Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove Test Utilities Legacy**: Remove backward compatibility paths if no usage detected
+- [ ] **Monitor UI App Legacy**: Watch for legacy warnings (1 week)
+- [ ] **Remove UI App Legacy**: Remove communication manager handling if no usage detected
 - [ ] **Remove Discord Bot Legacy**: Remove unused methods
 
 ## 🎯 **Success Criteria**

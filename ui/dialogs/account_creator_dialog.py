@@ -323,30 +323,78 @@ class AccountCreatorDialog(QDialog):
             self.preferred_name = preferred_name_edit.text().strip()
     
     def on_category_changed(self, categories):
-        """Handle category selection change (no longer used - widgets don't have signals)."""
-        # This method is kept for compatibility but no longer needed
+        """
+        Handle category selection change (no longer used - widgets don't have signals).
+        
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
+        TODO: Remove after confirming no code uses legacy signal-based category changes
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy method calls
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove entire method
+        4. Update any remaining call sites to use modern widget-based approach
+        """
+        logger.warning("LEGACY on_category_changed() called - switch to modern widget-based category handling")
         pass
     
     def on_service_changed(self, service, value):
-        """Handle service selection change (no longer used - widgets don't have signals)."""
-        # This method is kept for compatibility but no longer needed
+        """
+        Handle service selection change (no longer used - widgets don't have signals).
+        
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
+        TODO: Remove after confirming no code uses legacy signal-based service changes
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy method calls
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove entire method
+        4. Update any remaining call sites to use modern widget-based approach
+        """
+        logger.warning("LEGACY on_service_changed() called - switch to modern widget-based service handling")
         pass
     
     def on_contact_info_changed(self, service, value):
-        """Handle contact information change (no longer used - widgets don't have signals)."""
-        # This method is kept for compatibility but no longer needed
+        """
+        Handle contact information change (no longer used - widgets don't have signals).
+        
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
+        TODO: Remove after confirming no code uses legacy signal-based contact info changes
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy method calls
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove entire method
+        4. Update any remaining call sites to use modern widget-based approach
+        """
+        logger.warning("LEGACY on_contact_info_changed() called - switch to modern widget-based contact handling")
         pass
     
     def on_task_group_toggled(self, checked):
-        """Handle task management group toggle (no longer used in tab structure)."""
-        # This method is kept for compatibility but no longer needed
-        # Task widgets are always visible in the tab structure
+        """
+        Handle task management group toggle (no longer used in tab structure).
+        
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
+        TODO: Remove after confirming no code uses legacy group toggle approach
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy method calls
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove entire method
+        4. Update any remaining call sites to use modern tab-based approach
+        """
+        logger.warning("LEGACY on_task_group_toggled() called - switch to modern tab-based task management")
         pass
     
     def on_checkin_group_toggled(self, checked):
-        """Handle check-in group toggle (no longer used in tab structure)."""
-        # This method is kept for compatibility but no longer needed
-        # Check-in widgets are always visible in the tab structure
+        """
+        Handle check-in group toggle (no longer used in tab structure).
+        
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
+        TODO: Remove after confirming no code uses legacy group toggle approach
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy method calls
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove entire method
+        4. Update any remaining call sites to use modern tab-based approach
+        """
+        logger.warning("LEGACY on_checkin_group_toggled() called - switch to modern tab-based check-in management")
         pass
     
     def on_feature_toggled(self, checked):

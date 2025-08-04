@@ -21,16 +21,13 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QGroupBox,
     QPushButton, QSizePolicy, QStatusBar, QVBoxLayout,
     QWidget)
 
-def qtTrId(id): return id
-
 class Ui_ui_app_mainwindow(object):
     def setupUi(self, ui_app_mainwindow):
-        """Auto-generated Qt UI setup function for admin_panel."""
         if not ui_app_mainwindow.objectName():
             ui_app_mainwindow.setObjectName(u"ui_app_mainwindow")
         ui_app_mainwindow.resize(879, 711)
-        self.actionToggle_Verbos_Logging = QAction(ui_app_mainwindow)
-        self.actionToggle_Verbos_Logging.setObjectName(u"actionToggle_Verbos_Logging")
+        self.actionToggle_Verbose_Logging = QAction(ui_app_mainwindow)
+        self.actionToggle_Verbose_Logging.setObjectName(u"actionToggle_Verbose_Logging")
         self.actionView_Log_File = QAction(ui_app_mainwindow)
         self.actionView_Log_File.setObjectName(u"actionView_Log_File")
         self.actionView_Cache_Status = QAction(ui_app_mainwindow)
@@ -55,9 +52,9 @@ class Ui_ui_app_mainwindow(object):
 
         self.groupBox_server_management = QGroupBox(self.centralwidget)
         self.groupBox_server_management.setObjectName(u"groupBox_server_management")
-        self.veticalLayout_2 = QVBoxLayout(self.groupBox_server_management)
-        self.veticalLayout_2.setObjectName(u"veticalLayout_2")
-        self.veticalLayout_2.setContentsMargins(5, 9, -1, -1)
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox_server_management)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(5, 9, -1, -1)
         self.gridLayout = QGridLayout()
         self.gridLayout.setObjectName(u"gridLayout")
         self.pushButton_start_service = QPushButton(self.groupBox_server_management)
@@ -86,7 +83,7 @@ class Ui_ui_app_mainwindow(object):
         self.gridLayout.addWidget(self.label_service_status, 0, 0, 1, 4)
 
 
-        self.veticalLayout_2.addLayout(self.gridLayout)
+        self.verticalLayout_2.addLayout(self.gridLayout)
 
 
         self.verticalLayout.addWidget(self.groupBox_server_management)
@@ -216,7 +213,7 @@ class Ui_ui_app_mainwindow(object):
 
         self.menubar.addAction(self.menuDebug.menuAction())
         self.menubar.addAction(self.menuAdmin.menuAction())
-        self.menuDebug.addAction(self.actionToggle_Verbos_Logging)
+        self.menuDebug.addAction(self.actionToggle_Verbose_Logging)
         self.menuDebug.addAction(self.actionView_Log_File)
         self.menuDebug.addAction(self.menuCache_Management.menuAction())
         self.menuCache_Management.addAction(self.actionView_Cache_Status)
@@ -231,9 +228,8 @@ class Ui_ui_app_mainwindow(object):
     # setupUi
 
     def retranslateUi(self, ui_app_mainwindow):
-        """Auto-generated Qt UI translation function for admin_panel."""
         ui_app_mainwindow.setWindowTitle(QCoreApplication.translate("ui_app_mainwindow", u"MainWindow", None))
-        self.actionToggle_Verbos_Logging.setText(QCoreApplication.translate("ui_app_mainwindow", u"Toggle Verbose Logging", None))
+        self.actionToggle_Verbose_Logging.setText(QCoreApplication.translate("ui_app_mainwindow", u"Toggle Verbose Logging", None))
         self.actionView_Log_File.setText(QCoreApplication.translate("ui_app_mainwindow", u"View Log File", None))
         self.actionView_Cache_Status.setText(QCoreApplication.translate("ui_app_mainwindow", u"View Cache Status", None))
         self.actionForce_Clean_Cache.setText(QCoreApplication.translate("ui_app_mainwindow", u"Force Clean Cache", None))
@@ -251,14 +247,14 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_create_new_user.setText(QCoreApplication.translate("ui_app_mainwindow", u"Create New User", None))
         self.groupBox_user_management.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"User Management", None))
         self.label_select_user.setText(QCoreApplication.translate("ui_app_mainwindow", u"Select User:", None))
-        self.pushButton_communication_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Comunication Settings", None))
+        self.pushButton_communication_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Communication Settings", None))
         self.pushButton_personalization.setText(QCoreApplication.translate("ui_app_mainwindow", u"Personalization", None))
         self.pushButton_category_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Category Management", None))
         self.pushButton_checkin_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Check-in Settings", None))
         self.pushButton_task_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task Management", None))
         self.pushButton_task_crud.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task CRUD", None))
         self.groupBox_category_actions.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Category Actions", None))
-        self.pushButton_send_test_message.setText(QCoreApplication.translate("ui_app_mainwindow", u"Sent Test Message", None))
+        self.pushButton_send_test_message.setText(QCoreApplication.translate("ui_app_mainwindow", u"Send Test Message", None))
         self.label_select_category.setText(QCoreApplication.translate("ui_app_mainwindow", u"Select Category:", None))
         self.pushButton_edit_messages.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Messages", None))
         self.pushButton_edit_schedules.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Schedules", None))

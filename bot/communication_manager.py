@@ -391,7 +391,16 @@ class CommunicationManager:
         """
         Create legacy channel access for backward compatibility.
         
+        LEGACY COMPATIBILITY FUNCTION - REMOVE AFTER VERIFYING NO USAGE
         Creates wrapper objects that provide the old interface for existing code.
+        
+        TODO: Remove after confirming no code uses legacy interface
+        REMOVAL PLAN:
+        1. Add usage logging to track legacy interface access
+        2. Monitor app.log for legacy usage warnings for 1 week
+        3. If no usage detected, remove LegacyChannelWrapper class
+        4. Remove _create_legacy_channel_access method
+        5. Update channels property to return _channels_dict directly
         """
         self._legacy_channels = {}
         for name, channel in self.channels.items():
@@ -400,8 +409,13 @@ class CommunicationManager:
 
     @property
     def channels(self):
-        """Backward compatibility property"""
+        """
+        Backward compatibility property
+        
+        LEGACY COMPATIBILITY PROPERTY - REMOVE AFTER VERIFYING NO USAGE
+        """
         if hasattr(self, '_legacy_channels') and self._legacy_channels:
+            logger.warning("LEGACY channels property accessed - switch to direct channel access")
             return self._legacy_channels
         return self._channels_dict
 
@@ -1048,7 +1062,17 @@ class CommunicationManager:
         return message
 
 class LegacyChannelWrapper:
-    """Provides complete backward compatibility for channel access"""
+    """
+    Provides complete backward compatibility for channel access
+    
+    LEGACY COMPATIBILITY CLASS - REMOVE AFTER VERIFYING NO USAGE
+    TODO: Remove after confirming no code uses legacy interface
+    REMOVAL PLAN:
+    1. Add usage logging to track legacy method calls
+    2. Monitor app.log for legacy usage warnings for 1 week
+    3. If no usage detected, remove entire class
+    4. Update any remaining call sites to use modern async interface
+    """
     
     def __init__(self, base_channel: BaseChannel):
         """
@@ -1120,18 +1144,22 @@ class LegacyChannelWrapper:
         """
         Legacy method - synchronous.
         
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
         Returns:
             bool: True if the channel is initialized
         """
+        logger.warning("LEGACY is_initialized() called - switch to is_ready()")
         return self._channel.is_ready()
 
     def start(self) -> bool:
         """
         Legacy method - synchronous.
         
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
         Returns:
             bool: True if the channel started successfully
         """
+        logger.warning("LEGACY start() called - switch to initialize()")
         try:
             if hasattr(self._channel, 'start'):
                 return self._run_async_safely(self._channel.start())
@@ -1144,9 +1172,11 @@ class LegacyChannelWrapper:
         """
         Legacy method - synchronous.
         
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
         Returns:
             bool: True if the channel stopped successfully
         """
+        logger.warning("LEGACY stop() called - switch to shutdown()")
         try:
             if hasattr(self._channel, 'stop'):
                 return self._run_async_safely(self._channel.stop())
@@ -1159,18 +1189,22 @@ class LegacyChannelWrapper:
         """
         Legacy method - synchronous.
         
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
         Returns:
             The result of sending the message
         """
+        logger.warning("LEGACY send_message() called - switch to async send_message()")
         return self._run_async_safely(self._channel.send_message(*args, **kwargs))
 
     def receive_messages(self):
         """
         Legacy method - synchronous.
         
+        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
         Returns:
             List of received messages
         """
+        logger.warning("LEGACY receive_messages() called - switch to async receive_messages()")
         return self._run_async_safely(self._channel.receive_messages())
 
     def __getattr__(self, name):

@@ -28,6 +28,13 @@ When updating this AI-focused UI migration plan, follow this format:
 
 ## 🎯 **Current UI Migration Status**
 
+### **2025-08-03 - Legacy Code Standards Implementation ✅**
+- **Legacy Code Marking**: Marked all UI-related legacy code sections with proper warnings and removal plans
+- **Account Creator Dialog**: 5 unused compatibility methods marked with legacy warnings
+- **User Profile Settings Widget**: 5 legacy fallback blocks marked with compatibility warnings
+- **UI App Legacy Handling**: Legacy communication manager handling marked in shutdown method
+- **Removal Plans**: All UI legacy code scheduled for removal after 1-week monitoring period
+
 ### **2025-08-01 - Unified TagWidget Implementation ✅**
 - **Created unified TagWidget**: Single flexible widget for both management and selection modes
 - **UI File Pattern**: Created `ui/designs/tag_widget.ui` and generated `ui/generated/tag_widget_pyqt.py`
