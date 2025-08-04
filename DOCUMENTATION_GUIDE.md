@@ -19,8 +19,7 @@ This guide defines the audience and purpose of each documentation file in the MH
 | **CHANGELOG_DETAIL.md** | Developers & contributors | Complete detailed changelog history | Chronological, detailed, reference-oriented |
 | **TODO.md** | Developers & contributors | Current priorities and planned work | Organized, actionable, beginner-friendly |
 | **DOCUMENTATION_GUIDE.md** | Developers & contributors | Documentation organization and standards | Reference, organizational, comprehensive |
-| **TESTING_IMPROVEMENT_PLAN_DETAIL.md** | Human developer and AI collaborators | Testing strategy and improvements | Organized, actionable, beginner-friendly |
-| **UI_MIGRATION_PLAN_DETAIL.md** | Human developer and AI collaborators | UI migration and project reorganization | Comprehensive, step-by-step, beginner-friendly |
+| **PLANS.md** | Human developer and AI collaborators | Development plans and strategies | Actionable, checklist-focused, progress-tracked |
 | **FUNCTION_REGISTRY_DETAIL.md** | Human developer and AI collaborators | Complete function documentation | Comprehensive, detailed, reference-oriented |
 | **MODULE_DEPENDENCIES_DETAIL.md** | Human developer and AI collaborators | Complete module dependency map | Comprehensive, detailed, reference-oriented |
 
@@ -35,8 +34,7 @@ This guide defines the audience and purpose of each documentation file in the MH
 - **`AI_SESSION_STARTER.md`** - Essential context for new AI sessions
 - **`AI_REFERENCE.md`** - Troubleshooting and system understanding
 - **`AI_CHANGELOG.md`** - Brief summaries for AI context
-- **`AI_TESTING_IMPROVEMENT_PLAN.md`** - Testing status and patterns
-- **`AI_UI_MIGRATION_PLAN.md`** - UI migration status and patterns
+- **`PLANS.md`** - Development plans, testing status, and UI migration patterns
 - **`AI_FUNCTION_REGISTRY.md`** - Function patterns and documentation status
 - **`AI_MODULE_DEPENDENCIES.md`** - Module dependency patterns and status
 - **`.cursor/rules/`** - Cursor-specific rules and guidelines
@@ -56,15 +54,14 @@ This guide defines the audience and purpose of each documentation file in the MH
 #### Development Guides
 - **`DEVELOPMENT_WORKFLOW.md`** - Safe development practices for beginners
 - **`QUICK_REFERENCE.md`** - Essential commands and troubleshooting
-- **`UI_MIGRATION_PLAN_DETAIL.md`** - UI migration, data migration, and backup best practices (see new section)
+- **`PLANS.md`** - Development plans, UI migration, and testing strategies
 
 #### Technical Reference
 - **`ARCHITECTURE.md`** - System structure and data organization
 - **`AI_CHANGELOG.md`** - Brief summaries for AI context
 - **`CHANGELOG_DETAIL.md`** - Complete detailed changelog history
 - **`TODO.md`** - Current development priorities
-- **`TESTING_IMPROVEMENT_PLAN_DETAIL.md`** - Comprehensive testing strategy
-- **`UI_MIGRATION_PLAN_DETAIL.md`** - UI migration details and plans
+- **`PLANS.md`** - Development plans, testing strategy, and UI migration details
 - **`FUNCTION_REGISTRY_DETAIL.md`** - Complete function documentation
 - **`MODULE_DEPENDENCIES_DETAIL.md`** - Complete module dependency map
 

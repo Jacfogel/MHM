@@ -12,6 +12,7 @@ MHM is a simple personal assistant created by and for a single beginner programm
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
 - **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
 - **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
+- **[Development Plans](PLANS.md)** - Current plans and strategies
 - **[Recent Changes](AI_CHANGELOG.md)** - Brief summary of recent changes
 - **[Current Priorities](TODO.md)** - What we're working on next
 
@@ -47,6 +48,7 @@ See **HOW_TO_RUN.md** for more details.
 - **ARCHITECTURE.md** - System structure and data organization
 - **DEVELOPMENT_WORKFLOW.md** - Safe development practices for beginners
 - **QUICK_REFERENCE.md** - Essential commands and troubleshooting
+- **PLANS.md** - Development plans and strategies
 - **AI_CHANGELOG.md** - Brief summary of recent changes
 - **CHANGELOG_DETAIL.md** - Complete detailed change history
 - **TODO.md** - Current development priorities

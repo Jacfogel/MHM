@@ -81,8 +81,7 @@ Personal mental health assistant that helps manage executive functioning deficit
 ### **Getting Current Information**
 - **Check `TODO.md`** for current high/medium/low priority tasks
 - **Check `AI_CHANGELOG.md`** for recent development focus
-- **Check `AI_TESTING_IMPROVEMENT_PLAN.md`** for testing status and patterns
-- **Check `AI_UI_MIGRATION_PLAN.md`** for UI migration status and patterns
+- **Check `PLANS.md`** for testing status, UI migration status, and development patterns
 - **Check `AI_FUNCTION_REGISTRY.md`** for function patterns and documentation status
 - **Check `AI_MODULE_DEPENDENCIES.md`** for module dependency patterns and status
 - **Run `python ai_tools/ai_tools_runner.py audit`** for comprehensive system analysis

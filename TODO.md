@@ -6,7 +6,7 @@
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
-> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](TESTING_IMPROVEMENT_PLAN_DETAIL.md) for testing strategy**
+> **See [PLANS.md](PLANS.md) for testing strategy and development plans**
 
 ## 📝 How to Add New TODOs
 
@@ -31,6 +31,36 @@ When adding new tasks, follow this format:
 ## 🎯 Current Priority Tasks
 
 ### High Priority
+
+**Legacy Channel Code Removal & Verification** - Complete removal of legacy channel properties and attributes ✅ **COMPLETED**
+- *What it means*: Removed all legacy channel code including `self.channels` property, `_legacy_channels` attribute, and `LegacyChannelWrapper` class from `bot/communication_manager.py`
+- *Why it helps*: Eliminates legacy warnings in logs and modernizes the communication manager interface
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - All legacy channel code removed, application loads successfully, no legacy warnings
+- *Implementation*: 
+  - Removed `self.channels: Dict[str, BaseChannel] = {}` initialization
+  - Removed `@property` `channels` and its setter
+  - Removed `_create_legacy_channel_access` method and `_legacy_channels` attribute
+  - Removed entire `LegacyChannelWrapper` class (156+ lines)
+  - Updated all methods to use `self._channels_dict` directly
+  - Updated tests to use modern interface
+  - Created audit scripts to verify complete removal
+- *Verification*: Focused legacy audit shows "No critical legacy channel references found!"
+
+**Legacy Code Monitoring & Removal** - Monitor legacy code usage and remove unused sections
+- *What it means*: Monitor app.log for "LEGACY" warnings to verify no usage of marked legacy code sections
+- *Why it helps*: Ensures safe removal of legacy code by confirming it's not actually used
+- *Estimated effort*: Small
+- *Status*: ⚠️ **PENDING** - 1-week monitoring period started 2025-08-03
+- *Monitoring Tasks*:
+  - ⚠️ **Communication Manager Legacy Wrappers**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **Account Creator Dialog Compatibility**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **User Profile Settings Widget Fallbacks**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **User Context Legacy Format**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **Test Utilities Backward Compatibility**: Monitor for 1 week (complete by 2025-08-10)
+  - ⚠️ **UI App Legacy Communication Manager**: Monitor for 1 week (complete by 2025-08-10)
+- *Removal Tasks* (after monitoring period):
+  - ⚠️ **Remove Legacy Code Sections**: Remove all unused legacy code (complete by 2025-08-17)
 
 **Dynamic Time Period Support for Task Statistics** - Implement flexible time period parsing for task statistics
 - *What it means*: Replace the fixed "task_weekly_stats" with dynamic parsing that handles "this week", "last month", "2 weeks", "this time last year", etc.
@@ -159,7 +189,7 @@ When adding new tasks, follow this format:
 - *What it means*: Established comprehensive standards for handling legacy and backward compatibility code
 - *Why it helps*: All legacy code now properly marked, logged, and scheduled for removal, improving code maintainability and transparency
 - *Estimated effort*: Medium
-- *Status*: ✅ **COMPLETED** - See `LEGACY_CODE_REMOVAL_PLAN.md` for detailed inventory and removal plans
+- *Status*: ✅ **COMPLETED** - See `PLANS.md` for detailed inventory and removal plans
 - *Completed Tasks*:
   - ✅ **Legacy Code Standards Documentation**: Added user preferences to `.cursor/rules/critical.mdc`
   - ✅ **Communication Manager Legacy Wrappers**: Marked `LegacyChannelWrapper` and related methods

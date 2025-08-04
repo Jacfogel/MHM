@@ -702,7 +702,7 @@ class SchedulerManager:
         """
         try:
             from tasks.task_management import load_active_tasks, are_tasks_enabled
-            from core.schedule_management import get_reminder_periods_and_days
+            from core.schedule_management import get_schedule_time_periods
             import random
             
             # Check if tasks are enabled for this user
@@ -710,10 +710,10 @@ class SchedulerManager:
                 logger.debug(f"Tasks not enabled for user {user_id}")
                 return
             
-            # Get user's configured reminder periods and days
-            reminder_periods, reminder_days = get_reminder_periods_and_days(user_id, 'tasks')
-            if not reminder_periods:
-                logger.debug(f"No reminder periods configured for user {user_id}")
+            # Get user's configured task reminder periods from the periods structure
+            task_periods = get_schedule_time_periods(user_id, 'tasks')
+            if not task_periods:
+                logger.debug(f"No task reminder periods configured for user {user_id}")
                 return
             
             # Load active tasks
@@ -728,20 +728,20 @@ class SchedulerManager:
             
             scheduled_count = 0
             
-            # For each active reminder period, pick one random task and schedule it
-            for period in reminder_periods:
-                if not period.get('active', True):
+            # For each active task reminder period, pick one random task and schedule it
+            for period_name, period_data in task_periods.items():
+                if not period_data.get('active', True):
                     continue
                 
                 # Pick one random task for this period
                 selected_task = random.choice(incomplete_tasks)
                 
                 # Use canonical keys with fallback to legacy keys for task reminder periods
-                start_time = period.get('start_time') or period.get('start')
-                end_time = period.get('end_time') or period.get('end')
+                start_time = period_data.get('start_time') or period_data.get('start')
+                end_time = period_data.get('end_time') or period_data.get('end')
                 
                 if not start_time or not end_time:
-                    logger.warning(f"Missing start/end time for task reminder period in user {user_id}")
+                    logger.warning(f"Missing start/end time for task reminder period '{period_name}' in user {user_id}")
                     continue
                 
                 # Generate a random time within the period
@@ -753,7 +753,7 @@ class SchedulerManager:
                 # Schedule the task reminder
                 if self.schedule_task_reminder_at_time(user_id, selected_task['task_id'], random_time):
                     scheduled_count += 1
-                    logger.info(f"Scheduled reminder for task '{selected_task['title']}' at {random_time} (period: {start_time}-{end_time})")
+                    logger.info(f"Scheduled reminder for task '{selected_task['title']}' at {random_time} (period: {period_name} {start_time}-{end_time})")
             
             logger.info(f"Scheduled {scheduled_count} task reminders for user {user_id}")
             
@@ -1005,6 +1005,23 @@ def process_user_schedules(user_id: str):
             
     except Exception as e:
         logger.error(f"Error processing schedules for user {user_id}: {e}")
+
+def process_category_schedule(user_id: str, category: str):
+    """Process schedule for a specific user and category."""
+    try:
+        # Create a scheduler instance to process this category
+        from bot.communication_manager import CommunicationManager
+        
+        communication_manager = CommunicationManager()
+        scheduler_manager = SchedulerManager(communication_manager)
+        
+        # Schedule messages for this category
+        scheduler_manager.schedule_daily_message_job(user_id, category)
+        
+        logger.info(f"Processed schedule for user {user_id}, category {category}")
+        
+    except Exception as e:
+        logger.error(f"Error processing schedule for user {user_id}, category {category}: {e}")
 
 def get_user_task_preferences(user_id: str) -> Dict[str, Any]:
     """Get user's task preferences."""

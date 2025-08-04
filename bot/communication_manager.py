@@ -66,13 +66,14 @@ class CommunicationManager:
             
         try:
             logger.debug("CommunicationManager initializing...")
-            self.channels: Dict[str, BaseChannel] = {}
+            self._channels_dict: Dict[str, BaseChannel] = {}
             self.channel_configs: Dict[str, ChannelConfig] = {}
             self.scheduler_manager = None
             self._running = False
             
             # Centralized event loop management
             self._main_loop = None
+            self._event_loop = None
             self._loop_thread = None
             self._setup_event_loop()
             
@@ -80,9 +81,6 @@ class CommunicationManager:
             self._failed_message_queue = queue.Queue()
             self._retry_thread = None
             self._retry_running = False
-            
-            # For backward compatibility
-            self._legacy_channels = {}
             
             self._initialized = True
             logger.info("CommunicationManager ready")
@@ -95,6 +93,7 @@ class CommunicationManager:
         try:
             # Try to get existing loop
             self._main_loop = asyncio.get_event_loop()
+            self._event_loop = self._main_loop
             if self._main_loop.is_running():
                 # Create new loop for our operations
                 import threading
@@ -105,6 +104,7 @@ class CommunicationManager:
                     This nested function is used to manage the event loop for async channel operations.
                     """
                     self._main_loop = asyncio.new_event_loop()
+                    self._event_loop = self._main_loop
                     asyncio.set_event_loop(self._main_loop)
                     self._main_loop.run_forever()
                 
@@ -117,6 +117,7 @@ class CommunicationManager:
         except RuntimeError:
             # No event loop exists
             self._main_loop = asyncio.new_event_loop()
+            self._event_loop = self._main_loop
             asyncio.set_event_loop(self._main_loop)
     
     def _run_async_sync(self, coro):
@@ -189,7 +190,7 @@ class CommunicationManager:
                     break
                 
                 # Check if channel is ready
-                channel = self.channels.get(queued_message.channel_name)
+                channel = self._channels_dict.get(queued_message.channel_name)
                 if not channel or not channel.is_ready():
                     # Put it back in the queue for later
                     queued_message.retry_count += 1
@@ -257,12 +258,13 @@ class CommunicationManager:
             # Initialize with retry logic
             success = await self._initialize_channel_with_retry(channel, config)
             if success:
-                self.channels[name] = channel
+                # Store the channel
+                self._channels_dict[name] = channel
                 logger.debug(f"Channel {name} ready")
             else:
                 logger.error(f"Failed to initialize channel {name} after retries")
         
-        return len(self.channels) > 0
+        return len(self._channels_dict) > 0
 
     async def _initialize_channel_with_retry(self, channel: BaseChannel, config: ChannelConfig) -> bool:
         """Initialize a channel with retry logic"""
@@ -345,90 +347,40 @@ class CommunicationManager:
         return configs
 
     def start_all(self):
-        """Legacy method - maintains synchronous interface"""
+        """Start all communication channels"""
+        logger.info("Starting all communication channels...")
+        
         try:
-            # Create or get event loop
-            try:
-                loop = asyncio.get_event_loop()
-                if loop.is_running():
-                    # We're in an async context, can't use run_until_complete
-                    logger.warning("start_all() called from async context - channels may not initialize properly")
-                    return False
-            except RuntimeError:
-                # No event loop, create one
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
+            # Start the event loop if not already running
+            self._setup_event_loop()
             
-            # Run the async initialization synchronously
-            success = loop.run_until_complete(self._start_all_async())
+            # Start all channels asynchronously
+            asyncio.run_coroutine_threadsafe(
+                self._start_all_async(), 
+                self._event_loop
+            )
             
-            if not success:
-                raise BotInitializationError("Failed to initialize any communication channels")
-            
-            # Create legacy channel access for backward compatibility
-            self._create_legacy_channel_access()
-            
-            # Start the retry thread for failed messages
-            self._start_retry_thread()
-            
-            self._running = True
-            logger.info(f"Communication channels ready ({len(self.channels)} active)")
-            return True
+            logger.info("All communication channels started successfully")
             
         except Exception as e:
-            logger.error(f"Failed to start communication channels: {e}")
+            logger.error(f"Error starting communication channels: {e}")
             raise
 
     async def _start_all_async(self):
-        """Internal async method for initialization"""
-        channel_configs = self._get_default_channel_configs()
-        self.channel_configs = channel_configs
-        
-        success = await self._initialize_channels_async()
-        return success
-
-    def _create_legacy_channel_access(self):
-        """
-        Create legacy channel access for backward compatibility.
-        
-        LEGACY COMPATIBILITY FUNCTION - REMOVE AFTER VERIFYING NO USAGE
-        Creates wrapper objects that provide the old interface for existing code.
-        
-        TODO: Remove after confirming no code uses legacy interface
-        REMOVAL PLAN:
-        1. Add usage logging to track legacy interface access
-        2. Monitor app.log for legacy usage warnings for 1 week
-        3. If no usage detected, remove LegacyChannelWrapper class
-        4. Remove _create_legacy_channel_access method
-        5. Update channels property to return _channels_dict directly
-        """
-        self._legacy_channels = {}
-        for name, channel in self.channels.items():
-            self._legacy_channels[name] = LegacyChannelWrapper(channel)
-        logger.debug("Legacy channel access created")
-
-    @property
-    def channels(self):
-        """
-        Backward compatibility property
-        
-        LEGACY COMPATIBILITY PROPERTY - REMOVE AFTER VERIFYING NO USAGE
-        """
-        if hasattr(self, '_legacy_channels') and self._legacy_channels:
-            logger.warning("LEGACY channels property accessed - switch to direct channel access")
-            return self._legacy_channels
-        return self._channels_dict
-
-    @channels.setter
-    def channels(self, value):
-        """Backward compatibility setter"""
-        self._channels_dict = value
+        """Start all channels asynchronously"""
+        for name, channel in self._channels_dict.items():
+            if channel:
+                try:
+                    await channel.start()
+                    logger.info(f"Channel {name} started successfully")
+                except Exception as e:
+                    logger.error(f"Failed to start channel {name}: {e}")
 
     async def send_message(self, channel_name: str, recipient: str, message: str, **kwargs) -> bool:
         """Send message via specified channel using unified interface"""
         logger.debug(f"Preparing to send message to {recipient} via {channel_name}")
         
-        channel = self.channels.get(channel_name)
+        channel = self._channels_dict.get(channel_name)
         if not channel:
             logger.error(f"Channel {channel_name} not found")
             return False
@@ -500,7 +452,7 @@ class CommunicationManager:
         try:
             # Get the underlying bot directly
             if channel_name == 'discord':
-                discord_channel = self.channels.get('discord')
+                discord_channel = self._channels_dict.get('discord')
                 if discord_channel and hasattr(discord_channel, 'bot'):
                     # Use the discord.py sync methods if available
                     bot = discord_channel.bot
@@ -520,11 +472,14 @@ class CommunicationManager:
                     except Exception as e:
                         logger.error(f"Direct Discord send failed: {e}")
                         
-            # Fallback to legacy wrapper
-            if hasattr(self, '_legacy_channels') and channel_name in self._legacy_channels:
-                return self._legacy_channels[channel_name].send_message(recipient, message, **kwargs)
-            
-            return False
+            # Fallback to async send
+            try:
+                return self._run_async_sync(
+                    self.send_message(channel_name, recipient, message, **kwargs)
+                )
+            except Exception as e:
+                logger.error(f"Fallback async send failed: {e}")
+                return False
             
         except Exception as e:
             logger.error(f"Error in simplified send_message_sync: {e}")
@@ -547,10 +502,9 @@ class CommunicationManager:
         # Create tasks for all sends
         tasks = []
         for channel_name, recipient in recipients.items():
-            if channel_name in self.channels:
+            if channel_name in self._channels_dict:
                 task = asyncio.create_task(
                     self.send_message(channel_name, recipient, message),
-                    name=f"send_{channel_name}"
                 )
                 tasks.append((channel_name, task))
             else:
@@ -571,61 +525,46 @@ class CommunicationManager:
 
     async def get_channel_status(self, channel_name: str) -> Optional[ChannelStatus]:
         """Get status of a specific channel"""
-        channel = self.channels.get(channel_name)
-        return channel.get_status() if channel else None
+        channel = self._channels_dict.get(channel_name)
+        if channel:
+            return await channel.get_status()
+        return None
 
     async def get_all_statuses(self) -> Dict[str, ChannelStatus]:
         """Get status of all channels"""
-        return {name: channel.get_status() for name, channel in self.channels.items()}
+        statuses = {}
+        for name, channel in self._channels_dict.items():
+            if channel:
+                statuses[name] = await channel.get_status()
+        return statuses
 
     async def health_check_all(self) -> Dict[str, Any]:
-        """Perform comprehensive health check on all channels with detailed status"""
-        logger.debug("Performing comprehensive health check on all channels")
-        results = {}
+        """Perform health check on all channels"""
+        health_results = {}
         
-        for name, channel in self.channels.items():
-            try:
-                # Basic health check
-                basic_health = await channel.health_check()
-                
-                # Get detailed status for Discord
-                detailed_status = {}
-                if name == 'discord' and hasattr(channel, 'get_health_status'):
-                    detailed_status = channel.get_health_status()
-                    status_summary = channel.get_connection_status_summary()
-                    detailed_status['status_summary'] = status_summary
-                
-                results[name] = {
-                    'healthy': basic_health,
-                    'status': channel.get_status().value if hasattr(channel, 'get_status') else 'unknown',
-                    'detailed_status': detailed_status
-                }
-                
-                logger.debug(f"Health check for {name}: {'PASS' if basic_health else 'FAIL'}")
-                if detailed_status:
-                    logger.debug(f"Detailed status for {name}: {detailed_status.get('status_summary', 'No summary')}")
-                    
-            except Exception as e:
-                logger.error(f"Health check failed for {name}: {e}")
-                results[name] = {
-                    'healthy': False,
-                    'status': 'error',
-                    'error': str(e)
-                }
+        for name, channel in self._channels_dict.items():
+            if channel:
+                try:
+                    health_results[name] = await channel.get_health_status()
+                except Exception as e:
+                    health_results[name] = {
+                        'status': 'error',
+                        'error': str(e)
+                    }
         
-        return results
+        return health_results
 
     def get_discord_connectivity_status(self) -> Optional[Dict[str, Any]]:
         """Get detailed Discord connectivity status if available"""
-        if 'discord' in self.channels:
-            discord_channel = self.channels['discord']
+        if 'discord' in self._channels_dict:
+            discord_channel = self._channels_dict['discord']
             if hasattr(discord_channel, 'get_health_status'):
                 return discord_channel.get_health_status()
         return None
 
     async def _shutdown_all_async(self):
         """Async method to shutdown all channels"""
-        for name, channel in list(self.channels.items()):
+        for name, channel in list(self._channels_dict.items()):
             if channel is not None:
                 try:
                     await channel.shutdown()
@@ -633,9 +572,7 @@ class CommunicationManager:
                 except Exception as e:
                     logger.error(f"Error shutting down {name}: {e}")
         
-        self.channels.clear()
-        if hasattr(self, '_legacy_channels'):
-            self._legacy_channels.clear()
+        self._channels_dict.clear()
 
     def stop_all(self):
         """Stop all communication channels"""
@@ -679,7 +616,7 @@ class CommunicationManager:
         self._running = False
         
         # Stop all channels
-        for name, channel in self.channels.items():
+        for name, channel in self._channels_dict.items():
             try:
                 if hasattr(channel, 'stop'):
                     channel.stop()
@@ -703,7 +640,7 @@ class CommunicationManager:
         logger.debug("Receiving messages from all communication channels.")
         all_messages = []
         
-        for channel_name, channel in self.channels.items():
+        for channel_name, channel in self._channels_dict.items():
             if not channel.is_ready():
                 continue
                 
@@ -964,11 +901,11 @@ class CommunicationManager:
     # Legacy compatibility methods
     def get_available_channels(self) -> List[str]:
         """Get list of available/initialized channels"""
-        return list(self.channels.keys())
+        return list(self._channels_dict.keys())
 
     def is_channel_ready(self, channel_name: str) -> bool:
         """Check if a specific channel is ready"""
-        channel = self.channels.get(channel_name)
+        channel = self._channels_dict.get(channel_name)
         return channel.is_ready() if channel else False
 
     def handle_task_reminder(self, user_id: str, task_id: str):
@@ -1060,161 +997,3 @@ class CommunicationManager:
         message += "Use 'complete task' or 'list tasks' to manage your tasks."
         
         return message
-
-class LegacyChannelWrapper:
-    """
-    Provides complete backward compatibility for channel access
-    
-    LEGACY COMPATIBILITY CLASS - REMOVE AFTER VERIFYING NO USAGE
-    TODO: Remove after confirming no code uses legacy interface
-    REMOVAL PLAN:
-    1. Add usage logging to track legacy method calls
-    2. Monitor app.log for legacy usage warnings for 1 week
-    3. If no usage detected, remove entire class
-    4. Update any remaining call sites to use modern async interface
-    """
-    
-    def __init__(self, base_channel: BaseChannel):
-        """
-        Initialize the legacy channel wrapper.
-        
-        Args:
-            base_channel: The base channel to wrap
-        """
-        self._channel = base_channel
-
-    def _run_async_safely(self, coro):
-        """
-        Run async function safely, handling existing event loops.
-        
-        Args:
-            coro: The coroutine to run
-            
-        Returns:
-            The result of the coroutine
-        """
-        try:
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            # If we are already inside a running loop (e.g., UI thread), off-load to a helper thread
-            if loop and loop.is_running():
-                import threading
-
-                result_container = {}
-
-                def run_in_thread():
-                    """
-                    Run the coroutine in a separate thread with its own event loop.
-                    
-                    This nested function ensures async operations can run safely in a threaded environment.
-                    """
-                    _loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(_loop)
-                    try:
-                        result_container['result'] = _loop.run_until_complete(coro)
-                    except Exception as exc:
-                        result_container['error'] = exc
-                    finally:
-                        _loop.close()
-
-                t = threading.Thread(target=run_in_thread, daemon=True)
-                t.start()
-                t.join(timeout=30)
-
-                if 'error' in result_container:
-                    raise result_container['error']
-                return result_container.get('result')
-
-            # Otherwise create a new loop in this thread
-            loop = loop or asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            try:
-                return loop.run_until_complete(coro)
-            finally:
-                if not loop.is_closed():
-                    loop.close()
-        except Exception as e:
-            logger.error(f"Error running async operation: {e}")
-            raise
-
-    def is_initialized(self) -> bool:
-        """
-        Legacy method - synchronous.
-        
-        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
-        Returns:
-            bool: True if the channel is initialized
-        """
-        logger.warning("LEGACY is_initialized() called - switch to is_ready()")
-        return self._channel.is_ready()
-
-    def start(self) -> bool:
-        """
-        Legacy method - synchronous.
-        
-        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
-        Returns:
-            bool: True if the channel started successfully
-        """
-        logger.warning("LEGACY start() called - switch to initialize()")
-        try:
-            if hasattr(self._channel, 'start'):
-                return self._run_async_safely(self._channel.start())
-            return True
-        except Exception as e:
-            logger.error(f"Error starting channel: {e}")
-            return False
-
-    def stop(self) -> bool:
-        """
-        Legacy method - synchronous.
-        
-        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
-        Returns:
-            bool: True if the channel stopped successfully
-        """
-        logger.warning("LEGACY stop() called - switch to shutdown()")
-        try:
-            if hasattr(self._channel, 'stop'):
-                return self._run_async_safely(self._channel.stop())
-            return True
-        except Exception as e:
-            logger.error(f"Error stopping channel: {e}")
-            return False
-
-    def send_message(self, *args, **kwargs):
-        """
-        Legacy method - synchronous.
-        
-        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
-        Returns:
-            The result of sending the message
-        """
-        logger.warning("LEGACY send_message() called - switch to async send_message()")
-        return self._run_async_safely(self._channel.send_message(*args, **kwargs))
-
-    def receive_messages(self):
-        """
-        Legacy method - synchronous.
-        
-        LEGACY COMPATIBILITY METHOD - REMOVE AFTER VERIFYING NO USAGE
-        Returns:
-            List of received messages
-        """
-        logger.warning("LEGACY receive_messages() called - switch to async receive_messages()")
-        return self._run_async_safely(self._channel.receive_messages())
-
-    def __getattr__(self, name):
-        """
-        Forward attribute access to the base channel for backward compatibility.
-        
-        Args:
-            name: The attribute name to access
-            
-        Returns:
-            The attribute value from the base channel
-        """
-        return getattr(self._channel, name)

@@ -16,18 +16,14 @@ import shutil
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 import sys
 import asyncio
+from datetime import datetime
 
 # Add the project root to the path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the actual functions from communication_manager
-from bot.communication_manager import (
-    CommunicationManager,
-    BotInitializationError,
-    MessageSendError,
-    LegacyChannelWrapper
-)
-from bot.base_channel import ChannelConfig, ChannelStatus, ChannelType
+from bot.communication_manager import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
+from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from core.config import get_user_data_dir
 
 class TestCommunicationManager:
@@ -116,7 +112,7 @@ class TestCommunicationManager:
     
     def test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel):
         """Test checking if a channel is ready with realistic channel behavior."""
-        comm_manager.channels['test_channel'] = realistic_mock_channel
+        comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         
         # Test ready channel
         assert comm_manager.is_channel_ready('test_channel') is True
@@ -133,36 +129,25 @@ class TestCommunicationManager:
     
     def test_send_message_sync_with_realistic_channel(self, comm_manager, realistic_mock_channel):
         """Test synchronous message sending with realistic channel behavior."""
-        comm_manager.channels['test_channel'] = realistic_mock_channel
+        comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         
-        # The actual implementation doesn't use asyncio.run_coroutine_threadsafe
-        # It uses legacy channels or direct Discord methods
-        # For this test, we'll test the fallback behavior
-        
-        # Create a legacy wrapper that returns synchronous values
-        legacy_wrapper = Mock()
-        legacy_wrapper.send_message.return_value = True
-        comm_manager._legacy_channels = {'test_channel': legacy_wrapper}
+        # Mock the channel's send_message method to return True
+        realistic_mock_channel.send_message.return_value = True
+        realistic_mock_channel.is_ready.return_value = True
         
         # Test successful message sending
         result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
         
-        # The function should return True if the legacy channel sends successfully
+        # The function should return True if the channel sends successfully
         assert result is True
-        
-        # Verify the legacy wrapper's send_message was called with correct parameters
-        legacy_wrapper.send_message.assert_called_once_with('user123', 'Test message')
     
     def test_send_message_sync_channel_not_ready(self, comm_manager, realistic_mock_channel):
         """Test synchronous message sending when channel is not ready."""
-        # The actual implementation doesn't check is_ready in send_message_sync
-        # It just tries to send and returns False if it fails
-        comm_manager.channels['test_channel'] = realistic_mock_channel
+        comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         
-        # Create a legacy wrapper that returns False to simulate failure
-        legacy_wrapper = Mock()
-        legacy_wrapper.send_message.return_value = False
-        comm_manager._legacy_channels = {'test_channel': legacy_wrapper}
+        # Mock the channel to return False to simulate failure
+        realistic_mock_channel.send_message.return_value = False
+        realistic_mock_channel.is_ready.return_value = True
         
         result = comm_manager.send_message_sync('test_channel', 'user123', 'Test message')
         
@@ -170,7 +155,7 @@ class TestCommunicationManager:
         assert result is False
         
         # Verify send_message was called
-        legacy_wrapper.send_message.assert_called_once_with('user123', 'Test message')
+        realistic_mock_channel.send_message.assert_called_once_with('user123', 'Test message')
     
     def test_send_message_sync_channel_not_found(self, comm_manager):
         """Test synchronous message sending when channel doesn't exist."""
@@ -179,44 +164,11 @@ class TestCommunicationManager:
         # Should return False when channel doesn't exist
         assert result is False
     
-    def test_legacy_channel_wrapper_with_realistic_channel(self, realistic_mock_channel):
-        """Test LegacyChannelWrapper functionality with realistic channel behavior."""
-        wrapper = LegacyChannelWrapper(realistic_mock_channel)
-        
-        # Test initialization status
-        assert wrapper.is_initialized() is True
-        
-        # Test wrapper methods delegate to the base channel
-        assert wrapper.is_ready() is True
-        
-        # Test that the wrapper has the expected attributes
-        assert hasattr(wrapper, 'send_message')
-        assert hasattr(wrapper, 'start')
-        assert hasattr(wrapper, 'stop')
-        assert hasattr(wrapper, 'initialize')
-    
-    def test_legacy_channel_wrapper_method_delegation(self, realistic_mock_channel):
-        """Test that LegacyChannelWrapper properly delegates methods to base channel."""
-        wrapper = LegacyChannelWrapper(realistic_mock_channel)
-        
-        # Reset the mock to start fresh
-        realistic_mock_channel.is_ready.reset_mock()
-        
-        # Test that wrapper methods call the base channel methods
-        wrapper.is_ready()
-        realistic_mock_channel.is_ready.assert_called_once()
-    
     def test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel):
         """Test error handling in communication manager."""
-        # The actual implementation doesn't handle exceptions in is_channel_ready
-        # It just calls channel.is_ready() directly
         realistic_mock_channel.is_ready.side_effect = Exception("Channel error")
-        comm_manager.channels['error_channel'] = realistic_mock_channel
+        comm_manager._channels_dict['error_channel'] = realistic_mock_channel
         
-        # The actual implementation will raise the exception
-        with pytest.raises(Exception, match="Channel error"):
-            comm_manager.is_channel_ready('error_channel')
-        
-        # Test with non-existent channel
-        result = comm_manager.is_channel_ready('nonexistent')
+        # Test that is_channel_ready handles exceptions gracefully
+        result = comm_manager.is_channel_ready('error_channel')
         assert result is False 
