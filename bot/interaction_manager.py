@@ -13,6 +13,7 @@ This module provides a unified interface for handling user interactions by:
 from typing import Optional, Dict, Any
 from core.logger import get_logger
 from core.error_handling import handle_errors
+from core.config import AI_MAX_RESPONSE_LENGTH
 from bot.enhanced_command_parser import get_enhanced_command_parser, ParsingResult
 from bot.interaction_handlers import InteractionResponse, get_interaction_handler, get_all_handlers, ParsedCommand
 from bot.ai_chatbot import get_ai_chatbot
@@ -172,8 +173,9 @@ class InteractionManager:
             if not self.enable_ai_enhancement:
                 return response
             
-            # Don't enhance help responses or command lists
-            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']:
+            # Don't enhance task responses, help responses, or command lists
+            # Task responses are already well-formatted and don't need enhancement
+            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats', 'list_tasks', 'create_task', 'complete_task', 'delete_task', 'update_task', 'task_stats']:
                 return response
             
             # Create a context prompt for AI enhancement
@@ -183,7 +185,8 @@ Current response: {response.message}
 
 Please enhance this response to be more personal and contextual for the user, 
 while keeping the core information intact. Make it warm and encouraging.
-Return ONLY the enhanced response, no prefixes or formatting.
+Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
+Keep the response under 200 words.
 """
             
             enhanced_text = self.ai_chatbot.generate_response(
@@ -192,9 +195,24 @@ Return ONLY the enhanced response, no prefixes or formatting.
                 timeout=3  # Short timeout for enhancement
             )
             
-            # Only use enhanced response if it's reasonable and doesn't contain "System response:"
-            if enhanced_text and len(enhanced_text) > 10 and "System response:" not in enhanced_text:
-                response.message = enhanced_text.strip()
+            # Validate enhanced response - check for common issues
+            if enhanced_text and len(enhanced_text) > 10:
+                # Check for system prompt leakage
+                system_indicators = [
+                    "System response:", "Exercise", "You are a chatbot", 
+                    "Your job is to", "Please enhance", "Return ONLY",
+                    "```python", "```json", "{'action':", '{"action":'
+                ]
+                
+                has_system_content = any(indicator in enhanced_text for indicator in system_indicators)
+                
+                if not has_system_content:
+                    # Limit response length to prevent truncation (match AI chatbot limit)
+                    if len(enhanced_text) > AI_MAX_RESPONSE_LENGTH:
+                        enhanced_text = enhanced_text[:AI_MAX_RESPONSE_LENGTH-3] + "..."
+                    response.message = enhanced_text.strip()
+                else:
+                    logger.debug(f"AI enhancement returned system content, keeping original response")
             
         except Exception as e:
             logger.debug(f"AI enhancement failed: {e}")

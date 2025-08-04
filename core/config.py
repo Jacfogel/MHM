@@ -60,6 +60,24 @@ AI_BATCH_SIZE = int(os.getenv('AI_BATCH_SIZE', '4'))  # For batch processing
 AI_CUDA_WARMUP = os.getenv('AI_CUDA_WARMUP', 'false').lower() == 'true'  # Disabled for LM Studio
 AI_CACHE_RESPONSES = os.getenv('AI_CACHE_RESPONSES', 'true').lower() == 'true'
 
+# LM Studio AI Model Configuration - Centralized Timeouts and Confidence Thresholds
+AI_CONNECTION_TEST_TIMEOUT = int(os.getenv('AI_CONNECTION_TEST_TIMEOUT', '15'))  # Timeout for testing LM Studio connection
+AI_API_CALL_TIMEOUT = int(os.getenv('AI_API_CALL_TIMEOUT', '15'))  # Default timeout for LM Studio API calls
+AI_COMMAND_PARSING_TIMEOUT = int(os.getenv('AI_COMMAND_PARSING_TIMEOUT', '15'))  # Timeout for AI-enhanced command parsing
+AI_PERSONALIZED_MESSAGE_TIMEOUT = int(os.getenv('AI_PERSONALIZED_MESSAGE_TIMEOUT', '40'))  # Longer timeout for personalized messages
+AI_CONTEXTUAL_RESPONSE_TIMEOUT = int(os.getenv('AI_CONTEXTUAL_RESPONSE_TIMEOUT', '35'))  # Timeout for contextual responses
+AI_QUICK_RESPONSE_TIMEOUT = int(os.getenv('AI_QUICK_RESPONSE_TIMEOUT', '8'))  # Shorter timeout for real-time interactions
+
+# Command Parsing Confidence Thresholds
+AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD = float(os.getenv('AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD', '0.8'))  # Threshold for high-confidence rule-based parsing
+AI_AI_ENHANCED_CONFIDENCE_THRESHOLD = float(os.getenv('AI_AI_ENHANCED_CONFIDENCE_THRESHOLD', '0.6'))  # Threshold for using AI-enhanced parsing results
+AI_RULE_BASED_FALLBACK_THRESHOLD = float(os.getenv('AI_RULE_BASED_FALLBACK_THRESHOLD', '0.3'))  # Threshold for fallback to rule-based parsing
+AI_AI_PARSING_BASE_CONFIDENCE = float(os.getenv('AI_AI_PARSING_BASE_CONFIDENCE', '0.7'))  # Base confidence for successful AI parsing
+AI_AI_PARSING_PARTIAL_CONFIDENCE = float(os.getenv('AI_AI_PARSING_PARTIAL_CONFIDENCE', '0.6'))  # Confidence for partial AI parsing results
+
+# AI Response Length Configuration
+AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '150'))  # Maximum character length for AI-generated responses
+
 # User Context Caching
 CONTEXT_CACHE_TTL = int(os.getenv('CONTEXT_CACHE_TTL', '300'))  # 5 minutes
 CONTEXT_CACHE_MAX_SIZE = int(os.getenv('CONTEXT_CACHE_MAX_SIZE', '100'))

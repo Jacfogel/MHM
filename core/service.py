@@ -260,6 +260,15 @@ class MHMService:
             if self.communication_manager is None:
                 raise InitializationError("Failed to initialize CommunicationManager after retries.")
 
+            # Step 2.5: Initialize communication channels (Discord, Email, etc.)
+            logger.info("Step 2.5: Initializing communication channels...")
+            try:
+                self.communication_manager.initialize_channels_from_config()
+                logger.info("Communication channels initialized successfully")
+            except Exception as e:
+                logger.error(f"Failed to initialize communication channels: {e}")
+                raise InitializationError(f"Failed to initialize communication channels: {e}")
+
             # Step 3: Start the SchedulerManager
             for attempt in range(max_retries):
                 try:

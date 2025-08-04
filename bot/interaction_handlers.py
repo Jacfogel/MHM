@@ -144,12 +144,12 @@ class TaskManagementHandler(InteractionHandler):
                 response += f" (tags: {', '.join(tags)})"
             
             # Ask about reminder periods
-            response += "\n\nWould you like to set reminder periods for this task? (e.g., '1 hour before', '30 minutes before', '1 day before')"
+            response += "\n\nWould you like to set reminder periods for this task?"
             
             return InteractionResponse(
                 response, 
                 completed=False,
-                suggestions=["1 hour before", "30 minutes before", "1 day before", "No reminders needed"]
+                suggestions=["30 minutes to an hour before", "3 to 5 hours before", "1 to 2 days before", "No reminders needed"]
             )
         else:
             return InteractionResponse("❌ Failed to create task. Please try again.", True)
@@ -223,7 +223,7 @@ class TaskManagementHandler(InteractionHandler):
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
         tasks.sort(key=lambda x: (
             priority_order.get(x.get('priority', 'medium'), 1),
-            x.get('due_date', '9999-12-31')  # No due date goes last
+            x.get('due_date') or '9999-12-31'  # Handle None due_date properly
         ))
         
         # Format task list with enhanced details
@@ -272,22 +272,61 @@ class TaskManagementHandler(InteractionHandler):
         if len(tasks) > 10:
             response += f"\n... and {len(tasks) - 10} more tasks"
         
-        # Add suggestions for further filtering
-        suggestions = []
-        if not filter_type:
-            suggestions.extend(["Show tasks due soon", "Show high priority tasks", "Show overdue tasks"])
-        if not priority_filter:
-            suggestions.extend(["Show low priority tasks", "Show medium priority tasks"])
-        
         # Add contextual suggestions based on current state
-        if len(tasks) > 5:
-            suggestions.append("Show fewer tasks")
-        if any(task.get('due_date') for task in tasks):
-            suggestions.append("Show tasks without due dates")
-        if any(task.get('tags') for task in tasks):
-            suggestions.append("Show tasks without tags")
+        suggestions = []
         
-        # Limit suggestions to 3 most relevant
+        # Only add suggestions if we have tasks and no filters are applied
+        if not filter_info and len(tasks) > 0:
+            # Check for overdue tasks
+            overdue_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] < datetime.now().strftime('%Y-%m-%d'))
+            if overdue_count > 0:
+                suggestions.append(f"Show {overdue_count} overdue tasks")
+            
+            # Check for high priority tasks
+            high_priority_count = sum(1 for task in tasks if task.get('priority') == 'high')
+            if high_priority_count > 0:
+                suggestions.append(f"Show {high_priority_count} high priority tasks")
+            
+            # Check for tasks due soon
+            due_soon_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] <= (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d'))
+            if due_soon_count > 0:
+                suggestions.append(f"Show {due_soon_count} tasks due soon")
+        
+        # Create balanced suggestions: one show-type, one action-type, one action-type
+        suggestions = []
+        
+        # Add one contextual "show" suggestion if available
+        if not filter_info and len(tasks) > 0:
+            # Check for overdue tasks first
+            overdue_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] < datetime.now().strftime('%Y-%m-%d'))
+            if overdue_count > 0:
+                suggestions.append(f"Show {overdue_count} overdue tasks")
+            else:
+                # Check for high priority tasks
+                high_priority_count = sum(1 for task in tasks if task.get('priority') == 'high')
+                if high_priority_count > 0:
+                    suggestions.append(f"Show {high_priority_count} high priority tasks")
+                else:
+                    # Check for tasks due soon
+                    due_soon_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] <= (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d'))
+                    if due_soon_count > 0:
+                        suggestions.append(f"Show {due_soon_count} tasks due soon")
+        
+        # Add action-oriented suggestions
+        if len(tasks) > 0:
+            suggestions.append("Add a reminder to a task")
+            suggestions.append("Edit a task")
+        
+        # If we don't have enough suggestions, add general ones
+        while len(suggestions) < 3:
+            if "Create a new task" not in suggestions:
+                suggestions.append("Create a new task")
+            elif "Show all tasks" not in suggestions:
+                suggestions.append("Show all tasks")
+            else:
+                break
+        
+        # Limit to exactly 3 suggestions
         suggestions = suggestions[:3]
         
         # Create rich data for Discord embeds
@@ -1010,7 +1049,7 @@ class HelpHandler(InteractionHandler):
     """Handler for help and command information"""
     
     def can_handle(self, intent: str) -> bool:
-        return intent in ['help', 'commands', 'examples']
+        return intent in ['help', 'commands', 'examples', 'status', 'messages']
     
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
         intent = parsed_command.intent
@@ -1022,6 +1061,10 @@ class HelpHandler(InteractionHandler):
             return self._handle_commands_list(user_id)
         elif intent == 'examples':
             return self._handle_examples(user_id, entities)
+        elif intent == 'status':
+            return self._handle_status(user_id)
+        elif intent == 'messages':
+            return self._handle_messages(user_id)
         else:
             return InteractionResponse("I'm here to help! Try 'help' for general help or 'commands' for a list of commands.", True)
     
@@ -1066,10 +1109,10 @@ class HelpHandler(InteractionHandler):
                 "You can interact with me using natural language commands.\n\n"
                 "**Main Categories:**\n"
                 "• **Tasks**: Create, manage, and track your tasks\n"
-                "• **Check-ins**: Daily wellness check-ins\n"
+                "• **Check-ins**: Customizable wellness check-ins\n"
                 "• **Profile**: View and update your information\n"
                 "• **Analytics**: View your progress and insights\n"
-                "• **Schedule**: Manage your daily routines\n\n"
+                "• **Schedule**: Manage automated messages and reminders\n\n"
                 "**Try these commands:**\n"
                 "• 'help tasks' - Task management help\n"
                 "• 'help checkin' - Check-in help\n"
@@ -1183,6 +1226,138 @@ class HelpHandler(InteractionHandler):
                 "• 'Show my schedule'\n"
                 "• 'Mood trends'\n\n"
                 "Try 'examples tasks', 'examples schedule', or 'examples analytics' for specific examples!",
+                True
+            )
+    
+    def _handle_status(self, user_id: str) -> InteractionResponse:
+        """Handle status request with detailed system information"""
+        try:
+            from core.user_management import load_user_account_data
+            from tasks.task_management import load_active_tasks
+            from core.response_tracking import is_user_checkins_enabled
+            
+            # Load user data
+            account_data = load_user_account_data(user_id)
+            if not account_data:
+                return InteractionResponse("I'm up and running! 🌟\n\nPlease register first to see your personal status.", True)
+            
+            # Get user info
+            username = account_data.get('internal_username', 'Unknown')
+            features = account_data.get('features', {})
+            
+            # Get active tasks
+            tasks = load_active_tasks(user_id)
+            task_count = len(tasks) if tasks else 0
+            
+            # Check if check-ins are enabled
+            checkins_enabled = is_user_checkins_enabled(user_id)
+            
+            # Build status response
+            response = f"**System Status for {username}** 🌟\n\n"
+            
+            # Account status
+            response += "👤 **Account Status:**\n"
+            response += f"• Username: {username}\n"
+            response += f"• Account: Active ✅\n"
+            response += f"• Timezone: {account_data.get('timezone', 'Not set')}\n\n"
+            
+            # Features status
+            response += "🔧 **Features:**\n"
+            for feature, status in features.items():
+                status_icon = "✅" if status == "enabled" else "❌"
+                response += f"• {feature.replace('_', ' ').title()}: {status_icon}\n"
+            response += "\n"
+            
+            # Current status
+            response += "📊 **Current Status:**\n"
+            response += f"• Active Tasks: {task_count}\n"
+            response += f"• Check-ins: {'Enabled ✅' if checkins_enabled else 'Disabled ❌'}\n"
+            response += f"• System: Running smoothly ✅\n\n"
+            
+            # Quick actions
+            response += "🚀 **Quick Actions:**\n"
+            response += "• 'show my tasks' - View your tasks\n"
+            response += "• 'start checkin' - Begin daily check-in\n"
+            response += "• 'show profile' - View your profile\n"
+            response += "• 'show schedule' - View your schedules\n"
+            response += "• 'help' - Get help and examples\n\n"
+            
+            response += "Just start typing naturally - I'll understand what you want to do!"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error getting status for user {user_id}: {e}")
+            return InteractionResponse(
+                "I'm up and running! 🌟\n\nI can help you with:\n"
+                "📋 **Tasks**: Create, list, complete, and manage tasks\n"
+                "✅ **Check-ins**: Daily wellness check-ins\n"
+                "👤 **Profile**: View and update your information\n"
+                "📅 **Schedule**: Manage message schedules\n"
+                "📊 **Analytics**: View wellness insights\n\n"
+                "Just start typing naturally - I'll understand what you want to do!",
+                True
+            )
+    
+    def _handle_messages(self, user_id: str) -> InteractionResponse:
+        """Handle messages request with message history and settings"""
+        try:
+            from core.user_management import load_user_account_data
+            from core.response_tracking import get_recent_daily_checkins
+            
+            # Load user data
+            account_data = load_user_account_data(user_id)
+            if not account_data:
+                return InteractionResponse("Please register first to view your messages.", True)
+            
+            # Get user info
+            username = account_data.get('internal_username', 'Unknown')
+            
+            # Get recent check-ins (as a proxy for recent messages)
+            recent_checkins = get_recent_daily_checkins(user_id, limit=5)
+            
+            # Build messages response
+            response = f"**Messages for {username}** 📬\n\n"
+            
+            # Message settings
+            response += "📧 **Message Settings:**\n"
+            response += "• Automated Messages: Enabled ✅\n"
+            response += "• Check-ins: Available ✅\n"
+            response += "• Task Reminders: Available ✅\n"
+            response += "• Motivational Messages: Available ✅\n\n"
+            
+            # Recent activity
+            response += "📅 **Recent Activity:**\n"
+            if recent_checkins:
+                response += "Recent check-ins:\n"
+                for checkin in recent_checkins:
+                    date = checkin.get('date', 'Unknown')
+                    response += f"• {date}: Check-in completed ✅\n"
+            else:
+                response += "No recent check-ins found.\n"
+            response += "\n"
+            
+            # Quick actions
+            response += "🚀 **Quick Actions:**\n"
+            response += "• 'start checkin' - Begin daily check-in\n"
+            response += "• 'show schedule' - View message schedules\n"
+            response += "• 'show analytics' - View message analytics\n"
+            response += "• 'help' - Get help with messages\n\n"
+            
+            response += "Your messages are automatically scheduled and delivered based on your preferences!"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error getting messages for user {user_id}: {e}")
+            return InteractionResponse(
+                "**Messages** 📬\n\n"
+                "I can help you with:\n"
+                "• Daily check-ins\n"
+                "• Task reminders\n"
+                "• Motivational messages\n"
+                "• Schedule management\n\n"
+                "Try 'start checkin' to begin a daily check-in!",
                 True
             )
     

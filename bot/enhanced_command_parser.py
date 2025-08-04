@@ -15,6 +15,11 @@ from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 from core.logger import get_logger
 from core.error_handling import handle_errors
+from core.config import (
+    AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD, AI_AI_ENHANCED_CONFIDENCE_THRESHOLD,
+    AI_RULE_BASED_FALLBACK_THRESHOLD, AI_AI_PARSING_BASE_CONFIDENCE,
+    AI_AI_PARSING_PARTIAL_CONFIDENCE, AI_COMMAND_PARSING_TIMEOUT
+)
 from bot.ai_chatbot import get_ai_chatbot
 from bot.interaction_handlers import ParsedCommand, get_all_handlers
 
@@ -160,6 +165,24 @@ class EnhancedCommandParser:
                 r'show\s+examples?',
                 r'give\s+me\s+examples?',
             ],
+            'status': [
+                r'status',
+                r'system\s+status',
+                r'how\s+am\s+i\s+doing',
+                r'what\s+is\s+my\s+status',
+                r'check\s+status',
+                r'my\s+status',
+                r'current\s+status',
+            ],
+            'messages': [
+                r'messages?',
+                r'show\s+(?:my\s+)?messages?',
+                r'my\s+messages?',
+                r'view\s+(?:my\s+)?messages?',
+                r'display\s+(?:my\s+)?messages?',
+                r'message\s+history',
+                r'recent\s+messages?',
+            ],
             # Schedule Management Patterns
             'show_schedule': [
                 r'show\s+(?:my\s+)?schedule',
@@ -207,6 +230,10 @@ class EnhancedCommandParser:
                 r'mood\s+analysis',
                 r'mood\s+over\s+time',
                 r'mood\s+(?:for\s+)?(\d+)\s+days?',
+                r'what\s*[\'s]?\s*(?:has\s+)?my\s+mood\s+been\s+like\s+(?:lately|recently)',
+                r'what.*mood.*been.*like.*lately',
+                r'how\s+has\s+my\s+mood\s+been\s+(?:lately|recently)',
+                r'my\s+mood\s+history',
             ],
             'habit_analysis': [
                 r'habit\s+analysis',
@@ -254,16 +281,16 @@ class EnhancedCommandParser:
         
         # Try rule-based parsing first (fast, reliable)
         rule_result = self._rule_based_parse(message)
-        if rule_result.confidence > 0.8:
+        if rule_result.confidence > AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD:
             return rule_result
         
         # Try AI-enhanced parsing (slower, more flexible)
         ai_result = self._ai_enhanced_parse(message)
-        if ai_result.confidence > 0.6:
+        if ai_result.confidence >= AI_AI_ENHANCED_CONFIDENCE_THRESHOLD:
             return ai_result
         
         # Fall back to rule-based with lower confidence
-        if rule_result.confidence > 0.3:
+        if rule_result.confidence > AI_RULE_BASED_FALLBACK_THRESHOLD:
             return rule_result
         
         # Final fallback
@@ -302,8 +329,10 @@ class EnhancedCommandParser:
             ai_response = self.ai_chatbot.generate_response(
                 message, 
                 mode="command",
-                timeout=5  # Short timeout for parsing
+                timeout=AI_COMMAND_PARSING_TIMEOUT
             )
+            
+            logger.debug(f"AI response: {ai_response}")
             
             # Try to parse AI response as JSON
             try:
@@ -313,19 +342,47 @@ class EnhancedCommandParser:
                 
                 # Validate intent against available handlers
                 if self._is_valid_intent(intent):
-                    confidence = 0.7  # AI parsing confidence
+                    confidence = AI_AI_PARSING_BASE_CONFIDENCE
                     return ParsingResult(
                         ParsedCommand(intent, entities, confidence, message),
                         confidence, "ai_enhanced"
                     )
             except json.JSONDecodeError:
+                # Try to extract JSON from partial response
+                try:
+                    # Look for JSON-like structure in the response
+                    start_idx = ai_response.find('{')
+                    end_idx = ai_response.rfind('}')
+                    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                        json_part = ai_response[start_idx:end_idx + 1]
+                        parsed_data = json.loads(json_part)
+                        intent = parsed_data.get('action', 'unknown')
+                        entities = parsed_data.get('details', {})
+                        
+                        if self._is_valid_intent(intent):
+                            confidence = AI_AI_PARSING_PARTIAL_CONFIDENCE
+                            return ParsingResult(
+                                ParsedCommand(intent, entities, confidence, message),
+                                confidence, "ai_enhanced"
+                            )
+                except (json.JSONDecodeError, ValueError):
+                    pass
+                
                 # AI didn't return valid JSON, try to extract intent from text
                 intent = self._extract_intent_from_ai_response(ai_response)
                 if intent and self._is_valid_intent(intent):
                     entities = self._extract_entities_from_ai_response(ai_response)
                     return ParsingResult(
-                        ParsedCommand(intent, entities, 0.6, message),
-                        0.6, "ai_enhanced"
+                        ParsedCommand(intent, entities, 0.5, message),
+                        0.5, "ai_enhanced"
+                    )
+                
+                # If AI response contains the system prompt, it's not following instructions
+                if "command parser" in ai_response.lower() or "available actions" in ai_response.lower():
+                    logger.debug("AI returned system prompt instead of JSON, using fallback")
+                    return ParsingResult(
+                        ParsedCommand("unknown", {}, 0.0, message),
+                        0.0, "ai_enhanced"
                     )
         
         except Exception as e:

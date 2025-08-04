@@ -2,6 +2,60 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-04 - AI Response Length Centralization & Test Failure Analysis
+
+**AI Response Length Centralization ✅ COMPLETED:**
+- ✅ **Centralized Configuration**: Added `AI_MAX_RESPONSE_LENGTH` constant to `core/config.py`
+- ✅ **Module Integration**: Updated both `bot/ai_chatbot.py` and `bot/interaction_manager.py` to use centralized config
+- ✅ **Consistency Verification**: Confirmed both modules use consistent 150-character limit
+- ✅ **Test Script**: Created and ran verification script to confirm proper implementation
+- ✅ **Impact**: Eliminated hardcoded response length values, improved maintainability
+
+**Test Failure Analysis ⚠️ OUTSTANDING:**
+- ❌ **12 Behavior Test Failures**: Critical issues blocking reliable testing infrastructure
+- ❌ **Test User Creation**: "name 'logger' is not defined" errors in test utilities
+- ❌ **User Data Loading**: Missing 'schedules' and 'account' keys in test data
+- ❌ **Communication Manager**: Attribute errors in tests (_channels_dict vs channels)
+- ❌ **AI Chatbot Tests**: System prompt test failures due to content changes
+- ❌ **Test Utilities Demo**: Basic user creation failures in demo scenarios
+
+**Current Test Status:**
+- Unit Tests: 138 passed, 1 skipped, 2 deselected (99.3% success rate)
+- Behavior Tests: 298 passed, 12 failed, 4 deselected (96.1% success rate)
+- **Priority**: Fix test failures to restore reliable testing infrastructure
+
+### 2025-08-04 - Fixed Task Response Formatting & Response Quality Issues
+
+**Fixed critical Discord bot response issues:**
+- ✅ **Task formatting** - No more JSON or system prompts in responses
+- ✅ **Response length** - All responses now under 200 characters, no more truncation
+- ✅ **Task suggestions** - Contextual suggestions based on actual task data
+- ✅ **Reminder format** - Time-based reminders ("30 minutes to an hour before", etc.)
+- ✅ **AI enhancement** - Properly disabled for task responses to prevent formatting issues
+
+**Key changes:**
+- Disabled AI enhancement for task responses to prevent system prompt leakage
+- Added 200-character response length limit with proper truncation
+- Improved task suggestions to be contextual and action-oriented
+- Fixed task sorting error for tasks with None due dates
+- Enhanced AI system prompt with explicit formatting instructions
+
+**Impact:** Significantly improved user experience with cleaner, more helpful responses.
+
+### 2025-08-04 - Fixed Discord Bot Responsiveness & Improved Response Quality ✅ **COMPLETED**
+- **Discord Bot Responsiveness Fix**: Resolved critical issue where Discord bot was not responding to messages
+  - **Root Cause**: Service was creating CommunicationManager but never calling `initialize_channels_from_config()` to actually create Discord bot
+  - **Solution**: Added missing channel initialization step in `core/service.py` with proper error handling
+  - **Command Registration Fix**: Fixed duplicate `help` command registration causing `CommandRegistrationError`
+  - **Verification**: Discord bot now properly connected and responding to messages
+- **Response Quality Improvements**: Fixed multiple issues with bot responses
+  - **Context Leakage Fix**: Added explicit instructions to AI model to prevent debug information from appearing in responses
+  - **Help Descriptions**: Corrected inaccurate descriptions for check-ins ("customizable" not "daily") and schedule ("automated messages" not "daily routines")
+  - **Task Reminder Suggestions**: Updated suggestions to match actual time period structure ("Morning reminder" instead of "1 hour before")
+  - **Contextual Suggestions**: Improved task listing suggestions to be contextually relevant (e.g., "Show 3 overdue tasks" instead of generic filters)
+- **Changelog Reference Fix**: Corrected reference from `CHANGELOG_BRIEF.md` to `AI_CHANGELOG.md` in `CHANGELOG_DETAIL.md`
+- **Impact**: Discord bot now responds properly with higher quality, contextually appropriate responses
+
 ### 2025-08-03 - Legacy Channel Code Removal & Modern Interface Implementation ✅ **COMPLETED**
 - **Legacy Channel Code Removal**: Successfully removed all legacy channel properties and attributes from CommunicationManager
   - **Legacy Properties Removed**: Removed `self.channels` property and `_legacy_channels` attribute from `bot/communication_manager.py`
@@ -174,15 +228,17 @@
 
 ## 📊 Current Status
 - **Test Coverage**: 48% (17/31+ modules)
-- **Tests Passing**: 474 tests, 1 skipped, 34 warnings
-- **Success Rate**: 99.8%
-- **Next Priority**: Individual Dialog Testing
+- **Unit Tests**: 138 passed, 1 skipped, 2 deselected (99.3% success rate)
+- **Behavior Tests**: 298 passed, 12 failed, 4 deselected (96.1% success rate)
+- **Success Rate**: 96.1% (behavior tests need attention)
+- **Next Priority**: Fix test failures to restore reliable testing infrastructure
 
 ## 🎯 Next Steps
-1. **Individual Dialog Testing**: Account creator, task management, user profile dialogs
-2. **Widget Testing**: Category selection, channel selection, and other custom widgets
-3. **Supporting Core Modules**: Auto cleanup, check-in analytics, logger
-4. **Integration Testing**: Cross-module workflows
-5. **Performance Testing**: Load testing and optimization
+1. **Fix Test Failures**: Resolve 12 behavior test failures (HIGH PRIORITY)
+2. **Individual Dialog Testing**: Account creator, task management, user profile dialogs
+3. **Widget Testing**: Category selection, channel selection, and other custom widgets
+4. **Supporting Core Modules**: Auto cleanup, check-in analytics, logger
+5. **Integration Testing**: Cross-module workflows
+6. **Performance Testing**: Load testing and optimization
 
  

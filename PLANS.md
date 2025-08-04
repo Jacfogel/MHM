@@ -3,11 +3,47 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-08-03
+> **Last Updated**: 2025-08-04
 
 > **See [TODO.md](TODO.md) for current development priorities and tasks**
 
 ## 🎯 Active Plans
+
+### Test Failure Resolution Plan
+**Status**: Critical Issues Identified, Resolution in Progress  
+**Goal**: Fix all test failures to restore reliable testing infrastructure
+
+#### Test User Creation Failures ⚠️ **HIGH PRIORITY**
+- [ ] Fix "name 'logger' is not defined" error in test utilities
+  - [ ] Identify missing logger import in test utility functions
+  - [ ] Add proper logger initialization in test utilities
+  - [ ] Verify test user creation works in all test scenarios
+- [ ] Fix user data loading failures in account management tests
+  - [ ] Resolve missing 'schedules' and 'account' keys in test data
+  - [ ] Update test data creation to include all required keys
+  - [ ] Verify user data loading works consistently
+- [ ] Fix CommunicationManager attribute errors in tests
+  - [ ] Update tests to use correct attribute names (_channels_dict vs channels)
+  - [ ] Fix test expectations for modern CommunicationManager interface
+  - [ ] Verify all communication manager tests pass
+
+#### AI Chatbot Test Failures ⚠️ **MEDIUM PRIORITY**
+- [ ] Fix system prompt test failures
+  - [ ] Update test expectations for command prompt content
+  - [ ] Verify system prompt loader works with current prompt format
+  - [ ] Ensure tests match actual system prompt implementation
+
+#### Test Utilities Demo Failures ⚠️ **MEDIUM PRIORITY**
+- [ ] Fix basic user creation failures in demo tests
+  - [ ] Resolve test user creation issues in demo scenarios
+  - [ ] Update demo tests to use working test utilities
+  - [ ] Verify all demo tests pass
+
+#### Verification and Documentation ⚠️ **PLANNED**
+- [ ] Run comprehensive test suite after fixes
+- [ ] Verify all behavior tests pass (target: 310+ tests passing)
+- [ ] Update test documentation with working patterns
+- [ ] Document any changes needed for future test development
 
 ### UI Migration Plan
 **Status**: Foundation Complete, Dialog Testing in Progress  
@@ -124,7 +160,7 @@
 - [ ] Performance testing
 
 ### Channel Interaction Implementation Plan
-**Status**: Core Framework Complete, Discord Enhancement in Progress  
+**Status**: Core Framework Complete, Discord Enhancement Complete  
 **Goal**: Comprehensive user interactions through communication channels
 
 #### Core Interaction Framework ✅ **COMPLETE**
@@ -135,10 +171,12 @@
 - [x] Conversational AI Enhancement - Lock management, fallback responses
 - [x] Legacy Code Standards - Communication manager wrappers marked
 
-#### Discord Enhancement ⚠️ **PRIMARY FOCUS**
-- [ ] Enhanced Discord Commands - !help, !tasks, !checkin, !profile, !schedule, !messages, !status
-- [ ] Natural Language Processing - Intent recognition, entity extraction, context awareness
-- [ ] Discord-Specific Features - Rich embeds, buttons, interactive elements
+#### Discord Enhancement ✅ **COMPLETED**
+- [x] Enhanced Discord Commands - !help, !tasks, !checkin, !profile, !schedule, !messages, !status
+- [x] Natural Language Processing - Intent recognition, entity extraction, context awareness
+- [x] Discord-Specific Features - Rich embeds, buttons, interactive elements (basic implementation)
+- [x] AI Response Quality Improvements - Fixed formatting, length, and suggestion issues
+- [x] AI Response Length Centralization - Centralized character limits in config
 - [ ] Advanced Integration - Cross-channel sync, advanced analytics
 
 #### Secondary Channel Implementation ⚠️ **PLANNED**
@@ -178,6 +216,10 @@
 ## 🚨 Critical Issues & Known Bugs
 
 ### High Priority Issues ⚠️ **ACTIVE**
+- **Test Failures**: 12 behavior test failures blocking reliable testing
+  - **Test User Creation**: "name 'logger' is not defined" errors
+  - **User Data Loading**: Missing 'schedules' and 'account' keys
+  - **Communication Manager**: Attribute errors in tests
 - **Throttler Bug**: Service Utilities Throttler class never sets `last_run` on first call
 - **Widget Integration Errors**: "No user_id provided!" errors in some dialogs
 - **Test Performance**: Behavior tests taking 4.4 minutes (major bottleneck)
@@ -193,6 +235,22 @@
 - **Cross-Platform Testing**: Test all dialogs on different platforms
 
 ## 📋 Completed Plans
+
+### AI Response Length Centralization ✅ **COMPLETED** (2025-08-04)
+- **Achievement**: Successfully centralized AI model response character length configuration
+- **Implementation**: Added `AI_MAX_RESPONSE_LENGTH` constant to `core/config.py`
+- **Integration**: Updated both `bot/ai_chatbot.py` and `bot/interaction_manager.py` to use centralized config
+- **Verification**: Created and ran test script to confirm consistent 150-character limit across modules
+- **Impact**: Eliminated hardcoded response length values, improved maintainability and consistency
+
+### Task Response Quality Improvements ✅ **COMPLETED** (2025-08-04)
+- **Achievement**: Fixed critical Discord bot response quality issues
+- **Task Formatting**: Eliminated JSON and system prompts from task responses
+- **Response Length**: Enforced 200-character limit with proper truncation
+- **Task Suggestions**: Made suggestions contextual and action-oriented
+- **Reminder Format**: Updated to time-based format ("30 minutes to an hour before")
+- **AI Enhancement**: Properly disabled for task responses to prevent formatting issues
+- **Impact**: Significantly improved user experience with cleaner, more helpful responses
 
 ### UI Migration Foundation ✅ **COMPLETED** (2025-07-21)
 - **Achievement**: Successfully migrated from Tkinter to PySide6/Qt

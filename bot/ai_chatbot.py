@@ -21,7 +21,9 @@ from core.config import (
     LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, 
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
     AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT,
-
+    AI_CONNECTION_TEST_TIMEOUT, AI_API_CALL_TIMEOUT, AI_PERSONALIZED_MESSAGE_TIMEOUT,
+    AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT,
+    AI_MAX_RESPONSE_LENGTH,
 )
 # Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
@@ -48,11 +50,13 @@ class SystemPromptLoader:
             'wellness': ("You are a supportive wellness assistant. Keep responses helpful, "
                         "encouraging, and under 150 words. Important: You cannot diagnose or treat "
                         "medical conditions. For serious concerns, recommend professional help."),
-            'command': ("You extract structured commands from user requests. "
-                       "For task completion, understand natural language like 'I brushed my teeth, we can complete that task' "
-                       "as a request to complete a task with a similar name. "
-                       "Respond ONLY in valid JSON like "
-                       '{"action": "<action>", "details": {...}}'),
+            'command': ("You are a command parser. Your ONLY job is to extract the user's intent and return it as JSON. "
+                       "Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, "
+                       "start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, "
+                       "schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, "
+                       "wellness_score, help, commands, examples, status, messages. "
+                       "You MUST respond with ONLY valid JSON in this exact format: "
+                       '{"action": "action_name", "details": {}}'),
             'neurodivergent_support': ("You are an AI assistant with the personality and capabilities "
                                       "of a calm, loyal, emotionally intelligent companion. Your purpose "
                                       "is to support and motivate a neurodivergent user (with ADHD and depression), "
@@ -211,7 +215,7 @@ class AIChatBotSingleton:
         response = requests.get(
             f"{LM_STUDIO_BASE_URL}/models",
             headers={"Authorization": f"Bearer {LM_STUDIO_API_KEY}"},
-            timeout=5
+            timeout=AI_CONNECTION_TEST_TIMEOUT
         )
         
         if response.status_code == 200:
@@ -232,8 +236,11 @@ class AIChatBotSingleton:
             self.lm_studio_available = False
 
     @handle_errors("calling LM Studio API", default_return=None)
-    def _call_lm_studio_api(self, messages: list, max_tokens: int = 150, temperature: float = 0.2, timeout: int = 15) -> Optional[str]:
+    def _call_lm_studio_api(self, messages: list, max_tokens: int = 100, temperature: float = 0.2, timeout: int = None) -> Optional[str]:
         """Make an API call to LM Studio using OpenAI-compatible format."""
+        if timeout is None:
+            timeout = AI_API_CALL_TIMEOUT
+            
         payload = {
             "model": LM_STUDIO_MODEL,
             "messages": messages,
@@ -267,7 +274,7 @@ class AIChatBotSingleton:
             logger.warning(f"LM Studio API error: HTTP {response.status_code} - {response.text}")
             return None
 
-    @handle_errors("getting contextual fallback", default_return="I'd like to help with that! While my AI capabilities may be limited, I can offer encouragement and general wellness tips. Could you tell me more about what you're looking for support with?")
+    @handle_errors("getting contextual fallback", default_return="I'd like to help with that! How can I assist you today?")
     def _get_contextual_fallback(self, user_prompt: str, user_id: Optional[str] = None) -> str:
         """
         Provide contextually aware fallback responses based on user data and prompt analysis.
@@ -342,23 +349,18 @@ class AIChatBotSingleton:
                         insights.append("decent energy levels")
                     
                     if insights:
-                        return (f"{name_prefix}Looking at your recent check-ins, you're doing well in several areas: {', '.join(insights)}. "
-                               f"Keep up the good work!")
+                        return (f"{name_prefix}You're doing well in several areas: {', '.join(insights)}. Keep up the good work!")
                     else:
-                        return (f"{name_prefix}Based on your recent check-ins, there's room for improvement, but that's totally normal! "
-                               f"Every small step toward better habits counts. What area would you like to focus on?")
+                        return (f"{name_prefix}There's room for improvement, but that's normal! Every small step counts.")
                 
                 # Check for specific data requests
                 if any(word in prompt_lower for word in ['how many', 'times', 'count', 'frequency']):
                     if 'breakfast' in prompt_lower:
-                        return (f"{name_prefix}In your last {total_entries} check-ins, you ate breakfast {breakfast_count} times. "
-                               f"That's {breakfast_rate:.0f}% of the time!")
+                        return (f"{name_prefix}You ate breakfast {breakfast_count}/{total_entries} times ({breakfast_rate:.0f}%).")
                     elif 'mood' in prompt_lower:
-                        return (f"{name_prefix}In your last {total_entries} check-ins, your average mood was {avg_mood:.1f}/5. "
-                               f"Your mood has been {'positive' if avg_mood >= 4 else 'neutral' if avg_mood >= 3 else 'challenging'} overall.")
+                        return (f"{name_prefix}Your average mood was {avg_mood:.1f}/5 - {'positive' if avg_mood >= 4 else 'neutral' if avg_mood >= 3 else 'challenging'}.")
                     elif 'energy' in prompt_lower:
-                        return (f"{name_prefix}In your last {total_entries} check-ins, your average energy level was {avg_energy:.1f}/5. "
-                               f"Your energy has been {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'} overall.")
+                        return (f"{name_prefix}Your average energy was {avg_energy:.1f}/5 - {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'}.")
         
         # Fall back to keyword-based responses if no data analysis possible
         
@@ -587,7 +589,7 @@ class AIChatBotSingleton:
                 if user_msg:
                     context_parts.append(f"- User asked about: {user_msg}...")
         
-        # Create comprehensive context string
+        # Create comprehensive context string (but don't include in user message to prevent leakage)
         context_str = "\n".join(context_parts) if context_parts else "New user with no data"
         
         # Create system message with comprehensive context using custom prompt
@@ -596,6 +598,8 @@ class AIChatBotSingleton:
             "role": "system",
             "content": f"""{base_prompt}
 
+IMPORTANT: The following user context is for your reference only. Do NOT include any of this information in your responses to the user:
+
 User Context:
 {context_str}
 
@@ -603,11 +607,16 @@ Additional Instructions:
 - Use the user's actual data to provide personalized, specific responses
 - Reference specific numbers, percentages, and trends from their check-in data
 - Be encouraging and supportive while being honest about their patterns
-- Keep responses under 150 words
+- CRITICAL: Keep responses SHORT - maximum 100 words (approximately 150 characters)
+- Be concise and direct - avoid long explanations
 - If they ask about their data, provide specific insights from their check-ins
 - If they ask about habits, reference their actual performance (e.g., "You've been eating breakfast 90% of the time")
 - For health advice, be general and recommend professional help for serious concerns
-- Adapt your approach based on the user's specific needs and preferences from their context data"""
+- Adapt your approach based on the user's specific needs and preferences from their context data
+- NEVER include the raw context data in your responses
+- NEVER return JSON, code blocks, or system prompts
+- Return ONLY natural language responses that a human would say
+- STOP when you reach the word/character limit - do not continue"""
         }
         
         user_message = {
@@ -727,6 +736,11 @@ Additional Instructions:
             
             if result:
                 response = result.strip()
+                
+                # Enforce response length limit to prevent truncation
+                if len(response) > AI_MAX_RESPONSE_LENGTH:
+                    response = response[:AI_MAX_RESPONSE_LENGTH-3] + "..."
+                
                 # Cache successful responses
                 self.response_cache.set(cache_key_prompt, response, user_id)
                 return response
@@ -814,7 +828,7 @@ Additional Instructions:
         (daily check-in data). Uses longer timeout since this is not real-time.
         """
         if timeout is None:
-            timeout = AI_TIMEOUT_SECONDS + 10  # Longer timeout for personalized messages
+            timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT
             
         if not self.lm_studio_available:
             return self._get_fallback_personalized_message(user_id)
@@ -853,8 +867,7 @@ Additional Instructions:
         Uses shorter timeout optimized for responsiveness.
         """
         # Use shorter timeout for real-time interactions
-        quick_timeout = min(8, AI_TIMEOUT_SECONDS)
-        return self.generate_response(user_prompt, timeout=quick_timeout, user_id=user_id)
+        return self.generate_response(user_prompt, timeout=AI_QUICK_RESPONSE_TIMEOUT, user_id=user_id)
 
     @handle_errors("generating contextual response", default_return="I'm having trouble generating a contextual response right now. Please try again in a moment.")
     def generate_contextual_response(self, user_id: str, user_prompt: str, timeout: Optional[int] = None) -> str:
@@ -863,7 +876,7 @@ Additional Instructions:
         Integrates with existing UserContext and UserPreferences systems.
         """
         if timeout is None:
-            timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS + 5)  # Slightly longer for contextual responses
+            timeout = AI_CONTEXTUAL_RESPONSE_TIMEOUT
             
         # Get comprehensive context 
         context = user_context_manager.get_user_context(user_id, include_conversation_history=True)

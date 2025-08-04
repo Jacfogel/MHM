@@ -473,7 +473,21 @@ class DiscordBot(BaseChannel):
         """Register Discord commands"""
         @self.bot.command(name="status")
         async def status(ctx):
-            await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
+            """Show enhanced system status with detailed information."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "status", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in status command: {e}")
+                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
 
         @self.bot.command(name="dailycheckin")
         async def dailycheckin_cmd(ctx):
@@ -516,24 +530,6 @@ class DiscordBot(BaseChannel):
             )
             await ctx.send(reply_text)
 
-        @self.bot.command(name="mhm_help")
-        async def help_cmd(ctx):
-            """Show help information."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("I'm here to help! Try these commands:\n• !help - Show this help\n• !status - Show system status")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "help", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in help command: {e}")
-                await ctx.send("I'm here to help! Try typing naturally - I'll understand what you want to do.")
-
         @self.bot.command(name="tasks")
         async def tasks_cmd(ctx):
             """Show user's tasks."""
@@ -551,6 +547,114 @@ class DiscordBot(BaseChannel):
             except Exception as e:
                 logger.error(f"Error in tasks command: {e}")
                 await ctx.send("I'm having trouble accessing your tasks right now. Please try again.")
+
+        @self.bot.command(name="mhm_help")
+        async def help_cmd_enhanced(ctx):
+            """Show comprehensive help with categories."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("I'm here to help! Try these commands:\n• !help - Show this help\n• !status - Show system status")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "help", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in help command: {e}")
+                await ctx.send("I'm here to help! Try typing naturally - I'll understand what you want to do.")
+
+        @self.bot.command(name="checkin")
+        async def checkin_cmd(ctx):
+            """Start or continue daily check-in."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use check-in features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "start checkin", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in checkin command: {e}")
+                await ctx.send("I'm having trouble starting your check-in right now. Please try again.")
+
+        @self.bot.command(name="profile")
+        async def profile_cmd(ctx):
+            """Show and manage user profile."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use profile features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "show profile", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in profile command: {e}")
+                await ctx.send("I'm having trouble accessing your profile right now. Please try again.")
+
+        @self.bot.command(name="schedule")
+        async def schedule_cmd(ctx):
+            """Show and manage message schedules."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use schedule features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "show schedule", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in schedule command: {e}")
+                await ctx.send("I'm having trouble accessing your schedule right now. Please try again.")
+
+        @self.bot.command(name="messages")
+        async def messages_cmd(ctx):
+            """Show message history and settings."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use message features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "show messages", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in messages command: {e}")
+                await ctx.send("I'm having trouble accessing your messages right now. Please try again.")
+
+        @self.bot.command(name="analytics")
+        async def analytics_cmd(ctx):
+            """Show wellness analytics and insights."""
+            discord_user_id = str(ctx.author.id)
+            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            
+            if not internal_user_id:
+                await ctx.send("Please register first to use analytics features.")
+                return
+            
+            try:
+                from bot.interaction_manager import handle_user_message
+                response = handle_user_message(internal_user_id, "show analytics", "discord")
+                await ctx.send(response.message)
+            except Exception as e:
+                logger.error(f"Error in analytics command: {e}")
+                await ctx.send("I'm having trouble accessing your analytics right now. Please try again.")
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:
