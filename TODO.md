@@ -2,16 +2,25 @@
 
 ## High Priority
 
-### Test Failures - Critical Issues ⚠️ **OUTSTANDING**
-- [ ] Fix test user creation failures in behavior tests
-  - [ ] Resolve "name 'logger' is not defined" error in test utilities
-  - [ ] Fix user data loading failures in account management tests
-  - [ ] Fix missing 'schedules' and 'account' keys in test data
-  - [ ] Fix CommunicationManager attribute errors in tests
-- [ ] Fix AI chatbot system prompt test failures
-  - [ ] Update test expectations for command prompt content
-- [ ] Fix test utilities demo failures
-  - [ ] Resolve basic user creation failures in demo tests
+### Test Failures - Critical Issues ✅ **RESOLVED**
+- [x] Fix test user creation failures in behavior tests
+  - [x] Resolve "name 'logger' is not defined" error in test utilities
+  - [x] Fix user data loading failures in account management tests
+  - [x] Fix missing 'schedules' and 'account' keys in test data
+  - [x] Fix CommunicationManager attribute errors in tests
+- [x] Fix AI chatbot system prompt test failures
+  - [x] Update test expectations for command prompt content
+- [x] Fix test utilities demo failures
+  - [x] Resolve basic user creation failures in demo tests
+
+### UI Test Failures - Minor Issues ⚠️ **OUTSTANDING**
+- [ ] Fix widget constructor parameter mismatches in simple UI tests
+  - [ ] Fix CategorySelectionWidget and ChannelSelectionWidget user_id parameter issues
+  - [ ] Fix DynamicListField and DynamicListContainer title/items parameter issues
+- [ ] Fix account creation UI test data issues
+  - [ ] Resolve user context update failures in integration tests
+  - [ ] Fix missing account data in persistence tests
+  - [ ] Fix duplicate username handling test failures
 
 ### Discord Bot Responsiveness ✅ **COMPLETED**
 - [x] Fixed Discord bot not responding to messages

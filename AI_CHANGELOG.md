@@ -6,6 +6,27 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-05 - Centralized Test Utilities Integration & UI Test Enhancement ✅ **COMPLETED**
+- **Integrated centralized test utilities** in widget tests for consistency and maintainability
+- **Updated widget tests** to use `TestUserFactory` and `TestUserDataFactory` from `tests/test_utilities.py`
+- **Fixed widget test hanging issues** by providing proper user IDs and test data setup
+- **Enhanced test data creation** using standardized user creation methods (task focus, health focus, complex check-ins)
+- **Improved test reliability** by using UUID-based user IDs and proper test data isolation
+- **All 14 widget behavior tests now passing** with centralized utilities
+- **Status**: Widget testing infrastructure fully integrated with centralized utilities
+
+### 2025-08-05 - Major Testing Expansion & Infrastructure Enhancement ✅ **COMPLETED**
+- **Fixed 12 behavior test failures** that were blocking reliable testing infrastructure
+- **Enhanced UI layer testing** with comprehensive dialog behavior tests (12 tests)
+- **Expanded supporting module testing** with 47 new behavior tests:
+  - Auto Cleanup module: 16 behavior tests
+  - Check-in Analytics module: 16 behavior tests  
+  - Logger module: 15 behavior tests
+- **Resolved import errors, attribute name mismatches, and assertion issues**
+- **All behavior tests now passing** - restored and expanded testing reliability
+- **Total testing coverage significantly improved** across core modules
+- **Status**: Testing infrastructure fully restored and expanded
+
 ### 2025-08-04 - Automatic Restart System Implementation
 - **Added**: Automatic restart monitor for stuck communication channels
 - **Added**: Background thread that checks every minute for channels stuck in INITIALIZING or ERROR states

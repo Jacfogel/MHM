@@ -118,4 +118,4 @@ class DynamicListField(QWidget):
 
     def set_text(self, text: str):
         self.ui.lineEdit_dynamic_list_field.setText(text)
-        self.on_value_changed() 
+        self.value_changed.emit() 

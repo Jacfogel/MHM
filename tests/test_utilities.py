@@ -9,6 +9,7 @@ import sys
 import tempfile
 import shutil
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -18,6 +19,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.user_management import create_new_user, save_user_account_data, save_user_preferences_data
 from core.file_operations import ensure_user_directory
+
+# Setup logger for test utilities
+logger = logging.getLogger(__name__)
 
 
 class TestUserFactory:

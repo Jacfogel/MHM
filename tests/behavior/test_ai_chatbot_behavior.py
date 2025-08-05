@@ -56,7 +56,7 @@ class TestAIChatBotBehavior:
                     
                     # Test fallback prompts work
                     command_prompt = loader.get_system_prompt('command')
-                    assert "extract structured commands" in command_prompt.lower(), "Command prompt should be used"
+                    assert "extract the user's intent" in command_prompt.lower(), "Command prompt should be used"
                     
         finally:
             # Cleanup

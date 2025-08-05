@@ -1160,11 +1160,15 @@ class CommunicationManager:
         if not channel:
             return False
         
-        # Special handling for Discord bot - check if it can actually send messages
-        if channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
-            return channel.can_send_messages()
-        
-        return channel.is_ready()
+        try:
+            # Special handling for Discord bot - check if it can actually send messages
+            if channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
+                return channel.can_send_messages()
+            
+            return channel.is_ready()
+        except Exception as e:
+            logger.error(f"Error checking if channel {channel_name} is ready: {e}")
+            return False
 
     def handle_task_reminder(self, user_id: str, task_id: str):
         """

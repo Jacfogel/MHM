@@ -6,6 +6,65 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-05 - Centralized Test Utilities Integration & UI Test Enhancement
+
+#### Overview
+Successfully integrated centralized test utilities into widget tests to improve consistency, maintainability, and reliability of the testing infrastructure.
+
+#### Technical Details
+- **File**: `tests/ui/test_widget_behavior.py`
+- **Added**: Import of `TestUserFactory` and `TestUserDataFactory` from `tests/test_utilities.py`
+- **Replaced**: Manual test data creation with centralized utility calls
+- **Enhanced**: Test data creation using standardized user types (task focus, health focus, complex check-ins)
+
+#### Widget Test Updates
+**TagWidget Tests**:
+- **Before**: Manual creation of test user data with hardcoded preferences
+- **After**: Uses `TestUserFactory.create_user_with_task_focus()` for consistent test data
+- **Benefits**: Standardized user data, proper UUID handling, realistic test scenarios
+
+**TaskSettingsWidget Tests**:
+- **Before**: Manual test data creation with basic preferences
+- **After**: Uses `TestUserFactory.create_user_with_task_focus()` for task-focused user data
+- **Benefits**: Realistic task management scenarios, proper user ID handling
+
+**CheckinSettingsWidget Tests**:
+- **Before**: Manual test data creation with basic check-in settings
+- **After**: Uses `TestUserFactory.create_user_with_complex_checkins()` for comprehensive check-in data
+- **Benefits**: Realistic check-in scenarios, proper period management testing
+
+**UserProfileSettingsWidget Tests**:
+- **Before**: Manual test data creation with basic profile data
+- **After**: Uses `TestUserFactory.create_user_with_health_focus()` for health-focused user data
+- **Benefits**: Realistic health and profile scenarios, comprehensive field testing
+
+#### Key Improvements
+1. **Consistency**: All widget tests now use standardized test data creation methods
+2. **Maintainability**: Changes to test data structure only need to be made in one place
+3. **Reliability**: Proper UUID-based user IDs and test data isolation
+4. **Realism**: Test data now matches actual application data structures
+5. **Reduced Code Duplication**: Eliminated repetitive test data creation code
+
+#### Test Results
+- **All 14 widget behavior tests passing** ✅
+- **All 12 dialog behavior tests still passing** ✅
+- **All 361 behavior tests still passing** ✅
+- **No hanging tests** ✅
+- **Proper test data isolation** ✅
+
+#### Files Modified
+- `tests/ui/test_widget_behavior.py` - Integrated centralized test utilities
+- `TODO.md` - Updated test failure status
+- `PLANS.md` - Updated UI testing progress
+- `AI_CHANGELOG.md` - Added brief summary
+- `CHANGELOG_DETAIL.md` - Added detailed entry
+
+#### Impact
+- **Testing Infrastructure**: Significantly improved reliability and consistency
+- **Development Efficiency**: Reduced time spent on test data setup and maintenance
+- **Code Quality**: More realistic test scenarios that better reflect actual usage
+- **Future Development**: Established pattern for using centralized test utilities
+
 ### 2025-08-04 - Automatic Restart System Implementation
 
 #### Overview

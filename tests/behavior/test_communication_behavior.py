@@ -73,7 +73,7 @@ class TestCommunicationManager:
     
     def test_communication_manager_initialization(self, comm_manager):
         """Test CommunicationManager initialization."""
-        assert comm_manager.channels == {}
+        assert comm_manager._channels_dict == {}
         assert comm_manager.channel_configs == {}
         assert comm_manager.scheduler_manager is None
         assert comm_manager._running is False
@@ -98,7 +98,7 @@ class TestCommunicationManager:
     def test_get_available_channels(self, comm_manager, realistic_mock_channel):
         """Test getting available channels with realistic channel setup."""
         # Add realistic mock channels
-        comm_manager.channels = {
+        comm_manager._channels_dict = {
             'discord': realistic_mock_channel,
             'email': realistic_mock_channel,
             'telegram': realistic_mock_channel
