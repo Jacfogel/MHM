@@ -400,7 +400,12 @@ class DiscordBot(BaseChannel):
         @self.bot.event
         async def on_disconnect():
             logger.warning("Discord bot disconnected")
-            self._set_status(ChannelStatus.INITIALIZING)
+            # Don't change status to INITIALIZING - keep it as READY or ERROR
+            # This prevents the bot from getting stuck in INITIALIZING state
+            current_status = self.get_status()
+            if current_status == ChannelStatus.READY:
+                # Only change to ERROR if we were previously ready
+                self._set_status(ChannelStatus.ERROR, "Disconnected")
             self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             
             # Let Discord.py handle reconnection, but log our status
@@ -930,7 +935,32 @@ class DiscordBot(BaseChannel):
                 self._starting = False
             return True
         
+        # If bot exists but not ready, check if it's in a recoverable state
+        if self.bot and not self.bot.is_closed():
+            # Bot exists and not closed, but not ready - might be reconnecting
+            return False
+        
         return False
+
+    def can_send_messages(self) -> bool:
+        """Check if the Discord bot can actually send messages"""
+        if not self.is_actually_connected():
+            return False
+        
+        # Additional checks for message sending capability
+        try:
+            # Check if we have the bot user (means we're logged in)
+            if not self.bot.user:
+                return False
+            
+            # Check if we have any guilds (servers) we're connected to
+            if not self.bot.guilds:
+                return False
+            
+            return True
+        except Exception as e:
+            logger.warning(f"Error checking message sending capability: {e}")
+            return False
 
     @handle_errors("manually reconnecting Discord bot", default_return=False)
     async def manual_reconnect(self) -> bool:

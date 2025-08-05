@@ -1,12 +1,51 @@
-# MHM System Changelog - Detailed
+# CHANGELOG_DETAIL.md - Complete Detailed Changelog
 
-> **Audience**: Developers and AI Assistants  
-> **Purpose**: Complete detailed history of all changes  
-> **Style**: Comprehensive, chronological, technical
+> **Audience**: Developers & contributors  
+> **Purpose**: Complete detailed changelog history  
+> **Style**: Chronological, detailed, reference-oriented
 
 ## 🗓️ Recent Changes (Most Recent First)
 
-### 2025-08-04 - AI Response Length Centralization & Test Failure Analysis
+### 2025-08-04 - Automatic Restart System Implementation
+
+#### Overview
+Implemented a comprehensive automatic restart system for communication channels to prevent the Discord bot (and other channels) from getting stuck in initialization or error states.
+
+#### Technical Details
+- **File**: `bot/communication_manager.py`
+- **Added**: `_restart_monitor_thread` - Background thread for monitoring stuck channels
+- **Added**: `_restart_monitor_running` - Flag to control monitor thread lifecycle
+- **Added**: `_channel_failure_counts` - Dictionary to track consecutive failures per channel
+- **Added**: `_last_restart_attempts` - Dictionary to track last restart attempt timestamps
+
+#### New Methods
+- **`_start_restart_monitor()`**: Starts the automatic restart monitor thread
+- **`_stop_restart_monitor()`**: Stops the restart monitor thread gracefully
+- **`_restart_monitor_loop()`**: Main monitoring loop that checks for stuck channels every minute
+- **`_check_and_restart_stuck_channels()`**: Identifies and restarts channels stuck in INITIALIZING or ERROR states
+- **`_restart_channel()`**: Performs the actual channel restart with proper error handling
+
+#### Key Features
+1. **Automatic Detection**: Monitors all channels every minute for stuck states
+2. **Smart Restart Logic**: 5-minute cooldown between restart attempts to prevent rapid cycling
+3. **Failure Tracking**: Tracks consecutive failures to prevent infinite restart loops
+4. **Proper Integration**: Starts/stops with CommunicationManager lifecycle
+5. **Comprehensive Logging**: Logs all restart attempts and outcomes for debugging
+
+#### Testing Results
+- **Discord Bot**: Successfully tested with Discord bot getting stuck in initialization
+- **Service Integration**: Verified restart monitor starts with service and stops properly
+- **Logging**: Confirmed proper logging of restart attempts and outcomes
+- **Performance**: Minimal impact on system performance (runs every minute)
+
+#### Files Modified
+- `bot/communication_manager.py` - Added automatic restart system
+- `TODO.md` - Added completed task
+- `PLANS.md` - Added completed plan
+- `AI_CHANGELOG.md` - Added brief summary
+- `CHANGELOG_DETAIL.md` - Added detailed entry
+
+### 2025-08-04 - Discord Bot Responsiveness Fixes
 
 **AI Response Length Centralization ✅ COMPLETED**
 
