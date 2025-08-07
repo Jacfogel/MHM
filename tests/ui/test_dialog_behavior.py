@@ -88,21 +88,25 @@ class TestUserProfileDialogBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump(user_data["preferences"], f)
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = UserProfileDialog(parent=None, user_id=user_id)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.user_management
+    @pytest.mark.tasks
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
@@ -198,21 +202,20 @@ class TestCategoryManagementDialogBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump(user_data["preferences"], f)
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = CategoryManagementDialog(user_id=user_id, parent=None)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
@@ -274,21 +277,20 @@ class TestChannelManagementDialogBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump(user_data["preferences"], f)
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = ChannelManagementDialog(user_id=user_id, parent=None)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
@@ -344,21 +346,20 @@ class TestCheckinManagementDialogBehavior:
         with open(user_dir / "preferences.json", "w") as f:
             json.dump(user_data["preferences"], f)
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = CheckinManagementDialog(user_id=user_id, parent=None)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: Dialog title is "Check-in Management"
         assert "Check-in Management" in dialog.windowTitle(), "Dialog should have correct title"
         
@@ -420,21 +421,20 @@ class TestTaskManagementDialogBehavior:
         with open(user_dir / "tasks.json", "w") as f:
             json.dump(user_data["tasks"], f)
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = TaskManagementDialog(user_id=user_id, parent=None)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         # Note: UI file sets title to "Dialog", but dialog functionality is correct
         assert dialog.windowTitle() == "Dialog", "Dialog should have correct title"
         
@@ -447,7 +447,7 @@ class TestTaskManagementDialogBehavior:
     def test_task_statistics_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test task statistics are calculated and displayed correctly."""
         # ✅ VERIFY REAL BEHAVIOR: Check dialog loaded successfully
-        assert dialog.isVisible(), "Dialog should remain visible after loading"
+        assert dialog is not None, "Dialog should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Check UI elements are present
         assert hasattr(dialog, 'ui'), "Dialog should have UI loaded"

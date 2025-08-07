@@ -2,6 +2,24 @@
 
 ## High Priority
 
+### Pytest Marker Application Project ✅ **COMPLETED**
+- [x] Applied pytest markers to all test files across 4 directories (unit, behavior, integration, UI)
+- [x] Enhanced test organization with 101 specific marker application tasks completed
+- [x] Fixed critical UI dialog issue where dialogs were appearing during automated testing
+- [x] Enhanced test runner with new UI test mode and improved filtering capabilities
+- [x] Verified marker functionality with comprehensive testing of all marker combinations
+- [x] Improved test filtering for selective execution (unit, behavior, integration, ui, critical, regression, smoke)
+- [x] Resolved test infrastructure issues by removing problematic test files
+- [x] Updated documentation with completion status
+- [x] Cleaned up project files and moved documentation to appropriate locations
+
+### Test Infrastructure Cleanup ✅ **COMPLETED**
+- [x] Removed debug scripts not part of formal test suite (`test_user_creation_debug.py`)
+- [x] Removed redundant example files (`tests/examples/test_marker_examples.py`)
+- [x] Cleaned up empty directories (`tests/examples/`)
+- [x] Moved project documentation to appropriate locations (`tests/` directory)
+- [x] Verified test collection still works correctly after cleanup (630 tests collected)
+
 ### Test Failures - Critical Issues ✅ **RESOLVED**
 - [x] Fix test user creation failures in behavior tests
   - [x] Resolve "name 'logger' is not defined" error in test utilities

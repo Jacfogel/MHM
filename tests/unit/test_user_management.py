@@ -25,6 +25,8 @@ class TestUserManagement:
     """Test user management functions."""
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.smoke
     def test_get_all_user_ids_empty(self, test_data_dir):
         """Test getting user IDs when no users exist."""
         # FIXED: get_all_user_ids doesn't use get_user_data_dir, it uses hardcoded path
@@ -34,6 +36,8 @@ class TestUserManagement:
         assert isinstance(user_ids, list)
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_all_user_ids_with_users(self, test_data_dir, mock_user_data, mock_config):
         """Test getting user IDs when users exist."""
         # FIXED: get_all_user_ids doesn't use get_user_data_dir, it uses hardcoded path
@@ -43,6 +47,8 @@ class TestUserManagement:
         assert isinstance(user_ids, list)
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_get_user_preferences_success(self, mock_user_data, mock_config):
         """Test getting user preferences successfully."""
         prefs_result = get_user_data(mock_user_data['user_id'], 'preferences')
@@ -68,6 +74,8 @@ class TestUserManagement:
             pass
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_preferences_nonexistent_user(self, mock_config):
         """Test getting preferences for non-existent user."""
         # Test with auto_create=False to ensure we get None for truly nonexistent users
@@ -75,6 +83,8 @@ class TestUserManagement:
         assert prefs_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_get_user_context_success(self, mock_user_data, mock_config):
         """Test getting user context successfully."""
         context_result = get_user_data(mock_user_data['user_id'], 'context')
@@ -90,6 +100,8 @@ class TestUserManagement:
             pass
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_context_nonexistent_user(self, mock_config):
         """Test getting context for non-existent user."""
         # Test with auto_create=False to ensure we get None for truly nonexistent users
@@ -97,6 +109,8 @@ class TestUserManagement:
         assert context_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_hybrid_get_user_data_success(self, mock_user_data, mock_config):
         """Test loading user data successfully using new hybrid API."""
         user_id = mock_user_data['user_id']
@@ -118,6 +132,8 @@ class TestUserManagement:
         assert 'preferred_name' in user_data['context']
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_hybrid_get_user_data_nonexistent_user(self, mock_config):
         """Test loading non-existent user data using new hybrid API."""
         # Test with auto_create=False to ensure we get empty dict for truly nonexistent users
@@ -125,6 +141,9 @@ class TestUserManagement:
         assert user_data == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.file_io
     def test_save_user_data_success(self, test_data_dir, mock_config):
         """Test saving user data successfully using centralized utilities."""
         from tests.test_utilities import TestUserDataFactory
@@ -179,6 +198,9 @@ class TestUserManagement:
         assert loaded_data['context']['preferred_name'] == 'Test User'
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.file_io
     def test_create_user_files_success(self, test_data_dir, mock_config):
         """Test creating user files successfully."""
         user_id = 'test-create-user'
@@ -201,6 +223,8 @@ class TestUserManagement:
         assert os.path.exists(os.path.join(user_dir, 'user_context.json'))
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
         """Test updating user preferences successfully."""
         new_preferences = {
@@ -217,6 +241,8 @@ class TestUserManagement:
         assert 'fun_facts' in updated_preferences['categories']
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.smoke
     def test_get_user_data_account_with_chat_id(self, mock_user_data, mock_config):
         """Test getting user account with chat_id field."""
         user_data_result = get_user_data(mock_user_data['user_id'], 'account')
@@ -225,6 +251,8 @@ class TestUserManagement:
         assert 'chat_id' in account
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_account_nonexistent_chat_id(self, mock_config):
         """Test getting user account for non-existent user."""
         # Test with auto_create=False to ensure we get None for truly nonexistent users
@@ -232,6 +260,8 @@ class TestUserManagement:
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.smoke
     def test_get_user_data_account_with_discord_id(self, mock_user_data, mock_config):
         """Test getting user account with discord_user_id field."""
         user_data_result = get_user_data(mock_user_data['user_id'], 'account')
@@ -240,6 +270,8 @@ class TestUserManagement:
         assert 'discord_user_id' in account
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_account_nonexistent_discord_id(self, mock_config):
         """Test getting user account for non-existent user."""
         # Test with auto_create=False to ensure we get None for truly nonexistent users
@@ -247,6 +279,9 @@ class TestUserManagement:
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.smoke
+    @pytest.mark.file_io
     def test_get_user_data_account_with_email(self, test_data_dir, mock_config):
         """Test getting user account with email successfully."""
         # Test creating a user with email and getting their account
@@ -274,6 +309,8 @@ class TestUserManagement:
         assert account.get('email') == 'test@example.com'
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_account_nonexistent_email(self, mock_config):
         """Test getting user account for non-existent user."""
         # Test with auto_create=False to ensure we get None for truly nonexistent users
@@ -284,6 +321,9 @@ class TestUserManagementEdgeCases:
     """Test edge cases and error conditions."""
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
+    @pytest.mark.file_io
     def test_get_user_preferences_corrupted_file(self, test_data_dir, mock_config):
         """Test getting preferences with corrupted JSON file."""
         user_id = 'test-corrupted-user'
@@ -299,12 +339,16 @@ class TestUserManagementEdgeCases:
         assert user_data == {}  # Should return empty dict when file is corrupted and auto_create=False
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_save_user_preferences_invalid_user_id(self):
         """Test saving preferences with invalid user ID."""
         result = save_user_data('', {'preferences': {'test': 'data'}})
         assert result == {}  # Function returns empty dict for invalid user ID
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_update_user_preferences_nonexistent_user(self, mock_config):
         """Test updating preferences for non-existent user."""
         # With smart auto-create, this should return False since user directory doesn't exist
@@ -316,6 +360,10 @@ class TestUserManagementEdgeCases:
         assert user_data == {}  # Should return empty dict when user doesn't exist
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.file_io
+    @pytest.mark.slow
     def test_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle with real side effects and system state verification."""
         user_id = 'test-lifecycle-user'
@@ -515,6 +563,8 @@ class TestUserManagementEdgeCases:
             assert os.access(dir_path, os.W_OK), f"Directory should be writable in final state: {dir_path}"
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.smoke
     def test_get_user_data_single_type(self, mock_user_data, mock_config):
         """Test getting single data type using hybrid API."""
         user_id = mock_user_data['user_id']
@@ -532,6 +582,8 @@ class TestUserManagementEdgeCases:
         assert 'context' not in user_data
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_multiple_types(self, mock_user_data, mock_config):
         """Test getting multiple data types using hybrid API."""
         user_id = mock_user_data['user_id']
@@ -544,6 +596,8 @@ class TestUserManagementEdgeCases:
         assert 'schedules' not in user_data
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_invalid_type(self, mock_user_data, mock_config):
         """Test getting invalid data type using hybrid API."""
         user_id = mock_user_data['user_id']
@@ -553,6 +607,8 @@ class TestUserManagementEdgeCases:
         assert user_data == {}  # Should return empty dict for invalid types
     
     @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_get_user_data_nonexistent_user(self, mock_config):
         """Test getting data for nonexistent user using hybrid API."""
         # Test with auto_create=False

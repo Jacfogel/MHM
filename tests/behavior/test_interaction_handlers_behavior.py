@@ -32,6 +32,11 @@ class TestInteractionHandlersBehavior:
         """Create a test user with proper account setup."""
         return TestUserFactory.create_basic_user(user_id, enable_checkins=enable_checkins, test_data_dir=test_data_dir)
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_handler_registry_creates_all_handlers(self):
         """Test that all handlers are properly registered and accessible."""
         handlers = get_all_handlers()
@@ -45,6 +50,8 @@ class TestInteractionHandlersBehavior:
         for handler_name in expected_handlers:
             assert handler_name in str(type(handlers.get(handler_name))), f"Handler {handler_name} not found"
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
     def test_get_interaction_handler_returns_correct_handler(self):
         """Test that get_interaction_handler returns the correct handler for each intent."""
         # Test task management intents
@@ -63,6 +70,8 @@ class TestInteractionHandlersBehavior:
         unknown_handler = get_interaction_handler('unknown_intent')
         assert unknown_handler is None, "Should return None for unknown intent"
     
+    @pytest.mark.behavior
+    @pytest.mark.tasks
     def test_task_management_handler_can_handle_intents(self):
         """Test that TaskManagementHandler can handle all expected intents."""
         handler = TaskManagementHandler()
@@ -75,6 +84,8 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('start_checkin'), "TaskManagementHandler should not handle start_checkin"
         assert not handler.can_handle('show_profile'), "TaskManagementHandler should not handle show_profile"
     
+    @pytest.mark.behavior
+    @pytest.mark.checkins
     def test_checkin_handler_can_handle_intents(self):
         """Test that CheckinHandler can handle all expected intents."""
         handler = CheckinHandler()
@@ -87,6 +98,8 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('create_task'), "CheckinHandler should not handle create_task"
         assert not handler.can_handle('show_profile'), "CheckinHandler should not handle show_profile"
     
+    @pytest.mark.behavior
+    @pytest.mark.user_management
     def test_profile_handler_can_handle_intents(self):
         """Test that ProfileHandler can handle all expected intents."""
         handler = ProfileHandler()
@@ -99,6 +112,8 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('create_task'), "ProfileHandler should not handle create_task"
         assert not handler.can_handle('start_checkin'), "ProfileHandler should not handle start_checkin"
     
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_schedule_management_handler_can_handle_intents(self):
         """Test that ScheduleManagementHandler can handle all expected intents."""
         handler = ScheduleManagementHandler()
@@ -111,6 +126,8 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('create_task'), "ScheduleManagementHandler should not handle create_task"
         assert not handler.can_handle('start_checkin'), "ScheduleManagementHandler should not handle start_checkin"
     
+    @pytest.mark.behavior
+    @pytest.mark.analytics
     def test_analytics_handler_can_handle_intents(self):
         """Test that AnalyticsHandler can handle all expected intents."""
         handler = AnalyticsHandler()
@@ -123,6 +140,8 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('create_task'), "AnalyticsHandler should not handle create_task"
         assert not handler.can_handle('start_checkin'), "AnalyticsHandler should not handle start_checkin"
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
     def test_help_handler_can_handle_intents(self):
         """Test that HelpHandler can handle all expected intents."""
         handler = HelpHandler()
@@ -135,6 +154,10 @@ class TestInteractionHandlersBehavior:
         assert not handler.can_handle('create_task'), "HelpHandler should not handle create_task"
         assert not handler.can_handle('start_checkin'), "HelpHandler should not handle start_checkin"
     
+    @pytest.mark.behavior
+    @pytest.mark.tasks
+    @pytest.mark.critical
+    @pytest.mark.file_io
     def test_task_management_handler_creates_actual_task(self, test_data_dir):
         """Test that TaskManagementHandler actually creates a task in the system."""
         handler = TaskManagementHandler()

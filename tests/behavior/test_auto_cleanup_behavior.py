@@ -46,6 +46,9 @@ class TestAutoCleanupTimestampBehavior:
             tracker_path.unlink()
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_last_cleanup_timestamp_no_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test getting timestamp when no tracker file exists."""
         # ✅ VERIFY REAL BEHAVIOR: No file exists initially
@@ -57,6 +60,9 @@ class TestAutoCleanupTimestampBehavior:
             assert timestamp == 0, "Should return 0 when no tracker file exists"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_last_cleanup_timestamp_with_file_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test getting timestamp from existing tracker file."""
         # ✅ VERIFY REAL BEHAVIOR: Create test tracker file
@@ -77,6 +83,9 @@ class TestAutoCleanupTimestampBehavior:
             assert timestamp == test_timestamp, "Should return correct timestamp from file"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_update_cleanup_timestamp_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test updating cleanup timestamp creates file with correct data."""
         # ✅ VERIFY REAL BEHAVIOR: No file exists initially
@@ -110,6 +119,9 @@ class TestAutoCleanupLogicBehavior:
             tracker_path.unlink()
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_should_run_cleanup_never_cleaned_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when never cleaned before."""
         # ✅ VERIFY REAL BEHAVIOR: No tracker file exists
@@ -121,6 +133,9 @@ class TestAutoCleanupLogicBehavior:
             assert should_cleanup is True, "Should run cleanup when never cleaned before"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_should_run_cleanup_recent_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when recently cleaned."""
         # ✅ VERIFY REAL BEHAVIOR: Create recent timestamp
@@ -139,6 +154,9 @@ class TestAutoCleanupLogicBehavior:
             assert should_cleanup is False, "Should not run cleanup when recently cleaned"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_should_run_cleanup_old_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision when last cleanup was old."""
         # ✅ VERIFY REAL BEHAVIOR: Create old timestamp
@@ -157,6 +175,9 @@ class TestAutoCleanupLogicBehavior:
             assert should_cleanup is True, "Should run cleanup when last cleanup was old"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_should_run_cleanup_custom_interval_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test cleanup decision with custom interval."""
         # ✅ VERIFY REAL BEHAVIOR: Create timestamp at custom interval boundary
@@ -203,6 +224,9 @@ class TestAutoCleanupFileDiscoveryBehavior:
         shutil.rmtree(test_dir, ignore_errors=True)
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_find_pycache_dirs_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test finding __pycache__ directories."""
         # ✅ VERIFY REAL BEHAVIOR: Find all __pycache__ directories
@@ -216,6 +240,9 @@ class TestAutoCleanupFileDiscoveryBehavior:
         assert temp_test_dir / "subdir" / "__pycache__" in dir_paths, "Should find subdir __pycache__"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_find_pyc_files_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test finding .pyc files."""
         # ✅ VERIFY REAL BEHAVIOR: Find all .pyc files
@@ -229,6 +256,9 @@ class TestAutoCleanupFileDiscoveryBehavior:
         assert temp_test_dir / "subdir" / "another.pyc" in file_paths, "Should find subdir .pyc"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_calculate_cache_size_real_behavior(self, temp_test_dir):
         """REAL BEHAVIOR TEST: Test calculating cache size."""
         # ✅ VERIFY REAL BEHAVIOR: Calculate total cache size
@@ -254,6 +284,9 @@ class TestAutoCleanupStatusBehavior:
             tracker_path.unlink()
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_cleanup_status_never_cleaned_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when never cleaned before."""
         # ✅ VERIFY REAL BEHAVIOR: No tracker file exists
@@ -268,6 +301,9 @@ class TestAutoCleanupStatusBehavior:
         assert status['next_cleanup'] == 'On next startup', "Should show next cleanup on startup"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_cleanup_status_recent_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when recently cleaned."""
         # ✅ VERIFY REAL BEHAVIOR: Create recent timestamp
@@ -289,6 +325,9 @@ class TestAutoCleanupStatusBehavior:
         assert status['next_cleanup'] != 'Overdue', "Should show future cleanup date"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_cleanup_status_overdue_cleanup_real_behavior(self, temp_tracker_file):
         """REAL BEHAVIOR TEST: Test status when cleanup is overdue."""
         # ✅ VERIFY REAL BEHAVIOR: Create old timestamp
@@ -334,6 +373,9 @@ class TestAutoCleanupIntegrationBehavior:
         shutil.rmtree(test_dir, ignore_errors=True)
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_perform_cleanup_real_behavior(self, temp_test_environment):
         """REAL BEHAVIOR TEST: Test performing actual cleanup."""
         test_dir, tracker_path = temp_test_environment
@@ -353,6 +395,9 @@ class TestAutoCleanupIntegrationBehavior:
         assert not (test_dir / "standalone.pyc").exists(), "standalone.pyc should be removed"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_auto_cleanup_if_needed_real_behavior(self, temp_test_environment):
         """REAL BEHAVIOR TEST: Test automatic cleanup decision and execution."""
         test_dir, tracker_path = temp_test_environment
@@ -374,6 +419,9 @@ class TestAutoCleanupIntegrationBehavior:
         assert not (test_dir / "standalone.pyc").exists(), "standalone.pyc should be removed"
     
     @pytest.mark.behavior
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_auto_cleanup_if_needed_not_needed_real_behavior(self, temp_test_environment):
         """REAL BEHAVIOR TEST: Test auto cleanup when not needed."""
         test_dir, tracker_path = temp_test_environment

@@ -19,6 +19,11 @@ from bot.conversation_manager import ConversationManager, FLOW_NONE, FLOW_DAILY_
 class TestConversationManagerBehavior:
     """Test ConversationManager real behavior and side effects."""
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_initialization_creates_structure(self, test_data_dir):
         """Test that ConversationManager initialization creates proper internal structure."""
         # Arrange & Act
@@ -29,6 +34,10 @@ class TestConversationManagerBehavior:
         assert isinstance(manager.user_states, dict), "user_states should be a dict"
         assert len(manager.user_states) == 0, "user_states should be empty initially"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_handle_inbound_message_creates_user_state(self, test_data_dir):
         """Test that handle_inbound_message actually creates user state when needed."""
         # Arrange
@@ -52,6 +61,10 @@ class TestConversationManagerBehavior:
             assert isinstance(completed, bool), "Should return completion status"
             assert "hi there" in reply.lower(), "Should include AI response"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_handle_inbound_message_preserves_existing_state(self, test_data_dir):
         """Test that handle_inbound_message preserves existing user state."""
         # Arrange
@@ -81,6 +94,10 @@ class TestConversationManagerBehavior:
             assert manager.user_states[test_user_id]['state'] == CHECKIN_MOOD, "Should preserve state"
             assert manager.user_states[test_user_id]['data']['mood'] == "good", "Should preserve data"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_start_daily_checkin_creates_checkin_state(self, test_data_dir):
         """Test that start_daily_checkin actually creates check-in state."""
         # Arrange
@@ -114,6 +131,10 @@ class TestConversationManagerBehavior:
             assert reply is not None, "Should return a reply"
             assert not completed, "Should not be completed initially"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_start_daily_checkin_handles_disabled_user(self, test_data_dir):
         """Test that start_daily_checkin handles users with disabled check-ins."""
         # Arrange
@@ -132,6 +153,10 @@ class TestConversationManagerBehavior:
             assert "not enabled" in reply.lower(), "Should mention check-ins not enabled"
             assert completed, "Should be completed immediately"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_daily_checkin_flow_progression(self, test_data_dir):
         """Test that daily check-in flow actually progresses through states."""
         # Arrange
@@ -163,6 +188,10 @@ class TestConversationManagerBehavior:
             assert manager.user_states[test_user_id]['state'] > CHECKIN_MOOD, "Should progress to next state"
             assert not completed, "Should not be completed yet"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_daily_checkin_flow_completion(self, test_data_dir):
         """Test that daily check-in flow actually completes and cleans up state."""
         # Arrange
@@ -199,6 +228,10 @@ class TestConversationManagerBehavior:
             assert test_user_id not in manager.user_states, "Should remove user state after completion"
             assert "complete" in reply.lower(), "Should indicate completion"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_validate_response_handles_various_inputs(self, test_data_dir):
         """Test that _validate_response actually validates different types of responses."""
         # Arrange
@@ -219,6 +252,10 @@ class TestConversationManagerBehavior:
         assert not invalid_result['valid'], "Should reject invalid mood"
         assert "number between 1 and 5" in invalid_result['message'], "Should provide helpful message"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_validate_response_handles_edge_cases(self, test_data_dir):
         """Test that _validate_response handles edge cases gracefully."""
         # Arrange
@@ -238,6 +275,10 @@ class TestConversationManagerBehavior:
         special_result = manager._validate_response("daily_reflection", "Today was great! 😊")
         assert special_result['valid'], "Should accept special characters"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_question_text_returns_personalized_questions(self, test_data_dir):
         """Test that _get_question_text returns personalized questions based on context."""
         # Arrange
@@ -259,6 +300,10 @@ class TestConversationManagerBehavior:
         })
         assert "reflection" in reflection_question.lower(), "Should ask for reflection"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_handle_contextual_question_integrates_with_ai(self, test_data_dir):
         """Test that handle_contextual_question integrates with AI chatbot."""
         # Arrange
@@ -280,6 +325,10 @@ class TestConversationManagerBehavior:
             assert "doing great" in response, "Should include AI-generated content"
             mock_chatbot.generate_contextual_response.assert_called_once(), "Should call AI chatbot"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that ConversationManager error handling preserves system stability."""
         # Arrange
@@ -300,6 +349,10 @@ class TestConversationManagerBehavior:
             assert "trouble" in reply.lower(), "Should indicate trouble processing"
             assert completed, "Should complete to prevent hanging"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_performance_under_load(self, test_data_dir):
         """Test that ConversationManager performs well under load."""
         # Arrange
@@ -324,6 +377,10 @@ class TestConversationManagerBehavior:
             # Verify all messages were processed successfully
             assert all(reply is not None for reply, completed in responses), "Should process all messages"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_cleanup_and_resource_management(self, test_data_dir):
         """Test that ConversationManager properly manages resources and cleanup."""
         # Arrange
@@ -346,6 +403,10 @@ class TestConversationManagerBehavior:
         assert test_user_id not in manager.user_states, "User state should be cleaned up"
         assert len(manager.user_states) == 0, "Should have no remaining user states"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_integration_with_response_tracking(self, test_data_dir):
         """Test that ConversationManager integrates properly with response tracking."""
         # Arrange
@@ -393,6 +454,10 @@ class TestConversationManagerBehavior:
                 assert completed, "Should complete check-in"
                 mock_store.assert_called(), "Should store check-in response"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_command_handling(self, test_data_dir):
         """Test that ConversationManager properly handles special commands."""
         # Arrange
@@ -419,6 +484,10 @@ class TestConversationManagerBehavior:
             assert manager.user_states[test_user_id]['flow'] == FLOW_DAILY_CHECKIN, "Should start check-in flow"
             assert "feeling" in reply.lower(), "Should ask first question"
     
+    @pytest.mark.communication
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_conversation_manager_cancel_handling(self, test_data_dir):
         """Test that ConversationManager properly handles cancel commands."""
         # Arrange

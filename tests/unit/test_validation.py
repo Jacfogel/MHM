@@ -26,6 +26,9 @@ from core.user_data_validation import (
 class TestPrimitiveValidators:
     """Test basic validation functions with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.smoke
     def test_is_valid_email_with_valid_emails(self):
         """Test email validation with various valid email formats."""
         valid_emails = [
@@ -40,6 +43,9 @@ class TestPrimitiveValidators:
             result = is_valid_email(email)
             assert result is True, f"Email {email} should be valid"
     
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_valid_email_with_invalid_emails(self):
         """Test email validation with various invalid email formats."""
         invalid_emails = [
@@ -57,6 +63,9 @@ class TestPrimitiveValidators:
             result = is_valid_email(email)
             assert result is False, f"Email {email} should be invalid"
     
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.smoke
     def test_is_valid_phone_with_valid_phones(self):
         """Test phone validation with various valid phone formats."""
         valid_phones = [
@@ -71,6 +80,9 @@ class TestPrimitiveValidators:
             result = is_valid_phone(phone)
             assert result is True, f"Phone {phone} should be valid"
     
+    @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_valid_phone_with_invalid_phones(self):
         """Test phone validation with various invalid phone formats."""
         invalid_phones = [
@@ -86,6 +98,8 @@ class TestPrimitiveValidators:
             result = is_valid_phone(phone)
             assert result is False, f"Phone {phone} should be invalid"
     
+    @pytest.mark.unit
+    @pytest.mark.smoke
     def test_validate_time_format_with_valid_times(self):
         """Test time format validation with valid 24-hour times."""
         valid_times = [
@@ -101,6 +115,8 @@ class TestPrimitiveValidators:
             result = validate_time_format(time_str)
             assert result is True, f"Time {time_str} should be valid"
     
+    @pytest.mark.unit
+    @pytest.mark.regression
     def test_validate_time_format_with_invalid_times(self):
         """Test time format validation with invalid time formats."""
         invalid_times = [
@@ -120,6 +136,8 @@ class TestPrimitiveValidators:
             result = validate_time_format(time_str)
             assert result is False, f"Time {time_str} should be invalid"
     
+    @pytest.mark.unit
+    @pytest.mark.smoke
     def test_title_case_with_various_inputs(self):
         """Test title case conversion with various text inputs."""
         test_cases = [
@@ -143,6 +161,9 @@ class TestPrimitiveValidators:
 class TestUserUpdateValidation:
     """Test user update validation with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_user_update_account_success(self, test_data_dir):
         """Test successful account update validation."""
         user_id = "test-user"
@@ -163,6 +184,9 @@ class TestUserUpdateValidation:
             assert is_valid is True, f"Account update should be valid, got errors: {errors}"
             assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_account_missing_username(self, test_data_dir):
         """Test account update validation with missing internal_username."""
         user_id = "test-user"
@@ -185,6 +209,9 @@ class TestUserUpdateValidation:
                 assert is_valid is False, "Account update should be invalid"
                 assert "internal_username is required for account updates" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_account_invalid_status(self, test_data_dir):
         """Test account update validation with invalid account status."""
         user_id = "test-user"
@@ -204,6 +231,9 @@ class TestUserUpdateValidation:
             assert is_valid is False, "Account update should be invalid"
             assert "Invalid account_status" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_account_invalid_email(self, test_data_dir):
         """Test account update validation with invalid email format."""
         user_id = "test-user"
@@ -223,6 +253,9 @@ class TestUserUpdateValidation:
             assert is_valid is False, "Account update should be invalid"
             assert "Invalid email format" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_user_update_preferences_success(self, test_data_dir):
         """Test successful preferences update validation."""
         user_id = "test-user"
@@ -240,6 +273,9 @@ class TestUserUpdateValidation:
             assert is_valid is True, f"Preferences update should be valid, got errors: {errors}"
             assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_preferences_invalid_categories(self, test_data_dir):
         """Test preferences update validation with invalid categories."""
         user_id = "test-user"
@@ -256,6 +292,9 @@ class TestUserUpdateValidation:
             assert is_valid is False, "Preferences update should be invalid"
             assert "Invalid categories" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_preferences_invalid_channel_type(self, test_data_dir):
         """Test preferences update validation with invalid channel type."""
         user_id = "test-user"
@@ -268,6 +307,9 @@ class TestUserUpdateValidation:
         assert is_valid is False, "Preferences update should be invalid"
         assert "Invalid channel type" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_user_update_context_success(self, test_data_dir):
         """Test successful context update validation."""
         user_id = "test-user"
@@ -281,6 +323,9 @@ class TestUserUpdateValidation:
         assert is_valid is True, f"Context update should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_context_invalid_date(self, test_data_dir):
         """Test context update validation with invalid date format."""
         user_id = "test-user"
@@ -293,6 +338,9 @@ class TestUserUpdateValidation:
         assert is_valid is False, "Context update should be invalid"
         assert "date_of_birth must be in YYYY-MM-DD format" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_context_invalid_custom_fields(self, test_data_dir):
         """Test context update validation with invalid custom_fields type."""
         user_id = "test-user"
@@ -305,6 +353,9 @@ class TestUserUpdateValidation:
         assert is_valid is False, "Context update should be invalid"
         assert "custom_fields must be a dictionary" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_user_update_schedules_success(self, test_data_dir):
         """Test successful schedules update validation."""
         user_id = "test-user"
@@ -324,6 +375,9 @@ class TestUserUpdateValidation:
         assert is_valid is True, f"Schedules update should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_time_format(self, test_data_dir):
         """Test schedules update validation with invalid time format."""
         user_id = "test-user"
@@ -343,6 +397,9 @@ class TestUserUpdateValidation:
         assert is_valid is False, "Schedules update should be invalid"
         assert "Invalid start_time format" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_time_order(self, test_data_dir):
         """Test schedules update validation with invalid time ordering."""
         user_id = "test-user"
@@ -362,6 +419,9 @@ class TestUserUpdateValidation:
         assert is_valid is False, "Schedules update should be invalid"
         assert "start_time must be before end_time" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_user_update_schedules_invalid_days(self, test_data_dir):
         """Test schedules update validation with invalid days."""
         user_id = "test-user"
@@ -385,6 +445,9 @@ class TestUserUpdateValidation:
 class TestSchedulePeriodsValidation:
     """Test schedule periods validation with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.critical
     def test_validate_schedule_periods_success(self):
         """Test successful schedule periods validation."""
         periods = {
@@ -407,6 +470,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is True, f"Schedule periods should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_empty(self):
         """Test schedule periods validation with empty periods."""
         periods = {}
@@ -416,6 +482,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Empty periods should be invalid"
         assert "At least one time period is required" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_no_active_periods(self):
         """Test schedule periods validation with no active periods."""
         periods = {
@@ -432,6 +501,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "No active periods should be invalid"
         assert "At least one time period must be enabled" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_all_period_excluded(self):
         """Test that ALL period is excluded from active period requirement."""
         periods = {
@@ -448,6 +520,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Only ALL period should be invalid"
         assert "At least one time period must be enabled" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_missing_times(self):
         """Test schedule periods validation with missing start/end times."""
         periods = {
@@ -464,6 +539,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Missing times should be invalid"
         assert "must have both start_time and end_time" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_invalid_time_format(self):
         """Test schedule periods validation with invalid time format."""
         periods = {
@@ -480,6 +558,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Invalid time format should be invalid"
         assert "invalid start_time format" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_invalid_time_order(self):
         """Test schedule periods validation with invalid time ordering."""
         periods = {
@@ -496,6 +577,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Invalid time order should be invalid"
         assert "start_time must be before end_time" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_invalid_days_type(self):
         """Test schedule periods validation with invalid days type."""
         periods = {
@@ -512,6 +596,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Invalid days type should be invalid"
         assert "days must be a list" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_empty_days(self):
         """Test schedule periods validation with empty days list."""
         periods = {
@@ -528,6 +615,9 @@ class TestSchedulePeriodsValidation:
         assert is_valid is False, "Empty days should be invalid"
         assert "must have at least one day selected" in errors[0]
     
+    @pytest.mark.unit
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_schedule_periods_invalid_days(self):
         """Test schedule periods validation with invalid day names."""
         periods = {
@@ -548,6 +638,9 @@ class TestSchedulePeriodsValidation:
 class TestNewUserDataValidation:
     """Test new user data validation with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_new_user_data_success(self, test_data_dir):
         """Test successful new user data validation."""
         user_id = "new-user"
@@ -576,6 +669,9 @@ class TestNewUserDataValidation:
             assert is_valid is True, f"New user data should be valid, got errors: {errors}"
             assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_missing_user_id(self):
         """Test new user data validation with missing user_id."""
         data_updates = {
@@ -592,6 +688,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Missing user_id should be invalid"
         assert "user_id is required" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_empty_updates(self):
         """Test new user data validation with empty updates."""
         user_id = "new-user"
@@ -601,6 +700,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Empty updates should be invalid"
         assert "data_updates cannot be empty" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_user_already_exists(self, test_data_dir):
         """Test new user data validation when user already exists."""
         user_id = "existing-user"
@@ -626,6 +728,9 @@ class TestNewUserDataValidation:
             assert is_valid is False, "Existing user should be invalid"
             assert f"User {user_id} already exists" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_missing_account(self):
         """Test new user data validation with missing account data."""
         user_id = "new-user"
@@ -638,6 +743,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Missing account should be invalid"
         assert "account data is required for new user creation" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_missing_username(self):
         """Test new user data validation with missing internal_username."""
         user_id = "new-user"
@@ -655,6 +763,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Missing username should be invalid"
         assert "internal_username is required for new user creation" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_missing_channel(self):
         """Test new user data validation with missing channel."""
         user_id = "new-user"
@@ -669,6 +780,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Missing channel should be invalid"
         assert "channel.type is required for new user creation" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_invalid_channel_type(self):
         """Test new user data validation with invalid channel type."""
         user_id = "new-user"
@@ -686,6 +800,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Invalid channel type should be invalid"
         assert "Invalid channel type. Must be one of: email, discord, telegram" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_invalid_email(self):
         """Test new user data validation with invalid email format."""
         user_id = "new-user"
@@ -704,6 +821,9 @@ class TestNewUserDataValidation:
         assert is_valid is False, "Invalid email should be invalid"
         assert "Invalid email format" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_new_user_data_invalid_account_status(self):
         """Test new user data validation with invalid account status."""
         user_id = "new-user"
@@ -726,6 +846,9 @@ class TestNewUserDataValidation:
 class TestPersonalizationDataValidation:
     """Test personalization data validation with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.critical
     def test_validate_personalization_data_success(self):
         """Test successful personalization data validation."""
         data = {
@@ -752,6 +875,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is True, f"Personalization data should be valid, got errors: {errors}"
         assert len(errors) == 0, f"Should have no errors, got: {errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_empty(self):
         """Test personalization data validation with empty data."""
         data = {}
@@ -761,6 +887,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is True, "Empty data should be valid"
         assert len(errors) == 0, "Should have no errors"
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_string_fields(self):
         """Test personalization data validation with invalid string field types."""
         data = {
@@ -772,6 +901,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is False, "Invalid string fields should be invalid"
         assert "Field timezone must be a string if present" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_list_fields(self):
         """Test personalization data validation with invalid list field types."""
         data = {
@@ -787,6 +919,9 @@ class TestPersonalizationDataValidation:
         assert "Field reminders_needed must be a list if present" in errors
         assert "Field interests must be a list if present" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_custom_fields_type(self):
         """Test personalization data validation with invalid custom_fields type."""
         data = {
@@ -798,6 +933,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is False, "Invalid custom_fields type should be invalid"
         assert "custom_fields must be a dictionary if present" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_custom_field_lists(self):
         """Test personalization data validation with invalid custom field list types."""
         data = {
@@ -813,6 +951,9 @@ class TestPersonalizationDataValidation:
         assert "Field health_conditions (in custom_fields) must be a list if present" in errors
         assert "Field medications_treatments (in custom_fields) must be a list if present" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_date_format(self):
         """Test personalization data validation with invalid date format."""
         data = {
@@ -824,6 +965,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is False, "Invalid date format should be invalid"
         assert "date_of_birth must be in YYYY-MM-DD format" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_loved_ones_type(self):
         """Test personalization data validation with invalid loved_ones type."""
         data = {
@@ -835,6 +979,9 @@ class TestPersonalizationDataValidation:
         assert is_valid is False, "Invalid loved_ones type should be invalid"
         assert "Field loved_ones must be a list if present" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.user_management
+    @pytest.mark.regression
     def test_validate_personalization_data_invalid_loved_one_item(self):
         """Test personalization data validation with invalid loved_one item type."""
         data = {
@@ -850,6 +997,9 @@ class TestPersonalizationDataValidation:
 class TestValidationIntegration:
     """Test validation functions working together with real behavior verification."""
     
+    @pytest.mark.unit
+    @pytest.mark.integration
+    @pytest.mark.critical
     def test_validation_functions_work_together(self, test_data_dir):
         """Test that validation functions work together correctly."""
         # Test a complete user creation scenario
@@ -896,6 +1046,8 @@ class TestValidationIntegration:
             personalization_valid, personalization_errors = validate_personalization_data(data_updates['context'])
             assert personalization_valid is True, f"Personalization validation failed: {personalization_errors}"
     
+    @pytest.mark.unit
+    @pytest.mark.regression
     def test_validation_error_propagation(self):
         """Test that validation errors propagate correctly through the system."""
         # Test that invalid data in one component affects overall validation
@@ -913,6 +1065,9 @@ class TestValidationIntegration:
         assert is_valid is False, "Invalid email should cause validation failure"
         assert "Invalid email format" in errors
     
+    @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_validation_with_real_file_operations(self, test_data_dir):
         """Test validation with real file system operations."""
         user_id = "file-user"

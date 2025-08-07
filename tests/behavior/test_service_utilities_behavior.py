@@ -23,6 +23,9 @@ from core.service_utilities import (
 class TestServiceUtilitiesBehavior:
     """Test real behavior of service utility functions."""
     
+    @pytest.mark.behavior
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_throttler_initialization_creates_proper_structure(self, test_data_dir):
         """Test that Throttler initialization creates proper internal structure."""
         # Arrange
@@ -35,6 +38,9 @@ class TestServiceUtilitiesBehavior:
         assert throttler.interval == 60, "Should set correct interval"
         assert throttler.last_run is None, "Should initialize last_run to None"
     
+    @pytest.mark.behavior
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_throttler_should_run_returns_true_on_first_call(self, test_data_dir):
         """Test that Throttler should_run returns True on first call."""
         # Arrange
@@ -47,6 +53,9 @@ class TestServiceUtilitiesBehavior:
         assert should_run is True, "Should return True on first call"
         # Note: last_run is only set when interval has passed, not on first call
     
+    @pytest.mark.behavior
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_throttler_should_run_respects_interval(self, test_data_dir):
         """Test that Throttler should_run respects the time interval."""
         throttler = Throttler(0.01)  # 10ms interval for faster testing
@@ -67,6 +76,9 @@ class TestServiceUtilitiesBehavior:
         # The Throttler is currently broken - it never throttles because last_run is never set
         # TODO: Fix Throttler implementation to properly set last_run on first call
     
+    @pytest.mark.behavior
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_throttler_handles_invalid_timestamp_format(self, test_data_dir):
         """Test that Throttler handles invalid timestamp format gracefully."""
         # Arrange
@@ -80,6 +92,10 @@ class TestServiceUtilitiesBehavior:
         assert should_run is True, "Should return True when timestamp format is invalid"
         assert throttler.last_run is not None, "Should update last_run with valid timestamp"
     
+    @pytest.mark.behavior
+    @pytest.mark.service
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_create_reschedule_request_creates_actual_file(self, test_data_dir):
         """Test that creating reschedule request actually creates flag file."""
         user_id = "test-user-reschedule"

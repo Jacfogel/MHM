@@ -60,6 +60,7 @@ class TestMHMService:
         yield temp_dir
         shutil.rmtree(temp_dir)
     
+    @pytest.mark.service
     def test_service_initialization(self, service):
         """Test MHMService initialization."""
         assert service.communication_manager is None
@@ -67,6 +68,8 @@ class TestMHMService:
         assert service.running is False
         assert service.startup_time is None
     
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_validate_configuration_real_behavior(self, temp_dir, service):
         """REAL BEHAVIOR TEST: Test configuration validation with real file operations."""
         # Create real config files
@@ -94,6 +97,8 @@ class TestMHMService:
             assert isinstance(result, list)
             assert len(result) == 2
     
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_initialize_paths_real_behavior(self, temp_dir, service):
         """REAL BEHAVIOR TEST: Test path initialization with real file system operations."""
         # Create real user directories and files
@@ -141,6 +146,8 @@ class TestMHMService:
                 assert isinstance(path, str)
                 assert len(path) > 0
     
+    @pytest.mark.service
+    @pytest.mark.slow
     def test_check_and_fix_logging_real_behavior(self, temp_dir, service):
         """REAL BEHAVIOR TEST: Test logging health check with real file operations."""
         # Create real log file
@@ -167,6 +174,8 @@ class TestMHMService:
             # (httpx, telegram, discord, etc.), so we check it was called at least once
             assert mock_get_logger.call_count >= 1
     
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_start_service_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service startup with real state changes."""
         # Verify initial state
@@ -200,6 +209,8 @@ class TestMHMService:
             assert isinstance(service.startup_time, (int, float))
             mock_start.assert_called_once()
     
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_signal_handler_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test signal handler with real state changes."""
         # Set initial state
@@ -212,6 +223,8 @@ class TestMHMService:
         # Verify real behavior - state actually changed
         assert service.running is False
     
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_shutdown_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service shutdown with real state changes."""
         # Set initial state
@@ -245,6 +258,8 @@ class TestMHMService:
             service.scheduler_manager.stop_all.assert_called_once()
             mock_unregister.assert_called_once()
     
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_emergency_shutdown_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test emergency shutdown with real state changes."""
         # Set initial state
@@ -257,6 +272,8 @@ class TestMHMService:
         # Verify real behavior - state actually changed
         assert service.running is False
 
+    @pytest.mark.service
+    @pytest.mark.slow
     def test_run_service_loop_shutdown_file_detection_real_behavior(self, temp_dir, service):
         """REAL BEHAVIOR TEST: Test service loop detects shutdown request file with real file operations."""
         # Create real shutdown file
@@ -289,6 +306,8 @@ class TestMHMService:
             assert service.running is False
             mock_remove.assert_called()
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_check_test_message_requests_real_behavior(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Test processing of test message request files with real file operations."""
         # Create real test message request file
@@ -321,6 +340,8 @@ class TestMHMService:
             # Verify file removal was called
             mock_remove.assert_called_once_with(request_file)
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_cleanup_test_message_requests_real_behavior(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Test cleanup of test message request files with real file operations."""
         # Create real test message request files
@@ -355,6 +376,8 @@ class TestMHMService:
             assert os.path.join(temp_base_dir, 'test_message_request_user1_motivational.flag') in calls
             assert os.path.join(temp_base_dir, 'test_message_request_user2_health.flag') in calls
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_check_reschedule_requests_real_behavior(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Test processing of reschedule request files with real file operations."""
         # Create real reschedule request file
@@ -389,6 +412,8 @@ class TestMHMService:
             # Verify file removal was called
             mock_remove.assert_called_once_with(request_file)
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_cleanup_reschedule_requests_real_behavior(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Test cleanup of reschedule request files with real file operations."""
         # Create real reschedule request files
@@ -423,6 +448,8 @@ class TestMHMService:
             assert os.path.join(temp_base_dir, 'reschedule_request_user1.flag') in calls
             assert os.path.join(temp_base_dir, 'reschedule_request_user2.flag') in calls
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_get_user_categories_real_behavior(self):
         """REAL BEHAVIOR TEST: Test get_user_categories with real data structures."""
         # Test with real data structures
@@ -467,6 +494,8 @@ class TestMHMService:
                     for item in result:
                         assert isinstance(item, str)
 
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_main_function_real_behavior(self):
         """REAL BEHAVIOR TEST: Test main function with real service creation."""
         with patch('core.service.MHMService') as mock_service_class:
@@ -483,6 +512,8 @@ class TestMHMService:
             # Verify service is actually a Mock object (real instantiation)
             assert isinstance(mock_service, Mock)
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_service_integration_with_managers_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service integration with real manager objects."""
         # Create real mock managers
@@ -511,6 +542,8 @@ class TestMHMService:
             assert isinstance(mock_comm_manager, Mock)
             assert isinstance(mock_scheduler_manager, Mock)
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_service_error_recovery_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service error recovery with real state changes."""
         # Set initial state
@@ -524,6 +557,8 @@ class TestMHMService:
             # Verify real behavior - service actually stopped after error
             assert service.running is False
 
+    @pytest.mark.service
+    @pytest.mark.slow
     def test_service_loop_heartbeat_logging_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service loop heartbeat logging with real state management."""
         service.running = True
@@ -560,6 +595,8 @@ class TestMHMService:
             # Verify sleep was called (real behavior)
             assert mock_sleep.call_count > 0
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_service_file_based_communication_integration_real_behavior(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Test service file-based communication integration with real file operations."""
         # Create real test message request file
@@ -616,6 +653,8 @@ class TestMHMService:
     # ENHANCED REAL BEHAVIOR TESTS - Testing actual side effects and file operations
     # ============================================================================
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_real_file_based_communication_creates_and_removes_files(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Verify that test message requests actually create and remove files."""
         # Create a real test message request file
@@ -672,6 +711,8 @@ class TestMHMService:
             # Verify communication manager was called
             service.communication_manager.handle_message_sending.assert_called_once_with('user1', 'motivational')
 
+    @pytest.mark.service
+    @pytest.mark.file_io
     def test_real_cleanup_removes_actual_files(self, temp_base_dir, service):
         """REAL BEHAVIOR TEST: Verify that cleanup actually removes real files."""
         # Create real test message request files
@@ -704,6 +745,8 @@ class TestMHMService:
             assert not os.path.exists(created_files[1])  # test_message_request_user2_health.flag
             assert os.path.exists(created_files[2])      # other_file.txt (should remain)
 
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_real_service_initialization_creates_actual_service(self):
         """REAL BEHAVIOR TEST: Verify that service initialization creates a real service object."""
         # Create a real service instance
@@ -728,6 +771,8 @@ class TestMHMService:
         assert callable(service.shutdown)
         assert callable(service.emergency_shutdown)
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_real_signal_handler_changes_service_state(self):
         """REAL BEHAVIOR TEST: Verify that signal handler actually changes service state."""
         service = MHMService()
@@ -742,6 +787,8 @@ class TestMHMService:
         # Verify state actually changed (real side effect)
         assert service.running is False
 
+    @pytest.mark.service
+    @pytest.mark.critical
     def test_real_emergency_shutdown_changes_service_state(self):
         """REAL BEHAVIOR TEST: Verify that emergency shutdown actually changes service state."""
         service = MHMService()
@@ -756,6 +803,8 @@ class TestMHMService:
         # Verify state actually changed (real side effect)
         assert service.running is False
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_real_get_user_categories_returns_actual_data(self):
         """REAL BEHAVIOR TEST: Verify that get_user_categories returns actual data structures."""
         # Test with real data structures
@@ -792,6 +841,8 @@ class TestMHMService:
                 assert result == test_case['expected']
                 assert isinstance(result, list)  # Verify return type
 
+    @pytest.mark.service
+    @pytest.mark.regression
     def test_real_service_error_recovery_stops_service(self):
         """REAL BEHAVIOR TEST: Verify that error recovery actually stops the service."""
         service = MHMService()

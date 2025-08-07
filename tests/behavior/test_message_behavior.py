@@ -40,7 +40,8 @@ from core.config import get_user_data_dir
 class TestMessageCategories:
     """Test message category functionality."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.critical
     def test_get_message_categories_success(self):
         """Test getting message categories successfully."""
         with patch.dict(os.environ, {'MESSAGE_CATEGORIES': 'motivational,health,fun_facts'}):
@@ -48,21 +49,24 @@ class TestMessageCategories:
             # Use set for unordered comparison
             assert set(categories) == set(['motivational', 'health', 'fun_facts', 'quotes_to_ponder', 'word_of_the_day'])
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_get_message_categories_default(self):
         """Test getting default message categories."""
         with patch('os.getenv', return_value='motivational,health,fun_facts'):
             categories = get_message_categories()
             assert set(categories) == set(['motivational', 'health', 'fun_facts'])
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_get_message_categories_custom(self):
         """Test getting custom message categories."""
         with patch('os.getenv', return_value='custom1,custom2,custom3'):
             categories = get_message_categories()
             assert set(categories) == set(['custom1', 'custom2', 'custom3'])
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_get_message_categories_empty(self):
         """Test getting message categories when none are defined."""
         with patch('os.getenv', return_value=None):
@@ -73,7 +77,8 @@ class TestMessageCategories:
 class TestDefaultMessages:
     """Test default message loading functionality."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.critical
     def test_load_default_messages_success(self, test_data_dir):
         """Test loading default messages successfully."""
         test_messages = [
@@ -98,7 +103,8 @@ class TestDefaultMessages:
             messages = load_default_messages('motivational')
             assert messages == test_messages
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_load_default_messages_file_not_found(self, test_data_dir, mock_config):
         """Test loading default messages when file doesn't exist."""
         category = "nonexistent"
@@ -108,7 +114,8 @@ class TestDefaultMessages:
         messages = load_default_messages(category)
         assert messages == []
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_load_default_messages_invalid_json(self, test_data_dir, mock_config):
         """Test loading default messages with invalid JSON."""
         category = "invalid"
@@ -129,7 +136,8 @@ class TestDefaultMessages:
 class TestMessageCRUD:
     """Test message CRUD operations."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.critical
     def test_add_message_success(self, test_data_dir):
         """Test adding a message successfully."""
         user_id = "test-user-add"
@@ -165,7 +173,8 @@ class TestMessageCRUD:
                 assert data['messages'][0]['time_periods'] == ["morning"]
                 assert 'message_id' in data['messages'][0]
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_edit_message_success(self, test_data_dir):
         """Test editing a message successfully."""
         user_id = "test-user-edit"
@@ -213,7 +222,8 @@ class TestMessageCRUD:
                 assert data['messages'][0]['time_periods'] == ["evening"]
                 assert data['messages'][0]['message_id'] == "test-msg-1"
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_edit_message_not_found(self, test_data_dir):
         """Test editing a message that doesn't exist."""
         user_id = "test-user"
@@ -241,7 +251,8 @@ class TestMessageCRUD:
             assert result is None
             mock_load.assert_called_once()
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_update_message_success(self, test_data_dir):
         """Test updating a message successfully."""
         user_id = "test-user"
@@ -276,7 +287,8 @@ class TestMessageCRUD:
             mock_load.assert_called_once()
             mock_save.assert_called_once()
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.critical
     def test_delete_message_success(self, test_data_dir):
         """Test deleting a message successfully."""
         user_id = "test-user-delete"
@@ -323,7 +335,8 @@ class TestMessageCRUD:
                 assert data['messages'][0]['message_id'] == "test-msg-2"
                 assert data['messages'][0]['message'] == "Message to keep"
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_delete_message_not_found(self, test_data_dir):
         """Test deleting a message that doesn't exist."""
         user_id = "test-user"
@@ -354,7 +367,8 @@ class TestMessageCRUD:
 class TestSentMessages:
     """Test sent message tracking functionality."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_store_sent_message_success(self, test_data_dir):
         """Test storing a sent message successfully."""
         user_id = "test-user-sent"
@@ -375,7 +389,8 @@ class TestSentMessages:
             mock_load.assert_called_once()
             mock_save.assert_called_once()
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_get_last_10_messages_success(self, test_data_dir):
         """Test getting last 10 sent messages successfully."""
         user_id = "test-user-last10"
@@ -408,7 +423,8 @@ class TestSentMessages:
             assert messages[1]['message_id'] == 'msg2'
             assert messages[2]['message_id'] == 'msg1'
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_get_last_10_messages_empty(self, test_data_dir):
         """Test getting last 10 messages when none exist."""
         user_id = "test-user"
@@ -427,7 +443,8 @@ class TestSentMessages:
 class TestMessageFileManagement:
     """Test message file creation and management."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_create_message_file_from_defaults_success(self, test_data_dir):
         """Test creating message file from defaults successfully."""
         user_id = "test-user"
@@ -451,7 +468,8 @@ class TestMessageFileManagement:
             mock_load_defaults.assert_called_once_with(category)
             mock_save.assert_called_once()
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_ensure_user_message_files_success(self, test_data_dir):
         """Test ensuring user message files exist successfully."""
         user_id = "test-user"
@@ -474,7 +492,8 @@ class TestMessageFileManagement:
 class TestErrorHandling:
     """Test error handling in message management functions."""
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_add_message_file_error(self, test_data_dir):
         """Test add_message handles file errors gracefully."""
         user_id = "test-user"
@@ -489,7 +508,8 @@ class TestErrorHandling:
             
             assert result is False or result is None
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_edit_message_file_error(self, test_data_dir):
         """Test edit_message handles file errors gracefully."""
         user_id = "test-user"
@@ -505,7 +525,8 @@ class TestErrorHandling:
             
             assert result is False or result is None
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_delete_message_file_error(self, test_data_dir):
         """Test delete_message handles file errors gracefully."""
         user_id = "test-user"
@@ -520,7 +541,8 @@ class TestErrorHandling:
             
             assert result is False or result is None
     
-    @pytest.mark.unit
+    @pytest.mark.messages
+    @pytest.mark.regression
     def test_store_sent_message_file_error(self, test_data_dir):
         """Test store_sent_message handles file errors gracefully."""
         user_id = "test-user"
@@ -540,7 +562,8 @@ class TestErrorHandling:
 class TestIntegration:
     """Test integration between message management functions."""
     
-    @pytest.mark.integration
+    @pytest.mark.messages
+    @pytest.mark.file_io
     def test_full_message_lifecycle(self, test_data_dir):
         """Test complete message lifecycle (add, edit, delete)."""
         user_id = "test-user-lifecycle"  # Use unique user ID to avoid conflicts

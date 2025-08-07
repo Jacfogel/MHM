@@ -10,11 +10,17 @@ import os
 import time
 import tempfile
 import shutil
+import pytest
 from pathlib import Path
 
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_imports():
     """Test that all account management modules can be imported without errors"""
     print("🔍 Testing Account Management Imports...")
@@ -46,6 +52,11 @@ def test_account_management_imports():
     
     return results
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_functions():
     """Test that all account management functions can be called (with safe test data)"""
     print("\n🔍 Testing Account Management Functions...")
@@ -114,6 +125,11 @@ def test_account_management_functions():
         print(f"  ❌ Account management function testing failed: {e}")
         return {"error": str(e)}
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_data_structures():
     """Test that account management can handle the expected data structures"""
     print("\n🔍 Testing Account Management Data Structures...")
@@ -188,6 +204,11 @@ def test_account_management_data_structures():
         print(f"  ❌ Data structure testing failed: {e}")
         return {"error": str(e)}
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_validation():
     """Test that account management validation works correctly"""
     print("\n🔍 Testing Account Management Validation...")
@@ -258,6 +279,11 @@ def test_account_management_validation():
         print(f"  ❌ Validation testing failed: {e}")
         return {"error": str(e)}
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_safe_operations():
     """Test account management operations with temporary test data"""
     print("\n🔍 Testing Account Management Safe Operations...")
@@ -352,6 +378,11 @@ def test_account_management_safe_operations():
         print(f"  ❌ Safe operations testing failed: {e}")
         return {"error": str(e)}
 
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.file_io
 def test_account_management_integration():
     """Test that account management integrates properly with other systems"""
     print("\n🔍 Testing Account Management Integration...")

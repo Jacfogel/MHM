@@ -16,6 +16,9 @@ from tests.test_utilities import (
 class TestUtilitiesDemo:
     """Demonstration of centralized test utilities usage"""
     
+    @pytest.mark.behavior
+    @pytest.mark.debug
+    @pytest.mark.smoke
     def test_basic_user_creation(self, test_data_dir):
         """Demonstrate creating a basic test user"""
         # Simple way to create a basic user
@@ -26,6 +29,9 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_basic_user("demo_basic_user_2", enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Factory user creation should succeed"
     
+    @pytest.mark.behavior
+    @pytest.mark.debug
+    @pytest.mark.smoke
     def test_discord_user_creation(self, test_data_dir):
         """Demonstrate creating a Discord-specific test user"""
         success = create_test_user("demo_discord_user", user_type="discord", discord_user_id="987654321")
@@ -35,6 +41,9 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_discord_user("demo_discord_user_2", discord_user_id="111222333", test_data_dir=test_data_dir)
         assert success, "Discord factory user creation should succeed"
     
+    @pytest.mark.behavior
+    @pytest.mark.debug
+    @pytest.mark.smoke
     def test_full_featured_user_creation(self, test_data_dir):
         """Demonstrate creating a full-featured test user"""
         success = create_test_user("demo_full_user", user_type="full")
@@ -44,6 +53,9 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_full_featured_user("demo_full_user_2", test_data_dir=test_data_dir)
         assert success, "Full factory user creation should succeed"
     
+    @pytest.mark.behavior
+    @pytest.mark.debug
+    @pytest.mark.smoke
     def test_minimal_user_creation(self, test_data_dir):
         """Demonstrate creating a minimal test user"""
         success = create_test_user("demo_minimal_user", user_type="minimal")
@@ -53,6 +65,9 @@ class TestUtilitiesDemo:
         success = TestUserFactory.create_minimal_user("demo_minimal_user_2", test_data_dir=test_data_dir)
         assert success, "Minimal factory user creation should succeed"
     
+    @pytest.mark.behavior
+    @pytest.mark.debug
+    @pytest.mark.smoke
     def test_user_data_factory_usage(self, test_data_dir):
         """Demonstrate using the user data factory for custom data structures"""
         user_id = "demo_data_user"

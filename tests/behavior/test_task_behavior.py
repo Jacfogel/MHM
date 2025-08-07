@@ -55,6 +55,7 @@ class TestTaskManagement:
         """Create a test user ID."""
         return "test-user-123"
     
+    @pytest.mark.tasks
     @patch('tasks.task_management.get_user_data_dir')
     def test_ensure_task_directory(self, mock_get_user_dir, user_id, temp_dir):
         """Test task directory creation."""
@@ -69,6 +70,8 @@ class TestTaskManagement:
         assert os.path.exists(os.path.join(task_dir, 'completed_tasks.json'))
         assert os.path.exists(os.path.join(task_dir, 'task_schedules.json'))
     
+    @pytest.mark.tasks
+    @pytest.mark.critical
     @patch('tasks.task_management.get_user_data_dir')
     def test_load_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
         """Test loading active tasks."""
@@ -92,6 +95,8 @@ class TestTaskManagement:
         assert tasks[0]['title'] == 'Test Task 1'
         assert tasks[1]['title'] == 'Test Task 2'
     
+    @pytest.mark.tasks
+    @pytest.mark.slow
     @patch('tasks.task_management.get_user_data_dir')
     def test_save_active_tasks(self, mock_get_user_dir, user_id, temp_dir):
         """Test saving active tasks."""
@@ -116,6 +121,8 @@ class TestTaskManagement:
             saved_data = json.load(f)
         assert saved_data['tasks'] == test_tasks
     
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data_dir')
     def test_create_task(self, mock_get_user_dir, temp_dir):
         """Test task creation with file verification."""
@@ -148,6 +155,8 @@ class TestTaskManagement:
             data = json.load(f)
         assert any(t['task_id'] == task_id for t in data['tasks'])
 
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data_dir')
     def test_update_task(self, mock_get_user_dir, temp_dir):
         """Test task updating with file verification."""
@@ -176,6 +185,8 @@ class TestTaskManagement:
             data = json.load(f)
         assert any(t['task_id'] == task_id and t['title'] == 'Updated Title' for t in data['tasks'])
 
+    @pytest.mark.tasks
+    @pytest.mark.critical
     @patch('tasks.task_management.get_user_data_dir')
     def test_complete_task(self, mock_get_user_dir, temp_dir):
         """Test task completion with file and side effect verification."""
@@ -205,6 +216,8 @@ class TestTaskManagement:
             data = json.load(f)
         assert any(t['task_id'] == task_id and t['completed'] for t in data['completed_tasks'])
     
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data_dir')
     def test_delete_task(self, mock_get_user_dir, temp_dir):
         """Test task deletion with file verification."""
@@ -225,6 +238,8 @@ class TestTaskManagement:
             data = json.load(f)
         assert all(t['task_id'] != task_id for t in data['tasks'])
 
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data_dir')
     def test_get_task_by_id(self, mock_get_user_dir, temp_dir):
         """Test getting a task by ID with file verification."""
@@ -244,6 +259,8 @@ class TestTaskManagement:
             data = json.load(f)
         assert any(t['task_id'] == task_id for t in data['tasks'])
 
+    @pytest.mark.tasks
+    @pytest.mark.slow
     @patch('tasks.task_management.get_user_data_dir')
     def test_get_tasks_due_soon(self, mock_get_user_dir, temp_dir):
         """Test getting tasks due soon with file verification."""
@@ -267,6 +284,8 @@ class TestTaskManagement:
         assert any(t['task_id'] == id_soon for t in data['tasks'])
         assert any(t['task_id'] == id_late for t in data['tasks'])
 
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data')
     def test_are_tasks_enabled(self, mock_get_user_data):
         """Test checking if tasks are enabled with mock user data."""
@@ -281,6 +300,8 @@ class TestTaskManagement:
         mock_get_user_data.return_value = {}
         assert are_tasks_enabled(user_id) is False
 
+    @pytest.mark.tasks
+    @pytest.mark.regression
     @patch('tasks.task_management.get_user_data_dir')
     def test_get_user_task_stats(self, mock_get_user_dir, temp_dir):
         """Test getting user task statistics with file verification."""

@@ -31,6 +31,8 @@ from core.schedule_management import (
 class TestScheduleManagementBehavior:
     """Test schedule management real behavior and side effects."""
 
+    @pytest.mark.schedules
+    @pytest.mark.critical
     def test_get_schedule_time_periods_creates_cache(self, test_data_dir):
         """Test that getting schedule periods actually creates cache entries."""
         # Arrange
@@ -63,6 +65,8 @@ class TestScheduleManagementBehavior:
         assert cache_key in _schedule_periods_cache, "Cache entry should be created"
         assert _schedule_periods_cache[cache_key][0] == result, "Cache should contain result"
 
+    @pytest.mark.schedules
+    @pytest.mark.critical
     def test_set_schedule_period_active_persists_changes(self, test_data_dir):
         """Test that setting period active actually persists changes to user data."""
         # Arrange
@@ -100,6 +104,8 @@ class TestScheduleManagementBehavior:
         saved_data = call_args[0][1]  # Second argument is the data
         assert saved_data[category]["periods"][period_name]["active"] is True, "Period should be active"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_clear_schedule_periods_cache_removes_entries(self, test_data_dir):
         """Test that clearing schedule periods cache actually removes cache entries."""
         # Arrange
@@ -119,6 +125,8 @@ class TestScheduleManagementBehavior:
         assert cache_key not in _schedule_periods_cache, "Specific cache entry should be removed"
         assert "other_user_messages" in _schedule_periods_cache, "Other cache entries should remain"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_validate_and_format_time_enforces_rules(self):
         """Test that time validation actually enforces format rules."""
         # Test valid times - including formats that are actually accepted
@@ -132,6 +140,8 @@ class TestScheduleManagementBehavior:
         assert validate_and_format_time("12:60") is None, "Invalid minute should return None"
         assert validate_and_format_time("08:5") is None, "Missing leading zero in minutes should return None"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_time_conversion_functions_work_correctly(self):
         """Test that time conversion functions produce accurate results."""
         # Test 24h to 12h conversion - functions return integers, not strings
@@ -146,6 +156,8 @@ class TestScheduleManagementBehavior:
         assert time_12h_display_to_24h(12, 0, False) == "00:00", "12:00 AM should convert to 00:00"
         assert time_12h_display_to_24h(12, 0, True) == "12:00", "12:00 PM should convert to 12:00"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_get_current_day_names_returns_actual_days(self):
         """Test that get_current_day_names returns actual current day information."""
         # Act
@@ -160,6 +172,8 @@ class TestScheduleManagementBehavior:
         for day in current_days:
             assert day in valid_days, f"'{day}' should be a valid day name"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_schedule_period_activation_integration(self, test_data_dir):
         """Test complete integration of schedule period activation workflow."""
         # Arrange
@@ -201,6 +215,8 @@ class TestScheduleManagementBehavior:
         assert final_active is True, "Period should be active after activation"
         assert mock_update.call_count >= 1, "Data should be saved during activation"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_schedule_cache_invalidation(self, test_data_dir):
         """Test that schedule cache is properly invalidated when data changes."""
         # Arrange
@@ -243,6 +259,8 @@ class TestScheduleManagementBehavior:
         cache_key = f"{user_id}_{category}"
         assert cache_key in _schedule_periods_cache, "Cache should be repopulated"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_set_schedule_periods_persists_complete_data(self, test_data_dir):
         """Test that setting schedule periods actually persists complete data structure."""
         # Arrange
@@ -283,6 +301,8 @@ class TestScheduleManagementBehavior:
         assert saved_periods["Morning"]["start_time"] == "08:00", "Morning start time should be correct"
         assert saved_periods["Afternoon"]["active"] is False, "Afternoon should be inactive"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_set_schedule_days_persists_day_changes(self, test_data_dir):
         """Test that setting schedule days actually persists day changes."""
         # Arrange
@@ -323,6 +343,8 @@ class TestScheduleManagementBehavior:
         saved_days = saved_data[category]["days"]
         assert saved_days == new_days, "Days should be updated"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_schedule_period_crud_with_usercontext_mocking(self, test_data_dir):
         """Test CRUD operations with proper UserContext mocking."""
         # Arrange
@@ -385,6 +407,8 @@ class TestScheduleManagementBehavior:
         assert mock_user_context.get_user_id.call_count >= 3, "UserContext.get_user_id should be called for each operation"
         assert mock_update.call_count >= 3, "Data should be saved for each operation"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_schedule_period_operations_with_error_handling(self, test_data_dir):
         """Test that schedule operations handle errors gracefully."""
         # Arrange
@@ -407,6 +431,8 @@ class TestScheduleManagementBehavior:
         assert update_result is None, "Should return None when UserContext is invalid"
         assert delete_result is None, "Should return None when UserContext is invalid"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_schedule_period_validation_errors(self, test_data_dir):
         """Test that schedule operations validate input correctly."""
         # Arrange
@@ -446,6 +472,8 @@ class TestScheduleManagementBehavior:
                 result = add_schedule_period(category, period_name, "09:00", "13:00")
                 assert result is None, "Should return None when period already exists"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_schedule_period_operations_with_scheduler_manager(self, test_data_dir):
         """Test schedule operations with scheduler manager integration."""
         # Arrange
@@ -473,6 +501,8 @@ class TestScheduleManagementBehavior:
         # Assert - Verify scheduler was called
         assert mock_scheduler.reset_and_reschedule_daily_messages.call_count >= 1, "Scheduler should be called"
 
+    @pytest.mark.schedules
+    @pytest.mark.file_io
     def test_schedule_period_operations_with_real_user_data(self, test_data_dir):
         """Test schedule operations with realistic user data setup."""
         # Arrange
@@ -514,6 +544,8 @@ class TestScheduleManagementBehavior:
                     saved_data = call_args[0][1]  # Second argument is the data
                     assert period_name in saved_data[category]["periods"], "Period should be added to data"
 
+    @pytest.mark.schedules
+    @pytest.mark.regression
     def test_schedule_period_edge_cases(self, test_data_dir):
         """Test schedule operations with edge cases and boundary conditions."""
         # Arrange

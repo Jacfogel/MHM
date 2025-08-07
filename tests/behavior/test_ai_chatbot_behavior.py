@@ -24,6 +24,7 @@ from core.user_data_handlers import get_user_data, save_user_data
 class TestAIChatBotBehavior:
     """Test AI chatbot real behavior and side effects."""
     
+    @pytest.mark.ai
     def test_singleton_behavior_creates_single_instance(self, test_data_dir):
         """Test that AI chatbot singleton actually creates only one instance."""
         # Clear any existing instance
@@ -37,6 +38,8 @@ class TestAIChatBotBehavior:
         assert instance1 is instance2, "Singleton should return the same instance"
         assert id(instance1) == id(instance2), "Singleton instances should have same ID"
     
+    @pytest.mark.ai
+    @pytest.mark.critical
     def test_system_prompt_loader_creates_actual_file(self, test_data_dir):
         """Test that system prompt loader actually creates and manages prompt files."""
         # Create a temporary prompt file
@@ -63,6 +66,8 @@ class TestAIChatBotBehavior:
             if os.path.exists(temp_prompt_path):
                 os.unlink(temp_prompt_path)
     
+    @pytest.mark.ai
+    @pytest.mark.critical
     def test_response_cache_actually_stores_and_retrieves_data(self, test_data_dir):
         """Test that response cache actually stores and retrieves data."""
         cache = ResponseCache(max_size=5, ttl=60)
@@ -83,6 +88,8 @@ class TestAIChatBotBehavior:
         assert user123_response is None, "User123 should not find user456's cache entry"
         assert user456_response == "different_response", "User456 should find their own cache entry"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_response_cache_cleanup_actually_removes_entries(self, test_data_dir):
         """Test that response cache cleanup actually removes old entries."""
         cache = ResponseCache(max_size=3, ttl=1)  # Very short TTL for testing
@@ -108,6 +115,8 @@ class TestAIChatBotBehavior:
         expired = cache.get("expire_test", "user1")
         assert expired is None, "Expired cache entries should not be returned"
     
+    @pytest.mark.ai
+    @pytest.mark.critical
     def test_ai_chatbot_generates_actual_responses(self, test_data_dir):
         """Test that AI chatbot actually generates responses with real behavior."""
         chatbot = AIChatBotSingleton()
@@ -124,6 +133,8 @@ class TestAIChatBotBehavior:
             assert response is not None, "AI should generate a response"
             assert "Test AI response" in response, "Response should contain expected content"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_handles_api_failures_gracefully(self, test_data_dir):
         """Test that AI chatbot handles API failures and provides fallbacks."""
         chatbot = AIChatBotSingleton()
@@ -138,6 +149,8 @@ class TestAIChatBotBehavior:
             assert isinstance(response, str), "Response should be a string"
             assert len(response) > 10, "Response should be substantial"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_tracks_conversation_history(self, test_data_dir):
         """Test that AI chatbot actually tracks conversation history."""
         chatbot = AIChatBotSingleton()
@@ -159,6 +172,8 @@ class TestAIChatBotBehavior:
         assert latest_interaction.get('user_message') == "Test user message", "User message should be tracked"
         assert latest_interaction.get('ai_response') == "Test AI response", "AI response should be tracked"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_uses_user_context_for_personalization(self, test_data_dir):
         """Test that AI chatbot actually uses user context for personalized responses."""
         user_id = "test_context_user"
@@ -184,6 +199,8 @@ class TestAIChatBotBehavior:
             # Note: The AI might use fallback responses, so we check for any response
             assert isinstance(response, str), "Response should be a string"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_adaptive_timeout_responds_to_system_resources(self, test_data_dir):
         """Test that AI chatbot adaptive timeout actually responds to system resources."""
         chatbot = AIChatBotSingleton()
@@ -207,6 +224,8 @@ class TestAIChatBotBehavior:
                 timeout = chatbot._get_adaptive_timeout(15)
                 assert isinstance(timeout, int), "Timeout should be an integer"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_command_parsing_creates_structured_output(self, test_data_dir):
         """Test that AI chatbot command parsing actually creates structured output."""
         chatbot = AIChatBotSingleton()
@@ -226,6 +245,8 @@ class TestAIChatBotBehavior:
             # Note: The AI might use fallback responses, so we check for any response
             assert isinstance(response, str), "Response should be a string"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_prompt_optimization_improves_performance(self, test_data_dir):
         """Test that AI chatbot prompt optimization actually improves performance."""
         chatbot = AIChatBotSingleton()
@@ -245,6 +266,8 @@ class TestAIChatBotBehavior:
         user_messages = [msg for msg in optimized_prompt if msg.get('role') == 'user']
         assert len(user_messages) > 0, "Optimized prompt should include user message"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_status_reporting_actual_system_state(self, test_data_dir):
         """Test that AI chatbot status reporting reflects actual system state."""
         chatbot = AIChatBotSingleton()
@@ -258,6 +281,8 @@ class TestAIChatBotBehavior:
         assert 'cache_enabled' in status, "Status should include cache status"
         assert 'custom_prompt_enabled' in status, "Status should include prompt status"
     
+    @pytest.mark.ai
+    @pytest.mark.critical
     def test_ai_chatbot_system_prompt_integration_test_actual_functionality(self, test_data_dir):
         """Test that AI chatbot system prompt integration test actually verifies functionality."""
         chatbot = AIChatBotSingleton()
@@ -271,6 +296,8 @@ class TestAIChatBotBehavior:
         assert 'command_prompt_works' in test_result, "Test result should include command prompt status"
         assert 'wellness_prompt_works' in test_result, "Test result should include wellness prompt status"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that AI chatbot error handling actually preserves system stability."""
         chatbot = AIChatBotSingleton()
@@ -291,6 +318,8 @@ class TestAIChatBotBehavior:
                 assert response is not None, "Error handling should provide fallback response"
                 assert isinstance(response, str), "Response should be a string"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_conversation_manager_integration(self, test_data_dir):
         """Test that AI chatbot integrates properly with conversation manager."""
         from bot.conversation_manager import ConversationManager
@@ -311,6 +340,8 @@ class TestAIChatBotBehavior:
             assert reply is not None, "Conversation should generate a reply"
             assert isinstance(completed, bool), "Completion status should be boolean"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_user_context_manager_integration(self, test_data_dir):
         """Test that AI chatbot integrates properly with user context manager."""
         from bot.user_context_manager import UserContextManager
@@ -331,6 +362,8 @@ class TestAIChatBotBehavior:
         assert 'preferences' in context, "Context should include user preferences"
         assert 'conversation_history' in context, "Context should include conversation history"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_response_tracking_integration(self, test_data_dir):
         """Test that AI chatbot integrates properly with response tracking."""
         user_id = "test_tracking_user"
@@ -346,6 +379,8 @@ class TestAIChatBotBehavior:
         assert recent[0]['user_message'] == "User test message", "User message should be tracked"
         assert recent[0]['ai_response'] == "AI test response", "AI response should be tracked"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_performance_under_load(self, test_data_dir):
         """Test that AI chatbot performs well under load."""
         chatbot = AIChatBotSingleton()
@@ -366,6 +401,8 @@ class TestAIChatBotBehavior:
             assert len(responses) == 5, "All requests should be processed"
             assert all(r is not None for r in responses), "All responses should be generated"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_cache_performance_improvement(self, test_data_dir):
         """Test that AI chatbot cache actually improves performance."""
         chatbot = AIChatBotSingleton()
@@ -388,6 +425,8 @@ class TestAIChatBotBehavior:
             # but mocking makes this complex. The cache behavior is verified by
             # the ResponseCache tests above.
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_cleanup_and_resource_management(self, test_data_dir):
         """Test that AI chatbot properly manages resources and cleanup."""
         chatbot = AIChatBotSingleton()
@@ -410,6 +449,8 @@ class TestAIChatBotBehavior:
 class TestAIChatBotIntegration:
     """Test AI chatbot integration with other system components."""
     
+    @pytest.mark.ai
+    @pytest.mark.critical
     def test_ai_chatbot_with_real_user_data(self, test_data_dir):
         """Test AI chatbot with real user data files."""
         user_id = "integration_test_user"
@@ -446,6 +487,8 @@ class TestAIChatBotIntegration:
             # Note: The AI might use fallback responses, so we check for any response
             assert isinstance(response, str), "Response should be a string"
     
+    @pytest.mark.ai
+    @pytest.mark.regression
     def test_ai_chatbot_error_recovery_with_real_files(self, test_data_dir):
         """Test AI chatbot error recovery with real file operations."""
         user_id = "error_recovery_user"
@@ -471,6 +514,8 @@ class TestAIChatBotIntegration:
             assert response is not None, "Should provide fallback response despite problematic data"
             assert isinstance(response, str), "Response should be a string"
     
+    @pytest.mark.ai
+    @pytest.mark.slow
     def test_ai_chatbot_concurrent_access_safety(self, test_data_dir):
         """Test that AI chatbot handles concurrent access safely."""
         import threading

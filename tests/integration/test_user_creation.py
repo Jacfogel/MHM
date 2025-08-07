@@ -31,7 +31,11 @@ from core.user_data_validation import is_valid_email, validate_time_format
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
     
-    @pytest.mark.unit
+    @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.file_io
     def test_basic_email_user_creation(self, test_data_dir, mock_config):
         """Test creating a basic email user with minimal settings."""
         user_id = 'test-basic-email'
@@ -58,7 +62,11 @@ class TestUserCreationScenarios:
         assert loaded_data['account']['features']['checkins'] == 'enabled'
         assert loaded_data['account']['features']['task_management'] == 'enabled'
     
-    @pytest.mark.unit
+    @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.file_io
     def test_discord_user_creation(self, test_data_dir, mock_config):
         """Test creating a Discord user with full features enabled."""
         user_id = 'test-discord-user'

@@ -32,6 +32,8 @@ class TestTagWidgetBasicBehavior:
     """Test TagWidget basic functionality without complex UI setup."""
     
     @pytest.mark.ui
+    @pytest.mark.smoke
+    @pytest.mark.critical
     def test_tag_widget_import_and_creation(self, qapp):
         """REAL BEHAVIOR TEST: Test TagWidget can be imported and created."""
         # ✅ VERIFY REAL BEHAVIOR: Import works
@@ -48,6 +50,8 @@ class TestTagWidgetBasicBehavior:
         widget.deleteLater()
     
     @pytest.mark.ui
+    @pytest.mark.smoke
+    @pytest.mark.critical
     def test_tag_widget_selection_mode(self, qapp):
         """REAL BEHAVIOR TEST: Test TagWidget works in selection mode."""
         # ✅ VERIFY REAL BEHAVIOR: Import works
@@ -67,6 +71,8 @@ class TestTaskSettingsWidgetBasicBehavior:
     """Test TaskSettingsWidget basic functionality."""
     
     @pytest.mark.ui
+    @pytest.mark.smoke
+    @pytest.mark.critical
     def test_task_settings_widget_import_and_creation(self, qapp, test_data_dir):
         """REAL BEHAVIOR TEST: Test TaskSettingsWidget can be imported and created."""
         # ✅ VERIFY REAL BEHAVIOR: Import works

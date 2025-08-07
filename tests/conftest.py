@@ -579,7 +579,7 @@ def pytest_configure(config):
     """Configure pytest for MHM testing."""
     test_logger.info("Configuring pytest for MHM testing")
     
-    # Add custom markers
+    # Core test type markers
     config.addinivalue_line(
         "markers", "unit: mark test as a unit test"
     )
@@ -587,8 +587,33 @@ def pytest_configure(config):
         "markers", "integration: mark test as an integration test"
     )
     config.addinivalue_line(
+        "markers", "behavior: mark test as a behavior test"
+    )
+    config.addinivalue_line(
+        "markers", "ui: mark test as testing UI components"
+    )
+    
+    # Performance & resource markers
+    config.addinivalue_line(
         "markers", "slow: mark test as slow running"
     )
+    config.addinivalue_line(
+        "markers", "performance: mark test as performance testing"
+    )
+    config.addinivalue_line(
+        "markers", "memory: mark test as memory intensive"
+    )
+    config.addinivalue_line(
+        "markers", "network: mark test as requiring network connectivity"
+    )
+    config.addinivalue_line(
+        "markers", "external: mark test as requiring external services"
+    )
+    config.addinivalue_line(
+        "markers", "file_io: mark test as having heavy file operations"
+    )
+    
+    # Feature-specific markers
     config.addinivalue_line(
         "markers", "ai: mark test as requiring AI functionality"
     )
@@ -599,7 +624,62 @@ def pytest_configure(config):
         "markers", "communication: mark test as testing communication channels"
     )
     config.addinivalue_line(
-        "markers", "ui: mark test as testing UI components"
+        "markers", "config: mark test as configuration and settings functionality"
+    )
+    config.addinivalue_line(
+        "markers", "tasks: mark test as task management functionality"
+    )
+    config.addinivalue_line(
+        "markers", "checkins: mark test as check-in system functionality"
+    )
+    config.addinivalue_line(
+        "markers", "schedules: mark test as schedule management functionality"
+    )
+    config.addinivalue_line(
+        "markers", "messages: mark test as message system functionality"
+    )
+    config.addinivalue_line(
+        "markers", "analytics: mark test as analytics and reporting functionality"
+    )
+    config.addinivalue_line(
+        "markers", "user_management: mark test as user account management functionality"
+    )
+    config.addinivalue_line(
+        "markers", "channels: mark test as communication channel functionality"
+    )
+    
+    # Test quality markers
+    config.addinivalue_line(
+        "markers", "flaky: mark test as occasionally failing"
+    )
+    config.addinivalue_line(
+        "markers", "known_issue: mark test as testing known bugs or limitations"
+    )
+    config.addinivalue_line(
+        "markers", "regression: mark test as preventing regression issues"
+    )
+    config.addinivalue_line(
+        "markers", "smoke: mark test as basic functionality smoke test"
+    )
+    config.addinivalue_line(
+        "markers", "critical: mark test as critical path test"
+    )
+    
+    # Development workflow markers
+    config.addinivalue_line(
+        "markers", "wip: mark test as work in progress"
+    )
+    config.addinivalue_line(
+        "markers", "todo: mark test as not yet implemented"
+    )
+    config.addinivalue_line(
+        "markers", "skip_ci: mark test as to skip in CI/CD pipeline"
+    )
+    config.addinivalue_line(
+        "markers", "manual: mark test as requiring manual intervention"
+    )
+    config.addinivalue_line(
+        "markers", "debug: mark test as debug specific"
     )
 
 def pytest_collection_modifyitems(config, items):

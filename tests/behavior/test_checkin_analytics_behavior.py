@@ -22,7 +22,9 @@ from core.checkin_analytics import CheckinAnalytics
 class TestCheckinAnalyticsInitializationBehavior:
     """Test CheckinAnalytics initialization with real behavior verification."""
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.critical
     def test_analytics_initialization_real_behavior(self):
         """REAL BEHAVIOR TEST: Test CheckinAnalytics can be initialized."""
         # ✅ VERIFY REAL BEHAVIOR: Analytics can be created
@@ -54,7 +56,9 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.critical
     def test_mood_trends_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test mood trends with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -64,7 +68,9 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
     def test_mood_trends_with_data_real_behavior(self, analytics, mock_checkins_with_mood):
         """REAL BEHAVIOR TEST: Test mood trends analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
@@ -86,7 +92,9 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
         assert 3.0 <= result['average_mood'] <= 5.0, "Average mood should be in valid range"
         assert result['trend'] in ['stable', 'improving', 'declining'], "Trend should be valid"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
     def test_mood_trends_invalid_mood_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test mood trends with invalid mood data."""
         # ✅ VERIFY REAL BEHAVIOR: Invalid mood data returns error
@@ -131,7 +139,9 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.critical
     def test_habit_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test habit analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -141,7 +151,9 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
     def test_habit_analysis_with_data_real_behavior(self, analytics, mock_checkins_with_habits):
         """REAL BEHAVIOR TEST: Test habit analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
@@ -198,7 +210,9 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.critical
     def test_sleep_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test sleep analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -208,7 +222,9 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
     def test_sleep_analysis_with_data_real_behavior(self, analytics, mock_checkins_with_sleep):
         """REAL BEHAVIOR TEST: Test sleep analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
@@ -265,7 +281,9 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.critical
     def test_wellness_score_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test wellness score with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -275,7 +293,9 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.regression
     def test_wellness_score_with_data_real_behavior(self, analytics, mock_checkins_for_wellness):
         """REAL BEHAVIOR TEST: Test wellness score calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Score calculation works with valid data
@@ -326,7 +346,9 @@ class TestCheckinAnalyticsHistoryBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_checkin_history_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test check-in history with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns empty list
@@ -336,7 +358,9 @@ class TestCheckinAnalyticsHistoryBehavior:
         assert isinstance(result, list), "Should return list when no data available"
         assert len(result) == 0, "Should return empty list when no data available"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_checkin_history_with_data_real_behavior(self, analytics, mock_checkins_for_history):
         """REAL BEHAVIOR TEST: Test check-in history with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: History retrieval works with valid data
@@ -379,7 +403,9 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_completion_rate_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test completion rate with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -389,7 +415,9 @@ class TestCheckinAnalyticsCompletionRateBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_completion_rate_with_data_real_behavior(self, analytics, mock_checkins_for_completion):
         """REAL BEHAVIOR TEST: Test completion rate calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Completion rate calculation works with valid data
@@ -432,7 +460,9 @@ class TestCheckinAnalyticsTaskStatsBehavior:
         
         return checkins
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_task_weekly_stats_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test task weekly stats with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
@@ -442,7 +472,9 @@ class TestCheckinAnalyticsTaskStatsBehavior:
         assert 'error' in result, "Should return error when no data available"
         assert result['error'] == 'No check-in data available', "Should have correct error message"
     
-    @pytest.mark.behavior
+    @pytest.mark.checkins
+    @pytest.mark.analytics
+    @pytest.mark.file_io
     def test_task_weekly_stats_with_data_real_behavior(self, analytics, mock_checkins_for_tasks):
         """REAL BEHAVIOR TEST: Test task weekly stats calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Task stats calculation works with valid data

@@ -1,10 +1,25 @@
 # AI_CHANGELOG.md - Brief Summaries for AI Context
 
-> **Audience**: AI collaborators  
-> **Purpose**: Quick context for AI assistants  
-> **Style**: Concise, action-oriented, scannable
+> **Audience**: AI collaborators & developers  
+> **Purpose**: Brief summaries of recent changes for AI context  
+> **Style**: Concise, action-oriented, scannable  
+> **Last Updated**: 2025-08-05
+
+> **See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for complete detailed changelog history**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-08-05 - Pytest Marker Application Project ✅ **COMPLETED**
+- **Applied pytest markers to all test files** across 4 directories (unit, behavior, integration, UI)
+- **Enhanced test organization** with 101 specific marker application tasks completed
+- **Fixed critical UI dialog issue** where dialogs were appearing during automated testing
+- **Enhanced test runner** with new UI test mode and improved filtering capabilities
+- **Verified marker functionality** with comprehensive testing of all marker combinations
+- **Improved test filtering** for selective execution (unit, behavior, integration, ui, critical, regression, smoke)
+- **Resolved test infrastructure issues** by removing problematic test files
+- **Cleaned up project files** and moved documentation to appropriate locations
+- **Test results**: 630 tests collected successfully, 195 critical tests properly marked
+- **Impact**: Complete test organization system with selective execution and better test management
 
 ### 2025-08-05 - Centralized Test Utilities Integration & UI Test Enhancement ✅ **COMPLETED**
 - **Integrated centralized test utilities** in widget tests for consistency and maintainability

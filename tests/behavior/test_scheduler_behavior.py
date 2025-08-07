@@ -39,7 +39,10 @@ class TestSchedulerManager:
         """Create a SchedulerManager instance for testing."""
         return SchedulerManager(mock_communication_manager)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_scheduler_manager_initialization(self, mock_communication_manager):
         """Test SchedulerManager initialization."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -49,19 +52,28 @@ class TestSchedulerManager:
         assert scheduler.running is False
         assert scheduler._stop_event is not None
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_stop_scheduler_no_thread(self, scheduler_manager):
         """Test stopping scheduler when no thread is running."""
         # Should not raise any exceptions
         scheduler_manager.stop_scheduler()
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_job_for_category_no_jobs(self, scheduler_manager):
         """Test checking for jobs when no jobs exist."""
         result = scheduler_manager.is_job_for_category(None, 'test-user', 'motivational')
         assert result is False
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_job_for_category_with_matching_job(self, scheduler_manager):
         """Test checking for jobs when a matching job exists."""
         # Mock schedule.jobs to contain a matching job
@@ -74,7 +86,10 @@ class TestSchedulerManager:
             result = scheduler_manager.is_job_for_category(None, 'test-user', 'motivational')
             assert result is True
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_job_for_category_with_non_matching_job(self, scheduler_manager):
         """Test checking for jobs when no matching job exists."""
         # Mock schedule.jobs to contain a non-matching job
@@ -87,7 +102,10 @@ class TestSchedulerManager:
             result = scheduler_manager.is_job_for_category(None, 'test-user', 'motivational')
             assert result is False
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_random_time_within_period_valid_times(self, scheduler_manager):
         """Test getting random time within a valid time period."""
         user_id = 'test-user'
@@ -120,7 +138,10 @@ class TestSchedulerManager:
             # Verify side effect: function should have called get_schedule_time_periods
             mock_get_periods.assert_called_once_with(user_id, category)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_random_time_within_period_invalid_times(self, scheduler_manager):
         """Test getting random time with invalid time format."""
         user_id = 'test-user'
@@ -140,7 +161,10 @@ class TestSchedulerManager:
             # Verify side effect: function should have called get_schedule_time_periods
             mock_get_periods.assert_called_once_with(user_id, category)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_time_conflict_no_conflicts(self, scheduler_manager):
         """Test time conflict detection when no conflicts exist."""
         schedule_datetime = datetime.now() + timedelta(hours=1)
@@ -148,7 +172,10 @@ class TestSchedulerManager:
         result = scheduler_manager.is_time_conflict('test-user', schedule_datetime)
         assert result is False
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_cleanup_old_tasks(self, scheduler_manager, test_data_dir):
         """Test cleaning up old scheduled tasks."""
         user_id = 'test-cleanup-user'
@@ -169,7 +196,10 @@ class TestSchedulerManager:
             # Should not raise any exceptions
             scheduler_manager.cleanup_old_tasks(user_id, category)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_log_scheduled_tasks(self, scheduler_manager):
         """Test logging of scheduled tasks."""
         # Mock schedule.jobs
@@ -190,7 +220,8 @@ class TestSchedulerManager:
 class TestSchedulerFunctions:
     """Test standalone scheduler functions."""
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_categories_success(self, mock_user_data):
         """Test getting user categories successfully."""
         user_id = mock_user_data['user_id']
@@ -209,7 +240,8 @@ class TestSchedulerFunctions:
             assert 'health' in categories
             assert 'fun_facts' in categories
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_categories_no_user(self):
         """Test getting categories for non-existent user."""
         with patch('core.scheduler.get_user_data') as mock_get_data:
@@ -220,7 +252,8 @@ class TestSchedulerFunctions:
             assert isinstance(categories, list)
             assert len(categories) == 0
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_task_preferences_success(self, mock_user_data):
         """Test getting user task preferences successfully."""
         user_id = mock_user_data['user_id']
@@ -246,7 +279,8 @@ class TestSchedulerFunctions:
             # Verify side effect: function should have called get_user_data
             mock_get_data.assert_called_once_with(user_id, 'preferences')
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_task_preferences_no_user(self):
         """Test getting task preferences for non-existent user."""
         with patch('core.scheduler.get_user_data') as mock_get_data:
@@ -257,7 +291,8 @@ class TestSchedulerFunctions:
             assert isinstance(prefs, dict)
             assert len(prefs) == 0
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_checkin_preferences_success(self, mock_user_data):
         """Test getting user check-in preferences successfully."""
         user_id = mock_user_data['user_id']
@@ -278,7 +313,8 @@ class TestSchedulerFunctions:
             assert prefs.get('enabled') is True
             assert prefs.get('frequency') == 'daily'
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_get_user_checkin_preferences_no_user(self):
         """Test getting check-in preferences for non-existent user."""
         with patch('core.scheduler.get_user_data') as mock_get_data:
@@ -331,7 +367,8 @@ class TestSchedulerIntegration:
 class TestSchedulerEdgeCases:
     """Test scheduler edge cases and error conditions."""
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_scheduler_with_empty_user_list(self, mock_communication_manager):
         """Test scheduler behavior with no users."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -342,7 +379,8 @@ class TestSchedulerEdgeCases:
             # Should not raise any exceptions
             scheduler.schedule_all_users_immediately()
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_scheduler_with_invalid_user_data(self, mock_communication_manager):
         """Test scheduler behavior with invalid user data."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -356,7 +394,8 @@ class TestSchedulerEdgeCases:
                 # Should handle gracefully without raising exceptions
                 scheduler.schedule_all_users_immediately()
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_random_time_generation_consistency(self, mock_communication_manager):
         """Test that random time generation is consistent within bounds."""
         scheduler = SchedulerManager(mock_communication_manager)
@@ -396,7 +435,8 @@ class TestSchedulerEdgeCases:
 class TestTaskReminderFunctions:
     """Test task reminder specific functions."""
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_schedule_all_task_reminders_success(self, test_data_dir):
         """Test scheduling all task reminders for a user."""
         user_id = 'test-task-user'
@@ -419,7 +459,8 @@ class TestTaskReminderFunctions:
             # Should not raise any exceptions
             schedule_all_task_reminders(user_id)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_schedule_all_task_reminders_disabled(self, test_data_dir):
         """Test scheduling task reminders when task management is disabled."""
         user_id = 'test-task-user'
@@ -436,7 +477,8 @@ class TestTaskReminderFunctions:
             # Should not raise any exceptions
             schedule_all_task_reminders(user_id)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_cleanup_task_reminders_success(self):
         """Test cleaning up task reminders."""
         user_id = 'test-task-user'
@@ -451,7 +493,8 @@ class TestTaskReminderFunctions:
             # Should not raise any exceptions
             cleanup_task_reminders(user_id)
     
-    @pytest.mark.unit
+    @pytest.mark.behavior
+    @pytest.mark.schedules
     def test_cleanup_task_reminders_specific_task(self):
         """Test cleaning up specific task reminders."""
         user_id = 'test-task-user'

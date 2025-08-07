@@ -26,6 +26,11 @@ from core.response_tracking import (
 class TestResponseTrackingBehavior:
     """Test real behavior of response tracking functions."""
     
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_store_user_response_creates_actual_file(self, test_data_dir):
         """Test that storing user response actually creates data files."""
         user_id = "test-user-response"
@@ -48,6 +53,11 @@ class TestResponseTrackingBehavior:
         assert data[0]["mood"] == 5, "Response data should be stored correctly"
         assert "timestamp" in data[0], "Timestamp should be added automatically"
     
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_store_user_response_persists_multiple_entries(self, test_data_dir):
         """Test that storing multiple responses actually persists all entries."""
         user_id = "test-user-multiple"
@@ -70,6 +80,11 @@ class TestResponseTrackingBehavior:
         assert data[0]["mood"] == 3, "First response should be stored"
         assert data[1]["mood"] == 7, "Second response should be stored"
     
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_store_daily_checkin_response_uses_correct_file(self, test_data_dir):
         """Test that daily checkin responses are stored in the correct file."""
         user_id = "test-user-checkin"
@@ -91,6 +106,11 @@ class TestResponseTrackingBehavior:
         assert len(data) == 1, "Should have one checkin entry"
         assert data[0]["mood"] == 6, "Checkin data should be stored correctly"
     
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_store_chat_interaction_creates_chat_log(self, test_data_dir):
         """Test that chat interactions are stored in chat interactions file."""
         user_id = "test-user-chat"
@@ -117,6 +137,10 @@ class TestResponseTrackingBehavior:
         assert data[0]["message_length"] == len(user_message), "Message length should be calculated"
         assert data[0]["response_length"] == len(ai_response), "Response length should be calculated"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_recent_responses_returns_actual_data(self, test_data_dir):
         """Test that getting recent responses actually returns stored data."""
         user_id = "test-user-recent"
@@ -142,6 +166,10 @@ class TestResponseTrackingBehavior:
         assert recent[0]["mood"] == 3, "Should return most recent first (sorted by timestamp)"
         assert recent[1]["mood"] == 7, "Should return second most recent"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_recent_daily_checkins_returns_checkin_data(self, test_data_dir):
         """Test that getting recent daily checkins returns actual checkin data."""
         user_id = "test-user-checkins"
@@ -166,6 +194,10 @@ class TestResponseTrackingBehavior:
         assert recent[0]["mood"] == 4, "Should return most recent checkin"
         assert recent[0]["energy"] == 5, "Should include all checkin fields"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_recent_chat_interactions_returns_chat_data(self, test_data_dir):
         """Test that getting recent chat interactions returns actual chat data."""
         user_id = "test-user-chat-recent"
@@ -200,6 +232,10 @@ class TestResponseTrackingBehavior:
         assert recent[0]["user_message"] == "How are you?", "Should return most recent first"
         assert recent[0]["context_used"] is True, "Should include context usage flag"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_user_checkin_preferences_returns_actual_preferences(self, test_data_dir):
         """Test that getting user checkin preferences returns actual preference data."""
         user_id = "test-user-prefs"
@@ -231,6 +267,10 @@ class TestResponseTrackingBehavior:
         assert prefs["frequency"] == "daily", "Should return frequency setting"
         assert "questions" in prefs, "Should include questions configuration"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_user_checkins_enabled_checks_actual_account_data(self, test_data_dir):
         """Test that checking if user checkins are enabled checks actual account data."""
         user_id = "test-user-enabled"
@@ -264,6 +304,10 @@ class TestResponseTrackingBehavior:
         
         assert enabled is False, "Should return False when checkins are disabled"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_user_checkin_questions_returns_actual_questions(self, test_data_dir):
         """Test that getting user checkin questions returns actual question configuration."""
         user_id = "test-user-questions"
@@ -286,6 +330,10 @@ class TestResponseTrackingBehavior:
         assert questions["mood"]["enabled"] is True, "Should include enabled status"
         assert questions["mood"]["required"] is True, "Should include required status"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_user_info_for_tracking_returns_complete_user_info(self, test_data_dir):
         """Test that getting user info for tracking returns complete user information."""
         user_id = "test-user-info"
@@ -324,6 +372,10 @@ class TestResponseTrackingBehavior:
         assert user_info["created_at"] == "2025-01-01", "Should include creation date"
         assert user_info["last_updated"] == "2025-01-15", "Should include last updated date"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_track_user_response_stores_daily_checkin(self, test_data_dir):
         """Test that tracking user response stores daily checkin data."""
         user_id = "test-user-track"
@@ -340,6 +392,10 @@ class TestResponseTrackingBehavior:
         # Assert - Verify daily checkin was stored
         mock_store.assert_called_once_with(user_id, {"mood": 6, "energy": 7})
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_track_user_response_stores_chat_interaction(self, test_data_dir):
         """Test that tracking user response stores chat interaction data."""
         user_id = "test-user-track-chat"
@@ -360,6 +416,10 @@ class TestResponseTrackingBehavior:
         # Assert - Verify chat interaction was stored
         mock_store.assert_called_once_with(user_id, "Hello", "Hi there!", True)
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_track_user_response_stores_generic_response(self, test_data_dir):
         """Test that tracking user response stores generic response data."""
         user_id = "test-user-track-generic"
@@ -376,6 +436,10 @@ class TestResponseTrackingBehavior:
         # Assert - Verify generic response was stored
         mock_store.assert_called_once_with(user_id, {"data": "value"}, "custom_category")
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_response_tracking_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that response tracking error handling preserves system stability."""
         user_id = "test-user-error"
@@ -389,6 +453,10 @@ class TestResponseTrackingBehavior:
         # Assert - System should remain stable
         # No exceptions should be raised, function should handle error gracefully
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_response_tracking_performance_under_load(self, test_data_dir):
         """Test that response tracking performs well under load."""
         user_id = "test-user-performance"
@@ -417,6 +485,10 @@ class TestResponseTrackingBehavior:
         assert all("mood" in entry for entry in recent), "All entries should have mood data"
         assert all("timestamp" in entry for entry in recent), "All entries should have timestamp data"
     
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_response_tracking_data_integrity(self, test_data_dir):
         """Test that response tracking maintains data integrity."""
         user_id = "test-user-integrity"

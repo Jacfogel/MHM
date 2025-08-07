@@ -24,6 +24,7 @@ class TestCustomExceptions:
     """Test custom exception classes."""
     
     @pytest.mark.unit
+    @pytest.mark.critical
     def test_mhm_error_basic(self):
         """Test basic MHMError creation."""
         error = MHMError("Test error message")
@@ -36,6 +37,7 @@ class TestCustomExceptions:
         assert error.traceback is not None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_mhm_error_with_details(self):
         """Test MHMError with custom details."""
         details = {'file': 'test.json', 'operation': 'read'}
@@ -45,6 +47,7 @@ class TestCustomExceptions:
         assert error.recoverable is False
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_data_error(self):
         """Test DataError exception."""
         error = DataError("Data operation failed", {'user_id': 'test'})
@@ -54,6 +57,7 @@ class TestCustomExceptions:
         assert error.details['user_id'] == 'test'
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_file_operation_error(self):
         """Test FileOperationError exception."""
         error = FileOperationError("File not found", {'path': '/test/file.json'})
@@ -63,6 +67,7 @@ class TestCustomExceptions:
         assert error.details['path'] == '/test/file.json'
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_config_error(self):
         """Test ConfigError exception."""
         error = ConfigurationError("Invalid configuration", {'setting': 'BASE_DATA_DIR'})
@@ -72,6 +77,7 @@ class TestCustomExceptions:
         assert error.details['setting'] == 'BASE_DATA_DIR'
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_validation_error(self):
         """Test ValidationError exception."""
         error = ValidationError("Validation failed", {'field': 'email', 'value': 'invalid'})
@@ -84,6 +90,7 @@ class TestErrorHandlerDecorator:
     """Test the handle_errors decorator."""
     
     @pytest.mark.unit
+    @pytest.mark.critical
     def test_error_handler_success(self):
         """Test error_handler with successful function."""
         @handle_errors("test operation")
@@ -95,6 +102,7 @@ class TestErrorHandlerDecorator:
         assert result == "success"
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_error_handler_exception(self):
         """Test error_handler with exception."""
         @handle_errors("test operation")
@@ -105,6 +113,7 @@ class TestErrorHandlerDecorator:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_error_handler_custom_return(self):
         """Test error_handler with custom return value."""
         @handle_errors("test operation", default_return="fallback")
@@ -115,6 +124,7 @@ class TestErrorHandlerDecorator:
         assert result == "fallback"
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_error_handler_logs_error(self):
         """Test error_handler logs errors."""
         with patch('core.error_handling.logger') as mock_logger:
@@ -140,6 +150,7 @@ class TestHandleErrorsDecorator:
     """Test the handle_errors decorator."""
     
     @pytest.mark.unit
+    @pytest.mark.critical
     def test_handle_errors_success(self):
         """Test handle_errors with successful function."""
         @handle_errors("test operation")
@@ -150,6 +161,7 @@ class TestHandleErrorsDecorator:
         assert result == "success"
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_exception(self):
         """Test handle_errors with exception."""
         @handle_errors("test operation")
@@ -160,6 +172,7 @@ class TestHandleErrorsDecorator:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_custom_return(self):
         """Test handle_errors with custom return value."""
         @handle_errors("test operation", default_return="fallback")
@@ -170,6 +183,7 @@ class TestHandleErrorsDecorator:
         assert result == "fallback"
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_specific_exception(self):
         """Test handle_errors with specific exception handling."""
         @handle_errors("test operation")
@@ -180,6 +194,7 @@ class TestHandleErrorsDecorator:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_logs_error(self):
         """Test handle_errors logs errors."""
         with patch('core.error_handling.logger') as mock_logger:
@@ -204,6 +219,7 @@ class TestErrorHandlingFunctions:
     """Test specific error handling functions."""
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_handle_file_error(self):
         """Test handle_file_error function."""
         with patch('core.error_handling.logger') as mock_logger:
@@ -225,6 +241,7 @@ class TestErrorHandlingFunctions:
             assert "User Error:" in second_call[0][0]
     
     @pytest.mark.unit
+    @pytest.mark.smoke
     def test_handle_configuration_error(self):
         """Test handle_configuration_error function."""
         with patch('core.error_handling.logger') as mock_logger:
@@ -501,6 +518,7 @@ class TestErrorHandlingEdgeCases:
     """Test error handling edge cases."""
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_error_handler_with_args_kwargs(self):
         """Test error_handler with function arguments."""
         @handle_errors("test operation")
@@ -518,6 +536,7 @@ class TestErrorHandlingEdgeCases:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_with_args_kwargs(self):
         """Test handle_errors with function arguments."""
         @handle_errors("test operation")
@@ -535,6 +554,7 @@ class TestErrorHandlingEdgeCases:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_error_handler_nested_exceptions(self):
         """Test error_handler with nested exceptions."""
         @handle_errors("outer operation")
@@ -552,6 +572,7 @@ class TestErrorHandlingEdgeCases:
         assert result is None
     
     @pytest.mark.unit
+    @pytest.mark.regression
     def test_handle_errors_with_logging_disabled(self):
         """Test handle_errors when logging is disabled."""
         with patch('core.error_handling.logger') as mock_logger:

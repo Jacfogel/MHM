@@ -75,6 +75,10 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
     
     return True
 
+@pytest.mark.behavior
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.file_io
 def test_user_data_loading_real_behavior(test_data_dir):
     """Test actual user data loading with file verification"""
     print("\n🔍 Testing User Data Loading (Real Behavior)...")
@@ -139,6 +143,10 @@ def test_user_data_loading_real_behavior(test_data_dir):
         print(f"  ❌ User data loading: Error - {e}")
         raise
 
+@pytest.mark.behavior
+@pytest.mark.user_management
+@pytest.mark.critical
+@pytest.mark.file_io
 def test_feature_enablement_real_behavior(test_data_dir):
     """Test actual feature enablement with file creation/deletion"""
     print("\n🔍 Testing Feature Enablement (Real Behavior)...")
@@ -208,6 +216,10 @@ def test_feature_enablement_real_behavior(test_data_dir):
         print(f"  ❌ Feature enablement: Error - {e}")
         raise
 
+@pytest.mark.behavior
+@pytest.mark.user_management
+@pytest.mark.file_io
+@pytest.mark.regression
 def test_category_management_real_behavior(test_data_dir):
     """Test actual category management with file persistence"""
     print("\n🔍 Testing Category Management (Real Behavior)...")
@@ -303,6 +315,10 @@ def test_category_management_real_behavior(test_data_dir):
         print(f"❌ Error in category management test: {e}")
         raise
 
+@pytest.mark.behavior
+@pytest.mark.schedules
+@pytest.mark.file_io
+@pytest.mark.regression
 def test_schedule_period_management_real_behavior(test_data_dir):
     """Test actual schedule period management with file persistence"""
     print("\n🔍 Testing Schedule Period Management (Real Behavior)...")
@@ -379,6 +395,11 @@ def test_schedule_period_management_real_behavior(test_data_dir):
         print(f"  ❌ Schedule period management: Error - {e}")
         raise
 
+@pytest.mark.behavior
+@pytest.mark.integration
+@pytest.mark.user_management
+@pytest.mark.file_io
+@pytest.mark.slow
 def test_integration_scenarios_real_behavior(test_data_dir):
     """Test complex integration scenarios with multiple operations"""
     print("\n🔍 Testing Integration Scenarios (Real Behavior)...")
@@ -532,6 +553,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         print(f"  ❌ Integration scenarios: Error - {e}")
         raise
 
+@pytest.mark.behavior
+@pytest.mark.user_management
+@pytest.mark.file_io
+@pytest.mark.regression
 def test_data_consistency_real_behavior(test_data_dir):
     """Test data consistency across multiple operations"""
     print("\n🔍 Testing Data Consistency (Real Behavior)...")

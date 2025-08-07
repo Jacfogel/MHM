@@ -30,7 +30,7 @@ def main():
     parser = argparse.ArgumentParser(description="MHM Test Runner")
     parser.add_argument(
         "--mode", 
-        choices=["fast", "unit", "integration", "behavior", "all", "slow"],
+        choices=["fast", "unit", "integration", "behavior", "ui", "all", "slow"],
         default="fast",
         help="Test execution mode"
     )
@@ -93,6 +93,11 @@ def main():
         # Behavior tests
         cmd.extend(["tests/behavior/", "-m", "not slow"])
         description = "Behavior Tests (excluding slow tests)"
+        
+    elif args.mode == "ui":
+        # UI tests
+        cmd.extend(["tests/ui/", "-m", "not slow"])
+        description = "UI Tests (excluding slow tests)"
         
     elif args.mode == "slow":
         # Slow tests only

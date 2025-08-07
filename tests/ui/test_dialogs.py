@@ -8,12 +8,17 @@ READ-ONLY - Does not modify any user data
 import sys
 import os
 import time
+import pytest
 from pathlib import Path
 
 # Add project root to path
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_dialog_imports():
     """Test that all dialog modules can be imported without errors"""
     print("🔍 Testing Dialog Imports...")
@@ -49,6 +54,10 @@ def test_dialog_imports():
     
     return results
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_widget_imports():
     """Test that all widget modules can be imported without errors"""
     print("\n🔍 Testing Widget Imports...")
@@ -82,6 +91,10 @@ def test_widget_imports():
     
     return results
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_ui_files_exist():
     """Test that all required UI files exist"""
     print("\n🔍 Testing UI Files...")
@@ -109,6 +122,10 @@ def test_ui_files_exist():
     
     return results
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_generated_files_exist():
     """Test that all generated Python UI files exist"""
     print("\n🔍 Testing Generated UI Files...")
@@ -136,6 +153,10 @@ def test_generated_files_exist():
     
     return results
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_user_data_access():
     """Test that we can access user data for testing - READ ONLY"""
     print("\n🔍 Testing User Data Access (Read-Only)...")
@@ -213,6 +234,10 @@ def test_user_data_access():
         print(f"  ❌ User data access failed: {e}")
         return {"error": str(e)}
 
+@pytest.mark.ui
+@pytest.mark.critical
+@pytest.mark.regression
+@pytest.mark.slow
 def test_dialog_instantiation():
     """Test that dialogs can be instantiated (without showing them)"""
     print("\n🔍 Testing Dialog Instantiation...")

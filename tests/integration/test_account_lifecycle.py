@@ -58,6 +58,11 @@ class TestAccountLifecycle:
         shutil.rmtree(self.test_dir, ignore_errors=True)
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.file_io
     def test_create_basic_account(self, test_data_dir, mock_config):
         """Test creating a basic account with only messages enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -110,6 +115,11 @@ class TestAccountLifecycle:
             # Note: create_minimal_user only creates motivational category, not health
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.file_io
     def test_create_full_account(self, test_data_dir, mock_config):
         """Test creating a full account with all features enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -169,6 +179,11 @@ class TestAccountLifecycle:
             assert "evening" in schedules["health"]["periods"], "Evening period should exist"
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.file_io
     def test_enable_checkins_for_basic_user(self, test_data_dir, mock_config):
         """Test enabling check-ins for a user who only has messages enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -251,6 +266,11 @@ class TestAccountLifecycle:
         assert checkin_period is not None, "Check-in period should exist"
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.file_io
     def test_disable_tasks_for_full_user(self, test_data_dir, mock_config):
         """Test disabling tasks for a user who has all features enabled."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -324,6 +344,11 @@ class TestAccountLifecycle:
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should still be enabled"
     
     @pytest.mark.integration
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.file_io
     def test_reenable_tasks_for_user(self, test_data_dir, mock_config):
         """Test re-enabling tasks for a user who previously had them disabled."""
         from core.user_data_handlers import save_user_data, get_user_data

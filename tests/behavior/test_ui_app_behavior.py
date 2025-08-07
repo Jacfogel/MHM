@@ -28,6 +28,9 @@ class TestUIAppBehavior:
         else:
             yield QApplication.instance()
     
+    @pytest.mark.behavior
+    @pytest.mark.ui
+    @pytest.mark.critical
     def test_ui_app_initialization_creates_proper_structure(self, qt_app, test_data_dir):
         """Test that UI app initialization creates proper internal structure."""
         # Arrange - Mock UI components
@@ -46,6 +49,9 @@ class TestUIAppBehavior:
                                 assert app.current_user is None, "Should initialize with no current user"
                                 assert app.current_user_categories == [], "Should initialize with empty categories"
     
+    @pytest.mark.behavior
+    @pytest.mark.ui
+    @pytest.mark.critical
     def test_service_manager_initialization_creates_proper_structure(self, test_data_dir):
         """Test that ServiceManager initialization creates proper internal structure."""
         # Act
@@ -54,6 +60,9 @@ class TestUIAppBehavior:
         # Assert
         assert service_manager.service_process is None, "Should initialize with no service process"
     
+    @pytest.mark.behavior
+    @pytest.mark.ui
+    @pytest.mark.critical
     def test_service_manager_configuration_validation_checks_actual_config(self, test_data_dir):
         """Test that configuration validation checks actual configuration."""
         # Arrange - Mock configuration validation
@@ -76,6 +85,9 @@ class TestUIAppBehavior:
         mock_critical.assert_not_called(), "Should not show critical error for valid config"
         mock_warning.assert_called(), "Should show warning for configuration warnings"
     
+    @pytest.mark.behavior
+    @pytest.mark.ui
+    @pytest.mark.regression
     def test_service_manager_configuration_validation_handles_invalid_config(self, test_data_dir):
         """Test that configuration validation handles invalid configuration."""
         # Arrange - Mock invalid configuration

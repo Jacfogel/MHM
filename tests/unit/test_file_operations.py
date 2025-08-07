@@ -25,6 +25,9 @@ class TestFileOperations:
     """Test file operations functions."""
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.smoke
     def test_load_json_data_success(self, temp_file):
         """Test loading JSON data successfully."""
         test_data = {'test': 'data', 'number': 42, 'list': [1, 2, 3]}
@@ -39,12 +42,16 @@ class TestFileOperations:
         assert loaded_data == test_data
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_load_json_data_file_not_found(self):
         """Test loading JSON data from non-existent file."""
         data = load_json_data('/nonexistent/file.json')
         assert data is None
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_load_json_data_corrupted_json(self, temp_file):
         """Test loading corrupted JSON data."""
         # Write corrupted JSON
@@ -55,6 +62,8 @@ class TestFileOperations:
         assert data is None
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_load_json_data_empty_file(self, temp_file):
         """Test loading from empty file."""
         # Create empty file
@@ -65,6 +74,9 @@ class TestFileOperations:
         assert data is None
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    @pytest.mark.smoke
     def test_save_json_data_success(self, temp_file):
         """Test saving JSON data successfully."""
         test_data = {'test': 'data', 'number': 42, 'nested': {'key': 'value'}}
@@ -113,6 +125,8 @@ class TestFileOperations:
             assert reloaded_data == test_data, f"Data should be consistent across reads: {reloaded_data}"
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_save_json_data_create_directory(self, test_data_dir):
         """Test saving JSON data with directory creation."""
         file_path = os.path.join(test_data_dir, 'nested', 'dir', 'test.json')
@@ -126,6 +140,8 @@ class TestFileOperations:
         assert os.path.exists(os.path.dirname(file_path))
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_save_json_data_permission_error(self):
         """Test saving JSON data with permission error."""
         # Try to save to a protected location
@@ -168,6 +184,8 @@ class TestFileOperations:
             assert os.path.isdir(protected_dir), "Parent directory should still exist and be a directory"
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_determine_file_path_user_file(self, test_data_dir):
         """Test determining file path for user file."""
         user_id = 'test-user'
@@ -184,6 +202,8 @@ class TestFileOperations:
         assert actual_path.endswith('account.json')
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_determine_file_path_default_messages(self, test_data_dir):
         """Test determining file path for default messages."""
         category = 'motivational'
@@ -198,6 +218,8 @@ class TestFileOperations:
         assert actual_path.endswith(f'{category}.json')
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_verify_file_access_success(self, temp_file):
         """Test file access verification for accessible file."""
         # ✅ VERIFY INITIAL STATE: Create a file we can access
@@ -238,6 +260,8 @@ class TestFileOperations:
             assert False, f"File should remain accessible after verification: {e}"
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_verify_file_access_missing_file(self):
         """Test file access verification for missing file."""
         # Use a cross-platform path that definitely doesn't exist
@@ -268,6 +292,8 @@ class TestFileOperations:
         assert len(new_files) == 0, f"No new files should be created during verification: {new_files}"
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_verify_file_access_permission_error(self):
         """Test file access verification with permission error."""
         # Try to access a protected file - use cross-platform approach
@@ -333,6 +359,8 @@ class TestFileOperations:
         assert len(new_files) == 0, f"No new files should be created during verification: {new_files}"
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_get_user_file_path_success(self, test_data_dir):
         """Test getting user file path successfully."""
         user_id = 'test-user'
@@ -349,6 +377,8 @@ class TestFileOperations:
         assert actual_path.endswith('account.json')
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_ensure_user_directory_success(self, test_data_dir):
         """Test ensuring user directory exists."""
         user_id = 'test-user-dir'
@@ -363,6 +393,8 @@ class TestFileOperations:
         assert os.path.isdir(user_dir)
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_ensure_user_directory_already_exists(self, test_data_dir):
         """Test ensuring user directory that already exists."""
         user_id = 'test-user-dir-exists'
@@ -383,6 +415,8 @@ class TestFileOperationsEdgeCases:
     """Test edge cases and error conditions."""
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_load_json_data_unicode_content(self, temp_file):
         """Test loading JSON data with unicode content."""
         test_data = {
@@ -402,6 +436,8 @@ class TestFileOperationsEdgeCases:
         assert loaded_data['text'] == 'Hello, 世界! 🌍'
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_save_json_data_complex_objects(self, temp_file):
         """Test saving JSON data with complex objects."""
         test_data = {
@@ -421,6 +457,8 @@ class TestFileOperationsEdgeCases:
         assert saved_data == test_data
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_determine_file_path_invalid_user_id(self):
         """Test determining file path with invalid user ID."""
         # FIXED: correct parameter order (file_type, identifier)
@@ -429,6 +467,8 @@ class TestFileOperationsEdgeCases:
         assert path is not None  # It might return a path or raise an exception
     
     @pytest.mark.unit
+    @pytest.mark.file_io
+    @pytest.mark.regression
     def test_determine_file_path_invalid_file_type(self):
         """Test determining file path with invalid file type."""
         # FIXED: correct parameter order (file_type, identifier)
@@ -437,6 +477,8 @@ class TestFileOperationsEdgeCases:
         assert result is None  # Should return None due to error handling decorator
     
     @pytest.mark.integration
+    @pytest.mark.file_io
+    @pytest.mark.critical
     def test_file_operations_lifecycle(self, test_data_dir, mock_config):
         """Test complete file operations lifecycle using centralized utilities."""
         from tests.test_utilities import TestUserDataFactory
@@ -584,6 +626,8 @@ class TestFileOperationsPerformance:
     """Test file operations performance and large data handling."""
     
     @pytest.mark.slow
+    @pytest.mark.file_io
+    @pytest.mark.performance
     def test_save_large_json_data(self, temp_file):
         """Test saving large JSON data with performance verification."""
         import time
@@ -698,6 +742,8 @@ class TestFileOperationsPerformance:
             assert False, f"Large file should be valid JSON: {e}"
     
     @pytest.mark.slow
+    @pytest.mark.file_io
+    @pytest.mark.performance
     def test_load_large_json_data(self, temp_file):
         """Test loading large JSON data."""
         # Create and save large test data

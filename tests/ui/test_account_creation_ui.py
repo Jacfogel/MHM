@@ -56,21 +56,24 @@ class TestAccountCreationDialogRealBehavior:
         mock_comm_manager = Mock()
         mock_comm_manager.get_available_channels.return_value = ['email', 'discord', 'telegram']
         
-        # Create dialog
+        # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
-        dialog.show()
         
         yield dialog
         
         # Cleanup
-        dialog.close()
         dialog.deleteLater()
     
     @pytest.mark.ui
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
     def test_dialog_initialization_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test dialog initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check dialog exists and is visible
-        assert dialog.isVisible(), "Dialog should be visible"
+        # ✅ VERIFY INITIAL STATE: Check dialog exists (but is not shown during testing)
+        assert dialog is not None, "Dialog should be created"
+        assert not dialog.isVisible(), "Dialog should not be visible during testing"
         assert dialog.windowTitle() == "Create a New Account", "Dialog should have correct title"
         
         # ✅ VERIFY REAL BEHAVIOR: Check default feature enablement
@@ -96,6 +99,10 @@ class TestAccountCreationDialogRealBehavior:
         assert "America/New_York" in [timezone_combo.itemText(i) for i in range(timezone_combo.count())], "Common timezone should be available"
     
     @pytest.mark.ui
+    @pytest.mark.user_management
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
     def test_feature_enablement_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test feature enablement checkboxes control tab visibility."""
         tab_widget = dialog.ui.tabWidget

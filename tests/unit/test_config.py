@@ -30,6 +30,8 @@ class TestConfigValidation:
     """Test configuration validation functions."""
     
     @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.config
     def test_validate_core_paths_success(self, test_data_dir):
         """Test successful core path validation."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
@@ -66,6 +68,8 @@ class TestConfigValidation:
                     assert len(warnings) >= 0
     
     @pytest.mark.unit
+    @pytest.mark.regression
+    @pytest.mark.config
     def test_validate_core_paths_missing_directory(self):
         """Test core path validation with missing directory."""
         with patch('core.config.BASE_DATA_DIR', '/nonexistent/path'):
@@ -77,6 +81,8 @@ class TestConfigValidation:
             # assert len(errors) > 0  # Not expected with current implementation
     
     @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.config
     def test_validate_ai_configuration_success(self):
         """Test successful AI configuration validation."""
         with patch.dict(os.environ, {
@@ -89,6 +95,8 @@ class TestConfigValidation:
             assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.regression
+    @pytest.mark.config
     def test_validate_ai_configuration_missing_url(self):
         """Test AI configuration validation with missing URL."""
         with patch.dict(os.environ, {}, clear=True):
@@ -99,6 +107,9 @@ class TestConfigValidation:
             assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.critical
+    @pytest.mark.config
+    @pytest.mark.channels
     def test_validate_communication_channels_success(self):
         """Test successful communication channels validation."""
         with patch.dict(os.environ, {
@@ -112,6 +123,9 @@ class TestConfigValidation:
             assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.regression
+    @pytest.mark.config
+    @pytest.mark.channels
     def test_validate_communication_channels_no_tokens(self):
         """Test communication channels validation with no tokens."""
         with patch.dict(os.environ, {}, clear=True):
@@ -123,6 +137,8 @@ class TestConfigValidation:
             # assert len(warnings) > 0
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_validate_logging_configuration_success(self):
         """Test successful logging configuration validation."""
         is_valid, errors, warnings = validate_logging_configuration()
@@ -131,6 +147,9 @@ class TestConfigValidation:
         assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
+    @pytest.mark.schedules
     def test_validate_scheduler_configuration_success(self):
         """Test successful scheduler configuration validation."""
         is_valid, errors, warnings = validate_scheduler_configuration()
@@ -139,6 +158,8 @@ class TestConfigValidation:
         assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_validate_file_organization_settings_success(self):
         """Test successful file organization settings validation."""
         is_valid, errors, warnings = validate_file_organization_settings()
@@ -147,6 +168,8 @@ class TestConfigValidation:
         assert len(errors) == 0
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_validate_environment_variables_success(self):
         """Test successful environment variables validation."""
         is_valid, errors, warnings = validate_environment_variables()
@@ -155,6 +178,8 @@ class TestConfigValidation:
         assert len(errors) == 0
     
     @pytest.mark.integration
+    @pytest.mark.critical
+    @pytest.mark.config
     def test_validate_all_configuration_success(self, test_data_dir):
         """Test comprehensive configuration validation."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
@@ -172,6 +197,8 @@ class TestConfigValidation:
                         assert 'summary' in result
     
     @pytest.mark.integration
+    @pytest.mark.critical
+    @pytest.mark.config
     def test_validate_and_raise_if_invalid_success(self, test_data_dir):
         """Test successful validation with no exceptions."""
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
@@ -186,6 +213,8 @@ class TestConfigValidation:
                         assert isinstance(available_channels, list)
     
     @pytest.mark.integration
+    @pytest.mark.critical
+    @pytest.mark.config
     def test_validate_and_raise_if_invalid_failure(self):
         """Test validation failure raises ConfigurationError."""
         # Test with invalid AI configuration that would cause a real error
@@ -201,11 +230,15 @@ class TestConfigConstants:
     """Test configuration constants."""
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_base_data_dir_default(self):
         """Test BASE_DATA_DIR default value."""
         assert BASE_DATA_DIR == 'data'
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_user_info_dir_path_default(self):
         """Test USER_INFO_DIR_PATH default value."""
         # Handle both relative and absolute paths
@@ -213,6 +246,8 @@ class TestConfigConstants:
         assert USER_INFO_DIR_PATH == expected_relative or USER_INFO_DIR_PATH.endswith('data\\users')
     
     @pytest.mark.unit
+    @pytest.mark.smoke
+    @pytest.mark.config
     def test_default_messages_dir_path_default(self):
         """Test DEFAULT_MESSAGES_DIR_PATH default value."""
         # Handle both relative and absolute paths, and Windows path separators
@@ -223,6 +258,8 @@ class TestConfigConstants:
                 'resources/default_messages' in path_normalized)
     
     @pytest.mark.unit
+    @pytest.mark.regression
+    @pytest.mark.config
     def test_environment_override(self):
         """Test environment variable override."""
         with patch.dict(os.environ, {'BASE_DATA_DIR': 'tests/data'}):

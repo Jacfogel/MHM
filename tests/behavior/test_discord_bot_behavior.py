@@ -45,6 +45,8 @@ class TestDiscordBotBehavior:
             mock_bot.guilds = []
             yield mock_bot
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_initialization_creates_proper_structure(self, test_data_dir):
         """Test that Discord bot initialization creates proper internal structure"""
         bot = DiscordBot()
@@ -59,6 +61,8 @@ class TestDiscordBotBehavior:
         assert bot._reconnect_attempts == 0, "Reconnect attempts should start at 0"
         assert bot._connection_status == DiscordConnectionStatus.UNINITIALIZED, "Status should be uninitialized"
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_channel_type_is_async(self, test_data_dir):
         """Test that Discord bot channel type is correctly set to ASYNC"""
         bot = DiscordBot()
@@ -67,6 +71,9 @@ class TestDiscordBotBehavior:
         
         assert channel_type == ChannelType.ASYNC, "Discord bot should be ASYNC channel type"
 
+    @pytest.mark.channels
+    @pytest.mark.external
+    @pytest.mark.network
     def test_dns_resolution_check_actually_tests_connectivity(self, test_data_dir):
         """Test that DNS resolution check actually tests network connectivity"""
         bot = DiscordBot()
@@ -79,6 +86,9 @@ class TestDiscordBotBehavior:
             assert result is True, "DNS resolution should succeed with valid response"
             mock_gethostbyname.assert_called_once_with("discord.com")
 
+    @pytest.mark.channels
+    @pytest.mark.external
+    @pytest.mark.network
     def test_dns_resolution_fallback_uses_alternative_servers(self, test_data_dir):
         """Test that DNS resolution fallback actually tries alternative DNS servers"""
         bot = DiscordBot()
@@ -95,6 +105,9 @@ class TestDiscordBotBehavior:
                 assert mock_resolver_class.called, "Alternative DNS resolver should be used"
                 assert "dns_error" in bot._detailed_error_info, "DNS error info should be stored"
 
+    @pytest.mark.channels
+    @pytest.mark.external
+    @pytest.mark.network
     def test_network_connectivity_check_tests_multiple_endpoints(self, test_data_dir):
         """Test that network connectivity check actually tests multiple Discord endpoints"""
         bot = DiscordBot()
@@ -107,6 +120,9 @@ class TestDiscordBotBehavior:
             assert result is True, "Network connectivity should succeed"
             assert mock_connect.called, "Socket connection should be attempted"
 
+    @pytest.mark.channels
+    @pytest.mark.external
+    @pytest.mark.network
     def test_network_connectivity_fallback_tries_alternative_endpoints(self, test_data_dir):
         """Test that network connectivity fallback actually tries alternative endpoints"""
         bot = DiscordBot()
@@ -117,6 +133,8 @@ class TestDiscordBotBehavior:
             assert result is False, "Network connectivity should fail when all endpoints fail"
             assert "network_error" in bot._detailed_error_info, "Network error info should be stored"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_connection_status_update_actually_changes_state(self, test_data_dir):
         """Test that connection status update actually changes internal state"""
         bot = DiscordBot()
@@ -128,6 +146,8 @@ class TestDiscordBotBehavior:
         assert bot._connection_status == DiscordConnectionStatus.CONNECTED, "Status should be updated"
         assert bot._detailed_error_info["test"] == "error", "Error info should be stored"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_detailed_connection_status_returns_actual_state(self, test_data_dir):
         """Test that detailed connection status returns actual system state"""
         bot = DiscordBot()
@@ -140,6 +160,8 @@ class TestDiscordBotBehavior:
         assert "network_connectivity" in status_info, "Status should include network connectivity state"
         assert "timestamp" in status_info, "Status should include timestamp"
 
+    @pytest.mark.channels
+    @pytest.mark.external
     def test_discord_bot_initialization_with_valid_token(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot initialization actually creates bot instance with valid token"""
         bot = DiscordBot()
@@ -154,6 +176,8 @@ class TestDiscordBotBehavior:
                     assert bot.bot is not None, "Bot instance should be created"
                     assert bot.get_status() == ChannelStatus.READY, "Status should be READY"
 
+    @pytest.mark.channels
+    @pytest.mark.external
     @pytest.mark.slow
     def test_discord_bot_initialization_without_token(self, test_data_dir):
         """Test that Discord bot initialization fails gracefully without token"""
@@ -167,6 +191,8 @@ class TestDiscordBotBehavior:
                     # Should fail gracefully without token and network connectivity
                     assert isinstance(result, bool), "Initialization should return boolean"
 
+    @pytest.mark.channels
+    @pytest.mark.external
     @pytest.mark.slow
     def test_discord_bot_initialization_with_dns_failure(self, test_data_dir):
         """Test that Discord bot initialization handles DNS failures gracefully"""
@@ -183,6 +209,8 @@ class TestDiscordBotBehavior:
                         # Should handle DNS failure gracefully
                         assert isinstance(result, bool), "Initialization should return boolean"
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_shutdown_actually_cleans_up(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot shutdown actually cleans up resources"""
         bot = DiscordBot()
@@ -194,6 +222,8 @@ class TestDiscordBotBehavior:
         # Note: In a real environment, the bot.close() would be called
         assert bot.get_status() == ChannelStatus.STOPPED, "Status should be STOPPED"
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot send_message actually sends messages"""
         bot = DiscordBot()
@@ -205,6 +235,8 @@ class TestDiscordBotBehavior:
         assert isinstance(result, bool), "Message sending should return boolean"
         # Note: In a real test, we'd verify the message was actually sent to Discord
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_send_message_handles_errors(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot send_message handles errors gracefully"""
         bot = DiscordBot()
@@ -217,6 +249,8 @@ class TestDiscordBotBehavior:
             
             assert result is False, "Message sending should fail gracefully"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_receive_messages_returns_actual_data(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot receive_messages returns actual message data"""
         bot = DiscordBot()
@@ -227,6 +261,8 @@ class TestDiscordBotBehavior:
         assert isinstance(messages, list), "Messages should be a list"
         # Note: In a real test, we'd verify actual message content
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_health_check_verifies_actual_status(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot health check actually verifies system status"""
         bot = DiscordBot()
@@ -238,6 +274,8 @@ class TestDiscordBotBehavior:
         assert isinstance(result, bool), "Health check should return boolean"
         # Note: In a real test, we'd verify actual health metrics
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_health_status_returns_actual_metrics(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot health status returns actual system metrics"""
         bot = DiscordBot()
@@ -249,6 +287,8 @@ class TestDiscordBotBehavior:
         assert "connection_status" in health_status, "Health status should include connection status"
         assert "bot_ready" in health_status, "Health status should include bot readiness"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_connection_status_summary_returns_readable_string(self, test_data_dir):
         """Test that Discord bot connection status summary returns readable string"""
         bot = DiscordBot()
@@ -258,6 +298,8 @@ class TestDiscordBotBehavior:
         assert isinstance(summary, str), "Summary should be a string"
         assert len(summary) > 0, "Summary should not be empty"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_is_actually_connected_checks_real_state(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot is_actually_connected checks real connection state"""
         bot = DiscordBot()
@@ -268,6 +310,8 @@ class TestDiscordBotBehavior:
         
         assert isinstance(connected, bool), "Connection status should be boolean"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_manual_reconnect_actually_reconnects(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot manual reconnect actually attempts reconnection"""
         bot = DiscordBot()
@@ -280,6 +324,8 @@ class TestDiscordBotBehavior:
         assert isinstance(result, bool), "Manual reconnect should return boolean"
         # Note: In a real environment, this would attempt reconnection
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_start_creates_thread(self, test_data_dir):
         """Test that Discord bot start actually creates a thread"""
         bot = DiscordBot()
@@ -293,6 +339,8 @@ class TestDiscordBotBehavior:
             assert mock_thread_class.called, "Thread should be created"
             assert mock_thread.start.called, "Thread should be started"
 
+    @pytest.mark.channels
+    @pytest.mark.critical
     def test_discord_bot_stop_actually_stops_thread(self, test_data_dir):
         """Test that Discord bot stop actually stops the thread"""
         bot = DiscordBot()
@@ -302,6 +350,8 @@ class TestDiscordBotBehavior:
         
         assert bot.discord_thread.join.called, "Thread should be joined"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_is_initialized_checks_actual_state(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot is_initialized checks actual initialization state"""
         bot = DiscordBot()
@@ -314,6 +364,8 @@ class TestDiscordBotBehavior:
         bot._set_status(ChannelStatus.READY)
         assert bot.is_initialized(), "Should be initialized after setup"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_send_dm_actually_sends_direct_message(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot send_dm actually sends direct messages"""
         bot = DiscordBot()
@@ -352,6 +404,8 @@ class TestDiscordBotIntegration:
             mock_bot.guilds = []
             yield mock_bot
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_integration_with_conversation_manager(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with conversation manager"""
         from bot.conversation_manager import conversation_manager
@@ -363,6 +417,8 @@ class TestDiscordBotIntegration:
         
         assert bot.channel_type == ChannelType.ASYNC, "Bot should be ASYNC type for conversation manager"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_integration_with_user_management(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with user management"""
         from core.user_management import get_user_id_by_discord_user_id, get_all_user_ids
@@ -387,6 +443,8 @@ class TestDiscordBotIntegration:
             assert isinstance(all_user_ids, list), "get_all_user_ids should return a list"
             assert len(all_user_ids) > 0, "Should have at least one user for testing"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     @pytest.mark.slow
     def test_discord_bot_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that Discord bot error handling preserves system stability"""
@@ -399,6 +457,8 @@ class TestDiscordBotIntegration:
             assert isinstance(result, bool), "Should return boolean result"
             # Note: In a real environment without token, this would fail gracefully
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_performance_under_load(self, test_data_dir):
         """Test that Discord bot performs well under load"""
         bot = DiscordBot()
@@ -414,6 +474,8 @@ class TestDiscordBotIntegration:
         
         assert duration < 5.0, "Health checks should complete quickly under load"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_cleanup_and_resource_management(self, test_data_dir, mock_discord_bot):
         """Test that Discord bot properly manages resources and cleanup"""
         bot = DiscordBot()
@@ -426,6 +488,8 @@ class TestDiscordBotIntegration:
         assert bot.get_status() == ChannelStatus.STOPPED, "Should be stopped after shutdown"
         # Note: In a real environment, the bot.close() would be called
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_with_real_user_data(self, test_data_dir, test_user_setup):
         """Test Discord bot with real user data"""
         user_id = test_user_setup
@@ -438,6 +502,8 @@ class TestDiscordBotIntegration:
         assert "connection_status" in health_status, "Should provide health status"
         assert isinstance(health_status["connection_status"], str), "Connection status should be string"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     @pytest.mark.slow
     def test_discord_bot_error_recovery_with_real_files(self, test_data_dir):
         """Test Discord bot error recovery with real files"""
@@ -455,6 +521,8 @@ class TestDiscordBotIntegration:
                         result = asyncio.run(bot.manual_reconnect())
                         assert isinstance(result, bool), "Reconnect should return boolean"
 
+    @pytest.mark.channels
+    @pytest.mark.regression
     def test_discord_bot_concurrent_access_safety(self, test_data_dir):
         """Test that Discord bot handles concurrent access safely"""
         bot = DiscordBot()

@@ -70,7 +70,7 @@ class TestTagWidgetBehavior:
         
         # Create widget with valid user_id
         widget = TagWidget(mode="management", parent=None, user_id=actual_user_id)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -79,10 +79,17 @@ class TestTagWidgetBehavior:
         widget.deleteLater()
     
     @pytest.mark.ui
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.user_management
+    @pytest.mark.tasks
+    @pytest.mark.checkins
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check management mode elements
@@ -91,6 +98,12 @@ class TestTagWidgetBehavior:
         assert hasattr(widget.ui, 'listWidget_tags'), "Tags list should exist"
     
     @pytest.mark.ui
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.user_management
+    @pytest.mark.tasks
+    @pytest.mark.checkins
     def test_tag_management_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test adding and removing tags works correctly."""
         # ✅ VERIFY REAL BEHAVIOR: Check widget has user_id set
@@ -112,6 +125,12 @@ class TestTagWidgetBehavior:
             assert item.text(), "Tag text should not be empty"
     
     @pytest.mark.ui
+    @pytest.mark.critical
+    @pytest.mark.regression
+    @pytest.mark.slow
+    @pytest.mark.user_management
+    @pytest.mark.tasks
+    @pytest.mark.checkins
     def test_tag_selection_mode_real_behavior(self, qapp, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test widget works in selection mode."""
         # Create test user with task focus (includes task settings with tags)
@@ -125,7 +144,7 @@ class TestTagWidgetBehavior:
         
         # Create widget in selection mode with valid user_id
         widget = TagWidget(mode="selection", parent=None, user_id=actual_user_id)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         # ✅ VERIFY REAL BEHAVIOR: Check selection mode elements
         assert hasattr(widget.ui, 'listWidget_tags'), "Tags list should exist in selection mode"
@@ -151,7 +170,7 @@ class TestTaskSettingsWidgetBehavior:
         
         # Create widget
         widget = TaskSettingsWidget(user_id=actual_user_id, parent=None)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -162,8 +181,9 @@ class TestTaskSettingsWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check task settings elements
@@ -213,7 +233,7 @@ class TestCategorySelectionWidgetBehavior:
         
         # Create widget
         widget = CategorySelectionWidget(parent=None)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -224,8 +244,9 @@ class TestCategorySelectionWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check category selection elements
@@ -271,7 +292,7 @@ class TestChannelSelectionWidgetBehavior:
         
         # Create widget
         widget = ChannelSelectionWidget(parent=None)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -282,8 +303,9 @@ class TestChannelSelectionWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check channel selection elements
@@ -308,7 +330,7 @@ class TestCheckinSettingsWidgetBehavior:
         
         # Create widget
         widget = CheckinSettingsWidget(user_id=actual_user_id, parent=None)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -319,8 +341,9 @@ class TestCheckinSettingsWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check check-in settings elements
@@ -358,7 +381,7 @@ class TestUserProfileSettingsWidgetBehavior:
         
         # Create widget
         widget = UserProfileSettingsWidget(user_id=actual_user_id, parent=None)
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -369,8 +392,9 @@ class TestUserProfileSettingsWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check profile settings elements
@@ -399,7 +423,7 @@ class TestPeriodRowWidgetBehavior:
             parent=parent
         )
         parent.layout().addWidget(widget)
-        parent.show()
+        # parent.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -410,8 +434,9 @@ class TestPeriodRowWidgetBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check period row elements
@@ -432,7 +457,7 @@ class TestDynamicListFieldBehavior:
             editable=True,
             checked=False
         )
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -443,8 +468,9 @@ class TestDynamicListFieldBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         assert hasattr(widget, 'ui'), "Widget should have UI loaded"
         
         # ✅ VERIFY REAL BEHAVIOR: Check dynamic list elements
@@ -477,7 +503,7 @@ class TestDynamicListContainerBehavior:
             parent=None,
             field_key="test_field"
         )
-        widget.show()
+        # widget.show()  # Removed - widgets should not be shown during automated testing
         
         yield widget
         
@@ -488,8 +514,9 @@ class TestDynamicListContainerBehavior:
     @pytest.mark.ui
     def test_widget_initialization_real_behavior(self, widget):
         """REAL BEHAVIOR TEST: Test widget initializes correctly with proper UI state."""
-        # ✅ VERIFY INITIAL STATE: Check widget exists and is visible
-        assert widget.isVisible(), "Widget should be visible"
+        # ✅ VERIFY INITIAL STATE: Check widget exists and is not visible during testing
+        assert widget is not None, "Widget should be created"
+        assert not widget.isVisible(), "Widget should not be visible during automated testing"
         # DynamicListContainer is a custom widget without a UI file
         
         # ✅ VERIFY REAL BEHAVIOR: Check container elements

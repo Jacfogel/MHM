@@ -65,12 +65,20 @@ class TestCommunicationManager:
         mock_channel.status = ChannelStatus.READY
         return mock_channel
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_communication_manager_singleton(self, comm_manager):
         """Test that CommunicationManager follows singleton pattern."""
         manager1 = CommunicationManager()
         manager2 = CommunicationManager()
         assert manager1 is manager2
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_communication_manager_initialization(self, comm_manager):
         """Test CommunicationManager initialization."""
         assert comm_manager._channels_dict == {}
@@ -78,6 +86,10 @@ class TestCommunicationManager:
         assert comm_manager.scheduler_manager is None
         assert comm_manager._running is False
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     @patch('bot.communication_manager.ChannelFactory')
     def test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel):
         """Test channel initialization from configuration with realistic channel behavior."""
@@ -95,6 +107,10 @@ class TestCommunicationManager:
             # Note: The actual implementation doesn't call create_channel directly in this method
             # It's called in the async method, so we don't verify it here
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_get_available_channels(self, comm_manager, realistic_mock_channel):
         """Test getting available channels with realistic channel setup."""
         # Add realistic mock channels
@@ -110,6 +126,10 @@ class TestCommunicationManager:
         assert 'telegram' in available
         assert len(available) == 3
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel):
         """Test checking if a channel is ready with realistic channel behavior."""
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
@@ -127,6 +147,10 @@ class TestCommunicationManager:
         # Verify the is_ready method was called
         assert realistic_mock_channel.is_ready.call_count >= 2
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_send_message_sync_with_realistic_channel(self, comm_manager, realistic_mock_channel):
         """Test synchronous message sending with realistic channel behavior."""
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
@@ -141,6 +165,10 @@ class TestCommunicationManager:
         # The function should return True if the channel sends successfully
         assert result is True
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_send_message_sync_channel_not_ready(self, comm_manager, realistic_mock_channel):
         """Test synchronous message sending when channel is not ready."""
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
@@ -157,6 +185,10 @@ class TestCommunicationManager:
         # Verify send_message was called
         realistic_mock_channel.send_message.assert_called_once_with('user123', 'Test message')
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_send_message_sync_channel_not_found(self, comm_manager):
         """Test synchronous message sending when channel doesn't exist."""
         result = comm_manager.send_message_sync('nonexistent', 'user123', 'Test message')
@@ -164,6 +196,10 @@ class TestCommunicationManager:
         # Should return False when channel doesn't exist
         assert result is False
     
+    @pytest.mark.behavior
+    @pytest.mark.communication
+    @pytest.mark.critical
+    @pytest.mark.regression
     def test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel):
         """Test error handling in communication manager."""
         realistic_mock_channel.is_ready.side_effect = Exception("Channel error")
