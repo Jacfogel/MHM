@@ -3,7 +3,7 @@
 import json
 import os
 import threading
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import (
     get_user_data,
     update_user_account,
@@ -15,6 +15,7 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+context_logger = get_component_logger('user_activity')
 
 class UserContext:
     _instance = None

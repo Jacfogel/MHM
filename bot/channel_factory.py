@@ -1,11 +1,12 @@
 from typing import Dict, Type, Optional
 from bot.base_channel import BaseChannel, ChannelConfig
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
 logger = get_logger(__name__)
+factory_logger = get_component_logger('channels')
 
 class ChannelFactory:
     """Factory for creating communication channels"""

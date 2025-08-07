@@ -8,7 +8,7 @@ import json
 import time
 from datetime import datetime
 from typing import List, Dict, Any, Optional
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
 from core.config import (
@@ -20,6 +20,7 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+tracking_logger = get_component_logger('user_activity')
 
 def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""

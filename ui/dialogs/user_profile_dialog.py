@@ -28,9 +28,10 @@ from ui.generated.user_profile_management_dialog_pyqt import Ui_Dialog_user_prof
 from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_settings
 
 # Set up logging
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
 logger = get_logger(__name__)
+dialog_logger = get_component_logger('main')
 
 # Import core functionality
 from core.user_management import (

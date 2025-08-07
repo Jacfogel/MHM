@@ -3,11 +3,66 @@
 > **Audience**: AI collaborators & developers  
 > **Purpose**: Brief summaries of recent changes for AI context  
 > **Style**: Concise, action-oriented, scannable  
-> **Last Updated**: 2025-08-05
+> **Last Updated**: 2025-08-07
 
 > **See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for complete detailed changelog history**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-08-07 - Enhanced Logging System with Component Separation ✅ **COMPLETED**
+- **Implemented comprehensive logging system improvements** with organized directory structure and component-based separation
+- **New Logs Directory Structure**:
+  - `logs/` - Main logs directory
+  - `logs/backups/` - Rotated log files
+  - `logs/archive/` - Compressed old logs
+- **Component-Based Log Separation**:
+  - `logs/app.log` - Main application logs
+  - `logs/discord.log` - Discord bot specific logs
+  - `logs/ai.log` - AI interactions and processing
+  - `logs/user_activity.log` - User actions and check-ins
+  - `logs/errors.log` - Error and critical messages only
+- **Enhanced Features**:
+  - **Structured Logging**: JSON-formatted metadata with log messages
+  - **Time-Based Rotation**: Daily log rotation with 7-day retention
+  - **Log Compression**: Automatic compression of logs older than 7 days
+  - **Component Loggers**: `get_component_logger()` function for targeted logging
+  - **Better Organization**: Clean separation of concerns for easier debugging
+- **Configuration Updates**: Updated `core/config.py` with new log file paths and directory structure
+- **Backward Compatibility**: Maintained support for existing logging while adding new capabilities
+- **Component Logger Migration**: Updated 42 files across all system components to use component-specific loggers
+- **Test Fixes**: Fixed 2 logger behavior test failures (missing `total_files` field and cleanup function bug)
+- **Documentation**: Moved LOGGING_GUIDE.md to logs directory for better organization
+- **Impact**: Much easier debugging, better performance, targeted log analysis, and cleaner organization
+
+### 2025-08-07 - Discord Heartbeat Warning Spam Resolution ✅ **COMPLETED**
+- **Fixed Discord bot heartbeat warning spam** that was flooding logs (2MB+ log files)
+- **Root Cause**: Discord bot event loop was blocking heartbeat mechanism due to improper task management
+- **Event Loop Fix**: Restructured Discord bot main loop to properly await bot task and handle command queue concurrently
+  - Split `_bot_main_loop` into separate `_process_command_queue` method
+  - Used `asyncio.wait()` to handle both bot and command queue tasks properly
+  - Ensured Discord bot heartbeat mechanism can run without interference
+- **Smart Logging Filter**: Implemented `HeartbeatWarningFilter` to intelligently handle remaining warnings
+  - Allows first 3 heartbeat warnings to pass through (for early problem detection)
+  - Suppresses subsequent warnings for 10 minutes (prevents spam)
+  - Logs summary every hour with total warning count
+  - Automatically resets suppression cycle after 10 minutes
+- **Log File Size**: Reduced from 2MB+ to normal size (~100KB)
+- **Impact**: Discord bot now runs reliably without log spam, while maintaining ability to detect real problems
+
+### 2025-08-07 - UI Test Failures Resolution ✅ **COMPLETED**
+- **Fixed 7 UI test failures** that were blocking reliable UI testing infrastructure
+- **Widget Constructor Issues**: Fixed 4 failures due to parameter mismatches
+  - CategorySelectionWidget and ChannelSelectionWidget: Removed non-existent `user_id` parameter
+  - DynamicListField: Fixed parameter names (`preset_label`, `editable`, `checked` instead of `title`, `items`)
+  - DynamicListContainer: Fixed parameter names (`field_key` instead of `title`, `items`)
+- **Account Creation Test Issues**: Fixed 3 failures due to user ID lookup problems
+  - Updated tests to use proper user ID lookup from test utilities
+  - Fixed user context update failures in integration tests
+  - Fixed missing account data in persistence tests
+  - Fixed duplicate username handling test failures
+- **Test Expectations**: Updated tests to match actual test utility behavior
+- **Result**: All 591 tests now passing (100% success rate)
+- **Impact**: UI testing infrastructure fully restored, enabling confident UI development
 
 ### 2025-08-05 - Pytest Marker Application Project ✅ **COMPLETED**
 - **Applied pytest markers to all test files** across 4 directories (unit, behavior, integration, UI)

@@ -12,9 +12,11 @@ import logging
 from typing import Optional, Dict, Any, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
+from core.logger import get_component_logger
 
 # Use basic logging to avoid circular imports
 logger = logging.getLogger(__name__)
+error_logger = get_component_logger('errors')
 
 # ============================================================================
 # CUSTOM EXCEPTIONS
@@ -349,6 +351,13 @@ class ErrorHandler:
         
         try:
             logger.error(error_msg, exc_info=True)
+            # Use component logger for structured error logging
+            error_logger.error("Error occurred", 
+                             operation=context.get('operation', 'unknown'),
+                             error_type=type(error).__name__,
+                             error_message=str(error),
+                             file_path=context.get('file_path'),
+                             user_id=context.get('user_id'))
         except Exception as log_error:
             # If logging fails, we don't want to break the error handling
             # Just print to stderr as a fallback

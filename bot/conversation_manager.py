@@ -19,13 +19,14 @@ Usage:
 import os
 import json
 from bot.ai_chatbot import get_ai_chatbot
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.response_tracking import is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins, store_daily_checkin_response
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
 logger = get_logger(__name__)
+conversation_logger = get_component_logger('communication')
 
 # We'll define 'flow' constants
 FLOW_NONE = 0

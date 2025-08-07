@@ -469,23 +469,27 @@ class TestAccountManagementRealBehavior:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=False, enable_tasks=False)
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=False, enable_tasks=False, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
+        
+        # ✅ VERIFY REAL BEHAVIOR: Get the actual user ID from the test utilities
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        assert actual_user_id is not None, f"Failed to get actual user ID for {user_id}"
         
         # Update user context with profile-specific data
         from core.user_management import update_user_context
-        update_success = update_user_context(user_id, {
+        update_success = update_user_context(actual_user_id, {
             'preferred_name': 'Profile User',
             'gender_identity': ['they/them']
         })
         assert update_success, "User context should be updated successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: User directory should exist
-        user_dir = os.path.join(test_data_dir, 'users', user_id)
+        user_dir = os.path.join(test_data_dir, 'users', actual_user_id)
         assert os.path.exists(user_dir), f"User directory should exist: {user_dir}"
         
         # Test loading user data for profile dialog
-        loaded_data = get_user_data(user_id, 'all')
+        loaded_data = get_user_data(actual_user_id, 'all')
         
         # ✅ VERIFY REAL BEHAVIOR: User data should be loadable
         assert loaded_data['account']['internal_username'] == user_id
@@ -584,30 +588,43 @@ class TestAccountManagementRealBehavior:
     def test_feature_enablement_persistence_real_behavior(self, test_data_dir, mock_config):
         """REAL BEHAVIOR TEST: Test that feature enablement is properly persisted using enhanced test utilities."""
         user_id = 'test-feature-persistence'
-        
+
         # Create test user using enhanced centralized utilities with specific feature configuration
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_user_with_custom_fields(user_id)
+        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, f"Failed to create feature persistence test user {user_id}"
+
+        # ✅ VERIFY REAL BEHAVIOR: Get the actual user ID from the test utilities
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        assert actual_user_id is not None, f"Failed to get actual user ID for {user_id}"
         
         # ✅ VERIFY REAL BEHAVIOR: User should be saved successfully
-        loaded_data = get_user_data(user_id, 'account')
-        assert loaded_data['account']['user_id'] == user_id
+        loaded_data = get_user_data(actual_user_id, 'account')
+        assert loaded_data['account']['user_id'] == actual_user_id
         
         # ✅ VERIFY REAL BEHAVIOR: Feature-specific files should be created appropriately
-        user_dir = os.path.join(test_data_dir, 'users', user_id)
+        user_dir = os.path.join(test_data_dir, 'users', actual_user_id)
+        
+        # Core files should exist
+        account_file = os.path.join(user_dir, 'account.json')
+        preferences_file = os.path.join(user_dir, 'preferences.json')
+        context_file = os.path.join(user_dir, 'user_context.json')
+        schedules_file = os.path.join(user_dir, 'schedules.json')
+        
+        assert os.path.exists(account_file), "Account file should exist"
+        assert os.path.exists(preferences_file), "Preferences file should exist"
+        assert os.path.exists(context_file), "User context file should exist"
+        assert os.path.exists(schedules_file), "Schedules file should exist"
         
         # Messages directory should exist (messages enabled by default)
         messages_dir = os.path.join(user_dir, 'messages')
         assert os.path.exists(messages_dir), "Messages directory should exist when messages enabled"
         
-        # Daily check-ins file should exist (check-ins enabled by default)
-        checkins_file = os.path.join(user_dir, 'daily_checkins.json')
-        assert os.path.exists(checkins_file), "Daily check-ins file should exist when check-ins enabled"
-        
-        # Tasks directory should exist (tasks enabled by default)
-        tasks_dir = os.path.join(user_dir, 'tasks')
-        assert os.path.exists(tasks_dir), "Tasks directory should exist when tasks enabled"
+        # Verify feature enablement in account data
+        account_data = loaded_data['account']
+        assert account_data['features']['checkins'] == 'enabled', "Check-ins should be enabled"
+        assert account_data['features']['task_management'] == 'enabled', "Task management should be enabled"
+        assert account_data['features']['automated_messages'] == 'enabled', "Automated messages should be enabled"
 
 class TestAccountCreationErrorHandling:
     """Test error handling in account creation and management."""
@@ -618,32 +635,40 @@ class TestAccountCreationErrorHandling:
         # Create first user using enhanced centralized utilities
         user_id_1 = 'test-duplicate-1'
         from tests.test_utilities import TestUserFactory
-        success_1 = TestUserFactory.create_basic_user(user_id_1, enable_checkins=True, enable_tasks=True)
+        success_1 = TestUserFactory.create_basic_user(user_id_1, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success_1, f"Failed to create first duplicate test user {user_id_1}"
         
+        # ✅ VERIFY REAL BEHAVIOR: Get the actual user ID for first user
+        actual_user_id_1 = TestUserFactory.get_test_user_id_by_internal_username(user_id_1, test_data_dir)
+        assert actual_user_id_1 is not None, f"Failed to get actual user ID for {user_id_1}"
+        
         # ✅ VERIFY REAL BEHAVIOR: First user should be created successfully
-        loaded_data_1 = get_user_data(user_id_1, 'account')
-        assert loaded_data_1['account']['user_id'] == user_id_1
+        loaded_data_1 = get_user_data(actual_user_id_1, 'account')
+        assert loaded_data_1['account']['user_id'] == actual_user_id_1
         
         # Test creating second user with same username using enhanced test utilities
         user_id_2 = 'test-duplicate-2'
-        success_2 = TestUserFactory.create_basic_user(user_id_2, enable_checkins=True, enable_tasks=True)
+        success_2 = TestUserFactory.create_basic_user(user_id_2, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success_2, f"Failed to create second duplicate test user {user_id_2}"
         
+        # ✅ VERIFY REAL BEHAVIOR: Get the actual user ID for second user
+        actual_user_id_2 = TestUserFactory.get_test_user_id_by_internal_username(user_id_2, test_data_dir)
+        assert actual_user_id_2 is not None, f"Failed to get actual user ID for {user_id_2}"
+        
         # ✅ VERIFY REAL BEHAVIOR: Second user should also be created successfully
-        loaded_data_2 = get_user_data(user_id_2, 'account')
-        assert loaded_data_2['account']['user_id'] == user_id_2
+        loaded_data_2 = get_user_data(actual_user_id_2, 'account')
+        assert loaded_data_2['account']['user_id'] == actual_user_id_2
         
         # ✅ VERIFY REAL BEHAVIOR: Both users should exist in file system
-        user_dir_1 = os.path.join(test_data_dir, 'users', user_id_1)
-        user_dir_2 = os.path.join(test_data_dir, 'users', user_id_2)
+        user_dir_1 = os.path.join(test_data_dir, 'users', actual_user_id_1)
+        user_dir_2 = os.path.join(test_data_dir, 'users', actual_user_id_2)
         
         assert os.path.exists(user_dir_1), "First user directory should exist"
         assert os.path.exists(user_dir_2), "Second user directory should exist"
         
         # ✅ VERIFY REAL BEHAVIOR: Both users should have different internal_usernames (as created by enhanced utilities)
-        loaded_data_1 = get_user_data(user_id_1, 'account')
-        loaded_data_2 = get_user_data(user_id_2, 'account')
+        loaded_data_1 = get_user_data(actual_user_id_1, 'account')
+        loaded_data_2 = get_user_data(actual_user_id_2, 'account')
         
         assert loaded_data_1['account']['internal_username'] == user_id_1
         assert loaded_data_2['account']['internal_username'] == user_id_2

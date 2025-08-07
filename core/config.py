@@ -14,7 +14,6 @@ from core.error_handling import (
     ConfigurationError, ValidationError, handle_configuration_error,
     handle_errors, error_handler
 )
-
 # Set up basic logging for config issues
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -90,7 +89,21 @@ LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING').upper()  # Default to WARNING for 
 LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
 LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))  # Keep 5 backup files
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'  # Compress old logs
-LOG_BACKUP_DIR = os.getenv('LOG_BACKUP_DIR', os.path.join(BASE_DATA_DIR, 'backups'))  # Backup directory for rotated logs
+
+# New organized logging structure
+LOGS_DIR = os.getenv('LOGS_DIR', 'logs')  # Main logs directory
+LOG_BACKUP_DIR = os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups'))  # Backup directory for rotated logs
+LOG_ARCHIVE_DIR = os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive'))  # Archive directory for old logs
+
+# Component-specific log files
+LOG_MAIN_FILE = os.getenv('LOG_MAIN_FILE', os.path.join(LOGS_DIR, 'app.log'))  # Main application log
+LOG_DISCORD_FILE = os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord.log'))  # Discord bot log
+LOG_AI_FILE = os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log'))  # AI interactions log
+LOG_USER_ACTIVITY_FILE = os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log'))  # User activity log
+LOG_ERRORS_FILE = os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log'))  # Errors only log
+
+# Legacy support - keep old path for backward compatibility, but default to new location
+LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', LOG_MAIN_FILE)  # Default to new main log file in logs/
 
 # Communication Channel Configurations (non-blocking)
 # TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated

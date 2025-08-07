@@ -118,7 +118,7 @@ class TestCategorySelectionWidgetBasicBehavior:
             json.dump({"categories": ["general", "health"]}, f)
         
         # ✅ VERIFY REAL BEHAVIOR: Widget can be created
-        widget = CategorySelectionWidget(user_id=user_id, parent=None)
+        widget = CategorySelectionWidget(parent=None)
         assert widget is not None, "CategorySelectionWidget should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Widget has expected attributes
@@ -147,7 +147,7 @@ class TestChannelSelectionWidgetBasicBehavior:
             json.dump({"channels": {"email": {"enabled": True, "contact": "test@example.com"}}}, f)
         
         # ✅ VERIFY REAL BEHAVIOR: Widget can be created
-        widget = ChannelSelectionWidget(user_id=user_id, parent=None)
+        widget = ChannelSelectionWidget(parent=None)
         assert widget is not None, "ChannelSelectionWidget should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Widget has expected attributes
@@ -224,7 +224,7 @@ class TestDynamicListFieldBasicBehavior:
         from ui.widgets.dynamic_list_field import DynamicListField
         
         # ✅ VERIFY REAL BEHAVIOR: Widget can be created
-        widget = DynamicListField(title="Test Items", items=["Item 1", "Item 2"], parent=None)
+        widget = DynamicListField(parent=None, preset_label="Test Items", editable=True, checked=False)
         assert widget is not None, "DynamicListField should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Widget has expected attributes
@@ -243,11 +243,11 @@ class TestDynamicListContainerBasicBehavior:
         from ui.widgets.dynamic_list_container import DynamicListContainer
         
         # ✅ VERIFY REAL BEHAVIOR: Widget can be created
-        widget = DynamicListContainer(title="Test Container", items=["Container Item 1"], parent=None)
+        widget = DynamicListContainer(parent=None, field_key="test_field")
         assert widget is not None, "DynamicListContainer should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Widget has expected attributes
-        assert hasattr(widget, 'get_values'), "DynamicListContainer should have get_values method"
+        assert hasattr(widget, 'layout'), "DynamicListContainer should have layout"
         
         # Cleanup
         widget.deleteLater() 

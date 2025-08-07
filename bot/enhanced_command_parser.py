@@ -13,7 +13,7 @@ import re
 import json
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from core.config import (
     AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD, AI_AI_ENHANCED_CONFIDENCE_THRESHOLD,
@@ -24,6 +24,7 @@ from bot.ai_chatbot import get_ai_chatbot
 from bot.interaction_handlers import ParsedCommand, get_all_handlers
 
 logger = get_logger(__name__)
+parser_logger = get_component_logger('ai')
 
 @dataclass
 class ParsingResult:

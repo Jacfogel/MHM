@@ -11,7 +11,7 @@ This module provides a unified interface for handling user interactions by:
 """
 
 from typing import Optional, Dict, Any
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_MAX_RESPONSE_LENGTH
 from bot.enhanced_command_parser import get_enhanced_command_parser, ParsingResult
@@ -20,6 +20,7 @@ from bot.ai_chatbot import get_ai_chatbot
 from bot.conversation_manager import conversation_manager
 
 logger = get_logger(__name__)
+interaction_logger = get_component_logger('communication')
 
 class InteractionManager:
     """Main manager for handling user interactions across all channels"""

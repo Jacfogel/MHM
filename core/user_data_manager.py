@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import (
     USER_INFO_DIR_PATH,
     get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR
@@ -26,6 +26,7 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+data_manager_logger = get_component_logger('user_activity')
 
 class UserDataManager:
     """Enhanced user data management with references, backup, and indexing capabilities"""

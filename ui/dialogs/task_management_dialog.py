@@ -8,12 +8,13 @@ from core.schedule_management import set_schedule_periods, clear_schedule_period
 from core.user_data_handlers import update_user_preferences, update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 from core.user_data_validation import validate_schedule_periods
 from tasks.task_management import setup_default_task_tags
 
 setup_logging()
 logger = get_logger(__name__)
+dialog_logger = get_component_logger('main')
 
 class TaskManagementDialog(QDialog):
     user_changed = Signal()

@@ -5,10 +5,11 @@ Contains functions for UI-specific operations like widget management and layout 
 """
 
 from typing import Dict, Any, List, Optional
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 
 logger = get_logger(__name__)
+ui_logger = get_component_logger('main')
 
 
 @handle_errors("clearing period widgets from layout", default_return=None)

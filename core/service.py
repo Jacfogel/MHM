@@ -13,9 +13,10 @@ from typing import List
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set up logging FIRST before any other imports
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
 logger = get_logger(__name__)
+main_logger = get_component_logger('main')
 logger.debug("Logging setup successfully.")
 
 # Import configuration validation
@@ -62,6 +63,7 @@ class MHMService:
     def validate_configuration(self):
         """Validate all configuration settings before starting the service."""
         logger.info("Validating configuration...")
+        main_logger.info("Service configuration validation started")
         
         # Print configuration report for debugging
         print_configuration_report()
@@ -70,6 +72,7 @@ class MHMService:
         available_channels = validate_and_raise_if_invalid()
         
         logger.info(f"Configuration validation passed. Available channels: {', '.join(available_channels)}")
+        main_logger.info("Service configuration validation completed", available_channels=available_channels)
         return available_channels
         
     @handle_errors("initializing paths")
@@ -217,6 +220,7 @@ class MHMService:
         Sets up signal handlers for graceful shutdown.
         """
         logger.info("Starting MHM Backend Service...")
+        main_logger.info("MHM backend service startup initiated")
         self.running = True
         
         # Set up signal handlers for graceful shutdown
@@ -293,6 +297,7 @@ class MHMService:
             self.startup_time = time.time()
 
             logger.info("MHM Backend Service initialized successfully and running.")
+            main_logger.info("MHM backend service initialized successfully", startup_time=self.startup_time)
             
             # Keep the service running
             self.run_service_loop()

@@ -8,7 +8,7 @@ import os
 import json
 import uuid
 from datetime import datetime
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.error_handling import (
@@ -18,6 +18,7 @@ from core.error_handling import (
 from typing import List
 
 logger = get_logger(__name__)
+message_logger = get_component_logger('main')
 
 @handle_errors("getting message categories", default_return=[])
 def get_message_categories():

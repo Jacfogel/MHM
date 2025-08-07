@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 import json
 
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
@@ -31,6 +31,7 @@ from core.response_tracking import (
 from core.user_management import load_user_schedules_data
 
 logger = get_logger(__name__)
+handlers_logger = get_component_logger('communication')
 
 @dataclass
 class InteractionResponse:

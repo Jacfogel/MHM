@@ -21,9 +21,10 @@ from PySide6.QtCore import Qt, QTimer, QThread, Signal
 from PySide6.QtGui import QFont, QIcon
 
 # Set up logging
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
 logger = get_logger(__name__)
+ui_logger = get_component_logger('main')
 
 # Import configuration validation
 from core.config import validate_all_configuration, ConfigValidationError

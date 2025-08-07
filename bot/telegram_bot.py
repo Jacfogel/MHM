@@ -11,7 +11,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackCo
 import os
 import json
 import core.scheduler
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import TELEGRAM_BOT_TOKEN
 from user.user_context import UserContext
 import uuid
@@ -32,6 +32,7 @@ from core.error_handling import (
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 
 logger = get_logger(__name__)
+telegram_logger = get_component_logger('telegram')
 
 # NEW: Additional states for daily check-in
 CHECKIN_MOOD, CHECKIN_BREAKFAST, CHECKIN_ENERGY, CHECKIN_TEETH = range(100, 104)  # Using large distinct enum

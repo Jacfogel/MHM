@@ -9,7 +9,7 @@ import uuid
 import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -19,6 +19,7 @@ from core.user_data_handlers import get_user_data
 from core.user_management import load_user_preferences_data
 
 logger = get_logger(__name__)
+task_logger = get_component_logger('main')
 
 class TaskManagementError(Exception):
     """Custom exception for task management errors."""

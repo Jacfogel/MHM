@@ -21,13 +21,14 @@ from core.ui_management import (
 from core.user_data_handlers import update_user_preferences
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 
 # Import our period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
 
 setup_logging()
 logger = get_logger(__name__)
+widget_logger = get_component_logger('main')
 
 class CheckinSettingsWidget(QWidget):
     """Widget for check-in settings configuration."""

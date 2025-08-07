@@ -3,12 +3,13 @@ from enum import Enum
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 import asyncio
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
 logger = get_logger(__name__)
+channel_logger = get_component_logger('channels')
 
 class ChannelStatus(Enum):
     UNINITIALIZED = "uninitialized"

@@ -15,7 +15,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
 from core.message_management import get_last_10_messages
@@ -24,6 +24,7 @@ from user.user_context import UserContext
 from user.user_preferences import UserPreferences
 
 logger = get_logger(__name__)
+context_logger = get_component_logger('user_activity')
 
 class UserContextManager:
     """Manages rich user context for AI conversations."""

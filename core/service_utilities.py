@@ -13,13 +13,14 @@ import requests
 from datetime import datetime, timedelta
 import pytz
 from typing import Optional
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import SCHEDULER_INTERVAL
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
 logger = get_logger(__name__)
+service_logger = get_component_logger('main')
 
 # Throttler class
 class Throttler:

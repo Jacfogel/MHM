@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from bot.channel_factory import ChannelFactory
@@ -23,6 +23,7 @@ from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
 from core.service_utilities import wait_for_network
 
 logger = get_logger(__name__)
+comm_logger = get_component_logger('communication')
 
 @dataclass
 class QueuedMessage:

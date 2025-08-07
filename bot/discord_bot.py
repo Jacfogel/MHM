@@ -13,7 +13,7 @@ import random
 import enum
 
 from core.config import DISCORD_BOT_TOKEN
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from bot.conversation_manager import conversation_manager
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 from core.user_management import get_user_id_by_discord_user_id
@@ -22,6 +22,7 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+discord_logger = get_component_logger('discord')
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -351,7 +352,34 @@ class DiscordBot(BaseChannel):
         # Start the Discord bot
         bot_task = asyncio.create_task(self.bot.start(DISCORD_BOT_TOKEN))
         
-        # Process command queue
+        # Process command queue concurrently with bot
+        command_task = asyncio.create_task(self._process_command_queue())
+        
+        try:
+            # Wait for either the bot to finish or a stop command
+            done, pending = await asyncio.wait(
+                [bot_task, command_task],
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Cancel any remaining tasks
+            for task in pending:
+                task.cancel()
+                try:
+                    await task
+                except asyncio.CancelledError:
+                    pass
+                    
+        except Exception as e:
+            logger.error(f"Error in Discord bot main loop: {e}")
+        finally:
+            # Ensure bot is properly closed
+            if not self.bot.is_closed():
+                await self.bot.close()
+
+    @handle_errors("processing Discord command queue")
+    async def _process_command_queue(self):
+        """Process command queue without blocking Discord bot heartbeat"""
         while True:
             try:
                 # Check for commands from main thread (non-blocking)
@@ -373,16 +401,18 @@ class DiscordBot(BaseChannel):
                         self._result_queue.put(result)
                     elif command == "stop":
                         logger.info("Discord bot received stop command")
-                        break
+                        return  # Exit the command processing loop
                         
                 except queue.Empty:
                     pass
                 
-                # Give Discord bot time to process
+                # Give Discord bot time to process heartbeat and other events
                 await asyncio.sleep(0.1)
                 
             except Exception as e:
                 logger.error(f"Error in Discord command processing: {e}")
+                # Continue processing even if one command fails
+                await asyncio.sleep(0.1)
 
     @handle_errors("registering Discord events")
     def _register_events(self):
@@ -391,6 +421,8 @@ class DiscordBot(BaseChannel):
         async def on_ready():
             logger.info(f"Discord Bot logged in as {self.bot.user}")
             print(f"Discord Bot is online as {self.bot.user}")
+            # Use component logger for structured Discord events
+            discord_logger.info("Discord bot connected", bot_name=str(self.bot.user), guild_count=len(self.bot.guilds))
             # Reset reconnect attempts on successful connection
             self._reconnect_attempts = 0
             self._set_status(ChannelStatus.READY)

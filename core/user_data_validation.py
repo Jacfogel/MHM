@@ -11,10 +11,11 @@ context, and schedules data.  It supersedes the old core.validation helpers.
 import re
 import os
 from typing import Dict, Any, Tuple, List
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 
 logger = get_logger(__name__)
+validation_logger = get_component_logger('user_activity')
 
 # ---------------------------------------------------------------------------
 # Primitive validators retained from old validation.py

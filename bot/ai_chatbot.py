@@ -16,7 +16,7 @@ import threading
 import requests
 import json
 from typing import Dict, Optional, Tuple
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import (
     LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, 
     AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
@@ -37,6 +37,7 @@ from core.error_handling import (
 
 
 logger = get_logger(__name__)
+ai_logger = get_component_logger('ai')
 
 class SystemPromptLoader:
     """
@@ -221,6 +222,8 @@ class AIChatBotSingleton:
         if response.status_code == 200:
             models_data = response.json()
             logger.info(f"LM Studio connection successful. Available models: {len(models_data.get('data', []))}")
+            ai_logger.info("LM Studio connection test successful", 
+                          available_models=len(models_data.get('data', [])))
             self.lm_studio_available = True
             
             # Log the first few models for debugging
@@ -230,9 +233,12 @@ class AIChatBotSingleton:
                 logger.info(f"Available models (first 3): {model_names}")
             else:
                 logger.warning("LM Studio is running but no models are loaded")
+                ai_logger.warning("LM Studio running but no models loaded")
                 
         else:
             logger.warning(f"LM Studio connection test failed: HTTP {response.status_code}")
+            ai_logger.warning("LM Studio connection test failed", 
+                             status_code=response.status_code)
             self.lm_studio_available = False
 
     @handle_errors("calling LM Studio API", default_return=None)

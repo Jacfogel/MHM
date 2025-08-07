@@ -4,10 +4,11 @@ from ui.generated.task_completion_dialog_pyqt import Ui_Dialog_task_completion
 
 # Import core functionality
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 
 setup_logging()
 logger = get_logger(__name__)
+dialog_logger = get_component_logger('main')
 
 class TaskCompletionDialog(QDialog):
     """Dialog for specifying task completion details."""

@@ -11,13 +11,14 @@ import json
 import statistics
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.response_tracking import get_recent_daily_checkins
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
 logger = get_logger(__name__)
+analytics_logger = get_component_logger('user_activity')
 
 class CheckinAnalytics:
     def __init__(self):

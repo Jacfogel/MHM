@@ -10,7 +10,7 @@ import time
 import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union, Tuple
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir, determine_file_path
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
@@ -18,6 +18,7 @@ from core.message_management import get_message_categories
 import inspect
 
 logger = get_logger(__name__)
+user_logger = get_component_logger('user_activity')
 
 # Cache configuration
 _cache_timeout = 300  # 5 minutes

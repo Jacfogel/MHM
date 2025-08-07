@@ -8,7 +8,7 @@ import time
 import calendar
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import determine_file_path, load_json_data, save_json_data, get_user_file_path
 from core.service_utilities import create_reschedule_request
@@ -18,6 +18,7 @@ from core.error_handling import (
 )
 
 logger = get_logger(__name__)
+schedule_logger = get_component_logger('main')
 
 _schedule_periods_cache = {}
 _cache_timeout = 30

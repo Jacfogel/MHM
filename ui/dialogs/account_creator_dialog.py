@@ -21,9 +21,10 @@ from PySide6.QtCore import Qt, Signal, QTime
 from PySide6.QtGui import QFont
 
 # Set up logging
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
 logger = get_logger(__name__)
+dialog_logger = get_component_logger('main')
 
 # Import core functionality
 from user.user_context import UserContext

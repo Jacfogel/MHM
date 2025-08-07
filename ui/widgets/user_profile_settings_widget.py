@@ -17,10 +17,11 @@ from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_
 
 # Import core functionality
 from core.user_management import get_timezone_options
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 
 setup_logging()
 logger = get_logger(__name__)
+widget_logger = get_component_logger('main')
 
 
 

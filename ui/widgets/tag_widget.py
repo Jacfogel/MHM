@@ -12,10 +12,11 @@ from PySide6.QtCore import Qt, Signal
 from ui.generated.tag_widget_pyqt import Ui_Widget_tag
 from tasks.task_management import get_user_task_tags, add_user_task_tag, remove_user_task_tag
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger
+from core.logger import setup_logging, get_logger, get_component_logger
 
 setup_logging()
 logger = get_logger(__name__)
+widget_logger = get_component_logger('main')
 
 class TagWidget(QWidget):
     """Flexible tag widget that can work in management or selection mode."""
