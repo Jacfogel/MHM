@@ -522,12 +522,9 @@ class DiscordBot(BaseChannel):
                                    user_id=internal_user_id, 
                                    error=str(e),
                                    fallback_used=True)
-                # Fall back to existing conversation manager
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    internal_user_id, message.content
-                )
-                if reply_text:
-                    await message.channel.send(reply_text)
+                # Don't fall back to conversation manager - interaction manager handles this internally
+                # Just send a generic error message
+                await message.channel.send("I'm having trouble processing your message right now. Please try again in a moment.")
 
     @handle_errors("registering Discord commands")
     def _register_commands(self):
@@ -570,11 +567,8 @@ class DiscordBot(BaseChannel):
                 await ctx.send(response.message)
             except Exception as e:
                 logger.error(f"Error in check-in command: {e}")
-                # Fall back to existing system
-                reply_text, completed = conversation_manager.handle_inbound_message(
-                    internal_user_id, "/dailycheckin"
-                )
-                await ctx.send(reply_text)
+                # Don't fall back to existing system - interaction manager handles this internally
+                await ctx.send("I'm having trouble starting your check-in right now. Please try again in a moment.")
 
         @self.bot.command(name="cancel")
         async def cancel_cmd(ctx):

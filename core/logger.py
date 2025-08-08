@@ -76,16 +76,17 @@ class ComponentLogger:
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
-        # Create file handler with rotation
-        file_handler = TimedRotatingFileHandler(
+        # Create file handler with rotation to backup directory
+        file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
+            backup_dir=LOG_BACKUP_DIR,
             when='midnight',
             interval=1,
             backupCount=7,  # Keep 7 days of logs
             encoding='utf-8'
         )
         
-        # Custom suffix for rotated files
+        # Set up daily rotation
         file_handler.suffix = "%Y-%m-%d"
         file_handler.namer = lambda name: name.replace(".log", "") + ".log"
         file_handler.setFormatter(formatter)
@@ -126,14 +127,14 @@ class ComponentLogger:
         self.logger.log(level, full_message)
 
 
-class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
+class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     """
     Custom rotating file handler that moves rotated files to a backup directory.
     """
     
-    def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False):
-        # RotatingFileHandler expects: filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, errors=None
-        super().__init__(filename, mode='a', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
+    def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
+        # TimedRotatingFileHandler expects: filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None
+        super().__init__(filename, when=when, interval=interval, backupCount=backupCount, encoding=encoding, delay=delay)
         self.backup_dir = backup_dir
         self.base_filename = filename
         
@@ -148,21 +149,15 @@ class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
             self.stream.close()
             self.stream = None
         
-        # Move existing backup files to backup directory
-        for i in range(self.backupCount - 1, 0, -1):
-            sfn = f"{self.baseFilename}.{i}"
-            dfn = f"{self.baseFilename}.{i + 1}"
-            if os.path.exists(sfn):
-                if os.path.exists(dfn):
-                    os.remove(dfn)
-                # Move to backup directory with timestamp
-                backup_name = f"{os.path.basename(self.baseFilename)}.{i}"
-                backup_path = os.path.join(self.backup_dir, backup_name)
-                shutil.move(sfn, backup_path)
+        # Get the rollover filename from parent class
+        current_time = int(time.time())
+        dst_time = self.rolloverAt - self.interval
+        time_tuple = time.localtime(dst_time)
+        dfn = self.rotation_filename(self.baseFilename + "." + time.strftime(self.suffix, time_tuple))
         
-        # Move current log file to backup directory
+        # Move current log file to backup directory if it exists
         if os.path.exists(self.baseFilename):
-            backup_name = f"{os.path.basename(self.baseFilename)}.1"
+            backup_name = f"{os.path.basename(self.baseFilename)}.{time.strftime(self.suffix, time_tuple)}"
             backup_path = os.path.join(self.backup_dir, backup_name)
             shutil.move(self.baseFilename, backup_path)
         
