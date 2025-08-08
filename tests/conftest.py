@@ -92,6 +92,13 @@ def setup_test_logging():
     # Prevent test logger from propagating to root logger
     test_logger.propagate = False
     
+    # Also set up a handler for any "mhm" loggers to go to test logs
+    mhm_logger = logging.getLogger("mhm")
+    mhm_logger.setLevel(logging.DEBUG)
+    mhm_logger.handlers.clear()
+    mhm_logger.addHandler(file_handler)
+    mhm_logger.propagate = False
+    
     return test_logger, test_log_file
 
 # Set up test logging

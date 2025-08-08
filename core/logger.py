@@ -45,6 +45,10 @@ if os.getenv('MHM_TESTING') == '1':
     # Clear any cached handlers
     root_logger.handlers.clear()
     main_logger.handlers.clear()
+    
+    # Set propagate to False to prevent test logs from bubbling up
+    root_logger.propagate = False
+    main_logger.propagate = False
 
 
 class ComponentLogger:
@@ -131,7 +135,9 @@ class BackupDirectoryRotatingFileHandler(RotatingFileHandler):
         # RotatingFileHandler expects: filename, mode='a', maxBytes=0, backupCount=0, encoding=None, delay=False, errors=None
         super().__init__(filename, mode='a', maxBytes=maxBytes, backupCount=backupCount, encoding=encoding, delay=delay)
         self.backup_dir = backup_dir
-        # Ensure backup directory exists
+        self.base_filename = filename
+        
+        # Ensure backup directory exists (even during tests, as tests may need it)
         os.makedirs(self.backup_dir, exist_ok=True)
     
     def doRollover(self):
@@ -259,6 +265,17 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     Returns:
         ComponentLogger: Logger for the specified component
     """
+    # Skip component logging if running tests to prevent test logs from going to main component logs
+    if os.getenv('MHM_TESTING') == '1':
+        # Return a dummy logger that does nothing during tests
+        class DummyComponentLogger:
+            def debug(self, message: str, **kwargs): pass
+            def info(self, message: str, **kwargs): pass
+            def warning(self, message: str, **kwargs): pass
+            def error(self, message: str, **kwargs): pass
+            def critical(self, message: str, **kwargs): pass
+        return DummyComponentLogger()
+    
     if component_name not in _component_loggers:
         # Map component names to log files
         log_file_map = {
@@ -302,8 +319,8 @@ def setup_logging():
     # Get log level from environment
     log_level = get_log_level_from_env()
     
-    # Create formatter
-    log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+    # Create formatter with component name
+    log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     # Set up file handler with UTF-8 encoding (always DEBUG)
     file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
