@@ -168,7 +168,16 @@ class ConversationManager:
             )
         
         # Initialize dynamic check-in flow based on user preferences
-        return self._start_dynamic_checkin(user_id)
+        result = self._start_dynamic_checkin(user_id)
+        
+        # Log user activity for check-in start
+        from core.logger import get_component_logger
+        user_logger = get_component_logger('user_activity')
+        user_logger.info("User check-in started", 
+                        user_id=user_id, 
+                        checkin_type="daily")
+        
+        return result
 
     # LEGACY COMPATIBILITY: Old method name used in tests and modules
     # TODO: Remove after all references updated
@@ -412,6 +421,16 @@ class ConversationManager:
         # Store the check-in data (legacy alias retained for tests)
         # Use exposed legacy-compatible function name so tests can patch it
         store_daily_checkin_response(user_id, data)
+        
+        # Log user activity for check-in completion
+        from core.logger import get_component_logger
+        user_logger = get_component_logger('user_activity')
+        user_logger.info("User check-in completed", 
+                        user_id=user_id, 
+                        questions_answered=len(data),
+                        mood=data.get('mood'),
+                        energy=data.get('energy'),
+                        sleep_quality=data.get('sleep_quality'))
         
         # Generate personalized completion message
         completion_message = self._generate_completion_message(user_id, data)

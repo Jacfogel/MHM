@@ -697,6 +697,10 @@ Additional Instructions:
         # Check cache first
         cached_response = self.response_cache.get(cache_key_prompt, user_id)
         if cached_response:
+            ai_logger.debug("AI response served from cache", 
+                           user_id=user_id, 
+                           mode=mode, 
+                           prompt_length=len(user_prompt))
             return cached_response
         
         # Test connection if not available
@@ -707,6 +711,10 @@ Additional Instructions:
         if not self.lm_studio_available:
             response = self._get_contextual_fallback(user_prompt, user_id)
             self.response_cache.set(cache_key_prompt, response, user_id)
+            ai_logger.warning("AI response using fallback - LM Studio unavailable", 
+                             user_id=user_id, 
+                             mode=mode, 
+                             prompt_length=len(user_prompt))
             return response
 
         # Use a more permissive lock approach for better reliability
@@ -714,6 +722,10 @@ Additional Instructions:
         lock_acquired = self._generation_lock.acquire(blocking=True, timeout=3)
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
+            ai_logger.warning("AI response using fallback - API busy", 
+                             user_id=user_id, 
+                             mode=mode, 
+                             prompt_length=len(user_prompt))
             response = self._get_contextual_fallback(user_prompt, user_id)
             self.response_cache.set(cache_key_prompt, response, user_id)
             return response
@@ -749,11 +761,22 @@ Additional Instructions:
                 
                 # Cache successful responses
                 self.response_cache.set(cache_key_prompt, response, user_id)
+                ai_logger.info("AI response generated successfully", 
+                              user_id=user_id, 
+                              mode=mode, 
+                              prompt_length=len(user_prompt),
+                              response_length=len(response),
+                              max_tokens=max_tokens,
+                              temperature=temperature)
                 return response
             else:
                 # API failed, use contextual fallback
                 response = self._get_contextual_fallback(user_prompt, user_id)
                 self.response_cache.set(cache_key_prompt, response, user_id)
+                ai_logger.error("AI response generation failed - using fallback", 
+                               user_id=user_id, 
+                               mode=mode, 
+                               prompt_length=len(user_prompt))
                 return response
         finally:
             # Always release the lock

@@ -432,6 +432,10 @@ class DiscordBot(BaseChannel):
         @self.bot.event
         async def on_disconnect():
             logger.warning("Discord bot disconnected")
+            # Use component logger for Discord disconnection events
+            discord_logger.warning("Discord bot disconnected", 
+                                 bot_name=str(self.bot.user) if self.bot.user else "unknown",
+                                 reconnect_attempts=self._reconnect_attempts)
             # Don't change status to INITIALIZING - keep it as READY or ERROR
             # This prevents the bot from getting stuck in INITIALIZING state
             current_status = self.get_status()
@@ -447,15 +451,24 @@ class DiscordBot(BaseChannel):
         async def on_error(event, *args, **kwargs):
             logger.error(f"Discord bot error in event {event}: {args} {kwargs}")
             
-            # Check if this is a connection-related error
+            # Use component logger for Discord error events
             error_str = str(args) + str(kwargs)
+            discord_logger.error("Discord bot error", 
+                               event=event, 
+                               error_details=error_str[:200],  # Truncate long errors
+                               bot_name=str(self.bot.user) if self.bot.user else "unknown")
+            
+            # Check if this is a connection-related error
             if any(keyword in error_str.lower() for keyword in ['connection', 'dns', 'timeout', 'network']):
                 logger.warning("Connection-related error detected - checking network status")
+                discord_logger.warning("Connection-related error detected", event=event)
                 if not self._check_dns_resolution():
                     logger.error("DNS resolution failed during error recovery")
+                    discord_logger.error("DNS resolution failed during error recovery")
                     self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
                 if not self._check_network_connectivity():
                     logger.error("Network connectivity failed during error recovery")
+                    discord_logger.error("Network connectivity failed during error recovery")
                     self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
             
             # Let discord.py handle reconnection for most errors
@@ -495,9 +508,20 @@ class DiscordBot(BaseChannel):
                     if response.suggestions:
                         suggestions_text = "\n💡 **Suggestions:**\n" + "\n".join([f"• {s}" for s in response.suggestions[:3]])
                         await message.channel.send(suggestions_text)
+                    
+                    # Log successful message handling
+                    discord_logger.info("Discord message handled successfully", 
+                                      user_id=internal_user_id, 
+                                      message_length=len(message.content),
+                                      response_length=len(response.message),
+                                      suggestions_count=len(response.suggestions) if response.suggestions else 0)
                         
             except Exception as e:
                 logger.error(f"Error in enhanced interaction for user {internal_user_id}: {e}")
+                discord_logger.error("Discord message handling failed", 
+                                   user_id=internal_user_id, 
+                                   error=str(e),
+                                   fallback_used=True)
                 # Fall back to existing conversation manager
                 reply_text, completed = conversation_manager.handle_inbound_message(
                     internal_user_id, message.content
@@ -765,6 +789,11 @@ class DiscordBot(BaseChannel):
                 else:
                     await channel.send(message)
                 logger.info(f"Message sent to Discord channel {recipient}")
+                discord_logger.info("Discord channel message sent", 
+                                  channel_id=recipient, 
+                                  message_length=len(message),
+                                  has_embed=bool(embed),
+                                  has_components=bool(action_row))
                 return True
         except (ValueError, TypeError):
             pass  # Not a valid channel ID
@@ -786,11 +815,18 @@ class DiscordBot(BaseChannel):
                 else:
                     await user.send(message)
                 logger.info(f"DM sent to Discord user {recipient}")
+                discord_logger.info("Discord DM sent", 
+                                  user_id=recipient, 
+                                  message_length=len(message),
+                                  has_embed=bool(embed),
+                                  has_components=bool(action_row))
                 return True
         except (ValueError, TypeError):
             pass  # Not a valid user ID
         
         logger.error(f"Could not find Discord channel or user with ID {recipient}")
+        discord_logger.error("Discord message send failed - recipient not found", 
+                           recipient=recipient)
         return False
     
     def _create_discord_embed(self, message: str, rich_data: Dict[str, Any]) -> discord.Embed:
