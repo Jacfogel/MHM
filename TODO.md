@@ -23,6 +23,11 @@
 - [x] Result: Log files reduced from 2MB+ to normal size (~100KB)
 
 ### UI Test Failures - Critical Issues ✅ **RESOLVED**
+### Check-in Flow Behavior & Stability (New)
+- [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_daily_checkin`, `FLOW_DAILY_CHECKIN`, `get_recent_daily_checkins`, `store_daily_checkin_response`)
+- [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
+- [ ] Consider inactivity-based expiration in addition to outbound-triggered expiry (optional)
+
 - [x] Fix widget constructor parameter mismatches in simple UI tests
   - [x] Fix CategorySelectionWidget and ChannelSelectionWidget user_id parameter issues
   - [x] Fix DynamicListField and DynamicListContainer title/items parameter issues
@@ -113,6 +118,11 @@
 ## Completed Tasks
 
 ### UI Test Failures Resolution ✅ **COMPLETED** (2025-08-07)
+### Check-in Flow Improvements ✅ **COMPLETED** (2025-08-07)
+- [x] Expire check-in after next unrelated outbound message
+- [x] Add `/checkin` trigger and improved intro prompt
+- [x] Legacy shims for check-in APIs to keep tests/modules working
+- [x] Fix restart monitor iteration error
 - [x] Fixed widget constructor parameter mismatches (4 failures)
   - [x] CategorySelectionWidget - removed user_id parameter, uses parent only
   - [x] ChannelSelectionWidget - removed user_id parameter, uses parent only

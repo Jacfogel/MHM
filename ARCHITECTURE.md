@@ -41,7 +41,7 @@
   - `user_context.json`: Personalization data (preferred name, health info, etc.)
   - `messages/`: Per-category message files and sent message history
   - `tasks/`: Task-specific data and settings
-  - (Other files: chat_interactions.json, daily_checkins.json, etc.)
+  - (Other files: chat_interactions.json, checkins.json, etc.)
 
 **Message File Handling (2025-07):**
 - Message files are only created for categories a user is opted into.

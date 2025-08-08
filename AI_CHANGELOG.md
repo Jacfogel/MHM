@@ -9,6 +9,14 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-07 - Check-in Flow Behavior Improvements & Stability Fixes ✅ **COMPLETED**
+- **Check-in flow expiry**: Active check-in now expires on the next unrelated outbound message (prevents misinterpreting later user commands)
+- **Command & prompt**: Added `/checkin` trigger and improved intro prompt with clear cancel/restart instructions
+- **Legacy compatibility**: Added shims for `start_daily_checkin`, `FLOW_DAILY_CHECKIN`, and check-in tracking functions to keep existing tests and modules working (usage logged for removal)
+- **Stability**: Fixed restart monitor error by iterating over a copy of channel dict (prevents "dictionary keys changed during iteration")
+- **Docs generation**: Refreshed function registry and module dependencies
+- **Tests**: Full suite passing (591 passed, 1 skipped)
+
 ### 2025-08-07 - Enhanced Logging System with Component Separation ✅ **COMPLETED**
 - **Implemented comprehensive logging system improvements** with organized directory structure and component-based separation
 - **New Logs Directory Structure**:

@@ -207,7 +207,10 @@ class CommunicationManager:
         """Check for stuck channels and restart them if needed"""
         current_time = time.time()
         
-        for channel_name, channel in self._channels_dict.items():
+        # Create a copy of the channels dict to avoid modification during iteration
+        channels_to_check = dict(self._channels_dict)
+        
+        for channel_name, channel in channels_to_check.items():
             if not channel:
                 continue
                 
@@ -948,6 +951,14 @@ class CommunicationManager:
         else:
             self._send_predefined_message(user_id, category, messaging_service, recipient)
         
+        # Expire any active check-in flow if we just sent an unrelated outbound message
+        try:
+            if category not in ["checkin"]:
+                from bot.conversation_manager import conversation_manager
+                conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+        except Exception as _e:
+            logger.debug(f"Check-in flow expiration after outbound message failed for user {user_id}: {_e}")
+
         logger.info(f"Completed message sending for user {user_id}, category {category}")
 
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:

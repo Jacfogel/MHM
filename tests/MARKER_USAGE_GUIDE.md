@@ -36,7 +36,7 @@ This guide covers the enhanced pytest marker system for MHM testing. The markers
 | Marker | Purpose | Usage |
 |--------|---------|-------|
 | `@pytest.mark.tasks` | Task management tests | Task CRUD operations |
-| `@pytest.mark.checkins` | Check-in system tests | Daily check-in functionality |
+| `@pytest.mark.checkins` | Check-in system tests | Check-in functionality |
 | `@pytest.mark.schedules` | Schedule management tests | Time period management |
 | `@pytest.mark.messages` | Message system tests | Automated messaging |
 | `@pytest.mark.analytics` | Analytics tests | Reporting and insights |

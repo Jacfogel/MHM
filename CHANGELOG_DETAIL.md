@@ -9,6 +9,29 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-07 - Check-in Flow Behavior Improvements & Stability Fixes ✅ **COMPLETED**
+
+#### Summary
+Improved conversational behavior around scheduled check-ins so later unrelated outbound messages (motivational/health/task reminders) will expire any pending check-in flow. This prevents later user replies (e.g., "complete task") from being misinterpreted as answers to the check-in questions. Added `/checkin` command and a clearer intro prompt. Also fixed a stability issue in the restart monitor loop.
+
+#### Key Changes
+- Conversation Manager
+  - Added `/checkin` start trigger and clearer intro prompt
+  - Added legacy aliases: `start_daily_checkin`, `FLOW_DAILY_CHECKIN`
+  - On completion, uses legacy-compatible `store_daily_checkin_response` (also logged) for backward-compatibility in tests
+- Communication Manager
+  - Expires an active check-in when sending unrelated outbound messages
+  - Restart monitor: iterate over a copy of channels to avoid "dictionary keys changed during iteration"
+- Response Tracking
+  - Added legacy shims for `get_recent_daily_checkins` and `store_daily_checkin_response`
+  - Mapped legacy category `daily_checkin` to the new storage path
+
+#### Tests
+- Full suite: 591 passed, 1 skipped
+
+#### Documentation
+- Regenerated function registry and module dependencies
+
 ### 2025-08-07 - Enhanced Logging System with Component Separation ✅ **COMPLETED**
 
 #### **Project Overview**

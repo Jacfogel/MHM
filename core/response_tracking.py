@@ -22,22 +22,39 @@ from core.error_handling import (
 logger = get_logger(__name__)
 tracking_logger = get_component_logger('user_activity')
 
+# LEGACY COMPATIBILITY: Backward-compatible aliases for renamed functions
+# TODO: Remove after tests and codebase have been migrated to new names
+# REMOVAL PLAN:
+# 1. Log all legacy calls to identify remaining call sites
+# 2. Update imports in remaining modules/tests
+# 3. Remove these aliases after 2 weeks of no usage
+
+@handle_errors("legacy get_recent_daily_checkins", default_return=[])
+def get_recent_daily_checkins(user_id: str, limit: int = 7):
+    logger.warning("LEGACY COMPATIBILITY: get_recent_daily_checkins() called; use get_recent_checkins() instead")
+    return get_recent_checkins(user_id, limit)
+
+@handle_errors("legacy store_daily_checkin_response")
+def store_daily_checkin_response(user_id: str, response_data: dict):
+    logger.warning("LEGACY COMPATIBILITY: store_daily_checkin_response() called; use store_checkin_response() instead")
+    return store_checkin_response(user_id, response_data)
+
 def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""
     filename_mapping = {
-        "daily_checkin": "daily_checkin_log.json",
+        "checkin": "checkin_log.json",
         "chat_interaction": "chat_interaction_log.json"
     }
     return filename_mapping.get(response_type, f"{response_type}_log.json")
 
 @handle_errors("storing user response")
-def store_user_response(user_id: str, response_data: dict, response_type: str = "daily_checkin"):
+def store_user_response(user_id: str, response_data: dict, response_type: str = "checkin"):
     """
     Store user response data in appropriate file structure.
     """
     # New structure: store in appropriate log file
-    if response_type == "daily_checkin":
-        log_file = get_user_file_path(user_id, 'daily_checkins')
+    if response_type == "checkin":
+        log_file = get_user_file_path(user_id, 'checkins')
     elif response_type == "chat_interaction":
         log_file = get_user_file_path(user_id, 'chat_interactions')
     else:
@@ -57,10 +74,10 @@ def store_user_response(user_id: str, response_data: dict, response_type: str = 
     save_json_data(existing_data, log_file)
     logger.debug(f"Stored {response_type} response for user {user_id}")
 
-@handle_errors("storing daily checkin response")
-def store_daily_checkin_response(user_id: str, response_data: dict):
-    """Store a daily check-in response."""
-    store_user_response(user_id, response_data, "daily_checkin")
+@handle_errors("storing checkin response")
+def store_checkin_response(user_id: str, response_data: dict):
+    """Store a check-in response."""
+    store_user_response(user_id, response_data, "checkin")
 
 @handle_errors("storing chat interaction")
 def store_chat_interaction(user_id: str, user_message: str, ai_response: str, context_used: bool = False):
@@ -79,11 +96,11 @@ def store_chat_interaction(user_id: str, user_message: str, ai_response: str, co
 
 
 @handle_errors("getting recent responses", default_return=[])
-def get_recent_responses(user_id: str, response_type: str = "daily_checkin", limit: int = 5):
+def get_recent_responses(user_id: str, response_type: str = "checkin", limit: int = 5):
     """Get recent responses for a user from appropriate file structure."""
     # New structure
-    if response_type == "daily_checkin":
-        log_file = get_user_file_path(user_id, 'daily_checkins')
+    if response_type == "checkin":
+        log_file = get_user_file_path(user_id, 'checkins')
     elif response_type == "chat_interaction":
         log_file = get_user_file_path(user_id, 'chat_interactions')
     else:
@@ -116,10 +133,10 @@ def get_recent_responses(user_id: str, response_type: str = "daily_checkin", lim
         return sorted_data[:limit]
     return []
 
-@handle_errors("getting recent daily checkins", default_return=[])
-def get_recent_daily_checkins(user_id: str, limit: int = 7):
-    """Get recent daily check-in responses for a user."""
-    return get_recent_responses(user_id, "daily_checkin", limit)
+@handle_errors("getting recent checkins", default_return=[])
+def get_recent_checkins(user_id: str, limit: int = 7):
+    """Get recent check-in responses for a user."""
+    return get_recent_responses(user_id, "checkin", limit)
 
 @handle_errors("getting recent chat interactions", default_return=[])
 def get_recent_chat_interactions(user_id: str, limit: int = 10):
@@ -192,7 +209,9 @@ def track_user_response(user_id: str, category: str, response_data: Dict[str, An
             return
         
         # Store the response data based on category
-        if category == "daily_checkin":
+        if category == "checkin":
+            store_checkin_response(user_id, response_data)
+        elif category == "daily_checkin":  # LEGACY category name used by some tests
             store_daily_checkin_response(user_id, response_data)
         elif category == "chat_interaction":
             # For chat interactions, we need user_message and ai_response

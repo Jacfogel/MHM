@@ -3,7 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-08-05
+ > **Last Updated**: 2025-08-07
 
 > **See [TODO.md](TODO.md) for current development priorities and tasks**
 
@@ -178,6 +178,11 @@
 - [ ] Widget Testing - 8 widgets need testing
 - [ ] Integration Testing - Cross-dialog communication
 - [ ] Performance Optimization - UI responsiveness monitoring
+
+### Check-in Flow Behavior Plan ✅
+- [x] Add `/checkin` command and clearer intro prompt
+- [x] Expire active check-in on next unrelated outbound message (motivational/health/task reminder)
+- [ ] Optional: add inactivity timeout for check-in flows (design: expire after 30–60 minutes of no reply)
 
 ### Legacy Code Removal Plan
 **Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (1-week period until 2025-08-10)  

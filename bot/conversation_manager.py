@@ -7,7 +7,7 @@ Provides a single place to handle 'conversation flows' that can be used
 by any platform: Telegram, Discord, Email, etc.
 
 We keep track of each user's 'state' in a dictionary, so if a user is in the middle
-of daily check-in or an AI chat flow, we know what question to ask next.
+of check-in or an AI chat flow, we know what question to ask next.
 
 Usage:
   1) The platform bot receives a message or command from user_id.
@@ -20,7 +20,16 @@ import os
 import json
 from bot.ai_chatbot import get_ai_chatbot
 from core.logger import get_logger, get_component_logger
-from core.response_tracking import is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins, store_daily_checkin_response
+from core.response_tracking import (
+    is_user_checkins_enabled,
+    get_user_checkin_preferences,
+    get_recent_checkins,
+    store_checkin_response,
+    store_daily_checkin_response as _legacy_store_daily_checkin_response,
+)
+
+# LEGACY COMPATIBILITY: expose store_daily_checkin_response for tests that patch it
+store_daily_checkin_response = _legacy_store_daily_checkin_response
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -30,9 +39,17 @@ conversation_logger = get_component_logger('communication')
 
 # We'll define 'flow' constants
 FLOW_NONE = 0
-FLOW_DAILY_CHECKIN = 1
+FLOW_CHECKIN = 1
 
-# We'll define states for daily check-in - now dynamic based on user preferences
+# LEGACY COMPATIBILITY: Old constant name used in tests and modules
+# TODO: Remove after all references updated
+# REMOVAL PLAN:
+# 1. Log usage sites via grep in CI
+# 2. Update tests/imports to new constant
+# 3. Remove after 2 weeks of no references
+FLOW_DAILY_CHECKIN = FLOW_CHECKIN
+
+# We'll define states for check-in - now dynamic based on user preferences
 CHECKIN_START = 100
 CHECKIN_MOOD = 101
 CHECKIN_BREAKFAST = 102
@@ -74,6 +91,20 @@ class ConversationManager:
         """Initialize the object."""
         self.user_states = {}
 
+    def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> None:
+        """Expire an active check-in flow when an unrelated outbound message is sent.
+        Safe no-op if no flow or different flow is active.
+        """
+        try:
+            user_state = self.user_states.get(user_id)
+            if user_state and user_state.get("flow") == FLOW_CHECKIN:
+                # End the flow silently
+                self.user_states.pop(user_id, None)
+                logger.info(f"Expired active check-in flow for user {user_id} due to unrelated outbound message")
+        except Exception:
+            # Don't let this affect outbound sending
+            logger.debug(f"Could not expire check-in flow for user {user_id}")
+
     @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))
     def handle_inbound_message(self, user_id: str, message_text: str) -> tuple[str, bool]:
         """
@@ -87,13 +118,13 @@ class ConversationManager:
         # Check if user wants to start a specific flow or use special commands
         if user_state["flow"] == FLOW_NONE:
             # Handle special commands that start specific flows
-            if message_text.lower().startswith("/dailycheckin"):
+            if message_text.lower().startswith("/checkin") or message_text.lower().startswith("/dailycheckin"):
                 # Check if check-ins are enabled for this user
                 if not is_user_checkins_enabled(user_id):
                     # Clear any existing state for this user
                     self.user_states.pop(user_id, None)
                     return (
-                        "Check-ins are not enabled for your account. Please contact an administrator to enable daily check-ins.",
+                        "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                         True
                     )
                 
@@ -112,8 +143,8 @@ class ConversationManager:
 
         # If user is mid-flow, continue the appropriate flow
         flow = user_state["flow"]
-        if flow == FLOW_DAILY_CHECKIN:
-            return self._handle_daily_checkin(user_id, user_state, message_text)
+        if flow == FLOW_CHECKIN:
+            return self._handle_checkin(user_id, user_state, message_text)
         else:
             # Unknown flow - reset to default contextual chat
             self.user_states.pop(user_id, None)
@@ -121,10 +152,10 @@ class ConversationManager:
             reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
             return (reply, True)
 
-    @handle_errors("starting daily checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
-    def start_daily_checkin(self, user_id: str) -> tuple[str, bool]:
+    @handle_errors("starting checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
+    def start_checkin(self, user_id: str) -> tuple[str, bool]:
         """
-        Public method to start a daily check-in flow for a user.
+        Public method to start a check-in flow for a user.
         This is the proper way to initiate check-ins from external modules.
         """
         # Check if check-ins are enabled for this user
@@ -132,12 +163,23 @@ class ConversationManager:
             # Clear any existing state for this user
             self.user_states.pop(user_id, None)
             return (
-                "Check-ins are not enabled for your account. Please contact an administrator to enable daily check-ins.",
+                "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True
             )
         
         # Initialize dynamic check-in flow based on user preferences
         return self._start_dynamic_checkin(user_id)
+
+    # LEGACY COMPATIBILITY: Old method name used in tests and modules
+    # TODO: Remove after all references updated
+    # REMOVAL PLAN:
+    # 1. Log usage in CI
+    # 2. Update call sites
+    # 3. Remove after 2 weeks of no references
+    @handle_errors("legacy start_daily_checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
+    def start_daily_checkin(self, user_id: str) -> tuple[str, bool]:
+        logger.warning("LEGACY COMPATIBILITY: start_daily_checkin() called; use start_checkin() instead")
+        return self.start_checkin(user_id)
 
     @handle_errors("starting dynamic checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
@@ -157,7 +199,7 @@ class ConversationManager:
         
         # Initialize user state with dynamic question order
         user_state = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_START,
             "data": {},
             "question_order": question_order,
@@ -165,17 +207,25 @@ class ConversationManager:
         }
         self.user_states[user_id] = user_state
         
-        # Get personalized welcome message
-        welcome_msg = self._get_personalized_welcome(user_id, len(question_order))
-        
-        # Start with first question
-        return self._get_next_question(user_id, user_state)
+        # Compose user-requested intro plus first question
+        first_question_key = question_order[0]
+        first_question_text = self._get_question_text(first_question_key, {})
+        intro = (
+            "🌟 Check-in Time! 🌟\n\n"
+            "Hi! It's time for your check-in. This helps me understand how you're doing and provide better support.\n\n"
+            f"Let's start: {first_question_text}\n"
+            "Type /cancel anytime to skip.\n"
+            "Type /checkin anytime to prompt a new check-in"
+        )
+        # Update state to current question without advancing index
+        user_state['state'] = QUESTION_STATES.get(first_question_key, CHECKIN_START)
+        return (intro, False)
 
     @handle_errors("getting personalized welcome", default_return="🌟 Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.")
     def _get_personalized_welcome(self, user_id: str, question_count: int) -> str:
         """Generate a personalized welcome message based on user history"""
         # Get recent check-ins for context
-        recent_checkins = get_recent_daily_checkins(user_id, limit=3)
+        recent_checkins = get_recent_checkins(user_id, limit=3)
         
         if recent_checkins:
             # Analyze recent mood trends
@@ -244,14 +294,14 @@ class ConversationManager:
         
         return question_texts.get(question_key, "Please answer this question:")
 
-    @handle_errors("handling daily checkin", default_return=("I'm having trouble with the check-in. Let's start over.", True))
-    def _handle_daily_checkin(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
+    @handle_errors("handling checkin", default_return=("I'm having trouble with the check-in. Let's start over.", True))
+    def _handle_checkin(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
         """
-        Enhanced daily check-in flow with dynamic questions and better validation
+        Enhanced check-in flow with dynamic questions and better validation
         """
         if message_text.lower().startswith("/cancel"):
             self.user_states.pop(user_id, None)
-            return ("Daily check-in canceled. You can start again anytime with /dailycheckin", True)
+            return ("Check-in canceled. You can start again anytime with /checkin", True)
 
         state = user_state["state"]
         data = user_state["data"]
@@ -359,7 +409,8 @@ class ConversationManager:
         """Complete the check-in and provide personalized feedback"""
         data = user_state["data"]
         
-        # Store the check-in data
+        # Store the check-in data (legacy alias retained for tests)
+        # Use exposed legacy-compatible function name so tests can patch it
         store_daily_checkin_response(user_id, data)
         
         # Generate personalized completion message
