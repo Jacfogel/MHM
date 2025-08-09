@@ -3,7 +3,6 @@
 import signal
 import sys
 import time
-import logging
 import os
 import atexit
 from datetime import datetime
@@ -14,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set up logging FIRST before any other imports
 from core.logger import setup_logging, get_logger, get_component_logger
+import logging  # kept for tests that patch core.service.logging.getLogger
 setup_logging()
 logger = get_logger(__name__)
 main_logger = get_component_logger('main')

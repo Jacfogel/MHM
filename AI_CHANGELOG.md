@@ -3,11 +3,25 @@
 > **Audience**: AI collaborators & developers  
 > **Purpose**: Brief summaries of recent changes for AI context  
 > **Style**: Concise, action-oriented, scannable  
-> **Last Updated**: 2025-08-07
+> **Last Updated**: 2025-08-09
 
 > **See [CHANGELOG_DETAIL.md](CHANGELOG_DETAIL.md) for complete detailed changelog history**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-08-09 - Test Data Isolation Hardening & Config Import Safety
+- **Test isolation**: Ensured tests never write to real `data/users` by:
+  - Moving test BASE_DATA_DIR/USER_INFO_DIR_PATH setup to session fixtures only (no env override of defaults)
+  - Updating code to import `core.config` as a module (not from-import constants) where needed
+  - Tightened a unit test to assert no leakage to real data dir
+- **Modules updated**: `core/backup_manager.py` (config module import), `ui/ui_app_qt.py` (config module import)
+- **Tests**: Full suite green (632 passed, 2 skipped)
+
+### 2025-08-09 - Logging Architecture Finalization & Test Isolation
+- **Component-first logging**: All bot modules now use component loggers (`communication_manager`, `ai`, `user_activity`) rather than module loggers
+- **Test isolation**: In test-verbose mode, component logs (including `errors`) write under `tests/logs/`; real logs not polluted by tests
+- **Manual async script**: `scripts/test_discord_connection.py` is skipped by pytest; TODO added to convert to `pytest-asyncio`
+- **Docs**: Updated `logs/LOGGING_GUIDE.md` with BaseChannel pattern and test isolation behavior
 
 ### 2025-08-07 - Check-in Flow Behavior Improvements & Stability Fixes ✅ **COMPLETED**
 - **Check-in flow expiry**: Active check-in now expires on the next unrelated outbound message (prevents misinterpreting later user commands)

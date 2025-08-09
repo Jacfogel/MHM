@@ -19,8 +19,8 @@ from bot.interaction_handlers import InteractionResponse, get_interaction_handle
 from bot.ai_chatbot import get_ai_chatbot
 from bot.conversation_manager import conversation_manager
 
-logger = get_logger(__name__)
-interaction_logger = get_component_logger('communication')
+logger = get_component_logger('communication_manager')
+interaction_logger = logger
 
 class InteractionManager:
     """Main manager for handling user interactions across all channels"""
@@ -305,8 +305,8 @@ Keep the response under 200 words.
         
         # Get analytics suggestions
         try:
-            from core.response_tracking import get_recent_daily_checkins
-            checkins = get_recent_daily_checkins(user_id, limit=5)
+            from core.response_tracking import get_recent_checkins
+            checkins = get_recent_checkins(user_id, limit=5)
             if checkins:
                 suggestions.append("Show my analytics")
                 suggestions.append("Mood trends")

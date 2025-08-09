@@ -23,8 +23,8 @@ from core.config import (
 from bot.ai_chatbot import get_ai_chatbot
 from bot.interaction_handlers import ParsedCommand, get_all_handlers
 
-logger = get_logger(__name__)
 parser_logger = get_component_logger('ai')
+logger = parser_logger
 
 @dataclass
 class ParsingResult:

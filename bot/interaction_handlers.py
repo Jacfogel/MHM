@@ -26,12 +26,12 @@ from core.user_management import (
     save_user_context_data, get_user_categories
 )
 from core.response_tracking import (
-    is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins
+    is_user_checkins_enabled, get_user_checkin_preferences, get_recent_checkins
 )
 from core.user_management import load_user_schedules_data
 
-logger = get_logger(__name__)
-handlers_logger = get_component_logger('communication')
+logger = get_component_logger('communication_manager')
+handlers_logger = logger
 
 @dataclass
 class InteractionResponse:
@@ -471,7 +471,7 @@ class TaskManagementHandler(InteractionHandler):
             # Get task statistics for the specified period
             task_stats = analytics.get_task_weekly_stats(user_id, days)
             if 'error' in task_stats:
-                return InteractionResponse(f"You don't have enough check-in data for {period_name} statistics yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse(f"You don't have enough check-in data for {period_name} statistics yet. Try completing some check-ins first!", True)
             
             # Get overall task stats
             overall_stats = get_user_task_stats(user_id)
@@ -611,7 +611,7 @@ class CheckinHandler(InteractionHandler):
         """Handle starting a check-in by delegating to conversation manager"""
         if not is_user_checkins_enabled(user_id):
             return InteractionResponse(
-                "Check-ins are not enabled for your account. Please contact an administrator to enable daily check-ins.",
+                "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True
             )
         
@@ -619,7 +619,7 @@ class CheckinHandler(InteractionHandler):
         from datetime import datetime, date
         today = date.today()
         
-        recent_checkins = get_recent_daily_checkins(user_id, limit=1)
+        recent_checkins = get_recent_checkins(user_id, limit=1)
         if recent_checkins:
             last_checkin = recent_checkins[0]
             last_checkin_timestamp = last_checkin.get('timestamp', '')
@@ -638,16 +638,16 @@ class CheckinHandler(InteractionHandler):
                 # If timestamp parsing fails, continue with check-in
                 pass
         
-        # Delegate to conversation manager for proper check-in flow
+        # Delegate to conversation manager for proper check-in flow (modern API)
         from bot.conversation_manager import conversation_manager
         
         try:
-            message, completed = conversation_manager.start_daily_checkin(user_id)
+            message, completed = conversation_manager.start_checkin(user_id)
             return InteractionResponse(message, completed)
         except Exception as e:
             logger.error(f"Error starting check-in for user {user_id}: {e}")
             return InteractionResponse(
-                "I'm having trouble starting your check-in. Please try again or use /dailycheckin directly.",
+                "I'm having trouble starting your check-in. Please try again or use /checkin directly.",
                 True
             )
     
@@ -656,7 +656,7 @@ class CheckinHandler(InteractionHandler):
         # This would integrate with the existing conversation manager
         # For now, return a placeholder
         return InteractionResponse(
-            "Check-in continuation not yet implemented. Please use the existing /dailycheckin command.",
+            "Check-in continuation not yet implemented. Please use the existing /checkin command.",
             True
         )
     
@@ -666,7 +666,7 @@ class CheckinHandler(InteractionHandler):
             return InteractionResponse("Check-ins are not enabled for your account.", True)
         
         # Get recent check-ins
-        recent_checkins = get_recent_daily_checkins(user_id, limit=7)
+        recent_checkins = get_recent_checkins(user_id, limit=7)
         
         if not recent_checkins:
             return InteractionResponse("No check-ins recorded in the last 7 days.", True)
@@ -684,13 +684,13 @@ class CheckinHandler(InteractionHandler):
         return InteractionResponse(response, True)
     
     def get_help(self) -> str:
-        return "Help with daily check-ins - start check-ins and view your status"
+        return "Help with check-ins - start check-ins and view your status"
     
     def get_examples(self) -> List[str]:
         return [
             "start checkin",
             "checkin status",
-            "daily checkin"
+            "checkin"
         ]
 
 class ProfileHandler(InteractionHandler):
@@ -1020,7 +1020,7 @@ class ProfileHandler(InteractionHandler):
         task_stats = get_user_task_stats(user_id)
         
         # Get check-in stats
-        recent_checkins = get_recent_daily_checkins(user_id, limit=30)
+        recent_checkins = get_recent_checkins(user_id, limit=30)
         
         response = "**Your Statistics:**\n"
         response += f"📋 Active tasks: {task_stats.get('active_count', 0)}\n"
@@ -1088,7 +1088,7 @@ class HelpHandler(InteractionHandler):
         elif topic == 'checkin':
             return InteractionResponse(
                 "**Check-in Help:**\n"
-                "• Start check-in: 'start checkin' or 'daily checkin'\n"
+                "• Start check-in: 'start checkin' or 'checkin'\n"
                 "• Check-in status: 'checkin status' or 'show checkins'\n"
                 "• Check-in history: 'show my check-in history'\n"
                 "• Cancel check-in: 'cancel' or '/cancel'",
@@ -1189,7 +1189,7 @@ class HelpHandler(InteractionHandler):
             return InteractionResponse(
                 "**Check-in Examples:**\n"
                 "• 'I want to check in'\n"
-                "• 'Start my daily check-in'\n"
+                "• 'Start my check-in'\n"
                 "• 'Show me my check-in history'\n"
                 "• 'How am I doing this week?'",
                 True
@@ -1278,7 +1278,7 @@ class HelpHandler(InteractionHandler):
             # Quick actions
             response += "🚀 **Quick Actions:**\n"
             response += "• 'show my tasks' - View your tasks\n"
-            response += "• 'start checkin' - Begin daily check-in\n"
+            response += "• 'start checkin' - Begin check-in\n"
             response += "• 'show profile' - View your profile\n"
             response += "• 'show schedule' - View your schedules\n"
             response += "• 'help' - Get help and examples\n\n"
@@ -1292,7 +1292,7 @@ class HelpHandler(InteractionHandler):
             return InteractionResponse(
                 "I'm up and running! 🌟\n\nI can help you with:\n"
                 "📋 **Tasks**: Create, list, complete, and manage tasks\n"
-                "✅ **Check-ins**: Daily wellness check-ins\n"
+                "✅ **Check-ins**: Wellness check-ins\n"
                 "👤 **Profile**: View and update your information\n"
                 "📅 **Schedule**: Manage message schedules\n"
                 "📊 **Analytics**: View wellness insights\n\n"
@@ -1304,7 +1304,7 @@ class HelpHandler(InteractionHandler):
         """Handle messages request with message history and settings"""
         try:
             from core.user_management import load_user_account_data
-            from core.response_tracking import get_recent_daily_checkins
+            from core.response_tracking import get_recent_checkins
             
             # Load user data
             account_data = load_user_account_data(user_id)
@@ -1315,7 +1315,7 @@ class HelpHandler(InteractionHandler):
             username = account_data.get('internal_username', 'Unknown')
             
             # Get recent check-ins (as a proxy for recent messages)
-            recent_checkins = get_recent_daily_checkins(user_id, limit=5)
+            recent_checkins = get_recent_checkins(user_id, limit=5)
             
             # Build messages response
             response = f"**Messages for {username}** 📬\n\n"
@@ -1340,7 +1340,7 @@ class HelpHandler(InteractionHandler):
             
             # Quick actions
             response += "🚀 **Quick Actions:**\n"
-            response += "• 'start checkin' - Begin daily check-in\n"
+            response += "• 'start checkin' - Begin check-in\n"
             response += "• 'show schedule' - View message schedules\n"
             response += "• 'show analytics' - View message analytics\n"
             response += "• 'help' - Get help with messages\n\n"
@@ -1354,11 +1354,11 @@ class HelpHandler(InteractionHandler):
             return InteractionResponse(
                 "**Messages** 📬\n\n"
                 "I can help you with:\n"
-                "• Daily check-ins\n"
+                "• check-ins\n"
                 "• Task reminders\n"
                 "• Motivational messages\n"
                 "• Schedule management\n\n"
-                "Try 'start checkin' to begin a daily check-in!",
+                "Try 'start checkin' to begin a check-in!",
                 True
             )
     
@@ -1821,7 +1821,7 @@ class AnalyticsHandler(InteractionHandler):
             # Get wellness score
             wellness_data = analytics.get_wellness_score(user_id, days)
             if 'error' in wellness_data:
-                return InteractionResponse("You don't have enough check-in data for analytics yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough check-in data for analytics yet. Try completing some check-ins first!", True)
             
             # Get mood trends
             mood_data = analytics.get_mood_trends(user_id, days)
@@ -1871,7 +1871,7 @@ class AnalyticsHandler(InteractionHandler):
             
             mood_data = analytics.get_mood_trends(user_id, days)
             if 'error' in mood_data:
-                return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some check-ins first!", True)
             
             response = f"**😊 Mood Trends (Last {days} days):**\n\n"
             response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/10\n"
@@ -1908,7 +1908,7 @@ class AnalyticsHandler(InteractionHandler):
             
             habit_data = analytics.get_habit_analysis(user_id, days)
             if 'error' in habit_data:
-                return InteractionResponse("You don't have enough habit data for analysis yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough habit data for analysis yet. Try completing some check-ins first!", True)
             
             response = f"**✅ Habit Analysis (Last {days} days):**\n\n"
             response += f"📊 **Overall Completion:** {habit_data.get('overall_completion', 0)}%\n"
@@ -1947,7 +1947,7 @@ class AnalyticsHandler(InteractionHandler):
             
             sleep_data = analytics.get_sleep_analysis(user_id, days)
             if 'error' in sleep_data:
-                return InteractionResponse("You don't have enough sleep data for analysis yet. Try completing some daily check-ins with sleep information!", True)
+                return InteractionResponse("You don't have enough sleep data for analysis yet. Try completing some check-ins with sleep information!", True)
             
             response = f"**😴 Sleep Analysis (Last {days} days):**\n\n"
             response += f"⏰ **Average Hours:** {sleep_data.get('average_hours', 0)} hours\n"
@@ -1982,7 +1982,7 @@ class AnalyticsHandler(InteractionHandler):
             
             wellness_data = analytics.get_wellness_score(user_id, days)
             if 'error' in wellness_data:
-                return InteractionResponse("You don't have enough data for a wellness score yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough data for a wellness score yet. Try completing some check-ins first!", True)
             
             response = f"**🎯 Wellness Score (Last {days} days):**\n\n"
             response += f"📊 **Overall Score:** {wellness_data.get('score', 0)}/100\n"
@@ -2019,7 +2019,7 @@ class AnalyticsHandler(InteractionHandler):
             
             checkin_history = analytics.get_checkin_history(user_id, days)
             if 'error' in checkin_history:
-                return InteractionResponse("You don't have enough check-in data for history yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough check-in data for history yet. Try completing some check-ins first!", True)
             
             response = f"**📅 Check-in History (Last {days} days):**\n\n"
             for checkin in checkin_history[:5]:  # Show last 5 check-ins
@@ -2046,7 +2046,7 @@ class AnalyticsHandler(InteractionHandler):
             
             completion_rate = analytics.get_completion_rate(user_id, days)
             if 'error' in completion_rate:
-                return InteractionResponse("You don't have enough check-in data for completion rate yet. Try completing some daily check-ins first!", True)
+                return InteractionResponse("You don't have enough check-in data for completion rate yet. Try completing some check-ins first!", True)
             
             response = f"**📊 Completion Rate (Last {days} days):**\n\n"
             response += f"🎯 **Overall Completion Rate:** {completion_rate.get('rate', 0)}%\n"

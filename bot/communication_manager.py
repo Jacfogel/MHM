@@ -14,7 +14,7 @@ from core.error_handling import handle_errors
 from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from bot.channel_factory import ChannelFactory
 from core.user_data_handlers import get_user_data, get_all_user_ids
-from core.response_tracking import get_recent_daily_checkins
+from core.response_tracking import get_recent_checkins
 from core.message_management import store_sent_message
 from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
 from core.file_operations import determine_file_path, load_json_data
@@ -22,8 +22,9 @@ import os
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
 from core.service_utilities import wait_for_network
 
-logger = get_logger(__name__)
-comm_logger = get_component_logger('communication')
+# Route orchestration logs to channels component; keep module logger for local debug if needed
+comm_logger = get_component_logger('communication_manager')
+logger = comm_logger
 
 @dataclass
 class QueuedMessage:
@@ -491,6 +492,10 @@ class CommunicationManager:
         logger.debug("Starting all communication channels.")
         
         try:
+            # If no channel configs set, load defaults now
+            if not self.channel_configs:
+                self.channel_configs = self._get_default_channel_configs()
+                logger.debug("Loaded default channel configurations for startup")
             # Start the retry thread for failed messages
             self._start_retry_thread()
             
@@ -529,6 +534,10 @@ class CommunicationManager:
             if not config.enabled:
                 logger.info(f"Channel {name} is disabled, skipping")
                 continue
+            # Skip if channel already exists to avoid duplicate instances
+            if name in self._channels_dict and self._channels_dict[name] is not None:
+                logger.debug(f"Channel {name} already exists, skipping re-creation")
+                continue
                 
             channel = ChannelFactory.create_channel(name, config)
             if not channel:
@@ -553,6 +562,10 @@ class CommunicationManager:
         for name, config in self.channel_configs.items():
             if not config.enabled:
                 logger.info(f"Channel {name} is disabled, skipping")
+                continue
+            # Skip if channel already exists to avoid duplicate instances
+            if name in self._channels_dict and self._channels_dict[name] is not None:
+                logger.debug(f"Channel {name} already exists, skipping re-creation")
                 continue
                 
             channel = ChannelFactory.create_channel(name, config)
@@ -678,10 +691,8 @@ class CommunicationManager:
             test_message = f"Logging health check - {time.time()}"
             logger.debug(test_message)
             
-            # Force flush
-            import logging
-            root_logger = logging.getLogger()
-            for handler in root_logger.handlers:
+            # Force flush via component logger handlers only (avoid direct logging import in app code)
+            for handler in logger.logger.handlers if hasattr(logger, 'logger') else []:
                 if hasattr(handler, 'flush'):
                     handler.flush()
             
@@ -1055,14 +1066,14 @@ class CommunicationManager:
 
     def _send_checkin_prompt(self, user_id: str, messaging_service: str, recipient: str):
         """
-        Send a check-in prompt message to start the daily check-in flow.
+        Send a check-in prompt message to start the check-in flow.
         """
         try:
             # Initialize the dynamic check-in flow properly
             from bot.conversation_manager import conversation_manager
             
-            # Use the dynamic check-in initialization instead of hardcoded values
-            reply_text, completed = conversation_manager.start_daily_checkin(user_id)
+            # Use the dynamic check-in initialization (modern API)
+            reply_text, completed = conversation_manager.start_checkin(user_id)
             
             # Send the initial message to the user with retry support
             success = self.send_message_sync(messaging_service, recipient, reply_text, 

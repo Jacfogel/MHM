@@ -10,16 +10,14 @@ import json
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-import logging
 import core.config
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 from core.logger import get_component_logger
 
-# Get logger for this module
-logger = logging.getLogger(__name__)
-cleanup_logger = get_component_logger('main')
+# Get component logger for this module
+logger = get_component_logger('main')
 
 # File to track last cleanup timestamp
 CLEANUP_TRACKER_FILE = ".last_cache_cleanup"
@@ -202,8 +200,8 @@ def get_cleanup_status():
 if __name__ == "__main__":
     # For testing purposes
     import sys
-    
-    logging.basicConfig(level=logging.INFO)
+    from core.logger import setup_logging
+    setup_logging()
     
     if len(sys.argv) > 1 and sys.argv[1] == "--force":
         print("Force cleaning...")

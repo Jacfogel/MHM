@@ -13,8 +13,8 @@ from core.user_data_validation import validate_schedule_periods
 from tasks.task_management import setup_default_task_tags
 
 setup_logging()
-logger = get_logger(__name__)
-dialog_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+dialog_logger = logger
 
 class TaskManagementDialog(QDialog):
     user_changed = Signal()

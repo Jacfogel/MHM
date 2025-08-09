@@ -8,8 +8,8 @@ from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.schedule_management import clear_schedule_periods_cache
 
-logger = get_logger(__name__)
-dialog_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+dialog_logger = logger
 
 class CategoryManagementDialog(QDialog):
     user_changed = Signal()

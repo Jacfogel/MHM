@@ -8,7 +8,6 @@ import random
 import subprocess
 import os
 from datetime import datetime, timedelta
-import logging
 from typing import List, Dict, Any
 
 from core.user_data_handlers import get_all_user_ids
@@ -22,11 +21,11 @@ from core.error_handling import (
 from core.user_data_handlers import get_user_data
 
 # Suppress debug logging from the schedule library to reduce log spam
-schedule_logger = logging.getLogger('schedule')
-schedule_logger.setLevel(logging.WARNING)
+from core.logger import suppress_noisy_logging
+suppress_noisy_logging()
 
-logger = get_logger(__name__)
-scheduler_logger = get_component_logger('main')
+logger = get_component_logger('scheduler')
+scheduler_logger = logger
 
 class SchedulerManager:
     @handle_errors("initializing scheduler manager")

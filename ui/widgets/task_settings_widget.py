@@ -27,8 +27,8 @@ from ui.widgets.period_row_widget import PeriodRowWidget
 from ui.widgets.tag_widget import TagWidget
 
 setup_logging()
-logger = get_logger(__name__)
-widget_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+widget_logger = logger
 
 class TaskSettingsWidget(QWidget):
     def __init__(self, parent=None, user_id=None):

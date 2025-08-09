@@ -20,6 +20,10 @@ from unittest.mock import Mock, patch
 import sys
 from datetime import datetime
 
+# Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
+# as some unit tests assert the library defaults. Session fixtures below
+# patch core.config attributes to isolate user data under tests/data/users.
+
 # Add the project root to the Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -46,8 +50,31 @@ def setup_logging_isolation():
 # Set up logging isolation immediately
 setup_logging_isolation()
 
-# Set environment variable to indicate we're running tests
+# Set environment variable to indicate we're running tests, and enable verbose component logs under tests/logs
 os.environ['MHM_TESTING'] = '1'
+os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '1')
+
+# Force all log paths to tests/logs for absolute isolation, even if modules read env at import time
+tests_logs_dir = (Path(__file__).parent / 'logs').resolve()
+tests_logs_dir.mkdir(exist_ok=True)
+os.environ['LOGS_DIR'] = str(tests_logs_dir)
+os.environ['LOG_BACKUP_DIR'] = str(tests_logs_dir / 'backups')
+os.environ['LOG_ARCHIVE_DIR'] = str(tests_logs_dir / 'archive')
+(tests_logs_dir / 'backups').mkdir(exist_ok=True)
+(tests_logs_dir / 'archive').mkdir(exist_ok=True)
+
+# Explicitly set all component log files under tests/logs to catch any env-based lookups
+os.environ['LOG_MAIN_FILE'] = str(tests_logs_dir / 'app.log')
+os.environ['LOG_DISCORD_FILE'] = str(tests_logs_dir / 'discord.log')
+os.environ['LOG_AI_FILE'] = str(tests_logs_dir / 'ai.log')
+os.environ['LOG_USER_ACTIVITY_FILE'] = str(tests_logs_dir / 'user_activity.log')
+os.environ['LOG_ERRORS_FILE'] = str(tests_logs_dir / 'errors.log')
+os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = str(tests_logs_dir / 'communication_manager.log')
+os.environ['LOG_EMAIL_FILE'] = str(tests_logs_dir / 'email.log')
+os.environ['LOG_TELEGRAM_FILE'] = str(tests_logs_dir / 'telegram.log')
+os.environ['LOG_UI_FILE'] = str(tests_logs_dir / 'ui.log')
+os.environ['LOG_FILE_OPS_FILE'] = str(tests_logs_dir / 'file_ops.log')
+os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')
 
 # Import core modules for testing (after logging isolation is set up)
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
@@ -238,7 +265,7 @@ def mock_user_data(test_data_dir, mock_config, request):
         "last_updated": current_time
     }
     
-    # Create mock daily_checkins.json
+    # Create mock checkins.json
     checkins_data = {
         "checkins": [],
         "last_checkin_date": None,
@@ -278,7 +305,7 @@ def mock_user_data(test_data_dir, mock_config, request):
     with open(os.path.join(user_dir, "user_context.json"), "w") as f:
         json.dump(context_data, f, indent=2)
     
-    with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+    with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
     
     with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
@@ -371,7 +398,7 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
         "last_updated": current_time
     }
     
-    # Create mock daily_checkins.json
+    # Create mock checkins.json
     checkins_data = {
         "checkins": [],
         "last_checkin_date": None,
@@ -405,7 +432,7 @@ def mock_user_data_with_messages(test_data_dir, mock_config, request):
     with open(os.path.join(user_dir, "user_context.json"), "w") as f:
         json.dump(context_data, f, indent=2)
     
-    with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+    with open(os.path.join(user_dir, "checkins.json"), "w") as f:
         json.dump(checkins_data, f, indent=2)
     
     with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:

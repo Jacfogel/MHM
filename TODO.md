@@ -24,9 +24,20 @@
 
 ### UI Test Failures - Critical Issues ✅ **RESOLVED**
 ### Check-in Flow Behavior & Stability (New)
-- [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_daily_checkin`, `FLOW_DAILY_CHECKIN`, `get_recent_daily_checkins`, `store_daily_checkin_response`)
+- [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
 - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
 - [ ] Consider inactivity-based expiration in addition to outbound-triggered expiry (optional)
+
+### Async test adoption for Discord channel
+- [ ] Add pytest-asyncio to requirements and test setup
+- [ ] Convert `scripts/test_discord_connection.py` into real async tests under `tests/behavior/` using `@pytest.mark.asyncio`
+- [ ] Mock network calls; mark any real network test with `@pytest.mark.network` and skip by default
+- [ ] Remove module-level skip once migrated; keep `scripts/test_discord_connection.py` as a manual tool or deprecate
+
+### Test Data Isolation Follow-ups
+- [ ] Confirm no writes to real `data/users` during all test modes (unit, behavior, integration, ui)
+- [ ] Audit remaining modules for `from core.config import ...` and migrate to `import core.config as cfg` where practical
+- [ ] Evaluate enabling `pytest-xdist` without breaking isolation
 
 - [x] Fix widget constructor parameter mismatches in simple UI tests
   - [x] Fix CategorySelectionWidget and ChannelSelectionWidget user_id parameter issues

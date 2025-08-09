@@ -170,7 +170,7 @@
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.logger (force_restart_logging)` (🆕)
     - `core.message_management (store_sent_message)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (get_recent_checkins)` (🆕)
     - `core.schedule_management (get_current_time_periods_with_validation, get_current_day_names)` (🆕)
     - `core.service_utilities (wait_for_network)` (🆕)
     - `core.user_data_handlers (get_user_data, get_all_user_ids)` (🆕)
@@ -364,9 +364,9 @@
     - `core.checkin_analytics (CheckinAnalytics)` (🆕)
     - `core.error_handling (handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
-    - `core.response_tracking (is_user_checkins_enabled, get_user_checkin_preferences, get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (is_user_checkins_enabled, get_user_checkin_preferences, get_recent_checkins)` (🆕)
     - `core.response_tracking (is_user_checkins_enabled)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (get_recent_checkins)` (🆕)
     - `core.schedule_management (get_schedule_time_periods)` (🆕)
     - `core.schedule_management (get_schedule_time_periods, set_schedule_periods)` (🆕)
     - `core.schedule_management (get_schedule_time_periods)` (🆕)
@@ -424,7 +424,7 @@
     - `core.error_handling (handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.response_tracking (is_user_checkins_enabled)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (get_recent_checkins)` (🆕)
     - `core.user_management (get_user_categories)` (🆕)
     - `tasks.task_management (load_active_tasks)` (🆕)
   - **Standard Library**:
@@ -493,7 +493,7 @@
     - `core.error_handling (handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.message_management (get_last_10_messages)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins, get_recent_chat_interactions)` (🆕)
+    - `core.response_tracking (get_recent_checkins, get_recent_chat_interactions)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
     - `user.user_context (UserContext)` (🆕)
     - `user.user_preferences (UserPreferences)` (🆕)
@@ -581,7 +581,7 @@
   - **Local**:
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (get_recent_checkins)` (🆕)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `json`
@@ -1257,7 +1257,7 @@
     - `core.file_operations (load_json_data, save_json_data, get_user_file_path, get_user_data_dir)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.message_management (ensure_user_message_files)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins)` (🆕)
+    - `core.response_tracking (get_recent_checkins)` (🆕)
     - `core.response_tracking (get_recent_responses)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
     - `core.user_data_handlers (get_all_user_ids)` (🆕)
@@ -2074,7 +2074,7 @@
   - **Local**:
     - `core.file_operations (verify_file_access, determine_file_path, load_json_data, save_json_data, create_user_files)` (🆕)
     - `core.message_management (get_message_categories, load_default_messages)` (🆕)
-    - `core.response_tracking (get_recent_daily_checkins, is_user_checkins_enabled, get_user_checkin_preferences)` (🆕)
+    - `core.response_tracking (get_recent_checkins, is_user_checkins_enabled, get_user_checkin_preferences)` (🆕)
     - `core.schedule_management (get_schedule_time_periods, get_current_day_names, validate_and_format_time)` (🆕)
     - `core.service_utilities (create_reschedule_request, is_service_running, Throttler, InvalidTimeFormatError, throttler)` (🆕)
     - `core.user_management (get_all_user_ids, get_user_info, get_user_preferences)` (🆕)
@@ -2704,7 +2704,7 @@
 - **Purpose**: Behavior tests for conversation behavior
 - **Dependencies**: 
   - **Local**:
-    - `bot.conversation_manager (ConversationManager, FLOW_NONE, FLOW_DAILY_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION)` (🆕)
+    - `bot.conversation_manager (ConversationManager, FLOW_NONE, FLOW_checkin, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION)` (🆕)
     - `core.user_management (get_user_id_by_internal_username)` (🆕)
     - `core.user_management (update_user_preferences)` (🆕)
     - `tests.test_utilities (TestUserFactory)` (🆕)
@@ -2846,7 +2846,7 @@
 - **Purpose**: Behavior tests for response tracking behavior
 - **Dependencies**: 
   - **Local**:
-    - `core.response_tracking (store_user_response, store_daily_checkin_response, store_chat_interaction, get_recent_responses, get_recent_daily_checkins, get_recent_chat_interactions, get_user_checkin_preferences, is_user_checkins_enabled, get_user_checkin_questions, get_user_info_for_tracking, track_user_response)` (🆕)
+    - `core.response_tracking (store_user_response, store_checkin_response, store_chat_interaction, get_recent_responses, get_recent_checkins, get_recent_chat_interactions, get_user_checkin_preferences, is_user_checkins_enabled, get_user_checkin_questions, get_user_info_for_tracking, track_user_response)` (🆕)
   - **Standard Library**:
     - `datetime`
     - `json`

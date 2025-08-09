@@ -190,7 +190,7 @@ class UserDataManager:
             export_data["sent_messages"] = load_json_data(sent_file) or {}
         
         # Export logs
-        log_types = ["daily_checkins", "chat_interactions"]
+        log_types = ["checkins", "chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if os.path.exists(log_file):
@@ -347,7 +347,7 @@ class UserDataManager:
                 summary["total_size_bytes"] += size
         
         # Check log files
-        log_types = ["daily_checkins", "chat_interactions"]
+        log_types = ["checkins", "chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if os.path.exists(log_file):
@@ -379,8 +379,8 @@ class UserDataManager:
         try:
             # Check recent check-ins
             try:
-                from core.response_tracking import get_recent_daily_checkins
-                recent_checkins = get_recent_daily_checkins(user_id, limit=1)
+                from core.response_tracking import get_recent_checkins
+                recent_checkins = get_recent_checkins(user_id, limit=1)
                 if recent_checkins:
                     return recent_checkins[0].get('timestamp', '1970-01-01 00:00:00')
             except Exception as e:
@@ -922,7 +922,7 @@ def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
         # Analyze interaction patterns
         interaction_sources = [
             ('sent_messages', 'Message Interactions'),
-            ('daily_checkins', 'Check-in Activity'),
+            ('checkins', 'Check-in Activity'),
             ('chat_interactions', 'Chat Activity')
         ]
         
@@ -938,8 +938,8 @@ def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
                     }
         
         # Generate recommendations
-        if analytics["interaction_patterns"].get('daily_checkins', {}).get('count', 0) < 3:
-            analytics["recommendations"].append("Consider enabling daily check-ins for better engagement")
+        if analytics["interaction_patterns"].get('checkins', {}).get('count', 0) < 3:
+            analytics["recommendations"].append("Consider enabling check-ins for better engagement")
         
         if analytics["interaction_patterns"].get('chat_interactions', {}).get('count', 0) < 5:
             analytics["recommendations"].append("Try using the chat feature for personalized interactions")

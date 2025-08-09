@@ -5,7 +5,6 @@ import os
 import subprocess
 import psutil
 import time
-import logging
 from pathlib import Path
 
 # Add parent directory to path so we can import from core
@@ -23,8 +22,8 @@ from PySide6.QtGui import QFont, QIcon
 # Set up logging
 from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
-logger = get_logger(__name__)
-ui_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+ui_logger = logger
 
 # Import configuration validation
 from core.config import validate_all_configuration, ConfigValidationError
@@ -38,7 +37,7 @@ from user.user_context import UserContext
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
 from core.user_data_validation import title_case
-from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
+import core.config as cfg
 
 # Import generated UI for main window
 from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
@@ -442,7 +441,7 @@ class MHMManagerUI(QMainWindow):
             current_user_id = self.current_user
             
             # Load user index
-            index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
+            index_file = os.path.join(cfg.BASE_DATA_DIR, "user_index.json")
             index_data = load_json_data(index_file) or {}
             
             self.ui.comboBox_users.clear()
@@ -1448,7 +1447,7 @@ For detailed setup instructions, see the README.md file.
             text_widget.append(f"✓ Total Users: {len(user_ids)}\n")
             
             # Check data directories
-            required_dirs = [BASE_DATA_DIR, USER_INFO_DIR_PATH]
+            required_dirs = [cfg.BASE_DATA_DIR, cfg.USER_INFO_DIR_PATH]
             for dir_path in required_dirs:
                 exists = os.path.exists(dir_path)
                 status = "✓" if exists else "✗"
@@ -1458,9 +1457,9 @@ For detailed setup instructions, see the README.md file.
             text_widget.append("\nChecking for common issues...\n")
             
             # Check for orphaned message files
-            if os.path.exists(USER_INFO_DIR_PATH):
+            if os.path.exists(cfg.USER_INFO_DIR_PATH):
                 orphaned_files = 0
-                for root, dirs, files in os.walk(USER_INFO_DIR_PATH):
+                for root, dirs, files in os.walk(cfg.USER_INFO_DIR_PATH):
                     for file in files:
                         if file.endswith('.json'):
                             # Extract user_id from filename

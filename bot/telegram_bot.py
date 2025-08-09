@@ -31,10 +31,11 @@ from core.error_handling import (
 # Import the new base classes
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 
-logger = get_logger(__name__)
+# Route module-level logs to telegram component for consistency
 telegram_logger = get_component_logger('telegram')
+logger = telegram_logger
 
-# NEW: Additional states for daily check-in
+# NEW: Additional states for check-in
 CHECKIN_MOOD, CHECKIN_BREAKFAST, CHECKIN_ENERGY, CHECKIN_TEETH = range(100, 104)  # Using large distinct enum
 
 # Define conversation states for adding messages and editing schedules
@@ -158,7 +159,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
 
         self.application.add_handler(self.add_message_conv_handler())
         self.application.add_handler(self.schedule_conv_handler())
-        self.application.add_handler(self.daily_checkin_conv_handler())
+        self.application.add_handler(self.checkin_conv_handler())
 
     @handle_errors("shutting down Telegram bot", default_return=False)
     async def shutdown(self) -> bool:
@@ -629,18 +630,18 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
         return conv_handler
 
     # -------------------------------------------------------------------------------------------
-    # NEW: Daily Check-In Flow
-    @handle_errors("creating daily checkin conversation handler")
-    def daily_checkin_conv_handler(self):
+    # NEW: check-in Flow
+    @handle_errors("creating checkin conversation handler")
+    def checkin_conv_handler(self):
         """
-        Create a conversation handler for daily check-in flow.
+        Create a conversation handler for check-in flow.
         
         Returns:
-            ConversationHandler: Configured conversation handler for daily check-in flow
+            ConversationHandler: Configured conversation handler for check-in flow
         """
         return ConversationHandler(
-            entry_points=[CommandHandler("dailycheckin", self.start_daily_checkin),
-                          CallbackQueryHandler(self.start_daily_checkin, pattern='^daily_checkin$')],
+            entry_points=[CommandHandler("checkin", self.start_checkin),
+                          CallbackQueryHandler(self.start_checkin, pattern='^checkin$')],
             states={
                 CHECKIN_MOOD: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.capture_mood)],
                 CHECKIN_BREAKFAST: [MessageHandler(filters.TEXT & ~filters.COMMAND, self.capture_breakfast)],
@@ -654,9 +655,9 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
             allow_reentry=False
         )
 
-    @handle_errors("starting daily checkin")
-    async def start_daily_checkin(self, update: Update, context: CallbackContext):
-        """Start daily check-in"""
+    @handle_errors("starting checkin")
+    async def start_checkin(self, update: Update, context: CallbackContext):
+        """Start check-in"""
         if not self.ensure_user_exists(update):
             return ConversationHandler.END
 
@@ -694,7 +695,7 @@ class TelegramBot(BaseChannel):  # Now extends BaseChannel
     @handle_errors("canceling checkin")
     async def cancel_checkin(self, update: Update, context: CallbackContext):
         """Cancel check-in"""
-        await update.message.reply_text("Daily check-in canceled.")
+        await update.message.reply_text("check-in canceled.")
         return ConversationHandler.END
 
     @handle_errors("ensuring user exists", default_return=False)

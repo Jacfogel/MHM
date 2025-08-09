@@ -395,7 +395,7 @@ class TestUserManagementEdgeCases:
         assert os.access(user_dir, os.W_OK), f"User directory should be writable: {user_dir}"
         
         # ✅ VERIFY REAL BEHAVIOR: Check required files were created
-        expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json', 'daily_checkins.json', 'chat_interactions.json']
+        expected_files = ['account.json', 'preferences.json', 'user_context.json', 'schedules.json', 'checkins.json', 'chat_interactions.json']
         expected_dirs = ['messages', 'tasks']
         
         for file_name in expected_files:

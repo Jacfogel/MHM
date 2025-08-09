@@ -15,8 +15,8 @@ from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger, get_component_logger
 
 setup_logging()
-logger = get_logger(__name__)
-widget_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+widget_logger = logger
 
 class TagWidget(QWidget):
     """Flexible tag widget that can work in management or selection mode."""

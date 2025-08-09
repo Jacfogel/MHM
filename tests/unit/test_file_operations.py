@@ -593,34 +593,9 @@ class TestFileOperationsEdgeCases:
         assert os.path.exists(preferences_file_path), f"Preferences file should be unaffected: {preferences_file_path}"
         
         # Step 9: Test file system consistency
-        # ✅ VERIFY REAL BEHAVIOR: Check files were created in the real data directory
+        # Step 10: Verify no leakage into real data directory during tests
         real_user_dir = os.path.join('data', 'users', user_id)
-        if os.path.exists(real_user_dir):
-            real_user_dir_contents = os.listdir(real_user_dir)
-            expected_files = ['account.json', 'preferences.json']
-            for expected_file in expected_files:
-                assert expected_file in real_user_dir_contents, f"Expected file should exist in real directory: {expected_file}"
-        
-        # Note: Test directory may contain files from other tests, so we don't assert it's clean
-        # The important thing is that our operations work correctly in the real data directory
-        
-        # Step 10: Test cleanup and final state
-        # ✅ VERIFY REAL BEHAVIOR: Check all files are still valid JSON (in real directory)
-        if os.path.exists(real_user_dir):
-            for file_name in expected_files:
-                file_path = os.path.join(real_user_dir, file_name)
-                try:
-                    with open(file_path, 'r') as f:
-                        json.load(f)  # Should not raise exception
-                except json.JSONDecodeError as e:
-                    assert False, f"File should remain valid JSON: {file_name} - {e}"
-            
-            # ✅ VERIFY REAL BEHAVIOR: Check file sizes are reasonable
-            for file_name in expected_files:
-                file_path = os.path.join(real_user_dir, file_name)
-                file_size = os.path.getsize(file_path)
-                assert file_size > 0, f"File should not be empty: {file_name} - {file_size} bytes"
-                assert file_size < 10000, f"File should not be unreasonably large: {file_name} - {file_size} bytes"
+        assert not os.path.exists(real_user_dir), f"Test should not write to real data dir: {real_user_dir}"
 
 class TestFileOperationsPerformance:
     """Test file operations performance and large data handling."""

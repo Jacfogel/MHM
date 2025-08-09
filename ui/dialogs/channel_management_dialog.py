@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
 from ui.generated.channel_management_dialog_pyqt import Ui_Dialog
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
-import logging
+from core.logger import get_component_logger
 from PySide6.QtCore import Signal
 from core.user_data_validation import is_valid_email, is_valid_phone
 from core.user_data_handlers import (
@@ -59,7 +59,7 @@ class ChannelManagementDialog(QDialog):
                     value = discord_id
                 self.channel_widget.set_selected_channel(channel_cap, value)
             except Exception as e:
-                logging.error(f"Exception in load_user_channel_data: {e}")
+                get_component_logger('ui').error(f"Exception in load_user_channel_data: {e}")
         
         # Connect Save/Cancel
         self.ui.buttonBox_save_cancel.accepted.connect(self.save_channel_settings)

@@ -25,17 +25,17 @@ from core.response_tracking import (
     get_user_checkin_preferences,
     get_recent_checkins,
     store_checkin_response,
-    store_daily_checkin_response as _legacy_store_daily_checkin_response,
+    store_checkin_response as _legacy_store_checkin_response,
 )
 
-# LEGACY COMPATIBILITY: expose store_daily_checkin_response for tests that patch it
-store_daily_checkin_response = _legacy_store_daily_checkin_response
+# LEGACY COMPATIBILITY: expose store_checkin_response for tests that patch it
+store_checkin_response = _legacy_store_checkin_response
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
-conversation_logger = get_component_logger('communication')
+# Route conversation orchestration to communication_manager component log
+logger = get_component_logger('communication_manager')
 
 # We'll define 'flow' constants
 FLOW_NONE = 0
@@ -47,7 +47,7 @@ FLOW_CHECKIN = 1
 # 1. Log usage sites via grep in CI
 # 2. Update tests/imports to new constant
 # 3. Remove after 2 weeks of no references
-FLOW_DAILY_CHECKIN = FLOW_CHECKIN
+FLOW_CHECKIN = FLOW_CHECKIN
 
 # We'll define states for check-in - now dynamic based on user preferences
 CHECKIN_START = 100
@@ -118,7 +118,7 @@ class ConversationManager:
         # Check if user wants to start a specific flow or use special commands
         if user_state["flow"] == FLOW_NONE:
             # Handle special commands that start specific flows
-            if message_text.lower().startswith("/checkin") or message_text.lower().startswith("/dailycheckin"):
+            if message_text.lower().startswith("/checkin"):
                 # Check if check-ins are enabled for this user
                 if not is_user_checkins_enabled(user_id):
                     # Clear any existing state for this user
@@ -178,17 +178,6 @@ class ConversationManager:
                         checkin_type="daily")
         
         return result
-
-    # LEGACY COMPATIBILITY: Old method name used in tests and modules
-    # TODO: Remove after all references updated
-    # REMOVAL PLAN:
-    # 1. Log usage in CI
-    # 2. Update call sites
-    # 3. Remove after 2 weeks of no references
-    @handle_errors("legacy start_daily_checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
-    def start_daily_checkin(self, user_id: str) -> tuple[str, bool]:
-        logger.warning("LEGACY COMPATIBILITY: start_daily_checkin() called; use start_checkin() instead")
-        return self.start_checkin(user_id)
 
     @handle_errors("starting dynamic checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
@@ -420,7 +409,7 @@ class ConversationManager:
         
         # Store the check-in data (legacy alias retained for tests)
         # Use exposed legacy-compatible function name so tests can patch it
-        store_daily_checkin_response(user_id, data)
+        store_checkin_response(user_id, data)
         
         # Log user activity for check-in completion
         from core.logger import get_component_logger

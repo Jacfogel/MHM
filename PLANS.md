@@ -4,10 +4,17 @@
 > **Purpose**: Consolidated development plans with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
  > **Last Updated**: 2025-08-07
+> **Last Updated**: 2025-08-09
 
 > **See [TODO.md](TODO.md) for current development priorities and tasks**
 
 ## 🎯 Active Plans
+### Test Data Isolation & Config Import Safety ✅ **COMPLETED**
+- [x] Ensure tests write only under `tests/data/users` via session fixture
+- [x] Avoid env overrides that break default-constant tests
+- [x] Replace from-imports of config constants in critical modules
+- [x] Add assertion to prevent leakage to real `data/users` in file ops lifecycle test
+
 
 ### Pytest Marker Application Project ✅ **COMPLETED**
 **Status**: 100% Complete - All 101 tasks finished  
@@ -305,6 +312,7 @@
 
 #### Optimization Strategies ⚠️ **IN PROGRESS**
 - [ ] Parallel Test Execution - Install pytest-xdist for parallel execution
+  - [ ] Validate isolation when running in parallel
 - [ ] Test Data Caching - Cache common test user data
 - [ ] Optimized Test User Creation - Create minimal user data for tests
 - [ ] Selective Test Execution - Mark slow tests with @pytest.mark.slow

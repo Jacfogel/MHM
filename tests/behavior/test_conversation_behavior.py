@@ -13,7 +13,7 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
-from bot.conversation_manager import ConversationManager, FLOW_NONE, FLOW_DAILY_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
+from bot.conversation_manager import ConversationManager, FLOW_NONE, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
 
 
 class TestConversationManagerBehavior:
@@ -73,7 +73,7 @@ class TestConversationManagerBehavior:
         
         # Set up existing state
         manager.user_states[test_user_id] = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_MOOD,
             "data": {"mood": "good"},
             "question_order": ["mood", "energy"]
@@ -90,7 +90,7 @@ class TestConversationManagerBehavior:
             
             # Assert - Verify state preservation
             assert test_user_id in manager.user_states, "Should preserve user state"
-            assert manager.user_states[test_user_id]['flow'] == FLOW_DAILY_CHECKIN, "Should preserve flow"
+            assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should preserve flow"
             assert manager.user_states[test_user_id]['state'] == CHECKIN_MOOD, "Should preserve state"
             assert manager.user_states[test_user_id]['data']['mood'] == "good", "Should preserve data"
     
@@ -98,8 +98,8 @@ class TestConversationManagerBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_start_daily_checkin_creates_checkin_state(self, test_data_dir):
-        """Test that start_daily_checkin actually creates check-in state."""
+    def test_start_checkin_creates_checkin_state(self, test_data_dir):
+        """Test that start_checkin actually creates check-in state."""
         # Arrange
         manager = ConversationManager()
         test_user_id = "test-user-checkin"
@@ -114,15 +114,15 @@ class TestConversationManagerBehavior:
                     'mood': {'enabled': True},
                     'energy': {'enabled': True}
                 },
-                'welcome_message': 'Welcome to your daily check-in!'
+                'welcome_message': 'Welcome to your check-in!'
             }
             
             # Act
-            reply, completed = manager.start_daily_checkin(test_user_id)
+            reply, completed = manager.start_checkin(test_user_id)
             
             # Assert - Verify actual state creation
             assert test_user_id in manager.user_states, "Should create user state"
-            assert manager.user_states[test_user_id]['flow'] == FLOW_DAILY_CHECKIN, "Should set check-in flow"
+            assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should set check-in flow"
             # The state gets set to the first question's state (CHECKIN_MOOD = 101)
             assert manager.user_states[test_user_id]['state'] == CHECKIN_MOOD, "Should set first question state"
             assert 'data' in manager.user_states[test_user_id], "Should have data dictionary"
@@ -135,8 +135,8 @@ class TestConversationManagerBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_start_daily_checkin_handles_disabled_user(self, test_data_dir):
-        """Test that start_daily_checkin handles users with disabled check-ins."""
+    def test_start_checkin_handles_disabled_user(self, test_data_dir):
+        """Test that start_checkin handles users with disabled check-ins."""
         # Arrange
         manager = ConversationManager()
         test_user_id = "test-user-disabled"
@@ -146,7 +146,7 @@ class TestConversationManagerBehavior:
             mock_enabled.return_value = False
             
             # Act
-            reply, completed = manager.start_daily_checkin(test_user_id)
+            reply, completed = manager.start_checkin(test_user_id)
             
             # Assert - Verify graceful handling
             assert test_user_id not in manager.user_states, "Should not create user state"
@@ -157,15 +157,15 @@ class TestConversationManagerBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_daily_checkin_flow_progression(self, test_data_dir):
-        """Test that daily check-in flow actually progresses through states."""
+    def test_checkin_flow_progression(self, test_data_dir):
+        """Test that check-in flow actually progresses through states."""
         # Arrange
         manager = ConversationManager()
         test_user_id = "test-user-flow"
         
         # Set up check-in state
         manager.user_states[test_user_id] = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_MOOD,
             "data": {},
             "question_order": ["mood", "energy"]
@@ -192,15 +192,15 @@ class TestConversationManagerBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_daily_checkin_flow_completion(self, test_data_dir):
-        """Test that daily check-in flow actually completes and cleans up state."""
+    def test_checkin_flow_completion(self, test_data_dir):
+        """Test that check-in flow actually completes and cleans up state."""
         # Arrange
         manager = ConversationManager()
         test_user_id = "test-user-complete"
         
         # Set up final check-in state - simulate what the actual flow would produce
         manager.user_states[test_user_id] = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_REFLECTION,
             "data": {
                 "mood": 4,  # Use integer for mood (as returned by validation)
@@ -389,7 +389,7 @@ class TestConversationManagerBehavior:
         
         # Add user state
         manager.user_states[test_user_id] = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_MOOD,
             "data": {"mood": "good"},
             "question_order": ["mood", "energy"]
@@ -416,7 +416,7 @@ class TestConversationManagerBehavior:
         # Mock response tracking functions
         with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \
              patch('bot.conversation_manager.get_user_checkin_preferences') as mock_prefs, \
-             patch('bot.conversation_manager.store_daily_checkin_response') as mock_store:
+             patch('bot.conversation_manager.store_checkin_response') as mock_store:
             
             mock_enabled.return_value = True
             mock_prefs.return_value = {
@@ -428,11 +428,11 @@ class TestConversationManagerBehavior:
             mock_store.return_value = True
             
             # Start check-in
-            reply, completed = manager.start_daily_checkin(test_user_id)
+            reply, completed = manager.start_checkin(test_user_id)
             
             # Complete check-in - set up final state
             manager.user_states[test_user_id] = {
-                "flow": FLOW_DAILY_CHECKIN,
+                "flow": FLOW_CHECKIN,
                 "state": CHECKIN_MOOD,
                 "data": {},
                 "question_order": ["mood"],
@@ -476,12 +476,12 @@ class TestConversationManagerBehavior:
                 'welcome_message': 'Welcome!'
             }
             
-            # Act - Test daily check-in command
-            reply, completed = manager.handle_inbound_message(test_user_id, "/dailycheckin")
+            # Act - Test check-in command
+            reply, completed = manager.handle_inbound_message(test_user_id, "/checkin")
             
             # Assert - Verify command handling
             assert test_user_id in manager.user_states, "Should create user state for command"
-            assert manager.user_states[test_user_id]['flow'] == FLOW_DAILY_CHECKIN, "Should start check-in flow"
+            assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should start check-in flow"
             assert "feeling" in reply.lower(), "Should ask first question"
     
     @pytest.mark.communication
@@ -496,7 +496,7 @@ class TestConversationManagerBehavior:
         
         # Set up check-in state
         manager.user_states[test_user_id] = {
-            "flow": FLOW_DAILY_CHECKIN,
+            "flow": FLOW_CHECKIN,
             "state": CHECKIN_MOOD,
             "data": {},
             "question_order": ["mood", "energy"]
@@ -536,7 +536,7 @@ class TestConversationManagerIntegration:
             "checkin_settings": {
                 "enabled": True,
                 "questions": ["mood", "energy", "daily_reflection"],
-                "welcome_message": "Welcome to your daily check-in!"
+                "welcome_message": "Welcome to your check-in!"
             }
         })
         assert update_success, "User preferences should be updated successfully"
@@ -552,15 +552,15 @@ class TestConversationManagerIntegration:
                     'energy': {'enabled': True},
                     'daily_reflection': {'enabled': True}
                 },
-                'welcome_message': 'Welcome to your daily check-in!'
+                'welcome_message': 'Welcome to your check-in!'
             }
             
             # Act
-            reply, completed = manager.start_daily_checkin(test_user_id)
+            reply, completed = manager.start_checkin(test_user_id)
             
             # Assert - Verify real data integration
             assert test_user_id in manager.user_states, "Should create user state with real data"
-            assert manager.user_states[test_user_id]['flow'] == FLOW_DAILY_CHECKIN, "Should start check-in flow"
+            assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should start check-in flow"
             assert len(manager.user_states[test_user_id]['question_order']) == 3, "Should have correct question count"
             assert "feeling" in reply.lower(), "Should ask first question"
     

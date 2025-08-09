@@ -30,11 +30,16 @@ logs/
 ```python
 from core.logger import get_component_logger
 
-# Get component-specific loggers
+# Get component-specific loggers (propagate=False, own files, errors also to errors.log)
 discord_logger = get_component_logger('discord')
-ai_logger = get_component_logger('ai')
+email_logger = get_component_logger('email')
+telegram_logger = get_component_logger('telegram')
+ui_logger = get_component_logger('ui')
+file_ops_logger = get_component_logger('file_ops')
+scheduler_logger = get_component_logger('scheduler')
 user_logger = get_component_logger('user_activity')
-error_logger = get_component_logger('errors')
+ai_logger = get_component_logger('ai')
+comm_logger = get_component_logger('communication_manager')
 main_logger = get_component_logger('main')
 ```
 
@@ -110,15 +115,27 @@ Each component logger can be configured independently:
 discord_logger = ComponentLogger('discord', LOG_DISCORD_FILE, level=logging.DEBUG)
 ```
 
-## Best Practices
+## Best Practices (final architecture)
 
 ### 1. Use Appropriate Components
 
-- **Discord**: Use `discord` logger for Discord bot events
-- **AI**: Use `ai` logger for AI interactions and processing
-- **User Activity**: Use `user_activity` logger for user actions
-- **Errors**: Use `errors` logger for error conditions
-- **Main**: Use `main` logger for general application events
+- Channels: `discord`, `email`, `telegram`
+- UI: `ui`
+- Orchestration: `communication_manager`
+- Core subsystems: `file_ops`, `scheduler`, `user_activity`, `ai`
+- System: `main`
+
+### 2. BaseChannel pattern (standardized)
+- Subclasses do not set their own loggers.
+- `bot/base_channel.py` assigns `self.logger = get_component_logger(self.config.name)`.
+- Channel classes should ensure `config.name` matches the component (`discord`, `email`, `telegram`).
+
+### 3. Test isolation behavior
+- When `MHM_TESTING=1` and `TEST_VERBOSE_LOGS=1`:
+  - All component logs (including errors) are remapped under `tests/logs/`.
+  - Real logs are not written during tests.
+- When `MHM_TESTING=1` and `TEST_VERBOSE_LOGS` is not set:
+  - Component loggers are no-ops; tests remain quiet.
 
 ### 2. Include Relevant Context
 
@@ -136,7 +153,7 @@ user_logger.info("User check-in completed",
                 random_data="unnecessary")
 ```
 
-### 3. Use Structured Data for Analysis
+### 4. Use Structured Data for Analysis
 
 ```python
 # Structured data makes logs easier to analyze
@@ -209,7 +226,26 @@ The system automatically:
 
 ## Migration from Old System
 
-The new system is backward compatible. Existing code using `logging.getLogger()` will continue to work, but you can gradually migrate to component loggers for better organization.
+The system prefers component loggers. Replace module loggers in channel-related modules with `get_component_logger('<component>')`. Root logger remains simple (app.log + console). Discord library noise is suppressed (WARNING, propagate=False) with gateway heartbeat filter applied.
+
+### Legacy compatibility logging standard
+
+Use the following format for any temporary legacy paths:
+
+```python
+# LEGACY COMPATIBILITY: [Brief description]
+# TODO: Remove after [specific condition]
+# REMOVAL PLAN:
+# 1. [Step 1]
+# 2. [Step 2]
+# 3. [Step 3]
+logger.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead")
+```
+
+Guidelines:
+- Only add legacy paths when necessary to prevent breakage.
+- Always log usage at WARNING level to track and plan removal.
+- Add a clear removal condition and steps.
 
 ### Before (Old System)
 ```python
@@ -223,6 +259,14 @@ logger.info("Discord bot connected")
 from core.logger import get_component_logger
 discord_logger = get_component_logger('discord')
 discord_logger.info("Discord bot connected", latency=0.1)
+
+# Channel orchestration
+comm_logger = get_component_logger('communication_manager')
+comm_logger.info("All channels started successfully")
+
+# UI module
+ui_logger = get_component_logger('ui')
+ui_logger.info("Admin panel started")
 ```
 
 ## Troubleshooting

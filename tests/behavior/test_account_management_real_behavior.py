@@ -184,9 +184,9 @@ def test_feature_enablement_real_behavior(test_data_dir):
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         
-        # Verify daily_checkins.json was created
-        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "daily_checkins.json")
-        assert os.path.exists(checkins_file), "daily_checkins.json should be created"
+        # Verify checkins.json was created
+        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")
+        assert os.path.exists(checkins_file), "checkins.json should be created"
         
         print("  ✅ Enable check-ins: Success")
         
@@ -464,9 +464,9 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
         
-        # Verify daily_checkins.json was created
-        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "daily_checkins.json")
-        assert os.path.exists(checkins_file), "daily_checkins.json should be created"
+        # Verify checkins.json was created
+        checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")
+        assert os.path.exists(checkins_file), "checkins.json should be created"
         
         print("    ✅ Check-in opt-in scenario: Success")
         

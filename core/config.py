@@ -6,7 +6,6 @@ Handles environment variables, validation, and system settings.
 
 import os
 from dotenv import load_dotenv
-import logging
 from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 
@@ -14,9 +13,8 @@ from core.error_handling import (
     ConfigurationError, ValidationError, handle_configuration_error,
     handle_errors, error_handler
 )
-# Set up basic logging for config issues
-logging.basicConfig(level=logging.WARNING)
-logger = logging.getLogger(__name__)
+from core.logger import get_component_logger
+logger = get_component_logger('main')
 
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
@@ -478,7 +476,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         'context': 'user_context.json',
         'schedules': 'schedules.json',
         # Other files
-        'daily_checkins': 'daily_checkins.json',
+        'checkins': 'checkins.json',
         'chat_interactions': 'chat_interactions.json',
         'sent_messages': 'messages/sent_messages.json',
         'conversation_history': 'conversation_history.json'

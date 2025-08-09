@@ -94,7 +94,7 @@ class TestUserContextManagerBehavior:
         
         # Mock all the data retrieval functions
         with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_daily_checkins') as mock_get_checkins, \
+             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions, \
              patch('bot.user_context_manager.get_last_10_messages') as mock_get_messages:
             
@@ -277,7 +277,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-activity"
         
         # Mock data retrieval functions
-        with patch('bot.user_context_manager.get_recent_daily_checkins') as mock_get_checkins, \
+        with patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
             
             # Setup mock returns
@@ -334,13 +334,13 @@ class TestUserContextManagerBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     def test_get_mood_trends_analyzes_checkin_data(self, test_data_dir):
-        """Test that _get_mood_trends analyzes actual daily checkin data."""
+        """Test that _get_mood_trends analyzes actual checkin data."""
         # Arrange
         manager = UserContextManager()
         test_user_id = "test-user-mood"
         
         # Mock checkin data with numeric mood values
-        with patch('bot.user_context_manager.get_recent_daily_checkins') as mock_get_checkins:
+        with patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins:
             mock_get_checkins.return_value = [
                 {'date': '2025-01-01', 'mood': 8, 'energy': 7},
                 {'date': '2025-01-02', 'mood': 6, 'energy': 5},
@@ -502,7 +502,7 @@ class TestUserContextManagerBehavior:
         
         # Mock data retrieval for context generation
         with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_daily_checkins') as mock_get_checkins, \
+             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions:
             
             mock_get_user_data.side_effect = lambda user_id, data_type: {
@@ -540,7 +540,7 @@ class TestUserContextManagerBehavior:
         
         # Mock data retrieval for performance testing
         with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_daily_checkins') as mock_get_checkins, \
+             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions, \
              patch('bot.user_context_manager.get_last_10_messages') as mock_get_messages:
             

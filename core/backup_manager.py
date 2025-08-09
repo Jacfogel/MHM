@@ -14,7 +14,7 @@ from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 
 from core.logger import get_logger, get_component_logger
-from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
+import core.config as cfg
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data, get_all_user_ids
 
@@ -30,7 +30,7 @@ class BackupManager:
         
         Sets up backup directory, maximum backup count, and ensures backup directory exists.
         """
-        self.backup_dir = os.path.join(BASE_DATA_DIR, "backups")
+        self.backup_dir = os.path.join(cfg.BASE_DATA_DIR, "backups")
         self.ensure_backup_directory()
         self.max_backups = 10  # Keep last 10 backups
     
@@ -99,12 +99,12 @@ class BackupManager:
     @handle_errors("backing up user data")
     def _backup_user_data(self, zipf: zipfile.ZipFile) -> None:
         """Backup all user data directories."""
-        if not os.path.exists(USER_INFO_DIR_PATH):
-            logger.warning(f"User data directory does not exist: {USER_INFO_DIR_PATH}")
+        if not os.path.exists(cfg.USER_INFO_DIR_PATH):
+            logger.warning(f"User data directory does not exist: {cfg.USER_INFO_DIR_PATH}")
             return
         
-        for user_dir in os.listdir(USER_INFO_DIR_PATH):
-            user_path = os.path.join(USER_INFO_DIR_PATH, user_dir)
+        for user_dir in os.listdir(cfg.USER_INFO_DIR_PATH):
+            user_path = os.path.join(cfg.USER_INFO_DIR_PATH, user_dir)
             if os.path.isdir(user_path):
                 self._add_directory_to_zip(zipf, user_path, f"users/{user_dir}")
         
@@ -120,7 +120,7 @@ class BackupManager:
         ]
         
         for config_file in config_files:
-            config_path = os.path.join(BASE_DATA_DIR, config_file)
+            config_path = os.path.join(cfg.BASE_DATA_DIR, config_file)
             if os.path.exists(config_path):
                 zipf.write(config_path, f"config/{config_file}")
         
@@ -135,7 +135,7 @@ class BackupManager:
         ]
         
         for log_file in log_files:
-            log_path = os.path.join(BASE_DATA_DIR, log_file)
+            log_path = os.path.join(cfg.BASE_DATA_DIR, log_file)
             if os.path.exists(log_path):
                 zipf.write(log_path, f"logs/{log_file}")
         
@@ -290,13 +290,13 @@ class BackupManager:
     def _restore_user_data(self, zipf: zipfile.ZipFile) -> None:
         """Restore user data from backup."""
         # Clear existing user data
-        if os.path.exists(USER_INFO_DIR_PATH):
-            shutil.rmtree(USER_INFO_DIR_PATH)
+        if os.path.exists(cfg.USER_INFO_DIR_PATH):
+            shutil.rmtree(cfg.USER_INFO_DIR_PATH)
         
         # Extract user data from backup
         for file_info in zipf.infolist():
             if file_info.filename.startswith('users/'):
-                zipf.extract(file_info, BASE_DATA_DIR)
+                zipf.extract(file_info, cfg.BASE_DATA_DIR)
         
         logger.info("User data restored successfully")
     
@@ -305,7 +305,7 @@ class BackupManager:
         """Restore configuration files from backup."""
         for file_info in zipf.infolist():
             if file_info.filename.startswith('config/'):
-                zipf.extract(file_info, BASE_DATA_DIR)
+                zipf.extract(file_info, cfg.BASE_DATA_DIR)
         
         logger.info("Configuration files restored successfully")
     
@@ -394,7 +394,7 @@ def validate_system_state() -> bool:
     """
     try:
         # Check if user index exists and is valid
-        user_index_path = os.path.join(BASE_DATA_DIR, "user_index.json")
+        user_index_path = os.path.join(cfg.BASE_DATA_DIR, "user_index.json")
         if os.path.exists(user_index_path):
             with open(user_index_path, 'r') as f:
                 user_index = json.load(f)
@@ -406,12 +406,12 @@ def validate_system_state() -> bool:
             
             # Check if all users in index have corresponding directories
             for user_id in user_index.keys():
-                user_dir = os.path.join(USER_INFO_DIR_PATH, user_id)
+                user_dir = os.path.join(cfg.USER_INFO_DIR_PATH, user_id)
                 if not os.path.exists(user_dir):
                     logger.warning(f"User directory missing for indexed user: {user_id}")
         
         # Check if user data directory exists
-        if not os.path.exists(USER_INFO_DIR_PATH):
+        if not os.path.exists(cfg.USER_INFO_DIR_PATH):
             logger.error("User data directory does not exist")
             return False
         

@@ -5,8 +5,8 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
-factory_logger = get_component_logger('channels')
+factory_logger = get_component_logger('communication_manager')
+logger = factory_logger
 
 class ChannelFactory:
     """Factory for creating communication channels"""

@@ -21,8 +21,9 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
+# Route all Discord module logs to the Discord component logger so they appear in logs/discord.log
 discord_logger = get_component_logger('discord')
+logger = discord_logger
 
 intents = discord.Intents.default()
 intents.messages = True
@@ -68,6 +69,11 @@ class DiscordBot(BaseChannel):
         self._last_health_check = 0
         self._health_check_interval = 30  # Check health every 30 seconds
         self._detailed_error_info = {}
+        # Ensure BaseChannel logs for this instance also go to the Discord component log
+        try:
+            self.logger = discord_logger
+        except Exception:
+            pass
 
     @property
     def channel_type(self) -> ChannelType:
@@ -237,6 +243,15 @@ class DiscordBot(BaseChannel):
         logger.info(f"Discord connection status changed to: {status.value}")
         if error_info:
             logger.debug(f"Connection error details: {error_info}")
+        # Also log to the Discord component log for better separation
+        try:
+            discord_logger.info(
+                "Discord connection status changed",
+                connection_status=status.value,
+                has_error_details=bool(error_info)
+            )
+        except Exception:
+            pass
 
     @handle_errors("initializing Discord bot", default_return=False)
     async def initialize(self) -> bool:
@@ -536,7 +551,7 @@ class DiscordBot(BaseChannel):
             internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
             if not internal_user_id:
-                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
+                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
                 return
             
             try:
@@ -545,11 +560,11 @@ class DiscordBot(BaseChannel):
                 await ctx.send(response.message)
             except Exception as e:
                 logger.error(f"Error in status command: {e}")
-                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Daily wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
+                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
 
-        @self.bot.command(name="dailycheckin")
-        async def dailycheckin_cmd(ctx):
-            """Manually start the daily check-in flow (normally prompted automatically)."""
+        @self.bot.command(name="checkin")
+        async def checkin_cmd(ctx):
+            """Manually start the check-in flow (normally prompted automatically)."""
             discord_user_id = str(ctx.author.id)
             internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
@@ -572,7 +587,7 @@ class DiscordBot(BaseChannel):
 
         @self.bot.command(name="cancel")
         async def cancel_cmd(ctx):
-            """Cancel the current flow (like daily check-in)."""
+            """Cancel the current flow (like check-in)."""
             discord_user_id = str(ctx.author.id)
             internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
             
@@ -620,24 +635,6 @@ class DiscordBot(BaseChannel):
             except Exception as e:
                 logger.error(f"Error in help command: {e}")
                 await ctx.send("I'm here to help! Try typing naturally - I'll understand what you want to do.")
-
-        @self.bot.command(name="checkin")
-        async def checkin_cmd(ctx):
-            """Start or continue daily check-in."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use check-in features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "start checkin", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in checkin command: {e}")
-                await ctx.send("I'm having trouble starting your check-in right now. Please try again.")
 
         @self.bot.command(name="profile")
         async def profile_cmd(ctx):

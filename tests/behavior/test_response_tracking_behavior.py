@@ -10,10 +10,10 @@ from datetime import datetime
 from unittest.mock import patch, MagicMock
 from core.response_tracking import (
     store_user_response,
-    store_daily_checkin_response,
+    store_checkin_response,
     store_chat_interaction,
     get_recent_responses,
-    get_recent_daily_checkins,
+    get_recent_checkins,
     get_recent_chat_interactions,
     get_user_checkin_preferences,
     is_user_checkins_enabled,
@@ -37,16 +37,16 @@ class TestResponseTrackingBehavior:
         response_data = {"mood": 5, "energy": 4, "notes": "Feeling good"}
         
         # Arrange - Mock file path to use test directory
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
         # Act - Store response with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            store_user_response(user_id, response_data, "daily_checkin")
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(user_id, response_data, "checkin")
         
         # Assert - Verify file was created with data
-        assert os.path.exists(daily_checkins_file), "Daily checkins file should be created"
+        assert os.path.exists(checkins_file), "checkins file should be created"
         
-        with open(daily_checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 1, "Should have one response entry"
@@ -65,15 +65,15 @@ class TestResponseTrackingBehavior:
         response2 = {"mood": 7, "energy": 8}
         
         # Arrange - Mock file path to use test directory
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
         # Act - Store multiple responses with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            store_user_response(user_id, response1, "daily_checkin")
-            store_user_response(user_id, response2, "daily_checkin")
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(user_id, response1, "checkin")
+            store_user_response(user_id, response2, "checkin")
         
         # Assert - Verify both entries are stored
-        with open(daily_checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 2, "Should have two response entries"
@@ -85,22 +85,22 @@ class TestResponseTrackingBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_store_daily_checkin_response_uses_correct_file(self, test_data_dir):
-        """Test that daily checkin responses are stored in the correct file."""
+    def test_store_checkin_response_uses_correct_file(self, test_data_dir):
+        """Test that checkin responses are stored in the correct file."""
         user_id = "test-user-checkin"
         response_data = {"mood": 6, "sleep": 8, "stress": 3}
         
         # Arrange - Mock file path to use test directory
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
-        # Act - Store daily checkin with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            store_daily_checkin_response(user_id, response_data)
+        # Act - Store checkin with mocked file path
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_checkin_response(user_id, response_data)
         
         # Assert - Verify correct file was used
-        assert os.path.exists(daily_checkins_file), "Daily checkins file should be created"
+        assert os.path.exists(checkins_file), "checkins file should be created"
         
-        with open(daily_checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 1, "Should have one checkin entry"
@@ -152,14 +152,14 @@ class TestResponseTrackingBehavior:
             {"mood": 3, "timestamp": "2025-01-03 10:00:00"}
         ]
         
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
-        os.makedirs(os.path.dirname(daily_checkins_file), exist_ok=True)
-        with open(daily_checkins_file, 'w', encoding='utf-8') as f:
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
+        with open(checkins_file, 'w', encoding='utf-8') as f:
             json.dump(test_responses, f)
         
         # Act - Get recent responses with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            recent = get_recent_responses(user_id, "daily_checkin", limit=2)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            recent = get_recent_responses(user_id, "checkin", limit=2)
         
         # Assert - Verify data is returned correctly
         assert len(recent) == 2, "Should return limited number of responses"
@@ -170,8 +170,8 @@ class TestResponseTrackingBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_get_recent_daily_checkins_returns_checkin_data(self, test_data_dir):
-        """Test that getting recent daily checkins returns actual checkin data."""
+    def test_get_recent_checkins_returns_checkin_data(self, test_data_dir):
+        """Test that getting recent checkins returns actual checkin data."""
         user_id = "test-user-checkins"
         
         # Arrange - Create test checkin data
@@ -180,14 +180,14 @@ class TestResponseTrackingBehavior:
             {"mood": 4, "energy": 5, "timestamp": "2025-01-02 09:00:00"}
         ]
         
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
-        os.makedirs(os.path.dirname(daily_checkins_file), exist_ok=True)
-        with open(daily_checkins_file, 'w', encoding='utf-8') as f:
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
+        with open(checkins_file, 'w', encoding='utf-8') as f:
             json.dump(test_checkins, f)
         
         # Act - Get recent checkins with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            recent = get_recent_daily_checkins(user_id, limit=1)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            recent = get_recent_checkins(user_id, limit=1)
         
         # Assert - Verify checkin data is returned
         assert len(recent) == 1, "Should return limited number of checkins"
@@ -376,20 +376,20 @@ class TestResponseTrackingBehavior:
     @pytest.mark.file_io
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_track_user_response_stores_daily_checkin(self, test_data_dir):
-        """Test that tracking user response stores daily checkin data."""
+    def test_track_user_response_stores_checkin(self, test_data_dir):
+        """Test that tracking user response stores checkin data."""
         user_id = "test-user-track"
         
         # Arrange - Create test account
         test_account = {"features": {"checkins": "enabled"}}
         
-        # Act - Track daily checkin response
+        # Act - Track checkin response
         with patch('core.response_tracking.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"account": test_account}
-            with patch('core.response_tracking.store_daily_checkin_response') as mock_store:
-                track_user_response(user_id, "daily_checkin", {"mood": 6, "energy": 7})
+            with patch('core.response_tracking.store_checkin_response') as mock_store:
+                track_user_response(user_id, "checkin", {"mood": 6, "energy": 7})
         
-        # Assert - Verify daily checkin was stored
+        # Assert - Verify checkin was stored
         mock_store.assert_called_once_with(user_id, {"mood": 6, "energy": 7})
     
     @pytest.mark.analytics
@@ -448,7 +448,7 @@ class TestResponseTrackingBehavior:
         with patch('core.response_tracking.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"account": None}  # Invalid user
             # Should not raise exception
-            track_user_response(user_id, "daily_checkin", {"mood": 5})
+            track_user_response(user_id, "checkin", {"mood": 5})
         
         # Assert - System should remain stable
         # No exceptions should be raised, function should handle error gracefully
@@ -470,14 +470,14 @@ class TestResponseTrackingBehavior:
                 "timestamp": f"2025-01-{i+1:02d} 10:00:00"
             })
         
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
-        os.makedirs(os.path.dirname(daily_checkins_file), exist_ok=True)
-        with open(daily_checkins_file, 'w', encoding='utf-8') as f:
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
+        with open(checkins_file, 'w', encoding='utf-8') as f:
             json.dump(large_dataset, f)
         
         # Act - Get recent responses with mocked file path (should be fast even with large dataset)
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            recent = get_recent_responses(user_id, "daily_checkin", limit=5)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            recent = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Should return quickly and correctly
         assert len(recent) == 5, "Should return limited number of responses"
@@ -494,19 +494,19 @@ class TestResponseTrackingBehavior:
         user_id = "test-user-integrity"
         
         # Arrange - Mock file path to use test directory
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
         # Store initial data
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             initial_data = {"mood": 7, "energy": 8, "notes": "Initial entry"}
-            store_user_response(user_id, initial_data, "daily_checkin")
+            store_user_response(user_id, initial_data, "checkin")
             
             # Act - Store additional data
             additional_data = {"mood": 5, "energy": 6, "notes": "Additional entry"}
-            store_user_response(user_id, additional_data, "daily_checkin")
+            store_user_response(user_id, additional_data, "checkin")
         
         # Assert - Verify both entries are preserved
-        with open(daily_checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 2, "Should preserve all entries"
@@ -541,7 +541,7 @@ class TestResponseTrackingIntegration:
         # Create user files
         account_file = os.path.join(test_data_dir, "users", user_id, "account.json")
         prefs_file = os.path.join(test_data_dir, "users", user_id, "preferences.json")
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         os.makedirs(os.path.dirname(account_file), exist_ok=True)
         
         with open(account_file, 'w', encoding='utf-8') as f:
@@ -551,7 +551,7 @@ class TestResponseTrackingIntegration:
             json.dump({"preferences": test_preferences}, f)
         
         # Act - Test complete workflow with mocked file paths and user data functions
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
             with patch('core.response_tracking.get_user_data') as mock_get_user_data:
                 # Mock get_user_data to return our test data
                 mock_get_user_data.side_effect = [
@@ -569,10 +569,10 @@ class TestResponseTrackingIntegration:
                 
                 # 3. Store a checkin response
                 if enabled:
-                    store_daily_checkin_response(user_id, {"mood": 6, "energy": 7})
+                    store_checkin_response(user_id, {"mood": 6, "energy": 7})
                 
                 # 4. Get recent checkins
-                recent = get_recent_daily_checkins(user_id, limit=1)
+                recent = get_recent_checkins(user_id, limit=1)
         
         # Assert - Verify complete workflow works
         assert enabled is True, "Checkins should be enabled"
@@ -585,26 +585,26 @@ class TestResponseTrackingIntegration:
         user_id = "test-user-error-recovery"
         
         # Arrange - Create corrupted file
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
-        os.makedirs(os.path.dirname(daily_checkins_file), exist_ok=True)
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkins_file), exist_ok=True)
         
         # Create corrupted JSON file
-        with open(daily_checkins_file, 'w', encoding='utf-8') as f:
+        with open(checkins_file, 'w', encoding='utf-8') as f:
             f.write('{"invalid": json}')  # Invalid JSON
         
         # Act - Try to get recent responses with mocked file path (should handle corruption gracefully)
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            recent = get_recent_responses(user_id, "daily_checkin", limit=5)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            recent = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Should handle corruption gracefully
         assert recent == [], "Should return empty list for corrupted file"
         
         # Act - Try to store new response with mocked file path (should create new file)
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            store_user_response(user_id, {"mood": 5}, "daily_checkin")
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(user_id, {"mood": 5}, "checkin")
         
         # Assert - Should create new valid file
-        with open(daily_checkins_file, 'r', encoding='utf-8') as f:
+        with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
         assert len(data) == 1, "Should create new valid file"
@@ -615,18 +615,18 @@ class TestResponseTrackingIntegration:
         user_id = "test-user-concurrent"
         
         # Arrange - Mock file path to use test directory
-        daily_checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         
         # Create initial data with explicit timestamp to control sorting
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "daily_checkin")
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            store_user_response(user_id, {"mood": 5, "timestamp": "2025-01-01 10:00:00"}, "checkin")
         
         # Act - Simulate concurrent access by reading and writing simultaneously
         # This tests that the file operations are thread-safe
-        with patch('core.response_tracking.get_user_file_path', return_value=daily_checkins_file):
-            recent1 = get_recent_responses(user_id, "daily_checkin", limit=5)
-            store_user_response(user_id, {"mood": 7, "timestamp": "2025-01-02 10:00:00"}, "daily_checkin")
-            recent2 = get_recent_responses(user_id, "daily_checkin", limit=5)
+        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
+            recent1 = get_recent_responses(user_id, "checkin", limit=5)
+            store_user_response(user_id, {"mood": 7, "timestamp": "2025-01-02 10:00:00"}, "checkin")
+            recent2 = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Both operations should work correctly
         assert len(recent1) == 1, "First read should work"

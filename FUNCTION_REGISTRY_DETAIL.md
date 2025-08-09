@@ -82,7 +82,7 @@ Now actually analyzes user's check-in data for meaningful responses.
 - ✅ `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
 - ✅ `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(daily check-in data). Uses longer timeout since this is not real-time.
+(check-in data). Uses longer timeout since this is not real-time.
 - ✅ `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
 - ✅ `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
@@ -121,7 +121,7 @@ Now actually analyzes user's check-in data for meaningful responses.
   - ✅ `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
 Integrates with existing UserContext and UserPreferences systems.
   - ✅ `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(daily check-in data). Uses longer timeout since this is not real-time.
+(check-in data). Uses longer timeout since this is not real-time.
   - ✅ `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
 Uses shorter timeout optimized for responsiveness.
   - ✅ `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
@@ -206,7 +206,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
 - ✅ `_retry_loop(self)` - Main retry loop for failed messages
 - ✅ `_run_async_sync(self, coro)` - Run async function synchronously using our managed loop
 - ✅ `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI
-- ✅ `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the daily check-in flow.
+- ✅ `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
 - ✅ `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library
 - ✅ `_setup_event_loop(self)` - Set up a dedicated event loop for async operations
 - ✅ `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
@@ -256,7 +256,7 @@ Verifies that the logging system is functional and attempts to restart it if iss
   - ✅ `CommunicationManager._retry_loop(self)` - Main retry loop for failed messages
   - ✅ `CommunicationManager._run_async_sync(self, coro)` - Run async function synchronously using our managed loop
   - ✅ `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI
-  - ✅ `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the daily check-in flow.
+  - ✅ `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
   - ✅ `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library
   - ✅ `CommunicationManager._setup_event_loop(self)` - Set up a dedicated event loop for async operations
   - ✅ `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
@@ -683,10 +683,10 @@ Returns:
 
 Returns:
     ChannelType.ASYNC: Telegram bot operates asynchronously
-- ✅ `daily_checkin_conv_handler(self)` - Create a conversation handler for daily check-in flow.
+- ✅ `checkin_conv_handler(self)` - Create a conversation handler for check-in flow.
 
 Returns:
-    ConversationHandler: Configured conversation handler for daily check-in flow
+    ConversationHandler: Configured conversation handler for check-in flow
 - ✅ `days_selected(self, update, context)` - Handle days selection
 - ✅ `edit_schedule_period(self, update, context)` - Edit schedule period
 - ❌ `ensure_user_exists(self, update)` - No description
@@ -772,10 +772,10 @@ Returns:
 
 Returns:
     ChannelType.ASYNC: Telegram bot operates asynchronously
-  - ✅ `TelegramBot.daily_checkin_conv_handler(self)` - Create a conversation handler for daily check-in flow.
+  - ✅ `TelegramBot.checkin_conv_handler(self)` - Create a conversation handler for check-in flow.
 
 Returns:
-    ConversationHandler: Configured conversation handler for daily check-in flow
+    ConversationHandler: Configured conversation handler for check-in flow
   - ✅ `TelegramBot.days_selected(self, update, context)` - Handle days selection
   - ✅ `TelegramBot.edit_schedule_period(self, update, context)` - Edit schedule period
   - ❌ `TelegramBot.ensure_user_exists(self, update)` - No description
@@ -1070,7 +1070,7 @@ Returns:
 **Functions:**
 - ✅ `__init__(self)` - Initialize the CheckinAnalytics instance.
 
-This class provides analytics and insights from daily check-in data.
+This class provides analytics and insights from check-in data.
 - ✅ `_calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
 - ✅ `_calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
 - ✅ `_calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
@@ -1093,7 +1093,7 @@ This class provides analytics and insights from daily check-in data.
 - ❌ `CheckinAnalytics` - No description
   - ✅ `CheckinAnalytics.__init__(self)` - Initialize the CheckinAnalytics instance.
 
-This class provides analytics and insights from daily check-in data.
+This class provides analytics and insights from check-in data.
   - ✅ `CheckinAnalytics._calculate_habit_score(self, checkins)` - Calculate habit score (0-100)
   - ✅ `CheckinAnalytics._calculate_mood_score(self, checkins)` - Calculate mood score (0-100)
   - ✅ `CheckinAnalytics._calculate_overall_completion(self, habit_stats)` - Calculate overall habit completion rate
@@ -2928,14 +2928,14 @@ to clean up schedule data structure and optimize day lists.
 - ✅ `test_conversation_manager_integration_with_response_tracking(self, test_data_dir)` - Test that ConversationManager integrates properly with response tracking.
 - ✅ `test_conversation_manager_performance_under_load(self, test_data_dir)` - Test that ConversationManager performs well under load.
 - ✅ `test_conversation_manager_with_real_user_data(self, test_data_dir)` - Test ConversationManager with real user data files.
-- ✅ `test_daily_checkin_flow_completion(self, test_data_dir)` - Test that daily check-in flow actually completes and cleans up state.
-- ✅ `test_daily_checkin_flow_progression(self, test_data_dir)` - Test that daily check-in flow actually progresses through states.
+- ✅ `test_checkin_flow_completion(self, test_data_dir)` - Test that check-in flow actually completes and cleans up state.
+- ✅ `test_checkin_flow_progression(self, test_data_dir)` - Test that check-in flow actually progresses through states.
 - ✅ `test_get_question_text_returns_personalized_questions(self, test_data_dir)` - Test that _get_question_text returns personalized questions based on context.
 - ✅ `test_handle_contextual_question_integrates_with_ai(self, test_data_dir)` - Test that handle_contextual_question integrates with AI chatbot.
 - ✅ `test_handle_inbound_message_creates_user_state(self, test_data_dir)` - Test that handle_inbound_message actually creates user state when needed.
 - ✅ `test_handle_inbound_message_preserves_existing_state(self, test_data_dir)` - Test that handle_inbound_message preserves existing user state.
-- ✅ `test_start_daily_checkin_creates_checkin_state(self, test_data_dir)` - Test that start_daily_checkin actually creates check-in state.
-- ✅ `test_start_daily_checkin_handles_disabled_user(self, test_data_dir)` - Test that start_daily_checkin handles users with disabled check-ins.
+- ✅ `test_start_checkin_creates_checkin_state(self, test_data_dir)` - Test that start_checkin actually creates check-in state.
+- ✅ `test_start_checkin_handles_disabled_user(self, test_data_dir)` - Test that start_checkin handles users with disabled check-ins.
 - ✅ `test_validate_response_handles_edge_cases(self, test_data_dir)` - Test that _validate_response handles edge cases gracefully.
 - ✅ `test_validate_response_handles_various_inputs(self, test_data_dir)` - Test that _validate_response actually validates different types of responses.
 **Classes:**
@@ -2947,14 +2947,14 @@ to clean up schedule data structure and optimize day lists.
   - ✅ `TestConversationManagerBehavior.test_conversation_manager_initialization_creates_structure(self, test_data_dir)` - Test that ConversationManager initialization creates proper internal structure.
   - ✅ `TestConversationManagerBehavior.test_conversation_manager_integration_with_response_tracking(self, test_data_dir)` - Test that ConversationManager integrates properly with response tracking.
   - ✅ `TestConversationManagerBehavior.test_conversation_manager_performance_under_load(self, test_data_dir)` - Test that ConversationManager performs well under load.
-  - ✅ `TestConversationManagerBehavior.test_daily_checkin_flow_completion(self, test_data_dir)` - Test that daily check-in flow actually completes and cleans up state.
-  - ✅ `TestConversationManagerBehavior.test_daily_checkin_flow_progression(self, test_data_dir)` - Test that daily check-in flow actually progresses through states.
+  - ✅ `TestConversationManagerBehavior.test_checkin_flow_completion(self, test_data_dir)` - Test that check-in flow actually completes and cleans up state.
+  - ✅ `TestConversationManagerBehavior.test_checkin_flow_progression(self, test_data_dir)` - Test that check-in flow actually progresses through states.
   - ✅ `TestConversationManagerBehavior.test_get_question_text_returns_personalized_questions(self, test_data_dir)` - Test that _get_question_text returns personalized questions based on context.
   - ✅ `TestConversationManagerBehavior.test_handle_contextual_question_integrates_with_ai(self, test_data_dir)` - Test that handle_contextual_question integrates with AI chatbot.
   - ✅ `TestConversationManagerBehavior.test_handle_inbound_message_creates_user_state(self, test_data_dir)` - Test that handle_inbound_message actually creates user state when needed.
   - ✅ `TestConversationManagerBehavior.test_handle_inbound_message_preserves_existing_state(self, test_data_dir)` - Test that handle_inbound_message preserves existing user state.
-  - ✅ `TestConversationManagerBehavior.test_start_daily_checkin_creates_checkin_state(self, test_data_dir)` - Test that start_daily_checkin actually creates check-in state.
-  - ✅ `TestConversationManagerBehavior.test_start_daily_checkin_handles_disabled_user(self, test_data_dir)` - Test that start_daily_checkin handles users with disabled check-ins.
+  - ✅ `TestConversationManagerBehavior.test_start_checkin_creates_checkin_state(self, test_data_dir)` - Test that start_checkin actually creates check-in state.
+  - ✅ `TestConversationManagerBehavior.test_start_checkin_handles_disabled_user(self, test_data_dir)` - Test that start_checkin handles users with disabled check-ins.
   - ✅ `TestConversationManagerBehavior.test_validate_response_handles_edge_cases(self, test_data_dir)` - Test that _validate_response handles edge cases gracefully.
   - ✅ `TestConversationManagerBehavior.test_validate_response_handles_various_inputs(self, test_data_dir)` - Test that _validate_response actually validates different types of responses.
 - ✅ `TestConversationManagerIntegration` - Integration tests for ConversationManager with real user data.
@@ -3193,7 +3193,7 @@ to clean up schedule data structure and optimize day lists.
 #### `tests/behavior/test_response_tracking_behavior.py`
 **Functions:**
 - ✅ `test_get_recent_chat_interactions_returns_chat_data(self, test_data_dir)` - Test that getting recent chat interactions returns actual chat data.
-- ✅ `test_get_recent_daily_checkins_returns_checkin_data(self, test_data_dir)` - Test that getting recent daily checkins returns actual checkin data.
+- ✅ `test_get_recent_checkins_returns_checkin_data(self, test_data_dir)` - Test that getting recent checkins returns actual checkin data.
 - ✅ `test_get_recent_responses_returns_actual_data(self, test_data_dir)` - Test that getting recent responses actually returns stored data.
 - ✅ `test_get_user_checkin_preferences_returns_actual_preferences(self, test_data_dir)` - Test that getting user checkin preferences returns actual preference data.
 - ✅ `test_get_user_checkin_questions_returns_actual_questions(self, test_data_dir)` - Test that getting user checkin questions returns actual question configuration.
@@ -3206,16 +3206,16 @@ to clean up schedule data structure and optimize day lists.
 - ✅ `test_response_tracking_integration_with_user_data(self, test_data_dir)` - Test integration between response tracking and user data management.
 - ✅ `test_response_tracking_performance_under_load(self, test_data_dir)` - Test that response tracking performs well under load.
 - ✅ `test_store_chat_interaction_creates_chat_log(self, test_data_dir)` - Test that chat interactions are stored in chat interactions file.
-- ✅ `test_store_daily_checkin_response_uses_correct_file(self, test_data_dir)` - Test that daily checkin responses are stored in the correct file.
+- ✅ `test_store_checkin_response_uses_correct_file(self, test_data_dir)` - Test that checkin responses are stored in the correct file.
 - ✅ `test_store_user_response_creates_actual_file(self, test_data_dir)` - Test that storing user response actually creates data files.
 - ✅ `test_store_user_response_persists_multiple_entries(self, test_data_dir)` - Test that storing multiple responses actually persists all entries.
 - ✅ `test_track_user_response_stores_chat_interaction(self, test_data_dir)` - Test that tracking user response stores chat interaction data.
-- ✅ `test_track_user_response_stores_daily_checkin(self, test_data_dir)` - Test that tracking user response stores daily checkin data.
+- ✅ `test_track_user_response_stores_checkin(self, test_data_dir)` - Test that tracking user response stores checkin data.
 - ✅ `test_track_user_response_stores_generic_response(self, test_data_dir)` - Test that tracking user response stores generic response data.
 **Classes:**
 - ✅ `TestResponseTrackingBehavior` - Test real behavior of response tracking functions.
   - ✅ `TestResponseTrackingBehavior.test_get_recent_chat_interactions_returns_chat_data(self, test_data_dir)` - Test that getting recent chat interactions returns actual chat data.
-  - ✅ `TestResponseTrackingBehavior.test_get_recent_daily_checkins_returns_checkin_data(self, test_data_dir)` - Test that getting recent daily checkins returns actual checkin data.
+  - ✅ `TestResponseTrackingBehavior.test_get_recent_checkins_returns_checkin_data(self, test_data_dir)` - Test that getting recent checkins returns actual checkin data.
   - ✅ `TestResponseTrackingBehavior.test_get_recent_responses_returns_actual_data(self, test_data_dir)` - Test that getting recent responses actually returns stored data.
   - ✅ `TestResponseTrackingBehavior.test_get_user_checkin_preferences_returns_actual_preferences(self, test_data_dir)` - Test that getting user checkin preferences returns actual preference data.
   - ✅ `TestResponseTrackingBehavior.test_get_user_checkin_questions_returns_actual_questions(self, test_data_dir)` - Test that getting user checkin questions returns actual question configuration.
@@ -3225,11 +3225,11 @@ to clean up schedule data structure and optimize day lists.
   - ✅ `TestResponseTrackingBehavior.test_response_tracking_error_handling_preserves_system_stability(self, test_data_dir)` - Test that response tracking error handling preserves system stability.
   - ✅ `TestResponseTrackingBehavior.test_response_tracking_performance_under_load(self, test_data_dir)` - Test that response tracking performs well under load.
   - ✅ `TestResponseTrackingBehavior.test_store_chat_interaction_creates_chat_log(self, test_data_dir)` - Test that chat interactions are stored in chat interactions file.
-  - ✅ `TestResponseTrackingBehavior.test_store_daily_checkin_response_uses_correct_file(self, test_data_dir)` - Test that daily checkin responses are stored in the correct file.
+  - ✅ `TestResponseTrackingBehavior.test_store_checkin_response_uses_correct_file(self, test_data_dir)` - Test that checkin responses are stored in the correct file.
   - ✅ `TestResponseTrackingBehavior.test_store_user_response_creates_actual_file(self, test_data_dir)` - Test that storing user response actually creates data files.
   - ✅ `TestResponseTrackingBehavior.test_store_user_response_persists_multiple_entries(self, test_data_dir)` - Test that storing multiple responses actually persists all entries.
   - ✅ `TestResponseTrackingBehavior.test_track_user_response_stores_chat_interaction(self, test_data_dir)` - Test that tracking user response stores chat interaction data.
-  - ✅ `TestResponseTrackingBehavior.test_track_user_response_stores_daily_checkin(self, test_data_dir)` - Test that tracking user response stores daily checkin data.
+  - ✅ `TestResponseTrackingBehavior.test_track_user_response_stores_checkin(self, test_data_dir)` - Test that tracking user response stores checkin data.
   - ✅ `TestResponseTrackingBehavior.test_track_user_response_stores_generic_response(self, test_data_dir)` - Test that tracking user response stores generic response data.
 - ✅ `TestResponseTrackingIntegration` - Test integration between response tracking functions.
   - ✅ `TestResponseTrackingIntegration.test_response_tracking_concurrent_access_safety(self, test_data_dir)` - Test that response tracking handles concurrent access safely.
@@ -3577,7 +3577,7 @@ real service startup behavior for testing.
 - ✅ `test_get_conversation_insights_analyzes_actual_data(self, test_data_dir)` - Test that _get_conversation_insights analyzes actual conversation data.
 - ✅ `test_get_current_user_context_handles_no_user_gracefully(self, test_data_dir)` - Test that get_current_user_context handles no logged-in user gracefully.
 - ✅ `test_get_current_user_context_uses_usercontext_singleton(self, test_data_dir)` - Test that get_current_user_context actually uses UserContext singleton.
-- ✅ `test_get_mood_trends_analyzes_checkin_data(self, test_data_dir)` - Test that _get_mood_trends analyzes actual daily checkin data.
+- ✅ `test_get_mood_trends_analyzes_checkin_data(self, test_data_dir)` - Test that _get_mood_trends analyzes actual checkin data.
 - ✅ `test_get_recent_activity_integrates_multiple_sources(self, test_data_dir)` - Test that _get_recent_activity integrates data from multiple sources.
 - ✅ `test_get_user_context_creates_complete_structure(self, test_data_dir)` - Test that get_user_context creates complete context structure.
 - ✅ `test_get_user_context_without_conversation_history(self, test_data_dir)` - Test that get_user_context excludes conversation history when requested.
@@ -3602,7 +3602,7 @@ real service startup behavior for testing.
   - ✅ `TestUserContextManagerBehavior.test_get_conversation_insights_analyzes_actual_data(self, test_data_dir)` - Test that _get_conversation_insights analyzes actual conversation data.
   - ✅ `TestUserContextManagerBehavior.test_get_current_user_context_handles_no_user_gracefully(self, test_data_dir)` - Test that get_current_user_context handles no logged-in user gracefully.
   - ✅ `TestUserContextManagerBehavior.test_get_current_user_context_uses_usercontext_singleton(self, test_data_dir)` - Test that get_current_user_context actually uses UserContext singleton.
-  - ✅ `TestUserContextManagerBehavior.test_get_mood_trends_analyzes_checkin_data(self, test_data_dir)` - Test that _get_mood_trends analyzes actual daily checkin data.
+  - ✅ `TestUserContextManagerBehavior.test_get_mood_trends_analyzes_checkin_data(self, test_data_dir)` - Test that _get_mood_trends analyzes actual checkin data.
   - ✅ `TestUserContextManagerBehavior.test_get_recent_activity_integrates_multiple_sources(self, test_data_dir)` - Test that _get_recent_activity integrates data from multiple sources.
   - ✅ `TestUserContextManagerBehavior.test_get_user_context_creates_complete_structure(self, test_data_dir)` - Test that get_user_context creates complete context structure.
   - ✅ `TestUserContextManagerBehavior.test_get_user_context_without_conversation_history(self, test_data_dir)` - Test that get_user_context excludes conversation history when requested.

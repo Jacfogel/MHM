@@ -9,7 +9,7 @@ import json
 import shutil
 import time
 from datetime import datetime
-from core.logger import get_logger
+from core.logger import get_logger, get_component_logger
 from core.config import (
     USER_INFO_DIR_PATH,
     DEFAULT_MESSAGES_DIR_PATH,
@@ -20,7 +20,7 @@ from core.error_handling import (
     handle_errors, safe_file_operation
 )
 
-logger = get_logger(__name__)
+logger = get_component_logger('file_ops')
 
 @handle_errors("verifying file access", user_friendly=False)
 def verify_file_access(paths):
@@ -409,7 +409,7 @@ def create_user_files(user_id, categories, user_preferences=None):
     logger.debug(f"Created schedules file for user {user_id}")
     
     # Initialize empty log files if they don't exist
-    log_types = ["daily_checkins", "chat_interactions"]
+    log_types = ["checkins", "chat_interactions"]
     for log_type in log_types:
         log_file = get_user_file_path(user_id, log_type)
         if not os.path.exists(log_file):
@@ -455,14 +455,14 @@ def create_user_files(user_id, categories, user_preferences=None):
     else:
         logger.debug(f"Tasks not enabled for user {user_id}, skipping task file creation")
     
-    # Create daily_checkins.json only if checkins are enabled
+    # Create checkins.json only if checkins are enabled
     if checkins_enabled:
-        daily_checkins_file = get_user_file_path(user_id, 'daily_checkins')
-        if not os.path.exists(daily_checkins_file):
-            save_json_data([], daily_checkins_file)
-            logger.debug(f"Created daily_checkins file for user {user_id}")
+        checkins_file = get_user_file_path(user_id, 'checkins')
+        if not os.path.exists(checkins_file):
+            save_json_data([], checkins_file)
+            logger.debug(f"Created checkins file for user {user_id}")
     else:
-        logger.debug(f"Check-ins not enabled for user {user_id}, skipping daily_checkins file creation")
+        logger.debug(f"Check-ins not enabled for user {user_id}, skipping checkins file creation")
 
     # Create message files for each enabled category directly
     if categories:

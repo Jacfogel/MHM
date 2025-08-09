@@ -14,8 +14,8 @@ from PySide6.QtCore import Signal
 # Set up logging
 from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
-logger = get_logger(__name__)
-dialog_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+dialog_logger = logger
 
 # Import core functionality
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache

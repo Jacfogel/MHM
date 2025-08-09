@@ -9,6 +9,43 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-09 - Test Data Isolation Hardening & Config Import Safety ✅
+
+#### Summary
+Prevented test artifacts from appearing under real `data/users` and removed fragile from-imports of config constants in key modules.
+
+#### Key Changes
+- Test isolation
+  - Stopped early environment overrides of `BASE_DATA_DIR`/`USER_INFO_DIR_PATH` that broke default-constant tests
+  - Kept isolation via session-scoped fixture that patches `core.config` attributes to `tests/data/users`
+  - Updated `tests/unit/test_file_operations.py` lifecycle test to assert no writes to real `data/users`
+- Import safety
+  - `core/backup_manager.py`: switched to `import core.config as cfg` and updated all references
+  - `ui/ui_app_qt.py`: switched selected references to `cfg.*` and fixed linter warnings
+
+#### Tests
+- Full suite: 632 passed, 2 skipped
+
+### 2025-08-09 - Logging Architecture Finalization & Test Isolation ✅
+
+#### Summary
+Completed component-first logging migration across bot modules, finalized orchestration logger naming, and ensured tests cannot write to real logs.
+
+#### Key Changes
+- Bot modules: `interaction_manager`, `interaction_handlers`, `ai_chatbot`, `enhanced_command_parser`, `user_context_manager`
+  - Switched from module loggers to component loggers (`communication_manager`, `ai`, `user_activity`)
+- Test isolation
+  - In `MHM_TESTING=1` and `TEST_VERBOSE_LOGS=1`, all component logs (including `errors`) remap under `tests/logs/`
+  - Prevents tests from writing to `logs/*.log`
+- Manual async script
+  - `scripts/test_discord_connection.py` is now skipped in pytest (manual diagnostic tool); TODO added to migrate to `pytest-asyncio`
+- Documentation
+  - `logs/LOGGING_GUIDE.md` updated with BaseChannel pattern and test isolation behavior
+
+#### Tests
+- Full suite: 629 passed, 2 skipped
+
+
 ### 2025-08-07 - Check-in Flow Behavior Improvements & Stability Fixes ✅ **COMPLETED**
 
 #### Summary

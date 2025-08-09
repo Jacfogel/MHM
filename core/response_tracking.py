@@ -29,14 +29,14 @@ tracking_logger = get_component_logger('user_activity')
 # 2. Update imports in remaining modules/tests
 # 3. Remove these aliases after 2 weeks of no usage
 
-@handle_errors("legacy get_recent_daily_checkins", default_return=[])
-def get_recent_daily_checkins(user_id: str, limit: int = 7):
-    logger.warning("LEGACY COMPATIBILITY: get_recent_daily_checkins() called; use get_recent_checkins() instead")
+@handle_errors("legacy get_recent_checkins", default_return=[])
+def get_recent_checkins(user_id: str, limit: int = 7):
+    logger.warning("LEGACY COMPATIBILITY: get_recent_checkins() called; use get_recent_checkins() instead")
     return get_recent_checkins(user_id, limit)
 
-@handle_errors("legacy store_daily_checkin_response")
-def store_daily_checkin_response(user_id: str, response_data: dict):
-    logger.warning("LEGACY COMPATIBILITY: store_daily_checkin_response() called; use store_checkin_response() instead")
+@handle_errors("legacy store_checkin_response")
+def store_checkin_response(user_id: str, response_data: dict):
+    logger.warning("LEGACY COMPATIBILITY: store_checkin_response() called; use store_checkin_response() instead")
     return store_checkin_response(user_id, response_data)
 
 def _get_response_log_filename(response_type: str) -> str:
@@ -211,8 +211,8 @@ def track_user_response(user_id: str, category: str, response_data: Dict[str, An
         # Store the response data based on category
         if category == "checkin":
             store_checkin_response(user_id, response_data)
-        elif category == "daily_checkin":  # LEGACY category name used by some tests
-            store_daily_checkin_response(user_id, response_data)
+        elif category == "checkin":  # LEGACY category name used by some tests
+            store_checkin_response(user_id, response_data)
         elif category == "chat_interaction":
             # For chat interactions, we need user_message and ai_response
             user_message = response_data.get('user_message', '')

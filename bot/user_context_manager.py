@@ -17,14 +17,14 @@ from typing import Dict, List, Optional, Any
 
 from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
-from core.response_tracking import get_recent_daily_checkins, get_recent_chat_interactions
+from core.response_tracking import get_recent_checkins, get_recent_chat_interactions
 from core.message_management import get_last_10_messages
 from core.error_handling import handle_errors
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
 
-logger = get_logger(__name__)
 context_logger = get_component_logger('user_activity')
+logger = context_logger
 
 class UserContextManager:
     """Manages rich user context for AI conversations."""
@@ -108,7 +108,7 @@ class UserContextManager:
     @handle_errors("getting recent activity", default_return={})
     def _get_recent_activity(self, user_id: str) -> Dict[str, Any]:
         """Get recent user activity and responses."""
-        recent_responses = get_recent_daily_checkins(user_id, limit=7)
+        recent_responses = get_recent_checkins(user_id, limit=7)
         
         activity_summary = {
             'recent_responses_count': len(recent_responses),
@@ -204,7 +204,7 @@ class UserContextManager:
     @handle_errors("getting mood trends", default_return={})
     def _get_mood_trends(self, user_id: str) -> Dict[str, Any]:
         """Analyze recent mood and energy trends."""
-        recent_responses = get_recent_daily_checkins(user_id, limit=5)
+        recent_responses = get_recent_checkins(user_id, limit=5)
         
         if not recent_responses:
             return {'trend': 'no_data'}

@@ -315,7 +315,7 @@ class TestAccountLifecycle:
         
         # Verify feature-specific files
         assert os.path.exists(os.path.join(user_dir, "tasks")), "Tasks directory should be created"
-        assert os.path.exists(os.path.join(user_dir, "daily_checkins.json")), "Check-ins file should be created"
+        assert os.path.exists(os.path.join(user_dir, "checkins.json")), "Check-ins file should be created"
     
     @pytest.mark.behavior
     def test_enable_checkins_creates_files(self, test_data_dir):
@@ -328,7 +328,7 @@ class TestAccountLifecycle:
         enable_feature(user_id, "checkins")
         
         # Assert - Verify side effects
-        checkins_file = os.path.join(test_data_dir, "users", user_id, "daily_checkins.json")
+        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
         assert os.path.exists(checkins_file), "Check-ins file should be created"
         
         user_data = get_user_data(user_id)

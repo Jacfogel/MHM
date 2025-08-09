@@ -62,7 +62,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
     def test_mood_trends_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test mood trends with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_mood_trends('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -74,7 +74,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
     def test_mood_trends_with_data_real_behavior(self, analytics, mock_checkins_with_mood):
         """REAL BEHAVIOR TEST: Test mood trends analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_with_mood):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_with_mood):
             result = analytics.get_mood_trends('test_user', days=30)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure
@@ -104,7 +104,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
             {'mood': 4},  # Missing timestamp
         ]
         
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=invalid_checkins):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=invalid_checkins):
             result = analytics.get_mood_trends('test_user', days=30)
         
         assert 'error' in result, "Should return error with invalid mood data"
@@ -145,7 +145,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
     def test_habit_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test habit analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_habit_analysis('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -157,7 +157,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
     def test_habit_analysis_with_data_real_behavior(self, analytics, mock_checkins_with_habits):
         """REAL BEHAVIOR TEST: Test habit analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_with_habits):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_with_habits):
             result = analytics.get_habit_analysis('test_user', days=30)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure
@@ -216,7 +216,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
     def test_sleep_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test sleep analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_sleep_analysis('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -228,7 +228,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
     def test_sleep_analysis_with_data_real_behavior(self, analytics, mock_checkins_with_sleep):
         """REAL BEHAVIOR TEST: Test sleep analysis with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Analysis works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_with_sleep):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_with_sleep):
             result = analytics.get_sleep_analysis('test_user', days=30)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure
@@ -287,7 +287,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
     def test_wellness_score_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test wellness score with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_wellness_score('test_user', days=7)
         
         assert 'error' in result, "Should return error when no data available"
@@ -299,7 +299,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
     def test_wellness_score_with_data_real_behavior(self, analytics, mock_checkins_for_wellness):
         """REAL BEHAVIOR TEST: Test wellness score calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Score calculation works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_for_wellness):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_for_wellness):
             result = analytics.get_wellness_score('test_user', days=7)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure
@@ -352,7 +352,7 @@ class TestCheckinAnalyticsHistoryBehavior:
     def test_checkin_history_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test check-in history with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns empty list
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_checkin_history('test_user', days=30)
         
         assert isinstance(result, list), "Should return list when no data available"
@@ -364,7 +364,7 @@ class TestCheckinAnalyticsHistoryBehavior:
     def test_checkin_history_with_data_real_behavior(self, analytics, mock_checkins_for_history):
         """REAL BEHAVIOR TEST: Test check-in history with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: History retrieval works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_for_history):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_for_history):
             result = analytics.get_checkin_history('test_user', days=30)
         
         # ✅ VERIFY REAL BEHAVIOR: Result is list of check-ins
@@ -409,7 +409,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
     def test_completion_rate_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test completion rate with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_completion_rate('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -421,7 +421,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
     def test_completion_rate_with_data_real_behavior(self, analytics, mock_checkins_for_completion):
         """REAL BEHAVIOR TEST: Test completion rate calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Completion rate calculation works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_for_completion):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_for_completion):
             result = analytics.get_completion_rate('test_user', days=30)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure
@@ -466,7 +466,7 @@ class TestCheckinAnalyticsTaskStatsBehavior:
     def test_task_weekly_stats_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test task weekly stats with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
             result = analytics.get_task_weekly_stats('test_user', days=7)
         
         assert 'error' in result, "Should return error when no data available"
@@ -478,7 +478,7 @@ class TestCheckinAnalyticsTaskStatsBehavior:
     def test_task_weekly_stats_with_data_real_behavior(self, analytics, mock_checkins_for_tasks):
         """REAL BEHAVIOR TEST: Test task weekly stats calculation with valid data."""
         # ✅ VERIFY REAL BEHAVIOR: Task stats calculation works with valid data
-        with patch('core.checkin_analytics.get_recent_daily_checkins', return_value=mock_checkins_for_tasks):
+        with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_checkins_for_tasks):
             result = analytics.get_task_weekly_stats('test_user', days=7)
         
         # ✅ VERIFY REAL BEHAVIOR: Result has expected structure

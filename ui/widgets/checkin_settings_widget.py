@@ -27,8 +27,8 @@ from core.logger import setup_logging, get_logger, get_component_logger
 from ui.widgets.period_row_widget import PeriodRowWidget
 
 setup_logging()
-logger = get_logger(__name__)
-widget_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+widget_logger = logger
 
 class CheckinSettingsWidget(QWidget):
     """Widget for check-in settings configuration."""

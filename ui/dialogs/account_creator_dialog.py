@@ -23,8 +23,8 @@ from PySide6.QtGui import QFont
 # Set up logging
 from core.logger import setup_logging, get_logger, get_component_logger
 setup_logging()
-logger = get_logger(__name__)
-dialog_logger = get_component_logger('main')
+logger = get_component_logger('ui')
+dialog_logger = logger
 
 # Import core functionality
 from user.user_context import UserContext

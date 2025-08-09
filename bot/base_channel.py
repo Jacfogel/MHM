@@ -8,8 +8,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
-channel_logger = get_component_logger('channels')
+channel_logger = get_component_logger('communication_manager')
 
 class ChannelStatus(Enum):
     UNINITIALIZED = "uninitialized"
@@ -46,7 +45,12 @@ class BaseChannel(ABC):
         self.config = config
         self.status = ChannelStatus.UNINITIALIZED
         self.error_message: Optional[str] = None
-        self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
+        # Standardize: route channel instance logs to the component logger named by config.name
+        try:
+            self.logger = get_component_logger(self.config.name)
+        except Exception:
+            # Fallback to module logger if component logger unavailable
+            self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
         
     @property
     @abstractmethod

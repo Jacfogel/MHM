@@ -8,14 +8,13 @@ to make the application more robust and user-friendly.
 import os
 import sys
 import traceback
-import logging
 from typing import Optional, Dict, Any, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
 from core.logger import get_component_logger
 
-# Use basic logging to avoid circular imports
-logger = logging.getLogger(__name__)
+# Use component loggers directly
+logger = get_component_logger('main')
 error_logger = get_component_logger('errors')
 
 # ============================================================================

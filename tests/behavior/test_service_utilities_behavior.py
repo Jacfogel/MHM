@@ -99,7 +99,7 @@ class TestServiceUtilitiesBehavior:
     def test_create_reschedule_request_creates_actual_file(self, test_data_dir):
         """Test that creating reschedule request actually creates flag file."""
         user_id = "test-user-reschedule"
-        category = "daily_checkin"
+        category = "checkin"
         
         # Arrange - Mock file operations
         mock_file_content = ""
@@ -124,7 +124,7 @@ class TestServiceUtilitiesBehavior:
     def test_create_reschedule_request_skips_when_service_not_running(self, test_data_dir):
         """Test that creating reschedule request skips when service is not running."""
         user_id = "test-user-reschedule"
-        category = "daily_checkin"
+        category = "checkin"
         
         # Act - Create reschedule request when service is not running
         with patch('core.service_utilities.is_service_running', return_value=False):
@@ -379,7 +379,7 @@ class TestServiceUtilitiesIntegration:
     def test_service_utilities_integration_with_reschedule_workflow(self, test_data_dir):
         """Test integration between service utilities in reschedule workflow."""
         user_id = "test-user-integration"
-        category = "daily_checkin"
+        category = "checkin"
         
         # Arrange - Mock all dependencies
         with patch('core.service_utilities.is_service_running', return_value=True):

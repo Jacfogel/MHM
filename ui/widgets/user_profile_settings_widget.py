@@ -20,12 +20,8 @@ from core.user_management import get_timezone_options
 from core.logger import setup_logging, get_logger, get_component_logger
 
 setup_logging()
-logger = get_logger(__name__)
-widget_logger = get_component_logger('main')
-
-
-
-
+logger = get_component_logger('ui')
+widget_logger = logger
 
 class UserProfileSettingsWidget(QWidget):
     """Widget for user profile settings configuration."""

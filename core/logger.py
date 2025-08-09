@@ -20,6 +20,13 @@ LOG_DISCORD_FILE = os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord
 LOG_AI_FILE = os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log'))
 LOG_USER_ACTIVITY_FILE = os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log'))
 LOG_ERRORS_FILE = os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log'))
+LOG_CHANNELS_FILE = os.getenv('LOG_CHANNELS_FILE', os.path.join(LOGS_DIR, 'channels.log'))
+LOG_COMMUNICATION_MANAGER_FILE = os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(LOGS_DIR, 'communication_manager.log'))
+LOG_EMAIL_FILE = os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_DIR, 'email.log'))
+LOG_TELEGRAM_FILE = os.getenv('LOG_TELEGRAM_FILE', os.path.join(LOGS_DIR, 'telegram.log'))
+LOG_UI_FILE = os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log'))
+LOG_FILE_OPS_FILE = os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log'))
+LOG_SCHEDULER_FILE = os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log'))
 
 # Legacy support - these will be imported from config when available
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', LOG_MAIN_FILE)
@@ -65,10 +72,13 @@ class ComponentLogger:
         
         # Create logger for this component
         self.logger = logging.getLogger(f"mhm.{component_name}")
+        # Default to INFO (or provided level), but allow specific components to override below
         self.logger.setLevel(level)
         
         # Ensure no duplicate handlers
         self.logger.handlers.clear()
+        # Prevent propagation to root so component logs don't appear in app.log
+        self.logger.propagate = False
         
         # Create formatter with component name
         formatter = logging.Formatter(
@@ -76,10 +86,20 @@ class ComponentLogger:
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
+        # Determine backup directory (remap under tests/logs in verbose test mode)
+        backup_dir = LOG_BACKUP_DIR
+        if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+            tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+            backup_dir = os.path.join(tests_logs_dir, 'backups')
+            try:
+                os.makedirs(backup_dir, exist_ok=True)
+            except Exception:
+                pass
+
         # Create file handler with rotation to backup directory
         file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
-            backup_dir=LOG_BACKUP_DIR,
+            backup_dir=backup_dir,
             when='midnight',
             interval=1,
             backupCount=7,  # Keep 7 days of logs
@@ -92,8 +112,46 @@ class ComponentLogger:
         file_handler.setFormatter(formatter)
         file_handler.setLevel(level)
         
-        # Add handler to logger
+        # Add main component file handler
         self.logger.addHandler(file_handler)
+
+        # Also add a dedicated errors handler so ERROR/CRITICAL messages go to errors log
+        try:
+            errors_formatter = formatter
+            # In test verbose mode, route errors to tests/logs as well to avoid writing to real logs
+            errors_log_path = LOG_ERRORS_FILE
+            if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                try:
+                    os.makedirs(tests_logs_dir, exist_ok=True)
+                    errors_log_path = os.path.join(tests_logs_dir, os.path.basename(LOG_ERRORS_FILE))
+                except Exception:
+                    pass
+            errors_backup_dir = LOG_BACKUP_DIR
+            if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                errors_backup_dir = os.path.join(tests_logs_dir, 'backups')
+                try:
+                    os.makedirs(errors_backup_dir, exist_ok=True)
+                except Exception:
+                    pass
+
+            errors_handler = BackupDirectoryRotatingFileHandler(
+                errors_log_path,
+                backup_dir=errors_backup_dir,
+                when='midnight',
+                interval=1,
+                backupCount=7,
+                encoding='utf-8'
+            )
+            errors_handler.suffix = "%Y-%m-%d"
+            errors_handler.namer = lambda name: name.replace(".log", "") + ".log"
+            errors_handler.setFormatter(errors_formatter)
+            errors_handler.setLevel(logging.ERROR)
+            self.logger.addHandler(errors_handler)
+        except Exception:
+            # Failsafe: don't break logging if errors handler can't be added
+            pass
     
     def debug(self, message: str, **kwargs):
         """Log debug message with optional structured data."""
@@ -224,6 +282,23 @@ class HeartbeatWarningFilter(logging.Filter):
         return True
 
 
+class ExcludeLoggerNamesFilter(logging.Filter):
+    """
+    Filter to exclude records for specific logger name prefixes.
+    Example use: prevent Discord-related logs from going to app.log.
+    """
+    def __init__(self, excluded_prefixes: list[str]):
+        super().__init__()
+        self.excluded_prefixes = excluded_prefixes or []
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        name = record.name or ""
+        for prefix in self.excluded_prefixes:
+            if name.startswith(prefix):
+                return False
+        return True
+
+
 # Global variable to track current verbosity mode
 _verbose_mode = False
 _original_levels = {}
@@ -260,17 +335,29 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     Returns:
         ComponentLogger: Logger for the specified component
     """
-    # Skip component logging if running tests to prevent test logs from going to main component logs
+    # Testing mode: optionally enable verbose per-component logs under tests/logs
     if os.getenv('MHM_TESTING') == '1':
-        # Return a dummy logger that does nothing during tests
-        class DummyComponentLogger:
-            def debug(self, message: str, **kwargs): pass
-            def info(self, message: str, **kwargs): pass
-            def warning(self, message: str, **kwargs): pass
-            def error(self, message: str, **kwargs): pass
-            def critical(self, message: str, **kwargs): pass
-        return DummyComponentLogger()
+        if os.getenv('TEST_VERBOSE_LOGS') == '1':
+            try:
+                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                os.makedirs(tests_logs_dir, exist_ok=True)
+            except Exception:
+                pass
+            # In verbose test mode, continue and create real component loggers that write under tests/logs
+        else:
+            # Default for tests: no-op logger for clean test output
+            class DummyComponentLogger:
+                def debug(self, message: str, **kwargs): pass
+                def info(self, message: str, **kwargs): pass
+                def warning(self, message: str, **kwargs): pass
+                def error(self, message: str, **kwargs): pass
+                def critical(self, message: str, **kwargs): pass
+            return DummyComponentLogger()
     
+    # Enforce canonical component names (channels -> communication_manager was migrated)
+    if component_name == 'channels':
+        component_name = 'communication_manager'
+
     if component_name not in _component_loggers:
         # Map component names to log files
         log_file_map = {
@@ -278,11 +365,40 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'ai': LOG_AI_FILE,
             'user_activity': LOG_USER_ACTIVITY_FILE,
             'errors': LOG_ERRORS_FILE,
+            'communication_manager': LOG_COMMUNICATION_MANAGER_FILE,
+            'email': LOG_EMAIL_FILE,
+            'telegram': LOG_TELEGRAM_FILE,
+            'ui': LOG_UI_FILE,
+            'file_ops': LOG_FILE_OPS_FILE,
+            'scheduler': LOG_SCHEDULER_FILE,
             'main': LOG_MAIN_FILE
         }
+        # If in verbose test mode, remap component file paths under tests/logs
+        if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
+            tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+            for key, path in list(log_file_map.items()):
+                try:
+                    filename = os.path.basename(path)
+                    log_file_map[key] = os.path.join(tests_logs_dir, filename)
+                except Exception:
+                    pass
         
         log_file = log_file_map.get(component_name, LOG_MAIN_FILE)
-        _component_loggers[component_name] = ComponentLogger(component_name, log_file)
+        # Create the component logger
+        comp_logger = ComponentLogger(component_name, log_file)
+        # For Discord, increase verbosity to DEBUG so we capture more detail in discord.log
+        if component_name == 'discord':
+            try:
+                comp_logger.logger.setLevel(logging.DEBUG)
+                # Ensure only the primary component file handler logs DEBUG, not the errors handler
+                for handler in comp_logger.logger.handlers:
+                    if isinstance(handler, (RotatingFileHandler, TimedRotatingFileHandler)):
+                        base_filename = getattr(handler, 'baseFilename', '')
+                        if base_filename and os.path.basename(base_filename) == os.path.basename(LOG_DISCORD_FILE):
+                            handler.setLevel(logging.DEBUG)
+            except Exception:
+                pass
+        _component_loggers[component_name] = comp_logger
     
     return _component_loggers[component_name]
 
@@ -317,8 +433,14 @@ def setup_logging():
     # Create formatter with component name
     log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
-    # Set up file handler with UTF-8 encoding (always DEBUG)
-    file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
+    # Set up file handler with UTF-8 encoding (always DEBUG) for app.log
+    file_handler = BackupDirectoryRotatingFileHandler(
+        LOG_MAIN_FILE,
+        LOG_BACKUP_DIR,
+        maxBytes=LOG_MAX_BYTES,
+        backupCount=LOG_BACKUP_COUNT,
+        encoding='utf-8'
+    )
     file_handler.setFormatter(log_formatter)
     file_handler.setLevel(logging.DEBUG)
 
@@ -367,14 +489,19 @@ def suppress_noisy_logging():
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
-    logging.getLogger("discord").setLevel(logging.WARNING)
-    logging.getLogger("discord.client").setLevel(logging.WARNING)
-    logging.getLogger("discord.gateway").setLevel(logging.WARNING)
+    # Route discord library logs to the discord component logger only
+    for discord_logger_name in ["discord", "discord.client", "discord.gateway"]:
+        dl = logging.getLogger(discord_logger_name)
+        dl.setLevel(logging.WARNING)
+        dl.propagate = False
     
     # Apply heartbeat warning filter to Discord gateway logger
-    discord_gateway_logger = logging.getLogger("discord.gateway")
-    heartbeat_filter = HeartbeatWarningFilter()
-    discord_gateway_logger.addFilter(heartbeat_filter)
+    try:
+        discord_gateway_logger = logging.getLogger("discord.gateway")
+        heartbeat_filter = HeartbeatWarningFilter()
+        discord_gateway_logger.addFilter(heartbeat_filter)
+    except Exception:
+        pass
     
     # Suppress debug logging from schedule library to reduce "Running job" spam
     logging.getLogger("schedule").setLevel(logging.WARNING)

@@ -3,7 +3,7 @@
 """
 Check-in Analytics Module
 
-Provides insights and analysis from daily check-in data to help users
+Provides insights and analysis from check-in data to help users
 understand their patterns and progress over time.
 """
 
@@ -12,7 +12,7 @@ import statistics
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from core.logger import get_logger, get_component_logger
-from core.response_tracking import get_recent_daily_checkins
+from core.response_tracking import get_recent_checkins
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -25,14 +25,14 @@ class CheckinAnalytics:
         """
         Initialize the CheckinAnalytics instance.
         
-        This class provides analytics and insights from daily check-in data.
+        This class provides analytics and insights from check-in data.
         """
         pass
     
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
     def get_mood_trends(self, user_id: str, days: int = 30) -> Dict:
         """Analyze mood trends over the specified period"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -96,7 +96,7 @@ class CheckinAnalytics:
     @handle_errors("analyzing habits", default_return={"error": "Analysis failed"})
     def get_habit_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze habit patterns from check-in data"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -140,7 +140,7 @@ class CheckinAnalytics:
     @handle_errors("analyzing sleep", default_return={"error": "Analysis failed"})
     def get_sleep_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze sleep patterns from check-in data"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -187,7 +187,7 @@ class CheckinAnalytics:
     @handle_errors("calculating wellness score", default_return={"error": "Calculation failed"})
     def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
         """Calculate overall wellness score from check-in data"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -214,7 +214,7 @@ class CheckinAnalytics:
     @handle_errors("getting check-in history", default_return={"error": "History retrieval failed"})
     def get_checkin_history(self, user_id: str, days: int = 30) -> List[Dict]:
         """Get check-in history with proper date formatting"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return []
         
@@ -246,7 +246,7 @@ class CheckinAnalytics:
     @handle_errors("calculating completion rate", default_return={"error": "Calculation failed"})
     def get_completion_rate(self, user_id: str, days: int = 30) -> Dict:
         """Calculate overall completion rate for check-ins"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -267,7 +267,7 @@ class CheckinAnalytics:
     @handle_errors("calculating task weekly stats", default_return={"error": "Calculation failed"})
     def get_task_weekly_stats(self, user_id: str, days: int = 7) -> Dict:
         """Calculate weekly statistics for tasks"""
-        checkins = get_recent_daily_checkins(user_id, limit=days)
+        checkins = get_recent_checkins(user_id, limit=days)
         if not checkins:
             return {"error": "No check-in data available"}
         

@@ -36,8 +36,8 @@ from core.error_handling import (
 
 
 
-logger = get_logger(__name__)
 ai_logger = get_component_logger('ai')
+logger = ai_logger
 
 class SystemPromptLoader:
     """
@@ -854,7 +854,7 @@ Additional Instructions:
     def generate_personalized_message(self, user_id: str, timeout: Optional[int] = None) -> str:
         """
         Generate a personalized message by examining the user's recent responses
-        (daily check-in data). Uses longer timeout since this is not real-time.
+        (check-in data). Uses longer timeout since this is not real-time.
         """
         if timeout is None:
             timeout = AI_PERSONALIZED_MESSAGE_TIMEOUT

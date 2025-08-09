@@ -248,7 +248,7 @@ class TestAccountLifecycle:
         
         # Create check-ins file
         user_dir = os.path.join(test_data_dir, "users", user_id)
-        with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+        with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
         # Assert - Verify actual changes
@@ -258,7 +258,7 @@ class TestAccountLifecycle:
         assert len(updated_data["schedules"]["periods"]) == 2, "Should have 2 schedule periods"
         
         # Verify check-ins file was created
-        checkins_file = os.path.join(user_dir, "daily_checkins.json")
+        checkins_file = os.path.join(user_dir, "checkins.json")
         assert os.path.exists(checkins_file), "Check-ins file should be created"
         
         # Verify check-in period exists
@@ -324,7 +324,7 @@ class TestAccountLifecycle:
         with open(os.path.join(user_dir, "tasks", "tasks.json"), "w") as f:
             json.dump({"tasks": []}, f, indent=2)
         
-        with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+        with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
         # Act - Disable tasks
@@ -396,7 +396,7 @@ class TestAccountLifecycle:
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
         
         # Create check-ins file
-        with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+        with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
         # Act - Re-enable tasks
@@ -809,7 +809,7 @@ class TestAccountLifecycle:
         with open(os.path.join(user_dir, "tasks", "tasks.json"), "w") as f:
             json.dump({"tasks": []}, f, indent=2)
         
-        with open(os.path.join(user_dir, "daily_checkins.json"), "w") as f:
+        with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
         # Verify features enabled

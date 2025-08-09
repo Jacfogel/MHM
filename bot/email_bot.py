@@ -15,8 +15,9 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
+# Route module-level logs to email component for consistency
 email_logger = get_component_logger('email')
+logger = email_logger
 
 class EmailBotError(Exception):
     """Custom exception for email bot-related errors."""
