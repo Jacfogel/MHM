@@ -30,6 +30,17 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**App Log Inactivity Investigation** - `logs/app.log` not receiving expected entries
+- *What it means*: Diagnose why `app.log` is empty or sparse and restore expected application logging
+- *Why it helps*: Ensures central visibility for non-component events and simplifies troubleshooting
+- *Estimated effort*: Small
+- Subtasks:
+  - [ ] Verify logger configuration (paths/handlers) in `core/logger.py` and `core/config.py` points to `logs/app.log`
+  - [ ] Check handler attachment/propagation for root and component loggers; confirm `app` logger exists
+  - [ ] Emit a simple startup log from `run_mhm.py`/service to confirm handler wiring
+  - [ ] Ensure component logs still write to their own files while general app events go to `app.log`
+  - [ ] Add a behavior test asserting a known startup line appears in `logs/app.log` under test mode
+
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
 - *Why it helps*: Ensures consistent behavior across channels and prevents regressions
