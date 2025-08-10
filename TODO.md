@@ -1,168 +1,177 @@
 # TODO.md - MHM Project Tasks
 
+> **Audience**: Human Developer (Beginner Programmer)  and AI collaborators
+> **Purpose**: Current development priorities and planned improvements  
+> **Style**: Organized, actionable, beginner-friendly
+
+> **See [README.md](README.md) for complete navigation and project overview**
+> **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
+> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](TESTING_IMPROVEMENT_PLAN_DETAIL.md) for testing strategy**
+
+## 📝 How to Add New TODOs
+
+When adding new tasks, follow this format:
+
+```markdown
+**Task Title** - Brief description
+- *What it means*: Simple explanation of the task
+- *Why it helps*: Clear benefit or improvement
+- *Estimated effort*: Small/Medium/Large
+```
+
+**Guidelines:**
+- Use **bold** for task titles
+- Group tasks by priority (High/Medium/Low sections)
+- Use clear, action-oriented titles
+- Include estimated effort to help with planning
+- Add status indicators (⚠️ **IN PROGRESS**) when relevant
+- Don't include priority field since tasks are already grouped by priority
+- **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
+
 ## High Priority
 
-### Enhanced Logging System ✅ **RESOLVED**
-- [x] Created organized logs directory structure (`logs/`, `logs/backups/`, `logs/archive/`)
-- [x] Implemented component-based log separation (app, discord, ai, user_activity, errors)
-- [x] Added structured logging with JSON metadata support
-- [x] Implemented time-based log rotation (daily with 7-day retention)
-- [x] Added log compression for files older than 7 days
-- [x] Created ComponentLogger class for targeted logging
-- [x] Updated configuration with new log file paths
-- [x] Maintained backward compatibility with existing logging
-- [x] **Component Logger Migration**: Updated 42 files across all priorities to use component-specific loggers
-- [x] **Test Fixes**: Fixed 2 logger behavior test failures (missing `total_files` field and cleanup function bug)
-- [x] **Documentation**: Moved LOGGING_GUIDE.md to logs directory for better organization
+**Legacy Code Removal** - Remove all marked legacy/compatibility code with clear marking and plans
+- *What it means*: Remove legacy compatibility code per `LEGACY_CODE_REMOVAL_PLAN.md` (keep warnings in place until removal)
+- *Why it helps*: Reduces complexity, eliminates legacy branches, improves maintainability
+- *Estimated effort*: Medium
+- *High-priority removals*:
+  - Account Creator Dialog compatibility methods (by 2025-08-15)
+  - User Profile Settings Widget legacy fallbacks (by 2025-08-15)
+  - Discord Bot legacy methods (by 2025-08-15)
 
-### Discord Heartbeat Warning Spam ✅ **RESOLVED**
-- [x] Fixed Discord bot heartbeat warning spam that was flooding logs
-- [x] Root cause: Event loop blocking Discord bot heartbeat mechanism
-- [x] Implemented proper async task management in Discord bot main loop
-- [x] Added intelligent logging filter to handle remaining warnings gracefully
-- [x] Result: Log files reduced from 2MB+ to normal size (~100KB)
+**Throttler Bug Fix** - Fix Service Utilities Throttler first-call behavior
+- *What it means*: Ensure `last_run` is set on first call so throttling works from initial invocation
+- *Why it helps*: Prevents over-frequency operations on first execution
+- *Estimated effort*: Small
 
-### UI Test Failures - Critical Issues ✅ **RESOLVED**
-### Check-in Flow Behavior & Stability (New)
-- [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
-- [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-- [ ] Consider inactivity-based expiration in addition to outbound-triggered expiry (optional)
+**Schedule Editor Validation – Prevent Dialog Closure**
+- *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
+- *Why it helps*: Prevents data loss and improves UX
+- *Estimated effort*: Small
+- *Status*: ⚠️ **OUTSTANDING** - Previous fix attempt may not have fully resolved the issue
 
-### Async test adoption for Discord channel
-- [ ] Add pytest-asyncio to requirements and test setup
-- [ ] Convert `scripts/test_discord_connection.py` into real async tests under `tests/behavior/` using `@pytest.mark.asyncio`
-- [ ] Mock network calls; mark any real network test with `@pytest.mark.network` and skip by default
-- [ ] Remove module-level skip once migrated; keep `scripts/test_discord_connection.py` as a manual tool or deprecate
-
-### Test Data Isolation Follow-ups
-- [ ] Confirm no writes to real `data/users` during all test modes (unit, behavior, integration, ui)
-- [ ] Audit remaining modules for `from core.config import ...` and migrate to `import core.config as cfg` where practical
-- [ ] Evaluate enabling `pytest-xdist` without breaking isolation
-
-- [x] Fix widget constructor parameter mismatches in simple UI tests
-  - [x] Fix CategorySelectionWidget and ChannelSelectionWidget user_id parameter issues
-  - [x] Fix DynamicListField and DynamicListContainer title/items parameter issues
-- [x] Fix account creation UI test data issues
-  - [x] Resolve user context update failures in integration tests
-  - [x] Fix missing account data in persistence tests
-  - [x] Fix duplicate username handling test failures
-
-### Pytest Marker Application Project ✅ **COMPLETED**
-- [x] Applied pytest markers to all test files across 4 directories (unit, behavior, integration, UI)
-- [x] Enhanced test organization with 101 specific marker application tasks completed
-- [x] Fixed critical UI dialog issue where dialogs were appearing during automated testing
-- [x] Enhanced test runner with new UI test mode and improved filtering capabilities
-- [x] Verified marker functionality with comprehensive testing of all marker combinations
-- [x] Improved test filtering for selective execution (unit, behavior, integration, ui, critical, regression, smoke)
-- [x] Resolved test infrastructure issues by removing problematic test files
-- [x] Updated documentation with completion status
-- [x] Cleaned up project files and moved documentation to appropriate locations
-
-### Test Infrastructure Cleanup ✅ **COMPLETED**
-- [x] Removed debug scripts not part of formal test suite (`test_user_creation_debug.py`)
-- [x] Removed redundant example files (`tests/examples/test_marker_examples.py`)
-- [x] Cleaned up empty directories (`tests/examples/`)
-- [x] Moved project documentation to appropriate locations (`tests/` directory)
-- [x] Verified test collection still works correctly after cleanup (630 tests collected)
-
-### Test Failures - Critical Issues ✅ **RESOLVED**
-- [x] Fix test user creation failures in behavior tests
-  - [x] Resolve "name 'logger' is not defined" error in test utilities
-  - [x] Fix user data loading failures in account management tests
-  - [x] Fix missing 'schedules' and 'account' keys in test data
-  - [x] Fix CommunicationManager attribute errors in tests
-- [x] Fix AI chatbot system prompt test failures
-  - [x] Update test expectations for command prompt content
-- [x] Fix test utilities demo failures
-  - [x] Resolve basic user creation failures in demo tests
-
-### Discord Bot Responsiveness ✅ **COMPLETED**
-- [x] Fixed Discord bot not responding to messages
-- [x] Added missing channel initialization step in service startup
-- [x] Fixed Discord command registration conflict (duplicate help commands)
-- [x] Verified Discord bot is now connected and responding
-
-### Channel Interaction Implementation Plan ✅ **COMPLETED**
-- [x] Enhanced Discord Commands - !help, !tasks, !checkin, !profile, !schedule, !messages, !status
-- [x] Natural Language Processing - Intent recognition, entity extraction, context awareness
-- [x] Discord-Specific Features - Rich embeds, buttons, interactive elements (basic implementation)
-- [ ] Advanced Integration - Cross-channel sync, advanced analytics
-
-### LM Studio AI Model Configuration ✅ **COMPLETED**
-- [x] Centralized timeouts and confidence thresholds for the LM Studio AI model
-- [x] Updated all AI-related components to use centralized configuration
-- [x] Created comprehensive test script to verify configuration
-- [x] Updated documentation
-
-### AI Response Length Centralization ✅ **COMPLETED**
-- [x] Centralized AI model response character length in config
-- [x] Added AI_MAX_RESPONSE_LENGTH configuration constant
-- [x] Updated bot/ai_chatbot.py to use centralized response length
-- [x] Updated bot/interaction_manager.py to use centralized response length
-- [x] Verified both modules use consistent 150-character limit
-- [x] Created and ran verification test script
+**Check-in Flow Behavior & Stability**
+- *What it means*: Ensure active check-ins expire correctly and legacy shims are not used in live flows
+- *Why it helps*: Prevents stale states and confusing interactions during conversations
+- *Estimated effort*: Small/Medium
+- Subtasks:
+  - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
+  - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
+  - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
 
 ## Medium Priority
 
+**Review and Update ARCHITECTURE.md** - Check for outdated information
+- *What it means*: Ensure architecture documentation reflects current system state
+- *Why it helps*: Provides accurate technical reference for development
+- *Estimated effort*: Small
+
+**Review and Update QUICK_REFERENCE.md** - Check for outdated commands
+- *What it means*: Ensure quick reference contains current commands and procedures
+- *Why it helps*: Provides reliable quick access to common tasks
+- *Estimated effort*: Small
+
 ### User Experience Improvements
-- [ ] Enhanced error messages for better user feedback
-- [ ] Improved natural language processing accuracy
-- [ ] Better conversation flow management
+
+**Enhanced Error Messages**
+- *What it means*: Provide clearer, actionable dialog and system error messages everywhere users interact
+- *Why it helps*: Reduces confusion and guides users to resolve problems faster
+- *Estimated effort*: Small
+
+**Improve Natural Language Processing Accuracy**
+- *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities
+- *Why it helps*: More reliable command understanding and fewer misinterpretations
+- *Estimated effort*: Medium
+
+**Conversation Flow Management**
+- *What it means*: Improve conversational state transitions and fallbacks to keep interactions smooth
+- *Why it helps*: More predictable user experience and fewer dead-ends
+- *Estimated effort*: Medium
 
 ### Performance Optimizations
-- [ ] Optimize AI response times
-- [ ] Improve message processing efficiency
-- [ ] Reduce memory usage
+
+**Optimize AI Response Times**
+- *What it means*: Reduce latency for AI-backed responses via batching, caching, or configuration tuning
+- *Why it helps*: Snappier interactions and better UX
+- *Estimated effort*: Medium
+
+**Improve Message Processing Efficiency**
+- *What it means*: Profile and streamline message pipelines (I/O, parsing, scheduling)
+- *Why it helps*: Lower CPU usage and faster processing
+- *Estimated effort*: Medium
+
+**Reduce Memory Usage**
+- *What it means*: Identify hotspots (caches, data copies) and right-size buffers/limits
+- *Why it helps*: Improves stability on constrained systems
+- *Estimated effort*: Medium
 
 ## Low Priority
 
 ### Documentation
-- [ ] Update user guides
-- [ ] Improve code documentation
-- [ ] Create troubleshooting guides
+
+**Update User Guides**
+- *What it means*: Refresh user-facing guides to reflect current features and workflows
+- *Why it helps*: Reduces confusion and accelerates onboarding
+- *Estimated effort*: Small
+
+**Improve Code Documentation**
+- *What it means*: Add/refresh docstrings and inline docs where clarity is lacking
+- *Why it helps*: Speeds up development and AI assistance accuracy
+- *Estimated effort*: Small
+
+**Create Troubleshooting Guides**
+- *What it means*: Document common issues and resolution steps for channels, UI, and data
+- *Why it helps*: Faster recovery when issues occur
+- *Estimated effort*: Small
 
 ### Testing
-- [ ] Add more comprehensive tests
-- [ ] Improve test coverage
-- [ ] Add integration tests
 
-## Completed Tasks
+**Add More Comprehensive Tests**
+- *What it means*: Expand behavior and integration coverage for under-tested modules
+- *Why it helps*: Increases reliability and change safety
+- *Estimated effort*: Large
 
-### UI Test Failures Resolution ✅ **COMPLETED** (2025-08-07)
-### Check-in Flow Improvements ✅ **COMPLETED** (2025-08-07)
-- [x] Expire check-in after next unrelated outbound message
-- [x] Add `/checkin` trigger and improved intro prompt
-- [x] Legacy shims for check-in APIs to keep tests/modules working
-- [x] Fix restart monitor iteration error
-- [x] Fixed widget constructor parameter mismatches (4 failures)
-  - [x] CategorySelectionWidget - removed user_id parameter, uses parent only
-  - [x] ChannelSelectionWidget - removed user_id parameter, uses parent only
-  - [x] DynamicListField - fixed parameter names (preset_label, editable, checked)
-  - [x] DynamicListContainer - fixed parameter names (field_key)
-- [x] Fixed account creation UI test data issues (3 failures)
-  - [x] Updated tests to use proper user ID lookup from test utilities
-  - [x] Fixed user context update failures in integration tests
-  - [x] Fixed missing account data in persistence tests
-  - [x] Fixed duplicate username handling test failures
-- [x] Updated test expectations to match actual test utility behavior
-- [x] **Result**: All 591 tests now passing (100% success rate)
+**Improve Test Coverage**
+- *What it means*: Systematically raise coverage by adding targeted unit tests
+- *Why it helps*: Catches regressions earlier
+- *Estimated effort*: Medium
 
-### Discord Enhancement ✅ **COMPLETED**
-- [x] Enhanced Discord Commands - !help, !tasks, !checkin, !profile, !schedule, !messages, !status
-- [x] Natural Language Processing - Intent recognition, entity extraction, context awareness
-- [x] Discord-Specific Features - Rich embeds, buttons, interactive elements (basic implementation)
-- [ ] Advanced Integration - Cross-channel sync, advanced analytics
+**Add Integration Tests**
+- *What it means*: Add cross-module workflow tests (user lifecycle, scheduling, messaging)
+- *Why it helps*: Verifies real-world flows function correctly
+- *Estimated effort*: Medium
 
-### AI Configuration Centralization ✅ **COMPLETED**
-- [x] Centralized LM Studio AI model timeouts and confidence thresholds
-- [x] Updated bot/ai_chatbot.py to use centralized configuration
-- [x] Updated bot/enhanced_command_parser.py to use centralized configuration
-- [x] Created test script to verify all configurations are properly set
-- [x] Updated CHANGELOG files
+**Scripts Directory Cleanup** - Clean up the scripts/ directory
+- *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to ai_tools/
+- *Why it helps*: Reduces confusion and keeps the codebase organized
+- *Estimated effort*: Medium
 
-### Task Response Quality Improvements ✅ **COMPLETED**
-- [x] Fixed task formatting - No more JSON or system prompts in responses
-- [x] Fixed response length - All responses now under 200 characters, no more truncation
-- [x] Fixed task suggestions - Contextual suggestions based on actual task data
-- [x] Fixed reminder format - Time-based reminders ("30 minutes to an hour before", etc.)
-- [x] Fixed AI enhancement - Properly disabled for task responses to prevent formatting issues
+**Gitignore Cleanup** - Review and clean up .gitignore file
+- *What it means*: Remove outdated entries, add missing patterns, organize sections logically
+- *Why it helps*: Ensures proper version control and prevents unnecessary files from being tracked
+- *Estimated effort*: Small
+
+**Improve AI Terminal Interaction Reliability** - Address issues with AI misunderstanding terminal output
+- *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
+- *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
+- *Estimated effort*: Medium
+
+**Fix Treeview Refresh** - Should refresh reflecting the changes, while maintaining current sorting
+- *What it means*: Improve the message editing interface to automatically update the display when messages are changed
+- *Why it helps*: Better user experience with immediate visual feedback
+- *Estimated effort*: Small
+
+**Fix "process already stopped" notification issue**
+- *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
+- *Why it helps*: Cleaner service management and better user experience
+- *Estimated effort*: Small
+
+**Add Performance Monitoring** - Track how long operations take
+- *What it means*: The app keeps track of which operations are slow so you can improve them
+- *Why it helps*: Helps you identify and fix performance problems before they become annoying
+- *Estimated effort*: Medium
+
+**Create Development Guidelines** - Establish coding standards and best practices
+- *What it means*: Write down rules for how code should be written to keep it consistent
+- *Why it helps*: Makes the code easier to read and understand, especially when working with AI assistance
+- *Estimated effort*: Small

@@ -131,6 +131,86 @@ def setup_test_logging():
 # Set up test logging
 test_logger, test_log_file = setup_test_logging()
 
+# --- HOUSEKEEPING: Prune old test artifacts to keep repo tidy ---
+def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int) -> int:
+    """Remove files in target_dir matching any pattern older than N days.
+
+    Returns the number of files removed.
+    """
+    removed_count = 0
+    try:
+        if older_than_days <= 0:
+            return 0
+        cutoff = datetime.now().timestamp() - (older_than_days * 24 * 3600)
+        for pattern in patterns:
+            for file_path in target_dir.rglob(pattern):
+                try:
+                    if file_path.is_file() and file_path.stat().st_mtime < cutoff:
+                        file_path.unlink(missing_ok=True)
+                        removed_count += 1
+                except Exception:
+                    # Best-effort cleanup; ignore individual file errors
+                    pass
+    except Exception:
+        # Never fail tests due to cleanup issues
+        pass
+    return removed_count
+
+
+@pytest.fixture(scope="session", autouse=True)
+def prune_test_artifacts_before_and_after_session():
+    """Prune old logs (tests/logs) and backups (tests/data/backups) before and after the session.
+
+    Defaults: logs older than 14 days, test backups older than 7 days.
+    Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
+    """
+    project_root_path = Path(project_root)
+    logs_dir = project_root_path / "tests" / "logs"
+    test_backups_dir = project_root_path / "tests" / "data" / "backups"
+
+    log_retention_days = int(os.getenv("TEST_LOG_RETENTION_DAYS", "14"))
+    backup_retention_days = int(os.getenv("TEST_BACKUP_RETENTION_DAYS", "7"))
+
+    # Prune before tests
+    if logs_dir.exists():
+        removed = _prune_old_files(
+            logs_dir,
+            patterns=["*.log", "*.log.*", "*.gz"],
+            older_than_days=log_retention_days,
+        )
+        if removed:
+            test_logger.info(f"Pruned {removed} old test log files from {logs_dir}")
+
+    if test_backups_dir.exists():
+        removed = _prune_old_files(
+            test_backups_dir,
+            patterns=["*.zip"],
+            older_than_days=backup_retention_days,
+        )
+        if removed:
+            test_logger.info(f"Pruned {removed} old test backup files from {test_backups_dir}")
+
+    yield
+
+    # Prune again after tests
+    if logs_dir.exists():
+        removed = _prune_old_files(
+            logs_dir,
+            patterns=["*.log", "*.log.*", "*.gz"],
+            older_than_days=log_retention_days,
+        )
+        if removed:
+            test_logger.info(f"Post-run prune removed {removed} old test log files from {logs_dir}")
+
+    if test_backups_dir.exists():
+        removed = _prune_old_files(
+            test_backups_dir,
+            patterns=["*.zip"],
+            older_than_days=backup_retention_days,
+        )
+        if removed:
+            test_logger.info(f"Post-run prune removed {removed} old test backup files from {test_backups_dir}")
+
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():
     """Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log."""

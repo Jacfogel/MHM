@@ -3,11 +3,32 @@
 > **Audience**: Developers & contributors  
 > **Purpose**: Complete detailed changelog history  
 > **Style**: Chronological, detailed, reference-oriented  
-> **Last Updated**: 2025-08-05
+> **Last Updated**: 2025-08-10
 
 > **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-08-10 - Plans/TODO Consolidation, Backup Retention, and Test Log Hygiene ✅
+
+#### Summary
+Standardized documentation boundaries between plans and tasks, implemented backup retention and test artifact pruning, and verified system health.
+
+#### Key Changes
+- Documentation
+  - Split independent tasks (TODO.md) vs grouped plans (PLANS.md); removed completed plan blocks from PLANS.md and pointed to changelogs
+  - Moved plan-worthy items into PLANS.md: UI testing follow-ups, UI quality improvements, Discord hardening, message data reorg, `UserPreferences` refactor, dynamic check-in questions
+- Test artifact hygiene
+  - Added auto-prune to `tests/conftest.py` for test logs (>14d) and test backups (>7d), with env overrides
+- Backup retention
+  - `core/backup_manager.py`: added age-based retention via `BACKUP_RETENTION_DAYS` (default 30d) in addition to count-based retention
+  - Added CLI: `scripts/utilities/cleanup/cleanup_backups.py` to prune by age/count on demand
+
+#### Tests
+- Full suite green: 595 passed, 1 skipped
+
+#### Audit
+- Comprehensive audit successful; documentation coverage ~99%
 
 ### 2025-08-09 - Test Data Isolation Hardening & Config Import Safety ✅
 

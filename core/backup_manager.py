@@ -32,7 +32,12 @@ class BackupManager:
         """
         self.backup_dir = os.path.join(cfg.BASE_DATA_DIR, "backups")
         self.ensure_backup_directory()
-        self.max_backups = 10  # Keep last 10 backups
+        # Keep last 10 backups by default; also enforce age-based retention
+        self.max_backups = 10
+        try:
+            self.backup_retention_days = int(os.getenv("BACKUP_RETENTION_DAYS", "30"))
+        except Exception:
+            self.backup_retention_days = 30
     
     @handle_errors("ensuring backup directory exists")
     def ensure_backup_directory(self) -> bool:
@@ -86,7 +91,7 @@ class BackupManager:
                 # Create backup manifest
                 self._create_backup_manifest(zipf, backup_name, include_users, include_config, include_logs)
             
-            # Clean up old backups
+            # Clean up old backups by count and age
             self._cleanup_old_backups()
             
             logger.info(f"Backup created successfully: {backup_path}")
@@ -177,23 +182,44 @@ class BackupManager:
     
     @handle_errors("cleaning up old backups")
     def _cleanup_old_backups(self) -> None:
-        """Remove old backups to keep only the most recent ones."""
-        backup_files = []
-        for file in os.listdir(self.backup_dir):
-            if file.endswith('.zip'):
-                file_path = os.path.join(self.backup_dir, file)
-                backup_files.append((file_path, os.path.getmtime(file_path)))
-        
-        # Sort by modification time (newest first)
-        backup_files.sort(key=lambda x: x[1], reverse=True)
-        
-        # Remove old backups
-        for file_path, _ in backup_files[self.max_backups:]:
-            try:
-                os.remove(file_path)
-                logger.debug(f"Removed old backup: {file_path}")
-            except Exception as e:
-                logger.warning(f"Failed to remove old backup {file_path}: {e}")
+        """Remove old backups by count and age retention policy."""
+        try:
+            # Gather .zip backups with mtime
+            backup_files: list[tuple[str, float]] = []
+            now_ts = time.time()
+            for file in os.listdir(self.backup_dir):
+                if file.endswith('.zip'):
+                    file_path = os.path.join(self.backup_dir, file)
+                    try:
+                        mtime = os.path.getmtime(file_path)
+                        backup_files.append((file_path, mtime))
+                    except Exception:
+                        continue
+
+            if not backup_files:
+                return
+
+            # Age-based retention: remove files older than BACKUP_RETENTION_DAYS
+            age_cutoff = now_ts - (self.backup_retention_days * 24 * 3600)
+            for file_path, mtime in list(backup_files):
+                if mtime < age_cutoff:
+                    try:
+                        os.remove(file_path)
+                        logger.debug(f"Removed backup by age (> {self.backup_retention_days}d): {file_path}")
+                        backup_files.remove((file_path, mtime))
+                    except Exception as e:
+                        logger.warning(f"Failed to remove old backup {file_path}: {e}")
+
+            # Count-based retention: keep newest self.max_backups
+            backup_files.sort(key=lambda x: x[1], reverse=True)
+            for file_path, _ in backup_files[self.max_backups:]:
+                try:
+                    os.remove(file_path)
+                    logger.debug(f"Removed backup by count (>{self.max_backups}): {file_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove old backup {file_path}: {e}")
+        except Exception as e:
+            logger.warning(f"Backup cleanup encountered an error: {e}")
     
     @handle_errors("listing available backups", default_return=[])
     def list_backups(self) -> List[Dict]:

@@ -1,112 +1,29 @@
 # PLANS - Development Plans & Strategies
 
 > **Audience**: Human Developer & AI Collaborators  
-> **Purpose**: Consolidated development plans with step-by-step checklists  
+> **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
  > **Last Updated**: 2025-08-07
 > **Last Updated**: 2025-08-09
 
-> **See [TODO.md](TODO.md) for current development priorities and tasks**
+> **See [TODO.md](TODO.md) for independant tasks**
+
+## 🔄 Plan Maintenance
+
+### How to Update This Plan
+1. **Add new plans** with clear goals and checklist format
+2. **Update progress** by checking off completed items
+3. **Move completed plans** to the "Completed Plans" section
+4. **Keep reference information** current and useful
+5. **Remove outdated information** to maintain relevance
+
+### Success Criteria
+- **Actionable**: Each item is a specific, testable action
+- **Trackable**: Clear progress indicators and completion status
+- **Maintainable**: Easy to update and keep current
+- **Useful**: Provides value for both human developer and AI collaborators 
 
 ## 🎯 Active Plans
-### Test Data Isolation & Config Import Safety ✅ **COMPLETED**
-- [x] Ensure tests write only under `tests/data/users` via session fixture
-- [x] Avoid env overrides that break default-constant tests
-- [x] Replace from-imports of config constants in critical modules
-- [x] Add assertion to prevent leakage to real `data/users` in file ops lifecycle test
-
-
-### Pytest Marker Application Project ✅ **COMPLETED**
-**Status**: 100% Complete - All 101 tasks finished  
-**Goal**: Improve test organization, selective execution, and test management
-
-#### Phase 1: Unit Tests ✅ **COMPLETED**
-- [x] Applied `@pytest.mark.unit` to all unit test files
-- [x] Verified unit test collection and execution
-- [x] Updated test runner to support unit test mode
-
-#### Phase 2: Behavior Tests ✅ **COMPLETED**
-- [x] Applied `@pytest.mark.behavior` to all behavior test files (67 tasks)
-- [x] Fixed critical UI dialog issue preventing automated testing
-- [x] Resolved test collection errors from problematic files
-- [x] Verified behavior test collection and execution
-
-#### Phase 3: Integration Tests ✅ **COMPLETED**
-- [x] Applied `@pytest.mark.integration` to all integration test files (16 tasks)
-- [x] Fixed missing import statements in test files
-- [x] Verified integration test collection and execution
-
-#### Phase 4: UI Tests ✅ **COMPLETED**
-- [x] Applied `@pytest.mark.ui` to all UI test files (30 tasks)
-- [x] Fixed UI dialog interference by removing `show()` calls from test fixtures
-- [x] Updated assertions to prevent UI dialogs during automated testing
-- [x] Enhanced test runner with UI test mode support
-
-#### Phase 5: Verification & Testing ✅ **COMPLETED**
-- [x] Verified all marker combinations work correctly
-- [x] Tested critical test filtering (195 critical tests identified)
-- [x] Confirmed test runner enhancements function properly
-- [x] Validated no marker registration warnings
-
-#### Phase 6: Quality Assurance ✅ **COMPLETED**
-- [x] Updated documentation with completion status
-- [x] Cleaned up project files and moved documentation to appropriate locations
-- [x] Removed debug scripts and redundant example files
-- [x] Verified test collection still works correctly after cleanup
-
-#### Project Results
-- **Total Test Files**: 31 files across 4 directories (unit, behavior, integration, UI)
-- **Total Tasks**: 101 specific marker application steps completed
-- **Test Collection**: 630 tests collected successfully (down from 675 due to cleanup)
-- **Critical Tests**: 195 tests properly marked as critical
-- **Test Runner**: Enhanced with UI mode and improved filtering
-- **Documentation**: Complete project documentation in `tests/` directory
-
-### Test Failure Resolution Plan
-**Status**: All Critical Issues Resolved ✅ **COMPLETED**  
-**Goal**: Fix remaining UI test failures to complete testing infrastructure
-
-### Enhanced Logging System Implementation ✅ **COMPLETED**
-**Status**: 100% Complete - All logging improvements implemented  
-**Goal**: Implement comprehensive logging system with component separation and better organization
-
-#### Phase 1: Core Logging Infrastructure ✅ **COMPLETED**
-- [x] Created organized logs directory structure (`logs/`, `logs/backups/`, `logs/archive/`)
-- [x] Implemented component-based log separation (app, discord, ai, user_activity, errors)
-- [x] Added structured logging with JSON metadata support
-- [x] Implemented time-based log rotation (daily with 7-day retention)
-- [x] Added log compression for files older than 7 days
-- [x] Created ComponentLogger class for targeted logging
-- [x] Updated configuration with new log file paths
-- [x] Maintained backward compatibility with existing logging
-
-#### Phase 2: Component Logger Migration ✅ **COMPLETED**
-- [x] **Priority 1: Core System Components** (8 files) - Updated service, error handling, auto cleanup, scheduler, service utilities, UI management, backup manager, checkin analytics
-- [x] **Priority 2: Bot/Communication Components** (8 files) - Updated AI chatbot, email bot, telegram bot, base channel, channel factory, communication manager, conversation manager, interaction manager
-- [x] **Priority 3: User Management Components** (6 files) - Updated user management, user data manager, user data handlers, user data validation, user context, user preferences
-- [x] **Priority 4: Feature Components** (8 files) - Updated enhanced command parser, interaction handlers, backup manager, checkin analytics, message management, response tracking, schedule management, task management
-- [x] **Priority 5: UI Components** (15 files) - Updated all UI dialogs and widgets to use component loggers
-- [x] **Total Files Updated**: 42 files systematically updated with component-specific loggers
-
-#### Phase 3: Testing and Validation ✅ **COMPLETED**
-- [x] Fixed 2 logger behavior test failures
-  - [x] Added missing `total_files` field to `get_log_file_info()` function
-  - [x] Fixed bug in `cleanup_old_logs()` function where dict was being passed to `os.path.exists()`
-- [x] Verified all behavior tests passing (344 tests)
-- [x] Verified all unit tests passing (140 tests)
-- [x] Confirmed application launches successfully with new logging system
-
-#### Phase 4: Documentation and Organization ✅ **COMPLETED**
-- [x] Moved LOGGING_GUIDE.md to logs directory for better organization
-- [x] Updated documentation to reflect completion status
-- [x] Verified logging system is fully operational
-
-#### Project Results
-- **Total Files Updated**: 42 files across all system components
-- **Component Loggers**: 6 component types (main, discord, ai, user_activity, errors, communication, channels, email, telegram)
-- **Test Status**: All tests passing (484 total tests)
-- **Log Organization**: Clean separation with dedicated files for each component
-- **Performance**: Improved debugging and targeted log analysis
 
 #### Test User Creation Failures ✅ **RESOLVED**
 - [x] Fix "name 'logger' is not defined" error in test utilities
@@ -186,10 +103,11 @@
 - [ ] Integration Testing - Cross-dialog communication
 - [ ] Performance Optimization - UI responsiveness monitoring
 
-### Check-in Flow Behavior Plan ✅
-- [x] Add `/checkin` command and clearer intro prompt
-- [x] Expire active check-in on next unrelated outbound message (motivational/health/task reminder)
-- [ ] Optional: add inactivity timeout for check-in flows (design: expire after 30–60 minutes of no reply)
+#### UI Quality Improvements ⚠️ **PLANNED**
+- [ ] Fix Dialog Integration (main window updates after dialog changes)
+- [ ] Add Data Validation across all forms
+- [ ] Improve Error Handling with clear, user-friendly messages
+- [ ] Monitor and optimize UI responsiveness for common operations
 
 ### Legacy Code Removal Plan
 **Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (1-week period until 2025-08-10)  
@@ -212,22 +130,16 @@
 - [x] Test Utilities Backward Compatibility - Legacy path marked
 - [x] UI App Legacy Communication Manager - Legacy handling marked
 
-#### Monitoring Phase ⚠️ **ACTIVE** (Until 2025-08-10)
-- [ ] Monitor app.log for "LEGACY" warnings from Communication Manager
-- [ ] Monitor app.log for "LEGACY" warnings from Account Creator Dialog
-- [ ] Monitor app.log for "LEGACY" warnings from User Profile Settings Widget
-- [ ] Monitor app.log for "LEGACY" warnings from User Context
-- [ ] Monitor app.log for "LEGACY" warnings from Test Utilities
-- [ ] Monitor app.log for "LEGACY" warnings from UI App
+#### Monitoring Phase ⚠️ **ACTIVE** (until 2025-08-10)
+ - [ ] Monitor app logs for LEGACY warnings (see TODO.md for specific removal tasks)
 
-#### Removal Phase ⚠️ **PLANNED** (After 2025-08-10)
-- [ ] Remove Communication Manager Legacy Wrappers
-- [ ] Remove Account Creator Dialog Compatibility Methods
-- [ ] Remove User Profile Settings Widget Fallbacks
-- [ ] Remove User Context Legacy Format Handling
-- [ ] Remove Test Utilities Backward Compatibility
-- [ ] Remove UI App Legacy Communication Manager
-- [ ] Update tests to use modern patterns only
+#### Removal Phase ⚠️ **PLANNED** (after 2025-08-10)
+ - [ ] Execute removals listed in TODO.md and update tests accordingly
+
+##### Targeted Removals (High-Priority)
+- [ ] Account Creator Dialog compatibility methods (by 2025-08-15)
+- [ ] User Profile Settings Widget legacy fallbacks (by 2025-08-15)
+- [ ] Discord Bot legacy methods (by 2025-08-15)
 
 ### Testing Strategy Plan
 **Status**: Core Modules Complete, UI Layer in Progress  
@@ -258,6 +170,11 @@
 - [ ] Simple Widget Testing - 7 failures in basic widget tests (constructor parameter issues)
 
 #### Supporting Module Testing ✅ **COMPLETE** (5/5 modules)
+#### Outstanding Testing Tasks ⚠️ **ACTIVE**
+- [ ] UI Layer Testing (expand coverage for remaining UI modules)
+- [ ] Individual Dialog Testing (comprehensive behavior tests)
+- [ ] TagWidget validation in both modes
+- [ ] Expand Testing Framework for under-tested modules
 - [x] Error Handling - 10 behavior tests
 - [x] Config - 5 behavior tests
 - [x] Auto Cleanup - 16 behavior tests
@@ -273,26 +190,14 @@
 **Status**: Core Framework Complete, Discord Enhancement Complete  
 **Goal**: Comprehensive user interactions through communication channels
 
-#### Core Interaction Framework ✅ **COMPLETE**
-- [x] Enhanced Command System - Natural language parsing
-- [x] Interaction Handlers - Task, check-in, profile, schedule, analytics, help
-- [x] Response System - Channel-adaptive, rich responses, conversational AI
-- [x] Dynamic Time Period Support - Natural language time parsing
-- [x] Conversational AI Enhancement - Lock management, fallback responses
-- [x] Legacy Code Standards - Communication manager wrappers marked
-
-#### Discord Enhancement ✅ **COMPLETED**
-- [x] Enhanced Discord Commands - !help, !tasks, !checkin, !profile, !schedule, !messages, !status
-- [x] Natural Language Processing - Intent recognition, entity extraction, context awareness
-- [x] Discord-Specific Features - Rich embeds, buttons, interactive elements (basic implementation)
-- [x] AI Response Quality Improvements - Fixed formatting, length, and suggestion issues
-- [x] AI Response Length Centralization - Centralized character limits in config
-- [ ] Advanced Integration - Cross-channel sync, advanced analytics
-
 #### Secondary Channel Implementation ⚠️ **PLANNED**
 - [ ] Email Integration - Full email-based interaction system
 - [ ] Telegram Integration - Telegram bot implementation
 - [ ] Cross-Channel Sync - Synchronize data across all channels
+
+#### Discord Hardening ⚠️ **PLANNED**
+- [ ] Discord Validation Enhancement (username format rules + dialog validation)
+- [ ] Discord Connectivity Monitoring (periodic health checks & reporting)
 
 ### Test Performance Optimization Plan
 **Status**: Performance Issues Identified, Optimization in Progress  
@@ -324,80 +229,54 @@
 - [ ] Phase 2: Infrastructure - Implement caching, optimize file operations
 - [ ] Phase 3: Advanced - Separate test suites, implement result caching
 
-## 🚨 Critical Issues & Known Bugs
+## Task Management System Implementation
 
-### High Priority Issues ⚠️ **ACTIVE**
-- **Test Failures**: 12 behavior test failures blocking reliable testing
-  - **Test User Creation**: "name 'logger' is not defined" errors
-  - **User Data Loading**: Missing 'schedules' and 'account' keys
-  - **Communication Manager**: Attribute errors in tests
-- **Throttler Bug**: Service Utilities Throttler class never sets `last_run` on first call
-- **Widget Integration Errors**: "No user_id provided!" errors in some dialogs
-- **Test Performance**: Behavior tests taking 4.4 minutes (major bottleneck)
+### Phase 2: Advanced Features (PLANNED)
+- [x] **Individual Task Reminders**: Custom reminder times for individual tasks ✅ **COMPLETED**
+- [ ] **Recurring Tasks**: Support for daily, weekly, monthly, and custom recurring patterns
+- [ ] **Priority Escalation**: Automatic priority increase for overdue tasks
+- [ ] **AI Chatbot Integration**: Full integration with AI chatbot for task management
 
-### Medium Priority Issues ⚠️ **MONITORING**
-- **UI Layer Testing**: Only 1/8 UI modules have tests (12.5% coverage)
-- **Supporting Modules**: Auto cleanup, check-in analytics, logger need testing
-- **Integration Testing**: Cross-module workflow testing needed
+### Task Management UI Improvements (PLANNED)
+- [ ] **Recurring Tasks**: Set tasks to reoccur at set frequencies, or sometime after last completion
+- [ ] **Smart Reminder Randomization**: Randomize reminder timing based on priority and proximity to due date
 
-### Low Priority Issues ⚠️ **PLANNED**
-- **Documentation Consolidation**: Multiple files contain duplicate information
-- **Performance Monitoring**: UI responsiveness optimization needed
-- **Cross-Platform Testing**: Test all dialogs on different platforms
+### Phase 3: Communication Channel Integration (PLANNED)
+- [ ] **Discord Integration**: Full Discord bot integration for task management
+- [ ] **Email Integration**: Email-based task management
+- [ ] **Telegram Integration**: Telegram bot integration for task management
+- [ ] **Cross-Channel Sync**: Synchronize tasks across all communication channels
 
-## 📋 Completed Plans
+### Phase 4: AI Enhancement (PLANNED)
+- [ ] **Smart Task Suggestions**: AI-powered task suggestions based on user patterns
+- [ ] **Natural Language Processing**: Create and manage tasks using natural language
+- [ ] **Intelligent Reminders**: AI-determined optimal reminder timing
+- [ ] **Task Analytics**: AI-powered insights into task completion patterns
 
-### AI Response Length Centralization ✅ **COMPLETED** (2025-08-04)
-- **Achievement**: Successfully centralized AI model response character length configuration
-- **Implementation**: Added `AI_MAX_RESPONSE_LENGTH` constant to `core/config.py`
-- **Integration**: Updated both `bot/ai_chatbot.py` and `bot/interaction_manager.py` to use centralized config
-- **Verification**: Created and ran test script to confirm consistent 150-character limit across modules
-- **Impact**: Eliminated hardcoded response length values, improved maintainability and consistency
+## Message Data Structure Reorganization Plan ⚠️ **PLANNED**
+**Goal**: Reorganize message files to `data/messages/{user_id}/messages/{category}.json` and colocate `sent_messages.json`.
 
-### Task Response Quality Improvements ✅ **COMPLETED** (2025-08-04)
-- **Achievement**: Fixed critical Discord bot response quality issues
-- **Task Formatting**: Eliminated JSON and system prompts from task responses
-- **Response Length**: Enforced 200-character limit with proper truncation
-- **Task Suggestions**: Made suggestions contextual and action-oriented
-- **Reminder Format**: Updated to time-based format ("30 minutes to an hour before")
-- **AI Enhancement**: Properly disabled for task responses to prevent formatting issues
-- **Impact**: Significantly improved user experience with cleaner, more helpful responses
+- [ ] Design migration strategy and fallback compatibility window
+- [ ] Implement migration script and update file path resolution
+- [ ] Update message CRUD/readers/writers to new structure
+- [ ] Update tests and backfill fixtures
+- [ ] Validate performance and rollback path
 
-### UI Migration Foundation ✅ **COMPLETED** (2025-07-21)
-- **Achievement**: Successfully migrated from Tkinter to PySide6/Qt
-- **Impact**: Modern, responsive UI with better user experience
-- **Coverage**: All UI files exist and dialogs can be instantiated
-- **Status**: Foundation solid, ready for comprehensive testing
+## User Preferences Refactor Plan ⚠️ **PLANNED**
+**Goal**: Introduce `UserPreferences` class for centralized, type-safe preference management.
 
-### TestUserFactory Fix ✅ **COMPLETED** (2025-08-03)
-- **Achievement**: Resolved 23 test failures across behavior, integration, and UI test suites
-- **Impact**: Test reliability fully restored, all dependent testing work unblocked
-- **Coverage**: 139 tests passing, 1 skipped, 2 deselected (99.3% success rate)
-- **Status**: All testing can now proceed with confidence
+- [ ] Define data model and serialization format
+- [ ] Implement class and adapter for current data files
+- [ ] Update accessors across UI/Core to use `UserPreferences`
+- [ ] Add migration helpers and tests
 
-### Dynamic Time Period Support ✅ **COMPLETED** (2025-08-03)
-- **Achievement**: Implemented flexible time period parsing for task statistics
-- **Impact**: Users can ask for statistics in natural language with various time periods
-- **Coverage**: Comprehensive pattern matching and entity extraction
-- **Status**: Fully functional with extensive testing
+## Dynamic Check-in Questions Plan ⚠️ **PLANNED**
+**Goal**: Implement fully dynamic custom check-in questions (UI + data + validation).
 
-### 100% Function Documentation Coverage ✅ **COMPLETED** (2025-07-31)
-- **Achievement**: All 1349 functions in the codebase now have proper docstrings
-- **Impact**: Complete codebase documentation enables better AI assistance and maintenance
-- **Coverage**: Functions documented across bot/, ui/, scripts/, and tests/ directories
-- **Status**: Documentation quality consistent with clear descriptions and proper formatting
-
-### Test File Organization ✅ **COMPLETED** (2025-07-21)
-- **Achievement**: Successfully organized all test files into appropriate directories
-- **Impact**: Clean project structure with tests properly categorized by type
-- **Coverage**: Real behavior tests, integration tests, UI tests, and utility scripts organized
-- **Status**: No more test files cluttering the project root
-
-### Windows Python Process Behavior Investigation ✅ **COMPLETED** (2025-07-21)
-- **Achievement**: Documented Windows-specific Python process behavior
-- **Impact**: Confirmed normal Windows behavior, no code changes needed
-- **Coverage**: Tested multiple approaches and documented findings
-- **Status**: Application works correctly despite dual processes
+- [ ] Design widget interactions (add/edit/remove, ordering, presets)
+- [ ] Define data model and validation rules
+- [ ] Persist/Load in user data; integrate into check-in flow
+- [ ] Add behavior and UI tests
 
 ## 📚 Reference Information
 
@@ -553,24 +432,3 @@ MHM/
 ├── scripts/                # Migration, debug, and utility scripts
 └── styles/                 # QSS theme files
 ```
-
-### File Renaming & Reformatting (COMPLETED) ✅
-- `ui_app_createaccount_dialogue.py` → `ui/account_creator_qt.py`
-- `ui_app_editschedule.py` → `ui/schedule_editor_qt.py`
-- `ui_app_personalization.py` → `ui/personalization_dialog_qt.py`
-- `ui_app_mainwindow.py` → `ui/ui_app_qt.py`
-
-## 🔄 Plan Maintenance
-
-### How to Update This Plan
-1. **Add new plans** with clear goals and checklist format
-2. **Update progress** by checking off completed items
-3. **Move completed plans** to the "Completed Plans" section
-4. **Keep reference information** current and useful
-5. **Remove outdated information** to maintain relevance
-
-### Success Criteria
-- **Actionable**: Each item is a specific, testable action
-- **Trackable**: Clear progress indicators and completion status
-- **Maintainable**: Easy to update and keep current
-- **Useful**: Provides value for both human developer and AI collaborators 
