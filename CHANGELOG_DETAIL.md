@@ -9,6 +9,35 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-10 - Channel-Agnostic Command Registry, Discord Slash Commands, and Flow Routing
+#### Summary
+Created a single source of truth for channel-agnostic commands with flow metadata and wired Discord to use it for both true slash commands and classic commands. Updated interaction routing to send flow-marked slash commands to the conversation flow engine. Added scaffolds for future flows to keep architecture consistent.
+
+#### Key Changes
+- Interaction Manager
+  - Introduced `CommandDefinition` with `name`, `mapped_message`, `description`, and `is_flow`
+  - Centralized `_command_definitions` list and derived `slash_command_map`
+  - Exposed `get_slash_command_map()` and `get_command_definitions()` for channels to consume
+  - Updated `handle_message()` to:
+    - Handle `/cancel` universally via `ConversationManager`
+    - Delegate flow-marked slash commands (currently `checkin`) to `ConversationManager`
+    - Map known non-flow slash commands to single-turn handlers
+    - For unknown `/` or `!` commands: strip prefix and parse using `EnhancedCommandParser`, fallback to contextual chat
+- Discord Bot
+  - Registers true slash commands (`app_commands`) dynamically from `get_command_definitions()`; syncs on ready
+  - Registers classic `!` commands dynamically from the same list, skipping `help` to avoid duplicating Discord's native help
+  - Removed bespoke static command handlers replaced by dynamic registration
+- Conversation Manager
+  - Added scaffolds: `start_tasks_flow`, `start_profile_flow`, `start_schedule_flow`, `start_messages_flow`, `start_analytics_flow` (currently delegate to single-turn behavior)
+
+#### Tests
+- Full suite green: 632 passed, 2 skipped
+
+#### Impact
+- Clear, channel-agnostic command registry
+- Consistent discoverability on Discord via real slash commands and optional classic commands
+- Architecture ready to expand additional stateful flows beyond check-in
+
 ### 2025-08-10 - Plans/TODO Consolidation, Backup Retention, and Test Log Hygiene ✅
 
 #### Summary

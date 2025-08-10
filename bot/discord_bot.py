@@ -2,6 +2,7 @@
 
 import os
 import discord
+from discord import app_commands
 import asyncio
 import threading
 from discord.ext import commands
@@ -286,6 +287,7 @@ class DiscordBot(BaseChannel):
             self.bot = commands.Bot(
                 command_prefix="!", 
                 intents=intents,
+                # Keep Discord's default !help intact per preference
                 # Enhanced connection settings for better resilience
                 max_messages=10000,  # Increase message cache
                 heartbeat_timeout=120.0,  # Increased heartbeat timeout (was 60.0)
@@ -444,6 +446,13 @@ class DiscordBot(BaseChannel):
             self._update_connection_status(DiscordConnectionStatus.CONNECTED)
             logger.info("Discord bot is ready and connected")
 
+            # Sync application (slash) commands
+            try:
+                await self.bot.tree.sync()
+                logger.info("Discord application commands synced")
+            except Exception as e:
+                logger.warning(f"Could not sync application commands: {e}")
+
         @self.bot.event
         async def on_disconnect():
             logger.warning("Discord bot disconnected")
@@ -544,169 +553,75 @@ class DiscordBot(BaseChannel):
     @handle_errors("registering Discord commands")
     def _register_commands(self):
         """Register Discord commands"""
-        @self.bot.command(name="status")
-        async def status(ctx):
-            """Show enhanced system status with detailed information."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "status", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in status command: {e}")
-                await ctx.send("I'm up and running! 🌟\n\nI can help you with:\n📋 **Tasks**: Create, list, complete, and manage tasks\n✅ **Check-ins**: Wellness check-ins\n👤 **Profile**: View and update your information\n📅 **Schedule**: Manage message schedules\n📊 **Analytics**: View wellness insights\n\nJust start typing naturally - I'll understand what you want to do!\n\nTry: 'Create a task to call mom tomorrow' or 'Show my tasks'")
 
-        @self.bot.command(name="checkin")
-        async def checkin_cmd(ctx):
-            """Manually start the check-in flow (normally prompted automatically)."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send(
-                    f"I don't recognize you yet! Please register first using the MHM application. "
-                    f"Your Discord ID is: {discord_user_id}"
-                )
-                return
-                
-            # Use new interaction system
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "start checkin", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in check-in command: {e}")
-                # Don't fall back to existing system - interaction manager handles this internally
-                await ctx.send("I'm having trouble starting your check-in right now. Please try again in a moment.")
+        # Register dynamic application (slash) commands from the channel-agnostic map
+        try:
+            from bot.interaction_manager import get_interaction_manager, handle_user_message
+            im = get_interaction_manager()
+            cmd_defs = im.get_command_definitions()
 
-        @self.bot.command(name="cancel")
-        async def cancel_cmd(ctx):
-            """Cancel the current flow (like check-in)."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("You don't have an active conversation to cancel.")
-                return
-                
-            reply_text, completed = conversation_manager.handle_inbound_message(
-                internal_user_id, "/cancel"
-            )
-            await ctx.send(reply_text)
+            for cmd in cmd_defs:
+                name = cmd["name"]
+                mapped = cmd["mapped_message"]
+                description = cmd["description"]
 
-        @self.bot.command(name="tasks")
-        async def tasks_cmd(ctx):
-            """Show user's tasks."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use task management features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "show my tasks", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in tasks command: {e}")
-                await ctx.send("I'm having trouble accessing your tasks right now. Please try again.")
+                async def _app_cb(interaction: discord.Interaction, _mapped=mapped, _name=name):
+                    discord_user_id = str(interaction.user.id)
+                    internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+                    if not internal_user_id:
+                        await interaction.response.send_message("Please register first to use this feature.")
+                        return
+                    try:
+                        response = handle_user_message(internal_user_id, _mapped, "discord")
+                        await interaction.response.send_message(response.message)
+                    except Exception as e:
+                        logger.error(f"Error in app command '{_name}': {e}")
+                        await interaction.response.send_message("I'm having trouble right now. Please try again.")
 
-        @self.bot.command(name="mhm_help")
-        async def help_cmd_enhanced(ctx):
-            """Show comprehensive help with categories."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("I'm here to help! Try these commands:\n• !help - Show this help\n• !status - Show system status")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "help", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in help command: {e}")
-                await ctx.send("I'm here to help! Try typing naturally - I'll understand what you want to do.")
+                try:
+                    app_cmd = app_commands.Command(name=name, description=(description or f"{name} command"), callback=_app_cb)
+                    self.bot.tree.add_command(app_cmd)
+                except Exception:
+                    # If already exists, skip silently
+                    pass
+        except Exception as e:
+            logger.debug(f"Dynamic app command registration skipped: {e}")
 
-        @self.bot.command(name="profile")
-        async def profile_cmd(ctx):
-            """Show and manage user profile."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use profile features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "show profile", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in profile command: {e}")
-                await ctx.send("I'm having trouble accessing your profile right now. Please try again.")
+        # Dynamically expose a set of native-style classic commands based on the central slash map.
+        try:
+            from bot.interaction_manager import get_interaction_manager
+            im = get_interaction_manager()
+            cmd_defs = im.get_command_definitions()
 
-        @self.bot.command(name="schedule")
-        async def schedule_cmd(ctx):
-            """Show and manage message schedules."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use schedule features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "show schedule", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in schedule command: {e}")
-                await ctx.send("I'm having trouble accessing your schedule right now. Please try again.")
+            for cmd in cmd_defs:
+                name = cmd["name"]
+                mapped = cmd["mapped_message"]
+                # Skip Discord's native classic commands to avoid duplication
+                if name in ["help"]:
+                    continue
 
-        @self.bot.command(name="messages")
-        async def messages_cmd(ctx):
-            """Show message history and settings."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use message features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "show messages", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in messages command: {e}")
-                await ctx.send("I'm having trouble accessing your messages right now. Please try again.")
+                async def _dynamic(ctx, _mapped=mapped, _name=name):
+                    discord_user_id = str(ctx.author.id)
+                    internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+                    if not internal_user_id:
+                        await ctx.send("Please register first to use this feature.")
+                        return
+                    try:
+                        from bot.interaction_manager import handle_user_message
+                        response = handle_user_message(internal_user_id, _mapped, "discord")
+                        await ctx.send(response.message)
+                    except Exception as e:
+                        logger.error(f"Error in dynamic command '{_name}': {e}")
+                        await ctx.send("I'm having trouble right now. Please try again.")
 
-        @self.bot.command(name="analytics")
-        async def analytics_cmd(ctx):
-            """Show wellness analytics and insights."""
-            discord_user_id = str(ctx.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
-            
-            if not internal_user_id:
-                await ctx.send("Please register first to use analytics features.")
-                return
-            
-            try:
-                from bot.interaction_manager import handle_user_message
-                response = handle_user_message(internal_user_id, "show analytics", "discord")
-                await ctx.send(response.message)
-            except Exception as e:
-                logger.error(f"Error in analytics command: {e}")
-                await ctx.send("I'm having trouble accessing your analytics right now. Please try again.")
+                # Register as a classic command: users can type !tasks, !profile, etc.
+                try:
+                    self.bot.command(name=name)(_dynamic)
+                except Exception:
+                    # Ignore duplicates if any
+                    pass
+        except Exception as e:
+            logger.debug(f"Dynamic command registration skipped: {e}")
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:

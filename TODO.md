@@ -30,6 +30,16 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Channel-Agnostic Command Registry Follow-ups**
+- *What it means*: Finalize and monitor the new centralized command system and Discord integrations
+- *Why it helps*: Ensures consistent behavior across channels and prevents regressions
+- *Estimated effort*: Small/Medium
+- Subtasks:
+  - [ ] Add behavior tests for dynamic Discord app commands (registration, sync, callback wiring)
+  - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
+  - [ ] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat
+  - [ ] Document command list in QUICK_REFERENCE.md
+
 **Legacy Code Removal** - Remove all marked legacy/compatibility code with clear marking and plans
 - *What it means*: Remove legacy compatibility code per `LEGACY_CODE_REMOVAL_PLAN.md` (keep warnings in place until removal)
 - *Why it helps*: Reduces complexity, eliminates legacy branches, improves maintainability
@@ -70,6 +80,9 @@ When adding new tasks, follow this format:
 - *What it means*: Ensure quick reference contains current commands and procedures
 - *Why it helps*: Provides reliable quick access to common tasks
 - *Estimated effort*: Small
+- Subtasks:
+  - [ ] Reflect new slash/bang commands and central command list
+  - [ ] Note that `/checkin` is a flow; others are single-turn for now
 
 ### User Experience Improvements
 
@@ -140,6 +153,9 @@ When adding new tasks, follow this format:
 - *What it means*: Add cross-module workflow tests (user lifecycle, scheduling, messaging)
 - *Why it helps*: Verifies real-world flows function correctly
 - *Estimated effort*: Medium
+- Subtasks:
+  - [ ] End-to-end tests for `/checkin` flow via Discord and via plain text
+  - [ ] End-to-end tests for `/status`, `/profile`, `/tasks` via Discord slash commands
 
 **Scripts Directory Cleanup** - Clean up the scripts/ directory
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to ai_tools/

@@ -9,6 +9,15 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-10 - Channel-Agnostic Commands, Discord Slash Commands, and Flow Routing
+- **Central command list**: Added canonical command definitions with descriptions and flow metadata in `bot/interaction_manager.py`
+- **Discord app commands**: Dynamically registers true slash commands from the central list; auto-sync on ready
+- **Classic commands**: Dynamically registers `!` commands from the same list (skips `help` to keep Discord's default)
+- **Flow routing**: `InteractionManager` delegates flow-marked slash commands (currently `/checkin`) to `ConversationManager`; single-turn commands use handlers
+- **Unknown `/`/`!` fallback**: Unrecognized prefixed messages drop the prefix, parse via EnhancedCommandParser, then fallback to contextual chat if needed
+- **Scaffolds for future flows**: Added `start_<feature>_flow` placeholders in `ConversationManager`
+- **Cleanup**: Removed bespoke `!` handlers in favor of dynamic registration; removed `mhm_help`
+
 ### 2025-08-10 - Plans/TODO Consolidation, Backup Retention, and Test Log Hygiene
 - **Docs cleanup**: Split independent tasks (TODO.md) vs grouped plans (PLANS.md); removed completed plans from PLANS and pointed to changelogs
 - **Plan moves**: Moved UI testing follow-ups, Discord hardening, message data reorg, UserPreferences refactor, and dynamic check-in questions into PLANS.md as formal plans

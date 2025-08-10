@@ -10,7 +10,8 @@ This module provides a unified interface for handling user interactions by:
 4. Managing the flow between structured commands and conversational chat
 """
 
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_MAX_RESPONSE_LENGTH
@@ -21,6 +22,14 @@ from bot.conversation_manager import conversation_manager
 
 logger = get_component_logger('communication_manager')
 interaction_logger = logger
+
+
+@dataclass
+class CommandDefinition:
+    name: str
+    mapped_message: str
+    description: str
+    is_flow: bool = False
 
 class InteractionManager:
     """Main manager for handling user interactions across all channels"""
@@ -34,6 +43,22 @@ class InteractionManager:
         self.min_command_confidence = 0.3  # Lowered from 0.6 to catch more commands
         self.enable_ai_enhancement = True   # Enable AI enhancement for better command parsing
         self.fallback_to_chat = True        # Whether to fall back to contextual chat
+
+        # Channel-agnostic command definitions for discoverability across channels
+        self._command_definitions: List[CommandDefinition] = [
+            CommandDefinition("tasks", "show my tasks", "Show your tasks", is_flow=False),
+            CommandDefinition("profile", "show profile", "Show your profile", is_flow=False),
+            CommandDefinition("schedule", "show schedule", "Show your schedules", is_flow=False),
+            CommandDefinition("messages", "show messages", "Show your messages", is_flow=False),
+            CommandDefinition("analytics", "show analytics", "Show wellness analytics and insights", is_flow=False),
+            CommandDefinition("status", "status", "Show system/user status", is_flow=False),
+            CommandDefinition("help", "help", "Show help and examples", is_flow=False),
+            CommandDefinition("checkin", "start checkin", "Start a check-in", is_flow=True),
+            CommandDefinition("cancel", "/cancel", "Cancel current flow", is_flow=False),
+        ]
+
+        # Build the legacy map for quick lookup, derived from definitions
+        self.slash_command_map = {f"/{c.name}": c.mapped_message for c in self._command_definitions}
     
     @handle_errors("handling user interaction", default_return=InteractionResponse(
         "I'm having trouble processing your request right now. Please try again in a moment.", True
@@ -56,6 +81,64 @@ class InteractionManager:
                 True
             )
         
+        # Handle explicit slash-commands first to preserve legacy flow behavior
+        message_stripped = message.strip() if message else ""
+        # Optional prefix processing for channel-agnostic handling
+        if message_stripped.startswith("/"):
+            lowered = message_stripped.lower()
+            # Extract the command name after '/'
+            parts = lowered.split()
+            cmd_name = parts[0][1:] if parts and parts[0].startswith('/') else ''
+
+            # /cancel remains universal and handled by conversation manager
+            if cmd_name == 'cancel':
+                reply_text, completed = conversation_manager.handle_inbound_message(user_id, '/cancel')
+                return InteractionResponse(reply_text, completed)
+
+            # Look up command definition
+            cmd_def = next((c for c in self._command_definitions if c.name == cmd_name), None)
+
+            # Flow-marked commands delegate to conversation manager starters
+            if cmd_def and cmd_def.is_flow:
+                if cmd_name == 'checkin':
+                    reply_text, completed = conversation_manager.start_checkin(user_id)
+                    return InteractionResponse(reply_text, completed)
+                starter_name = f'start_{cmd_name}_flow'
+                starter_fn = getattr(conversation_manager, starter_name, None)
+                if callable(starter_fn):
+                    reply_text, completed = starter_fn(user_id)
+                    return InteractionResponse(reply_text, completed)
+                else:
+                    return InteractionResponse(f"Flow '{cmd_name}' is not available yet.", True)
+
+            # Otherwise, map to single-turn intent via mapped message
+            for key, mapped in self.slash_command_map.items():
+                if lowered == key or lowered.startswith(key + ' '):
+                    return self.handle_message(user_id, mapped, channel_type)
+
+            # Unknown slash command → drop prefix and continue to structured parsing below
+            message = message_stripped[1:]
+
+        elif message_stripped.startswith("!"):
+            # Unknown bang-prefixed input from non-Discord channels: drop prefix and continue to parser
+            message = message_stripped[1:]
+
+    def get_slash_command_map(self) -> dict:
+        """Expose slash command mappings without coupling callers to internals.
+        Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
+        """
+        result = {}
+        for c in self._command_definitions:
+            result[c.name] = c.mapped_message
+        return result
+
+    def get_command_definitions(self) -> List[Dict[str, str]]:
+        """Return canonical command definitions: name, mapped_message, description."""
+        return [
+            {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
+            for c in self._command_definitions
+        ]
+
         # Check if user is in an active conversation flow
         user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
         if user_state["flow"] != 0:
@@ -174,9 +257,9 @@ class InteractionManager:
             if not self.enable_ai_enhancement:
                 return response
             
-            # Don't enhance task responses, help responses, or command lists
-            # Task responses are already well-formatted and don't need enhancement
-            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats', 'list_tasks', 'create_task', 'complete_task', 'delete_task', 'update_task', 'task_stats']:
+            # Don't enhance task responses, help responses, command lists, or check-in system messages
+            # These responses are already well-formatted and should not be altered or truncated
+            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats', 'list_tasks', 'create_task', 'complete_task', 'delete_task', 'update_task', 'task_stats', 'start_checkin', 'checkin_status']:
                 return response
             
             # Create a context prompt for AI enhancement

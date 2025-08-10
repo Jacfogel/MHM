@@ -179,6 +179,39 @@ class ConversationManager:
         
         return result
 
+    # Scaffold for future feature flows to keep architecture consistent and channel-agnostic
+    @handle_errors("starting tasks flow", default_return=("I'm having trouble starting the tasks flow.", True))
+    def start_tasks_flow(self, user_id: str) -> tuple[str, bool]:
+        """Starter for a future tasks multi-step flow (placeholder)."""
+        # For now, delegate to single-turn handler semantics until flow is implemented
+        from bot.interaction_manager import handle_user_message
+        resp = handle_user_message(user_id, "show my tasks", "discord")
+        return (resp.message, True)
+
+    @handle_errors("starting profile flow", default_return=("I'm having trouble starting the profile flow.", True))
+    def start_profile_flow(self, user_id: str) -> tuple[str, bool]:
+        from bot.interaction_manager import handle_user_message
+        resp = handle_user_message(user_id, "show profile", "discord")
+        return (resp.message, True)
+
+    @handle_errors("starting schedule flow", default_return=("I'm having trouble starting the schedule flow.", True))
+    def start_schedule_flow(self, user_id: str) -> tuple[str, bool]:
+        from bot.interaction_manager import handle_user_message
+        resp = handle_user_message(user_id, "show schedule", "discord")
+        return (resp.message, True)
+
+    @handle_errors("starting messages flow", default_return=("I'm having trouble starting the messages flow.", True))
+    def start_messages_flow(self, user_id: str) -> tuple[str, bool]:
+        from bot.interaction_manager import handle_user_message
+        resp = handle_user_message(user_id, "show messages", "discord")
+        return (resp.message, True)
+
+    @handle_errors("starting analytics flow", default_return=("I'm having trouble starting the analytics flow.", True))
+    def start_analytics_flow(self, user_id: str) -> tuple[str, bool]:
+        from bot.interaction_manager import handle_user_message
+        resp = handle_user_message(user_id, "show analytics", "discord")
+        return (resp.message, True)
+
     @handle_errors("starting dynamic checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
         """Start a dynamic check-in flow based on user preferences"""
