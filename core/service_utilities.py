@@ -14,6 +14,10 @@ from datetime import datetime, timedelta
 import pytz
 from typing import Optional
 from core.logger import get_logger, get_component_logger
+try:
+    from ai_tools.file_auditor import record_created as _record_created
+except Exception:
+    _record_created = None
 from core.config import SCHEDULER_INTERVAL
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -98,15 +102,26 @@ def create_reschedule_request(user_id, category):
     timestamp = int(time.time() * 1000)  # milliseconds for uniqueness
     filename = f"reschedule_request_{user_id}_{category}_{timestamp}.flag"
     
-    # Get the base directory (where the service looks for flag files)
-    base_dir = os.path.dirname(os.path.dirname(__file__))
+    # Determine base directory for flag files
+    # In tests, redirect to tests/data/flags to avoid touching real service watchers/logs
+    if os.environ.get("MHM_TESTING") == "1":
+        base_dir = os.path.abspath(os.path.join("tests", "data", "flags"))
+        os.makedirs(base_dir, exist_ok=True)
+    else:
+        # Project root (service watches here)
+        base_dir = os.path.dirname(os.path.dirname(__file__))
     request_file = os.path.join(base_dir, filename)
-    
+
     # Write the request file
-    with open(request_file, 'w') as f:
-        json.dump(request_data, f)
-    
+    with open(request_file, 'w', encoding='utf-8') as f:
+        json.dump(request_data, f, indent=2)
+
     logger.info(f"Created reschedule request: {filename}")
+    try:
+        if _record_created:
+            _record_created(request_file, reason="create_reschedule_request", extra={'user_id': user_id, 'category': category, 'source': request_data['source']})
+    except Exception:
+        pass
 
 @handle_errors("checking if service is running", default_return=False)
 def is_service_running():

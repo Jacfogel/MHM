@@ -123,22 +123,6 @@ class InteractionManager:
             # Unknown bang-prefixed input from non-Discord channels: drop prefix and continue to parser
             message = message_stripped[1:]
 
-    def get_slash_command_map(self) -> dict:
-        """Expose slash command mappings without coupling callers to internals.
-        Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-        """
-        result = {}
-        for c in self._command_definitions:
-            result[c.name] = c.mapped_message
-        return result
-
-    def get_command_definitions(self) -> List[Dict[str, str]]:
-        """Return canonical command definitions: name, mapped_message, description."""
-        return [
-            {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
-            for c in self._command_definitions
-        ]
-
         # Check if user is in an active conversation flow
         user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
         if user_state["flow"] != 0:
@@ -167,6 +151,22 @@ class InteractionManager:
         # No fallback, return help
         logger.debug("No fallback to chat, returning help")
         return self._get_help_response(user_id, message)
+
+    def get_slash_command_map(self) -> dict:
+        """Expose slash command mappings without coupling callers to internals.
+        Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
+        """
+        result = {}
+        for c in self._command_definitions:
+            result[c.name] = c.mapped_message
+        return result
+
+    def get_command_definitions(self) -> List[Dict[str, str]]:
+        """Return canonical command definitions: name, mapped_message, description."""
+        return [
+            {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
+            for c in self._command_definitions
+        ]
     
     def _handle_structured_command(self, user_id: str, parsing_result: ParsingResult, channel_type: str) -> InteractionResponse:
         """Handle a structured command using interaction handlers"""
@@ -191,8 +191,12 @@ class InteractionManager:
             if self.enable_ai_enhancement and self.ai_chatbot.is_ai_available():
                 response = self._enhance_response_with_ai(user_id, response, parsed_command)
             
-            # Add suggestions if response is incomplete and not a check-in flow
-            if not response.completed and not response.suggestions and intent != 'start_checkin':
+            # Add suggestions only when helpful; suppress for targeted prompts like update_task
+            if (
+                not response.completed
+                and intent not in ['start_checkin', 'update_task']
+                and (response.suggestions is None)
+            ):
                 response.suggestions = self.command_parser.get_suggestions(parsed_command.original_message)
             
             return response

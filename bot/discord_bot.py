@@ -70,6 +70,9 @@ class DiscordBot(BaseChannel):
         self._last_health_check = 0
         self._health_check_interval = 30  # Check health every 30 seconds
         self._detailed_error_info = {}
+        # Idempotency flags
+        self._events_registered = False
+        self._commands_registered = False
         # Ensure BaseChannel logs for this instance also go to the Discord component log
         try:
             self.logger = discord_logger
@@ -434,6 +437,8 @@ class DiscordBot(BaseChannel):
     @handle_errors("registering Discord events")
     def _register_events(self):
         """Register Discord event handlers"""
+        if self._events_registered or not self.bot:
+            return
         @self.bot.event
         async def on_ready():
             logger.info(f"Discord Bot logged in as {self.bot.user}")
@@ -448,10 +453,16 @@ class DiscordBot(BaseChannel):
 
             # Sync application (slash) commands
             try:
-                await self.bot.tree.sync()
-                logger.info("Discord application commands synced")
+                async def _sync_app_cmds():
+                    try:
+                        await self.bot.tree.sync()
+                        logger.info("Discord application commands synced")
+                    except Exception as e:
+                        logger.warning(f"Could not sync application commands: {e}")
+                # Schedule on the bot's loop to ensure proper task context
+                self.bot.loop.create_task(_sync_app_cmds())
             except Exception as e:
-                logger.warning(f"Could not sync application commands: {e}")
+                logger.debug(f"Failed to schedule app command sync: {e}")
 
         @self.bot.event
         async def on_disconnect():
@@ -550,9 +561,13 @@ class DiscordBot(BaseChannel):
                 # Just send a generic error message
                 await message.channel.send("I'm having trouble processing your message right now. Please try again in a moment.")
 
+        self._events_registered = True
+
     @handle_errors("registering Discord commands")
     def _register_commands(self):
         """Register Discord commands"""
+        if self._commands_registered or not self.bot:
+            return
 
         # Register dynamic application (slash) commands from the channel-agnostic map
         try:
@@ -622,6 +637,8 @@ class DiscordBot(BaseChannel):
                     pass
         except Exception as e:
             logger.debug(f"Dynamic command registration skipped: {e}")
+
+        self._commands_registered = True
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:

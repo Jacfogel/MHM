@@ -66,7 +66,9 @@ def load_default_messages(category):
     Returns:
         List[dict]: List of default messages for the category
     """
-    default_messages_file = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{category}.json")
+    # Normalize path separators for Windows compatibility when env overrides are absolute
+    default_dir = DEFAULT_MESSAGES_DIR_PATH.replace('\\', '/')
+    default_messages_file = os.path.join(default_dir, f"{category}.json")
     
     try:
         with open(default_messages_file, 'r', encoding='utf-8') as file:

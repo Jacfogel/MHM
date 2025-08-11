@@ -9,6 +9,33 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-11 - Discord Task Edit Flow Improvements, Suggestion Relevance, Windows Path Compatibility, and File Auditor Relocation
+#### Summary
+Improved the Discord task edit experience by suppressing irrelevant suggestions on targeted prompts and making the prompt examples actionable. Enhanced the command parser to recognize "due date ..." phrasing. Fixed Windows path issues for default messages and config validation. Moved the file creation auditor to `ai_tools` and integrated it as a developer diagnostic.
+
+#### Key Changes
+- Interaction Manager
+  - Do not auto-append generic suggestions on incomplete `update_task` prompts
+- Interaction Handlers (Tasks)
+  - When updates are missing but task identified, return specific examples and do not attach generic suggestions
+  - Limit list-tasks suggestions to relevant contexts
+- Enhanced Command Parser
+  - `_extract_update_entities`: handle both "due ..." and "due date ..." patterns
+- Config & Message Management (Windows)
+  - Force `DEFAULT_MESSAGES_DIR_PATH` to relative in tests; normalized path handling when loading defaults
+  - Simplified directory creation logic for Windows path separators
+- Developer Diagnostics
+  - Moved file auditor to `ai_tools/file_auditor.py`; start/stop wired from service; programmatic `record_created` used in file ops and service utilities
+
+#### Tests
+- Fixed 3 failures on Windows (default messages path and directory creation); targeted tests now pass
+- Full suite: 638 passed, 2 skipped
+
+#### Impact
+- Clear, actionable edit prompts and fewer irrelevant suggestions
+- Reliable default message loading and directory creation on Windows
+- Cleaner separation of diagnostics tools from core runtime
+
 ### 2025-08-10 - Channel-Agnostic Command Registry, Discord Slash Commands, and Flow Routing
 #### Summary
 Created a single source of truth for channel-agnostic commands with flow metadata and wired Discord to use it for both true slash commands and classic commands. Updated interaction routing to send flow-marked slash commands to the conversation flow engine. Added scaffolds for future flows to keep architecture consistent.

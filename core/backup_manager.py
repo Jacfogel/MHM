@@ -30,7 +30,8 @@ class BackupManager:
         
         Sets up backup directory, maximum backup count, and ensures backup directory exists.
         """
-        self.backup_dir = os.path.join(cfg.BASE_DATA_DIR, "backups")
+        # Redirect backups under tests/data when in test mode
+        self.backup_dir = cfg.get_backups_dir()
         self.ensure_backup_directory()
         # Keep last 10 backups by default; also enforce age-based retention
         self.max_backups = 10

@@ -25,6 +25,14 @@
 
 ## 🎯 Active Plans
 
+#### Suggestion Relevance and Flow Prompting (Tasks) — NEW
+- Goal: Provide context-appropriate suggestions and prompts that the system can actually handle
+- Checklist:
+  - [ ] Suppress generic suggestions on targeted prompts (e.g., update_task field prompt) — implemented in code, add tests
+  - [ ] Ensure list→edit flows confirm task identifier when missing — add behavior tests
+  - [ ] Cover natural language variations for due date updates ("due" vs "due date") — implemented in parser, add tests
+  - [ ] Verify suggestions are actionable (handlers exist) — audit suggestions table vs handlers
+
 #### Test User Creation Failures ✅ **RESOLVED**
 - [x] Fix "name 'logger' is not defined" error in test utilities
   - [x] Identify missing logger import in test utility functions
@@ -102,6 +110,7 @@
 - [ ] Widget Testing - 8 widgets need testing
 - [ ] Integration Testing - Cross-dialog communication
 - [ ] Performance Optimization - UI responsiveness monitoring
+ - [ ] Windows path compatibility tests around messages defaults and config path creation
 
 #### UI Quality Improvements ⚠️ **PLANNED**
 - [ ] Fix Dialog Integration (main window updates after dialog changes)

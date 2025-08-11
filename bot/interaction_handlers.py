@@ -313,8 +313,8 @@ class TaskManagementHandler(InteractionHandler):
                     if due_soon_count > 0:
                         suggestions.append(f"Show {due_soon_count} tasks due soon")
         
-        # Add action-oriented suggestions
-        if len(tasks) > 0:
+        # Add action-oriented suggestions (only relevant to listing context)
+        if len(tasks) > 0 and not filter_info:
             suggestions.append("Add a reminder to a task")
             suggestions.append("Edit a task")
         
@@ -446,9 +446,18 @@ class TaskManagementHandler(InteractionHandler):
 
         
         if not updates:
+            # Provide targeted, actionable prompts without generic suggestions
+            prompt = (
+                "What would you like to update for '"
+                f"{task.get('title', 'this task')}" "'? You can say, for example:\n"
+                "• 'update task " f"{task_identifier}" " due date tomorrow'\n"
+                "• 'update task " f"{task_identifier}" " priority high'\n"
+                "• 'update task " f"{task_identifier}" " title Brush your teeth tonight'"
+            )
             return InteractionResponse(
-                "What would you like to update? (title, description, due date, or priority)",
-                completed=False
+                prompt,
+                completed=False,
+                suggestions=[]
             )
         
         # Update the task

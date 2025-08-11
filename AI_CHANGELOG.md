@@ -9,6 +9,14 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-11 - Discord Task Edit Flow, Suggestion Relevance, Windows Path Fixes, and File Auditor Move
+- **Task edit prompts**: Suppress generic suggestions for targeted update prompts; provide actionable, example-driven prompts
+- **Parser**: Accepts "due date ..." and "due ..." for updates
+- **Suggestion hygiene**: Limit list-tasks suggestions to relevant contexts
+- **Windows paths**: Normalize default messages dir usage and path creation; fix tests for Windows separators
+- **Testing**: Full suite green (638 passed, 2 skipped)
+- **Diagnostics**: Moved file auditor to `ai_tools/file_auditor.py`; integrated start/stop in service
+
 ### 2025-08-10 - Channel-Agnostic Commands, Discord Slash Commands, and Flow Routing
 - **Central command list**: Added canonical command definitions with descriptions and flow metadata in `bot/interaction_manager.py`
 - **Discord app commands**: Dynamically registers true slash commands from the central list; auto-sync on ready

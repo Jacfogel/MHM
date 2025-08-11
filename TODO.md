@@ -30,6 +30,15 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Discord Task Edit Follow-ups and Suggestion Relevance**
+- *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
+- *Why it helps*: Reduces confusion and makes conversations efficient
+- *Estimated effort*: Small/Medium
+- Subtasks:
+  - [ ] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
+  - [ ] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
+  - [ ] Behavior tests: list tasks → edit task flow ensures "which task" is asked when not specified
+
 **App Log Inactivity Investigation** - `logs/app.log` not receiving expected entries
 - *What it means*: Diagnose why `app.log` is empty or sparse and restore expected application logging
 - *Why it helps*: Ensures central visibility for non-component events and simplifies troubleshooting
@@ -81,6 +90,15 @@ When adding new tasks, follow this format:
   - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
 
 ## Medium Priority
+
+**Legacy UserContext Bridge Removal (monitor then remove)**
+- *What it means*: Remove legacy format conversion/extraction in `user/user_context.py` once confirmed no usage
+- *Why it helps*: Simplifies data access and reduces double-handling
+- *Estimated effort*: Small
+- Subtasks:
+  - [ ] Monitor logs for legacy warnings after recent change (now warns once per process)
+  - [ ] Grep code for legacy-format consumers and migrate if any are found
+  - [ ] Remove legacy bridge and update tests
 
 **Review and Update ARCHITECTURE.md** - Check for outdated information
 - *What it means*: Ensure architecture documentation reflects current system state
@@ -167,6 +185,7 @@ When adding new tasks, follow this format:
 - Subtasks:
   - [ ] End-to-end tests for `/checkin` flow via Discord and via plain text
   - [ ] End-to-end tests for `/status`, `/profile`, `/tasks` via Discord slash commands
+  - [ ] Windows path tests: default messages load and directory creation using normalized separators
 
 **Scripts Directory Cleanup** - Clean up the scripts/ directory
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to ai_tools/

@@ -19,6 +19,10 @@ from core.error_handling import (
     error_handler, FileOperationError, DataError, handle_file_error,
     handle_errors, safe_file_operation
 )
+try:
+    from ai_tools.file_auditor import record_created as _record_created
+except Exception:
+    _record_created = None
 
 logger = get_component_logger('file_ops')
 
@@ -200,6 +204,11 @@ def save_json_data(data, file_path):
         with open(file_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
         logger.debug(f"Successfully saved data to {file_path}")
+        try:
+            if _record_created:
+                _record_created(file_path, reason="save_json_data")
+        except Exception:
+            pass
         return True
     except Exception as e:
         raise FileOperationError(f"Failed to save data to {file_path}: {e}")

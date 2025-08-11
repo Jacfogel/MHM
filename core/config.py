@@ -24,8 +24,13 @@ class ConfigValidationError(Exception):
         self.missing_configs = missing_configs or []
         self.warnings = warnings or []
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (tolerant mode)
+try:
+    # do not raise on parsing issues; warnings are logged by python-dotenv itself
+    load_dotenv(override=False, verbose=False)
+except Exception as _e:
+    # keep startup resilient; config validation will report issues later
+    pass
 
 # Base data directory
 BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
@@ -34,6 +39,9 @@ BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
 USER_INFO_DIR_PATH = os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users'))
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')  # Moved to resources
+if os.getenv('MHM_TESTING') == '1':
+    # Force default messages dir during tests to avoid absolute path/env variance
+    DEFAULT_MESSAGES_DIR_PATH = 'resources/default_messages'
 
 # LM Studio Configuration
 # SETUP INSTRUCTIONS:
@@ -141,12 +149,12 @@ def validate_core_paths() -> Tuple[bool, List[str], List[str]]:
             if not path_obj.exists():
                 # Try to create the directory
                 try:
+                    # Create directory
                     path_obj.mkdir(parents=True, exist_ok=True)
                     warnings.append(f"Created missing directory: {name} ({path})")
                 except Exception as e:
                     error_msg = f"Cannot create directory {name} ({path}): {e}"
                     errors.append(error_msg)
-                    # Use our error handling for this specific error
                     handle_configuration_error(e, name, f"creating directory {path}")
             elif not path_obj.is_dir():
                 error_msg = f"Path {name} exists but is not a directory: {path}"
@@ -464,6 +472,14 @@ def print_configuration_report():
 def get_user_data_dir(user_id: str) -> str:
     """Get the data directory for a specific user."""
     return os.path.join(BASE_DATA_DIR, 'users', user_id)
+
+def get_backups_dir() -> str:
+    """Get the backups directory, redirected under tests when MHM_TESTING=1.
+    Returns tests/data/backups if testing, otherwise BASE_DATA_DIR/backups.
+    """
+    if os.getenv('MHM_TESTING') == '1':
+        return os.path.join('tests', 'data', 'backups')
+    return os.path.join(BASE_DATA_DIR, 'backups')
 
 def get_user_file_path(user_id: str, file_type: str) -> str:
     """Get the file path for a specific user file type."""

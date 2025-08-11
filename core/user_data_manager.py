@@ -16,7 +16,7 @@ from pathlib import Path
 from core.logger import get_logger, get_component_logger
 from core.config import (
     USER_INFO_DIR_PATH,
-    get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR
+    get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR, get_backups_dir
 )
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
 from core.user_data_handlers import get_user_data
@@ -38,7 +38,8 @@ class UserDataManager:
         Sets up backup directory and index file path for user data management operations.
         """
         self.index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
-        self.backup_dir = os.path.join(BASE_DATA_DIR, "backups")
+        # Redirect backups under tests/data when in test mode
+        self.backup_dir = get_backups_dir()
         os.makedirs(self.backup_dir, exist_ok=True)
     
     @handle_errors("updating message references", default_return=False)

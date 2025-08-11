@@ -19,6 +19,13 @@ logger = get_logger(__name__)
 main_logger = get_component_logger('main')
 logger.debug("Logging setup successfully.")
 
+# Start file creation auditor early (developer tool)
+try:
+        from ai_tools.file_auditor import start_auditor
+        start_auditor()
+except Exception as _fa_err:
+    logger.debug(f"File auditor not started: {_fa_err}")
+
 # Import configuration validation
 from core.config import validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError
 
@@ -557,6 +564,13 @@ class MHMService:
         
         logger.info("MHM Backend Service shutdown complete")
 
+        # Stop file auditor last
+        try:
+                from ai_tools.file_auditor import stop_auditor
+                stop_auditor()
+        except Exception:
+            pass
+
     def signal_handler(self, signum, frame):
         """
         Handle shutdown signals for graceful service termination.
@@ -591,9 +605,14 @@ class MHMService:
                     pass
 
 def get_scheduler_manager():
-    """Get the scheduler manager instance from the global service."""
-    global service
-    if service and hasattr(service, 'scheduler_manager'):
+    """Get the scheduler manager instance from the global service.
+    Safely handle cases where the global 'service' symbol may not be defined yet.
+    """
+    try:
+        global service
+    except NameError:
+        return None
+    if 'service' in globals() and service and hasattr(service, 'scheduler_manager'):
         return service.scheduler_manager
     return None
 
