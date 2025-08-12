@@ -9,6 +9,7 @@ dnspython>=2.4.0  # For DNS resolution with alternative servers
 
 # AI/ML dependencies  
 requests>=2.31.0  # For LM Studio HTTP API calls
+pydantic>=2.7.0  # For JSON schema validation and parsing
 # gpt4all  # Removed - replaced with LM Studio API
 
 # UI dependencies

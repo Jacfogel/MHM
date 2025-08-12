@@ -5,6 +5,7 @@ Contains functions for task CRUD operations, task scheduling, and task data mana
 """
 
 import os
+from pathlib import Path
 import uuid
 import json
 from datetime import datetime, timedelta
@@ -34,12 +35,12 @@ def ensure_task_directory(user_id: str) -> bool:
             return False
             
         # Get the user directory path using the correct function
-        user_dir = get_user_data_dir(user_id)
-        task_dir = os.path.join(user_dir, 'tasks')
+        user_dir = Path(get_user_data_dir(user_id))
+        task_dir = user_dir / 'tasks'
         
         # Create the directory if it doesn't exist
-        if not os.path.exists(task_dir):
-            os.makedirs(task_dir, exist_ok=True)
+        if not task_dir.exists():
+            task_dir.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Created task directory for user {user_id}: {task_dir}")
         
         # Initialize task files if they don't exist
@@ -50,9 +51,9 @@ def ensure_task_directory(user_id: str) -> bool:
         }
         
         for filename, default_data in task_files.items():
-            file_path = os.path.join(task_dir, f"{filename}.json")
-            if not os.path.exists(file_path):
-                save_json_data(default_data, file_path)
+            file_path = task_dir / f"{filename}.json"
+            if not file_path.exists():
+                save_json_data(default_data, str(file_path))
                 logger.debug(f"Created {filename}.json for user {user_id}")
         
         return True
@@ -73,11 +74,11 @@ def load_active_tasks(user_id: str) -> List[Dict[str, Any]]:
         ensure_task_directory(user_id)
         
         # Load active tasks using correct path
-        user_dir = get_user_data_dir(user_id)
-        task_dir = os.path.join(user_dir, 'tasks')
-        active_tasks_file = os.path.join(task_dir, 'active_tasks.json')
+        user_dir = Path(get_user_data_dir(user_id))
+        task_dir = user_dir / 'tasks'
+        active_tasks_file = task_dir / 'active_tasks.json'
         
-        data = load_json_data(active_tasks_file) or {'tasks': []}
+        data = load_json_data(str(active_tasks_file)) or {'tasks': []}
         tasks = data.get('tasks', [])
         
         logger.debug(f"Loaded {len(tasks)} active tasks for user {user_id}")
@@ -99,12 +100,12 @@ def save_active_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
         ensure_task_directory(user_id)
         
         # Save active tasks using correct path
-        user_dir = get_user_data_dir(user_id)
-        task_dir = os.path.join(user_dir, 'tasks')
-        active_tasks_file = os.path.join(task_dir, 'active_tasks.json')
+        user_dir = Path(get_user_data_dir(user_id))
+        task_dir = user_dir / 'tasks'
+        active_tasks_file = task_dir / 'active_tasks.json'
         
         data = {'tasks': tasks}
-        save_json_data(data, active_tasks_file)
+        save_json_data(data, str(active_tasks_file))
         
         logger.debug(f"Saved {len(tasks)} active tasks for user {user_id}")
         return True
@@ -125,11 +126,11 @@ def load_completed_tasks(user_id: str) -> List[Dict[str, Any]]:
         ensure_task_directory(user_id)
         
         # Load completed tasks using correct path
-        user_dir = get_user_data_dir(user_id)
-        task_dir = os.path.join(user_dir, 'tasks')
-        completed_tasks_file = os.path.join(task_dir, 'completed_tasks.json')
+        user_dir = Path(get_user_data_dir(user_id))
+        task_dir = user_dir / 'tasks'
+        completed_tasks_file = task_dir / 'completed_tasks.json'
         
-        data = load_json_data(completed_tasks_file) or {'completed_tasks': []}
+        data = load_json_data(str(completed_tasks_file)) or {'completed_tasks': []}
         tasks = data.get('completed_tasks', [])
         
         logger.debug(f"Loaded {len(tasks)} completed tasks for user {user_id}")
@@ -151,12 +152,12 @@ def save_completed_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
         ensure_task_directory(user_id)
         
         # Save completed tasks using correct path
-        user_dir = get_user_data_dir(user_id)
-        task_dir = os.path.join(user_dir, 'tasks')
-        completed_tasks_file = os.path.join(task_dir, 'completed_tasks.json')
+        user_dir = Path(get_user_data_dir(user_id))
+        task_dir = user_dir / 'tasks'
+        completed_tasks_file = task_dir / 'completed_tasks.json'
         
         data = {'completed_tasks': tasks}
-        save_json_data(data, completed_tasks_file)
+        save_json_data(data, str(completed_tasks_file))
         
         logger.debug(f"Saved {len(tasks)} completed tasks for user {user_id}")
         return True

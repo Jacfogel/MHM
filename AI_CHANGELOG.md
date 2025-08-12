@@ -9,6 +9,15 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-12 - Pydantic validation, legacy preferences handling, Path migration, and Telegram removal
+- **Pydantic models**: Added tolerant schemas for account, preferences, schedules, messages (`core/schemas.py`). Integrated normalization at save time in `core/user_management.py` and `core/user_data_handlers.py`.
+- **Legacy compatibility (preferences)**: Added one-time warnings when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`. On full preferences updates, if a related feature is disabled in `account.features` and the block is omitted, the block is removed with a LEGACY warning. Partial updates preserve existing blocks. Removal plan documented in code.
+- **Path consistency**: Continued migration to `pathlib.Path` in core modules; kept Windows-safe normalization for env-provided paths; improved atomic JSON writes with temp+fsync+replace and a Windows retry.
+- **Discord config**: Optional `DISCORD_APPLICATION_ID` support; avoids slash-command sync warnings if provided.
+- **Telegram**: Fully removed Telegram channel (code paths, UI radio, tests/docs). Legacy validators retained only as stubs with removal plan and warnings.
+- **Tests**: Full suite green (637 passed, 2 skipped).
+- **Audit**: Docs coverage ~99.4%. High complexity functions reported as 1466. Summary files regenerated.
+
 ### 2025-08-11 - Discord Task Edit Flow, Suggestion Relevance, Windows Path Fixes, and File Auditor Move
 - **Task edit prompts**: Suppress generic suggestions for targeted update prompts; provide actionable, example-driven prompts
 - **Parser**: Accepts "due date ..." and "due ..." for updates

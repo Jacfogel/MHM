@@ -110,7 +110,8 @@
 - [ ] Widget Testing - 8 widgets need testing
 - [ ] Integration Testing - Cross-dialog communication
 - [ ] Performance Optimization - UI responsiveness monitoring
- - [ ] Windows path compatibility tests around messages defaults and config path creation
+  - [ ] Windows path compatibility tests around messages defaults and config path creation
+  - [ ] Expand preferences save/load tests to cover Pydantic normalization and legacy flag handling (full vs partial updates)
 
 #### UI Quality Improvements ⚠️ **PLANNED**
 - [ ] Fix Dialog Integration (main window updates after dialog changes)
@@ -119,7 +120,7 @@
 - [ ] Monitor and optimize UI responsiveness for common operations
 
 ### Legacy Code Removal Plan
-**Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (1-week period until 2025-08-10)  
+**Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (extended for preferences flags)  
 **Goal**: Safely remove all legacy/compatibility code
 
 #### Legacy Channel Code Removal ✅ **COMPLETE** (2025-08-03)
@@ -139,11 +140,11 @@
 - [x] Test Utilities Backward Compatibility - Legacy path marked
 - [x] UI App Legacy Communication Manager - Legacy handling marked
 
-#### Monitoring Phase ⚠️ **ACTIVE** (until 2025-08-10)
- - [ ] Monitor app logs for LEGACY warnings (see TODO.md for specific removal tasks)
+ #### Monitoring Phase ⚠️ **ACTIVE**
+  - [ ] Monitor app logs for LEGACY warnings (preferences nested 'enabled' flags) for 2 weeks
 
-#### Removal Phase ⚠️ **PLANNED** (after 2025-08-10)
- - [ ] Execute removals listed in TODO.md and update tests accordingly
+ #### Removal Phase ⚠️ **PLANNED**
+  - [ ] Execute removals listed in TODO.md and update tests accordingly
 
 ##### Targeted Removals (High-Priority)
 - [ ] Account Creator Dialog compatibility methods (by 2025-08-15)
@@ -201,8 +202,9 @@
 
 #### Secondary Channel Implementation ⚠️ **PLANNED**
 - [ ] Email Integration - Full email-based interaction system
-- [ ] Telegram Integration - Telegram bot implementation
-- [ ] Cross-Channel Sync - Synchronize data across all channels
+- [ ] Cross-Channel Sync - Synchronize data across supported channels
+  
+Note: Telegram integration has been removed from scope.
 
 #### Discord Hardening ⚠️ **PLANNED**
 - [ ] Discord Validation Enhancement (username format rules + dialog validation)
@@ -253,8 +255,7 @@
 ### Phase 3: Communication Channel Integration (PLANNED)
 - [ ] **Discord Integration**: Full Discord bot integration for task management
 - [ ] **Email Integration**: Email-based task management
-- [ ] **Telegram Integration**: Telegram bot integration for task management
-- [ ] **Cross-Channel Sync**: Synchronize tasks across all communication channels
+- [ ] **Cross-Channel Sync**: Synchronize tasks across supported communication channels
 
 ### Phase 4: AI Enhancement (PLANNED)
 - [ ] **Smart Task Suggestions**: AI-powered task suggestions based on user patterns

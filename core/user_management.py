@@ -15,6 +15,10 @@ from core.file_operations import load_json_data, save_json_data, get_user_file_p
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
 from core.message_management import get_message_categories
+from core.schemas import (
+    validate_account_dict,
+    validate_preferences_dict,
+)
 import inspect
 
 logger = get_logger(__name__)
@@ -106,6 +110,7 @@ def get_all_user_ids():
     
     user_ids = []
     for item in os.listdir(users_dir):
+        from pathlib import Path
         item_path = os.path.join(users_dir, item)
         if os.path.isdir(item_path):
             # Check if this directory has the new structure
@@ -195,6 +200,11 @@ def save_user_account_data(user_id: str, account_data: Dict[str, Any]) -> bool:
     # Add metadata
     account_data['updated_at'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     
+    # Validate/normalize via Pydantic schema (non-blocking)
+    try:
+        account_data, _errs = validate_account_dict(account_data)
+    except Exception:
+        pass
     save_json_data(account_data, account_file)
     
     # Update cache
@@ -290,6 +300,11 @@ def save_user_preferences_data(user_id: str, preferences_data: Dict[str, Any]) -
     ensure_user_directory(user_id)
     preferences_file = get_user_file_path(user_id, 'preferences')
     
+    # Validate/normalize via Pydantic schema (non-blocking)
+    try:
+        preferences_data, _perrs = validate_preferences_dict(preferences_data)
+    except Exception:
+        pass
     save_json_data(preferences_data, preferences_file)
     
     # Update cache

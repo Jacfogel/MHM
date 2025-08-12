@@ -13,7 +13,7 @@ class ChannelSelectionWidget(QWidget):
         """
         Initialize the ChannelSelectionWidget.
         
-        Sets up the UI for channel selection with Discord, Email, and Telegram options,
+        Sets up the UI for channel selection with Discord and Email options,
         along with timezone selection. Populates timezone options and sets default
         timezone to America/Regina.
         
@@ -49,8 +49,7 @@ class ChannelSelectionWidget(QWidget):
             return 'Discord', self.ui.lineEdit_discordID.text()
         elif self.ui.radioButton_Email.isChecked():
             return 'Email', self.ui.lineEdit_email.text()
-        elif self.ui.radioButton_telegram.isChecked():
-            return 'Telegram', self.ui.lineEdit_phone.text()
+        # Telegram removed
         else:
             return None, None
 
@@ -75,9 +74,7 @@ class ChannelSelectionWidget(QWidget):
         elif channel == 'Email':
             self.ui.radioButton_Email.setChecked(True)
             self.ui.lineEdit_email.setText(value)
-        elif channel == 'Telegram':
-            self.ui.radioButton_telegram.setChecked(True)
-            self.ui.lineEdit_phone.setText(value)
+        # Telegram removed
 
     def set_timezone(self, timezone):
         """Set the timezone."""

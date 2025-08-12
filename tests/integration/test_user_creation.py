@@ -2,7 +2,7 @@
 Comprehensive tests for user creation and management scenarios.
 
 Tests all the possibilities and options for user creation, including:
-- Different channel types (email, discord, telegram)
+- Different channel types (email, discord)
 - Feature combinations (messages, tasks, check-ins)
 - Validation scenarios
 - Data persistence
@@ -104,26 +104,7 @@ class TestUserCreationScenarios:
         assert loaded_data['context']['preferred_name'] == 'Discord User'
         assert loaded_data['context']['gender_identity'] == ['they/them']
     
-    @pytest.mark.unit
-    def test_telegram_user_creation(self, test_data_dir, mock_config):
-        """Test creating a Telegram user with mixed features using enhanced test utilities."""
-        user_id = 'test-telegram-user'
-        
-        # Create test user using enhanced centralized utilities
-        from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_telegram_user(user_id, telegram_username='@telegram_user')
-        assert success, f"Failed to create Telegram test user {user_id}"
-        
-        # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
-        assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
-        
-        # Verify data can be loaded
-        loaded_data = get_user_data(actual_user_id, 'all')
-        assert loaded_data['preferences']['channel']['type'] == 'telegram'
-        assert loaded_data['account']['features']['checkins'] == 'enabled'
-        assert loaded_data['account']['features']['task_management'] == 'enabled'  # Default enabled
+    # Telegram support removed: legacy test removed
     
     @pytest.mark.unit
     def test_user_with_custom_fields(self, test_data_dir, mock_config):

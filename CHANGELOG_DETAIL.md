@@ -9,6 +9,34 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-12 - Pydantic schemas, legacy preferences handling, Path migration, and Telegram removal
+#### Summary
+Introduced tolerant Pydantic schemas for core user data, added explicit LEGACY COMPATIBILITY handling and warnings around nested `enabled` flags in preferences, advanced the `pathlib.Path` migration and atomic writes, enabled optional Discord application ID to prevent slash-command sync warnings, and removed Telegram as a supported channel (with legacy stubs for tests).
+
+#### Key Changes
+- Schemas: `core/schemas.py` with `AccountModel`, `PreferencesModel`, `CategoryScheduleModel` (RootModel for schedules), `MessagesFileModel`; helpers `validate_*_dict(...)` returning normalized dicts.
+- Save paths: `core/user_management.py` and `core/user_data_handlers.py` validate/normalize account and preferences on save.
+- Preferences legacy handling: In `core/user_data_handlers.py`:
+  - Log a one-time LEGACY warning if nested `enabled` flags are present in `preferences.task_settings` or `preferences.checkin_settings`.
+  - On full preferences updates, if a related feature is disabled in `account.features` and the block is omitted, remove the block and log a LEGACY warning. Partial updates preserve existing blocks.
+  - Documented removal plan in code comments per legacy standards.
+- Path and IO:
+  - Continued migration to `pathlib.Path` usage in core modules; preserved Windows-safe normalization of env paths in `core/config.py`.
+  - Atomic JSON writes use temp file + fsync + replace with Windows retry fallback.
+- Discord:
+  - Added optional `DISCORD_APPLICATION_ID` (prevents app command sync warning when set).
+- Telegram:
+  - Removed Telegram UI elements and code paths; updated docs/tests; retained a legacy validator stub in `core/config.py` that always raises with a clear message and includes a removal plan.
+
+#### Tests
+- Updated behavior to satisfy feature enable/disable expectations while maintaining legacy compatibility warnings. Full test suite passing (637 passed, 2 skipped).
+
+#### Audit
+- Ran comprehensive audit: documentation coverage ~99.4%; decision support lists 1466 high-complexity functions. Audit artifacts refreshed.
+
+#### Impact
+- Safer data handling via schemas; clearer legacy boundary and migration plan; fewer path-related bugs; Discord slash-command warnings avoidable via config; simplified channel scope.
+
 ### 2025-08-11 - Discord Task Edit Flow Improvements, Suggestion Relevance, Windows Path Compatibility, and File Auditor Relocation
 #### Summary
 Improved the Discord task edit experience by suppressing irrelevant suggestions on targeted prompts and making the prompt examples actionable. Enhanced the command parser to recognize "due date ..." phrasing. Fixed Windows path issues for default messages and config validation. Moved the file creation auditor to `ai_tools` and integrated it as a developer diagnostic.

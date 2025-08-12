@@ -1133,8 +1133,9 @@ class CommunicationManager:
                 matching_periods = ['ALL']
 
             # Use new user-specific message file structure
-            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-            file_path = os.path.join(user_messages_dir, f"{category}.json")
+            from pathlib import Path
+            user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+            file_path = user_messages_dir / f"{category}.json"
             data = load_json_data(file_path)
 
             if not data or 'messages' not in data:

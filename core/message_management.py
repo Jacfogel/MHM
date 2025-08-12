@@ -5,12 +5,14 @@ Contains functions for message categories, loading, adding, editing, deleting, a
 """
 
 import os
+from pathlib import Path
 import json
 import uuid
 from datetime import datetime
 from core.logger import get_logger, get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
+from core.schemas import validate_messages_file_dict
 from core.error_handling import (
     error_handler, DataError, FileOperationError, ValidationError,
     handle_file_error, handle_errors
@@ -66,9 +68,8 @@ def load_default_messages(category):
     Returns:
         List[dict]: List of default messages for the category
     """
-    # Normalize path separators for Windows compatibility when env overrides are absolute
-    default_dir = DEFAULT_MESSAGES_DIR_PATH.replace('\\', '/')
-    default_messages_file = os.path.join(default_dir, f"{category}.json")
+    # Build path via Path for cross-platform safety
+    default_messages_file = Path(DEFAULT_MESSAGES_DIR_PATH) / f"{category}.json"
     
     try:
         with open(default_messages_file, 'r', encoding='utf-8') as file:
@@ -103,8 +104,8 @@ def add_message(user_id, category, message_data, index=None):
         return
 
     # Use new user-specific message file structure
-    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(file_path)
     
@@ -119,6 +120,11 @@ def add_message(user_id, category, message_data, index=None):
     else:
         data['messages'].append(message_data)
     
+    # Validate/normalize via Pydantic schema (non-blocking)
+    try:
+        data, _errs = validate_messages_file_dict(data)
+    except Exception:
+        pass
     save_json_data(data, file_path)
     
     # Update user index
@@ -149,8 +155,8 @@ def edit_message(user_id, category, message_id, updated_data):
         return
 
     # Use new user-specific message file structure
-    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(file_path)
     
@@ -164,6 +170,10 @@ def edit_message(user_id, category, message_id, updated_data):
     
     # Update the message
     data['messages'][message_index].update(updated_data)
+    try:
+        data, _errs = validate_messages_file_dict(data)
+    except Exception:
+        pass
     save_json_data(data, file_path)
     
     # Update user index
@@ -227,8 +237,8 @@ def delete_message(user_id, category, message_id):
         return
 
     # Use new user-specific message file structure
-    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-    file_path = os.path.join(user_messages_dir, f"{category}.json")
+    user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(file_path)
     
@@ -370,12 +380,13 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         
         # Create user message file with proper format
         # Note: messages directory should be created by create_user_files() during account creation
-        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-        category_message_file = os.path.join(user_messages_dir, f"{category}.json")
-        message_data = {
-            "messages": formatted_messages
-        }
-        
+        user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+        category_message_file = user_messages_dir / f"{category}.json"
+        message_data = {"messages": formatted_messages}
+        try:
+            message_data, _errs = validate_messages_file_dict(message_data)
+        except Exception:
+            pass
         save_json_data(message_data, category_message_file)
         logger.info(f"Created message file for user {user_id}, category {category} from defaults ({len(formatted_messages)} messages)")
         return True
@@ -414,15 +425,15 @@ def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
     
     try:
         # Create messages directory for user if it doesn't exist
-        user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-        directory_created = not os.path.exists(user_messages_dir)
-        os.makedirs(user_messages_dir, exist_ok=True)
+        user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+        directory_created = not user_messages_dir.exists()
+        user_messages_dir.mkdir(parents=True, exist_ok=True)
         
         # Check which categories are missing message files
         missing_categories = []
         for category in categories:
-            category_message_file = os.path.join(user_messages_dir, f"{category}.json")
-            if not os.path.exists(category_message_file):
+            category_message_file = user_messages_dir / f"{category}.json"
+            if not category_message_file.exists():
                 missing_categories.append(category)
         
         # Create missing files

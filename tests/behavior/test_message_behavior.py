@@ -479,7 +479,7 @@ class TestMessageFileManagement:
         mock_file_exists = Mock(return_value=False)
         mock_create_file = Mock(return_value=True)
         
-        with patch('core.message_management.os.path.exists', mock_file_exists), \
+        with patch('core.message_management.Path.exists', mock_file_exists), \
              patch('core.message_management.create_message_file_from_defaults', mock_create_file):
             
             result = ensure_user_message_files(user_id, categories)

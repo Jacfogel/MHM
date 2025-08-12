@@ -37,7 +37,7 @@ class UserDataManager:
         
         Sets up backup directory and index file path for user data management operations.
         """
-        self.index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
+        self.index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         # Redirect backups under tests/data when in test mode
         self.backup_dir = get_backups_dir()
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -69,7 +69,7 @@ class UserDataManager:
         # Build message references
         message_refs = {}
         for category in categories:
-            message_file = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
+            message_file = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
             if os.path.exists(message_file):
                 message_refs[category] = {
                     "path": message_file,
@@ -106,7 +106,7 @@ class UserDataManager:
         
         message_files = {}
         for category in categories:
-            message_file = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
+            message_file = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
             if os.path.exists(message_file):
                 message_files[category] = message_file
         
@@ -117,17 +117,16 @@ class UserDataManager:
         """Create a complete backup of user's data"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"user_backup_{user_id}_{timestamp}.zip"
-        backup_path = os.path.join(self.backup_dir, backup_filename)
+        backup_path = str(Path(self.backup_dir) / backup_filename)
         
         with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             # Backup user directory (profile, preferences, schedules, etc.)
-            user_dir = get_user_data_dir(user_id)
-            if os.path.exists(user_dir):
-                for root, dirs, files in os.walk(user_dir):
-                    for file in files:
-                        file_path = os.path.join(root, file)
-                        arcname = os.path.relpath(file_path, BASE_DATA_DIR)
-                        zipf.write(file_path, arcname)
+            user_dir = Path(get_user_data_dir(user_id))
+            if user_dir.exists():
+                for file_path in user_dir.rglob('*'):
+                    if file_path.is_file():
+                        arcname = os.path.relpath(str(file_path), BASE_DATA_DIR)
+                        zipf.write(str(file_path), arcname)
             
             # Backup message files if requested
             if include_messages:
@@ -302,7 +301,7 @@ class UserDataManager:
         
         # Report on all message files
         for category in categories:
-            file_path = os.path.join(get_user_data_dir(user_id), 'messages', f"{category}.json")
+            file_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
             
             if os.path.exists(file_path):
                 # File exists, report its details
@@ -797,7 +796,7 @@ def build_user_index() -> Dict[str, Any]:
                 categories = get_user_categories(user_id)
                 
                 for category in categories:
-                    category_path = os.path.join(get_user_data_dir(user_id), 'messages', f'{category}.json')
+                    category_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f'{category}.json')
                     if os.path.exists(category_path):
                         try:
                             with open(category_path, 'r', encoding='utf-8') as f:
@@ -841,7 +840,7 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
         total_messages = 0
         
         for category in categories:
-            category_path = os.path.join(get_user_data_dir(user_id), 'messages', f'{category}.json')
+            category_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f'{category}.json')
             if os.path.exists(category_path):
                 try:
                     with open(category_path, 'r', encoding='utf-8') as f:

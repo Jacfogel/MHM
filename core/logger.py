@@ -23,7 +23,6 @@ LOG_ERRORS_FILE = os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.lo
 LOG_CHANNELS_FILE = os.getenv('LOG_CHANNELS_FILE', os.path.join(LOGS_DIR, 'channels.log'))
 LOG_COMMUNICATION_MANAGER_FILE = os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(LOGS_DIR, 'communication_manager.log'))
 LOG_EMAIL_FILE = os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_DIR, 'email.log'))
-LOG_TELEGRAM_FILE = os.getenv('LOG_TELEGRAM_FILE', os.path.join(LOGS_DIR, 'telegram.log'))
 LOG_UI_FILE = os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log'))
 LOG_FILE_OPS_FILE = os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log'))
 LOG_SCHEDULER_FILE = os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log'))
@@ -367,7 +366,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'errors': LOG_ERRORS_FILE,
             'communication_manager': LOG_COMMUNICATION_MANAGER_FILE,
             'email': LOG_EMAIL_FILE,
-            'telegram': LOG_TELEGRAM_FILE,
+            # Telegram removed
             'ui': LOG_UI_FILE,
             'file_ops': LOG_FILE_OPS_FILE,
             'scheduler': LOG_SCHEDULER_FILE,
@@ -484,8 +483,7 @@ def suppress_noisy_logging():
     while keeping important warnings and errors visible.
     """
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    logging.getLogger("telegram").setLevel(logging.WARNING)
-    logging.getLogger("telegram.ext").setLevel(logging.WARNING)
+    # Telegram removed
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)

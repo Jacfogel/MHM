@@ -70,7 +70,7 @@ class InteractionManager:
         Args:
             user_id: The user's ID
             message: The user's message
-            channel_type: Type of channel (discord, email, telegram, etc.)
+            channel_type: Type of channel (discord, email)
             
         Returns:
             InteractionResponse with appropriate response

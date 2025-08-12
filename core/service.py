@@ -111,8 +111,9 @@ class MHMService:
                     for category in categories:
                         try:
                             # Use new user-specific message file structure
-                            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-                            path = os.path.join(user_messages_dir, f"{category}.json")
+                            from pathlib import Path
+                            user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+                            path = str(user_messages_dir / f"{category}.json")
                             paths.append(path)
                         except Exception as e:
                             logger.error(f"Error determining file path for category '{category}' and user '{user_id}': {e}")

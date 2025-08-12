@@ -8,6 +8,7 @@ import os
 import json
 import shutil
 import time
+from pathlib import Path
 from datetime import datetime
 from core.logger import get_logger, get_component_logger
 from core.config import (
@@ -66,31 +67,31 @@ def determine_file_path(file_type, identifier):
         # New structure: data/users/{user_id}/messages/{category}.json
         try:
             category, user_id = identifier.split('/')
-            user_dir = get_user_data_dir(user_id)
-            path = os.path.join(user_dir, 'messages', f"{category}.json")
+            user_dir = Path(get_user_data_dir(user_id))
+            path = user_dir / 'messages' / f"{category}.json"
         except ValueError as e:
             raise FileOperationError(f"Invalid identifier format '{identifier}': expected 'category/user_id'")
     elif file_type == 'schedules':
         # Optional: per-category schedules
         try:
             category, user_id = identifier.split('/')
-            user_dir = get_user_data_dir(user_id)
-            path = os.path.join(user_dir, 'schedules', f"{category}.json")
+            user_dir = Path(get_user_data_dir(user_id))
+            path = user_dir / 'schedules' / f"{category}.json"
         except ValueError:
             # Default to single schedules.json if not per-category
-            user_dir = get_user_data_dir(identifier)
-            path = os.path.join(user_dir, 'schedules.json')
+            user_dir = Path(get_user_data_dir(identifier))
+            path = user_dir / 'schedules.json'
     elif file_type == 'sent_messages':
         # Sent messages are now stored in user directories
         return get_user_file_path(identifier, 'sent_messages')
     elif file_type == 'default_messages':
-        path = os.path.join(DEFAULT_MESSAGES_DIR_PATH, f"{identifier}.json")
+        path = Path(DEFAULT_MESSAGES_DIR_PATH) / f"{identifier}.json"
     elif file_type == 'tasks':
         # New task file structure: data/users/{user_id}/tasks/{task_file}.json
         try:
             user_id, task_file = identifier.split('/')
-            user_dir = get_user_data_dir(user_id)
-            path = os.path.join(user_dir, 'tasks', f"{task_file}.json")
+            user_dir = Path(get_user_data_dir(user_id))
+            path = user_dir / 'tasks' / f"{task_file}.json"
         except ValueError as e:
             raise FileOperationError(f"Invalid task identifier format '{identifier}': expected 'user_id/task_file'")
     else:
@@ -99,7 +100,7 @@ def determine_file_path(file_type, identifier):
     # Only log file paths for non-routine operations (not messages or user data operations)
     if file_type not in ['messages', 'users', 'sent_messages']:
         logger.debug(f"Determined file path for {file_type}: {path}")
-    return path
+    return str(path)
 
 @handle_errors("loading JSON data", default_return=None)
 def load_json_data(file_path):
@@ -189,24 +190,41 @@ def save_json_data(data, file_path):
     Raises:
         FileOperationError: If saving fails
     """
-    directory = os.path.dirname(file_path)
+    # Atomic write with temp file and replace to avoid partial writes
+    file_path = Path(file_path)
+    directory = file_path.parent
     
     # Ensure directory exists
-    if not os.path.exists(directory):
+    if not directory.exists():
         try:
-            os.makedirs(directory, exist_ok=True)
+            directory.mkdir(parents=True, exist_ok=True)
             logger.debug(f"Created directory: {directory}")
         except Exception as e:
             raise FileOperationError(f"Failed to create directory {directory}: {e}")
     
     # Save the data
     try:
-        with open(file_path, 'w', encoding='utf-8') as file:
+        tmp_path = file_path.with_suffix(file_path.suffix + '.tmp')
+        with open(tmp_path, 'w', encoding='utf-8') as file:
             json.dump(data, file, indent=4, ensure_ascii=False)
+            file.flush()
+            os.fsync(file.fileno())
+        try:
+            os.replace(tmp_path, file_path)
+        except PermissionError:
+            # Windows can hold the target briefly; retry once after short delay
+            try:
+                import time as _t
+                _t.sleep(0.05)
+                os.replace(tmp_path, file_path)
+            except Exception as e:
+                # As a last resort, attempt shutil.move
+                import shutil as _sh
+                _sh.move(str(tmp_path), str(file_path))
         logger.debug(f"Successfully saved data to {file_path}")
         try:
             if _record_created:
-                _record_created(file_path, reason="save_json_data")
+                _record_created(str(file_path), reason="save_json_data")
         except Exception:
             pass
         return True
@@ -268,8 +286,7 @@ def create_user_files(user_id, categories, user_preferences=None):
         channel_type = channel.get('type', 'email')
         if channel_type == 'email':
             chat_id = email
-        elif channel_type == 'telegram':
-            chat_id = phone
+        # Telegram removed
         elif channel_type == 'discord':
             chat_id = discord_user_id
         
@@ -426,11 +443,12 @@ def create_user_files(user_id, categories, user_preferences=None):
             logger.debug(f"Created {log_type} file for user {user_id}")
     
     # Create sent_messages.json in messages/ subdirectory
-    user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
+    from pathlib import Path
+    user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
     os.makedirs(user_messages_dir, exist_ok=True)
-    sent_messages_file = os.path.join(user_messages_dir, 'sent_messages.json')
+    sent_messages_file = user_messages_dir / 'sent_messages.json'
     if not os.path.exists(sent_messages_file):
-        save_json_data({}, sent_messages_file)
+        save_json_data({}, str(sent_messages_file))
         logger.debug(f"Created sent_messages file for user {user_id}")
 
 
@@ -439,8 +457,8 @@ def create_user_files(user_id, categories, user_preferences=None):
     if tasks_enabled:
         try:
             # Get user directory path using the correct function
-            user_dir = get_user_data_dir(user_id)
-            tasks_dir = os.path.join(user_dir, 'tasks')
+            user_dir = Path(get_user_data_dir(user_id))
+            tasks_dir = user_dir / 'tasks'
             
             # Create tasks directory if it doesn't exist
             if not os.path.exists(tasks_dir):
@@ -455,9 +473,9 @@ def create_user_files(user_id, categories, user_preferences=None):
             }
             
             for task_file, default_data in task_files.items():
-                task_file_path = os.path.join(tasks_dir, f"{task_file}.json")
+                task_file_path = tasks_dir / f"{task_file}.json"
                 if not os.path.exists(task_file_path):
-                    save_json_data(default_data, task_file_path)
+                    save_json_data(default_data, str(task_file_path))
                     logger.debug(f"Created {task_file} file for user {user_id}")
         except Exception as e:
             logger.error(f"Error creating task files for user {user_id}: {e}")
@@ -477,9 +495,9 @@ def create_user_files(user_id, categories, user_preferences=None):
     if categories:
         try:
             # Create messages directory for user
-            user_messages_dir = os.path.join(get_user_data_dir(user_id), 'messages')
-            os.makedirs(user_messages_dir, exist_ok=True)
-            
+            user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+            user_messages_dir.mkdir(parents=True, exist_ok=True)
+
             # Create message files for each category
             from core.message_management import create_message_file_from_defaults
             success_count = 0
@@ -489,7 +507,7 @@ def create_user_files(user_id, categories, user_preferences=None):
                     logger.debug(f"Created message file for category {category} for user {user_id}")
                 else:
                     logger.warning(f"Failed to create message file for category {category} for user {user_id}")
-            
+
             if success_count == len(categories):
                 logger.debug(f"Created all message files for user {user_id}")
             else:

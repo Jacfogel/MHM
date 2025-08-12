@@ -32,13 +32,25 @@ except Exception as _e:
     # keep startup resilient; config validation will report issues later
     pass
 
-# Base data directory
+def _normalize_path(value: str) -> str:
+    """Normalize path strings from environment to avoid Windows escape issues.
+    - Removes CR/LF control chars
+    - Strips surrounding quotes
+    - Normalizes separators to OS-specific
+    """
+    if value is None:
+        return value
+    cleaned = value.replace('\r', '').replace('\n', '').strip().strip('"').strip("'")
+    cleaned = cleaned.replace('/', os.sep).replace('\\', os.sep)
+    return os.path.normpath(cleaned)
+
+# Base data directory (preserve env value formatting to satisfy tests)
 BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 
 # Paths - Updated for better organization
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
-USER_INFO_DIR_PATH = os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users'))
-DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')  # Moved to resources
+USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users')))
+DEFAULT_MESSAGES_DIR_PATH = _normalize_path(os.getenv('DEFAULT_MESSAGES_DIR_PATH', os.path.join('resources','default_messages')))  # Moved to resources
 if os.getenv('MHM_TESTING') == '1':
     # Force default messages dir during tests to avoid absolute path/env variance
     DEFAULT_MESSAGES_DIR_PATH = 'resources/default_messages'
@@ -97,19 +109,30 @@ LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))  # Keep 5 backup file
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'  # Compress old logs
 
 # New organized logging structure
-LOGS_DIR = os.getenv('LOGS_DIR', 'logs')  # Main logs directory
-LOG_BACKUP_DIR = os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups'))  # Backup directory for rotated logs
-LOG_ARCHIVE_DIR = os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive'))  # Archive directory for old logs
+LOGS_DIR = _normalize_path(os.getenv('LOGS_DIR', 'logs'))  # Main logs directory
+LOG_BACKUP_DIR = _normalize_path(os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups')))  # Backup directory for rotated logs
+LOG_ARCHIVE_DIR = _normalize_path(os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive')))  # Archive directory for old logs
 
 # Component-specific log files
-LOG_MAIN_FILE = os.getenv('LOG_MAIN_FILE', os.path.join(LOGS_DIR, 'app.log'))  # Main application log
-LOG_DISCORD_FILE = os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord.log'))  # Discord bot log
-LOG_AI_FILE = os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log'))  # AI interactions log
-LOG_USER_ACTIVITY_FILE = os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log'))  # User activity log
-LOG_ERRORS_FILE = os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log'))  # Errors only log
+LOG_MAIN_FILE = _normalize_path(os.getenv('LOG_MAIN_FILE', os.path.join(LOGS_DIR, 'app.log')))  # Main application log
+LOG_DISCORD_FILE = _normalize_path(os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord.log')))  # Discord bot log
+LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log')))  # AI interactions log
+LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log')))  # User activity log
+LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
 
-# Legacy support - keep old path for backward compatibility, but default to new location
-LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', LOG_MAIN_FILE)  # Default to new main log file in logs/
+# LEGACY COMPATIBILITY: Support old LOG_FILE_PATH env while preferring LOGS_DIR/LOG_MAIN_FILE
+# TODO: Remove after migrating environments to use LOGS_DIR/LOG_MAIN_FILE only
+# REMOVAL PLAN:
+# 1. Log a one-time warning if LOG_FILE_PATH is explicitly set
+# 2. Update deployment/docs and .env to remove LOG_FILE_PATH usage
+# 3. Delete this compatibility in 2 weeks if no usage logged
+_legacy_log_path_env = os.getenv('LOG_FILE_PATH')
+if _legacy_log_path_env:
+    try:
+        logger.warning("LEGACY COMPATIBILITY: Using LOG_FILE_PATH from env; prefer LOGS_DIR/LOG_MAIN_FILE")
+    except Exception:
+        pass
+LOG_FILE_PATH = _legacy_log_path_env or LOG_MAIN_FILE
 
 # Communication Channel Configurations (non-blocking)
 # TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated
@@ -124,6 +147,9 @@ if not all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMT
     logger.warning("Email configuration incomplete - Email channel will be disabled")
 
 DISCORD_BOT_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
+# Optional: Discord application ID for slash command sync
+_app_id_env = os.getenv('DISCORD_APPLICATION_ID')
+DISCORD_APPLICATION_ID = int(_app_id_env) if _app_id_env and _app_id_env.isdigit() else None
 if not DISCORD_BOT_TOKEN:
     logger.warning("DISCORD_BOT_TOKEN not found - Discord channel will be disabled")
 
@@ -514,15 +540,14 @@ def ensure_user_directory(user_id: str) -> bool:
 
 # Legacy validation functions (kept for backward compatibility)
 def validate_telegram_config():
-    """Validate Telegram configuration (currently deactivated).
-    
-    Raises:
-        ConfigurationError: Always raised as Telegram channel is deactivated.
+    """LEGACY COMPATIBILITY: kept for tests; always raises to indicate removal.
+    TODO: Remove after references are fully eliminated from UI and tests.
+    REMOVAL PLAN:
+    1. Search for any remaining imports or references and delete.
+    2. Remove this function and related constants.
+    3. Update docs to reflect Telegram removal.
     """
-    # Deactivated - Telegram channel is disabled
-    raise ConfigurationError("Telegram channel has been deactivated.")
-    # if not TELEGRAM_BOT_TOKEN:
-    #     raise ConfigError("TELEGRAM_BOT_TOKEN is missing from environment configuration.")
+    raise ConfigurationError("Telegram channel has been removed from the application.")
     # return True
 
 @handle_errors("validating email configuration", user_friendly=False)

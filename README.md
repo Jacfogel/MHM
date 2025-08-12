@@ -4,7 +4,7 @@
 > **Purpose**: Project overview and features  
 > **Style**: Comprehensive, beginner-friendly, encouraging
 
-MHM is a simple personal assistant created by and for a single beginner programmer. It sends scheduled motivational messages and basic mood tracking through Discord (email and Telegram are optional). The project also supports optional local AI integration via LM Studio for contextual chat responses.
+MHM is a simple personal assistant created by and for a single beginner programmer. It sends scheduled motivational messages and basic mood tracking through Discord (email optional). The project also supports optional local AI integration via LM Studio for contextual chat responses.
 
 ## [Navigation](#navigation)
 - **[Quick Start](HOW_TO_RUN.md)** - Get up and running in minutes
@@ -17,7 +17,7 @@ MHM is a simple personal assistant created by and for a single beginner programm
 - **[Current Priorities](TODO.md)** - What we're working on next
 
 ## Features
-- Multi-channel messaging (Discord, Telegram, Email)
+- Multi-channel messaging (Discord, Email)
 - Automated daily reminders and basic mood tracking
 - Optional AI-powered replies via LM Studio
 - Runs as a background service with an admin panel

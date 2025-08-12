@@ -19,11 +19,8 @@ from PySide6.QtWidgets import (QApplication, QComboBox, QGridLayout, QLabel,
     QLayout, QLineEdit, QRadioButton, QSizePolicy,
     QSpacerItem, QVBoxLayout, QWidget)
 
-def qtTrId(id): return id
-
 class Ui_Form_channel_selection(object):
     def setupUi(self, Form_channel_selection):
-        """Auto-generated Qt UI setup function for channel_selection_widget."""
         if not Form_channel_selection.objectName():
             Form_channel_selection.setObjectName(u"Form_channel_selection")
         Form_channel_selection.resize(400, 180)
@@ -32,11 +29,6 @@ class Ui_Form_channel_selection(object):
         self.gridLayout_4 = QGridLayout()
         self.gridLayout_4.setObjectName(u"gridLayout_4")
         self.gridLayout_4.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
-        self.radioButton_telegram = QRadioButton(Form_channel_selection)
-        self.radioButton_telegram.setObjectName(u"radioButton_telegram")
-
-        self.gridLayout_4.addWidget(self.radioButton_telegram, 3, 0, 1, 1)
-
         self.lineEdit_discordID = QLineEdit(Form_channel_selection)
         self.lineEdit_discordID.setObjectName(u"lineEdit_discordID")
 
@@ -46,11 +38,6 @@ class Ui_Form_channel_selection(object):
         self.lineEdit_email.setObjectName(u"lineEdit_email")
 
         self.gridLayout_4.addWidget(self.lineEdit_email, 2, 3, 1, 1)
-
-        self.lineEdit_phone = QLineEdit(Form_channel_selection)
-        self.lineEdit_phone.setObjectName(u"lineEdit_phone")
-
-        self.gridLayout_4.addWidget(self.lineEdit_phone, 3, 3, 1, 1)
 
         self.comboBox_timezone = QComboBox(Form_channel_selection)
         self.comboBox_timezone.setObjectName(u"comboBox_timezone")
@@ -82,11 +69,6 @@ class Ui_Form_channel_selection(object):
 
         self.gridLayout_4.addWidget(self.label_email, 2, 2, 1, 1)
 
-        self.label_phone = QLabel(Form_channel_selection)
-        self.label_phone.setObjectName(u"label_phone")
-
-        self.gridLayout_4.addWidget(self.label_phone, 3, 2, 1, 1)
-
         self.label_discordID = QLabel(Form_channel_selection)
         self.label_discordID.setObjectName(u"label_discordID")
 
@@ -111,16 +93,13 @@ class Ui_Form_channel_selection(object):
     # setupUi
 
     def retranslateUi(self, Form_channel_selection):
-        """Auto-generated Qt UI translation function for channel_selection_widget."""
         Form_channel_selection.setWindowTitle(QCoreApplication.translate("Form_channel_selection", u"Form", None))
-        self.radioButton_telegram.setText(QCoreApplication.translate("Form_channel_selection", u"Telegram", None))
         self.label_select_service.setText(QCoreApplication.translate("Form_channel_selection", u"Select Service", None))
         self.label_select_service.setProperty(u"role", QCoreApplication.translate("Form_channel_selection", u"header3", None))
         self.radioButton_Discord.setText(QCoreApplication.translate("Form_channel_selection", u"Discord", None))
         self.radioButton_Email.setText(QCoreApplication.translate("Form_channel_selection", u"Email", None))
         self.label_timezone.setText(QCoreApplication.translate("Form_channel_selection", u"Timezone:", None))
         self.label_email.setText(QCoreApplication.translate("Form_channel_selection", u"Email:", None))
-        self.label_phone.setText(QCoreApplication.translate("Form_channel_selection", u"Phone:", None))
         self.label_discordID.setText(QCoreApplication.translate("Form_channel_selection", u"Discord ID:", None))
         self.label_contact_information.setText(QCoreApplication.translate("Form_channel_selection", u"Contact Information", None))
         self.label_contact_information.setProperty(u"role", QCoreApplication.translate("Form_channel_selection", u"header3", None))

@@ -30,6 +30,24 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Legacy Preferences Flag Monitoring and Removal Plan**
+- *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
+- *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
+- *Estimated effort*: Small/Medium
+- Subtasks:
+  - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
+  - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
+  - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
+
+**Pydantic Schema Adoption Follow-ups**
+- *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
+- *Why it helps*: Stronger validation and normalized data.
+- *Estimated effort*: Medium
+- Subtasks:
+  - [ ] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
+  - [ ] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
+  - [ ] Add behavior tests for end-to-end save/load normalization
+
 **Discord Task Edit Follow-ups and Suggestion Relevance**
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
 - *Why it helps*: Reduces confusion and makes conversations efficient
@@ -91,6 +109,21 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
+**Discord Application ID Configuration Docs**
+- *What it means*: Document optional `DISCORD_APPLICATION_ID` to prevent slash command sync warnings.
+- *Why it helps*: Cleaner logs and fewer false alarms.
+- *Estimated effort*: Small
+- Subtasks:
+  - [ ] Add a note in `QUICK_REFERENCE.md` and `README.md` about setting `DISCORD_APPLICATION_ID`
+
+**Pathlib Migration Completion**
+- *What it means*: Finish converting remaining path joins to `pathlib.Path` where appropriate.
+- *Why it helps*: Cross-platform safety and readability.
+- *Estimated effort*: Medium
+- Subtasks:
+  - [ ] Sweep `core/` for remaining `os.path.join` not covered by helpers
+  - [ ] Confirm all UI-related file paths still work as expected under tests
+
 **Legacy UserContext Bridge Removal (monitor then remove)**
 - *What it means*: Remove legacy format conversion/extraction in `user/user_context.py` once confirmed no usage
 - *Why it helps*: Simplifies data access and reduces double-handling
@@ -148,6 +181,14 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 
 ## Low Priority
+
+**Audit Complexity Tracking and Refactor Targets**
+- *What it means*: Use audit decision support (1466 high-complexity functions) to pick top refactor targets.
+- *Why it helps*: Reduce maintenance risk.
+- *Estimated effort*: Medium
+- Subtasks:
+  - [ ] Export top-50 complex functions from audit details and triage into refactor tickets
+  - [ ] Add acceptance criteria per function (reduced branches, extracted helpers, increased test coverage)
 
 ### Documentation
 

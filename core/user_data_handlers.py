@@ -6,6 +6,7 @@ across all data types (account, preferences, context, schedules, etc.).
 """
 
 import os
+from pathlib import Path
 import traceback
 from typing import Dict, Any, List, Union, Optional
 from core.logger import get_logger, get_component_logger
@@ -14,6 +15,11 @@ from core.config import get_user_file_path
 from core.user_data_validation import (
     validate_new_user_data,
     validate_user_update,
+)
+from core.schemas import (
+    validate_account_dict,
+    validate_preferences_dict,
+    validate_schedules_dict,
 )
 # Registry functions - these should stay in user_management for now
 from core.user_management import (
@@ -234,6 +240,101 @@ def save_user_data(
             current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
             updated = current.copy() if isinstance(current, dict) else {}
             updated.update(updates)
+
+            # LEGACY COMPATIBILITY: Preserve legacy account fields
+            # TODO: Remove after callers no longer write 'channel' or 'enabled_features' into account.json
+            # REMOVAL PLAN:
+            # 1. Log warnings whenever legacy fields are used (below)
+            # 2. Add metrics to track frequency over 2 weeks
+            # 3. Remove preservation and update tests/callers accordingly
+            # NOTE: Channel data lives in preferences.json; enabled feature flags live under account.features
+            # This block preserves backward compatibility only.
+            if dt == "account":
+                if "channel" in updates:
+                    updated["channel"] = updates["channel"]
+                    try:
+                        logger.warning(
+                            "LEGACY COMPATIBILITY: 'account.channel' was provided and preserved. Move channel to preferences.channel."
+                        )
+                    except Exception:
+                        pass
+                if "enabled_features" in updates:
+                    updated["enabled_features"] = updates["enabled_features"]
+                    try:
+                        logger.warning(
+                            "LEGACY COMPATIBILITY: 'account.enabled_features' was provided and preserved. Use account.features subkeys instead."
+                        )
+                    except Exception:
+                        pass
+
+            # Pydantic normalization – non-blocking
+            try:
+                if dt == "account":
+                    updated, _ = validate_account_dict(updated)
+                elif dt == "preferences":
+                    # LEGACY COMPATIBILITY: Detect nested 'enabled' flags in preferences and warn.
+                    # TODO: Remove after all callers stop writing nested enabled flags
+                    # REMOVAL PLAN:
+                    # 1. Log a one-time warning when these fields are detected
+                    # 2. Track usage via logs/metrics for 2 weeks
+                    # 3. Start stripping in a future release and update tests/callers
+                    try:
+                        has_enabled = (
+                            isinstance(updated.get("task_settings"), dict) and "enabled" in updated["task_settings"]
+                        ) or (
+                            isinstance(updated.get("checkin_settings"), dict) and "enabled" in updated["checkin_settings"]
+                        )
+                        if has_enabled and not globals().get("_warned_enabled_flags_present", False):
+                            logger.warning(
+                                "LEGACY COMPATIBILITY: Found nested 'enabled' flags under preferences. "
+                                "These will be deprecated; prefer account.features."
+                            )
+                            globals()["_warned_enabled_flags_present"] = True
+                    except Exception:
+                        pass
+                    # If corresponding features are disabled, remove entire settings blocks only for "full" updates
+                    # (heuristic: presence of 'categories' implies a full preferences payload). Partial updates preserve blocks.
+                    try:
+                        acct = get_user_data(user_id, 'account').get('account', {})
+                        features = acct.get('features', {}) if isinstance(acct, dict) else {}
+                        is_full_update = isinstance(updates, dict) and ('categories' in updates)
+                        # Task settings removal when feature disabled and caller did not re-provide the block
+                        if (
+                            is_full_update and
+                            features.get('task_management') == 'disabled' and
+                            'task_settings' not in updates and
+                            'task_settings' in updated
+                        ):
+                            updated.pop('task_settings', None)
+                            try:
+                                logger.warning(
+                                    "LEGACY COMPATIBILITY: Removed preferences.task_settings because tasks are disabled "
+                                    "and a full preferences update omitted this block."
+                                )
+                            except Exception:
+                                pass
+                        # Check-in settings removal when feature disabled and caller did not re-provide the block
+                        if (
+                            is_full_update and
+                            features.get('checkins') == 'disabled' and
+                            'checkin_settings' not in updates and
+                            'checkin_settings' in updated
+                        ):
+                            updated.pop('checkin_settings', None)
+                            try:
+                                logger.warning(
+                                    "LEGACY COMPATIBILITY: Removed preferences.checkin_settings because checkins are disabled "
+                                    "and a full preferences update omitted this block."
+                                )
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                    updated, _ = validate_preferences_dict(updated)
+                elif dt == "schedules":
+                    updated, _ = validate_schedules_dict(updated)
+            except Exception:
+                pass
             
             logger.debug(f"Save {dt}: current={current}, updates={updates}, merged={updated}")
 

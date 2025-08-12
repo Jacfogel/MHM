@@ -23,6 +23,7 @@ import sys
 import subprocess
 import json
 import os
+import re
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -402,15 +403,38 @@ class AIToolsRunner:
         self.results_cache['audit_function_registry'] = metrics
     
     def _extract_decision_insights(self, output: str):
-        """Extract decision support insights"""
+        """Extract decision support insights and metrics (counts)."""
         lines = output.split('\n')
         insights = []
-        
-        for line in lines:
-            if any(keyword in line.lower() for keyword in ['[warn]', '[critical]', '[info]']):
-                insights.append(line.strip())
-        
+        metrics = {}
+
+        for raw_line in lines:
+            line = raw_line.strip()
+            lower = line.lower()
+
+            # Collect notable lines for human/AI review
+            if any(keyword in lower for keyword in ['[warn]', '[critical]', '[info]']):
+                insights.append(line)
+
+            # Parse total functions line: "Total functions: 1934"
+            if line.startswith('Total functions:'):
+                try:
+                    metrics['total_functions'] = int(line.split(':', 1)[1].strip())
+                except Exception:
+                    pass
+
+            # Parse high complexity count line: "[WARN] High Complexity Functions (>50 nodes): 1478"
+            if 'high complexity functions' in lower and ':' in line:
+                try:
+                    m = re.search(r':\s*(\d+)\b', line)
+                    if m:
+                        metrics['high_complexity'] = int(m.group(1))
+                except Exception:
+                    pass
+
         self.results_cache['decision_support'] = insights
+        if metrics:
+            self.results_cache['decision_support_metrics'] = metrics
     
     def _extract_key_metrics(self, results: Dict) -> Dict:
         """Extract key metrics from all results"""
@@ -481,10 +505,16 @@ class AIToolsRunner:
                         summary_lines.append(f"  {item}")
                 summary_lines.append("")
         
-        # Add streamlined system overview
+        # Add streamlined system overview (derive from audit data instead of hardcoding)
         summary_lines.append("[SYSTEM OVERVIEW]")
-        summary_lines.append("  Functions: ~1200 total, 832 high complexity (>50 nodes)")
-        summary_lines.append("  Documentation: 100.0% coverage")
+        # Derive totals from decision_support metrics and function registry coverage
+        ds_metrics = self.results_cache.get('decision_support_metrics', {})
+        total_functions = ds_metrics.get('total_functions', 'Unknown')
+        high_complexity = ds_metrics.get('high_complexity', 'Unknown')
+        doc_cov = self.results_cache.get('audit_function_registry', {}).get('doc_coverage', 'Unknown')
+
+        summary_lines.append(f"  Functions: {total_functions} total, {high_complexity} high complexity (>50 nodes)")
+        summary_lines.append(f"  Documentation: {doc_cov}")
         summary_lines.append("  Status: Healthy - ready for development")
         summary_lines.append("")
         

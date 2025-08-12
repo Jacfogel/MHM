@@ -13,7 +13,7 @@ import socket
 import random
 import enum
 
-from core.config import DISCORD_BOT_TOKEN
+from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_logger, get_component_logger
 from bot.conversation_manager import conversation_manager
 from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
@@ -299,6 +299,12 @@ class DiscordBot(BaseChannel):
                 max_retries=5,  # Maximum connection retries
                 retry_delay=2.0,  # Base retry delay
             )
+            # Set application_id if provided to avoid sync warnings
+            try:
+                if DISCORD_APPLICATION_ID:
+                    self.bot._connection.application_id = DISCORD_APPLICATION_ID
+            except Exception:
+                pass
             
             # Register event handlers
             self._register_events()

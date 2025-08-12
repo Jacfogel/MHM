@@ -544,15 +544,14 @@ class AccountCreatorDialog(QDialog):
                     from core.user_data_validation import is_valid_email
                     if not is_valid_email(contact_value):
                         return False, "Please enter a valid email address."
-                elif selected_service == 'Telegram':
-                    from core.user_data_validation import is_valid_phone
-                    if not is_valid_phone(contact_value):
-                        return False, "Please enter a valid phone number (digits only, minimum 10 digits)."
+                # Telegram removed
                 # Discord doesn't need format validation - any string is acceptable
                 
                 # Validate ALL contact fields that have values (not just the selected one)
                 email = self.channel_widget.ui.lineEdit_email.text().strip()
-                phone = self.channel_widget.ui.lineEdit_phone.text().strip()
+                # Telegram removed: some old UIs/tests expect phone field to exist; guard it
+                phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
+                phone = phone.text().strip() if phone else ""
                 discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
                 
                 from core.user_data_validation import is_valid_email, is_valid_phone
@@ -822,8 +821,7 @@ class AccountCreatorDialog(QDialog):
         contact_info = {}
         if selected_service == 'Email':
             contact_info['email'] = contact_value
-        elif selected_service == 'Telegram':
-            contact_info['telegram'] = contact_value
+                # Telegram removed
         elif selected_service == 'Discord':
             contact_info['discord'] = contact_value
         

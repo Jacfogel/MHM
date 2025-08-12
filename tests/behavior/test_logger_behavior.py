@@ -153,8 +153,8 @@ class TestLoggerNoiseSuppressionBehavior:
         
         # ✅ VERIFY REAL BEHAVIOR: Noisy loggers are set to WARNING
         noisy_loggers = [
-            "httpx", "telegram", "telegram.ext", "asyncio", 
-            "urllib3", "httpcore", "discord", "discord.client", 
+            "httpx", "asyncio",
+            "urllib3", "httpcore", "discord", "discord.client",
             "discord.gateway", "schedule"
         ]
         
