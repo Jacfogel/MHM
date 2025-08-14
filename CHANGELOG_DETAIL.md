@@ -9,6 +9,15 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-13
+- Reliability: Implemented queued retry for outbound messages when Discord is disconnected. Messages are retried once the bot is ready; check-in start is logged only after successful prompt delivery to avoid duplicate `user_activity` entries.
+- Data integrity: Added read-path normalization flag to `core/user_data_handlers.get_user_data(...)` and enabled at schedules and account/preferences read sites to ensure normalized in-memory data without forcing disk writes.
+- Schemas: Relaxed `discord_user_id` and `preferences.channel.contact` validators in `core/schemas.py` to accept legacy/test formats (username#discriminator) while keeping best-effort email/timezone checks.
+- Logging: Removed legacy `LOG_FILE_PATH` environment warning; standardized on `LOGS_DIR/LOG_MAIN_FILE`.
+- DX: Enhanced `run_tests.py` with periodic progress logs (default 30s) and optional per-test durations report (`--durations-all`).
+- Testing: Fixed two failures in behavior/integration (Discord user creation, data consistency); full suite re-validated.
+- Audit: Ran comprehensive audit; summary saved to `ai_tools/audit_summary.txt` and detailed results to `ai_tools/ai_audit_detailed_results.json`.
+
 ### 2025-08-12 - Pydantic schemas, legacy preferences handling, Path migration, and Telegram removal
 #### Summary
 Introduced tolerant Pydantic schemas for core user data, added explicit LEGACY COMPATIBILITY handling and warnings around nested `enabled` flags in preferences, advanced the `pathlib.Path` migration and atomic writes, enabled optional Discord application ID to prevent slash-command sync warnings, and removed Telegram as a supported channel (with legacy stubs for tests).

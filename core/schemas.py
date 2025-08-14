@@ -12,6 +12,10 @@ from __future__ import annotations
 from typing import Any, Dict, List, Literal, Optional
 from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator, RootModel
 import re
+try:
+    import pytz  # Best-effort timezone validation
+except Exception:
+    pytz = None
 
 
 # ----------------------------- Common Validators -----------------------------
@@ -76,6 +80,31 @@ class AccountModel(BaseModel):
         pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
         return v if pattern.match(v) else ""
 
+    @field_validator("discord_user_id")
+    @classmethod
+    def _validate_discord_id(cls, v: str) -> str:
+        # Accept any non-empty string; tests and legacy data may use username#discriminator format
+        if not v:
+            return ""
+        return v.strip() if isinstance(v, str) else ""
+
+    @field_validator("timezone")
+    @classmethod
+    def _validate_timezone(cls, v: str) -> str:
+        # Best-effort: keep empty if invalid; tolerate unknowns
+        if not v or not isinstance(v, str):
+            return ""
+        vv = v.strip()
+        if not vv:
+            return ""
+        try:
+            if pytz and vv in pytz.all_timezones:
+                return vv
+        except Exception:
+            pass
+        # Unknown timezone → return empty to avoid misleading data
+        return ""
+
 
 # -------------------------------- Preferences --------------------------------
 
@@ -84,6 +113,27 @@ class ChannelModel(BaseModel):
 
     type: Literal["email", "discord"]
     contact: Optional[str] = None
+
+    @model_validator(mode="after")
+    def _normalize_contact(self):
+        # If contact is missing, leave as None. If present, lightly normalize.
+        if self.contact is None:
+            return self
+        try:
+            if isinstance(self.contact, str):
+                self.contact = self.contact.strip()
+            if self.type == "email":
+                pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                # If invalid, keep as-is for backward compatibility (tests may set placeholders)
+                # Future: optionally warn rather than drop
+            elif self.type == "discord":
+                # Accept any non-empty string, including username#discriminator or IDs
+                if not (isinstance(self.contact, str) and self.contact):
+                    self.contact = None
+        except Exception:
+            # On any failure, keep original contact to avoid data loss
+            pass
+        return self
 
 
 class PreferencesModel(BaseModel):

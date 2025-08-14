@@ -318,46 +318,45 @@ class CommunicationManager:
                 time.sleep(60)
 
     def _process_retry_queue(self):
-        """Process the retry queue and attempt to send failed messages"""
+        """Process the retry queue and attempt to send failed messages.
+        Retries immediately once the channel reports ready; does not burn retries while down.
+        """
         while not self._failed_message_queue.empty():
             try:
                 queued_message = self._failed_message_queue.get_nowait()
-                
-                # Check if it's time to retry
-                time_since_queued = datetime.now() - queued_message.timestamp
-                if time_since_queued.total_seconds() < queued_message.retry_delay:
-                    # Put it back in the queue
+
+                # If channel not ready yet, requeue and exit (we'll check again soon)
+                channel = self._channels_dict.get(queued_message.channel_name)
+                channel_ready = False
+                try:
+                    if channel:
+                        if queued_message.channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
+                            channel_ready = channel.can_send_messages()
+                        else:
+                            channel_ready = channel.is_ready()
+                except Exception:
+                    channel_ready = False
+
+                if not channel or not channel_ready:
                     self._failed_message_queue.put(queued_message)
                     break
-                
-                # Check if channel is ready
-                channel = self._channels_dict.get(queued_message.channel_name)
-                if not channel or not channel.is_ready():
-                    # Put it back in the queue for later
-                    queued_message.retry_count += 1
-                    if queued_message.retry_count < queued_message.max_retries:
-                        self._failed_message_queue.put(queued_message)
-                    else:
-                        logger.warning(f"Message for user {queued_message.user_id} failed after {queued_message.max_retries} retries")
-                    continue
-                
-                # Attempt to send the message
+
+                # Attempt to send now
                 success = self.send_message_sync(
                     queued_message.channel_name,
                     queued_message.recipient,
                     queued_message.message
                 )
-                
+
                 if success:
                     logger.info(f"Successfully retried message for user {queued_message.user_id}, category {queued_message.category}")
                 else:
-                    # Increment retry count and put back in queue
                     queued_message.retry_count += 1
                     if queued_message.retry_count < queued_message.max_retries:
                         self._failed_message_queue.put(queued_message)
                     else:
                         logger.warning(f"Message for user {queued_message.user_id} failed after {queued_message.max_retries} retries")
-                        
+
             except queue.Empty:
                 break
             except Exception as e:
@@ -649,9 +648,31 @@ class CommunicationManager:
         if channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
             if not channel.can_send_messages():
                 logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()}) - cannot send messages")
+                # Queue for retry after reconnection
+                try:
+                    self._queue_failed_message(
+                        kwargs.get('user_id', ''),
+                        kwargs.get('category', 'unknown'),
+                        message,
+                        recipient,
+                        channel_name
+                    )
+                except Exception:
+                    pass
                 return False
         elif not channel.is_ready():
             logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()})")
+            # Queue for retry after reconnection
+            try:
+                self._queue_failed_message(
+                    kwargs.get('user_id', ''),
+                    kwargs.get('category', 'unknown'),
+                    message,
+                    recipient,
+                    channel_name
+                )
+            except Exception:
+                pass
             return False
 
         # Check network connectivity
@@ -711,6 +732,29 @@ class CommunicationManager:
         """Synchronous wrapper with logging health check"""
         # Check logging health periodically
         self._check_logging_health()
+        
+        # Queue immediately if channel is not ready
+        try:
+            channel = self._channels_dict.get(channel_name)
+            not_ready = False
+            if not channel:
+                not_ready = True
+            elif channel_name == 'discord' and hasattr(channel, 'can_send_messages') and not channel.can_send_messages():
+                not_ready = True
+            elif channel and not channel.is_ready():
+                not_ready = True
+            if not_ready:
+                logger.error(f"Channel {channel_name} not ready - queuing message for retry")
+                self._queue_failed_message(
+                    kwargs.get('user_id', ''),
+                    kwargs.get('category', 'unknown'),
+                    message,
+                    recipient,
+                    channel_name
+                )
+                return False
+        except Exception:
+            pass
         
         try:
             # Get the underlying bot directly
@@ -934,7 +978,7 @@ class CommunicationManager:
             return
 
         # Get user preferences
-        prefs_result = get_user_data(user_id, 'preferences')
+        prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
         preferences = prefs_result.get('preferences')
         if not preferences:
             logger.error(f"User preferences not found for user {user_id}.")
@@ -977,7 +1021,7 @@ class CommunicationManager:
         if messaging_service == "discord":
             # Get discord_user_id from account.json, not preferences
             # Get user account data
-            user_data_result = get_user_data(user_id, 'account')
+            user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
             account_data = user_data_result.get('account')
             if not account_data:
                 logger.error(f"User account not found for {user_id}")
@@ -989,7 +1033,7 @@ class CommunicationManager:
         elif messaging_service == "email":
             # Get email from account.json, not preferences
             # Get user account data
-            user_data_result = get_user_data(user_id, 'account')
+            user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
             account_data = user_data_result.get('account')
             if not account_data:
                 logger.error(f"User account not found for {user_id}")
@@ -1030,7 +1074,7 @@ class CommunicationManager:
         Handle scheduled check-in messages based on user preferences and frequency.
         """
         try:
-            prefs_result = get_user_data(user_id, 'preferences')
+            prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
             preferences = prefs_result.get('preferences')
             if not preferences:
                 logger.error(f"User preferences not found for user {user_id}")
@@ -1038,7 +1082,7 @@ class CommunicationManager:
             
             # Check if check-ins are enabled in account features
             # Get user account data
-            user_data_result = get_user_data(user_id, 'account')
+            user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
             account_data = user_data_result.get('account')
             if not account_data or account_data.get('features', {}).get('checkins') != 'enabled':
                 logger.debug(f"Check-ins disabled for user {user_id}")
@@ -1072,8 +1116,8 @@ class CommunicationManager:
             # Initialize the dynamic check-in flow properly
             from bot.conversation_manager import conversation_manager
             
-            # Use the dynamic check-in initialization (modern API)
-            reply_text, completed = conversation_manager.start_checkin(user_id)
+            # Initialize flow without logging start yet; log only after successful send
+            reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
             
             # Send the initial message to the user with retry support
             success = self.send_message_sync(messaging_service, recipient, reply_text, 
@@ -1081,16 +1125,19 @@ class CommunicationManager:
             
             if success:
                 logger.info(f"Successfully sent check-in prompt to user {user_id} and initialized flow")
+                # Now record the check-in start in user activity
+                try:
+                    user_logger = get_component_logger('user_activity')
+                    user_logger.info("User check-in started", user_id=user_id, checkin_type="daily")
+                except Exception:
+                    pass
             else:
                 logger.warning(f"Failed to send check-in prompt to user {user_id}")
-                # Clean up the conversation state if message failed
-                conversation_manager.user_states.pop(user_id, None)
+                # Preserve conversation state so we can retry sending when channel recovers
                 
         except Exception as e:
             logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
-            # Clean up the conversation state if there was an error
-            from bot.conversation_manager import conversation_manager
-            conversation_manager.user_states.pop(user_id, None)
+            # Preserve conversation state to allow retry after recovery
 
     def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
         """Send an AI-generated personalized message using contextual AI"""
@@ -1137,6 +1184,13 @@ class CommunicationManager:
             user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
             file_path = user_messages_dir / f"{category}.json"
             data = load_json_data(file_path)
+            # Normalize messages file shape for robust selection
+            try:
+                from core.schemas import validate_messages_file_dict
+                if isinstance(data, dict):
+                    data, _ = validate_messages_file_dict(data)
+            except Exception:
+                pass
 
             if not data or 'messages' not in data:
                 logger.error(f"No messages found for category {category} and user {user_id}.")

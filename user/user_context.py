@@ -45,9 +45,9 @@ class UserContext:
             return
         
         # Use the new user management functions
-        user_data_result = get_user_data(user_id, 'account')
+        user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
         account_data = user_data_result.get('account') or {}
-        prefs_result = get_user_data(user_id, 'preferences')
+        prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
         preferences_data = prefs_result.get('preferences') or {}
         context_result = get_user_data(user_id, 'context')
         context_data = context_result.get('context') or {}

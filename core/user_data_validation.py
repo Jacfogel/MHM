@@ -73,6 +73,16 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
 
     # ACCOUNT ----------------------------------------------------------------
     if data_type == 'account':
+        # LEGACY COMPATIBILITY: Basic shape/type checks are moving to Pydantic (core/schemas.py)
+        # TODO: Remove overlapping checks after 2 weeks without warnings
+        # REMOVAL PLAN:
+        # 1. Log warnings when this legacy path is hit
+        # 2. Track frequency via logs for 2 weeks
+        # 3. Delete redundant checks and update callers
+        try:
+            validation_logger.warning("LEGACY COMPATIBILITY: account shape checks handled here; prefer Pydantic models.")
+        except Exception:
+            pass
         # --------------------------------------------------------------
         # Merge updates onto current account to enforce *resulting* state
         # --------------------------------------------------------------
@@ -117,6 +127,11 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
 
     # PREFERENCES -------------------------------------------------------------
     elif data_type == 'preferences':
+        # LEGACY COMPATIBILITY: channel.type membership moved to Pydantic ChannelModel
+        try:
+            validation_logger.warning("LEGACY COMPATIBILITY: preferences basic type checks handled here; prefer Pydantic models.")
+        except Exception:
+            pass
         if 'categories' in updates:
             if not isinstance(updates['categories'], list):
                 errors.append("categories must be a list")
@@ -143,6 +158,11 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
 
     # SCHEDULES ---------------------------------------------------------------
     elif data_type == 'schedules':
+        # LEGACY COMPATIBILITY: time format/days now validated by Pydantic PeriodModel where possible
+        try:
+            validation_logger.warning("LEGACY COMPATIBILITY: schedules primitive checks handled here; prefer Pydantic models.")
+        except Exception:
+            pass
         valid_days = ['ALL', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         for category, periods in updates.items():
             if not isinstance(periods, dict):

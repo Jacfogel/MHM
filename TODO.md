@@ -30,6 +30,14 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Discord Send Retry Monitoring**
+- *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
+- *Why it helps*: Prevents lost messages and duplicate check-in starts.
+- *Estimated effort*: Small
+- Subtasks:
+  - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
+  - [ ] Confirm single "User check-in started" entry after successful send
+
 **Legacy Preferences Flag Monitoring and Removal Plan**
 - *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
 - *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
@@ -47,6 +55,7 @@ When adding new tasks, follow this format:
   - [ ] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
   - [ ] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
+  - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `bot/`)
 
 **Discord Task Edit Follow-ups and Suggestion Relevance**
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
@@ -67,6 +76,7 @@ When adding new tasks, follow this format:
   - [ ] Emit a simple startup log from `run_mhm.py`/service to confirm handler wiring
   - [ ] Ensure component logs still write to their own files while general app events go to `app.log`
   - [ ] Add a behavior test asserting a known startup line appears in `logs/app.log` under test mode
+  - [ ] Remove any remaining uses of deprecated `LOG_FILE_PATH` env in docs/deploy scripts
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
@@ -106,6 +116,7 @@ When adding new tasks, follow this format:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
   - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
+  - [ ] Add behavior test for flow expiration after unrelated outbound message
 
 ## Medium Priority
 

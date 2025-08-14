@@ -120,19 +120,10 @@ LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'a
 LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log')))  # User activity log
 LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
 
-# LEGACY COMPATIBILITY: Support old LOG_FILE_PATH env while preferring LOGS_DIR/LOG_MAIN_FILE
-# TODO: Remove after migrating environments to use LOGS_DIR/LOG_MAIN_FILE only
-# REMOVAL PLAN:
-# 1. Log a one-time warning if LOG_FILE_PATH is explicitly set
-# 2. Update deployment/docs and .env to remove LOG_FILE_PATH usage
-# 3. Delete this compatibility in 2 weeks if no usage logged
-_legacy_log_path_env = os.getenv('LOG_FILE_PATH')
-if _legacy_log_path_env:
-    try:
-        logger.warning("LEGACY COMPATIBILITY: Using LOG_FILE_PATH from env; prefer LOGS_DIR/LOG_MAIN_FILE")
-    except Exception:
-        pass
-LOG_FILE_PATH = _legacy_log_path_env or LOG_MAIN_FILE
+# LEGACY COMPATIBILITY: LOG_FILE_PATH env is deprecated. We now always derive
+# the main log file path from LOGS_DIR/LOG_MAIN_FILE to ensure consistent
+# component-based logging without noisy warnings.
+LOG_FILE_PATH = LOG_MAIN_FILE
 
 # Communication Channel Configurations (non-blocking)
 # TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated

@@ -112,6 +112,7 @@
 - [ ] Performance Optimization - UI responsiveness monitoring
   - [ ] Windows path compatibility tests around messages defaults and config path creation
   - [ ] Expand preferences save/load tests to cover Pydantic normalization and legacy flag handling (full vs partial updates)
+  - [ ] Add tests for read-path normalization (`normalize_on_read=True`) at critical read sites (schedules, account/preferences)
 
 #### UI Quality Improvements ⚠️ **PLANNED**
 - [ ] Fix Dialog Integration (main window updates after dialog changes)
@@ -237,6 +238,7 @@ Note: Telegram integration has been removed from scope.
 
 #### Implementation Phases ⚠️ **PLANNED**
 - [ ] Phase 1: Quick Wins - Enable parallel execution, add test selection
+  - [ ] Add `--durations-all` usage in CI to track slow tests; consider pytest profiling plugins
 - [ ] Phase 2: Infrastructure - Implement caching, optimize file operations
 - [ ] Phase 3: Advanced - Separate test suites, implement result caching
 

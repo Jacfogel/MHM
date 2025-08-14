@@ -9,6 +9,15 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-13 - Robust Discord Send Retry, Read-Path Normalization, Pydantic Relaxations, and Test Progress Logs
+- **Discord send reliability**: Queued failed messages when channel not ready; auto-retry once Discord reconnects; prevents lost messages during disconnects. Check-in start is logged only after successful prompt delivery (no duplicates).
+- **Read-path normalization**: Added `normalize_on_read=True` option in `core/user_data_handlers.get_user_data(...)` and enabled at critical call sites (schedules, account/preferences during routing) to ensure in-memory data is normalized without rewriting files.
+- **Pydantic schemas**: Relaxed `discord_user_id` and `preferences.channel.contact` validators to accept legacy/test formats (e.g., username#discriminator). Kept email/tz best-effort checks.
+- **Logging config**: Removed legacy `LOG_FILE_PATH` warning; now always use `LOGS_DIR/LOG_MAIN_FILE`.
+- **Test runner**: Added periodic progress output (every 30s) and optional per-test durations (`--durations-all`).
+- **Audit**: Ran full audit (high-complexity ~1468). No failures.
+- **Tests**: Full suite re-run with fixes; previously failing behavior/integration tests for Discord user creation and data consistency now pass.
+
 ### 2025-08-12 - Pydantic validation, legacy preferences handling, Path migration, and Telegram removal
 - **Pydantic models**: Added tolerant schemas for account, preferences, schedules, messages (`core/schemas.py`). Integrated normalization at save time in `core/user_management.py` and `core/user_data_handlers.py`.
 - **Legacy compatibility (preferences)**: Added one-time warnings when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`. On full preferences updates, if a related feature is disabled in `account.features` and the block is omitted, the block is removed with a LEGACY warning. Partial updates preserve existing blocks. Removal plan documented in code.

@@ -41,7 +41,7 @@ def get_schedule_time_periods(user_id, category):
             return cached_data
     
     # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
     user_info = {'schedules': schedules_result.get('schedules', {})}
 
     if not user_info:
@@ -160,7 +160,7 @@ def is_schedule_period_active(user_id, category, period_name):
         bool: True if the period is active, False otherwise (defaults to True if field is missing)
     """
     # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
     user_info = {'schedules': schedules_result.get('schedules', {})}
     if not user_info:
         return False
@@ -457,7 +457,7 @@ def set_reminder_periods_and_days(user_id, category, periods, days):
 def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""
     # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
     schedules_data = schedules_result.get('schedules', {})
     
     logger.info(f"set_schedule_periods: Setting periods for user {user_id}, category {category}")
@@ -510,7 +510,7 @@ def get_schedule_days(user_id, category):
         list: List of days for the schedule, defaults to all days of the week
     """
     # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
     user_info = {'schedules': schedules_result.get('schedules', {})}
     return user_info.get('schedules', {}).get(category, {}).get('days', ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 
@@ -524,7 +524,7 @@ def set_schedule_days(user_id, category, days):
         days: List of days to set for the schedule
     """
     # Get user schedules
-    schedules_result = get_user_data(user_id, 'schedules')
+    schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
     user_info = {'schedules': schedules_result.get('schedules', {})}
     if 'schedules' not in user_info:
         user_info['schedules'] = {}

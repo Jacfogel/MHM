@@ -77,7 +77,8 @@ def get_user_data(
     data_types: Union[str, List[str]] = 'all',
     fields: Optional[Union[str, List[str], Dict[str, Union[str, List[str]]]]] = None,
     auto_create: bool = True,
-    include_metadata: bool = False
+    include_metadata: bool = False,
+    normalize_on_read: bool = False
 ) -> Dict[str, Any]:
     """Migrated implementation of get_user_data."""
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
@@ -129,6 +130,25 @@ def get_user_data(
                         data = extracted if extracted else None
                     else:
                         data = None
+
+        # Optional normalization on read (only when returning full objects; skip if fields selection applied)
+        if normalize_on_read and fields is None and isinstance(data, dict):
+            try:
+                if data_type == 'account':
+                    normalized, _errs = validate_account_dict(data)
+                    if normalized:
+                        data = normalized
+                elif data_type == 'preferences':
+                    normalized, _errs = validate_preferences_dict(data)
+                    if normalized:
+                        data = normalized
+                elif data_type == 'schedules':
+                    normalized, _errs = validate_schedules_dict(data)
+                    if normalized:
+                        data = normalized
+            except Exception:
+                # Best-effort normalization; ignore failures
+                pass
 
         # Metadata section
         if include_metadata and data is not None:
