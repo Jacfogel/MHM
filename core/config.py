@@ -50,7 +50,8 @@ BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 # Paths - Updated for better organization
 LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
 USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users')))
-DEFAULT_MESSAGES_DIR_PATH = _normalize_path(os.getenv('DEFAULT_MESSAGES_DIR_PATH', os.path.join('resources','default_messages')))  # Moved to resources
+# Fix: Use forward slashes for cross-platform compatibility and avoid path normalization issues
+DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')
 if os.getenv('MHM_TESTING') == '1':
     # Force default messages dir during tests to avoid absolute path/env variance
     DEFAULT_MESSAGES_DIR_PATH = 'resources/default_messages'

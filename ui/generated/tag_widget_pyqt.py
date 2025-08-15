@@ -85,6 +85,11 @@ class Ui_Widget_tag(object):
 
         self.horizontalLayout_tag_buttons.addWidget(self.pushButton_delete_tag)
 
+        self.pushButton_undo_delete = QPushButton(self.widget_tag_buttons)
+        self.pushButton_undo_delete.setObjectName(u"pushButton_undo_delete")
+
+        self.horizontalLayout_tag_buttons.addWidget(self.pushButton_undo_delete)
+
 
         self.verticalLayout_groupBox_tags.addWidget(self.widget_tag_buttons)
 
@@ -105,5 +110,6 @@ class Ui_Widget_tag(object):
         self.pushButton_add_tag.setText(QCoreApplication.translate("Widget_tag", u"Add Tag", None))
         self.pushButton_edit_tag.setText(QCoreApplication.translate("Widget_tag", u"Edit Tag", None))
         self.pushButton_delete_tag.setText(QCoreApplication.translate("Widget_tag", u"Delete Tag", None))
+        self.pushButton_undo_delete.setText(QCoreApplication.translate("Widget_tag", u"Undo Last Delete", None))
     # retranslateUi
 

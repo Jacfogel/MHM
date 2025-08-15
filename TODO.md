@@ -30,6 +30,17 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Account Creation Testing** - Verify all recent fixes work correctly
+- *What it means*: Test account creation with tags, undo functionality, and message file creation
+- *Why it helps*: Ensures the recent fixes for account creation errors and path resolution work correctly
+- *Estimated effort*: Small
+- Subtasks:
+  - [ ] Test account creation with custom tags and verify they save correctly
+  - [ ] Test undo tag deletion functionality during account creation
+  - [ ] Verify no warnings about missing message files during account creation
+  - [ ] Test scheduler integration for newly created users
+  - [ ] Verify fun_facts.json and health.json load correctly for new users
+
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
 - *Why it helps*: Prevents lost messages and duplicate check-in starts.

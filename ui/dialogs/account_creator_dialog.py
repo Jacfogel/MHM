@@ -50,38 +50,43 @@ class AccountCreatorDialog(QDialog):
     user_changed = Signal()
     
     def __init__(self, parent=None, communication_manager=None):
-        """Initialize the object."""
+        """Initialize the account creator dialog."""
         super().__init__(parent)
+        logger.info("AccountCreatorDialog.__init__() called")
+        
         self.parent = parent
         self.communication_manager = communication_manager
-        
-        # Account data
         self.username = ""
         self.preferred_name = ""
-        self.selected_categories = set()
-        self.selected_service = "email"
-        self.contact_info = {}
-        self.task_settings = {}
-        self.checkin_settings = {}
         self.personalization_data = {}
         
-        # Setup window
+        # Set up the UI
         self.setWindowTitle("Create New Account")
+        self.ui = Ui_Dialog_create_account()
+        self.ui.setupUi(self)
+        logger.info("AccountCreatorDialog UI setup completed")
+        
+        # Set up the dialog
+        self.setup_dialog()
+        logger.info("AccountCreatorDialog setup_dialog() completed")
+        
+        # Set up connections
+        self.setup_connections()
+        logger.info("AccountCreatorDialog setup_connections() completed")
+        
+        # Load widgets
+        self.load_widgets()
+        logger.info("AccountCreatorDialog load_widgets() completed")
+        
+        # Center the dialog
+        self.center_dialog()
+        logger.info("AccountCreatorDialog initialization completed")
+    
+    def setup_dialog(self):
+        """Set up the dialog properties."""
         self.resize(900, 700)
         self.setMinimumSize(800, 600)
         self.setModal(True)
-        
-        # Load UI from file
-        self.ui = Ui_Dialog_create_account()
-        self.ui.setupUi(self)
-        # Now self.ui.<widget_name> is available for all widgets
-        
-        # Load the widget UI files into the placeholder widgets
-        self.load_category_widget()
-        self.load_message_service_widget()
-        self.load_task_management_widget()
-        self.load_checkin_settings_widget()
-        # self.populate_timezones() # Removed as timezone is now handled by channel widget
         
         # Setup group boxes (no longer collapsible in tab structure)
         self.setup_feature_group_boxes()
@@ -89,11 +94,16 @@ class AccountCreatorDialog(QDialog):
         # Setup profile button
         self.setup_profile_button()
         
-        # Setup signal connections
-        self.setup_connections()
-        
         # Initialize tab visibility based on default feature settings
         self.update_tab_visibility()
+    
+    def load_widgets(self):
+        """Load all the widget UI files into the placeholder widgets."""
+        # Load the widget UI files into the placeholder widgets
+        self.load_category_widget()
+        self.load_message_service_widget()
+        self.load_task_management_widget()
+        self.load_checkin_settings_widget()
     
     def load_category_widget(self):
         """Load the category selection widget."""
@@ -230,6 +240,8 @@ class AccountCreatorDialog(QDialog):
     
     def setup_connections(self):
         """Setup signal connections."""
+        logger.info("setup_connections() called")
+        
         # Connect basic info fields
         username_edit = self.ui.lineEdit_username
         if username_edit:
@@ -258,11 +270,19 @@ class AccountCreatorDialog(QDialog):
             # Connect buttons manually
             save_button = button_box.button(QDialogButtonBox.StandardButton.Save)
             if save_button:
-                save_button.clicked.connect(self.validate_and_accept)
+                save_button.clicked.connect(self.validate_and_accept)  # Restore proper connection
+                logger.info("Save button connected to validate_and_accept")
+            else:
+                logger.error("Save button not found in button box")
             
             cancel_button = button_box.button(QDialogButtonBox.StandardButton.Cancel)
             if cancel_button:
                 cancel_button.clicked.connect(self.reject)
+                logger.info("Cancel button connected to reject")
+            else:
+                logger.error("Cancel button not found in button box")
+        else:
+            logger.error("buttonBox_save_cancel not found in UI")
         
         # Connect profile button
         profile_button = self.ui.pushButton_profile
@@ -272,19 +292,16 @@ class AccountCreatorDialog(QDialog):
         # Connect feature enablement checkboxes
         if hasattr(self.ui, 'checkBox_enable_messages'):
             self.ui.checkBox_enable_messages.toggled.connect(self.on_feature_toggled)
-            logger.info("Connected checkBox_enable_messages signal")
         else:
             logger.warning("checkBox_enable_messages not found in UI")
             
         if hasattr(self.ui, 'checkBox_enable_task_management'):
             self.ui.checkBox_enable_task_management.toggled.connect(self.on_feature_toggled)
-            logger.info("Connected checkBox_enable_task_management signal")
         else:
             logger.warning("checkBox_enable_task_management not found in UI")
             
         if hasattr(self.ui, 'checkBox_enable_checkins'):
             self.ui.checkBox_enable_checkins.toggled.connect(self.on_feature_toggled)
-            logger.info("Connected checkBox_enable_checkins signal")
         else:
             logger.warning("checkBox_enable_checkins not found in UI")
         
@@ -495,20 +512,26 @@ class AccountCreatorDialog(QDialog):
     
     def validate_input(self) -> tuple[bool, str]:
         """Validate the input and return (is_valid, error_message)."""
+        logger.info("validate_input() called - starting validation")
+        
         # Check username
         if not self.username:
+            logger.warning("Validation failed: Username is required")
             return False, "Username is required."
         
         # Check if username is already taken
         if get_user_id_by_internal_username(self.username):
+            logger.warning(f"Validation failed: Username '{self.username}' is already taken")
             return False, "Username is already taken."
         
         # Check timezone from channel widget
         if hasattr(self, 'channel_widget'):
             timezone = self.channel_widget.get_timezone()
             if not timezone:
+                logger.warning("Validation failed: Time zone is required")
                 return False, "Time zone is required."
         else:
+            logger.warning("Validation failed: Channel widget not loaded")
             return False, "Channel widget not loaded."
         
         # Check feature enablement
@@ -516,8 +539,11 @@ class AccountCreatorDialog(QDialog):
         tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
         checkins_enabled = self.ui.checkBox_enable_checkins.isChecked()
         
+        logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
+        
         # At least one feature must be enabled
         if not (messages_enabled or tasks_enabled or checkins_enabled):
+            logger.warning("Validation failed: At least one feature must be enabled")
             return False, "At least one feature must be enabled."
         
         # If messages are enabled, validate message-related fields
@@ -526,23 +552,28 @@ class AccountCreatorDialog(QDialog):
             if hasattr(self, 'category_widget'):
                 selected_categories = self.category_widget.get_selected_categories()
                 if not selected_categories:
+                    logger.warning("Validation failed: At least one message category must be selected")
                     return False, "At least one message category must be selected."
             else:
+                logger.warning("Validation failed: Category widget not loaded")
                 return False, "Category widget not loaded."
             
             # Check message service from widget
             if hasattr(self, 'channel_widget'):
                 selected_service, contact_value = self.channel_widget.get_selected_channel()
                 if not selected_service:
+                    logger.warning("Validation failed: Please select a communication service")
                     return False, "Please select a communication service."
                 if not contact_value:
                     service_name = selected_service.title()
+                    logger.warning(f"Validation failed: Please provide contact information for {service_name}")
                     return False, f"Please provide contact information for {service_name}."
                 
                 # Validate contact info format based on service type
                 if selected_service == 'Email':
                     from core.user_data_validation import is_valid_email
                     if not is_valid_email(contact_value):
+                        logger.warning("Validation failed: Please enter a valid email address")
                         return False, "Please enter a valid email address."
                 # Telegram removed
                 # Discord doesn't need format validation - any string is acceptable
@@ -558,14 +589,17 @@ class AccountCreatorDialog(QDialog):
                 
                 # Validate email if provided
                 if email and not is_valid_email(email):
+                    logger.warning("Validation failed: Please enter a valid email address")
                     return False, "Please enter a valid email address."
                 
                 # Validate phone if provided
                 if phone and not is_valid_phone(phone):
+                    logger.warning("Validation failed: Please enter a valid phone number (digits only, minimum 10 digits)")
                     return False, "Please enter a valid phone number (digits only, minimum 10 digits)."
                 
                 # Discord ID doesn't need format validation - any string is acceptable
             else:
+                logger.warning("Validation failed: Channel widget not loaded")
                 return False, "Channel widget not loaded."
         
         # If task management is enabled, validate task-related fields
@@ -575,8 +609,10 @@ class AccountCreatorDialog(QDialog):
                 time_periods = task_settings.get('time_periods', {})
                 is_valid, errors = validate_schedule_periods(time_periods, "tasks")
                 if not is_valid:
+                    logger.warning(f"Validation failed: Task Management: {errors[0]}")
                     return False, f"Task Management: {errors[0]}"
             else:
+                logger.warning("Validation failed: Task widget not loaded")
                 return False, "Task widget not loaded."
         
         # If check-ins are enabled, validate check-in-related fields
@@ -586,14 +622,19 @@ class AccountCreatorDialog(QDialog):
                 time_periods = checkin_settings.get('time_periods', {})
                 is_valid, errors = validate_schedule_periods(time_periods, "check-ins")
                 if not is_valid:
+                    logger.warning(f"Validation failed: Check-ins: {errors[0]}")
                     return False, f"Check-ins: {errors[0]}"
             else:
+                logger.warning("Validation failed: Check-in widget not loaded")
                 return False, "Check-in widget not loaded."
         
+        logger.info("Validation successful.")
         return True, ""
     
     def validate_and_accept(self):
         """Validate input and accept the dialog."""
+        logger.info("validate_and_accept() called - starting account creation process")
+        
         # Read current values from UI fields
         username_edit = self.ui.lineEdit_username
         if username_edit:
@@ -603,7 +644,11 @@ class AccountCreatorDialog(QDialog):
         if preferred_name_edit:
             self.preferred_name = preferred_name_edit.text().strip()
         
+        logger.info(f"Collected basic info - username: '{self.username}', preferred_name: '{self.preferred_name}'")
+        
         is_valid, error_message = self.validate_input()
+        logger.info(f"Validation result: valid={is_valid}, error_message='{error_message}'")
+        
         if not is_valid:
             # Use a modal dialog that doesn't close the account creation dialog
             error_dialog = QMessageBox(self)
@@ -613,96 +658,109 @@ class AccountCreatorDialog(QDialog):
             error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
             error_dialog.setModal(True)
             error_dialog.exec()
+            logger.warning(f"Account creation failed validation: {error_message}")
             return  # Return without closing the dialog
         
-        # Get selected timezone from channel widget
-        timezone = self.channel_widget.get_timezone() if hasattr(self, 'channel_widget') else "America/Regina"
+        logger.info("Validation passed, proceeding with account creation")
         
-        # Get feature enablement states
-        messages_enabled = self.ui.checkBox_enable_messages.isChecked()
-        tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
-        checkins_enabled = self.ui.checkBox_enable_checkins.isChecked()
-        
-        # Collect data from widgets based on feature enablement
-        selected_categories = []
-        selected_service = None
-        contact_value = None
-        contact_info = {}
-        
-        # Always collect contact information regardless of message enablement
-        # since it's needed for the communication channel
-        if hasattr(self, 'channel_widget'):
-            selected_service, contact_value = self.channel_widget.get_selected_channel()
-            
-            # Collect ALL contact info fields, not just the selected one
-            # Get all contact fields from the channel widget
-            email = self.channel_widget.ui.lineEdit_email.text().strip()
-            phone = self.channel_widget.ui.lineEdit_phone.text().strip()
-            discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
-            
-            # Save all non-empty fields
-            if email:
-                contact_info['email'] = email
-            if phone:
-                contact_info['phone'] = phone
-            if discord_id:
-                contact_info['discord'] = discord_id
-        
-        # Only collect categories if messages are enabled
-        if messages_enabled:
-            selected_categories = self.category_widget.get_selected_categories()
-        
-        task_settings = {}
-        if tasks_enabled and hasattr(self, 'task_widget'):
-            task_settings = self.task_widget.get_task_settings()
-            # Don't add enabled flag here - it goes in account.json
-        
-        checkin_settings = {}
-        if checkins_enabled and hasattr(self, 'checkin_widget'):
-            checkin_settings = self.checkin_widget.get_checkin_settings()
-            # Don't add enabled flag here - it goes in account.json
-        
-        # Collect all data
-        account_data = {
-            'username': self.username,
-            'preferred_name': self.preferred_name,
-            'categories': selected_categories,
-            'channel': {
-                'type': selected_service.lower() if selected_service else 'email'
-            },
-            'contact_info': contact_info,
-            'task_settings': task_settings,
-            'checkin_settings': checkin_settings,
-            'personalization_data': self.personalization_data,
-            'timezone': timezone,
-            'features_enabled': {
-                'messages': messages_enabled,
-                'tasks': tasks_enabled,
-                'checkins': checkins_enabled
-            }
-        }
-        
-        # Create the account
         try:
-            success = self.create_account(account_data)
-            if success:
-                self.user_changed.emit()
-                # Show success message and close dialog
-                success_dialog = QMessageBox(self)
-                success_dialog.setIcon(QMessageBox.Icon.Information)
-                success_dialog.setWindowTitle("Account Created Successfully")
-                success_dialog.setText(f"Account '{self.username}' has been created successfully!")
-                success_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-                success_dialog.setModal(True)
-                success_dialog.exec()
-                # Close the dialog after successful account creation
-                self.close_dialog()
+            # Get selected timezone from channel widget
+            timezone = self.channel_widget.get_timezone() if hasattr(self, 'channel_widget') else "America/Regina"
+            logger.info(f"Timezone: {timezone}")
+            
+            # Get feature enablement states
+            messages_enabled = self.ui.checkBox_enable_messages.isChecked()
+            tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
+            checkins_enabled = self.ui.checkBox_enable_checkins.isChecked()
+            logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
+            
+            # Collect data from widgets
+            logger.info("About to collect channel widget data")
+            # Use the correct method names from ChannelSelectionWidget
+            selected_service, contact_value = self.channel_widget.get_selected_channel() if hasattr(self, 'channel_widget') else (None, None)
+            channel_data = {'type': selected_service.lower() if selected_service else 'discord'}
+            logger.info(f"Channel widget data - service: {selected_service}, contact: {contact_value}")
+            
+            # Collect contact info
+            if hasattr(self, 'channel_widget'):
+                # Collect ALL contact info fields, not just the selected one
+                # Get all contact fields from the channel widget
+                email = self.channel_widget.ui.lineEdit_email.text().strip()
+                # Phone field was removed when Telegram was removed - use safe access
+                phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
+                phone = phone.text().strip() if phone else ""
+                discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
+                logger.info(f"Contact fields - email: '{email}', phone: '{phone}', discord: '{discord_id}'")
             else:
-                # Use a modal dialog for account creation failure as well
+                email = phone = discord_id = ""
+            
+            logger.info("About to collect category widget data")
+            categories = self.category_widget.get_selected_categories() if hasattr(self, 'category_widget') else []
+            logger.info(f"Selected categories: {categories}")
+            
+            logger.info("About to collect task widget data")
+            task_settings = self.task_widget.get_task_settings() if hasattr(self, 'task_widget') else {}
+            
+            logger.info("About to collect checkin widget data")
+            checkin_settings = self.checkin_widget.get_checkin_settings() if hasattr(self, 'checkin_widget') else {}
+            
+            # Build account data
+            logger.info("About to build account_data")
+            account_data = {
+                'username': self.username,
+                'preferred_name': self.preferred_name,
+                'categories': categories,
+                'channel': channel_data,
+                'contact_info': {
+                    'email': email,
+                    'phone': phone,
+                    'discord': discord_id
+                },
+                'task_settings': task_settings,
+                'checkin_settings': checkin_settings,
+                'personalization_data': self.personalization_data,
+                'timezone': timezone,
+                'features_enabled': {
+                    'messages': messages_enabled,
+                    'tasks': tasks_enabled,
+                    'checkins': checkins_enabled
+                }
+            }
+            logger.info(f"Account data built: {account_data}")
+            
+            # Create the account
+            try:
+                logger.info("About to call create_account()")
+                success = self.create_account(account_data)
+                logger.info(f"create_account() returned: {success}")
+                if success:
+                    self.user_changed.emit()
+                    # Show success message and close dialog
+                    success_dialog = QMessageBox(self)
+                    success_dialog.setIcon(QMessageBox.Icon.Information)
+                    success_dialog.setWindowTitle("Account Created Successfully")
+                    success_dialog.setText(f"Account '{self.username}' has been created successfully!")
+                    success_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+                    success_dialog.setModal(True)
+                    success_dialog.exec()
+                    # Close the dialog after successful account creation
+                    self.close_dialog()
+                else:
+                    # Use a modal dialog for account creation failure as well
+                    error_dialog = QMessageBox(self)
+                    error_dialog.setIcon(QMessageBox.Icon.Critical)
+                    error_dialog.setWindowTitle("Account Creation Failed")
+                    error_dialog.setText("Failed to create account. Please try again.")
+                    error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+                    error_dialog.setModal(True)
+                    error_dialog.exec()
+            except Exception as e:
+                # Handle actual errors during account creation
+                logger.error(f"Error during account creation: {e}")
                 error_dialog = QMessageBox(self)
                 error_dialog.setIcon(QMessageBox.Icon.Critical)
-                error_dialog.setWindowTitle("Account Creation Failed")
-                error_dialog.setText("Failed to create account. Please try again.")
+                error_dialog.setWindowTitle("Account Creation Error")
+                error_dialog.setText(f"An error occurred while creating the account: {str(e)}")
                 error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
                 error_dialog.setModal(True)
                 error_dialog.exec()
@@ -792,10 +850,22 @@ class AccountCreatorDialog(QDialog):
             from core.file_operations import create_user_files
             create_user_files(user_id, account_data['categories'], user_preferences)
             
-            # Set up default task tags if task management is enabled
+            # Set up task tags if task management is enabled
             if tasks_enabled:
-                from tasks.task_management import setup_default_task_tags
-                setup_default_task_tags(user_id)
+                task_settings = account_data.get('task_settings', {})
+                custom_tags = task_settings.get('tags', [])
+                
+                if custom_tags:
+                    # Save custom tags that were added during account creation
+                    from tasks.task_management import add_user_task_tag
+                    for tag in custom_tags:
+                        add_user_task_tag(user_id, tag)
+                    logger.info(f"Saved {len(custom_tags)} custom tags for new user {user_id}: {custom_tags}")
+                else:
+                    # Set up default tags only if no custom tags were added
+                    from tasks.task_management import setup_default_task_tags
+                    setup_default_task_tags(user_id)
+                    logger.info(f"Set up default task tags for new user {user_id}")
 
             # Update user index
             try:
@@ -803,6 +873,18 @@ class AccountCreatorDialog(QDialog):
                 update_user_index(user_id)
             except Exception as e:
                 logger.warning(f"Failed to update user index for new user {user_id}: {e}")
+
+            # Schedule the new user in the scheduler
+            try:
+                from core.service import get_scheduler_manager
+                scheduler_manager = get_scheduler_manager()
+                if scheduler_manager:
+                    scheduler_manager.schedule_new_user(user_id)
+                    logger.info(f"Scheduled new user {user_id} in scheduler")
+                else:
+                    logger.warning(f"Scheduler manager not available, new user {user_id} not scheduled")
+            except Exception as e:
+                logger.warning(f"Failed to schedule new user {user_id} in scheduler: {e}")
 
             logger.info(f"Created new user: {user_id} ({account_data['username']})")
             return True

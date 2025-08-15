@@ -3,8 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
- > **Last Updated**: 2025-08-07
-> **Last Updated**: 2025-08-09
+> **Last Updated**: 2025-08-15
 
 > **See [TODO.md](TODO.md) for independant tasks**
 
@@ -289,6 +288,36 @@ Note: Telegram integration has been removed from scope.
 - [ ] Define data model and validation rules
 - [ ] Persist/Load in user data; integrate into check-in flow
 - [ ] Add behavior and UI tests
+
+## ✅ Completed Plans
+
+#### Account Creation Error Fixes ✅ **COMPLETED**
+- Goal: Fix critical errors preventing new user account creation and improve user experience
+- Checklist:
+  - [x] Fix ChannelSelectionWidget method call error in account creation
+    - [x] Identify incorrect `get_channel_data()` method call
+    - [x] Update to use correct `get_selected_channel()` method
+    - [x] Verify account creation works without errors
+  - [x] Add undo button for tag deletion during account creation
+    - [x] Add "Undo Last Delete" button to tag widget UI design
+    - [x] Regenerate PyQt files to include new button
+    - [x] Connect button to existing `undo_last_tag_delete()` functionality
+    - [x] Add proper button state management (enabled only when tags can be restored)
+  - [x] Fix fun_facts.json path resolution issue
+    - [x] Identify malformed path in `.env` file causing `FileNotFoundError`
+    - [x] Update `.env` to use relative path `resources/default_messages`
+    - [x] Verify default message files are now accessible
+    - [x] Test that new users get proper message files created
+  - [x] Add scheduler integration for new users
+    - [x] Implement `schedule_new_user()` method in scheduler
+    - [x] Call scheduler integration after successful account creation
+    - [x] Verify new users are immediately scheduled for messages and check-ins
+  - [x] Update documentation
+    - [x] Update AI_CHANGELOG.md with completed fixes
+    - [x] Update CHANGELOG_DETAIL.md with detailed information
+    - [x] Add testing tasks to TODO.md
+
+#### Suggestion Relevance and Flow Prompting (Tasks) — NEW
 
 ## 📚 Reference Information
 

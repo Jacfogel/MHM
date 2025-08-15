@@ -189,8 +189,12 @@ class TaskSettingsWidget(QWidget):
         # Use the new reusable function to collect period data
         time_periods = collect_period_data_from_widgets(self.period_widgets, "tasks")
         
+        # Get tags from the tag widget
+        tags = self.tag_widget.get_available_tags() if hasattr(self, 'tag_widget') else []
+        
         return {
-            'time_periods': time_periods
+            'time_periods': time_periods,
+            'tags': tags
         }
     
     def set_task_settings(self, settings):
@@ -236,5 +240,9 @@ class TaskSettingsWidget(QWidget):
     def refresh_tags(self):
         """Refresh the tags in the tag widget."""
         self.tag_widget.refresh_tags()
+    
+    def undo_last_tag_delete(self):
+        """Undo the last tag deletion (account creation mode only)."""
+        return self.tag_widget.undo_last_tag_delete()
 
  

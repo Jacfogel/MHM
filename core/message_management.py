@@ -59,33 +59,36 @@ def get_message_categories():
 
 @handle_errors("loading default messages", default_return=[])
 def load_default_messages(category):
-    """
-    Load default messages for the given category.
-    
-    Args:
-        category: The message category to load defaults for
-        
-    Returns:
-        List[dict]: List of default messages for the category
-    """
-    # Build path via Path for cross-platform safety
-    default_messages_file = Path(DEFAULT_MESSAGES_DIR_PATH) / f"{category}.json"
-    
+    """Load default messages for a specific category."""
     try:
-        with open(default_messages_file, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            # Extract the messages list from the JSON object
-            messages = data.get("messages", []) if isinstance(data, dict) else data
-            logger.debug(f"Loaded default messages for category {category}")
-            return messages
-    except FileNotFoundError:
-        logger.error(f"Default messages file not found for category: {category}")
-        return []
-    except json.JSONDecodeError as e:
-        logger.error(f"Error decoding JSON from the default messages file for category {category}: {e}")
-        return []
+        # Add debug logging to see what path is being used
+        logger.info(f"Loading default messages for category: {category}")
+        logger.info(f"DEFAULT_MESSAGES_DIR_PATH: {DEFAULT_MESSAGES_DIR_PATH}")
+        logger.info(f"Current working directory: {os.getcwd()}")
+        
+        default_messages_file = Path(DEFAULT_MESSAGES_DIR_PATH) / f"{category}.json"
+        
+        # Add debug logging to see what path is being used
+        logger.info(f"Looking for default messages file: {default_messages_file}")
+        logger.info(f"File exists: {default_messages_file.exists()}")
+        logger.info(f"Absolute path: {default_messages_file.absolute()}")
+        
+        try:
+            with open(default_messages_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                messages = data.get('messages', [])
+                logger.info(f"Loaded {len(messages)} default messages for category {category}")
+                return messages
+        except FileNotFoundError:
+            logger.error(f"Default messages file not found for category: {category}")
+            logger.error(f"Attempted path: {default_messages_file}")
+            logger.error(f"Absolute path: {default_messages_file.absolute()}")
+            return []
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in default messages file for category {category}: {e}")
+            return []
     except Exception as e:
-        logger.error(f"Unexpected error occurred while loading default messages for category {category}: {e}")
+        logger.error(f"Error loading default messages for category {category}: {e}")
         return []
 
 @handle_errors("adding message")

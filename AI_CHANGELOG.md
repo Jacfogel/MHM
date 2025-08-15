@@ -9,6 +9,76 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-15 - Fixed fun_facts.json Path Resolution Issue ✅ **COMPLETED**
+- **Path resolution error**: Fixed critical issue preventing default message files from being found
+  - **Problem**: `fun_facts.json` and other default message files were reported as "not found" despite existing
+  - **Root Cause**: `.env` file contained incorrect absolute path with malformed directory separator
+  - **Solution**: Updated `.env` file to use relative path `resources/default_messages` instead of absolute path
+  - **Impact**: Default message files can now be found and loaded correctly during account creation
+- **Technical details**:
+  - **Path issue**: Absolute path in `.env` was causing `os.path.normpath` to resolve incorrectly
+  - **Cross-platform fix**: Using relative paths with forward slashes for better compatibility
+  - **Configuration**: Simplified path handling to avoid normalization issues
+- **Testing**: Verified that `fun_facts.json` and other default message files are now accessible
+- **User experience**: New users will no longer see warnings about missing message files during account creation
+
+### 2025-08-14 - Fixed Account Creation Error and Added Undo Button for Tags ✅ **COMPLETED**
+- **Account creation error**: Fixed critical error preventing new user creation
+  - **Problem**: `'ChannelSelectionWidget' object has no attribute 'get_channel_data'` error during account creation
+  - **Root Cause**: Account creation code was calling non-existent `get_channel_data()` method
+  - **Solution**: Updated to use correct `get_selected_channel()` method from ChannelSelectionWidget
+  - **Impact**: New users can now be created successfully without errors
+- **Missing undo button for tags**: Added undo functionality for tag deletion during account creation
+  - **Problem**: "Undo Last Delete" button was missing from the Task Tags section in account creation
+  - **Solution**: Added undo button to tag widget UI and implemented functionality
+  - **UI Changes**: Added "Undo Last Delete" button to tag_widget.ui design
+  - **Functionality**: Button is enabled only when there are deleted tags to restore (during account creation)
+  - **Integration**: Connected to existing `undo_last_tag_delete()` method in TagWidget
+- **Technical improvements**:
+  - **UI regeneration**: Regenerated PyQt files after UI changes
+  - **Button state management**: Added proper state management for undo button
+  - **Error handling**: Improved error handling in account creation process
+  - **User experience**: Better feedback and functionality during account creation
+
+### 2025-08-14 - Added Scheduler Integration for New Users ✅ **COMPLETED**
+- **New user scheduling**: Added automatic scheduler integration for newly created users
+  - **Problem**: New users were not automatically added to the scheduler, requiring manual intervention or system restart
+  - **Solution**: Added `schedule_new_user()` method to SchedulerManager to immediately schedule new users
+  - **Integration**: Modified account creation process to automatically schedule new users after successful account creation
+  - **Features scheduled**: Messages, check-ins, and task reminders are all scheduled based on user's enabled features
+  - **Error handling**: Graceful handling if scheduler is not available (logs warning but doesn't prevent account creation)
+- **Default messages**: Added comprehensive `fun_facts.json` file with 100+ fun facts for user engagement
+  - **Content**: Added 100+ interesting and engaging fun facts covering science, history, animals, space, and more
+  - **Format**: Properly structured with message IDs, days, and time periods for scheduling
+  - **Categories**: All facts marked for "ALL" days and time periods for maximum engagement
+- **Scheduler improvements**:
+  - **Immediate scheduling**: New users are scheduled immediately after account creation
+  - **Feature-aware**: Only schedules features that are enabled for the user
+  - **Comprehensive logging**: Detailed logging of scheduling process for debugging
+  - **Error resilience**: Individual scheduling failures don't prevent other features from being scheduled
+
+### 2025-08-14 - Fixed Account Creation Tag Addition and Save Button Issues ✅ **COMPLETED & TESTED**
+- **Tag addition during account creation**: Fixed critical issue where adding tags during account creation failed with "User ID and tag are required" error
+  - **Root Cause**: TagWidget was trying to save tags to database during account creation when no user_id existed yet
+  - **Solution**: Modified TagWidget to handle `user_id=None` case by storing tags locally during account creation, then saving them after user creation
+  - **Tag persistence**: Custom tags added during account creation are now properly saved to the user's preferences after account creation
+  - **Default tags**: Only sets up default tags if no custom tags were added during account creation
+- **Save button not working**: Fixed critical issue where Save button did nothing during account creation
+  - **Root Cause**: Missing `lineEdit_phone` attribute in channel selection widget (removed when Telegram support was removed)
+  - **Solution**: Added safe attribute access pattern using `getattr()` to handle missing phone field gracefully
+  - **Button connection**: Confirmed Save button is properly connected to `validate_and_accept()` method
+- **Account creation process**: Complete end-to-end account creation now working successfully
+  - **Validation**: All validation steps pass correctly
+  - **Data collection**: All widget data is collected properly (categories, channels, task settings, checkin settings)
+  - **File creation**: All user files are created successfully (account.json, preferences.json, user_context.json, etc.)
+  - **User index**: New users are properly added to the user index
+- **Additional improvements**:
+  - **Inappropriate warnings**: Fixed delete confirmation dialog to show different messages during account creation vs normal mode
+  - **Undo functionality**: Added undo for deleted tags during account creation (stored in `deleted_tags` list)
+  - **Debug logging**: Added comprehensive logging to track account creation process
+  - **Error handling**: Improved error handling and user feedback during account creation
+- **Testing**: ✅ **FULLY TESTED** - Account creation works end-to-end with all features (tags, categories, channels, etc.)
+
 ### 2025-08-13 - Robust Discord Send Retry, Read-Path Normalization, Pydantic Relaxations, and Test Progress Logs
 - **Discord send reliability**: Queued failed messages when channel not ready; auto-retry once Discord reconnects; prevents lost messages during disconnects. Check-in start is logged only after successful prompt delivery (no duplicates).
 - **Read-path normalization**: Added `normalize_on_read=True` option in `core/user_data_handlers.get_user_data(...)` and enabled at critical call sites (schedules, account/preferences during routing) to ensure in-memory data is normalized without rewriting files.

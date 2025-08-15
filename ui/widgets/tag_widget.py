@@ -39,6 +39,7 @@ class TagWidget(QWidget):
         self.selected_tags = selected_tags or []
         self.title = title
         self.available_tags = []
+        self.deleted_tags = []  # For undo functionality during account creation
         
         self.ui = Ui_Widget_tag()
         self.ui.setupUi(self)
@@ -76,6 +77,7 @@ class TagWidget(QWidget):
             # Management mode connections
             self.ui.pushButton_edit_tag.clicked.connect(self.edit_tag)
             self.ui.pushButton_delete_tag.clicked.connect(self.delete_tag)
+            self.ui.pushButton_undo_delete.clicked.connect(self.undo_last_tag_delete)
             self.ui.listWidget_tags.itemSelectionChanged.connect(self.update_button_states)
         else:
             # Selection mode connections
@@ -122,6 +124,10 @@ class TagWidget(QWidget):
         has_selection = len(self.ui.listWidget_tags.selectedItems()) > 0
         self.ui.pushButton_edit_tag.setEnabled(has_selection)
         self.ui.pushButton_delete_tag.setEnabled(has_selection)
+        
+        # Enable undo button only if there are deleted tags to restore (during account creation)
+        has_deleted_tags = not self.user_id and len(self.deleted_tags) > 0
+        self.ui.pushButton_undo_delete.setEnabled(has_deleted_tags)
 
     def on_tag_selection_changed(self, item):
         """Handle when a tag checkbox is changed (selection mode only)."""
@@ -150,7 +156,9 @@ class TagWidget(QWidget):
             return
         
         try:
-            if add_user_task_tag(self.user_id, tag_text):
+            # Handle case where user_id is None (during account creation)
+            if not self.user_id:
+                # During account creation, just add to local list
                 self.available_tags.append(tag_text)
                 self.refresh_tag_list()
                 self.ui.lineEdit_new_tag.clear()
@@ -160,9 +168,22 @@ class TagWidget(QWidget):
                     self.selected_tags.append(tag_text)
                 
                 self.tags_changed.emit()
-                logger.info(f"Added tag '{tag_text}' for user {self.user_id}")
+                logger.info(f"Added tag '{tag_text}' to local list (account creation mode)")
             else:
-                QMessageBox.critical(self, "Error", f"Failed to add tag '{tag_text}'.")
+                # Normal mode - save to database
+                if add_user_task_tag(self.user_id, tag_text):
+                    self.available_tags.append(tag_text)
+                    self.refresh_tag_list()
+                    self.ui.lineEdit_new_tag.clear()
+                    
+                    # In selection mode, automatically select newly added tag
+                    if self.mode == "selection" and tag_text not in self.selected_tags:
+                        self.selected_tags.append(tag_text)
+                    
+                    self.tags_changed.emit()
+                    logger.info(f"Added tag '{tag_text}' for user {self.user_id}")
+                else:
+                    QMessageBox.critical(self, "Error", f"Failed to add tag '{tag_text}'.")
         except Exception as e:
             logger.error(f"Error adding tag '{tag_text}' for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to add tag: {e}")
@@ -195,16 +216,25 @@ class TagWidget(QWidget):
             return
         
         try:
-            # Remove old tag and add new one
-            if remove_user_task_tag(self.user_id, old_tag) and add_user_task_tag(self.user_id, new_tag):
-                # Update local list
+            # Handle case where user_id is None (during account creation)
+            if not self.user_id:
+                # During account creation, just update local list
                 index = self.available_tags.index(old_tag)
                 self.available_tags[index] = new_tag
                 self.refresh_tag_list()
                 self.tags_changed.emit()
-                logger.info(f"Edited tag '{old_tag}' to '{new_tag}' for user {self.user_id}")
+                logger.info(f"Edited tag '{old_tag}' to '{new_tag}' in local list (account creation mode)")
             else:
-                QMessageBox.critical(self, "Error", f"Failed to edit tag '{old_tag}'.")
+                # Normal mode - save to database
+                if remove_user_task_tag(self.user_id, old_tag) and add_user_task_tag(self.user_id, new_tag):
+                    # Update local list
+                    index = self.available_tags.index(old_tag)
+                    self.available_tags[index] = new_tag
+                    self.refresh_tag_list()
+                    self.tags_changed.emit()
+                    logger.info(f"Edited tag '{old_tag}' to '{new_tag}' for user {self.user_id}")
+                else:
+                    QMessageBox.critical(self, "Error", f"Failed to edit tag '{old_tag}'.")
         except Exception as e:
             logger.error(f"Error editing tag '{old_tag}' to '{new_tag}' for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to edit tag: {e}")
@@ -222,23 +252,43 @@ class TagWidget(QWidget):
         tag_to_delete = selected_items[0].text()
         
         # Confirm deletion
-        reply = QMessageBox.question(self, "Confirm Deletion", 
-                                   f"Are you sure you want to delete the tag '{tag_to_delete}'?\n\n"
-                                   "This will remove the tag from all tasks that use it.",
-                                   QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        if not self.user_id:
+            # During account creation - no tasks exist yet
+            reply = QMessageBox.question(self, "Confirm Deletion", 
+                                       f"Are you sure you want to delete the tag '{tag_to_delete}'?\n\n"
+                                       "This tag will be removed from your account settings.",
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        else:
+            # Normal mode - tasks might exist
+            reply = QMessageBox.question(self, "Confirm Deletion", 
+                                       f"Are you sure you want to delete the tag '{tag_to_delete}'?\n\n"
+                                       "This will remove the tag from all tasks that use it.",
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         
         if reply != QMessageBox.StandardButton.Yes:
             return
         
         try:
-            if remove_user_task_tag(self.user_id, tag_to_delete):
+            # Handle case where user_id is None (during account creation)
+            if not self.user_id:
+                # During account creation, just remove from local list
                 self.available_tags.remove(tag_to_delete)
+                # Store for undo functionality
+                self.deleted_tags.append(tag_to_delete)
                 self.refresh_tag_list()
                 self.update_button_states()
                 self.tags_changed.emit()
-                logger.info(f"Deleted tag '{tag_to_delete}' for user {self.user_id}")
+                logger.info(f"Deleted tag '{tag_to_delete}' from local list (account creation mode)")
             else:
-                QMessageBox.critical(self, "Error", f"Failed to delete tag '{tag_to_delete}'.")
+                # Normal mode - save to database
+                if remove_user_task_tag(self.user_id, tag_to_delete):
+                    self.available_tags.remove(tag_to_delete)
+                    self.refresh_tag_list()
+                    self.update_button_states()
+                    self.tags_changed.emit()
+                    logger.info(f"Deleted tag '{tag_to_delete}' for user {self.user_id}")
+                else:
+                    QMessageBox.critical(self, "Error", f"Failed to delete tag '{tag_to_delete}'.")
         except Exception as e:
             logger.error(f"Error deleting tag '{tag_to_delete}' for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to delete tag: {e}")
@@ -260,5 +310,18 @@ class TagWidget(QWidget):
             self.refresh_tag_list()
     
     def refresh_tags(self):
-        """Refresh the tags from the database."""
-        self.load_tags() 
+        """Refresh the tags in the tag widget."""
+        self.load_tags()
+    
+    def undo_last_tag_delete(self):
+        """Undo the last tag deletion (account creation mode only)."""
+        if not self.user_id and self.deleted_tags:
+            # During account creation, restore the last deleted tag
+            tag_to_restore = self.deleted_tags.pop()
+            if tag_to_restore not in self.available_tags:
+                self.available_tags.append(tag_to_restore)
+                self.refresh_tag_list()
+                self.tags_changed.emit()
+                logger.info(f"Restored tag '{tag_to_restore}' (account creation mode)")
+                return True
+        return False 
