@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 
-logger = get_logger(__name__)
+logger = get_component_logger('ui')
 ui_logger = get_component_logger('main')
 
 

@@ -19,9 +19,9 @@ from core.user_data_manager import (
     rebuild_user_index
 )
 from core.utils import get_all_user_ids
-from core.logger import get_logger
+from core.logger import get_component_logger
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 
 def format_size(size_bytes):
     """Format bytes to human readable format"""

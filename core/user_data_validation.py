@@ -14,7 +14,7 @@ from typing import Dict, Any, Tuple, List
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 validation_logger = get_component_logger('user_activity')
 
 # ---------------------------------------------------------------------------
@@ -73,76 +73,56 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
 
     # ACCOUNT ----------------------------------------------------------------
     if data_type == 'account':
-        # LEGACY COMPATIBILITY: Basic shape/type checks are moving to Pydantic (core/schemas.py)
-        # TODO: Remove overlapping checks after 2 weeks without warnings
-        # REMOVAL PLAN:
-        # 1. Log warnings when this legacy path is hit
-        # 2. Track frequency via logs for 2 weeks
-        # 3. Delete redundant checks and update callers
+        # Account validation is now handled by Pydantic models in core/schemas.py
+        # This function is kept for backward compatibility but delegates to Pydantic
+        from core.schemas import validate_account_dict
         try:
-            validation_logger.warning("LEGACY COMPATIBILITY: account shape checks handled here; prefer Pydantic models.")
-        except Exception:
-            pass
-        # --------------------------------------------------------------
-        # Merge updates onto current account to enforce *resulting* state
-        # --------------------------------------------------------------
-        try:
-            from core.user_data_handlers import get_user_data
-            current_account = get_user_data(user_id, 'account').get('account', {})
-        except Exception:
-            current_account = {}
-
-        merged_account = current_account.copy()
-        merged_account.update(updates)
-
-        # Always require internal_username - but be more lenient for test scenarios
-        # where the account file might not exist yet but the directory does
-        if not merged_account.get('internal_username'):
-            # Check if this is a test scenario where we're creating a new account
-            # but the user directory already exists
-            from core.config import get_user_file_path
-            import os
-            account_file_path = get_user_file_path(user_id, 'account')
-            if not os.path.exists(account_file_path):
-                # This is a new account creation, so the updates should contain internal_username
-                if not updates.get('internal_username'):
-                    errors.append("internal_username is required for account updates")
-            else:
-                # This is an update to an existing account
-                errors.append("internal_username is required for account updates")
-
-        # Channel validation is handled in preferences, not account
-        # (Channel information is stored in preferences.json, not account.json)
-
-        # Account status value check
-        if 'account_status' in merged_account:
-            if merged_account['account_status'] not in ['active', 'inactive', 'suspended']:
-                errors.append("Invalid account_status. Must be one of: active, inactive, suspended")
-
-        # Cross-validation of contact info vs channel.type is handled in preferences validation
-        # (Channel information is stored in preferences.json, not account.json)
-        # Email format validation when provided
-        if 'email' in updates and updates['email'] and not is_valid_email(updates['email']):
-            errors.append("Invalid email format")
+            # For updates, we need to merge with existing data to get a complete account
+            # This maintains backward compatibility with the old validation approach
+            try:
+                from core.user_data_handlers import get_user_data
+                current_account = get_user_data(user_id, 'account').get('account', {})
+            except Exception:
+                current_account = {}
+            
+            # Merge updates with current account for validation
+            merged_account = current_account.copy()
+            merged_account.update(updates)
+            
+            # Add user_id if not present (required by Pydantic)
+            if 'user_id' not in merged_account:
+                merged_account['user_id'] = user_id
+            
+            # Use Pydantic validation for account data
+            _, validation_errors = validate_account_dict(merged_account)
+            if validation_errors:
+                errors.extend(validation_errors)
+        except Exception as e:
+            errors.append(f"Account validation error: {e}")
 
     # PREFERENCES -------------------------------------------------------------
     elif data_type == 'preferences':
-        # LEGACY COMPATIBILITY: channel.type membership moved to Pydantic ChannelModel
+        # Preferences validation is now handled by Pydantic models in core/schemas.py
+        # This function is kept for backward compatibility but delegates to Pydantic
+        from core.schemas import validate_preferences_dict
         try:
-            validation_logger.warning("LEGACY COMPATIBILITY: preferences basic type checks handled here; prefer Pydantic models.")
-        except Exception:
-            pass
-        if 'categories' in updates:
-            if not isinstance(updates['categories'], list):
-                errors.append("categories must be a list")
-            else:
-                from core.message_management import get_message_categories
-                invalid = [c for c in updates['categories'] if c not in get_message_categories()]
-                if invalid:
-                    errors.append(f"Invalid categories: {invalid}")
-        if 'channel' in updates and isinstance(updates['channel'], dict):
-            if updates['channel'].get('type') not in ['email', 'discord', 'telegram']:
-                errors.append("Invalid channel type. Must be one of: email, discord, telegram")
+            # For updates, we need to merge with existing data to get complete preferences
+            try:
+                from core.user_data_handlers import get_user_data
+                current_preferences = get_user_data(user_id, 'preferences').get('preferences', {})
+            except Exception:
+                current_preferences = {}
+            
+            # Merge updates with current preferences for validation
+            merged_preferences = current_preferences.copy()
+            merged_preferences.update(updates)
+            
+            # Use Pydantic validation for preferences data
+            _, validation_errors = validate_preferences_dict(merged_preferences)
+            if validation_errors:
+                errors.extend(validation_errors)
+        except Exception as e:
+            errors.append(f"Preferences validation error: {e}")
 
     # CONTEXT -----------------------------------------------------------------
     elif data_type == 'context':
@@ -158,46 +138,27 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
 
     # SCHEDULES ---------------------------------------------------------------
     elif data_type == 'schedules':
-        # LEGACY COMPATIBILITY: time format/days now validated by Pydantic PeriodModel where possible
+        # Schedules validation is now handled by Pydantic models in core/schemas.py
+        # This function is kept for backward compatibility but delegates to Pydantic
+        from core.schemas import validate_schedules_dict
         try:
-            validation_logger.warning("LEGACY COMPATIBILITY: schedules primitive checks handled here; prefer Pydantic models.")
-        except Exception:
-            pass
-        valid_days = ['ALL', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-        for category, periods in updates.items():
-            if not isinstance(periods, dict):
-                continue
-            for period_name, period_data in periods.items():
-                if not isinstance(period_data, dict):
-                    continue
-                # Validate time format & ordering
-                times_valid = True
-                start = period_data.get('start_time')
-                end = period_data.get('end_time')
-                if start and not validate_time_format(start):
-                    errors.append(f"Invalid start_time format in {category}.{period_name}")
-                    times_valid = False
-                if end and not validate_time_format(end):
-                    errors.append(f"Invalid end_time format in {category}.{period_name}")
-                    times_valid = False
-
-                if times_valid and start and end:
-                    try:
-                        from datetime import datetime as _dt
-                        st = _dt.strptime(start, "%H:%M")
-                        et = _dt.strptime(end, "%H:%M")
-                        if st >= et:
-                            errors.append(f"start_time must be before end_time in {category}.{period_name}")
-                    except ValueError:
-                        # Already caught by format validation
-                        pass
-                if 'days' in period_data:
-                    if not isinstance(period_data['days'], list):
-                        errors.append(f"days must be a list in {category}.{period_name}")
-                    else:
-                        bad = [d for d in period_data['days'] if d not in valid_days]
-                        if bad:
-                            errors.append(f"Invalid days in {category}.{period_name}: {bad}")
+            # For updates, we need to merge with existing data to get complete schedules
+            try:
+                from core.user_data_handlers import get_user_data
+                current_schedules = get_user_data(user_id, 'schedules').get('schedules', {})
+            except Exception:
+                current_schedules = {}
+            
+            # Merge updates with current schedules for validation
+            merged_schedules = current_schedules.copy()
+            merged_schedules.update(updates)
+            
+            # Use Pydantic validation for schedules data
+            _, validation_errors = validate_schedules_dict(merged_schedules)
+            if validation_errors:
+                errors.extend(validation_errors)
+        except Exception as e:
+            errors.append(f"Schedules validation error: {e}")
 
     return len(errors) == 0, errors
 

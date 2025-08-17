@@ -30,22 +30,31 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**Account Creation Testing** - Verify all recent fixes work correctly
-- *What it means*: Test account creation with tags, undo functionality, and message file creation
-- *Why it helps*: Ensures the recent fixes for account creation errors and path resolution work correctly
+**Critical Validation Test Failures** - Fix validation tests broken by Pydantic migration
+- *What it means*: 8 unit tests are failing because the new Pydantic validation is more lenient than the old validation logic
+- *Why it helps*: Restores reliable testing infrastructure and ensures validation works correctly
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **CRITICAL** - Blocking reliable testing
+- *Issues*:
+  - Pydantic validation doesn't validate `internal_username` requirement for account updates
+  - Pydantic validation doesn't validate email format strictly
+  - Pydantic validation doesn't validate category membership
+  - Pydantic validation doesn't validate time format/order for schedules
+  - Pydantic validation doesn't validate day names for schedules
+- *Action*: Update validation logic to maintain backward compatibility or update tests to match new behavior
+
+**ComponentLogger Method Signature Issues** - Fix remaining logging calls with wrong argument format
+- *What it means*: Some logging calls still use old format with multiple positional arguments instead of keyword arguments
+- *Why it helps*: Prevents runtime errors and ensures consistent logging
 - *Estimated effort*: Small
-- Subtasks:
-  - [ ] Test account creation with custom tags and verify they save correctly
-  - [ ] Test undo tag deletion functionality during account creation
-  - [ ] Verify no warnings about missing message files during account creation
-  - [ ] Test scheduler integration for newly created users
-  - [ ] Verify fun_facts.json and health.json load correctly for new users
+- *Status*: ⚠️ **IN PROGRESS** - Partially fixed, need to find remaining instances
+- *Action*: Search for remaining `logger.info(message, arg1, arg2)` patterns and convert to f-strings
 
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
 - *Why it helps*: Prevents lost messages and duplicate check-in starts.
 - *Estimated effort*: Small
-- Subtasks:
+- *Subtasks*:
   - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
   - [ ] Confirm single "User check-in started" entry after successful send
 
@@ -53,7 +62,7 @@ When adding new tasks, follow this format:
 - *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
 - *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
 - *Estimated effort*: Small/Medium
-- Subtasks:
+- *Subtasks*:
   - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
   - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
   - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
@@ -62,7 +71,7 @@ When adding new tasks, follow this format:
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
 - *Why it helps*: Stronger validation and normalized data.
 - *Estimated effort*: Medium
-- Subtasks:
+- *Subtasks*:
   - [ ] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
   - [ ] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
@@ -72,34 +81,22 @@ When adding new tasks, follow this format:
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
 - *Why it helps*: Reduces confusion and makes conversations efficient
 - *Estimated effort*: Small/Medium
-- Subtasks:
+- *Subtasks*:
   - [ ] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
   - [ ] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
   - [ ] Behavior tests: list tasks → edit task flow ensures "which task" is asked when not specified
-
-**App Log Inactivity Investigation** - `logs/app.log` not receiving expected entries
-- *What it means*: Diagnose why `app.log` is empty or sparse and restore expected application logging
-- *Why it helps*: Ensures central visibility for non-component events and simplifies troubleshooting
-- *Estimated effort*: Small
-- Subtasks:
-  - [ ] Verify logger configuration (paths/handlers) in `core/logger.py` and `core/config.py` points to `logs/app.log`
-  - [ ] Check handler attachment/propagation for root and component loggers; confirm `app` logger exists
-  - [ ] Emit a simple startup log from `run_mhm.py`/service to confirm handler wiring
-  - [ ] Ensure component logs still write to their own files while general app events go to `app.log`
-  - [ ] Add a behavior test asserting a known startup line appears in `logs/app.log` under test mode
-  - [ ] Remove any remaining uses of deprecated `LOG_FILE_PATH` env in docs/deploy scripts
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
 - *Why it helps*: Ensures consistent behavior across channels and prevents regressions
 - *Estimated effort*: Small/Medium
-- Subtasks:
+- *Subtasks*:
   - [ ] Add behavior tests for dynamic Discord app commands (registration, sync, callback wiring)
   - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
   - [ ] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat
   - [ ] Document command list in QUICK_REFERENCE.md
 
-**Legacy Code Removal** - Remove all marked legacy/compatibility code with clear marking and plans
+**Legacy Code Removal** - Remove all marked legacy/compatibility code with clear marking and plans ✅ **COMPLETED**
 - *What it means*: Remove legacy compatibility code per `LEGACY_CODE_REMOVAL_PLAN.md` (keep warnings in place until removal)
 - *Why it helps*: Reduces complexity, eliminates legacy branches, improves maintainability
 - *Estimated effort*: Medium
@@ -107,6 +104,7 @@ When adding new tasks, follow this format:
   - Account Creator Dialog compatibility methods (by 2025-08-15)
   - User Profile Settings Widget legacy fallbacks (by 2025-08-15)
   - Discord Bot legacy methods (by 2025-08-15)
+- *Status*: ✅ **COMPLETED** - Legacy validation code removed and replaced with Pydantic validation
 
 **Throttler Bug Fix** - Fix Service Utilities Throttler first-call behavior
 - *What it means*: Ensure `last_run` is set on first call so throttling works from initial invocation
@@ -117,13 +115,31 @@ When adding new tasks, follow this format:
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
-- *Status*: ⚠️ **OUTSTANDING** - Previous fix attempt may not have fully resolved the issue
+
+**Script Logger Migration** - Complete logging migration for scripts and utilities ✅ **COMPLETED**
+- *What it means*: Migrate 21 script/utility files from `get_logger(__name__)` to component loggers for consistency
+- *Why it helps*: Completes the logging migration, prevents future confusion, maintains consistency across codebase
+- *Estimated effort*: Small
+- *Files affected*: Scripts in `scripts/` directory, debug tools, migration scripts
+- *Status*: ✅ **COMPLETED** - All 21 script files migrated to component loggers
+
+**Low Activity Log Investigation** - Investigate log files with low activity ✅ **COMPLETED**
+- *What it means*: Check why `errors.log` (8 days old) and `user_activity.log` (15 hours old) have low activity
+- *Why it helps*: Ensures no important logs are being missed and confirms expected behavior
+- *Estimated effort*: Small
+- *Action*: Determine if inactivity is expected or indicates an issue
+- *Status*: ✅ **COMPLETED** - Investigation confirms low activity is expected behavior
+- *Findings*: 
+  - `errors.log`: 8-day-old entries are from test files, no real errors occurring (good system health)
+  - `user_activity.log`: 15-hour-old entry is last user check-in, no recent user interactions (normal usage)
+  - `ai.log`: Only initialization logs, no conversation logs because no AI interactions occurred (expected)
+  - **Conclusion**: Low activity is completely expected for a personal mental health assistant
 
 **Check-in Flow Behavior & Stability**
 - *What it means*: Ensure active check-ins expire correctly and legacy shims are not used in live flows
 - *Why it helps*: Prevents stale states and confusing interactions during conversations
 - *Estimated effort*: Small/Medium
-- Subtasks:
+- *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
   - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)

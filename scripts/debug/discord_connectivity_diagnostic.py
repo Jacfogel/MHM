@@ -19,11 +19,11 @@ from typing import Dict, Any, List
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
-from core.logger import get_logger
+from core.logger import get_component_logger
 from bot.discord_bot import DiscordBot, DiscordConnectionStatus
 from bot.communication_manager import CommunicationManager
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 
 class DiscordConnectivityDiagnostic:
     """Comprehensive Discord connectivity diagnostic tool"""

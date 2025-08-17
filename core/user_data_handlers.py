@@ -68,7 +68,7 @@ def register_data_loader(
         description=description,
     )
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 handlers_logger = get_component_logger('user_activity')
 
 @handle_errors("getting user data", default_return={})
@@ -519,9 +519,7 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                 added_categories = new_categories - old_categories
 
                 if added_categories:
-                    logger.info(
-                        f"Categories update detected for user {user_id}: added={added_categories}"
-                    )
+                    logger.info(f"Categories update detected for user {user_id}: added={added_categories}")
 
                 # Create default schedules for any new categories
                 for category in added_categories:
@@ -535,21 +533,12 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                     try:
                         result_files = ensure_user_message_files(user_id, list(added_categories))
                         logger.info(
-                            "Category update for user %s: created %s message files for %d new "
-                            "categories (directory_created=%s)",
-                            user_id,
-                            result_files.get("files_created"),
-                            len(added_categories),
-                            result_files.get("directory_created"),
+                            f"Category update for user {user_id}: created {result_files.get('files_created')} message files for {len(added_categories)} new categories (directory_created={result_files.get('directory_created')})"
                         )
                     except Exception as e:
-                        logger.error(
-                            "Error creating message files for user %s after category update: %s", user_id, e
-                        )
+                        logger.error(f"Error creating message files for user {user_id} after category update: {e}")
         except Exception as err:
-            logger.warning(
-                "Category bookkeeping skipped for user %s due to import error: %s", user_id, err
-            )
+            logger.warning(f"Category bookkeeping skipped for user {user_id} due to import error: {err}")
 
     # -------------------------------------------------------------------
     # Persist updates via the central save path

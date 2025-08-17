@@ -89,6 +89,38 @@ Building a personal mental health assistant that helps manage executive function
 - Repeat as needed to ensure consistency
 - You can always ask if deviating from a rule would be better
 
+### **Completeness and Consistency Standards**
+**CRITICAL**: User values completeness and consistency above all else.
+
+**Completeness Requirements:**
+- **Full Scope**: When making changes, consider ALL affected areas, not just the immediate target
+- **Cross-Reference Check**: Always verify that changes don't break other parts of the system
+- **Documentation Updates**: Update ALL relevant documentation files when making changes
+- **Test Coverage**: Ensure tests cover the full scope of changes, not just happy path
+- **Edge Cases**: Consider and handle edge cases, error conditions, and failure modes
+
+**Consistency Requirements:**
+- **Pattern Matching**: Follow established patterns in the codebase, don't create new patterns without justification
+- **Naming Conventions**: Maintain consistent naming across all files and functions
+- **Code Style**: Follow the existing code style and formatting patterns
+- **Error Handling**: Use consistent error handling patterns throughout the codebase
+- **Logging**: Use consistent logging patterns and component loggers as established
+
+**When Making Changes:**
+- **Before Starting**: Identify ALL files, functions, and systems that might be affected
+- **During Changes**: Check for consistency with existing patterns and conventions
+- **After Changes**: Verify that ALL related systems still work correctly
+- **Documentation**: Update ALL relevant documentation to reflect changes
+- **Testing**: Test ALL affected functionality, not just the primary change
+
+**Completeness Checklist:**
+- [ ] Have I identified ALL affected files and functions?
+- [ ] Have I updated ALL relevant documentation?
+- [ ] Have I considered ALL edge cases and error conditions?
+- [ ] Have I tested ALL affected functionality?
+- [ ] Have I maintained consistency with existing patterns?
+- [ ] Have I checked for any unintended side effects?
+
 ### **Safety First**
 - Backup before major changes
 - Test incrementally

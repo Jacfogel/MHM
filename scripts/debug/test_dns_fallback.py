@@ -14,10 +14,10 @@ import time
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
-from core.logger import get_logger
+from core.logger import get_component_logger
 from bot.discord_bot import DiscordBot
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 
 def test_dns_fallback():
     """Test the enhanced DNS resolution with fallback servers"""

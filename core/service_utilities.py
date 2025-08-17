@@ -23,7 +23,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 service_logger = get_component_logger('main')
 
 # Throttler class

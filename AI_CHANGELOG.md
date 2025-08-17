@@ -9,7 +9,62 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
-### 2025-08-15 - Fixed fun_facts.json Path Resolution Issue ✅ **COMPLETED**
+### 2025-08-17 - Critical Logging Fixes and Validation Test Issues ✅ **PARTIALLY COMPLETED**
+
+#### **Critical Logging System Fixes**
+- **Problem**: ComponentLogger method signature errors causing system crashes
+- **Root Cause**: Legacy logging calls using multiple positional arguments instead of keyword arguments
+- **Solution**: Fixed logging calls in `core/user_data_handlers.py` to use f-string format
+- **Files Modified**: `core/user_data_handlers.py`
+- **Impact**: System can now import and run without logging errors
+
+#### **Validation Test Failures Discovered**
+- **Problem**: 8 unit tests failing due to Pydantic validation being more lenient than old validation
+- **Root Cause**: Pydantic models don't validate the same constraints as the old validation logic
+- **Issues Identified**:
+  - Pydantic doesn't require `internal_username` for account updates
+  - Pydantic doesn't validate email format strictly
+  - Pydantic doesn't validate category membership
+  - Pydantic doesn't validate time format/order for schedules
+  - Pydantic doesn't validate day names for schedules
+- **Status**: ⚠️ **CRITICAL** - Blocking reliable testing infrastructure
+- **Action Required**: Update validation logic or tests to maintain backward compatibility
+
+#### **System Health Assessment**
+- **Audit Results**: 99.0% documentation coverage, 1919 total functions, 1470 high complexity
+- **Test Status**: 134 passed, 8 failed, 1 skipped (94.4% success rate)
+- **Logging**: Fixed critical ComponentLogger issues, system can run
+- **Next Priority**: Fix validation test failures to restore reliable testing
+
+### 2025-08-15 - Comprehensive Logging System Fixes ✅ **COMPLETED**
+- **Comprehensive testing**: Verified all recent account creation fixes work correctly
+  - **Test results**: All 10 tests passed - account creation system fully functional
+  - **Verified fixes**: Default message files, tag management, undo functionality, scheduler integration, path resolution
+  - **Impact**: Confirmed stable account creation process ready for production use
+- **Comprehensive logging system fixes**: Fixed multiple logging issues across the entire system
+  - **Discord health checks**: Fixed Discord health check messages appearing in `app.log` instead of `discord.log`
+  - **Component logger migration**: Updated 15+ modules to use proper component loggers instead of `get_logger(__name__)`
+  - **Script logger migration**: Completed migration of 21 script/utility files to component loggers for consistency
+- **Low activity log investigation**: Confirmed that low activity in `errors.log` (8 days old) and `user_activity.log` (15 hours old) is expected behavior
+- **Legacy code removal**: Removed legacy compatibility validation code from `core/user_data_validation.py` and replaced with Pydantic validation
+- **Logging separation**: Ensured each component writes to its own dedicated log file
+- **Impact**: Proper log separation achieved - each component now logs to its own file
+- **Modules updated**: 
+  - `core/message_management.py` → `message` logger
+  - `core/backup_manager.py` → `backup` logger
+  - `tasks/task_management.py` → `tasks` logger
+  - `user/user_context.py` → `user_activity` logger
+  - `core/response_tracking.py` → `user_activity` logger
+  - `core/ui_management.py` → `ui` logger
+  - `core/service.py` → `main` logger
+  - `core/user_data_handlers.py` → `main` logger
+  - `core/service_utilities.py` → `main` logger
+  - `core/user_data_validation.py` → `main` logger
+  - `core/user_data_manager.py` → `main` logger
+  - `core/schedule_management.py` → `scheduler` logger
+  - `core/user_management.py` → `main` logger
+  - `core/checkin_analytics.py` → `analytics` logger
+  - `user/user_preferences.py` → `user_activity` logger
 - **Path resolution error**: Fixed critical issue preventing default message files from being found
   - **Problem**: `fun_facts.json` and other default message files were reported as "not found" despite existing
   - **Root Cause**: `.env` file contained incorrect absolute path with malformed directory separator

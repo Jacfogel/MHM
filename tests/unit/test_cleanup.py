@@ -23,9 +23,9 @@ import sys
 sys.path.insert(0, str(project_root))
 
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
-from core.logger import get_logger
+from core.logger import get_component_logger
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 
 class CleanupManager:
     """Manages test data cleanup and isolation."""

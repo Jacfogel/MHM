@@ -18,7 +18,7 @@ import core.config as cfg
 from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data, get_all_user_ids
 
-logger = get_logger(__name__)
+logger = get_component_logger('backup')
 backup_logger = get_component_logger('main')
 
 class BackupManager:

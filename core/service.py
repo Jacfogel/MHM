@@ -15,8 +15,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.logger import setup_logging, get_logger, get_component_logger
 import logging  # kept for tests that patch core.service.logging.getLogger
 setup_logging()
-logger = get_logger(__name__)
-main_logger = get_component_logger('main')
+logger = get_component_logger('main')
+main_logger = logger  # Alias for backward compatibility
+discord_logger = get_component_logger('discord')
 logger.debug("Logging setup successfully.")
 
 # Start file creation auditor early (developer tool)
@@ -214,7 +215,7 @@ class MHMService:
         # Force restart logging
         from core.logger import force_restart_logging
         if force_restart_logging():
-            logger = get_logger(__name__)
+            logger = get_component_logger('main')
             logger.info("Logging system force restarted successfully")
         else:
             logger.error("Failed to restart logging system")
@@ -388,19 +389,19 @@ class MHMService:
                         if discord_status:
                             connection_status = discord_status.get('connection_status', 'unknown')
                             if connection_status != 'connected':
-                                logger.warning(f"Discord connectivity issue detected: {connection_status}")
+                                discord_logger.warning(f"Discord connectivity issue detected: {connection_status}")
                                 # Log detailed error information if available
                                 detailed_errors = discord_status.get('detailed_errors', {})
                                 if detailed_errors:
                                     for error_type, error_info in detailed_errors.items():
-                                        logger.warning(f"Discord {error_type}: {error_info.get('error_message', 'Unknown error')}")
+                                        discord_logger.warning(f"Discord {error_type}: {error_info.get('error_message', 'Unknown error')}")
                             else:
                                 # Log successful connection with metrics
                                 latency = discord_status.get('latency', 'unknown')
                                 guild_count = discord_status.get('guild_count', 'unknown')
-                                logger.debug(f"Discord healthy - Latency: {latency}s, Guilds: {guild_count}")
+                                discord_logger.debug(f"Discord healthy - Latency: {latency}s, Guilds: {guild_count}")
                     except Exception as e:
-                        logger.warning(f"Could not check Discord connectivity status: {e}")
+                        discord_logger.warning(f"Could not check Discord connectivity status: {e}")
                 
         logger.info("Service loop ended.")
         # Clean up shutdown file if it exists

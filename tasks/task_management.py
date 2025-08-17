@@ -19,7 +19,7 @@ from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
 from core.user_management import load_user_preferences_data
 
-logger = get_logger(__name__)
+logger = get_component_logger('tasks')
 task_logger = get_component_logger('main')
 
 class TaskManagementError(Exception):

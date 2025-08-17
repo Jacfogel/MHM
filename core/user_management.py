@@ -21,7 +21,7 @@ from core.schemas import (
 )
 import inspect
 
-logger = get_logger(__name__)
+logger = get_component_logger('main')
 user_logger = get_component_logger('user_activity')
 
 # Cache configuration
