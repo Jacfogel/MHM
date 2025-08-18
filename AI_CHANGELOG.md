@@ -6,6 +6,33 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-18 - UI Service Logging Fix ✅ **COMPLETED**
+
+**Problem**: Service started via UI was not logging to `app.log` even though it was running
+- **Service Status**: Service was running and functional, but no log entries appeared in `app.log`
+- **Direct Start**: Service logged properly when started directly with `python core/service.py`
+- **UI Start**: Service started via UI (`run_mhm.py` → `ui_app_qt.py`) had no logging
+- **Impact**: No visibility into service operations when started through UI
+
+**Root Cause**: Missing working directory parameter in UI service startup
+- **UI Service Start**: `subprocess.Popen()` was missing `cwd` (current working directory) parameter
+- **Path Resolution**: Service ran from wrong directory, couldn't access `logs/` directory and other relative paths
+- **Logging Configuration**: Service logging depends on correct working directory for relative path resolution
+
+**Solution**: Added working directory parameter to UI service startup
+- **Fixed**: Added `cwd=script_dir` parameter to both Windows and Unix `subprocess.Popen()` calls in `ui/ui_app_qt.py`
+- **Windows**: `subprocess.Popen([python_executable, service_path], env=env, cwd=script_dir, creationflags=subprocess.CREATE_NO_WINDOW)`
+- **Unix**: `subprocess.Popen([python_executable, service_path], env=env, cwd=script_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)`
+
+**Results**: 
+- **Service Logging**: Service now logs properly to `app.log` when started via UI
+- **Consistent Behavior**: Both direct and UI service starts now work identically
+- **Path Resolution**: All relative paths (logs, data, config) resolve correctly
+- **User Experience**: Full logging visibility regardless of how service is started
+
+**Files Modified**: 
+- `ui/ui_app_qt.py` - Added `cwd=script_dir` parameter to service startup calls
+
 ### 2025-08-18 - Test Coverage Expansion Completion & Test Suite Stabilization ✅ **COMPLETED**
 
 **Problem**: Test suite had critical failures in Communication Manager and UI Dialog tests

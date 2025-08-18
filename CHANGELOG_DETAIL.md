@@ -9,6 +9,53 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-18 - UI Service Logging Fix
+
+**Summary**: Fixed critical issue where service started via UI was not logging to `app.log`, ensuring consistent logging behavior regardless of how the service is started.
+
+**Problem Analysis**:
+- Service was running and functional when started via UI, but no log entries appeared in `app.log`
+- Service logged properly when started directly with `python core/service.py`
+- Issue was specific to UI-initiated service startup (`run_mhm.py` → `ui_app_qt.py`)
+- No visibility into service operations when started through UI interface
+
+**Root Cause Investigation**:
+- **Missing Working Directory**: `subprocess.Popen()` calls in UI service startup were missing the `cwd` (current working directory) parameter
+- **Path Resolution Issues**: Service was running from the wrong directory, preventing access to `logs/` directory and other relative paths
+- **Logging Configuration Dependency**: Service logging configuration depends on correct working directory for relative path resolution
+- **Windows vs Unix**: Issue affected both Windows (`CREATE_NO_WINDOW`) and Unix (`stdout=subprocess.DEVNULL`) service startup paths
+
+**Technical Solution Implemented**:
+- **Added Working Directory Parameter**: Added `cwd=script_dir` parameter to both Windows and Unix `subprocess.Popen()` calls in `ui/ui_app_qt.py`
+- **Windows Path**: `subprocess.Popen([python_executable, service_path], env=env, cwd=script_dir, creationflags=subprocess.CREATE_NO_WINDOW)`
+- **Unix Path**: `subprocess.Popen([python_executable, service_path], env=env, cwd=script_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)`
+- **Consistent Behavior**: Ensured both service startup paths use the same working directory parameter
+
+**Results Achieved**:
+- **Service Logging**: Service now logs properly to `app.log` when started via UI
+- **Consistent Behavior**: Both direct and UI service starts now work identically
+- **Path Resolution**: All relative paths (logs, data, config) resolve correctly from project root
+- **User Experience**: Full logging visibility regardless of how service is started
+- **Debugging Capability**: Users can now see service operations in logs when using UI
+
+**Files Modified**:
+- `ui/ui_app_qt.py`
+  - Added `cwd=script_dir` parameter to Windows service startup call
+  - Added `cwd=script_dir` parameter to Unix service startup call
+  - Ensured consistent working directory for both platforms
+
+**Testing Completed**:
+- Verified service starts and logs properly when initiated via UI
+- Confirmed log entries appear in `app.log` with current timestamps
+- Validated that both direct and UI service starts produce identical logging behavior
+- Tested on Windows environment with proper path resolution
+
+**Impact on Development**:
+- Improved debugging capability for UI-initiated service operations
+- Consistent logging behavior across all service startup methods
+- Better user experience with full visibility into service operations
+- Enhanced reliability of service management through UI
+
 ### 2025-08-18 - Test Coverage Expansion Completion & Test Suite Stabilization
 
 **Summary**: Successfully completed test coverage expansion for critical infrastructure components and stabilized the entire test suite to achieve 99.85% pass rate.

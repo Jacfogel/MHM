@@ -155,12 +155,12 @@ class ServiceManager:
             # Run without showing console window
             self.service_process = subprocess.Popen([
                 python_executable, service_path
-            ], env=env, creationflags=subprocess.CREATE_NO_WINDOW)
+            ], env=env, cwd=script_dir, creationflags=subprocess.CREATE_NO_WINDOW)
         else:  # Unix/Linux/Mac
             # Run in background
             self.service_process = subprocess.Popen([
                 python_executable, service_path
-            ], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            ], env=env, cwd=script_dir, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
         logger.debug("Service process started, waiting for initialization...")
         # Give it a moment to start
