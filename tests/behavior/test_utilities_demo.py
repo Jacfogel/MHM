@@ -22,7 +22,7 @@ class TestUtilitiesDemo:
     def test_basic_user_creation(self, test_data_dir):
         """Demonstrate creating a basic test user"""
         # Simple way to create a basic user
-        success = create_test_user("demo_basic_user", user_type="basic")
+        success = create_test_user("demo_basic_user", user_type="basic", test_data_dir=test_data_dir)
         assert success, "Basic user creation should succeed"
         
         # Alternative using the factory directly
@@ -34,7 +34,7 @@ class TestUtilitiesDemo:
     @pytest.mark.smoke
     def test_discord_user_creation(self, test_data_dir):
         """Demonstrate creating a Discord-specific test user"""
-        success = create_test_user("demo_discord_user", user_type="discord", discord_user_id="987654321")
+        success = create_test_user("demo_discord_user", user_type="discord", discord_user_id="987654321", test_data_dir=test_data_dir)
         assert success, "Discord user creation should succeed"
         
         # Alternative using the factory directly
@@ -46,7 +46,7 @@ class TestUtilitiesDemo:
     @pytest.mark.smoke
     def test_full_featured_user_creation(self, test_data_dir):
         """Demonstrate creating a full-featured test user"""
-        success = create_test_user("demo_full_user", user_type="full")
+        success = create_test_user("demo_full_user", user_type="full", test_data_dir=test_data_dir)
         assert success, "Full user creation should succeed"
         
         # Alternative using the factory directly
@@ -58,7 +58,7 @@ class TestUtilitiesDemo:
     @pytest.mark.smoke
     def test_minimal_user_creation(self, test_data_dir):
         """Demonstrate creating a minimal test user"""
-        success = create_test_user("demo_minimal_user", user_type="minimal")
+        success = create_test_user("demo_minimal_user", user_type="minimal", test_data_dir=test_data_dir)
         assert success, "Minimal user creation should succeed"
         
         # Alternative using the factory directly
@@ -559,14 +559,14 @@ class TestUtilitiesBenefits:
         """Show how much less code is needed with centralized utilities"""
         # Before: Each test file had its own user creation logic
         # After: Simple one-liner
-        success = create_test_user("benefit_user", user_type="basic")
+        success = create_test_user("benefit_user", user_type="basic", test_data_dir=test_data_dir)
         assert success, "User creation should be simple and consistent"
     
     def test_consistent_user_data(self, test_data_dir):
         """Show that all tests use consistent user data structures"""
         # Create users using different methods
         user1 = TestUserFactory.create_basic_user("consistent_user_1", test_data_dir=test_data_dir)
-        user2 = create_test_user("consistent_user_2", user_type="basic")
+        user2 = create_test_user("consistent_user_2", user_type="basic", test_data_dir=test_data_dir)
         user3 = TestUserFactory.create_discord_user("consistent_user_3", test_data_dir=test_data_dir)
         
         # All should succeed with consistent data structures
@@ -610,13 +610,13 @@ if __name__ == "__main__":
         
         # Demonstrate user creation
         print("Creating test users...")
-        success = create_test_user("demo_user", user_type="basic")
+        success = create_test_user("demo_user", user_type="basic", test_data_dir=test_data_dir)
         print(f"Basic user creation: {'✅' if success else '❌'}")
         
-        success = create_test_user("demo_discord", user_type="discord")
+        success = create_test_user("demo_discord", user_type="discord", test_data_dir=test_data_dir)
         print(f"Discord user creation: {'✅' if success else '❌'}")
         
-        success = create_test_user("demo_full", user_type="full")
+        success = create_test_user("demo_full", user_type="full", test_data_dir=test_data_dir)
         print(f"Full user creation: {'✅' if success else '❌'}")
         
         print("\n🎉 Demo completed successfully!")

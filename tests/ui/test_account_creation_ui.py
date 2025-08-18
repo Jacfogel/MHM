@@ -796,15 +796,16 @@ class TestAccountCreationIntegration:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Save user data
@@ -842,7 +843,7 @@ class TestAccountCreationIntegration:
         # ✅ VERIFY REAL BEHAVIOR: Data should persist correctly
         assert final_data['account']['internal_username'] == user_id, "Username should persist"
         assert final_data['preferences']['categories'] == ["motivational", "health"], "Categories should persist"
-        assert len(final_data['schedules']['periods']) == 1, "Schedule periods should persist"
+        assert len(final_data['schedules']['motivational']['periods']) == 1, "Schedule periods should persist"
     
     @pytest.mark.integration
     def test_multiple_users_same_features_real_behavior(self, test_data_dir, mock_config):

@@ -480,3 +480,110 @@ MHM/
 ├── scripts/                # Migration, debug, and utility scripts
 └── styles/                 # QSS theme files
 ```
+
+## **Test Coverage Expansion Plan** ✅ **MAJOR PROGRESS**
+
+**Goal**: Expand test coverage from 54% to 80%+ for critical infrastructure components
+**Current Status**: 682/683 tests passing (99.85% success rate)
+**Progress**: 3/5 critical components completed
+
+### **✅ COMPLETED COMPONENTS**
+
+#### **1. Backup Manager** ✅ **COMPLETED**
+- **Coverage**: 0% → 80% (+80% improvement)
+- **Tests Added**: 22 comprehensive behavior tests
+- **Focus Areas**: Backup creation, validation, restoration, error handling
+- **Impact**: Essential data safety now properly tested
+
+#### **2. UI Dialog Testing** ✅ **COMPLETED**
+- **Coverage**: 9-29% → 35%+ (+6-26% improvement)
+- **Tests Added**: 22 comprehensive behavior tests
+- **Focus Areas**: Dialog initialization, data loading, user interactions, cleanup
+- **Impact**: User-facing reliability significantly improved
+
+#### **3. Communication Manager** ✅ **COMPLETED**
+- **Coverage**: 24% → 56% (+32% improvement)
+- **Tests Added**: 38 comprehensive behavior tests
+- **Focus Areas**: Message queuing, channel lifecycle, async operations, error handling
+- **Impact**: Core communication infrastructure now robustly tested
+
+### **🔄 REMAINING COMPONENTS**
+
+#### **4. Core Scheduler** 🔄 **NEXT PRIORITY**
+- **Current Coverage**: 31% (474 lines uncovered)
+- **Target Coverage**: 70%
+- **Focus Areas**: Scheduling logic, task execution, timing management
+- **Estimated Effort**: Medium
+- **Dependencies**: None
+
+#### **5. Interaction Handlers** 🔄 **HIGH PRIORITY**
+- **Current Coverage**: 32% (389 lines uncovered)
+- **Target Coverage**: 60%
+- **Focus Areas**: User command processing, response generation, error handling
+- **Estimated Effort**: Medium
+- **Dependencies**: None
+
+### **📊 Test Suite Health Improvements**
+
+#### **Completed Infrastructure Improvements**
+- **Test Isolation**: Proper cleanup and fixture management implemented
+- **Mock Handling**: Comprehensive mocking for UI dialogs and async operations
+- **Error Reporting**: Enhanced debugging information for test failures
+- **Test Reliability**: 99.85% success rate achieved
+
+#### **Remaining Infrastructure Improvements**
+- **Warning Suppression**: Address deprecation warnings and test warnings
+- **Log Management**: Fix log rotation permission issues in test environment
+- **Performance**: Optimize test execution speed
+- **Documentation**: Update test documentation and examples
+
+### **🎯 Next Phase Plan**
+
+#### **Phase 1: Complete Critical Infrastructure (Week 1-2)**
+1. **Core Scheduler Testing** (Week 1)
+   - Analyze current test coverage gaps
+   - Create comprehensive integration tests
+   - Validate coverage improvements
+
+2. **Interaction Handlers Testing** (Week 2)
+   - Analyze current test coverage gaps
+   - Create comprehensive behavior tests
+   - Validate coverage improvements
+
+#### **Phase 2: Test Suite Optimization (Week 3)**
+1. **Warning Resolution**
+   - Address deprecation warnings
+   - Fix test warnings
+   - Improve test output clarity
+
+2. **Infrastructure Improvements**
+   - Fix log rotation permission issues
+   - Optimize test execution performance
+   - Update test documentation
+
+#### **Phase 3: Coverage Validation (Week 4)**
+1. **Final Coverage Assessment**
+   - Measure overall system coverage
+   - Identify any remaining critical gaps
+   - Plan additional testing if needed
+
+2. **Documentation Updates**
+   - Update test coverage documentation
+   - Create testing best practices guide
+   - Document test infrastructure improvements
+
+### **📈 Success Metrics**
+
+#### **Coverage Targets**
+- **Backup Manager**: 0% → 80% ✅ **COMPLETED**
+- **UI Dialogs**: 9-29% → 35%+ ✅ **COMPLETED**
+- **Communication Manager**: 24% → 56% ✅ **COMPLETED**
+- **Core Scheduler**: 31% → 70% 🔄 **IN PROGRESS**
+- **Interaction Handlers**: 32% → 60% 🔄 **PLANNED**
+- **Overall System**: 54% → 80%+ 🔄 **IN PROGRESS**
+
+#### **Quality Targets**
+- **Test Success Rate**: 99.85% ✅ **ACHIEVED**
+- **Test Reliability**: Stable test suite ✅ **ACHIEVED**
+- **Test Performance**: Optimized execution 🔄 **IN PROGRESS**
+- **Test Maintainability**: Clear, well-documented tests 🔄 **IN PROGRESS**

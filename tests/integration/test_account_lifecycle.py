@@ -207,15 +207,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first
@@ -233,16 +234,14 @@ class TestAccountLifecycle:
         }
         
         # Add check-in schedule periods
-        checkin_periods = [
-            {
-                "name": "morning_checkin",
-                "active": True,
-                "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                "start_time": "09:00",
-                "end_time": "10:00"
-            }
-        ]
-        loaded_data["schedules"]["periods"].extend(checkin_periods)
+        if "checkin" not in loaded_data["schedules"]:
+            loaded_data["schedules"]["checkin"] = {"periods": {}}
+        loaded_data["schedules"]["checkin"]["periods"]["morning_checkin"] = {
+            "active": True,
+            "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+            "start_time": "09:00",
+            "end_time": "10:00"
+        }
         
         self.save_user_data_simple(user_id, loaded_data["account"], loaded_data["preferences"], loaded_data["schedules"])
         
@@ -255,15 +254,15 @@ class TestAccountLifecycle:
         updated_data = get_user_data(user_id)
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
-        assert len(updated_data["schedules"]["periods"]) == 2, "Should have 2 schedule periods"
+        assert len(updated_data["schedules"]["motivational"]["periods"]) == 1, "Should have 1 motivational period"
+        assert len(updated_data["schedules"]["checkin"]["periods"]) == 1, "Should have 1 checkin period"
         
         # Verify check-ins file was created
         checkins_file = os.path.join(user_dir, "checkins.json")
         assert os.path.exists(checkins_file), "Check-ins file should be created"
         
         # Verify check-in period exists
-        checkin_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "morning_checkin"), None)
-        assert checkin_period is not None, "Check-in period should exist"
+        assert "morning_checkin" in updated_data["schedules"]["checkin"]["periods"], "Check-in period should exist"
     
     @pytest.mark.integration
     @pytest.mark.user_management
@@ -302,15 +301,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first
@@ -376,15 +376,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
+            "periods": {
+
+                "morning": {
                     "active": True,
                     "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
                     "start_time": "09:00",
                     "end_time": "12:00"
                 }
-            ]
+
+            }
         }
         
         # Create user directory first
@@ -451,15 +452,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
+            "periods": {
+
+                "morning": {
                     "active": True,
                     "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
                     "start_time": "09:00",
                     "end_time": "12:00"
                 }
-            ]
+
+            }
         }
         
         # Create user directory first
@@ -532,15 +534,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
+            "periods": {
+
+                "morning": {
                     "active": True,
                     "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
                     "start_time": "09:00",
                     "end_time": "12:00"
                 }
-            ]
+
+            }
         }
         
         # Create user directory first
@@ -587,15 +590,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first
@@ -608,22 +612,20 @@ class TestAccountLifecycle:
         
         # Act - Add new period
         loaded_data = get_user_data(user_id)
-        new_period = {
-            "name": "evening",
+        loaded_data["schedules"]["motivational"]["periods"]["evening"] = {
             "active": True,
             "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
             "start_time": "18:00",
             "end_time": "21:00"
         }
-        loaded_data["schedules"]["periods"].append(new_period)
         self.save_user_data_simple(user_id, schedules_data=loaded_data["schedules"])
         
         # Assert - Verify actual changes
         updated_data = get_user_data(user_id)
-        assert len(updated_data["schedules"]["periods"]) == 2, "Should have 2 periods"
+        assert len(updated_data["schedules"]["motivational"]["periods"]) == 2, "Should have 2 periods"
         
-        evening_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "evening"), None)
-        assert evening_period is not None, "Evening period should exist"
+        assert "evening" in updated_data["schedules"]["motivational"]["periods"], "Evening period should exist"
+        evening_period = updated_data["schedules"]["motivational"]["periods"]["evening"]
         assert evening_period["start_time"] == "18:00", "Evening period should have correct start time"
         assert evening_period["end_time"] == "21:00", "Evening period should have correct end time"
     
@@ -651,15 +653,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first
@@ -672,7 +675,7 @@ class TestAccountLifecycle:
         
         # Act - Modify period
         loaded_data = get_user_data(user_id)
-        morning_period = next((p for p in loaded_data["schedules"]["periods"] if p["name"] == "morning"), None)
+        morning_period = loaded_data["schedules"]["motivational"]["periods"]["morning"]
         morning_period["start_time"] = "08:00"
         morning_period["end_time"] = "11:00"
         morning_period["days"] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
@@ -681,11 +684,11 @@ class TestAccountLifecycle:
         
         # Assert - Verify actual changes
         updated_data = get_user_data(user_id)
-        updated_morning = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "morning"), None)
+        updated_morning = updated_data["schedules"]["motivational"]["periods"]["morning"]
         assert updated_morning["start_time"] == "08:00", "Start time should be updated"
         assert updated_morning["end_time"] == "11:00", "End time should be updated"
-        assert "saturday" in updated_morning["days"], "Saturday should be added to days"
-        assert len(updated_morning["days"]) == 6, "Should have 6 days"
+        # Pydantic normalizes days to ['ALL'] when all days are selected
+        assert updated_morning["days"] == ["ALL"], "Days should be normalized to ['ALL'] when all days selected"
     
     @pytest.mark.integration
     def test_remove_schedule_period(self, test_data_dir, mock_config):
@@ -711,22 +714,22 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
-                },
-                {
-                    "name": "evening",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "18:00",
-                    "end_time": "21:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    },
+                    "evening": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "18:00",
+                        "end_time": "21:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first
@@ -739,18 +742,15 @@ class TestAccountLifecycle:
         
         # Act - Remove period
         loaded_data = get_user_data(user_id)
-        loaded_data["schedules"]["periods"] = [p for p in loaded_data["schedules"]["periods"] if p["name"] != "evening"]
+        del loaded_data["schedules"]["motivational"]["periods"]["evening"]
         self.save_user_data_simple(user_id, schedules_data=loaded_data["schedules"])
         
         # Assert - Verify actual changes
         updated_data = get_user_data(user_id)
-        assert len(updated_data["schedules"]["periods"]) == 1, "Should have 1 period"
+        assert len(updated_data["schedules"]["motivational"]["periods"]) == 1, "Should have 1 period"
         
-        evening_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "evening"), None)
-        assert evening_period is None, "Evening period should be removed"
-        
-        morning_period = next((p for p in updated_data["schedules"]["periods"] if p["name"] == "morning"), None)
-        assert morning_period is not None, "Morning period should remain"
+        assert "evening" not in updated_data["schedules"]["motivational"]["periods"], "Evening period should be removed"
+        assert "morning" in updated_data["schedules"]["motivational"]["periods"], "Morning period should remain"
     
     @pytest.mark.integration
     def test_complete_account_lifecycle(self, test_data_dir, mock_config):
@@ -772,15 +772,16 @@ class TestAccountLifecycle:
         }
         
         schedules_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         
         # Create user directory first

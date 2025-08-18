@@ -141,27 +141,26 @@ class TestUserFactory:
             schedules_data = {}
             for category in categories:
                 schedules_data[category] = {
-                    "enabled": True,
-                    "periods": [
-                        {
-                            "name": "Morning",
+                    "periods": {
+                        "Morning": {
+                            "active": True,
+                            "days": ["ALL"],
                             "start_time": "09:00",
-                            "end_time": "12:00",
-                            "enabled": True
+                            "end_time": "12:00"
                         },
-                        {
-                            "name": "Afternoon",
+                        "Afternoon": {
+                            "active": True,
+                            "days": ["ALL"],
                             "start_time": "13:00",
-                            "end_time": "17:00",
-                            "enabled": True
+                            "end_time": "17:00"
                         },
-                        {
-                            "name": "Evening",
+                        "Evening": {
+                            "active": True,
+                            "days": ["ALL"],
                             "start_time": "18:00",
-                            "end_time": "21:00",
-                            "enabled": True
+                            "end_time": "21:00"
                         }
-                    ]
+                    }
                 }
             
             schedules_file = os.path.join(user_dir, "schedules.json")
@@ -2137,15 +2136,16 @@ class TestUserDataFactory:
             Dict containing schedules data
         """
         base_data = {
-            "periods": [
-                {
-                    "name": "morning",
-                    "active": True,
-                    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-                    "start_time": "09:00",
-                    "end_time": "12:00"
+            "motivational": {
+                "periods": {
+                    "morning": {
+                        "active": True,
+                        "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    }
                 }
-            ]
+            }
         }
         base_data.update(overrides)
         return base_data
@@ -2172,7 +2172,7 @@ class TestUserDataFactory:
 
 
 # Convenience functions for backward compatibility
-def create_test_user(user_id: str, user_type: str = "basic", **kwargs) -> bool:
+def create_test_user(user_id: str, user_type: str = "basic", test_data_dir: str = None, **kwargs) -> bool:
     """
     Convenience function to create test users with different configurations
     
@@ -2193,6 +2193,7 @@ def create_test_user(user_id: str, user_type: str = "basic", **kwargs) -> bool:
             - "inconsistent": User with inconsistent/partial data
             - "custom_fields": User with custom field configurations
             - "scheduled": User with custom schedule configurations
+        test_data_dir: Test data directory to use (required for modern test approach)
         **kwargs: Additional arguments passed to the specific creation method
         
     Returns:
@@ -2202,51 +2203,51 @@ def create_test_user(user_id: str, user_type: str = "basic", **kwargs) -> bool:
         if user_type == "basic":
             enable_checkins = kwargs.get('enable_checkins', True)
             enable_tasks = kwargs.get('enable_tasks', True)
-            return TestUserFactory.create_basic_user(user_id, enable_checkins, enable_tasks)
+            return TestUserFactory.create_basic_user(user_id, enable_checkins, enable_tasks, test_data_dir)
         
         elif user_type == "discord":
             discord_user_id = kwargs.get('discord_user_id')
-            return TestUserFactory.create_discord_user(user_id, discord_user_id)
+            return TestUserFactory.create_discord_user(user_id, discord_user_id, test_data_dir)
         
         elif user_type == "email":
             email = kwargs.get('email')
-            return TestUserFactory.create_email_user(user_id, email)
+            return TestUserFactory.create_email_user(user_id, email, test_data_dir)
         
         elif user_type == "telegram":
             telegram_username = kwargs.get('telegram_username')
-            return TestUserFactory.create_telegram_user(user_id, telegram_username)
+            return TestUserFactory.create_telegram_user(user_id, telegram_username, test_data_dir)
         
         elif user_type == "full":
-            return TestUserFactory.create_full_featured_user(user_id)
+            return TestUserFactory.create_full_featured_user(user_id, test_data_dir)
         
         elif user_type == "minimal":
-            return TestUserFactory.create_minimal_user(user_id)
+            return TestUserFactory.create_minimal_user(user_id, test_data_dir)
         
         elif user_type == "health":
-            return TestUserFactory.create_user_with_health_focus(user_id)
+            return TestUserFactory.create_user_with_health_focus(user_id, test_data_dir)
         
         elif user_type == "task":
-            return TestUserFactory.create_user_with_task_focus(user_id)
+            return TestUserFactory.create_user_with_task_focus(user_id, test_data_dir)
         
         elif user_type == "disability":
-            return TestUserFactory.create_user_with_disabilities(user_id)
+            return TestUserFactory.create_user_with_disabilities(user_id, test_data_dir)
         
         elif user_type == "complex_checkins":
-            return TestUserFactory.create_user_with_complex_checkins(user_id)
+            return TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir)
         
         elif user_type == "limited_data":
-            return TestUserFactory.create_user_with_limited_data(user_id)
+            return TestUserFactory.create_user_with_limited_data(user_id, test_data_dir)
         
         elif user_type == "inconsistent":
-            return TestUserFactory.create_user_with_inconsistent_data(user_id)
+            return TestUserFactory.create_user_with_inconsistent_data(user_id, test_data_dir)
         
         elif user_type == "custom_fields":
             custom_fields = kwargs.get('custom_fields')
-            return TestUserFactory.create_user_with_custom_fields(user_id, custom_fields)
+            return TestUserFactory.create_user_with_custom_fields(user_id, custom_fields, test_data_dir)
         
         elif user_type == "scheduled":
             schedule_config = kwargs.get('schedule_config')
-            return TestUserFactory.create_user_with_schedules(user_id, schedule_config)
+            return TestUserFactory.create_user_with_schedules(user_id, schedule_config, test_data_dir)
         
         else:
             print(f"Unknown user type: {user_type}")

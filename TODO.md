@@ -30,30 +30,26 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**Critical Validation Test Failures** - Fix validation tests broken by Pydantic migration
-- *What it means*: 8 unit tests are failing because the new Pydantic validation is more lenient than the old validation logic
-- *Why it helps*: Restores reliable testing infrastructure and ensures validation works correctly
-- *Estimated effort*: Medium
-- *Status*: ⚠️ **CRITICAL** - Blocking reliable testing
-- *Issues*:
-  - Pydantic validation doesn't validate `internal_username` requirement for account updates
-  - Pydantic validation doesn't validate email format strictly
-  - Pydantic validation doesn't validate category membership
-  - Pydantic validation doesn't validate time format/order for schedules
-  - Pydantic validation doesn't validate day names for schedules
-- *Action*: Update validation logic to maintain backward compatibility or update tests to match new behavior
-- *Testing Needed*: Run full test suite after fixes to verify all validation tests pass
+## **Test Coverage Expansion - Critical Infrastructure** ✅ **MAJOR PROGRESS**
 
-**Schedule Data Structure Issues** - Fix missing 'periods' key in schedule validation
-- *What it means*: 4 integration tests are failing due to KeyError: 'periods' in schedule data structure validation
-- *Why it helps*: Fixes integration test failures and ensures schedule data is properly structured
-- *Estimated effort*: Medium
-- *Status*: ⚠️ **CRITICAL** - Blocking integration tests
-- *Issues*:
-  - Schedule validation expects 'periods' key but test data uses different structure
-  - Integration tests in `test_account_lifecycle.py` failing with KeyError: 'periods'
-  - Schedule data structure mismatch between test expectations and actual schema
-- *Action*: Align test data structure with expected schedule schema or update validation logic
+**Goal**: Expand test coverage from 54% to 80%+ for critical infrastructure components
+**Current Status**: 682/683 tests passing (99.85% success rate)
+**Estimated effort**: Large
+**Priority Order**:
+1. ✅ **Backup Manager** (0% → 80%) - Essential for data safety **COMPLETED**
+2. ✅ **UI Dialog Testing** (9-29% → 35%+) - User-facing reliability **COMPLETED**
+3. ✅ **Communication Manager** (24% → 56%) - Core infrastructure **COMPLETED**
+4. **Core Scheduler** (31% → 70%) - Core functionality
+5. **Interaction Handlers** (32% → 60%) - User interactions
+**Subtasks**:
+- [x] Create comprehensive test plan (see TEST_COVERAGE_EXPANSION_PLAN.md) **COMPLETED**
+- [x] Start with backup manager testing (0% coverage is critical) **COMPLETED**
+- [x] Expand UI dialog testing infrastructure **COMPLETED**
+- [x] Add communication manager behavior tests **COMPLETED**
+- [ ] Add scheduler integration tests
+- [ ] Add interaction handler behavior tests
+- [ ] **NEW**: Address remaining test warnings and deprecation notices
+- [ ] **NEW**: Fix log rotation permission issues in test environment
 
 **ComponentLogger Method Signature Issues** - Fix remaining logging calls with wrong argument format
 - *What it means*: Some logging calls still use old format with multiple positional arguments instead of keyword arguments

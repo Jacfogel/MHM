@@ -34,7 +34,8 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         success = TestUserFactory.create_basic_user(
             user_id, 
             enable_checkins=False, 
-            enable_tasks=False
+            enable_tasks=False,
+            test_data_dir=test_data_dir
         )
         if not success:
             return False
@@ -52,7 +53,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         
     elif base_state == "full":
         # Full user with all features enabled
-        success = TestUserFactory.create_full_featured_user(user_id)
+        success = TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
         if not success:
             return False
             
