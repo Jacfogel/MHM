@@ -1652,7 +1652,7 @@ Args:
 - ✅ `get_current_day_names()` - Returns the name of the current day plus 'ALL' for universal day messages.
 - ✅ `get_current_time_periods_with_validation(user_id, category)` - Returns the current active time periods for a user and category.
 If no active period is found, defaults to the first available period.
-- ✅ `get_reminder_periods_and_days(user_id, category)` - Load reminder periods and days for a category (e.g., 'tasks') from schedules.json.
+
 - ✅ `get_schedule_days(user_id, category)` - Get the schedule days for a user and category.
 
 Args:
@@ -1672,7 +1672,7 @@ Args:
     
 Returns:
     bool: True if the period is active, False otherwise (defaults to True if field is missing)
-- ✅ `set_reminder_periods_and_days(user_id, category, periods, days)` - Save reminder periods and days for a category to schedules.json.
+
 - ✅ `set_schedule_days(user_id, category, days)` - Set the schedule days for a user and category.
 
 Args:

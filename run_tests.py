@@ -47,13 +47,38 @@ def run_command(cmd, description, progress_interval: int = 30):
         print(f"\n[FAILED] {description} error after {total}s: {e}")
         return False
 
+def print_test_mode_info():
+    """Print helpful information about test modes."""
+    print("\n" + "="*60)
+    print("MHM TEST RUNNER - Available Modes")
+    print("="*60)
+    print("📋 Test Modes:")
+    print("  all         - Run ALL tests (default)")
+    print("  fast        - Unit tests only (excluding slow tests)")
+    print("  unit        - Unit tests only")
+    print("  integration - Integration tests only")
+    print("  behavior    - Behavior tests (excluding slow tests)")
+    print("  ui          - UI tests (excluding slow tests)")
+    print("  slow        - Slow tests only")
+    print("\n🔧 Options:")
+    print("  --verbose   - Verbose output")
+    print("  --parallel  - Run tests in parallel")
+    print("  --coverage  - Run with coverage reporting")
+    print("  --durations-all - Show timing for all tests")
+    print("\n💡 Examples:")
+    print("  python run_tests.py                    # Run all tests")
+    print("  python run_tests.py --mode fast        # Quick unit tests only")
+    print("  python run_tests.py --mode all --verbose # All tests with verbose output")
+    print("  python run_tests.py --parallel --workers 4 # Parallel execution")
+    print("="*60)
+
 def main():
     parser = argparse.ArgumentParser(description="MHM Test Runner")
     parser.add_argument(
         "--mode", 
         choices=["fast", "unit", "integration", "behavior", "ui", "all", "slow"],
-        default="fast",
-        help="Test execution mode"
+        default="all",
+        help="Test execution mode (default: all)"
     )
     parser.add_argument(
         "--parallel", 
@@ -87,8 +112,18 @@ def main():
         action="store_true",
         help="Ask pytest to report durations for all tests at the end"
     )
+    parser.add_argument(
+        "--help-modes",
+        action="store_true",
+        help="Show detailed information about test modes"
+    )
     
     args = parser.parse_args()
+    
+    # Show help modes if requested
+    if args.help_modes:
+        print_test_mode_info()
+        return 0
     
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
@@ -143,7 +178,18 @@ def main():
     elif args.mode == "all":
         # All tests
         cmd.extend(["tests/"])
-        description = "All Tests"
+        description = "All Tests (Unit, Integration, Behavior, UI)"
+    
+    # Print clear information about what we're running
+    print(f"\n🚀 MHM Test Runner")
+    print(f"Mode: {args.mode}")
+    print(f"Description: {description}")
+    if args.parallel:
+        print(f"Parallel: Yes ({args.workers} workers)")
+    if args.verbose:
+        print(f"Verbose: Yes")
+    if args.coverage:
+        print(f"Coverage: Yes")
     
     # Run the tests
     success = run_command(cmd, description, progress_interval=args.progress_interval)

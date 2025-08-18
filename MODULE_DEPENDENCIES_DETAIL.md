@@ -1024,7 +1024,7 @@
     - `bot.communication_manager (CommunicationManager)` (🆕)
     - `core.error_handling (error_handler, SchedulerError, CommunicationError, handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
-    - `core.schedule_management (get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation, get_reminder_periods_and_days)` (🆕)
+    - `core.schedule_management (get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation)` (🆕)
     - `core.schedule_management (get_schedule_time_periods)` (🆕)
     - `core.service_utilities (load_and_localize_datetime)` (🆕)
     - `core.user_data_handlers (get_all_user_ids)` (🆕)

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
-from core.file_operations import determine_file_path, load_json_data, save_json_data, get_user_file_path
+
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
 from core.error_handling import (
@@ -435,24 +435,7 @@ def get_current_day_names():
     current_day = list(calendar.day_name)[day_index]
     return [current_day, 'ALL']
 
-def get_reminder_periods_and_days(user_id, category):
-    """Load reminder periods and days for a category (e.g., 'tasks') from schedules.json."""
-    schedules_file = get_user_file_path(user_id, 'schedules')
-    schedules_data = load_json_data(schedules_file) or {}
-    cat_data = schedules_data.get(category, {})
-    periods = cat_data.get('reminder_periods', [])
-    days = cat_data.get('reminder_days', [])
-    return periods, days
 
-def set_reminder_periods_and_days(user_id, category, periods, days):
-    """Save reminder periods and days for a category to schedules.json."""
-    schedules_file = get_user_file_path(user_id, 'schedules')
-    schedules_data = load_json_data(schedules_file) or {}
-    if category not in schedules_data:
-        schedules_data[category] = {}
-    schedules_data[category]['reminder_periods'] = periods
-    schedules_data[category]['reminder_days'] = days
-    save_json_data(schedules_data, schedules_file)
 
 def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""

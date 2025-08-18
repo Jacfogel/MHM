@@ -1490,20 +1490,9 @@ For detailed setup instructions, see the README.md file.
         event.accept()
     
     @handle_errors("shutting down UI components")
-    def shutdown_ui_components(self, communication_manager=None):
+    def shutdown_ui_components(self):
         """Shutdown any UI-created components gracefully"""
         logger.info("Shutting down admin panel.")
-        if communication_manager:
-            # LEGACY COMPATIBILITY PATH - REMOVE AFTER VERIFYING NO USAGE
-            # TODO: Remove after confirming no UI creates communication manager instances
-            # REMOVAL PLAN:
-            # 1. Add usage logging to track legacy path usage
-            # 2. Monitor app.log for legacy usage warnings for 1 week
-            # 3. If no usage detected, remove entire legacy path
-            # 4. Update any remaining code to use service-based communication
-            logger.warning("LEGACY UI communication manager instance used - switch to service-based communication")
-            logger.debug("Stopping communication manager (legacy UI instance).")
-            communication_manager.stop_all()
         # Admin panel no longer creates its own communication manager
         logger.debug("Admin panel cleanup complete - no communication channels to stop.")
         logger.info("Admin panel shutdown complete.")

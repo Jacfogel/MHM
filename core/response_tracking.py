@@ -37,8 +37,8 @@ def get_recent_checkins(user_id: str, limit: int = 7):
 
 @handle_errors("legacy store_checkin_response")
 def store_checkin_response(user_id: str, response_data: dict):
-    logger.warning("LEGACY COMPATIBILITY: store_checkin_response() called; use store_checkin_response() instead")
-    return store_checkin_response(user_id, response_data)
+    logger.warning("LEGACY COMPATIBILITY: store_checkin_response() called; use store_user_response() instead")
+    return store_user_response(user_id, response_data, "checkin")
 
 def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""

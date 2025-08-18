@@ -9,6 +9,98 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-17 - Test Runner Improvements ✅ **COMPLETED**
+
+#### **Major Test Runner Enhancement**
+- **Default Behavior**: Changed default from "fast" (unit tests only) to "all" (complete test suite)
+- **Clear Communication**: Added comprehensive information about what tests are being run
+- **Help System**: Added `--help-modes` option to show available test modes and examples
+- **Complete Coverage**: Now runs 601 total tests instead of just 140 unit tests
+- **Better UX**: Added progress indicators and clear status reporting
+
+#### **Technical Implementation**
+- **Modified `run_tests.py`**: Updated default mode from "fast" to "all"
+- **Added `print_test_mode_info()`**: Comprehensive help function with examples
+- **Enhanced `main()` function**: Added `--help-modes` argument and clear status reporting
+- **Improved User Communication**: Shows mode, description, and options being used
+- **Better Error Handling**: Clearer success/failure reporting
+
+#### **Test Modes Available**
+- **all**: Run ALL tests (default) - 601 tests
+- **fast**: Unit tests only (excluding slow tests) - ~140 tests
+- **unit**: Unit tests only - ~140 tests
+- **integration**: Integration tests only - ~50 tests
+- **behavior**: Behavior tests (excluding slow tests) - ~200 tests
+- **ui**: UI tests (excluding slow tests) - ~50 tests
+- **slow**: Slow tests only - ~20 tests
+
+#### **Options and Features**
+- **--verbose**: Verbose output with detailed test information
+- **--parallel**: Run tests in parallel using pytest-xdist
+- **--coverage**: Run with coverage reporting
+- **--durations-all**: Show timing for all tests
+- **--help-modes**: Show detailed information about test modes
+
+#### **Impact Assessment**
+- **Transparency**: Users now know exactly what tests are being run
+- **Completeness**: Full test suite coverage by default
+- **Usability**: Better help system and clearer communication
+- **Development**: Easier to run specific test categories when needed
+- **Debugging**: Better visibility into test execution and failures
+
+#### **Test Results After Improvement**
+- **Total Tests**: 601 (vs 140 before)
+- **Passed**: 585 ✅
+- **Failed**: 15 ❌ (pre-existing issues)
+- **Skipped**: 1 ⏭️
+- **Warnings**: 24 ⚠️
+
+#### **User Experience Improvements**
+- **Clear Status**: Shows "🚀 MHM Test Runner" with mode and description
+- **Progress Tracking**: Periodic progress updates during long test runs
+- **Help System**: `python run_tests.py --help-modes` shows all options
+- **Examples**: Clear command examples for different use cases
+- **Error Reporting**: Better failure messages and exit codes
+
+### 2025-08-17 - Legacy Documentation Cleanup & Test Status ✅ **COMPLETED**
+
+#### **Legacy Documentation Cleanup**
+- **Deleted Files**: 5 obsolete legacy documentation files (~46MB saved)
+  - `FOCUSED_LEGACY_AUDIT_REPORT.md` (0.2 KB) - Success report
+  - `LEGACY_REMOVAL_QUICK_REFERENCE.md` (3.8 KB) - Obsolete instructions
+  - `legacy_compatibility_report_clean.txt` (75.3 KB) - Obsolete findings
+  - `legacy_compatibility_report.txt` (268.6 KB) - Obsolete findings
+  - `LEGACY_CHANNELS_AUDIT_REPORT.md` (45,773 KB = 45MB!) - Massive audit report
+- **Archived Files**: 1 historical record
+  - `LEGACY_CODE_REMOVAL_PLAN.md` → `archive/LEGACY_CODE_REMOVAL_PLAN.md` (3 KB) - Historical record
+- **Result**: 6 files eliminated, ~46MB space saved, 100% cleanup complete
+
+#### **Test Status Update**
+- **Unit Tests**: 8 failed, 131 passed, 1 skipped (same as before cleanup)
+- **Validation Test Failures**: 8 pre-existing Pydantic validation issues remain
+  - Account validation: missing username, invalid status, invalid email
+  - Preferences validation: invalid categories, invalid channel type
+  - Schedule validation: invalid time format, invalid time order, invalid days
+- **System Health**: Application starts and runs normally
+- **Impact**: Legacy cleanup completed successfully, no new regressions introduced
+
+#### **Technical Details**
+- **Cleanup Strategy**: Identified obsolete documentation files and removed them
+- **Safety Approach**: Verified files were no longer needed before deletion
+- **Archive Creation**: Created `archive/` directory for historical records
+- **Space Savings**: Recovered ~46MB of disk space
+
+#### **Impact Assessment**
+- **Documentation Reduction**: Eliminated 6 obsolete files
+- **Space Recovery**: ~46MB disk space saved
+- **Maintenance Burden**: Reduced documentation maintenance overhead
+- **Project Clarity**: Cleaner project structure without obsolete files
+
+#### **Next Steps**
+- **Priority**: Address validation test failures (documented in TODO.md)
+- **Monitoring**: Continue monitoring remaining legacy methods for future removal
+- **Documentation**: Legacy cleanup documentation complete and archived
+
 ### 2025-08-17 - Critical Logging Fixes and Validation Test Issues ✅ **PARTIALLY COMPLETED**
 
 #### **Critical Logging System Fixes**

@@ -287,48 +287,7 @@ class UserProfileSettingsWidget(QWidget):
         except Exception as e:
             logger.error(f"Error setting checkbox group {group_name}: {e}")
     
-    def get_checkbox_group(self, group_name: str) -> list:
-        """Get checked values for a specific group."""
-        try:
-            # Map group names to UI elements (only what's available in the UI)
-            group_mappings = {
-                'health_conditions': [
-                    ('depression', self.ui.checkBox_depression),
-                    ('anxiety', self.ui.checkBox_anxiety),
-                    ('adhd', self.ui.checkBox_adhd),
-                    ('bipolar', self.ui.checkBox_bipolar),
-                    ('ptsd', self.ui.checkBox_ptsd),
-                    ('ocd', self.ui.checkBox_ocd),
-                    ('eating_disorder', self.ui.checkBox_eating_disorder),
-                    ('substance_abuse', self.ui.checkBox_substance_abuse),
-                    ('sleep_disorder', self.ui.checkBox_sleep_disorder),
-                    ('chronic_pain', self.ui.checkBox_chronic_pain),
-                    ('autism', self.ui.checkBox_autism),
-                    ('other_mental_health', self.ui.checkBox_other_mental_health),
-                ],
-                'interests': [
-                    ('reading', self.ui.checkBox_reading),
-                    ('writing', self.ui.checkBox_writing),
-                    ('music', self.ui.checkBox_music),
-                    ('art', self.ui.checkBox_art),
-                    ('gaming', self.ui.checkBox_gaming),
-                    ('cooking', self.ui.checkBox_cooking),
-                    ('exercise', self.ui.checkBox_exercise),
-                    ('nature', self.ui.checkBox_nature),
-                    ('technology', self.ui.checkBox_technology),
-                    ('photography', self.ui.checkBox_photography),
-                    ('travel', self.ui.checkBox_travel),
-                    ('volunteering', self.ui.checkBox_volunteering),
-                ]
-            }
-            
-            if group_name in group_mappings:
-                return [value for value, checkbox in group_mappings[group_name] if checkbox.isChecked()]
-            return []
-            
-        except Exception as e:
-            logger.error(f"Error getting checkbox group {group_name}: {e}")
-            return []
+
     
     def get_personalization_data(self) -> Dict[str, Any]:
         """Get all personalization data from the form, preserving existing data structure."""
@@ -387,136 +346,19 @@ class UserProfileSettingsWidget(QWidget):
             # Health conditions - use dynamic list container
             if 'custom_fields' not in data:
                 data['custom_fields'] = {}
-            if hasattr(self, 'health_conditions_container'):
-                data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
-            else:
-                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all UI uses dynamic list containers
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy fallback usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire fallback block
-                # 4. Update any remaining UI to use dynamic list containers
-                logger.warning("LEGACY health_conditions fallback used - switch to dynamic list container")
-                data['custom_fields']['health_conditions'] = self.get_checkbox_group('health_conditions')
+            data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
 
             # Medications - use dynamic list container
-            if hasattr(self, 'medications_container'):
-                data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
-            else:
-                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all UI uses dynamic list containers
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy fallback usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire fallback block
-                # 4. Update any remaining UI to use dynamic list containers
-                logger.warning("LEGACY medications fallback used - switch to dynamic list container")
-                medications = []
-                if hasattr(self.ui, 'checkBox_antidepressants') and self.ui.checkBox_antidepressants.isChecked():
-                    medications.append('Antidepressants')
-                if hasattr(self.ui, 'checkBox_anxiety_meds') and self.ui.checkBox_anxiety_meds.isChecked():
-                    medications.append('Anti-Anxiety')
-                if hasattr(self.ui, 'checkBox_adhd_meds') and self.ui.checkBox_adhd_meds.isChecked():
-                    medications.append('ADHD Medication')
-                if hasattr(self.ui, 'checkBox_mood_stabilizers') and self.ui.checkBox_mood_stabilizers.isChecked():
-                    medications.append('Mood Stabilizers')
-                if hasattr(self.ui, 'checkBox_sleep_meds') and self.ui.checkBox_sleep_meds.isChecked():
-                    medications.append('Sleep Medication')
-                if hasattr(self.ui, 'checkBox_pain_meds') and self.ui.checkBox_pain_meds.isChecked():
-                    medications.append('Pain Medication')
-                if hasattr(self.ui, 'lineEdit_custom_medications'):
-                    custom_meds = self.ui.lineEdit_custom_medications.text().strip()
-                    if custom_meds:
-                        medications.extend([m.strip() for m in custom_meds.split(',') if m.strip()])
-                data['custom_fields']['medications_treatments'] = medications
+            data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
 
             # Allergies/Sensitivities - use dynamic list container
-            if hasattr(self, 'allergies_container'):
-                data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
-            else:
-                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all UI uses dynamic list containers
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy fallback usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire fallback block
-                # 4. Update any remaining UI to use dynamic list containers
-                logger.warning("LEGACY allergies fallback used - switch to dynamic list container")
-                allergies = []
-                if hasattr(self.ui, 'checkBox_food_allergies') and self.ui.checkBox_food_allergies.isChecked():
-                    allergies.append('Food Allergies')
-                if hasattr(self.ui, 'checkBox_medication_allergies') and self.ui.checkBox_medication_allergies.isChecked():
-                    allergies.append('Medication Allergies')
-                if hasattr(self.ui, 'checkBox_environmental_allergies') and self.ui.checkBox_environmental_allergies.isChecked():
-                    allergies.append('Environmental')
-                if hasattr(self.ui, 'checkBox_latex_allergy') and self.ui.checkBox_latex_allergy.isChecked():
-                    allergies.append('Latex Allergy')
-                if hasattr(self.ui, 'checkBox_gluten_sensitivity') and self.ui.checkBox_gluten_sensitivity.isChecked():
-                    allergies.append('Gluten Sensitivity')
-                if hasattr(self.ui, 'checkBox_lactose_intolerance') and self.ui.checkBox_lactose_intolerance.isChecked():
-                    allergies.append('Lactose Intolerance')
-                if hasattr(self.ui, 'lineEdit_custom_allergies'):
-                    custom_allergies = self.ui.lineEdit_custom_allergies.text().strip()
-                    if custom_allergies:
-                        allergies.extend([a.strip() for a in custom_allergies.split(',') if a.strip()])
-                data['custom_fields']['allergies_sensitivities'] = allergies
+            data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
 
-                        # Interests via dynamic container (if present)
-            if hasattr(self, 'interests_container'):
-                data['interests'] = self.interests_container.get_values()
-            else:
-                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all UI uses dynamic list containers
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy fallback usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire fallback block
-                # 4. Update any remaining UI to use dynamic list containers
-                logger.warning("LEGACY interests fallback used - switch to dynamic list container")
-                interests = self.get_checkbox_group('interests')
-                if hasattr(self.ui, 'lineEdit_custom_interest'):
-                    custom_interests = self.ui.lineEdit_custom_interest.text().strip()
-                    if custom_interests:
-                        interests.extend([i.strip() for i in custom_interests.split(',') if i.strip()])
-                data['interests'] = interests
+            # Interests via dynamic container
+            data['interests'] = self.interests_container.get_values()
 
             # Goals - use dynamic list container
-            if hasattr(self, 'goals_container'):
-                data['goals'] = self.goals_container.get_values()
-            else:
-                # LEGACY COMPATIBILITY FALLBACK - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all UI uses dynamic list containers
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy fallback usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire fallback block
-                # 4. Update any remaining UI to use dynamic list containers
-                logger.warning("LEGACY goals fallback used - switch to dynamic list container")
-                goals = []
-                if hasattr(self.ui, 'checkBox_mental_health_goals') and self.ui.checkBox_mental_health_goals.isChecked():
-                    goals.append('mental_health')
-                if hasattr(self.ui, 'checkBox_physical_health_goals') and self.ui.checkBox_physical_health_goals.isChecked():
-                    goals.append('physical_health')
-                if hasattr(self.ui, 'checkBox_career_goals') and self.ui.checkBox_career_goals.isChecked():
-                    goals.append('career')
-                if hasattr(self.ui, 'checkBox_education_goals') and self.ui.checkBox_education_goals.isChecked():
-                    goals.append('education')
-                if hasattr(self.ui, 'checkBox_relationship_goals') and self.ui.checkBox_relationship_goals.isChecked():
-                    goals.append('relationships')
-                if hasattr(self.ui, 'checkBox_financial_goals') and self.ui.checkBox_financial_goals.isChecked():
-                    goals.append('financial')
-                if hasattr(self.ui, 'checkBox_creative_goals') and self.ui.checkBox_creative_goals.isChecked():
-                    goals.append('creative')
-                if hasattr(self.ui, 'checkBox_social_goals') and self.ui.checkBox_social_goals.isChecked():
-                    goals.append('social')
-                if hasattr(self.ui, 'checkBox_spiritual_goals') and self.ui.checkBox_spiritual_goals.isChecked():
-                    goals.append('spiritual')
-                if hasattr(self.ui, 'lineEdit_custom_goal'):
-                    custom_goals = self.ui.lineEdit_custom_goal.text().strip()
-                    if custom_goals:
-                        goals.extend([g.strip() for g in custom_goals.split(',') if g.strip()])
-                data['goals'] = goals
+            data['goals'] = self.goals_container.get_values()
 
             # Loved Ones/Support Network (multi-line text, parse as Name - Type - Relationship1,Relationship2)
             if hasattr(self.ui, 'textEdit_loved_ones'):

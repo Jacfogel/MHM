@@ -854,36 +854,8 @@ def clear_user_caches(user_id: Optional[str] = None):
         logger.debug("Cleared all user caches")
 
 # ============================================================================
-# MAIN PUBLIC API - HYBRID APPROACH
+# UTILITY FUNCTIONS (Keep these)
 # ============================================================================
-
-@handle_errors("getting user data (legacy)", default_return={})
-def get_user_data(*args, **kwargs):
-    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
-    if not caller.startswith("core.user_management"):
-        logger.warning("LEGACY get_user_data call – switch to core.user_data_handlers.get_user_data")
-    from core.user_data_handlers import get_user_data as handler_get_user_data
-    return handler_get_user_data(*args, **kwargs)
-
-# ============================================================================
-# UNIFIED SAVE API - MIRRORS GET_USER_DATA APPROACH
-# ============================================================================
-
-@handle_errors("saving user data (legacy)", default_return={})
-def save_user_data(*args, **kwargs):
-    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
-    if not caller.startswith("core.user_management"):
-        logger.warning("LEGACY save_user_data call – switch to core.user_data_handlers.save_user_data")
-    from core.user_data_handlers import save_user_data as handler_save_user_data
-    return handler_save_user_data(*args, **kwargs)
-
-@handle_errors("saving user data txn (legacy)", default_return=False)
-def save_user_data_transaction(*args, **kwargs):
-    caller = inspect.stack()[1].frame.f_globals.get("__name__", "")
-    if not caller.startswith("core.user_management"):
-        logger.warning("LEGACY save_user_data_transaction call – switch to core.user_data_handlers.save_user_data_transaction")
-    from core.user_data_handlers import save_user_data_transaction as handler_save_user_data_transaction
-    return handler_save_user_data_transaction(*args, **kwargs)
 
 # ============================================================================
 # UTILITY FUNCTIONS (Keep these)

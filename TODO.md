@@ -42,6 +42,18 @@ When adding new tasks, follow this format:
   - Pydantic validation doesn't validate time format/order for schedules
   - Pydantic validation doesn't validate day names for schedules
 - *Action*: Update validation logic to maintain backward compatibility or update tests to match new behavior
+- *Testing Needed*: Run full test suite after fixes to verify all validation tests pass
+
+**Schedule Data Structure Issues** - Fix missing 'periods' key in schedule validation
+- *What it means*: 4 integration tests are failing due to KeyError: 'periods' in schedule data structure validation
+- *Why it helps*: Fixes integration test failures and ensures schedule data is properly structured
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **CRITICAL** - Blocking integration tests
+- *Issues*:
+  - Schedule validation expects 'periods' key but test data uses different structure
+  - Integration tests in `test_account_lifecycle.py` failing with KeyError: 'periods'
+  - Schedule data structure mismatch between test expectations and actual schema
+- *Action*: Align test data structure with expected schedule schema or update validation logic
 
 **ComponentLogger Method Signature Issues** - Fix remaining logging calls with wrong argument format
 - *What it means*: Some logging calls still use old format with multiple positional arguments instead of keyword arguments
@@ -106,6 +118,16 @@ When adding new tasks, follow this format:
   - Discord Bot legacy methods (by 2025-08-15)
 - *Status*: ✅ **COMPLETED** - Legacy validation code removed and replaced with Pydantic validation
 
+**Legacy Documentation Cleanup** - Remove obsolete legacy documentation files ✅ **COMPLETED**
+- *What it means*: Remove obsolete legacy documentation files that are no longer needed after legacy code cleanup
+- *Why it helps*: Reduces project clutter, saves disk space, improves project organization
+- *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - 6 files deleted (~46MB saved), 1 file archived
+- *Results*:
+  - Deleted: 5 obsolete files (FOCUSED_LEGACY_AUDIT_REPORT.md, LEGACY_REMOVAL_QUICK_REFERENCE.md, legacy_compatibility_report_clean.txt, legacy_compatibility_report.txt, LEGACY_CHANNELS_AUDIT_REPORT.md)
+  - Archived: LEGACY_CODE_REMOVAL_PLAN.md → archive/
+  - Space saved: ~46MB
+
 **Throttler Bug Fix** - Fix Service Utilities Throttler first-call behavior
 - *What it means*: Ensure `last_run` is set on first call so throttling works from initial invocation
 - *Why it helps*: Prevents over-frequency operations on first execution
@@ -115,6 +137,14 @@ When adding new tasks, follow this format:
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
+
+**High Complexity Function Refactoring** - Address audit findings for maintainability
+- *What it means*: 1462 out of 1907 functions have high complexity (>50 nodes), which may impact maintainability
+- *Why it helps*: Improves code maintainability, reduces cognitive load, makes debugging easier
+- *Estimated effort*: Large
+- *Status*: 📊 **MONITORING** - Identified by audit, not blocking development
+- *Action*: Prioritize refactoring during feature development, focus on most complex functions first
+- *Testing Needed*: Ensure refactoring doesn't break functionality
 
 **Script Logger Migration** - Complete logging migration for scripts and utilities ✅ **COMPLETED**
 - *What it means*: Migrate 21 script/utility files from `get_logger(__name__)` to component loggers for consistency

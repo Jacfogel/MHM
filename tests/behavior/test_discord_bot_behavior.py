@@ -344,7 +344,7 @@ class TestDiscordBotBehavior:
         """Ensure a single inbound message yields one main response (no duplicates)."""
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_internal_username
-        created = TestUserFactory.create_basic_user("dup_user", enable_tasks=True)
+        created = TestUserFactory.create_basic_user("dup_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created
         internal_uid = get_user_id_by_internal_username("dup_user")
         assert internal_uid
@@ -394,7 +394,7 @@ class TestDiscordBotBehavior:
         from core.user_management import get_user_id_by_internal_username
         from tasks.task_management import load_active_tasks
 
-        ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True)
+        ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
         internal_uid = get_user_id_by_internal_username("task_user")
         assert internal_uid
@@ -423,7 +423,7 @@ class TestDiscordBotBehavior:
         from core.user_management import get_user_id_by_internal_username
         from tasks.task_management import create_task, load_active_tasks
 
-        ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True)
+        ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
         internal_uid = get_user_id_by_internal_username("fuzzy_user")
         assert internal_uid
@@ -446,7 +446,7 @@ class TestDiscordBotBehavior:
         from core.user_management import get_user_id_by_internal_username
         from tasks.task_management import create_task
 
-        ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True)
+        ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
         internal_uid = get_user_id_by_internal_username("reminder_user")
         assert internal_uid
@@ -546,7 +546,7 @@ class TestDiscordBotIntegration:
         from tests.test_utilities import TestUserFactory
         from core.user_management import get_user_id_by_internal_username, load_user_account_data, save_user_account_data
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
-        created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True)
+        created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"
         internal_uid = get_user_id_by_internal_username("e2e_user")
         assert internal_uid is not None, "Should resolve internal user id"

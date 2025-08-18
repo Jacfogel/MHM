@@ -42,20 +42,10 @@ class TestUserFactory:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # If test_data_dir is provided, temporarily patch the config to use it
-            if test_data_dir:
-                return TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
-            else:
-                # LEGACY COMPATIBILITY PATH - REMOVE AFTER VERIFYING NO USAGE
-                # TODO: Remove after confirming all tests use test_data_dir parameter
-                # REMOVAL PLAN:
-                # 1. Add usage logging to track legacy path usage
-                # 2. Monitor app.log for legacy usage warnings for 1 week
-                # 3. If no usage detected, remove entire legacy path
-                # 4. Update any remaining tests to use test_data_dir parameter
-                logger.warning("LEGACY test user creation path used - switch to test_data_dir parameter")
-                # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_basic_user_impl(user_id, enable_checkins, enable_tasks)
+            # test_data_dir is now required - all tests should use the modern approach
+            if not test_data_dir:
+                raise ValueError("test_data_dir parameter is required - use modern test approach")
+            return TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
             
         except Exception as e:
             print(f"Error creating basic user {user_id}: {e}")
@@ -265,62 +255,7 @@ class TestUserFactory:
             print(f"Error creating basic user with test dir {user_id}: {e}")
             return False
     
-    @staticmethod
-    def _create_basic_user_impl(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True) -> bool:
-        """Internal implementation of basic user creation"""
-        try:
-            # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
-            
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": enable_checkins,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": enable_tasks,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Test User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
-            
-            # Create the user using the proper function
-            actual_user_id = create_new_user(user_data)
-            
-            if actual_user_id:
-                return True
-            else:
-                return False
-            
-        except Exception as e:
-            print(f"Error creating basic user {user_id}: {e}")
-            return False
+
     
     @staticmethod
     def create_discord_user(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
@@ -336,12 +271,10 @@ class TestUserFactory:
             bool: True if user was created successfully, False otherwise
         """
         try:
-            # If test_data_dir is provided, use direct file creation
-            if test_data_dir:
-                return TestUserFactory._create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)
-            else:
-                # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_discord_user_impl(user_id, discord_user_id)
+            # test_data_dir is now required - all tests should use the modern approach
+            if not test_data_dir:
+                raise ValueError("test_data_dir parameter is required - use modern test approach")
+            return TestUserFactory._create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating discord user {user_id}: {e}")
@@ -402,65 +335,7 @@ class TestUserFactory:
             print(f"Error creating discord user with test dir {user_id}: {e}")
             return False
     
-    @staticmethod
-    def _create_discord_user_impl(user_id: str, discord_user_id: str = None) -> bool:
-        """Internal implementation of discord user creation"""
-        try:
-            if discord_user_id is None:
-                discord_user_id = user_id
-            
-            # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
-            
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": discord_user_id,
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Discord User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
-            
-            # Create the user using the proper function
-            actual_user_id = create_new_user(user_data)
-            
-            if actual_user_id:
-                return True
-            else:
-                return False
-            
-        except Exception as e:
-            print(f"Error creating discord user {user_id}: {e}")
-            return False
+
             
 
     

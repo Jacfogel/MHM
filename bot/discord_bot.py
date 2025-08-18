@@ -990,13 +990,20 @@ class DiscordBot(BaseChannel):
             logger.error(f"Manual reconnection failed: {e}")
             return False
 
-    # Legacy methods for backward compatibility
+    # LEGACY COMPATIBILITY: Synchronous interface for testing and backward compatibility
+    # TODO: Remove after migrating all tests to use async initialize() method
+    # REMOVAL PLAN:
+    # 1. Update behavior tests to use async initialize() instead of start()
+    # 2. Update communication manager to use shutdown() instead of stop()
+    # 3. Monitor usage for 1 week after migration
+    # 4. Remove legacy methods if no usage detected
     @handle_errors("starting Discord bot")
     def start(self):
         """
-        Legacy start method.
+        Legacy start method for backward compatibility.
         
         Initializes the Discord bot if not already running.
+        This method is maintained for testing infrastructure compatibility.
         """
         if not self.is_initialized():
             logger.info("Starting Discord bot...")
@@ -1007,9 +1014,10 @@ class DiscordBot(BaseChannel):
     @handle_errors("stopping Discord bot")
     def stop(self):
         """
-        Legacy stop method - thread-safe.
+        Legacy stop method for backward compatibility - thread-safe.
         
         Stops the Discord bot and cleans up resources.
+        This method is maintained for communication manager compatibility.
         """
         logger.info("Stopping Discord bot...")
         
@@ -1040,6 +1048,7 @@ class DiscordBot(BaseChannel):
         
         Returns:
             bool: True if the Discord bot is initialized and ready
+        This method is maintained for testing infrastructure compatibility.
         """
         return self.get_status() == ChannelStatus.READY
 

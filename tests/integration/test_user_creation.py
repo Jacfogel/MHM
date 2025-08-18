@@ -73,7 +73,7 @@ class TestUserCreationScenarios:
         
         # Create test user using centralized utilities for consistent setup
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234')
+        success = TestUserFactory.create_discord_user(user_id, discord_user_id='discord_user#1234', test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
         # Get the UUID for the user

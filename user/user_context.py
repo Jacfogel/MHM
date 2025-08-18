@@ -20,9 +20,6 @@ context_logger = get_component_logger('user_activity')
 class UserContext:
     _instance = None
     _lock = threading.Lock()
-    # Warn only once per process for legacy format bridges
-    _warned_legacy_load = False
-    _warned_legacy_save = False
 
     def __new__(cls):
         """Create a new instance."""
@@ -44,7 +41,7 @@ class UserContext:
             logger.error("Attempted to load user data with None user_id")
             return
         
-        # Use the new user management functions
+        # Use the new user management functions directly
         user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
         account_data = user_data_result.get('account') or {}
         prefs_result = get_user_data(user_id, 'preferences', normalize_on_read=True)
@@ -52,12 +49,8 @@ class UserContext:
         context_result = get_user_data(user_id, 'context')
         context_data = context_result.get('context') or {}
         
-        # LEGACY COMPATIBILITY: bridge to legacy user_data shape (log only once)
-        if not UserContext._warned_legacy_load:
-            logger.warning("LEGACY user data format conversion used - switch to new data structure")
-            UserContext._warned_legacy_load = True
-        # Combine into legacy format for compatibility
-        user_data = {
+        # Store data in the new format directly - no legacy conversion needed
+        self.user_data = {
             "user_id": account_data.get("user_id", user_id),
             "internal_username": account_data.get("internal_username", ""),
             "active": account_data.get("account_status") == "active",
@@ -72,7 +65,6 @@ class UserContext:
             "schedules": {}  # Schedules are handled separately
         }
         
-        self.user_data = user_data
         logger.info(f"User data loaded for user_id {user_id}")
 
     @handle_errors("saving user data")
@@ -87,11 +79,7 @@ class UserContext:
             logger.error("Attempted to save user data with None user_id")
             return
         
-        # LEGACY COMPATIBILITY: extracting from legacy shape (log only once)
-        if not UserContext._warned_legacy_save:
-            logger.warning("LEGACY user data format extraction used - switch to new data structure")
-            UserContext._warned_legacy_save = True
-        # Extract data from legacy format and update using new functions
+        # Extract data and update using new functions directly - no legacy extraction needed
         account_updates = {
             "user_id": self.user_data.get("user_id", user_id),
             "internal_username": self.user_data.get("internal_username", ""),
