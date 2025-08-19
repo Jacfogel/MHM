@@ -56,37 +56,99 @@ tests/
     └── test_widget_integration.py       # Widget behavior and integration
 ```
 
+## 🛠️ **Test Utilities and Infrastructure**
+
+### **Centralized Test Utilities**
+The testing framework provides comprehensive utilities in `tests/test_utilities.py`:
+
+#### **Test User Factory** - Comprehensive User Creation
+```python
+from tests.test_utilities import TestUserFactory
+
+# Create different user types for testing
+TestUserFactory.create_basic_user("user1")
+TestUserFactory.create_discord_user("discord_user")
+TestUserFactory.create_user_with_health_focus("health_user")
+TestUserFactory.create_user_with_disabilities("accessibility_user")
+```
+
+#### **Available User Types** (12 comprehensive types):
+- **Basic Types**: `basic_user`, `minimal_user`, `full_featured_user`
+- **Channel-Specific**: `discord_user`, `email_user`, `telegram_user`
+- **Feature-Focused**: `health_focus`, `task_focus`, `disabilities`
+- **Complex Configurations**: `complex_checkins`, `custom_fields`, `schedules`
+- **Edge Cases**: `limited_data`, `inconsistent_data`
+
+#### **Test Data Factory** - Advanced Data Creation
+```python
+from tests.test_utilities import TestDataFactory
+
+# Create test data for various scenarios
+TestDataFactory.create_corrupted_user_data()
+TestDataFactory.create_test_schedule_data()
+TestDataFactory.create_test_task_data()
+```
+
+#### **Benefits Achieved**:
+- **Reduced Code Duplication**: Single source of truth for user creation
+- **Comprehensive Coverage**: 12 user types covering real-world scenarios
+- **Consistent Data**: All tests use the same data structures
+- **Real User Patterns**: Based on actual user data patterns
+- **Edge Case Coverage**: Handles incomplete profiles, inconsistent data
+
 ### **Test Categories & Markers**
 
-#### **Unit Tests** (`@pytest.mark.unit`)
-- **Purpose**: Test individual functions and methods in isolation
-- **Scope**: Single module, pure functions, core logic
-- **Speed**: Fast execution
-- **Examples**: Configuration validation, data validation, utility functions
+#### **Core Test Type Markers**
 
-#### **Integration Tests** (`@pytest.mark.integration`)
-- **Purpose**: Test how components work together across modules
-- **Scope**: Multi-module workflows, data flow between components
-- **Speed**: Medium execution
-- **Examples**: Account lifecycle, feature enablement, preference management
+| Marker | Purpose | Usage |
+|--------|---------|-------|
+| `@pytest.mark.unit` | Fast, isolated function tests | Individual function testing |
+| `@pytest.mark.integration` | Multi-module workflow tests | Component interaction testing |
+| `@pytest.mark.behavior` | Real system behavior tests | Side effect verification |
+| `@pytest.mark.ui` | UI component tests | Dialog and widget testing |
 
-#### **Behavior Tests** (`@pytest.mark.behavior`)
-- **Purpose**: Test actual system behavior and side effects
-- **Scope**: Real file operations, service state changes, data persistence
-- **Speed**: Medium to slow execution
-- **Examples**: Service management, communication channels, task operations
+#### **Performance & Resource Markers**
 
-#### **UI Tests** (`@pytest.mark.ui`)
-- **Purpose**: Test user interface functionality and workflows
-- **Scope**: Dialog interactions, widget behavior, UI state changes
-- **Speed**: Slow execution (UI operations)
-- **Examples**: Account creation dialog, preference dialogs, widget integration
+| Marker | Purpose | Usage |
+|--------|---------|-------|
+| `@pytest.mark.slow` | Slow-running tests | Tests taking >1 second |
+| `@pytest.mark.performance` | Performance testing | Load and benchmark tests |
+| `@pytest.mark.memory` | Memory-intensive tests | Large data operations |
+| `@pytest.mark.network` | Network-dependent tests | API calls, external services |
+| `@pytest.mark.external` | External service tests | Discord, email, Telegram |
+| `@pytest.mark.file_io` | Heavy file operations | File creation, reading, writing |
 
-#### **Slow Tests** (`@pytest.mark.slow`)
-- **Purpose**: Tests that require significant time or resources
-- **Scope**: Performance testing, large data operations, complex workflows
-- **Speed**: Slow execution
-- **Examples**: Large dataset operations, performance benchmarks
+#### **Feature-Specific Markers**
+
+| Marker | Purpose | Usage |
+|--------|---------|-------|
+| `@pytest.mark.tasks` | Task management tests | Task CRUD operations |
+| `@pytest.mark.checkins` | Check-in system tests | Check-in functionality |
+| `@pytest.mark.schedules` | Schedule management tests | Time period management |
+| `@pytest.mark.messages` | Message system tests | Automated messaging |
+| `@pytest.mark.analytics` | Analytics tests | Reporting and insights |
+| `@pytest.mark.user_management` | User account tests | Account management |
+| `@pytest.mark.channels` | Communication tests | Discord, email, Telegram |
+
+#### **Test Quality Markers**
+
+| Marker | Purpose | Usage |
+|--------|---------|-------|
+| `@pytest.mark.flaky` | Occasionally failing tests | Needs investigation |
+| `@pytest.mark.known_issue` | Known bug tests | Document limitations |
+| `@pytest.mark.regression` | Regression prevention | Catch recurring bugs |
+| `@pytest.mark.smoke` | Basic functionality tests | Quick validation |
+| `@pytest.mark.critical` | Essential path tests | Must always pass |
+
+#### **Development Workflow Markers**
+
+| Marker | Purpose | Usage |
+|--------|---------|-------|
+| `@pytest.mark.wip` | Work in progress | Still being developed |
+| `@pytest.mark.todo` | Not yet implemented | Placeholder tests |
+| `@pytest.mark.skip_ci` | Skip in CI/CD | Too slow or special setup |
+| `@pytest.mark.manual` | Manual intervention | Requires human input |
+| `@pytest.mark.debug` | Debug-specific | For troubleshooting |
 
 ## 🚀 **Quick Start**
 
@@ -98,6 +160,66 @@ pip install -r requirements.txt
 ### **Run All Tests**
 ```bash
 python run_tests.py
+```
+
+### **Marker Usage Examples**
+
+#### **Basic Marker Usage**
+```python
+@pytest.mark.unit
+def test_config_validation():
+    """Unit test for configuration validation."""
+    assert validate_config({"key": "value"}) == True
+
+@pytest.mark.behavior
+def test_user_creation_creates_files():
+    """Behavior test verifying file creation."""
+    user_id = "test-user"
+    create_user(user_id, user_data)
+    assert os.path.exists(f"data/users/{user_id}/account.json")
+
+@pytest.mark.integration
+def test_account_lifecycle():
+    """Integration test for complete account workflow."""
+    # Test creation, modification, and deletion
+    pass
+```
+
+#### **Combining Multiple Markers**
+```python
+@pytest.mark.behavior
+@pytest.mark.tasks
+@pytest.mark.critical
+def test_critical_task_creation():
+    """Critical behavior test for task creation."""
+    # This test is critical, tests real behavior, and is task-related
+    pass
+
+@pytest.mark.integration
+@pytest.mark.external
+@pytest.mark.slow
+def test_discord_integration():
+    """Slow integration test with Discord."""
+    # Tests Discord integration, is slow, and requires external service
+    pass
+```
+
+#### **Running Tests by Marker**
+```bash
+# Run all unit tests (fastest)
+python -m pytest -m unit
+
+# Run all behavior tests
+python -m pytest -m behavior
+
+# Run all critical tests
+python -m pytest -m critical
+
+# Run all tests except slow ones
+python -m pytest -m "not slow"
+
+# Run critical behavior tests
+python -m pytest -m "critical and behavior"
 ```
 
 ### **Run Specific Test Categories**
