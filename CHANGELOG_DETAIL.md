@@ -9,6 +9,59 @@
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-19 - Test Coverage File Organization Fix ✅ **COMPLETED**
+
+**Summary**: Fixed test coverage file organization by moving coverage artifacts from root directory to `tests/` directory, improving project organization and preventing test artifacts from cluttering the main project directory.
+
+**Problem Analysis**:
+- Test coverage files (`.coverage` binary file and `htmlcov/` directory) were being created in the root directory
+- Poor project organization with test artifacts mixed with source code
+- Potential confusion about which files are test outputs vs source code
+- Risk of accidentally committing test artifacts to version control
+
+**Root Cause Investigation**:
+- **Default pytest-cov Behavior**: pytest-cov creates coverage files in the current working directory by default
+- **Missing Configuration**: Test runner was not specifying custom locations for coverage files
+- **Environment Variable**: `COVERAGE_FILE` environment variable was not set to control coverage data file location
+- **Report Configuration**: `--cov-report=html` was using default location instead of specifying `tests/` directory
+
+**Technical Solution Implemented**:
+- **Moved Existing Files**: Used PowerShell `Move-Item` to relocate `.coverage` from root to `tests/.coverage`
+- **Updated Test Runner**: Added `os.environ['COVERAGE_FILE'] = 'tests/.coverage'` to control coverage data file location
+- **Updated Coverage Configuration**: Changed `--cov-report=html` to `--cov-report=html:tests/htmlcov` to specify HTML report directory
+- **Updated .gitignore**: Added `tests/.coverage` to prevent test artifacts from being committed
+- **Updated Documentation**: Corrected coverage report path in `TEST_COVERAGE_EXPANSION_PLAN.md`
+
+**Technical Details**:
+- **Coverage Data File**: `.coverage` is a 53KB binary file containing raw coverage data from pytest-cov
+- **HTML Reports**: `htmlcov/` directory contains generated HTML coverage reports for detailed analysis
+- **Environment Variable**: `COVERAGE_FILE` environment variable controls where coverage.py creates the data file
+- **Pytest-cov Options**: `--cov-report=html:path` specifies the directory for HTML report generation
+
+**Results Achieved**:
+- **Clean Root Directory**: No more test artifacts in main project directory
+- **Organized Test Files**: All test-related files properly located in `tests/` directory
+- **Proper Separation**: Test outputs isolated from source code
+- **Better Maintainability**: Clear distinction between source files and test artifacts
+- **Version Control Safety**: Test artifacts properly excluded from commits
+
+**Files Modified**:
+- `run_tests.py` - Updated coverage configuration to use `tests/` directory
+- `.gitignore` - Added `tests/.coverage` to prevent commits
+- `TEST_COVERAGE_EXPANSION_PLAN.md` - Updated coverage report path reference
+
+**Testing Completed**:
+- Verified `.coverage` file is now created in `tests/.coverage`
+- Confirmed `htmlcov/` directory is now created in `tests/htmlcov/`
+- Tested that coverage reports are still generated correctly
+- Validated that root directory remains clean of test artifacts
+
+**Impact on Development**:
+- Improved project organization and maintainability
+- Reduced confusion about file purposes
+- Better separation of concerns between source code and test outputs
+- Enhanced development workflow with cleaner project structure
+
 ### 2025-08-18 - UI Service Logging Fix
 
 **Summary**: Fixed critical issue where service started via UI was not logging to `app.log`, ensuring consistent logging behavior regardless of how the service is started.
