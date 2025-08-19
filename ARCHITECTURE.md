@@ -4,7 +4,31 @@
 > **Purpose**: System design, data flow, and technical architecture  
 > **Style**: Technical, detailed, reference-oriented
 
-> **See [README.md](README.md) for complete navigation and project overview**
+> **See [README.md](README.md) for complete navigation and project overview**  
+> **See [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) for AI-optimized quick reference**
+
+## 🚀 Quick Reference
+
+### **Key Modules Decision Tree**
+1. **User data access?** → `core/user_data_handlers.py`, `core/user_data_validation.py`
+2. **UI components?** → `ui/dialogs/`, `ui/widgets/`
+3. **Communication?** → `bot/` directory
+4. **Scheduling?** → `core/scheduler.py`, `core/schedule_management.py`
+5. **Configuration?** → `core/config.py`
+6. **Testing?** → `tests/` directory
+
+### **Data Flow Patterns**
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/Bot
+- **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
+- **Configuration**: `.env` → `core/config.py` → Application
+- **UI**: `.ui` files → `ui/generated/` → `ui/dialogs/` → `ui_app_qt.py`
+
+### **Critical Files (Don't Break)**
+- `run_mhm.py` - Main entry point
+- `core/service.py` - Background service
+- `ui/ui_app_qt.py` - Admin interface
+- `core/user_data_handlers.py` - Unified user data access
+- `bot/communication_manager.py` - Communication coordination
 
 ---
 

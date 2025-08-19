@@ -1,27 +1,16 @@
 # AI Session Starter - Essential Context for New Sessions
 
-> **Purpose**: Complete context for AI assistants starting new chat sessions  
+> **Purpose**: Essential context for AI assistants starting new chat sessions  
 > **Audience**: AI Assistant (Cursor, Codex, etc.)  
 > **Status**: **ACTIVE** - Always include this in new sessions  
-> **Version**: 1.0.0  
-> **Last Updated**: 2025-07-22
+> **Style**: Concise, essential-only, scannable
 
 ## 🎯 **USER PROFILE (CRITICAL)**
-
-### **Who You're Working With**
 - **Beginner programmer** with ADHD/depression
 - **Windows 11** environment, PowerShell syntax required
 - **Personal project** - building mental health assistant for own use
 - **Values learning and efficiency** over being right
-- **Will miss things** and fail to consider things - relies on AI for thoroughness
 - **Prefers correction** over inefficient approaches
-
-### **Communication Style**
-- **Simple explanations** - focus on one concept at a time
-- **Step-by-step instructions** - break complex tasks into steps
-- **Explain WHY** - always explain why changes are needed
-- **Be patient and encouraging** - acknowledge progress and successes
-- **Question assumptions** - suggest better alternatives when appropriate
 
 ## 🚨 **CRITICAL RULES (Always Apply)**
 
@@ -29,10 +18,10 @@
 - **Test**: `python run_mhm.py` must work after changes
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG_DETAIL.md` for all changes, `AI_CHANGELOG.md` for AI context
+- **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
 
 ### **Audit-First Protocol (CRITICAL)**
-**BEFORE** creating any documentation, function registry, or comprehensive analysis:
+**BEFORE** creating any documentation or comprehensive analysis:
 1. **ALWAYS** run `python ai_tools/ai_tools_runner.py audit` first
 2. **ALWAYS** show audit results to user with statistics
 3. **NEVER** create documentation from partial information
@@ -42,6 +31,13 @@
 - **ALWAYS check exit codes**: `$LASTEXITCODE` after commands
 - **Use PowerShell syntax**: `;` for chaining, `-and`/`-or` for logic
 - **Never assume success**: Check both exit codes and error patterns
+
+### **Paired Document Maintenance (CRITICAL)**
+**When updating any human-facing document, check if corresponding AI-facing document needs updates:**
+- **DEVELOPMENT_WORKFLOW.md** ↔ **AI_DEVELOPMENT_WORKFLOW.md**
+- **ARCHITECTURE.md** ↔ **AI_ARCHITECTURE.md**
+- **DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
+- **CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
 
 ## 🏗️ **PROJECT OVERVIEW**
 
@@ -65,26 +61,10 @@ Personal mental health assistant that helps manage executive functioning deficit
 
 ## 📊 **CURRENT SYSTEM STATUS**
 
-### **System Health & Recent Activity**
-- **Check `ai_tools/audit_summary.txt`** for current system health and metrics
-- **Check `ai_tools/quick_status.py concise`** for real-time status
+### **Quick Status Check**
 - **Check `AI_CHANGELOG.md`** for recent changes and activity
 - **Check `TODO.md`** for current priorities and tasks
-
-### **Known Issues & Priorities**
-- **Check `ai_tools/critical_issues.txt`** for any critical issues (if file exists)
-- **Check `TODO.md`** for current priorities and known issues
 - **Run `python ai_tools/ai_tools_runner.py status`** for comprehensive status
-
-## 🎯 **CURRENT PRIORITIES**
-
-### **Getting Current Information**
-- **Check `TODO.md`** for current high/medium/low priority tasks
-- **Check `AI_CHANGELOG.md`** for recent development focus
-- **Check `PLANS.md`** for testing status, UI migration status, and development patterns
-- **Check `AI_FUNCTION_REGISTRY.md`** for function patterns and documentation status
-- **Check `AI_MODULE_DEPENDENCIES.md`** for module dependency patterns and status
-- **Run `python ai_tools/ai_tools_runner.py audit`** for comprehensive system analysis
 
 ## 🔧 **QUICK COMMANDS**
 
@@ -99,62 +79,32 @@ python ai_tools/ai_tools_runner.py status
 # Run full audit
 python ai_tools/ai_tools_runner.py audit
 
-# Quick status check
-python ai_tools/quick_status.py concise
-
 # Create backup
 Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse
 ```
-
-### **Version Sync Best Practices**
-```powershell
-# After doc or code changes
-python ai_tools/version_sync.py sync --scope=docs
-python ai_tools/version_sync.py sync --scope=core
-
-# Before backups
-python ai_tools/version_sync.py sync --scope=docs
-python ai_tools/version_sync.py sync --scope=core
-
-# Check status
-python ai_tools/version_sync.py status docs
-python ai_tools/version_sync.py status core
-```
-
-**Scopes:**
-- `ai_docs` (default): AI documentation and cursor rules
-- `docs`: All documentation files (`.md`, `.txt`, `.mdc`)
-- `core`: Key system files (`run_mhm.py`, `core/service.py`, etc.)
-- `all`: Everything (use with caution)
 
 ### **Development Workflow**
 1. **Test Current**: `python run_mhm.py`
 2. **Create Backup**: PowerShell backup command
 3. **Make Small Changes**: Incremental approach
 4. **Test After**: `python run_mhm.py`
-5. **Update CHANGELOG**: Document changes
+5. **Update CHANGELOGs**: Document changes fully in `CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
 
-## 💬 **COMMON SCENARIOS**
+## 💬 **COMMUNICATION GUIDELINES**
 
-### **User Asks for Documentation**
-1. **STOP** - Don't create documentation immediately
-2. **Run Audit**: `python ai_tools/ai_tools_runner.py audit`
-3. **Show Results**: Display completeness statistics
-4. **Get Approval**: Ask user if you should proceed
-5. **Create from Data**: Use actual audit data, not assumptions
+### **Response Style**
+- **Simple explanations** - focus on one concept at a time
+- **Step-by-step instructions** - break complex tasks into steps
+- **Explain WHY** - always explain why changes are needed
+- **Be patient and encouraging** - acknowledge progress and successes
+- **Question assumptions** - suggest better alternatives when appropriate
 
-### **User Suggests Something**
-1. **Question Goals**: "What's your goal with this approach?"
-2. **Suggest Alternatives**: "Are you aware of [better option]?"
-3. **Point Out Issues**: "Have you considered [potential problem]?"
-4. **Educate**: Explain relevant concepts they might not know
-
-### **Making Code Changes**
-1. **Test Current**: `python run_mhm.py`
-2. **Create Backup**: PowerShell backup command
-3. **Make Small Changes**: Incremental approach
-4. **Test After**: `python run_mhm.py`
-5. **Update CHANGELOG**: Document changes
+### **When User Suggests Something**
+- Question their goals and reasoning
+- Suggest better alternatives if you see them
+- Educate about relevant concepts they might not know
+- Point out potential problems or inefficiencies
+- Ask clarifying questions when unsure
 
 ## 📚 **FOR MORE DETAILED INFORMATION**
 
@@ -166,9 +116,12 @@ python ai_tools/version_sync.py status core
 ### **When You Need Technical Details**
 - **`ARCHITECTURE.md`** - System architecture and design
 - **`DEVELOPMENT_WORKFLOW.md`** - Detailed development practices
-- **`FUNCTION_REGISTRY_DETAIL.md`** - Complete function documentation
-- **`MODULE_DEPENDENCIES_DETAIL.md`** - Module relationships and dependencies
 - **`ai_tools/README.md`** - Complete tool usage and configuration
+
+### **AI-Specific Quick References**
+- **`AI_DEVELOPMENT_WORKFLOW.md`** - AI-optimized development patterns
+- **`AI_ARCHITECTURE.md`** - AI-optimized architectural patterns
+- **`AI_DOCUMENTATION_GUIDE.md`** - AI-optimized documentation navigation
 
 ---
 

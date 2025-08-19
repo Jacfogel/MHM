@@ -1,6 +1,6 @@
 # TODO.md - MHM Project Tasks
 
-> **Audience**: Human Developer (Beginner Programmer)  and AI collaborators
+> **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
 > **Style**: Organized, actionable, beginner-friendly
 
@@ -29,6 +29,18 @@ When adding new tasks, follow this format:
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
 ## High Priority
+
+## **AI Tools Improvement - Generated Documentation Quality** ⚠️ **NEW PRIORITY**
+- *What it means*: Improve the AI tools that generate `AI_FUNCTION_REGISTRY.md` and `AI_MODULE_DEPENDENCIES.md` to provide more valuable, concise information
+- *Why it helps*: Generated documentation should be truly AI-optimized with essential patterns and decision trees, not verbose listings
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [ ] Analyze current AI tools output quality and identify improvement areas
+  - [ ] Redesign function registry generation to focus on patterns over listings
+  - [ ] Redesign module dependencies generation to highlight key relationships
+  - [ ] Add pattern recognition to identify common function/module categories
+  - [ ] Implement concise summary generation with cross-references to detailed docs
+  - [ ] Test generated documentation usability for AI collaborators
 
 ## **Test Coverage Expansion - Critical Infrastructure** ✅ **MAJOR PROGRESS**
 
@@ -61,6 +73,11 @@ When adding new tasks, follow this format:
   - [ ] Investigate Windows file locking during log rotation
   - [ ] Implement proper file handle cleanup in tests
   - [ ] Add retry logic for log file operations
+- [ ] **NEW**: Address test warnings and deprecation notices
+  - [ ] Fix Discord deprecation warnings (audioop, timeout parameters)
+  - [ ] Fix pytest return-not-none warnings in integration tests
+  - [ ] Fix async mock warnings in communication manager tests
+  - [ ] Fix duplicate file warnings in zipfile operations
 
 ## **Next Priority Test Coverage Expansion**
 

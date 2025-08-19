@@ -402,6 +402,16 @@ class DiscordBot(BaseChannel):
             # Ensure bot is properly closed
             if not self.bot.is_closed():
                 await self.bot.close()
+            
+            # Clean up HTTP session to prevent "Unclosed client session" errors
+            try:
+                if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
+                    if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
+                        if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
+                            await self.bot._HTTP._HTTPClient._session.close()
+                            logger.info("Discord bot HTTP session closed in main loop")
+            except Exception as e:
+                logger.debug(f"Error closing HTTP session in main loop (may already be closed): {e}")
 
     @handle_errors("processing Discord command queue")
     async def _process_command_queue(self):
@@ -649,15 +659,62 @@ class DiscordBot(BaseChannel):
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:
         """Shutdown Discord bot safely"""
+        logger.info("Starting Discord bot shutdown...")
+        
         # Send stop command to Discord thread
-        self._command_queue.put(("stop", None))
+        try:
+            self._command_queue.put(("stop", None))
+        except Exception as e:
+            logger.warning(f"Error sending stop command: {e}")
         
         # Wait for thread to finish
         if self.discord_thread and self.discord_thread.is_alive():
             self.discord_thread.join(timeout=10)
+            if self.discord_thread.is_alive():
+                logger.warning("Discord thread did not stop gracefully")
+        
+        # Properly close the bot and event loop
+        if self.bot:
+            try:
+                # Close the bot first
+                if not self.bot.is_closed():
+                    await self.bot.close()
+                    logger.info("Discord bot closed successfully")
+                
+                # Clean up HTTP session to prevent "Unclosed client session" errors
+                try:
+                    if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
+                        if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
+                            if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
+                                await self.bot._HTTP._HTTPClient._session.close()
+                                logger.info("Discord bot HTTP session closed successfully")
+                except Exception as e:
+                    logger.debug(f"Error closing HTTP session (may already be closed): {e}")
+                
+                # Clean up the event loop if it exists
+                if hasattr(self, '_loop') and self._loop:
+                    try:
+                        # Cancel all pending tasks
+                        pending_tasks = [task for task in asyncio.all_tasks(self._loop) if not task.done()]
+                        for task in pending_tasks:
+                            task.cancel()
+                        
+                        # Wait for tasks to be cancelled
+                        if pending_tasks:
+                            await asyncio.gather(*pending_tasks, return_exceptions=True)
+                        
+                        # Close the loop
+                        if not self._loop.is_closed():
+                            self._loop.close()
+                        logger.info("Discord bot event loop closed successfully")
+                    except Exception as e:
+                        logger.warning(f"Error cleaning up event loop: {e}")
+                        
+            except Exception as e:
+                logger.error(f"Error during Discord bot shutdown: {e}")
         
         self._set_status(ChannelStatus.STOPPED)
-        logger.info("Discord bot shutdown successfully")
+        logger.info("Discord bot shutdown completed")
         return True
 
     @handle_errors("sending Discord message", default_return=False)

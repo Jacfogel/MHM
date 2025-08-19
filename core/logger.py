@@ -453,6 +453,9 @@ def setup_logging():
     root_logger.addHandler(console_handler)
     root_logger.setLevel(logging.DEBUG)  # Root logger captures all levels
 
+    # Set up dedicated error handler for third-party library errors
+    setup_third_party_error_logging()
+
     # Suppress noisy third-party logging
     suppress_noisy_logging()
     
@@ -460,6 +463,53 @@ def setup_logging():
     logger = logging.getLogger(__name__)
     logger.info("Logging initialized - Console level: %s, File level: DEBUG", logging.getLevelName(log_level))
     logger.info("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
+
+
+def setup_third_party_error_logging():
+    """
+    Set up dedicated error logging for third-party libraries.
+    
+    Routes ERROR and CRITICAL messages from asyncio, discord, and aiohttp
+    to the errors.log file instead of app.log.
+    """
+    try:
+        # Create error formatter
+        error_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        
+        # Create error file handler
+        error_handler = BackupDirectoryRotatingFileHandler(
+            LOG_ERRORS_FILE,
+            LOG_BACKUP_DIR,
+            maxBytes=LOG_MAX_BYTES,
+            backupCount=LOG_BACKUP_COUNT,
+            encoding='utf-8'
+        )
+        error_handler.setFormatter(error_formatter)
+        error_handler.setLevel(logging.ERROR)  # Only ERROR and CRITICAL
+        
+        # Set up error logging for third-party libraries
+        third_party_loggers = [
+            "asyncio",
+            "discord",
+            "discord.client", 
+            "discord.gateway",
+            "aiohttp",
+            "aiohttp.client",
+            "aiohttp.connector"
+        ]
+        
+        for logger_name in third_party_loggers:
+            logger = logging.getLogger(logger_name)
+            # Add error handler to route ERROR/CRITICAL to errors.log
+            logger.addHandler(error_handler)
+            # Set level to ERROR to capture only errors
+            logger.setLevel(logging.ERROR)
+            # Prevent propagation to root logger to avoid duplicates in app.log
+            logger.propagate = False
+            
+    except Exception as e:
+        # Failsafe: don't break logging if error handler setup fails
+        logging.getLogger(__name__).warning(f"Failed to setup third-party error logging: {e}")
 
 
 def get_logger(name):
