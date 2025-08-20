@@ -79,11 +79,25 @@ class Ui_Dialog_task_edit(object):
 
         self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.LabelRole, self.label_task_due_date)
 
-        self.dateEdit_task_due_date = QDateEdit(self.widget_task_details)
+        self.widget_due_date_container = QWidget(self.widget_task_details)
+        self.widget_due_date_container.setObjectName(u"widget_due_date_container")
+        self.horizontalLayout_due_date = QHBoxLayout(self.widget_due_date_container)
+        self.horizontalLayout_due_date.setSpacing(8)
+        self.horizontalLayout_due_date.setObjectName(u"horizontalLayout_due_date")
+        self.horizontalLayout_due_date.setContentsMargins(0, 0, 0, 0)
+        self.dateEdit_task_due_date = QDateEdit(self.widget_due_date_container)
         self.dateEdit_task_due_date.setObjectName(u"dateEdit_task_due_date")
         self.dateEdit_task_due_date.setCalendarPopup(True)
 
-        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.FieldRole, self.dateEdit_task_due_date)
+        self.horizontalLayout_due_date.addWidget(self.dateEdit_task_due_date)
+
+        self.checkBox_no_due_date = QCheckBox(self.widget_due_date_container)
+        self.checkBox_no_due_date.setObjectName(u"checkBox_no_due_date")
+
+        self.horizontalLayout_due_date.addWidget(self.checkBox_no_due_date)
+
+
+        self.formLayout_task_details.setWidget(3, QFormLayout.ItemRole.FieldRole, self.widget_due_date_container)
 
         self.label_task_due_time = QLabel(self.widget_task_details)
         self.label_task_due_time.setObjectName(u"label_task_due_time")
@@ -288,6 +302,7 @@ class Ui_Dialog_task_edit(object):
         self.comboBox_task_priority.setItemText(3, QCoreApplication.translate("Dialog_task_edit", u"High", None))
 
         self.label_task_due_date.setText(QCoreApplication.translate("Dialog_task_edit", u"Due Date:", None))
+        self.checkBox_no_due_date.setText(QCoreApplication.translate("Dialog_task_edit", u"No Due Date", None))
         self.label_task_due_time.setText(QCoreApplication.translate("Dialog_task_edit", u"Due Time (Optional):", None))
         self.label_due_time_colon.setText(QCoreApplication.translate("Dialog_task_edit", u":", None))
         self.radioButton_due_time_am.setText(QCoreApplication.translate("Dialog_task_edit", u"AM", None))

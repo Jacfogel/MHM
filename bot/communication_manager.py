@@ -1320,7 +1320,8 @@ class CommunicationManager:
         priority_emoji = {
             'low': '🟢',
             'medium': '🟡', 
-            'high': '🔴'
+            'high': '🔴',
+            'critical': '🚨'
         }.get(priority, '🟡')
         
         # Build the message

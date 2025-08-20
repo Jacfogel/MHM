@@ -30,6 +30,24 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-20 - Test User Directory Cleanup and Test Suite Fixes ✅ **COMPLETED**
+- Fixed all 7 failing tests by addressing test user creation issues and weighted question selection non-determinism
+- Refactored tests to use `TestUserFactory.create_basic_user` instead of direct `create_user_files` calls
+- Cleaned up test user directories (`test_user_123`, `test_user_new_options`) from real user directory
+- Updated test assertions to handle UUID-based user IDs and complete user structures from `TestUserFactory`
+- Fixed integration tests to include required `channel.type` in preferences data for validation
+- Achieved 100% test success rate (924/924 tests passing) with proper test isolation
+- Ensured test users are only created in test directories, preventing test contamination
+
+### 2025-08-20 - Phase 1: Enhanced Task & Check-in Systems Implementation ✅ **COMPLETED**
+- Implemented priority-based task reminder system with due date proximity weighting for smarter task selection
+- Added semi-random check-in questions with weighted selection based on recent questions and category variety
+- Enhanced task selection algorithm prioritizes overdue high-priority tasks (5x weight) and tasks due today (4x weight)
+- Improved check-in question variety with category-based weighting and recent question avoidance
+- Added "critical" priority level and "no due date" option for tasks with full UI and backend support
+- Both systems tested and validated with comprehensive test scenarios showing expected behavior
+- Directly supports user's executive functioning needs with more intelligent and varied interactions
+
 ### 2025-08-20 - Project Vision Clarification and Phase Planning ✅ **COMPLETED**
 - Clarified project vision through detailed Q&A session, refining core values and AI assistant personality
 - Established personalized vision focusing on ADHD/depression support with mood-aware, hope-focused approach

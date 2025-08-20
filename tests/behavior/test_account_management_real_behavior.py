@@ -611,7 +611,9 @@ def test_data_consistency_real_behavior(test_data_dir):
         
         print(f"  User index content: {user_index}")
         assert "test-user-basic" in user_index, "User should still be in index"
-        assert user_index["test-user-basic"]["active"] == True, "User should still be active"
+        # User index now maps internal_username to UUID, not to object with 'active' field
+        # Check that the user exists in the index (UUID should be a string)
+        assert isinstance(user_index["test-user-basic"], str), "User index should map to UUID string"
         
         print("  ✅ User index consistency: Success")
         

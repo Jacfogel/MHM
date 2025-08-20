@@ -786,7 +786,11 @@ class SchedulerManager:
                     continue
                 
                 # Pick one random task for this period
-                selected_task = random.choice(incomplete_tasks)
+                selected_task = self.select_task_for_reminder(incomplete_tasks)
+                
+                if not selected_task:
+                    logger.debug(f"No task selected for period {period_name} for user {user_id}")
+                    continue
                 
                 # Use canonical keys with fallback to legacy keys for task reminder periods
                 start_time = period_data.get('start_time') or period_data.get('start')
@@ -811,6 +815,110 @@ class SchedulerManager:
             
         except Exception as e:
             logger.error(f"Error scheduling task reminders for user {user_id}: {e}")
+
+    @handle_errors("selecting task for reminder with priority and due date weighting")
+    def select_task_for_reminder(self, incomplete_tasks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Select a task for reminder using priority-based and due date proximity weighting.
+        
+        Args:
+            incomplete_tasks: List of incomplete tasks to choose from
+            
+        Returns:
+            Selected task dictionary
+        """
+        try:
+            from datetime import datetime, timedelta
+            import random
+            
+            if not incomplete_tasks:
+                return None
+            
+            # If only one task, return it
+            if len(incomplete_tasks) == 1:
+                return incomplete_tasks[0]
+            
+            # Calculate weights for each task
+            task_weights = []
+            today = datetime.now().date()
+            
+            for task in incomplete_tasks:
+                weight = 1.0  # Base weight
+                
+                # Priority weighting with new levels
+                priority = task.get('priority', 'medium').lower()
+                priority_multipliers = {
+                    'critical': 3.0,  # Critical priority tasks 3x more likely
+                    'high': 2.0,      # High priority tasks 2x more likely
+                    'medium': 1.5,    # Medium priority tasks 1.5x more likely
+                    'low': 1.0,       # Low priority tasks base weight
+                    'none': 0.8       # No priority tasks slightly less likely
+                }
+                weight *= priority_multipliers.get(priority, 1.0)
+                
+                # Sliding scale due date proximity weighting
+                due_date_str = task.get('due_date')
+                if due_date_str:
+                    try:
+                        due_date = datetime.strptime(due_date_str, '%Y-%m-%d').date()
+                        days_until_due = (due_date - today).days
+                        
+                        # Sliding scale calculation
+                        if days_until_due < 0:
+                            # Overdue tasks: exponential increase based on how overdue
+                            # Formula: 2.5 + (days_overdue * 0.1), max 4.0
+                            days_overdue = abs(days_until_due)
+                            overdue_multiplier = min(2.5 + (days_overdue * 0.1), 4.0)
+                            weight *= overdue_multiplier
+                        elif days_until_due == 0:
+                            # Due today: maximum weight
+                            weight *= 2.5
+                        elif days_until_due <= 7:
+                            # Due within a week: sliding scale from 2.5 to 1.0
+                            # Formula: 2.5 - (days_until_due * 0.2)
+                            proximity_multiplier = max(2.5 - (days_until_due * 0.2), 1.0)
+                            weight *= proximity_multiplier
+                        elif days_until_due <= 30:
+                            # Due within a month: sliding scale from 1.0 to 0.8
+                            # Formula: 1.0 - (days_until_due - 7) * 0.01
+                            month_multiplier = max(1.0 - (days_until_due - 7) * 0.01, 0.8)
+                            weight *= month_multiplier
+                        else:
+                            # Due later than a month: base weight
+                            weight *= 0.8
+                    except ValueError:
+                        # Invalid date format, use base weight
+                        pass
+                else:
+                    # No due date: slight reduction to encourage setting due dates
+                    weight *= 0.9
+                
+                task_weights.append((task, weight))
+            
+            # Normalize weights to sum to 1.0
+            total_weight = sum(weight for _, weight in task_weights)
+            if total_weight == 0:
+                # Fallback to random selection if all weights are 0
+                return random.choice(incomplete_tasks)
+            
+            # Create probability distribution
+            probabilities = [weight / total_weight for _, weight in task_weights]
+            
+            # Select task based on weighted probabilities
+            selected_task = random.choices(
+                [task for task, _ in task_weights],
+                weights=probabilities,
+                k=1
+            )[0]
+            
+            logger.debug(f"Selected task '{selected_task.get('title', 'Unknown')}' with priority '{selected_task.get('priority', 'medium')}' and due date '{selected_task.get('due_date', 'None')}'")
+            
+            return selected_task
+            
+        except Exception as e:
+            logger.error(f"Error selecting task for reminder: {e}")
+            # Fallback to random selection
+            return random.choice(incomplete_tasks) if incomplete_tasks else None
 
     @handle_errors("getting random time within task period")
     def get_random_time_within_task_period(self, start_time, end_time):

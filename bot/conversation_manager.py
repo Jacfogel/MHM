@@ -214,16 +214,13 @@ class ConversationManager:
 
     @handle_errors("starting dynamic checkin", default_return=("I'm having trouble starting your check-in. Please try again.", True))
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
-        """Start a dynamic check-in flow based on user preferences"""
+        """Start a dynamic check-in flow based on user preferences with weighted question selection"""
         # Get user's check-in preferences
         checkin_prefs = get_user_checkin_preferences(user_id)
         enabled_questions = checkin_prefs.get('questions', {})
         
-        # Build ordered list of enabled questions
-        question_order = []
-        for question_key, question_data in enabled_questions.items():
-            if question_data.get('enabled', False):
-                question_order.append(question_key)
+        # Use weighted selection for question order
+        question_order = self._select_checkin_questions_with_weighting(user_id, enabled_questions)
         
         if not question_order:
             return ("No check-in questions are enabled. Please configure your check-in settings.", True)
@@ -439,6 +436,10 @@ class ConversationManager:
     def _complete_checkin(self, user_id: str, user_state: dict) -> tuple[str, bool]:
         """Complete the check-in and provide personalized feedback"""
         data = user_state["data"]
+        question_order = user_state.get('question_order', [])
+        
+        # Add questions asked to the data for future weighting
+        data['questions_asked'] = question_order
         
         # Store the check-in data (legacy alias retained for tests)
         # Use exposed legacy-compatible function name so tests can patch it
@@ -511,6 +512,99 @@ class ConversationManager:
         """
         ai_bot = get_ai_chatbot()
         return ai_bot.generate_contextual_response(user_id, message_text, timeout=8)
+
+    @handle_errors("selecting check-in questions with weighted randomization")
+    def _select_checkin_questions_with_weighting(self, user_id: str, enabled_questions: dict) -> list:
+        """
+        Select check-in questions using weighted randomization to ensure variety.
+        
+        Args:
+            user_id: User ID
+            enabled_questions: Dictionary of enabled questions from user preferences
+            
+        Returns:
+            List of question keys in selected order
+        """
+        try:
+            import random
+            from datetime import datetime, timedelta
+            
+            # Get enabled question keys
+            enabled_keys = [key for key, data in enabled_questions.items() if data.get('enabled', False)]
+            
+            if not enabled_keys:
+                return []
+            
+            # If only one question enabled, return it
+            if len(enabled_keys) == 1:
+                return enabled_keys
+            
+            # Get recent check-in history to avoid repetition
+            recent_checkins = get_recent_checkins(user_id, limit=5)
+            recently_asked = set()
+            
+            # Extract recently asked questions from the last 3 check-ins
+            for checkin in recent_checkins[-3:]:
+                if 'questions_asked' in checkin:
+                    recently_asked.update(checkin['questions_asked'])
+            
+            # Define question categories for variety
+            question_categories = {
+                'mood': ['mood', 'energy', 'stress_level', 'anxiety_level'],
+                'health': ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration'],
+                'sleep': ['sleep_quality', 'sleep_hours'],
+                'social': ['social_interaction'],
+                'reflection': ['focus_level', 'daily_reflection']
+            }
+            
+            # Calculate weights for each question
+            question_weights = []
+            
+            for question_key in enabled_keys:
+                weight = 1.0  # Base weight
+                
+                # Reduce weight for recently asked questions
+                if question_key in recently_asked:
+                    weight *= 0.3  # 70% reduction for recently asked
+                
+                # Boost weight for questions from underrepresented categories
+                question_category = None
+                for category, questions in question_categories.items():
+                    if question_key in questions:
+                        question_category = category
+                        break
+                
+                if question_category:
+                    # Count how many questions from this category were recently asked
+                    category_recent_count = sum(1 for q in recently_asked if q in question_categories.get(question_category, []))
+                    if category_recent_count == 0:
+                        weight *= 1.5  # Boost for underrepresented categories
+                    elif category_recent_count >= 2:
+                        weight *= 0.7  # Reduce for overrepresented categories
+                
+                # Add some randomness to prevent predictable patterns
+                weight *= random.uniform(0.8, 1.2)
+                
+                question_weights.append((question_key, weight))
+            
+            # Sort by weight (highest first) and take top questions
+            question_weights.sort(key=lambda x: x[1], reverse=True)
+            
+            # Select questions (limit to reasonable number, e.g., 5-8 questions)
+            max_questions = min(len(enabled_keys), 8)
+            selected_questions = [q[0] for q in question_weights[:max_questions]]
+            
+            # Shuffle the final order for additional randomness
+            random.shuffle(selected_questions)
+            
+            logger.debug(f"Selected {len(selected_questions)} check-in questions for user {user_id}: {selected_questions}")
+            
+            return selected_questions
+            
+        except Exception as e:
+            logger.error(f"Error selecting check-in questions with weighting: {e}")
+            # Fallback to simple random selection
+            return random.sample(enabled_keys, min(len(enabled_keys), 6))
 
 # Create a global instance for convenience:
 conversation_manager = ConversationManager()

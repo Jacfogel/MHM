@@ -120,7 +120,7 @@ class TaskManagementHandler(InteractionHandler):
             due_date = self._parse_relative_date(due_date)
         
         # Validate priority
-        valid_priorities = ['low', 'medium', 'high']
+        valid_priorities = ['low', 'medium', 'high', 'critical']
         if priority not in valid_priorities:
             priority = 'medium'
         

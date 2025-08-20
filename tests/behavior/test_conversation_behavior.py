@@ -14,6 +14,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
 from bot.conversation_manager import ConversationManager, FLOW_NONE, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
+from bot.conversation_manager import QUESTION_STATES
 
 
 class TestConversationManagerBehavior:
@@ -123,8 +124,14 @@ class TestConversationManagerBehavior:
             # Assert - Verify actual state creation
             assert test_user_id in manager.user_states, "Should create user state"
             assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should set check-in flow"
-            # The state gets set to the first question's state (CHECKIN_MOOD = 101)
-            assert manager.user_states[test_user_id]['state'] == CHECKIN_MOOD, "Should set first question state"
+            
+            # The state should correspond to the first question in the question_order
+            # (which is determined by weighted selection, so we check dynamically)
+            question_order = manager.user_states[test_user_id]['question_order']
+            first_question = question_order[0]
+            expected_state = QUESTION_STATES.get(first_question, CHECKIN_START)
+            assert manager.user_states[test_user_id]['state'] == expected_state, f"Should set state for first question '{first_question}'"
+            
             assert 'data' in manager.user_states[test_user_id], "Should have data dictionary"
             assert 'question_order' in manager.user_states[test_user_id], "Should have question order"
             assert len(manager.user_states[test_user_id]['question_order']) == 2, "Should have correct question count"
@@ -562,7 +569,8 @@ class TestConversationManagerIntegration:
             assert test_user_id in manager.user_states, "Should create user state with real data"
             assert manager.user_states[test_user_id]['flow'] == FLOW_CHECKIN, "Should start check-in flow"
             assert len(manager.user_states[test_user_id]['question_order']) == 3, "Should have correct question count"
-            assert "feeling" in reply.lower(), "Should ask first question"
+            # Check for any check-in related content (since question order is weighted/random)
+            assert any(word in reply.lower() for word in ['check-in', 'feeling', 'mood', 'energy', 'stress', 'sleep', 'exercise', 'medication', 'breakfast', 'teeth', 'hydration', 'social', 'reflection']), f"Should ask first question, got: {reply[:100]}..."
     
     def test_conversation_manager_error_recovery_with_real_files(self, test_data_dir):
         """Test ConversationManager error recovery with corrupted real files."""

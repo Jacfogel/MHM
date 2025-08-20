@@ -30,25 +30,26 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-## **Phase 1: Enhanced Task & Check-in Systems** ⚠️ **NEW PRIORITY**
+## **Phase 1: Enhanced Task & Check-in Systems** ✅ **MAJOR PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
 - *Estimated effort*: Large (1-2 weeks)
 - *Subtasks*:
-  - [ ] **Enhanced Task Reminder System** (High Impact, Medium Effort)
-    - [ ] Add priority-based reminder frequency (high priority = more likely to be selected for reminders)
-    - [ ] Implement due date proximity weighting (closer to due = more likely to be selected for reminders)
+  - [x] **Enhanced Task Reminder System** (High Impact, Medium Effort) ✅ **COMPLETED**
+    - [x] Add priority-based reminder frequency (high priority = more likely to be selected for reminders)
+    - [x] Implement due date proximity weighting (closer to due = more likely to be selected for reminders)
+    - [x] Add "critical" priority level and "no due date" option for tasks
     - [ ] Add recurring task support with flexible scheduling
-    - [ ] Improve semi-randomness to consider task urgency
-    - [ ] Test priority and due date weighting algorithms
+    - [x] Improve semi-randomness to consider task urgency
+    - [x] Test priority and due date weighting algorithms
     - [ ] Validate recurring task scheduling patterns
-  - [ ] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort)
-    - [ ] Implement random question selection from available pool
-    - [ ] Add weighted selection based on recent questions asked
-    - [ ] Ensure variety while maintaining relevance
-    - [ ] Add question categories (mood, energy, tasks, general well-being)
-    - [ ] Test question selection randomness and variety
-    - [ ] Validate question category coverage
+  - [x] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort) ✅ **COMPLETED**
+    - [x] Implement random question selection from available pool
+    - [x] Add weighted selection based on recent questions asked
+    - [x] Ensure variety while maintaining relevance
+    - [x] Add question categories (mood, energy, tasks, general well-being)
+    - [x] Test question selection randomness and variety
+    - [x] Validate question category coverage
   - [ ] **Check-in Response Analysis** (High Impact, Medium Effort)
     - [ ] Implement pattern analysis of responses over time
     - [ ] Add progress tracking for mood trends
@@ -64,6 +65,26 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
+## **Test User Directory Cleanup** ✅ **COMPLETED**
+- *What it means*: Ensure test users are created in test directories only, not in real user directories
+- *Why it helps*: Prevents test contamination and maintains clean separation between test and production data
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [x] **Identify Source of Test User Creation** ✅ **COMPLETED**
+    - [x] Found tests directly calling `create_user_files` instead of using `TestUserFactory`
+    - [x] Identified `tests/unit/test_user_management.py` and `tests/integration/test_user_creation.py` as sources
+  - [x] **Refactor Tests to Use TestUserFactory** ✅ **COMPLETED**
+    - [x] Updated all test files to use `TestUserFactory.create_basic_user` instead of direct calls
+    - [x] Fixed test assertions to handle UUID-based user IDs and complete user structures
+    - [x] Updated integration tests to include required `channel.type` in preferences data
+  - [x] **Clean Up Existing Test Users** ✅ **COMPLETED**
+    - [x] Deleted `test_user_123` and `test_user_new_options` from real user directory
+    - [x] Verified no test users are created in real directory during full test suite
+  - [x] **Validate Test Isolation** ✅ **COMPLETED**
+    - [x] Ran full test suite (924 tests) - all tests pass
+    - [x] Confirmed test users only created in test directories
+    - [x] Verified system stability and functionality maintained
+
 ## **AI Tools Improvement - Generated Documentation Quality** ⚠️ **NEW PRIORITY**
 - *What it means*: Improve the AI tools that generate `AI_FUNCTION_REGISTRY.md` and `AI_MODULE_DEPENDENCIES.md` to provide more valuable, concise information
 - *Why it helps*: Generated documentation should be truly AI-optimized with essential patterns and decision trees, not verbose listings
@@ -75,6 +96,29 @@ When adding new tasks, follow this format:
   - [ ] Add pattern recognition to identify common function/module categories
   - [ ] Implement concise summary generation with cross-references to detailed docs
   - [ ] Test generated documentation usability for AI collaborators
+
+## **Code Complexity Reduction - High Priority Refactoring** ⚠️ **NEW PRIORITY**
+- *What it means*: Address 1686 high complexity functions (>50 nodes) identified in audit to improve maintainability and reduce technical debt
+- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer and more efficient
+- *Estimated effort*: Large
+- *Subtasks*:
+  - [ ] **Analyze Complexity Distribution**
+    - [ ] Export top-50 most complex functions from audit details
+    - [ ] Categorize functions by module and complexity level
+    - [ ] Identify patterns in high-complexity functions (long methods, deep nesting, etc.)
+  - [ ] **Prioritize Refactoring Targets**
+    - [ ] Focus on core system functions first (scheduler, communication, user management)
+    - [ ] Identify functions with highest impact on system stability
+    - [ ] Create refactoring plan with acceptance criteria for each function
+  - [ ] **Implement Refactoring Strategy**
+    - [ ] Extract helper functions to reduce complexity
+    - [ ] Break down large methods into smaller, focused functions
+    - [ ] Reduce conditional nesting and improve readability
+    - [ ] Add comprehensive tests for refactored functions
+  - [ ] **Monitor Progress**
+    - [ ] Track complexity reduction metrics
+    - [ ] Ensure refactoring doesn't break existing functionality
+    - [ ] Validate improvements through testing and audit results
 
 ## **Test Coverage Expansion - Critical Infrastructure** ✅ **MAJOR PROGRESS**
 

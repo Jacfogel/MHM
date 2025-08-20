@@ -57,13 +57,16 @@ class TaskEditDialog(QDialog):
         # Set default date to today
         self.ui.dateEdit_task_due_date.setDate(QDate.currentDate())
         
-        # Setup priority combo box with None option
+        # Setup priority combo box with Critical option
         self.ui.comboBox_task_priority.clear()
-        self.ui.comboBox_task_priority.addItems(["None", "Low", "Medium", "High"])
+        self.ui.comboBox_task_priority.addItems(["None", "Low", "Medium", "High", "Critical"])
         self.ui.comboBox_task_priority.setCurrentText("Medium")
         
         # Setup due time components
         self.setup_due_time_components()
+        
+        # Setup No Due Date checkbox
+        self.ui.checkBox_no_due_date.toggled.connect(self.on_no_due_date_toggled)
         
         # Tags are now handled by TagSelectionWidget
         
@@ -113,6 +116,15 @@ class TaskEditDialog(QDialog):
             self.ui.comboBox_due_time_hour.setCurrentText("12")
         # Don't change hour when minute is set to blank
     
+    def on_no_due_date_toggled(self, checked):
+        """Handle No Due Date checkbox toggle."""
+        if checked:
+            # Disable the date edit when "No Due Date" is checked
+            self.ui.dateEdit_task_due_date.setEnabled(False)
+        else:
+            # Enable the date edit when "No Due Date" is unchecked
+            self.ui.dateEdit_task_due_date.setEnabled(True)
+    
     def setup_connections(self):
         """Setup signal connections."""
         # Connect checkbox to enable/disable reminder periods
@@ -153,8 +165,14 @@ class TaskEditDialog(QDialog):
                 date = QDate.fromString(due_date, 'yyyy-MM-dd')
                 if date.isValid():
                     self.ui.dateEdit_task_due_date.setDate(date)
+                    self.ui.checkBox_no_due_date.setChecked(False)
+                else:
+                    self.ui.checkBox_no_due_date.setChecked(True)
             except Exception:
-                pass
+                self.ui.checkBox_no_due_date.setChecked(True)
+        else:
+            # No due date set
+            self.ui.checkBox_no_due_date.setChecked(True)
         
         # Set due time
         due_time = self.task_data.get('due_time')
@@ -449,8 +467,13 @@ class TaskEditDialog(QDialog):
             if priority == "none":
                 priority = ""
             
-            due_date = self.ui.dateEdit_task_due_date.date().toString('yyyy-MM-dd')
-            due_time = self.get_due_time_as_24h()
+            # Handle due date - check if "No Due Date" is selected
+            if self.ui.checkBox_no_due_date.isChecked():
+                due_date = None
+                due_time = None
+            else:
+                due_date = self.ui.dateEdit_task_due_date.date().toString('yyyy-MM-dd')
+                due_time = self.get_due_time_as_24h()
             
             # Collect tags
             tags = self.collect_selected_tags()

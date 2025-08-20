@@ -106,10 +106,38 @@
        </widget>
       </item>
       <item row="3" column="1">
-       <widget class="QDateEdit" name="dateEdit_task_due_date">
-        <property name="calendarPopup">
-         <bool>true</bool>
-        </property>
+       <widget class="QWidget" name="widget_due_date_container" native="true">
+        <layout class="QHBoxLayout" name="horizontalLayout_due_date">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QDateEdit" name="dateEdit_task_due_date">
+           <property name="calendarPopup">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="checkBox_no_due_date">
+           <property name="text">
+            <string>No Due Date</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item row="4" column="0">
