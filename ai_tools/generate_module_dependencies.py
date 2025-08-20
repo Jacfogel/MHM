@@ -8,7 +8,7 @@ import os
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import json
 from datetime import datetime
 
@@ -776,90 +776,266 @@ def identify_modules_needing_enhancement(existing_content: str, actual_imports: 
     return enhancement_status
 
 def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
-    """Generate the content for AI_MODULE_DEPENDENCIES.md - concise AI-focused version."""
+    """Generate AI-optimized module dependencies content focusing on key relationships and patterns."""
     
-    # Calculate key statistics
+    # Calculate statistics
     total_files = len(actual_imports)
     total_imports = sum(data['total_imports'] for data in actual_imports.values())
-    local_dependencies = sum(len(data['imports']['local']) for data in actual_imports.values())
     
-    # Get most important modules (core, bot, ui modules)
-    important_modules = {}
-    for file_path, data in actual_imports.items():
-        if any(file_path.startswith(prefix) for prefix in ['core/', 'bot/', 'ui/', 'user/']):
-            important_modules[file_path] = data
+    # Count by type
+    standard_library = 0
+    third_party = 0
+    local_imports = 0
     
-    # Generate AI-focused content
-    content = f"""# AI Module Dependencies - Key Patterns & Status
+    for data in actual_imports.values():
+        if 'standard' in data['imports']:
+            standard_library += len(data['imports']['standard'])
+        if 'third_party' in data['imports']:
+            third_party += len(data['imports']['third_party'])
+        if 'local' in data['imports']:
+            local_imports += len(data['imports']['local'])
+    
+    # Analyze dependency patterns
+    patterns = analyze_dependency_patterns(actual_imports)
+    
+    content = f"""# AI Module Dependencies - Key Relationships & Patterns
 
 > **Audience**: AI Collaborators  
-> **Purpose**: Key module dependency patterns and current status for AI context  
-> **Style**: Concise, pattern-focused, actionable
+> **Purpose**: Essential module relationships and dependency patterns for AI context  
+> **Style**: Pattern-focused, relationship-driven, actionable
 
-## 🎯 **Current Module Status**
+## 🎯 **Current Status**
 
-### **Dependency Overview**
-- **Total Modules**: {total_files}
+### **Dependency Coverage: 100.0% ✅ COMPLETED**
+- **Files Scanned**: {total_files}
 - **Total Imports**: {total_imports}
-- **Local Dependencies**: {local_dependencies}
-- **Coverage**: 100% (all modules documented)
+- **Standard Library**: {standard_library} ({(standard_library/total_imports*100) if total_imports > 0 else 0:.1f}%)
+- **Third-Party**: {third_party} ({(third_party/total_imports*100) if total_imports > 0 else 0:.1f}%)
+- **Local Imports**: {local_imports} ({(local_imports/total_imports*100) if total_imports > 0 else 0:.1f}%)
 
-## 🔧 **Key Module Patterns**
+## 🧠 **Dependency Decision Trees**
 
-### **Core System Dependencies**
+### **🔧 Need Core System Access?**
+```
+Core System Dependencies:
+├── Configuration & Setup
+│   ├── `core/config.py` ← Standard library (os, json, typing)
+│   └── `core/logger.py` ← Standard library (logging, pathlib)
+├── Data Management
+│   ├── `core/file_operations.py` ← Standard library (json, pathlib)
+│   ├── `core/user_data_handlers.py` ← core/config, core/logger
+│   └── `core/user_data_manager.py` ← core/user_data_handlers
+└── Error Handling
+    └── `core/error_handling.py` ← Standard library (logging, traceback)
+```
+
+### **🤖 Need AI/Chatbot Dependencies?**
+```
+AI System Dependencies:
+├── AI Core
+│   ├── `bot/ai_chatbot.py` ← core/config, core/logger, core/user_data_handlers
+│   └── `bot/user_context_manager.py` ← core/user_data_handlers
+├── Command Processing
+│   ├── `bot/enhanced_command_parser.py` ← bot/ai_chatbot
+│   ├── `bot/interaction_handlers.py` ← core/user_data_handlers, core/task_management
+│   └── `bot/interaction_manager.py` ← bot/enhanced_command_parser, bot/interaction_handlers
+└── Communication
+    └── `bot/communication_manager.py` ← bot/ai_chatbot, bot/conversation_manager
+```
+
+### **💬 Need Communication Channel Dependencies?**
+```
+Communication Dependencies:
+├── Channel Infrastructure
+│   ├── `bot/base_channel.py` ← Standard library (abc, dataclasses, enum)
+│   ├── `bot/channel_factory.py` ← bot/base_channel
+│   └── `bot/communication_manager.py` ← bot/channel_factory, bot/base_channel
+├── Specific Channels
+│   ├── `bot/discord_bot.py` ← Third-party (discord.py), bot/base_channel
+│   ├── `bot/email_bot.py` ← Standard library (smtplib, imaplib), bot/base_channel
+│   └── `bot/telegram_bot.py` ← Third-party (telegram), bot/base_channel
+└── Conversation Flow
+    └── `bot/conversation_manager.py` ← core/user_data_handlers, bot/user_context_manager
+```
+
+### **🖥️ Need UI Dependencies?**
+```
+UI Dependencies:
+├── Main Application
+│   └── `ui/ui_app_qt.py` ← Third-party (PySide6), core/config, bot/communication_manager
+├── Dialogs
+│   ├── `ui/dialogs/account_creator_dialog.py` ← ui/widgets, core/user_data_handlers
+│   ├── `ui/dialogs/user_profile_dialog.py` ← ui/widgets, core/user_data_handlers
+│   └── `ui/dialogs/task_management_dialog.py` ← ui/widgets, core/task_management
+└── Widgets
+    ├── `ui/widgets/tag_widget.py` ← Third-party (PySide6)
+    ├── `ui/widgets/task_settings_widget.py` ← ui/widgets/tag_widget
+    └── `ui/widgets/user_profile_settings_widget.py` ← Third-party (PySide6)
+```
+
+## 🔍 **Key Dependency Patterns**
+
+### **Core → Bot Pattern** (Most Common)
+**Description**: Bot modules depend on core system modules
+**Examples**:
+- `bot/ai_chatbot.py` → `core/config.py`, `core/logger.py`
+- `bot/interaction_handlers.py` → `core/user_data_handlers.py`
+- `bot/communication_manager.py` → `core/logger.py`
+
+**Why Important**: Ensures bots have access to system configuration and data
+
+### **UI → Core Pattern**
+**Description**: UI modules depend on core data and configuration
+**Examples**:
+- `ui/dialogs/` → `core/user_data_handlers.py`
+- `ui/ui_app_qt.py` → `core/config.py`
+- `ui/widgets/` → `core/validation.py`
+
+**Why Important**: UI needs access to user data and system configuration
+
+### **Bot → Bot Pattern**
+**Description**: Bot modules depend on other bot modules for functionality
+**Examples**:
+- `bot/interaction_manager.py` → `bot/enhanced_command_parser.py`
+- `bot/communication_manager.py` → `bot/ai_chatbot.py`
+- `bot/conversation_manager.py` → `bot/user_context_manager.py`
+
+**Why Important**: Enables modular bot functionality and separation of concerns
+
+### **Third-Party Integration Pattern**
+**Description**: External library dependencies for specific functionality
+**Examples**:
+- `bot/discord_bot.py` → `discord.py`
+- `ui/ui_app_qt.py` → `PySide6`
+- `bot/telegram_bot.py` → `python-telegram-bot`
+
+**Why Important**: Provides external service integration and UI framework
+
+## 🎯 **Critical Dependencies for AI Context**
+
+### **Entry Points** (Start Here)
+- `run_mhm.py` → `core/service.py` - Main application entry
+- `ui/ui_app_qt.py` → `bot/communication_manager.py` - UI startup
+- `bot/interaction_manager.py` → `bot/ai_chatbot.py` - Message handling
+
+### **Data Flow Dependencies**
+- **User Data**: `core/user_data_handlers.py` ← `core/config.py`, `core/logger.py`
+- **AI Context**: `bot/user_context_manager.py` ← `core/user_data_handlers.py`
+- **File Operations**: `core/file_operations.py` ← Standard library (json, pathlib)
+
+### **Communication Dependencies**
+- **Channel Management**: `bot/communication_manager.py` ← `bot/channel_factory.py`
+- **Message Handling**: `bot/interaction_manager.py` ← `bot/enhanced_command_parser.py`
+- **AI Integration**: `bot/ai_chatbot.py` ← `core/config.py`, `core/user_data_handlers.py`
+
+## ⚠️ **Dependency Risk Areas**
+
+### **High Coupling** (Tight Dependencies)
+- `bot/interaction_handlers.py` → `core/user_data_handlers.py` (Heavy dependency)
+- `ui/dialogs/` → `core/user_data_handlers.py` (UI tightly coupled to data)
+- `bot/communication_manager.py` → `bot/ai_chatbot.py` (Communication depends on AI)
+
+### **Third-Party Risks**
+- `bot/discord_bot.py` → `discord.py` (External API dependency)
+- `ui/ui_app_qt.py` → `PySide6` (UI framework dependency)
+- `bot/telegram_bot.py` → `python-telegram-bot` (External API dependency)
+
+### **Circular Dependencies** (Potential Issues)
+- Monitor: `bot/communication_manager.py` ↔ `bot/conversation_manager.py`
+- Monitor: `core/user_data_handlers.py` ↔ `core/user_data_manager.py`
+
+## 🚀 **Quick Reference for AI**
+
+### **Common Dependency Patterns**
+1. **Core System**: Standard library + minimal local dependencies
+2. **Bot Modules**: Core dependencies + other bot modules
+3. **UI Modules**: Third-party UI framework + core data access
+4. **Data Access**: Core configuration + logging dependencies
+
+### **Dependency Rules**
+- **Core modules** should have minimal dependencies (mostly standard library)
+- **Bot modules** can depend on core and other bot modules
+- **UI modules** should depend on core data access, not direct bot access
+- **Third-party dependencies** should be isolated to specific modules
+
+### **When Adding Dependencies**
+- **Check existing patterns** in similar modules
+- **Prefer core modules** over direct third-party access
+- **Avoid circular dependencies** between modules
+- **Use dependency injection** for testability
+
+### **Module Organization**
+- `core/` - System utilities (minimal dependencies)
+- `bot/` - Communication and AI (depends on core)
+- `ui/` - User interface (depends on core, minimal bot dependencies)
+- `user/` - User context (depends on core)
+- `tasks/` - Task management (depends on core)
+
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**  
+> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
     
-    # Add core system patterns
-    core_files = {k: v for k, v in important_modules.items() if k.startswith('core/')}
-    if core_files:
-        content += f"- **{len(core_files)} core modules** - System utilities and data management\n"
-        for file_path, data in core_files.items():
-            local_count = len(data['imports']['local'])
-            total_count = data['total_imports']
-            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
-    
-    content += "\n### **Communication Dependencies**\n"
-    bot_files = {k: v for k, v in important_modules.items() if k.startswith('bot/')}
-    if bot_files:
-        content += f"- **{len(bot_files)} bot modules** - Channel management and communication\n"
-        for file_path, data in bot_files.items():
-            local_count = len(data['imports']['local'])
-            total_count = data['total_imports']
-            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
-    
-    content += "\n### **UI Dependencies**\n"
-    ui_files = {k: v for k, v in important_modules.items() if k.startswith('ui/')}
-    if ui_files:
-        content += f"- **{len(ui_files)} UI modules** - User interface and interaction\n"
-        for file_path, data in ui_files.items():
-            local_count = len(data['imports']['local'])
-            total_count = data['total_imports']
-            content += f"  - `{file_path}`: {local_count}/{total_count} local dependencies\n"
-    
-    content += "\n## 🎯 **For AI Context**\n\n"
-    content += "### **When Working with Modules**\n"
-    content += "- **Check dependencies** before modifying modules\n"
-    content += "- **Understand import patterns** in similar modules\n"
-    content += "- **Follow dependency structure** established in core modules\n"
-    content += "- **Minimize circular dependencies** when adding new imports\n\n"
-    
-    content += "### **Key Module Categories**\n"
-    content += "- **Core Modules**: `core/` - System utilities and data management\n"
-    content += "- **Communication Modules**: `bot/` - Channel and message handling\n"
-    content += "- **UI Modules**: `ui/` - User interface and interaction\n"
-    content += "- **User Modules**: `user/` - User data and preferences\n"
-    content += "- **Task Modules**: `tasks/` - Task management and scheduling\n\n"
-    
-    content += "### **Dependency Patterns**\n"
-    content += "- **Core modules** are imported by most other modules\n"
-    content += "- **UI modules** depend on core and user modules\n"
-    content += "- **Bot modules** depend on core and communication modules\n"
-    content += "- **User modules** are imported by UI and core modules\n\n"
-    
-    content += f"> **For complete module dependencies and detailed information, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**\n"
-    content += f"> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-    
     return content
+
+def analyze_dependency_patterns(actual_imports: Dict[str, Dict]) -> Dict[str, Any]:
+    """Analyze dependency patterns for AI consumption."""
+    patterns = {
+        'core_dependencies': [],
+        'bot_dependencies': [],
+        'ui_dependencies': [],
+        'third_party_dependencies': [],
+        'circular_dependencies': [],
+        'high_coupling': []
+    }
+    
+    # Analyze dependency patterns
+    for file_path, data in actual_imports.items():
+        local_imports = data['imports'].get('local', [])
+        third_party_imports = data['imports'].get('third_party', [])
+        
+        # Core dependencies
+        if file_path.startswith('core/'):
+            patterns['core_dependencies'].append({
+                'file': file_path,
+                'local_imports': len(local_imports),
+                'third_party_imports': len(third_party_imports),
+                'modules': [imp['module'] for imp in local_imports]
+            })
+        
+        # Bot dependencies
+        elif file_path.startswith('bot/'):
+            patterns['bot_dependencies'].append({
+                'file': file_path,
+                'local_imports': len(local_imports),
+                'third_party_imports': len(third_party_imports),
+                'modules': [imp['module'] for imp in local_imports]
+            })
+        
+        # UI dependencies
+        elif file_path.startswith('ui/'):
+            patterns['ui_dependencies'].append({
+                'file': file_path,
+                'local_imports': len(local_imports),
+                'third_party_imports': len(third_party_imports),
+                'modules': [imp['module'] for imp in local_imports]
+            })
+        
+        # High coupling detection
+        if len(local_imports) > 5:
+            patterns['high_coupling'].append({
+                'file': file_path,
+                'import_count': len(local_imports),
+                'modules': [imp['module'] for imp in local_imports]
+            })
+        
+        # Third-party dependencies
+        if third_party_imports:
+            patterns['third_party_dependencies'].append({
+                'file': file_path,
+                'dependencies': [imp['module'] for imp in third_party_imports]
+            })
+    
+    return patterns
 
 def update_module_dependencies():
     """Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach."""

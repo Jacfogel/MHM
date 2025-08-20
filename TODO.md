@@ -30,6 +30,40 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Phase 1: Enhanced Task & Check-in Systems** ⚠️ **NEW PRIORITY**
+- *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
+- *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
+- *Estimated effort*: Large (1-2 weeks)
+- *Subtasks*:
+  - [ ] **Enhanced Task Reminder System** (High Impact, Medium Effort)
+    - [ ] Add priority-based reminder frequency (high priority = more likely to be selected for reminders)
+    - [ ] Implement due date proximity weighting (closer to due = more likely to be selected for reminders)
+    - [ ] Add recurring task support with flexible scheduling
+    - [ ] Improve semi-randomness to consider task urgency
+    - [ ] Test priority and due date weighting algorithms
+    - [ ] Validate recurring task scheduling patterns
+  - [ ] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort)
+    - [ ] Implement random question selection from available pool
+    - [ ] Add weighted selection based on recent questions asked
+    - [ ] Ensure variety while maintaining relevance
+    - [ ] Add question categories (mood, energy, tasks, general well-being)
+    - [ ] Test question selection randomness and variety
+    - [ ] Validate question category coverage
+  - [ ] **Check-in Response Analysis** (High Impact, Medium Effort)
+    - [ ] Implement pattern analysis of responses over time
+    - [ ] Add progress tracking for mood trends
+    - [ ] Create response categorization and sentiment analysis
+    - [ ] Generate insights for AI context enhancement
+    - [ ] Test pattern analysis accuracy
+    - [ ] Validate progress tracking metrics
+  - [ ] **Enhanced Context-Aware Conversations** (Medium Impact, Medium Effort)
+    - [ ] Expand user context with check-in history
+    - [ ] Add conversation history analysis
+    - [ ] Implement preference learning from interactions
+    - [ ] Create more sophisticated personalization algorithms
+    - [ ] Test context enhancement effectiveness
+    - [ ] Validate personalization improvements
+
 ## **AI Tools Improvement - Generated Documentation Quality** ⚠️ **NEW PRIORITY**
 - *What it means*: Improve the AI tools that generate `AI_FUNCTION_REGISTRY.md` and `AI_MODULE_DEPENDENCIES.md` to provide more valuable, concise information
 - *Why it helps*: Generated documentation should be truly AI-optimized with essential patterns and decision trees, not verbose listings

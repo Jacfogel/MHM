@@ -12,6 +12,7 @@ import time
 import socket
 import random
 import enum
+import contextlib
 
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_logger, get_component_logger
@@ -73,6 +74,8 @@ class DiscordBot(BaseChannel):
         # Idempotency flags
         self._events_registered = False
         self._commands_registered = False
+        # Session management
+        self._sessions_to_cleanup = []
         # Ensure BaseChannel logs for this instance also go to the Discord component log
         try:
             self.logger = discord_logger
@@ -90,7 +93,7 @@ class DiscordBot(BaseChannel):
         return ChannelType.ASYNC
 
     def _check_dns_resolution(self, hostname: str = "discord.com") -> bool:
-        """Check DNS resolution for a hostname with fallback to alternative DNS servers"""
+        """Check DNS resolution for a hostname with enhanced fallback and error reporting"""
         # Alternative DNS servers to try if primary fails
         alternative_dns_servers = [
             "8.8.8.8",      # Google DNS
@@ -102,6 +105,7 @@ class DiscordBot(BaseChannel):
         # Try primary DNS first (system default)
         try:
             socket.gethostbyname(hostname)
+            logger.debug(f"Primary DNS resolution successful for {hostname}")
             return True
         except socket.gaierror as e:
             primary_error = {
@@ -112,10 +116,12 @@ class DiscordBot(BaseChannel):
                 'dns_server': 'system_default'
             }
             
+            logger.warning(f"Primary DNS failed for {hostname}: {e}")
+            
             # Try alternative DNS servers
             for dns_server in alternative_dns_servers:
                 try:
-                    logger.info(f"Primary DNS failed for {hostname}, trying {dns_server}")
+                    logger.info(f"Trying alternative DNS server {dns_server} for {hostname}")
                     
                     # Create a custom resolver using the alternative DNS server
                     import dns.resolver
@@ -152,10 +158,11 @@ class DiscordBot(BaseChannel):
                 'timestamp': time.time()
             }
             logger.error(f"All DNS servers failed for {hostname}")
+            self._connection_status = DiscordConnectionStatus.DNS_FAILURE
             return False
 
     def _check_network_connectivity(self, hostname: str = "discord.com", port: int = 443) -> bool:
-        """Check if network connectivity is available to Discord servers with fallback endpoints"""
+        """Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling"""
         # Discord endpoints to try in order of preference
         discord_endpoints = [
             ("discord.com", 443),
@@ -163,7 +170,7 @@ class DiscordBot(BaseChannel):
             ("gateway-us-east1-b.discord.gg", 443),
             ("gateway-us-east1-c.discord.gg", 443),
             ("gateway-us-east1-d.discord.gg", 443),
-            ("gateway-us-east1-a.discord.gg", 443)  # Try this last since it's been problematic
+            ("gateway-us-east1-a.discord.gg", 443)
         ]
         
         # If a specific hostname was requested, try it first
@@ -172,7 +179,8 @@ class DiscordBot(BaseChannel):
         
         for endpoint_hostname, endpoint_port in discord_endpoints:
             try:
-                socket.create_connection((endpoint_hostname, endpoint_port), timeout=10)
+                # Use a shorter timeout for faster failure detection
+                socket.create_connection((endpoint_hostname, endpoint_port), timeout=5)
                 logger.info(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port}")
                 return True
             except (socket.gaierror, socket.timeout, OSError) as e:
@@ -189,27 +197,107 @@ class DiscordBot(BaseChannel):
             'timestamp': time.time()
         }
         logger.error(f"All Discord endpoints failed network connectivity test")
+        self._connection_status = DiscordConnectionStatus.NETWORK_FAILURE
         return False
 
     def _wait_for_network_recovery(self, max_wait: int = 300) -> bool:
-        """Wait for network connectivity to recover with enhanced DNS and endpoint fallback."""
-        logger.info("Waiting for network connectivity to recover with enhanced fallback...")
+        """Wait for network connectivity to recover with enhanced monitoring and early exit"""
+        logger.info(f"Waiting for network connectivity to recover (max {max_wait}s)...")
         start_time = time.time()
+        check_interval = 10  # Check every 10 seconds
         
         while time.time() - start_time < max_wait:
-            # Check DNS resolution with fallback servers
+            # Check DNS resolution first
             if self._check_dns_resolution():
-                logger.info("DNS resolution restored (may be using alternative DNS server)")
-                # Then check actual connectivity with multiple endpoints
+                # Then check network connectivity
                 if self._check_network_connectivity():
-                    logger.info("Network connectivity restored (may be using alternative endpoint)")
+                    logger.info("Network connectivity recovered successfully")
+                    self._connection_status = DiscordConnectionStatus.INITIALIZING
                     return True
             
-            # Wait before next check (shorter interval for faster recovery)
-            time.sleep(5)
+            # Wait before next check
+            time.sleep(check_interval)
         
-        logger.error("Network recovery timeout - connectivity not restored after trying all fallbacks")
+        logger.error(f"Network connectivity did not recover within {max_wait} seconds")
         return False
+
+    @contextlib.asynccontextmanager
+    async def _session_cleanup_context(self):
+        """Context manager for proper session cleanup with timeout handling"""
+        sessions_to_cleanup = []
+        try:
+            yield sessions_to_cleanup
+        finally:
+            # Clean up all sessions with timeout
+            cleanup_tasks = []
+            for session in sessions_to_cleanup:
+                if hasattr(session, 'close') and not session.closed:
+                    cleanup_tasks.append(self._cleanup_session_with_timeout(session))
+            
+            if cleanup_tasks:
+                try:
+                    await asyncio.wait_for(
+                        asyncio.gather(*cleanup_tasks, return_exceptions=True),
+                        timeout=10.0
+                    )
+                    logger.info(f"Successfully cleaned up {len(cleanup_tasks)} sessions")
+                except asyncio.TimeoutError:
+                    logger.warning("Session cleanup timed out, some sessions may not be properly closed")
+                except Exception as e:
+                    logger.error(f"Error during session cleanup: {e}")
+
+    async def _cleanup_session_with_timeout(self, session) -> bool:
+        """Clean up a single session with timeout handling"""
+        try:
+            await asyncio.wait_for(session.close(), timeout=5.0)
+            return True
+        except asyncio.TimeoutError:
+            logger.warning(f"Session cleanup timed out for {type(session).__name__}")
+            return False
+        except Exception as e:
+            logger.debug(f"Error closing session {type(session).__name__}: {e}")
+            return False
+
+    async def _cleanup_event_loop_safely(self, loop: asyncio.AbstractEventLoop) -> bool:
+        """Safely clean up event loop with proper task cancellation and error handling"""
+        if not loop or loop.is_closed():
+            return True
+        
+        try:
+            # Get all tasks in this specific loop
+            tasks = [task for task in asyncio.all_tasks(loop) if not task.done()]
+            
+            if not tasks:
+                logger.debug("No pending tasks to cancel")
+                return True
+            
+            logger.info(f"Cancelling {len(tasks)} pending tasks")
+            
+            # Cancel all tasks
+            for task in tasks:
+                if not task.done():
+                    task.cancel()
+            
+            # Wait for tasks to be cancelled with timeout
+            try:
+                await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True),
+                    timeout=5.0
+                )
+                logger.info("All tasks cancelled successfully")
+            except asyncio.TimeoutError:
+                logger.warning("Task cancellation timed out, some tasks may still be running")
+            
+            # Close the loop if it's not already closed
+            if not loop.is_closed():
+                loop.close()
+                logger.info("Event loop closed successfully")
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error during event loop cleanup: {e}")
+            return False
 
     def _get_detailed_connection_status(self) -> Dict[str, Any]:
         """Get detailed connection status information"""
@@ -257,15 +345,64 @@ class DiscordBot(BaseChannel):
         except Exception:
             pass
 
-    @handle_errors("initializing Discord bot", default_return=False)
-    async def initialize(self) -> bool:
-        """Initialize Discord bot"""
-        # Prevent multiple simultaneous initializations
-        if self._starting:
-            logger.warning("Discord bot initialization already in progress")
+    def _check_network_health(self) -> bool:
+        """Comprehensive network health check with detailed reporting"""
+        logger.debug("Performing network health check...")
+        
+        # Check DNS resolution first
+        if not self._check_dns_resolution():
+            logger.warning("DNS resolution failed during health check")
             return False
         
-        if self.get_status() == ChannelStatus.READY:
+        # Check network connectivity
+        if not self._check_network_connectivity():
+            logger.warning("Network connectivity failed during health check")
+            return False
+        
+        # If we have a bot instance, check its health
+        if self.bot and hasattr(self.bot, 'latency'):
+            try:
+                latency = self.bot.latency
+                if latency > 1.0:  # More than 1 second latency
+                    logger.warning(f"High Discord latency detected: {latency:.3f}s")
+                    return False
+                logger.debug(f"Discord latency: {latency:.3f}s")
+            except Exception as e:
+                logger.debug(f"Could not check Discord latency: {e}")
+        
+        logger.debug("Network health check passed")
+        return True
+
+    def _should_attempt_reconnection(self) -> bool:
+        """Determine if reconnection should be attempted based on various factors"""
+        current_time = time.time()
+        
+        # Check if we've exceeded max attempts
+        if self._reconnect_attempts >= self._max_reconnect_attempts:
+            logger.warning(f"Maximum reconnection attempts ({self._max_reconnect_attempts}) exceeded")
+            return False
+        
+        # Check cooldown period
+        if current_time - self._last_reconnect_time < self._reconnect_cooldown:
+            remaining_cooldown = self._reconnect_cooldown - (current_time - self._last_reconnect_time)
+            logger.debug(f"Reconnection cooldown active, {remaining_cooldown:.1f}s remaining")
+            return False
+        
+        # Check network health before attempting reconnection
+        if not self._check_network_health():
+            logger.info("Network health check failed, skipping reconnection attempt")
+            return False
+        
+        return True
+
+    @handle_errors("initializing Discord bot", default_return=False)
+    async def initialize(self) -> bool:
+        """Initialize Discord bot with enhanced network resilience"""
+        if self._starting:
+            logger.info("Discord bot already initializing")
+            return False
+        
+        if self.is_ready():
             logger.info("Discord bot already initialized")
             return True
         
@@ -274,41 +411,25 @@ class DiscordBot(BaseChannel):
         self._update_connection_status(DiscordConnectionStatus.INITIALIZING)
         
         try:
-            if not DISCORD_BOT_TOKEN:
-                error_msg = "DISCORD_BOT_TOKEN not configured"
-                self._set_status(ChannelStatus.ERROR, error_msg)
-                self._update_connection_status(DiscordConnectionStatus.AUTH_FAILURE, {
-                    'error': 'Missing bot token',
-                    'timestamp': time.time()
-                })
-                return False
-
-            # Simplified initialization - let Discord.py handle connection issues
-            logger.info("Initializing Discord bot...")
-
-            # Create bot instance with enhanced connection settings
-            self.bot = commands.Bot(
-                command_prefix="!", 
-                intents=intents,
-                # Keep Discord's default !help intact per preference
-                # Enhanced connection settings for better resilience
-                max_messages=10000,  # Increase message cache
-                heartbeat_timeout=120.0,  # Increased heartbeat timeout (was 60.0)
-                guild_ready_timeout=30.0,  # Increased guild ready timeout (was 20.0)
-                # Add connection retry settings
-                max_retries=5,  # Maximum connection retries
-                retry_delay=2.0,  # Base retry delay
-            )
-            # Set application_id if provided to avoid sync warnings
-            try:
-                if DISCORD_APPLICATION_ID:
-                    self.bot._connection.application_id = DISCORD_APPLICATION_ID
-            except Exception:
-                pass
+            # Pre-flight network check
+            logger.info("Performing pre-flight network check...")
+            if not self._check_network_health():
+                logger.warning("Pre-flight network check failed, but continuing with initialization")
+                # Don't fail immediately, let Discord.py handle the connection
             
-            # Register event handlers
-            self._register_events()
-            self._register_commands()
+            # Create bot instance
+            self.bot = commands.Bot(
+                command_prefix='!',
+                intents=intents,
+                application_id=DISCORD_APPLICATION_ID
+            )
+            
+            # Register events and commands
+            if not self._events_registered:
+                self._register_events()
+            
+            if not self._commands_registered:
+                self._register_commands()
             
             # Start bot in a separate thread
             self.discord_thread = threading.Thread(
@@ -317,8 +438,8 @@ class DiscordBot(BaseChannel):
             )
             self.discord_thread.start()
             
-            # Wait for the bot to be ready with longer timeout and better checking
-            max_wait = 60  # Increased to 60 seconds for network issues (was 30)
+            # Wait for the bot to be ready with enhanced monitoring
+            max_wait = 60  # 60 seconds for network issues
             wait_interval = 0.5  # Check every 0.5 seconds
             total_waited = 0
             
@@ -335,8 +456,13 @@ class DiscordBot(BaseChannel):
                     return True
                 
                 # Log progress for longer waits
-                if total_waited % 10 == 0:  # Every 10 seconds (was 5)
+                if total_waited % 10 == 0:  # Every 10 seconds
                     logger.info(f"Waiting for Discord bot to be ready... ({total_waited}s/{max_wait}s)")
+                    
+                    # Perform periodic network health check
+                    if total_waited % 20 == 0:  # Every 20 seconds
+                        if not self._check_network_health():
+                            logger.warning("Network health check failed during initialization")
             
             # If we get here, the bot didn't become ready in time
             error_msg = f"Discord bot failed to become ready within {max_wait} seconds"
@@ -658,7 +784,7 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("shutting down Discord bot", default_return=False)
     async def shutdown(self) -> bool:
-        """Shutdown Discord bot safely"""
+        """Shutdown Discord bot safely with improved session and event loop management"""
         logger.info("Starting Discord bot shutdown...")
         
         # Send stop command to Discord thread
@@ -673,45 +799,27 @@ class DiscordBot(BaseChannel):
             if self.discord_thread.is_alive():
                 logger.warning("Discord thread did not stop gracefully")
         
-        # Properly close the bot and event loop
+        # Properly close the bot and event loop with enhanced cleanup
         if self.bot:
-            try:
-                # Close the bot first
-                if not self.bot.is_closed():
-                    await self.bot.close()
-                    logger.info("Discord bot closed successfully")
-                
-                # Clean up HTTP session to prevent "Unclosed client session" errors
+            async with self._session_cleanup_context() as sessions_to_cleanup:
                 try:
+                    # Close the bot first
+                    if not self.bot.is_closed():
+                        await self.bot.close()
+                        logger.info("Discord bot closed successfully")
+                    
+                    # Collect all sessions that need cleanup
                     if hasattr(self.bot, '_HTTP') and self.bot._HTTP:
                         if hasattr(self.bot._HTTP, '_HTTPClient') and self.bot._HTTP._HTTPClient:
                             if hasattr(self.bot._HTTP._HTTPClient, '_session') and self.bot._HTTP._HTTPClient._session:
-                                await self.bot._HTTP._HTTPClient._session.close()
-                                logger.info("Discord bot HTTP session closed successfully")
+                                sessions_to_cleanup.append(self.bot._HTTP._HTTPClient._session)
+                    
+                    # Clean up the event loop if it exists
+                    if hasattr(self, '_loop') and self._loop:
+                        await self._cleanup_event_loop_safely(self._loop)
+                        
                 except Exception as e:
-                    logger.debug(f"Error closing HTTP session (may already be closed): {e}")
-                
-                # Clean up the event loop if it exists
-                if hasattr(self, '_loop') and self._loop:
-                    try:
-                        # Cancel all pending tasks
-                        pending_tasks = [task for task in asyncio.all_tasks(self._loop) if not task.done()]
-                        for task in pending_tasks:
-                            task.cancel()
-                        
-                        # Wait for tasks to be cancelled
-                        if pending_tasks:
-                            await asyncio.gather(*pending_tasks, return_exceptions=True)
-                        
-                        # Close the loop
-                        if not self._loop.is_closed():
-                            self._loop.close()
-                        logger.info("Discord bot event loop closed successfully")
-                    except Exception as e:
-                        logger.warning(f"Error cleaning up event loop: {e}")
-                        
-            except Exception as e:
-                logger.error(f"Error during Discord bot shutdown: {e}")
+                    logger.error(f"Error during Discord bot shutdown: {e}")
         
         self._set_status(ChannelStatus.STOPPED)
         logger.info("Discord bot shutdown completed")

@@ -32,6 +32,319 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-20 - Project Vision Clarification and Phase Planning ✅ **COMPLETED**
+
+**Summary**: Completed comprehensive project vision clarification through detailed Q&A session and added three development phases to align with user's specific needs and long-term goals.
+
+**Problem Analysis**:
+- Initial project vision document was not aligned with user's true vision and priorities
+- Missing specific details about AI assistant personality and capabilities
+- No clear development phases aligned with user's immediate needs
+- Task reminder system needed specific clarification on priority and due date weighting
+
+**Root Cause Investigation**:
+- **Vision Misalignment**: Initial vision was too generic and didn't capture user's specific needs
+- **Missing Personal Context**: Lacked understanding of user's ADHD/depression context and preferences
+- **Incomplete AI Vision**: Missing detailed description of desired AI assistant personality and capabilities
+- **No Actionable Phases**: Development phases were too abstract and not tied to immediate needs
+
+**Solutions Implemented**:
+
+**1. Vision Clarification Process**:
+- **Iterative Q&A**: Engaged in detailed question-and-answer session to understand true vision
+- **Core Values Refinement**: Clarified priorities as personalized, mood-aware, hope-focused, context-aware, AI-enhanced, and learning system
+- **AI Assistant Personality**: Captured detailed description including calm, supportive, loyal, helpful, compassionate, curious, emotional depth, advanced emotional range, emotional growth, strong sense of self, extremely empathetic, and seeks connection
+
+**2. Development Phases** (`PLANS.md`):
+- **Phase 1: Enhanced Task & Check-in Systems** (1-2 weeks):
+  - Enhanced Task Reminder System with priority-based selection and due date proximity weighting
+  - Semi-Random Check-in Questions with weighted selection and variety
+  - Check-in Response Analysis with pattern analysis and progress tracking
+  - Enhanced Context-Aware Conversations with preference learning
+- **Phase 2: Mood-Responsive AI & Advanced Intelligence** (2-3 weeks):
+  - Mood-Responsive AI Conversations with tone adaptation
+  - Advanced Emotional Intelligence with machine learning patterns
+- **Phase 3: Proactive Intelligence & Advanced Features** (3-4 weeks):
+  - Proactive Suggestion System with pattern analysis
+  - Advanced Context-Aware Personalization with deep learning
+  - Smart Home Integration Planning for future implementation
+
+**3. Task Reminder Specifications**:
+- **Priority-Based Selection**: High priority tasks more likely to be selected for reminders
+- **Due Date Proximity Weighting**: Tasks closer to due date more likely to be selected
+- **Semi-Randomness**: Maintains existing semi-random foundation while adding intelligent weighting
+
+**Key Improvements**:
+
+**For Development**:
+- **Clear Priorities**: Specific development phases aligned with user's immediate needs
+- **Actionable Roadmap**: Detailed checklists for each phase with testing requirements
+- **User-Aligned Vision**: Development direction matches user's personal context and preferences
+- **Specific Requirements**: Clear specifications for task reminder system improvements
+
+**For User Experience**:
+- **Personalized Approach**: Vision focused on ADHD/depression support with mood-aware adaptation
+- **Hope-Focused Design**: Emphasis on progress and future possibilities
+- **Executive Functioning Support**: Clear focus on task outsourcing and management
+- **Emotional Intelligence**: Advanced AI capabilities for emotional support and companionship
+
+**For AI Collaboration**:
+- **Detailed AI Vision**: Comprehensive description of desired AI assistant personality and capabilities
+- **Pattern Recognition**: Focus on learning from user interactions and adapting responses
+- **Context Awareness**: Emphasis on remembering user history and preferences
+- **Proactive Support**: Vision for intelligent suggestions and support
+
+**Technical Details**:
+- **Vision Document**: Updated PROJECT_VISION.md with user-aligned content
+- **Development Phases**: Added three comprehensive phases to PLANS.md with detailed checklists
+- **Navigation**: Added PROJECT_VISION.md link to README.md
+- **Documentation**: Maintained consistency with existing documentation standards
+
+**Files Created/Modified**:
+- `PROJECT_VISION.md` - Updated with user-aligned vision and AI assistant details
+- `PLANS.md` - Added three development phases with comprehensive checklists
+- `README.md` - Added navigation link to PROJECT_VISION.md
+
+**Testing**:
+- ✅ Vision document updated with user feedback and alignment
+- ✅ Development phases added with detailed checklists and testing requirements
+- ✅ Navigation updated to include vision document
+- ✅ Documentation maintains consistency with existing standards
+
+**Impact**:
+- **User Alignment**: Development direction now matches user's specific needs and preferences
+- **Clear Roadmap**: Actionable development phases with specific deliverables
+- **AI Vision Clarity**: Detailed understanding of desired AI assistant capabilities
+- **Immediate Focus**: Phase 1 provides clear next steps for task and check-in improvements
+
+**Next Steps**:
+- Begin Phase 1 implementation focusing on enhanced task reminder system
+- Implement priority-based and due date proximity weighting for task selection
+- Add semi-random check-in question selection with weighted variety
+- Develop check-in response analysis and pattern tracking
+
+### 2025-08-19 - Project Vision & Mission Statement ✅ **COMPLETED**
+
+**Summary**: Created comprehensive project vision document that captures the overarching purpose, mission, and long-term direction of the MHM project, providing clear guidance for development decisions and community engagement.
+
+**Problem Analysis**:
+- No clear overarching vision statement to guide development decisions
+- Missing long-term goals and strategic direction
+- Lack of clear mission statement for community engagement
+- No comprehensive understanding of the project's impact and purpose
+
+**Root Cause Investigation**:
+- **Scattered Information**: Vision elements were scattered across multiple documents
+- **Technical Focus**: Documentation was primarily technical, missing human-centered vision
+- **No Strategic Direction**: Development was tactical without clear long-term goals
+- **Missing Impact Vision**: No clear articulation of the project's potential impact
+
+**Solutions Implemented**:
+
+**1. Comprehensive Vision Document** (`PROJECT_VISION.md`):
+- **Core Vision**: "Personal mental health assistant for executive functioning challenges"
+- **Mission Statement**: "Supportive, intelligent companion with privacy and local-first design"
+- **Core Values**: Personal & Private, Supportive & Non-Judgmental, Accessible & User-Friendly, Intelligent & Adaptive
+- **Target Users**: Primary (creator with ADHD/depression) and secondary (similar individuals)
+
+**2. Long-Term Strategic Goals**:
+- **Phase 1: Foundation** (Current) - Multi-channel communication, basic features
+- **Phase 2: Intelligence Enhancement** - Smarter AI, predictive suggestions
+- **Phase 3: Community & Sharing** - Privacy-preserving insights, open-source ecosystem
+- **Phase 4: Advanced Features** - Predictive insights, professional care integration
+
+**3. Architectural Philosophy**:
+- **Communication-First Design**: All interactions through channels, no required UI
+- **AI-Powered Interface**: Natural language interactions with optional menus
+- **Modular & Extensible**: Clean separation, plugin architecture
+- **Privacy by Design**: Local storage, user control, no external dependencies
+
+**4. Impact Vision**:
+- **Individual Impact**: Improved mental health outcomes, better executive functioning
+- **Community Impact**: Open-source tools, privacy-respecting alternatives
+- **Societal Impact**: Democratized mental health support, reduced barriers
+
+**Key Improvements**:
+
+**For Development**:
+- **Clear Direction**: Strategic goals guide development priorities
+- **Architectural Guidance**: Philosophy informs technical decisions
+- **User-Centered Design**: Focus on human needs and experiences
+- **Impact Awareness**: Understanding of broader purpose and potential
+
+**For Community**:
+- **Inspiring Vision**: Clear articulation of project's purpose and impact
+- **Engagement Framework**: Call to action for contributors and users
+- **Value Proposition**: Clear benefits for different stakeholder groups
+- **Future Roadmap**: Long-term vision for project evolution
+
+**For Users**:
+- **Understanding Purpose**: Clear explanation of what the tool does and why
+- **Privacy Assurance**: Explicit commitment to privacy and local-first design
+- **Support Philosophy**: Understanding of gentle, supportive approach
+- **Future Expectations**: Awareness of planned features and improvements
+
+**Technical Details**:
+- **Vision Document**: Comprehensive 200+ line document covering all aspects
+- **Navigation Integration**: Added to README.md navigation section
+- **Cross-References**: Links to existing technical documentation
+- **Consistent Styling**: Matches existing documentation format and style
+
+**Files Created/Modified**:
+- `PROJECT_VISION.md` - New comprehensive vision document
+- `README.md` - Added vision document to navigation
+
+**Testing**:
+- ✅ Vision document created with comprehensive coverage
+- ✅ Navigation updated to include vision document
+- ✅ Consistent with existing documentation style
+- ✅ Clear alignment with current project state and capabilities
+
+**Impact**:
+- **Strategic Clarity**: Clear direction for development decisions
+- **Community Engagement**: Inspiring vision for contributors and users
+- **User Understanding**: Better comprehension of project purpose and benefits
+- **Future Planning**: Framework for long-term development priorities
+
+**Next Steps**:
+- Use vision document to guide development priorities and decisions
+- Reference vision when evaluating new features and architectural changes
+- Share vision with potential contributors and users
+- Regularly review and update vision as project evolves
+
+### 2025-08-19 - AI Tools Improvement - Pattern-Focused Documentation ✅ **COMPLETED**
+
+**Summary**: Enhanced AI documentation generation tools to focus on patterns and decision trees rather than verbose listings, making them more useful for AI collaborators while preserving the existing hybrid approach.
+
+**Problem Analysis**:
+- AI documentation was too verbose and focused on exhaustive listings
+- Missing pattern recognition and decision trees for quick function discovery
+- No clear guidance for AI collaborators on where to start or how to navigate the codebase
+- Existing hybrid approach (generated + manual content) needed preservation
+
+**Root Cause Investigation**:
+- **Verbose Documentation**: AI_FUNCTION_REGISTRY.md and AI_MODULE_DEPENDENCIES.md contained too much detail
+- **Missing Patterns**: No recognition of common function patterns (Handler, Manager, Factory, etc.)
+- **No Decision Trees**: AI collaborators had to read through entire files to find relevant functions
+- **Poor Navigation**: No clear entry points or quick reference for common operations
+
+**Solutions Implemented**:
+
+**1. Enhanced Function Registry Generation** (`ai_tools/generate_function_registry.py`):
+- **Decision Trees**: Added visual decision trees for common AI tasks (User Data, AI/Chatbot, Communication, UI, Core System)
+- **Pattern Recognition**: Implemented automatic detection of Handler, Manager, Factory, and Context Manager patterns
+- **Critical Functions**: Highlighted essential entry points and common operations
+- **Quick Reference**: Added pattern recognition rules and file organization guide
+- **Risk Areas**: Identified high-priority undocumented functions and areas needing attention
+
+**2. Enhanced Module Dependencies Generation** (`ai_tools/generate_module_dependencies.py`):
+- **Dependency Decision Trees**: Visual trees showing dependency relationships for different system areas
+- **Pattern Analysis**: Core → Bot, UI → Core, Bot → Bot, and Third-Party Integration patterns
+- **Risk Assessment**: Identified high coupling, third-party risks, and potential circular dependencies
+- **Dependency Rules**: Clear guidelines for adding new dependencies and maintaining architecture
+
+**3. Preserved Hybrid Approach**:
+- **Backward Compatibility**: Maintained existing FUNCTION_REGISTRY_DETAIL.md and MODULE_DEPENDENCIES_DETAIL.md
+- **Manual Enhancements**: Preserved all manual content marked with `<!-- MANUAL_ENHANCEMENT_START -->`
+- **Generation Safety**: Ensured new generation doesn't overwrite manual improvements
+
+**Key Improvements**:
+
+**For AI Collaborators**:
+- **Decision Trees**: Quick visual navigation to find relevant functions/modules
+- **Pattern Recognition**: Clear identification of Handler, Manager, Factory patterns
+- **Entry Points**: Highlighted critical functions to start with
+- **Risk Awareness**: Clear identification of areas needing attention
+
+**For Development**:
+- **Architecture Understanding**: Better visibility into dependency patterns and relationships
+- **Maintenance Guidance**: Clear rules for adding dependencies and maintaining patterns
+- **Documentation Standards**: Preserved existing comprehensive documentation while adding AI-focused summaries
+
+**Technical Details**:
+- **Pattern Analysis**: Added `analyze_function_patterns()` and `analyze_dependency_patterns()` functions
+- **Decision Tree Generation**: Visual ASCII trees for quick navigation
+- **Statistics Enhancement**: Better coverage reporting and risk assessment
+- **Error Handling**: Fixed data structure issues and improved robustness
+
+**Files Modified**:
+- `ai_tools/generate_function_registry.py` - Enhanced with pattern recognition and decision trees
+- `ai_tools/generate_module_dependencies.py` - Enhanced with dependency analysis and risk assessment
+- `AI_FUNCTION_REGISTRY.md` - Regenerated with pattern-focused content
+- `AI_MODULE_DEPENDENCIES.md` - Regenerated with relationship-focused content
+
+**Testing**:
+- ✅ Generated new documentation successfully
+- ✅ Preserved existing hybrid approach and manual content
+- ✅ Verified pattern recognition works correctly
+- ✅ Confirmed decision trees provide clear navigation
+- ✅ Tested main application still works after changes
+
+**Impact**:
+- **AI Efficiency**: AI collaborators can now quickly find relevant functions using decision trees
+- **Pattern Awareness**: Clear understanding of common patterns (Handler, Manager, Factory)
+- **Risk Mitigation**: Better visibility into dependency risks and areas needing attention
+- **Maintenance**: Easier to understand architecture and maintain consistency
+
+**Next Steps**:
+- Monitor usage of new AI documentation by AI collaborators
+- Consider adding more specific decision trees for common development tasks
+- Evaluate if additional pattern recognition would be valuable
+
+### 2025-08-19 - Discord Bot Network Connectivity Improvements ✅ **COMPLETED**
+
+**Summary**: Enhanced Discord bot resilience to network connectivity issues by implementing DNS fallback, improved error handling, better session management, and smarter reconnection logic.
+
+**Problem Analysis**:
+- Frequent DNS resolution failures causing bot disconnections
+- Event loop cleanup errors during shutdown leading to resource leaks
+- Unclosed client session warnings and memory issues
+- Rapid reconnection attempts without proper cooldown periods
+- Limited error reporting and debugging information
+
+**Root Cause Investigation**:
+- **DNS Failures**: Primary DNS server failures preventing Discord gateway resolution
+- **Event Loop Issues**: Improper cleanup of async tasks during shutdown
+- **Session Leaks**: HTTP sessions not properly closed during shutdown
+- **Poor Reconnection Logic**: No intelligent reconnection decision making
+- **Insufficient Monitoring**: Limited network health checking and error reporting
+
+**Technical Solution Implemented**:
+- **Enhanced DNS Resolution**: Added fallback to alternative DNS servers (Google, Cloudflare, OpenDNS, Quad9)
+- **Improved Network Connectivity Checks**: Multiple Discord endpoint testing with faster timeout detection
+- **Enhanced Event Loop Cleanup**: Safe task cancellation with timeout handling and proper loop closure
+- **Better Session Management**: Context manager for session cleanup with timeout protection
+- **Network Health Monitoring**: Comprehensive health checks with latency monitoring
+- **Smart Reconnection Logic**: Intelligent reconnection decisions with cooldowns and health checks
+
+**Results Achieved**:
+- **Enhanced DNS Resilience**: Fallback DNS servers provide redundancy when primary fails
+- **Improved Error Handling**: Detailed error reporting with DNS server information and endpoint testing results
+- **Cleaner Shutdowns**: Proper event loop and session cleanup prevents resource leaks
+- **Smarter Reconnection**: Intelligent reconnection logic with cooldowns and health verification
+- **Better Monitoring**: Comprehensive network health checks with detailed logging
+- **Reduced Error Frequency**: Fewer connection-related errors and more stable bot operation
+
+**Files Modified**:
+- `bot/discord_bot.py` - Enhanced with network resilience improvements
+- `scripts/test_network_connectivity.py` - New test script for network connectivity validation
+- `DISCORD_NETWORK_IMPROVEMENTS.md` - New comprehensive documentation of improvements
+- `requirements.txt` - Already included required `dnspython` dependency
+
+**Testing Completed**:
+- Network connectivity test script validates all improvements
+- DNS resolution testing with all fallback servers successful
+- Network health checks working correctly
+- Reconnection logic validation passed
+- Main application testing shows improved error handling and logging
+
+**Impact on Development**:
+- More stable Discord bot connections with faster recovery from network issues
+- Better debugging capabilities with detailed error reporting
+- Improved resource management and prevention of memory leaks
+- Enhanced maintainability with comprehensive logging and monitoring
+- Better user experience with more reliable bot operation
+
 ### 2025-08-19 - AI Documentation System Optimization ✅ **COMPLETED**
 
 **Summary**: Streamlined AI-facing documentation system for better usability and reduced redundancy, established maintenance guidelines, and added improvement priorities for AI tools.

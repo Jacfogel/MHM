@@ -9,7 +9,7 @@ import os
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set, Tuple, Any
 import json
 from datetime import datetime
 
@@ -421,34 +421,35 @@ def generate_file_section(file_path: str, data: Dict) -> str:
     return content
 
 def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> str:
-    """Generate the content for AI_FUNCTION_REGISTRY.md - concise AI-focused version."""
+    """Generate AI-optimized function registry content focusing on patterns and decision trees."""
     
-    # Calculate key statistics
+    # Calculate statistics
     total_files = len(actual_functions)
     total_functions = sum(data['total_functions'] for data in actual_functions.values())
+    total_classes = sum(data['total_classes'] for data in actual_functions.values())
     total_methods = sum(len(cls['methods']) for data in actual_functions.values() for cls in data['classes'])
+    
+    # Function documentation stats
+    documented_functions = sum(1 for data in actual_functions.values() 
+                              for func in data['functions'] if func['has_docstring'])
+    documented_methods = sum(1 for data in actual_functions.values() 
+                            for cls in data['classes'] 
+                            for method in cls['methods'] if method['has_docstring'])
+    
     total_items = total_functions + total_methods
-    documented_items = sum(1 for data in actual_functions.values() 
-                          for func in data['functions'] if func['has_docstring'])
-    documented_items += sum(1 for data in actual_functions.values() 
-                           for cls in data['classes'] 
-                           for method in cls['methods'] if method['has_docstring'])
+    documented_items = documented_functions + documented_methods
     coverage_percentage = (documented_items / total_items * 100) if total_items > 0 else 0
     
-    # Get most important functions (core, bot, ui modules)
-    important_modules = {}
-    for file_path, data in actual_functions.items():
-        if any(file_path.startswith(prefix) for prefix in ['core/', 'bot/', 'ui/', 'user/']):
-            important_modules[file_path] = data
+    # Analyze patterns
+    patterns = analyze_function_patterns(actual_functions)
     
-    # Generate AI-focused content
-    content = f"""# AI Function Registry - Key Patterns & Status
+    content = f"""# AI Function Registry - Key Patterns & Decision Trees
 
 > **Audience**: AI Collaborators  
-> **Purpose**: Key function patterns and current status for AI context  
-> **Style**: Concise, pattern-focused, actionable
+> **Purpose**: Essential function patterns and decision trees for AI context  
+> **Style**: Pattern-focused, decision-tree driven, actionable
 
-## 🎯 **Current Function Status**
+## 🎯 **Current Status**
 
 ### **Documentation Coverage: {coverage_percentage:.1f}% {'✅ EXCELLENT' if coverage_percentage >= 95 else '⚠️ GOOD' if coverage_percentage >= 50 else '❌ NEEDS WORK'}**
 - **Total Functions**: {total_functions}
@@ -456,62 +457,252 @@ def generate_ai_function_registry_content(actual_functions: Dict[str, Dict]) -> 
 - **Documented**: {documented_items}/{total_items}
 - **Files Scanned**: {total_files}
 
-## 🔧 **Key Function Patterns**
+## 🧠 **Decision Trees for AI Context**
 
-### **Core System Patterns**
+### **🔧 Need to Handle User Data?**
+```
+User Data Operations Decision Tree:
+├── Core Data Access
+│   ├── `core/user_data_handlers.py` - Primary data access (10 functions)
+│   ├── `core/user_data_manager.py` - Data management (25 functions)
+│   └── `core/user_data_validation.py` - Validation (5/8 functions)
+├── User Context
+│   ├── `user/user_context.py` - User context management
+│   └── `user/user_preferences.py` - User preferences
+└── User Management
+    └── `core/user_management.py` - Account operations (44/47 functions)
+```
+
+### **🤖 Need AI/Chatbot Functionality?**
+```
+AI Operations Decision Tree:
+├── AI Chatbot
+│   ├── `bot/ai_chatbot.py` - Main AI implementation (31 functions)
+│   └── `bot/user_context_manager.py` - Context for AI (13 functions)
+├── Command Parsing
+│   ├── `bot/enhanced_command_parser.py` - Natural language parsing (15 functions)
+│   └── `bot/interaction_handlers.py` - Command handlers (38/62 functions)
+└── Interaction Management
+    └── `bot/interaction_manager.py` - Main interaction flow (11 functions)
+```
+
+### **💬 Need Communication/Channels?**
+```
+Communication Decision Tree:
+├── Channel Management
+│   ├── `bot/communication_manager.py` - Main communication (37 functions)
+│   ├── `bot/base_channel.py` - Channel base class (7 functions)
+│   └── `bot/channel_factory.py` - Channel creation (3 functions)
+├── Specific Channels
+│   ├── `bot/discord_bot.py` - Discord integration (19 functions)
+│   ├── `bot/email_bot.py` - Email integration (9 functions)
+│   └── `bot/telegram_bot.py` - Telegram integration (29/35 functions)
+└── Conversation Flow
+    └── `bot/conversation_manager.py` - Conversation management (13 functions)
+```
+
+### **🖥️ Need UI/User Interface?**
+```
+UI Operations Decision Tree:
+├── Main Application
+│   └── `ui/ui_app_qt.py` - Main admin interface (42/50 functions)
+├── Dialogs
+│   ├── `ui/dialogs/account_creator_dialog.py` - Account creation (29/30 functions)
+│   ├── `ui/dialogs/user_profile_dialog.py` - User profiles (20 functions)
+│   ├── `ui/dialogs/task_management_dialog.py` - Task management (2/4 functions)
+│   └── `ui/dialogs/schedule_editor_dialog.py` - Schedule editing (16/17 functions)
+└── Widgets
+    ├── `ui/widgets/tag_widget.py` - Tag management (14 functions)
+    ├── `ui/widgets/task_settings_widget.py` - Task settings (12/13 functions)
+    └── `ui/widgets/user_profile_settings_widget.py` - Profile settings (8 functions)
+```
+
+### **⚙️ Need Core System Operations?**
+```
+Core System Decision Tree:
+├── Configuration
+│   └── `core/config.py` - System configuration (19 functions)
+├── Error Handling
+│   └── `core/error_handling.py` - Error management (25/27 functions)
+├── File Operations
+│   ├── `core/file_operations.py` - File I/O (5 functions)
+│   └── `core/backup_manager.py` - Backup operations (18 functions)
+├── Logging
+│   └── `core/logger.py` - Logging system (26/27 functions)
+└── Scheduling
+    ├── `core/scheduler.py` - Task scheduling (30/31 functions)
+    └── `core/schedule_management.py` - Schedule management (16/19 functions)
+```
+
+## 🔍 **Key Function Patterns**
+
+### **Handler Pattern** (Most Common)
+**Purpose**: Handle specific user intents or operations
+**Location**: `bot/interaction_handlers.py`, `ui/dialogs/`, `core/`
+**Pattern**: 
+- `can_handle(intent)` - Check if handler supports intent
+- `handle(user_id, parsed_command)` - Process the command
+- `get_help()` - Return help text
+- `get_examples()` - Return usage examples
+
+**Examples**:
+- `TaskManagementHandler` - Task CRUD operations
+- `ProfileHandler` - User profile management
+- `ScheduleManagementHandler` - Schedule operations
+
+### **Manager Pattern** (Singleton)
+**Purpose**: Centralized management of system components
+**Location**: `bot/communication_manager.py`, `bot/interaction_manager.py`
+**Pattern**:
+- Singleton instance management
+- Lifecycle methods (`start()`, `stop()`, `initialize()`)
+- Status reporting methods
+
+### **Factory Pattern**
+**Purpose**: Create instances of related objects
+**Location**: `bot/channel_factory.py`
+**Pattern**:
+- `register_channel(name, channel_class)` - Register channel types
+- `create_channel(name, config)` - Create channel instances
+- `get_available_channels()` - List available types
+
+### **Context Manager Pattern**
+**Purpose**: Safe resource management
+**Location**: `core/error_handling.py`
+**Pattern**:
+- `__enter__()` and `__exit__()` methods
+- Automatic cleanup and error handling
+- Used with `with` statements
+
+## 🎯 **Critical Functions for AI Context**
+
+### **Entry Points** (Start Here)
+- `bot/interaction_manager.py::handle_message()` - Main message entry point
+- `bot/ai_chatbot.py::generate_response()` - AI response generation
+- `core/user_data_handlers.py::get_user_data()` - User data access
+- `ui/ui_app_qt.py::__init__()` - UI application startup
+
+### **Data Access Patterns**
+- **User Data**: `core/user_data_handlers.py` (10 functions)
+- **Validation**: `core/user_data_validation.py` (5/8 functions)
+- **File Operations**: `core/file_operations.py` (5 functions)
+
+### **Communication Patterns**
+- **Message Sending**: `bot/communication_manager.py::send_message_sync()`
+- **Channel Status**: `bot/communication_manager.py::is_channel_ready()`
+- **Command Parsing**: `bot/enhanced_command_parser.py::parse()`
+
+## ⚠️ **Areas Needing Attention**
+
+### **High Priority** (Missing Documentation)
+- `bot/interaction_handlers.py` - 24/62 functions undocumented
+- `core/user_data_validation.py` - 3/8 functions undocumented
+- `ui/dialogs/task_management_dialog.py` - 2/4 functions undocumented
+
+### **Medium Priority** (Partial Coverage)
+- `ui/ui_app_qt.py` - 8/50 functions undocumented
+- `core/error_handling.py` - 2/27 functions undocumented
+- `core/logger.py` - 1/27 functions undocumented
+
+## 🚀 **Quick Reference for AI**
+
+### **Common Operations**
+1. **User Message**: `bot/interaction_manager.py::handle_message()`
+2. **AI Response**: `bot/ai_chatbot.py::generate_response()`
+3. **User Data**: `core/user_data_handlers.py::get_user_data()`
+4. **File Save**: `core/file_operations.py::save_json_data()`
+5. **Error Handling**: `core/error_handling.py::handle_errors` decorator
+
+### **Pattern Recognition**
+- **Handler classes** end with "Handler" and implement standard interface
+- **Manager classes** are singletons with lifecycle management
+- **Factory classes** have "Factory" in name and create related objects
+- **Context managers** can be used with `with` statements
+
+### **File Organization**
+- `core/` - System utilities and data management
+- `bot/` - Communication and AI functionality
+- `ui/` - User interface components
+- `user/` - User context and preferences
+- `tasks/` - Task management system
+
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**  
+> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
     
-    # Add core system patterns
-    core_files = {k: v for k, v in important_modules.items() if k.startswith('core/')}
-    if core_files:
-        content += f"- **{len(core_files)} core modules** - Configuration, error handling, data management\n"
-        for file_path, data in core_files.items():
-            func_count = data['total_functions']
-            documented = sum(1 for func in data['functions'] if func['has_docstring'])
-            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
-    
-    content += "\n### **Communication Patterns**\n"
-    bot_files = {k: v for k, v in important_modules.items() if k.startswith('bot/')}
-    if bot_files:
-        content += f"- **{len(bot_files)} bot modules** - Channel management, communication\n"
-        for file_path, data in bot_files.items():
-            func_count = data['total_functions']
-            documented = sum(1 for func in data['functions'] if func['has_docstring'])
-            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
-    
-    content += "\n### **UI Patterns**\n"
-    ui_files = {k: v for k, v in important_modules.items() if k.startswith('ui/')}
-    if ui_files:
-        content += f"- **{len(ui_files)} UI modules** - Dialogs, widgets, user interaction\n"
-        for file_path, data in ui_files.items():
-            func_count = data['total_functions']
-            documented = sum(1 for func in data['functions'] if func['has_docstring'])
-            content += f"  - `{file_path}`: {documented}/{func_count} functions documented\n"
-    
-    content += "\n## 🎯 **For AI Context**\n\n"
-    content += "### **When Working with Functions**\n"
-    content += "- **Check documentation status** before modifying functions\n"
-    content += "- **Use existing patterns** from well-documented modules\n"
-    content += "- **Follow naming conventions** established in core modules\n"
-    content += "- **Add docstrings** when creating new functions\n\n"
-    
-    content += "### **Key Function Categories**\n"
-    content += "- **Core Functions**: `core/` - System utilities and data management\n"
-    content += "- **Communication Functions**: `bot/` - Channel and message handling\n"
-    content += "- **UI Functions**: `ui/` - User interface and interaction\n"
-    content += "- **User Functions**: `user/` - User data and preferences\n"
-    content += "- **Task Functions**: `tasks/` - Task management and scheduling\n\n"
-    
-    content += "### **Documentation Standards**\n"
-    content += "- **All functions should have docstrings** explaining purpose and parameters\n"
-    content += "- **Use clear, action-oriented descriptions**\n"
-    content += "- **Include parameter types and return values** when relevant\n"
-    content += "- **Follow existing patterns** in similar modules\n\n"
-    
-    content += f"> **For complete function registry and detailed information, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**\n"
-    content += f"> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
-    
     return content
+
+def analyze_function_patterns(actual_functions: Dict[str, Dict]) -> Dict[str, Any]:
+    """Analyze function patterns for AI consumption."""
+    patterns = {
+        'handlers': [],
+        'managers': [],
+        'factories': [],
+        'context_managers': [],
+        'entry_points': [],
+        'data_access': [],
+        'communication': []
+    }
+    
+    for file_path, data in actual_functions.items():
+        # Analyze classes for patterns
+        for cls in data['classes']:
+            class_name = cls['name']
+            methods = [m['name'] for m in cls['methods']]
+            
+            # Handler pattern
+            if class_name.endswith('Handler') and 'can_handle' in methods and 'handle' in methods:
+                patterns['handlers'].append({
+                    'file': file_path,
+                    'class': class_name,
+                    'methods': len(methods)
+                })
+            
+            # Manager pattern
+            elif class_name.endswith('Manager') and ('start' in methods or 'initialize' in methods):
+                patterns['managers'].append({
+                    'file': file_path,
+                    'class': class_name,
+                    'methods': len(methods)
+                })
+            
+            # Factory pattern
+            elif 'Factory' in class_name and ('create' in methods or 'register' in methods):
+                patterns['factories'].append({
+                    'file': file_path,
+                    'class': class_name,
+                    'methods': len(methods)
+                })
+        
+        # Analyze functions for patterns
+        for func in data['functions']:
+            func_name = func['name']
+            
+            # Entry points
+            if func_name in ['handle_message', 'generate_response', 'main', '__init__']:
+                patterns['entry_points'].append({
+                    'file': file_path,
+                    'function': func_name,
+                    'has_doc': func['has_docstring']
+                })
+            
+            # Data access
+            elif any(keyword in func_name for keyword in ['get_user', 'save_user', 'load_', 'save_']):
+                patterns['data_access'].append({
+                    'file': file_path,
+                    'function': func_name,
+                    'has_doc': func['has_docstring']
+                })
+            
+            # Communication
+            elif any(keyword in func_name for keyword in ['send_', 'receive_', 'connect_', 'disconnect_']):
+                patterns['communication'].append({
+                    'file': file_path,
+                    'function': func_name,
+                    'has_doc': func['has_docstring']
+                })
+    
+    return patterns
 
 def update_function_registry():
     """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""

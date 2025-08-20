@@ -7,6 +7,7 @@
 MHM is a simple personal assistant created by and for a single beginner programmer. It sends scheduled motivational messages and basic mood tracking through Discord (email optional). The project also supports optional local AI integration via LM Studio for contextual chat responses.
 
 ## [Navigation](#navigation)
+- **[Project Vision](PROJECT_VISION.md)** - Overarching vision and mission
 - **[Quick Start](HOW_TO_RUN.md)** - Get up and running in minutes
 - **[Development Workflow](DEVELOPMENT_WORKFLOW.md)** - For contributors and developers  
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
