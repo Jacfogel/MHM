@@ -427,8 +427,12 @@ class UserDataManager:
         """
         Update the user index with current information for a specific user.
         
+        Creates a comprehensive multi-identifier structure:
+        - Fast lookups: {"internal_username": "UUID", "email": "UUID", "discord_user_id": "UUID", "phone": "UUID"}
+        - Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
+        
         Args:
-            user_id: The user's ID
+            user_id: The user's ID (UUID)
             
         Returns:
             bool: True if index was updated successfully
@@ -454,6 +458,16 @@ class UserDataManager:
             context_result = get_user_data(user_id, 'context')
             user_context = context_result.get('context') or {}
             
+            # Get identifiers for fast lookups
+            internal_username = user_account.get('internal_username', '')
+            email = user_account.get('email', '')
+            discord_user_id = user_account.get('discord_user_id', '')
+            phone = user_account.get('phone', '')
+            
+            if not internal_username:
+                logger.warning(f"No internal_username found for user {user_id}")
+                return False
+            
             # Determine enabled features
             enabled_features = []
             features = user_account.get('features', {})
@@ -476,18 +490,50 @@ class UserDataManager:
             # Get last interaction (most recent activity)
             last_interaction = self._get_last_interaction(user_id)
             
-            index_data[user_id] = {
-                "internal_username": user_account.get('internal_username', ''),
+            # Create detailed user info
+            detailed_user_info = {
+                "internal_username": internal_username,
                 "active": user_account.get('account_status') == 'active',
                 "channel_type": channel_type,
                 "enabled_features": sorted(enabled_features),
                 "last_interaction": last_interaction,
-                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "message_count": message_count,
+                "preferred_name": user_context.get('preferred_name', ''),
+                "email": email,
+                "discord_user_id": discord_user_id,
+                "phone": phone,
+                "created_at": user_account.get('created_at', '')
             }
+            
+            # Update fast lookup mappings (multiple identifiers)
+            # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
+            # TODO: Remove after 2025-12-01 when all code has been updated to use new structure
+            # REMOVAL PLAN:
+            # 1. Update all get_user_id_by_* functions to use new multi-identifier structure
+            # 2. Update tests to use new structure
+            # 3. Remove simple mapping after 2 months of monitoring
+            index_data[internal_username] = user_id
+            
+            # Add new multi-identifier mappings
+            if email:
+                index_data[f"email:{email}"] = user_id
+            if discord_user_id:
+                index_data[f"discord:{discord_user_id}"] = user_id
+            if phone:
+                index_data[f"phone:{phone}"] = user_id
+            
+            # Update detailed mapping for rich information
+            if "users" not in index_data:
+                index_data["users"] = {}
+            index_data["users"][user_id] = detailed_user_info
+            
+            # Add metadata
+            index_data["last_updated"] = datetime.now().isoformat()
             
             # Save updated index
             save_json_data(index_data, self.index_file)
-            logger.debug(f"Updated user index for user {user_id}")
+            logger.debug(f"Updated user index for user {user_id} (internal_username: {internal_username})")
             return True
         except Exception as e:
             logger.error(f"Error updating user index for user {user_id}: {e}")
@@ -498,21 +544,54 @@ class UserDataManager:
         """
         Remove a user from the index.
         
+        Removes all identifier mappings (internal_username, email, discord_user_id, phone) and detailed mapping.
+        
         Args:
-            user_id: The user's ID
+            user_id: The user's ID (UUID)
             
         Returns:
             bool: True if user was removed from index successfully
         """
         try:
             index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
-            if user_id in index_data["users"]:
+            
+            # Get the user info to remove all identifier mappings
+            internal_username = None
+            email = None
+            discord_user_id = None
+            phone = None
+            
+            if "users" in index_data and user_id in index_data["users"]:
+                user_info = index_data["users"][user_id]
+                internal_username = user_info.get("internal_username")
+                email = user_info.get("email")
+                discord_user_id = user_info.get("discord_user_id")
+                phone = user_info.get("phone")
+            
+            # Remove from detailed mapping
+            if "users" in index_data and user_id in index_data["users"]:
                 del index_data["users"][user_id]
-                index_data["last_updated"] = datetime.now().isoformat()
-                save_json_data(index_data, self.index_file)
-                logger.info(f"Removed user {user_id} from index")
-                return True
-            return True  # User wasn't in index, that's fine
+            
+            # Remove all identifier mappings
+            if internal_username and internal_username in index_data:
+                del index_data[internal_username]
+            
+            if email and f"email:{email}" in index_data:
+                del index_data[f"email:{email}"]
+            
+            if discord_user_id and f"discord:{discord_user_id}" in index_data:
+                del index_data[f"discord:{discord_user_id}"]
+            
+            if phone and f"phone:{phone}" in index_data:
+                del index_data[f"phone:{phone}"]
+            
+            # Update metadata
+            index_data["last_updated"] = datetime.now().isoformat()
+            save_json_data(index_data, self.index_file)
+            
+            logger.info(f"Removed user {user_id} (internal_username: {internal_username}) from index")
+            return True
+            
         except Exception as e:
             logger.error(f"Error removing user {user_id} from index: {e}")
             return False
@@ -522,7 +601,9 @@ class UserDataManager:
         """
         Rebuild the complete user index from scratch.
         
-        Scans all user directories and creates a fresh index with current information.
+        Creates a comprehensive multi-identifier structure:
+        - Fast lookups: {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+        - Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
         
         Returns:
             bool: True if index was rebuilt successfully
@@ -536,7 +617,12 @@ class UserDataManager:
                 logger.warning("No users found during index rebuild")
                 return True
 
-            index_data = {}
+            # Initialize hybrid structure
+            index_data = {
+                "users": {},
+                "last_updated": datetime.now().isoformat()
+            }
+            
             for user_id in user_ids:
                 if user_id:
                     summary = self.get_user_data_summary(user_id)
@@ -548,6 +634,16 @@ class UserDataManager:
                     user_preferences = prefs_result.get('preferences') or {}
                     context_result = get_user_data(user_id, 'context')
                     user_context = context_result.get('context') or {}
+                    
+                    # Get identifiers for fast lookups
+                    internal_username = user_account.get('internal_username', '')
+                    email = user_account.get('email', '')
+                    discord_user_id = user_account.get('discord_user_id', '')
+                    phone = user_account.get('phone', '')
+                    
+                    if not internal_username:
+                        logger.warning(f"No internal_username found for user {user_id}, skipping")
+                        continue
                     
                     # Determine enabled features
                     enabled_features = []
@@ -571,17 +667,39 @@ class UserDataManager:
                     # Get last interaction (most recent activity)
                     last_interaction = self._get_last_interaction(user_id)
                     
-                    index_data[user_id] = {
-                        "internal_username": user_account.get('internal_username', ''),
+                    # Create detailed user info
+                    detailed_user_info = {
+                        "internal_username": internal_username,
                         "active": user_account.get('account_status') == 'active',
                         "channel_type": channel_type,
                         "enabled_features": sorted(enabled_features),
                         "last_interaction": last_interaction,
-                        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                        "message_count": summary.get("total_messages", 0),
+                        "preferred_name": user_context.get('preferred_name', ''),
+                        "email": email,
+                        "discord_user_id": discord_user_id,
+                        "phone": phone,
+                        "created_at": user_account.get('created_at', '')
                     }
+                    
+                    # Add all identifier mappings for fast lookups
+                    # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
+                    index_data[internal_username] = user_id
+                    
+                    # Add new multi-identifier mappings
+                    if email:
+                        index_data[f"email:{email}"] = user_id
+                    if discord_user_id:
+                        index_data[f"discord:{discord_user_id}"] = user_id
+                    if phone:
+                        index_data[f"phone:{phone}"] = user_id
+                    
+                    # Add detailed mapping for rich information
+                    index_data["users"][user_id] = detailed_user_info
             
             save_json_data(index_data, self.index_file)
-            logger.info(f"Rebuilt user index with {len(index_data)} users")
+            logger.info(f"Rebuilt user index with {len(index_data['users'])} users")
             return True
         except Exception as e:
             logger.error(f"Error rebuilding full user index: {e}")
@@ -611,12 +729,7 @@ class UserDataManager:
 
         matches = []
         
-        for user_id, user_index in users.items():
-            # Load user profile for searching
-            user_info = get_user_info_for_data_manager(user_id)
-            if not user_info:
-                continue
-            
+        for user_id, user_info in users.items():
             # Check if query matches any search fields
             match_found = False
             for field in search_fields:
@@ -629,7 +742,10 @@ class UserDataManager:
                 matches.append({
                     "user_id": user_id,
                     "profile": user_info,
-                    "summary": user_index.get("summary", {})
+                    "summary": {
+                        "message_count": user_info.get("message_count", 0),
+                        "enabled_features": user_info.get("enabled_features", [])
+                    }
                 })
         
         return matches

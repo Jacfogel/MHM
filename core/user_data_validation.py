@@ -97,6 +97,17 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
             _, validation_errors = validate_account_dict(merged_account)
             if validation_errors:
                 errors.extend(validation_errors)
+            
+            # Additional strict validation for critical fields
+            if 'internal_username' in updates and not updates['internal_username'].strip():
+                errors.append("internal_username cannot be empty")
+            
+            if 'channel' in updates:
+                channel = updates['channel']
+                if isinstance(channel, dict) and 'type' in channel:
+                    valid_channel_types = ['email', 'discord', 'sms', 'webhook']
+                    if channel['type'] not in valid_channel_types:
+                        errors.append(f"Invalid channel type: {channel['type']}. Must be one of: {valid_channel_types}")
         except Exception as e:
             errors.append(f"Account validation error: {e}")
 

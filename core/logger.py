@@ -202,6 +202,10 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         """
         Do a rollover, as described in __init__().
         """
+        # Skip rollover if disabled (e.g., during tests)
+        if os.environ.get('DISABLE_LOG_ROTATION') == '1':
+            return
+        
         if self.stream:
             self.stream.close()
             self.stream = None
@@ -216,7 +220,29 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         if os.path.exists(self.baseFilename):
             backup_name = f"{os.path.basename(self.baseFilename)}.{time.strftime(self.suffix, time_tuple)}"
             backup_path = os.path.join(self.backup_dir, backup_name)
-            shutil.move(self.baseFilename, backup_path)
+            
+            # Windows-safe file move with retry logic
+            try:
+                # Try to move the file
+                shutil.move(self.baseFilename, backup_path)
+            except PermissionError as e:
+                # File is locked, try alternative approach
+                try:
+                    # Try to copy and then delete (more Windows-friendly)
+                    shutil.copy2(self.baseFilename, backup_path)
+                    # Try to delete the original, but don't fail if it's locked
+                    try:
+                        os.unlink(self.baseFilename)
+                    except (PermissionError, OSError):
+                        # File is still locked, leave it and continue
+                        pass
+                except (PermissionError, OSError) as copy_error:
+                    # Even copy failed, log the issue but don't crash
+                    print(f"Warning: Could not backup log file {self.baseFilename}: {copy_error}")
+                    # Continue with rollover anyway
+            except Exception as e:
+                # Any other error, log it but continue
+                print(f"Warning: Error during log rollover: {e}")
         
         # Call parent's doRollover to handle the actual rollover logic
         super().doRollover()

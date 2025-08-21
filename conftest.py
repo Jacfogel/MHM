@@ -40,6 +40,12 @@ def _isolate_logging_globally():
     os.environ['LOG_FILE_OPS_FILE'] = str(tests_logs_dir / 'file_ops.log')
     os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')
 
+    # Disable log rotation during tests to prevent Windows file locking issues
+    os.environ['DISABLE_LOG_ROTATION'] = '1'
+    
+    # Set default categories for tests
+    os.environ['CATEGORIES'] = 'motivational,health,fun_facts,quotes_to_ponder,word_of_the_day'
+
     # Remove any existing handlers from root and the "mhm" namespace to prevent leakage
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:

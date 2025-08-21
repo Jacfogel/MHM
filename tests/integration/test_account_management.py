@@ -26,31 +26,28 @@ def test_account_management_imports():
     print("🔍 Testing Account Management Imports...")
     
     modules_to_test = [
-        ("Account Manager", "ui.account_manager", "setup_communication_settings_window"),
+        ("Account Creator Dialog", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
         ("User Management", "core.user_management", "update_user_account"),
         ("User Data Manager", "core.user_data_manager", "UserDataManager"),
         ("User Context", "user.user_context", "UserContext"),
     ]
-    
-    results = {}
     
     for module_name, module_path, function_name in modules_to_test:
         try:
             module = __import__(module_path, fromlist=[function_name])
             function = getattr(module, function_name)
             print(f"  ✅ {module_name}: Import successful")
-            results[module_name] = "IMPORT_SUCCESS"
+            # Assert that the function exists and is callable
+            assert callable(function), f"{module_name}: Function is not callable"
         except ImportError as e:
             print(f"  ❌ {module_name}: Import failed - {e}")
-            results[module_name] = f"IMPORT_FAILED: {e}"
+            assert False, f"{module_name}: Import failed - {e}"
         except AttributeError as e:
             print(f"  ❌ {module_name}: Function not found - {e}")
-            results[module_name] = f"FUNCTION_NOT_FOUND: {e}"
+            assert False, f"{module_name}: Function not found - {e}"
         except Exception as e:
             print(f"  ❌ {module_name}: Unexpected error - {e}")
-            results[module_name] = f"UNEXPECTED_ERROR: {e}"
-    
-    return results
+            assert False, f"{module_name}: Unexpected error - {e}"
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -72,58 +69,54 @@ def test_account_management_functions():
         # Use a safe test user
         test_user = "test-user"
         
-        results = {}
-        
         # Test get_user_data for account management
         try:
             account_data = get_user_data(test_user, 'account')
             print(f"  ✅ get_user_data (account): Function call successful")
-            results["get_user_data_account"] = "FUNCTION_SUCCESS"
+            assert account_data is not None, "get_user_data should return data"
         except Exception as e:
             print(f"  ❌ get_user_data (account): Function call failed - {e}")
-            results["get_user_data_account"] = f"FUNCTION_FAILED: {e}"
+            assert False, f"get_user_data (account) failed: {e}"
         
         # Test get_user_data for preferences
         try:
             prefs_data = get_user_data(test_user, 'preferences')
             print(f"  ✅ get_user_data (preferences): Function call successful")
-            results["get_user_data_preferences"] = "FUNCTION_SUCCESS"
+            assert prefs_data is not None, "get_user_data should return data"
         except Exception as e:
             print(f"  ❌ get_user_data (preferences): Function call failed - {e}")
-            results["get_user_data_preferences"] = f"FUNCTION_FAILED: {e}"
+            assert False, f"get_user_data (preferences) failed: {e}"
         
         # Test get_user_data for context
         try:
             context_data = get_user_data(test_user, 'context')
             print(f"  ✅ get_user_data (context): Function call successful")
-            results["get_user_data_context"] = "FUNCTION_SUCCESS"
+            assert context_data is not None, "get_user_data should return data"
         except Exception as e:
             print(f"  ❌ get_user_data (context): Function call failed - {e}")
-            results["get_user_data_context"] = f"FUNCTION_FAILED: {e}"
+            assert False, f"get_user_data (context) failed: {e}"
         
         # Test UserDataManager instantiation
         try:
             data_manager = UserDataManager()
             print(f"  ✅ UserDataManager: Instantiation successful")
-            results["UserDataManager"] = "INSTANTIATION_SUCCESS"
+            assert data_manager is not None, "UserDataManager should be instantiated"
         except Exception as e:
             print(f"  ❌ UserDataManager: Instantiation failed - {e}")
-            results["UserDataManager"] = f"INSTANTIATION_FAILED: {e}"
+            assert False, f"UserDataManager instantiation failed: {e}"
         
         # Test UserContext instantiation
         try:
             user_context = UserContext()
             print(f"  ✅ UserContext: Instantiation successful")
-            results["UserContext"] = "INSTANTIATION_SUCCESS"
+            assert user_context is not None, "UserContext should be instantiated"
         except Exception as e:
             print(f"  ❌ UserContext: Instantiation failed - {e}")
-            results["UserContext"] = f"INSTANTIATION_FAILED: {e}"
-        
-        return results
+            assert False, f"UserContext instantiation failed: {e}"
         
     except Exception as e:
         print(f"  ❌ Account management function testing failed: {e}")
-        return {"error": str(e)}
+        assert False, f"Account management function testing failed: {e}"
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -152,16 +145,16 @@ def test_account_management_data_structures():
                 
                 if not missing_fields:
                     print(f"  ✅ Account data structure: All required fields present")
-                    results["account_structure"] = "STRUCTURE_VALID"
+                    assert True, "Account structure is valid"
                 else:
                     print(f"  ⚠️ Account data structure: Missing fields - {missing_fields}")
-                    results["account_structure"] = f"MISSING_FIELDS: {missing_fields}"
+                    assert False, f"Account structure missing fields: {missing_fields}"
             else:
                 print(f"  ❌ Account data structure: No account data found")
-                results["account_structure"] = "NO_DATA"
+                assert False, "No account data found"
         except Exception as e:
             print(f"  ❌ Account data structure: Error - {e}")
-            results["account_structure"] = f"ERROR: {e}"
+            assert False, f"Account data structure error: {e}"
         
         # Test preferences data structure
         try:
@@ -173,16 +166,16 @@ def test_account_management_data_structures():
                 
                 if not missing_fields:
                     print(f"  ✅ Preferences data structure: All required fields present")
-                    results["preferences_structure"] = "STRUCTURE_VALID"
+                    assert True, "Preferences structure is valid"
                 else:
                     print(f"  ⚠️ Preferences data structure: Missing fields - {missing_fields}")
-                    results["preferences_structure"] = f"MISSING_FIELDS: {missing_fields}"
+                    assert False, f"Preferences structure missing fields: {missing_fields}"
             else:
                 print(f"  ❌ Preferences data structure: No preferences data found")
-                results["preferences_structure"] = "NO_DATA"
+                assert False, "No preferences data found"
         except Exception as e:
             print(f"  ❌ Preferences data structure: Error - {e}")
-            results["preferences_structure"] = f"ERROR: {e}"
+            assert False, f"Preferences data structure error: {e}"
         
         # Test context data structure
         try:
@@ -190,19 +183,18 @@ def test_account_management_data_structures():
             if context_data and 'context' in context_data:
                 context = context_data['context']
                 print(f"  ✅ Context data structure: Data present")
-                results["context_structure"] = "STRUCTURE_VALID"
+                assert True, "Context structure is valid"
             else:
                 print(f"  ⚠️ Context data structure: No context data found (may be optional)")
-                results["context_structure"] = "NO_DATA"
+                # Context is optional, so this is not a failure
+                assert True, "Context data is optional"
         except Exception as e:
             print(f"  ❌ Context data structure: Error - {e}")
-            results["context_structure"] = f"ERROR: {e}"
-        
-        return results
+            assert False, f"Context data structure error: {e}"
         
     except Exception as e:
         print(f"  ❌ Data structure testing failed: {e}")
-        return {"error": str(e)}
+        assert False, f"Data structure testing failed: {e}"
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -216,8 +208,6 @@ def test_account_management_validation():
     try:
         from core.user_data_validation import validate_user_update
         
-        results = {}
-        
         # Test valid account updates
         try:
             valid_updates = {
@@ -229,13 +219,13 @@ def test_account_management_validation():
             
             if is_valid:
                 print(f"  ✅ Account validation: Valid updates accepted")
-                results["valid_account_updates"] = "VALIDATION_SUCCESS"
+                assert True, "Valid account updates should be accepted"
             else:
                 print(f"  ❌ Account validation: Valid updates rejected - {errors}")
-                results["valid_account_updates"] = f"VALIDATION_FAILED: {errors}"
+                assert False, f"Valid account updates were rejected: {errors}"
         except Exception as e:
             print(f"  ❌ Account validation: Error - {e}")
-            results["valid_account_updates"] = f"ERROR: {e}"
+            assert False, f"Account validation error: {e}"
         
         # Test invalid account updates
         try:
@@ -247,13 +237,13 @@ def test_account_management_validation():
             
             if not is_valid:
                 print(f"  ✅ Account validation: Invalid updates correctly rejected")
-                results["invalid_account_updates"] = "VALIDATION_SUCCESS"
+                assert True, "Invalid account updates should be rejected"
             else:
                 print(f"  ❌ Account validation: Invalid updates incorrectly accepted")
-                results["invalid_account_updates"] = "VALIDATION_FAILED"
+                assert False, "Invalid account updates were incorrectly accepted"
         except Exception as e:
             print(f"  ❌ Account validation: Error - {e}")
-            results["invalid_account_updates"] = f"ERROR: {e}"
+            assert False, f"Account validation error: {e}"
         
         # Test preferences validation
         try:
@@ -265,19 +255,17 @@ def test_account_management_validation():
             
             if is_valid:
                 print(f"  ✅ Preferences validation: Valid updates accepted")
-                results["valid_preferences_updates"] = "VALIDATION_SUCCESS"
+                assert True, "Valid preferences updates should be accepted"
             else:
                 print(f"  ❌ Preferences validation: Valid updates rejected - {errors}")
-                results["valid_preferences_updates"] = f"VALIDATION_FAILED: {errors}"
+                assert False, f"Valid preferences updates were rejected: {errors}"
         except Exception as e:
             print(f"  ❌ Preferences validation: Error - {e}")
-            results["valid_preferences_updates"] = f"ERROR: {e}"
-        
-        return results
+            assert False, f"Preferences validation error: {e}"
         
     except Exception as e:
         print(f"  ❌ Validation testing failed: {e}")
-        return {"error": str(e)}
+        assert False, f"Validation testing failed: {e}"
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -323,13 +311,13 @@ def test_account_management_safe_operations():
             
             if save_result.get('account') and save_result.get('preferences'):
                 print(f"  ✅ Temporary user creation: Successful")
-                results["temp_user_creation"] = "CREATION_SUCCESS"
+                assert True, "Temporary user creation should succeed"
             else:
                 print(f"  ❌ Temporary user creation: Failed - {save_result}")
-                results["temp_user_creation"] = f"CREATION_FAILED: {save_result}"
+                assert False, f"Temporary user creation failed: {save_result}"
         except Exception as e:
             print(f"  ❌ Temporary user creation: Error - {e}")
-            results["temp_user_creation"] = f"ERROR: {e}"
+            assert False, f"Temporary user creation error: {e}"
         
         # Test reading temporary user data
         try:
@@ -338,13 +326,13 @@ def test_account_management_safe_operations():
             
             if account_data and prefs_data:
                 print(f"  ✅ Temporary user data access: Successful")
-                results["temp_user_data_access"] = "ACCESS_SUCCESS"
+                assert True, "Temporary user data access should succeed"
             else:
                 print(f"  ❌ Temporary user data access: Failed")
-                results["temp_user_data_access"] = "ACCESS_FAILED"
+                assert False, "Temporary user data access failed"
         except Exception as e:
             print(f"  ❌ Temporary user data access: Error - {e}")
-            results["temp_user_data_access"] = f"ERROR: {e}"
+            assert False, f"Temporary user data access error: {e}"
         
         # Test updating temporary user data
         try:
@@ -354,29 +342,27 @@ def test_account_management_safe_operations():
             
             if update_result.get('account'):
                 print(f"  ✅ Temporary user update: Successful")
-                results["temp_user_update"] = "UPDATE_SUCCESS"
+                assert True, "Temporary user update should succeed"
             else:
                 print(f"  ❌ Temporary user update: Failed - {update_result}")
-                results["temp_user_update"] = f"UPDATE_FAILED: {update_result}"
+                assert False, f"Temporary user update failed: {update_result}"
         except Exception as e:
             print(f"  ❌ Temporary user update: Error - {e}")
-            results["temp_user_update"] = f"ERROR: {e}"
+            assert False, f"Temporary user update error: {e}"
         
         # Clean up temporary user (optional - let it be cleaned up automatically)
         try:
             # We could delete the temporary user here, but for safety we'll let it remain
             # The system has automatic cleanup mechanisms
             print(f"  ✅ Temporary user cleanup: Left for automatic cleanup")
-            results["temp_user_cleanup"] = "CLEANUP_SUCCESS"
+            assert True, "Temporary user cleanup should succeed"
         except Exception as e:
             print(f"  ⚠️ Temporary user cleanup: Error - {e}")
-            results["temp_user_cleanup"] = f"ERROR: {e}"
-        
-        return results
+            assert False, f"Temporary user cleanup error: {e}"
         
     except Exception as e:
         print(f"  ❌ Safe operations testing failed: {e}")
-        return {"error": str(e)}
+        assert False, f"Safe operations testing failed: {e}"
 
 @pytest.mark.integration
 @pytest.mark.user_management
@@ -417,10 +403,10 @@ def test_account_management_integration():
             # This should update the user index
             update_user_index(test_user)
             print(f"  ✅ User index integration: Index update successful")
-            results["user_index_integration"] = "INTEGRATION_SUCCESS"
+            assert True, "User index integration should succeed"
         except Exception as e:
             print(f"  ❌ User index integration: Error - {e}")
-            results["user_index_integration"] = f"ERROR: {e}"
+            assert False, f"User index integration error: {e}"
         
         # Test data consistency
         try:
@@ -430,105 +416,18 @@ def test_account_management_integration():
             
             if account_data1 == account_data2:
                 print(f"  ✅ Data consistency: Consistent across reads")
-                results["data_consistency"] = "CONSISTENCY_SUCCESS"
+                assert True, "Data consistency should be maintained"
             else:
                 print(f"  ❌ Data consistency: Inconsistent data")
-                results["data_consistency"] = "CONSISTENCY_FAILED"
+                assert False, "Data consistency failed"
         except Exception as e:
             print(f"  ❌ Data consistency: Error - {e}")
-            results["data_consistency"] = f"ERROR: {e}"
-        
-        return results
+            assert False, f"Data consistency error: {e}"
         
     except Exception as e:
         print(f"  ❌ Integration testing failed: {e}")
-        return {"error": str(e)}
+        assert False, f"Integration testing failed: {e}"
 
-def main():
-    """Run all account management tests and generate a comprehensive report"""
-    print("🎯 MHM Account Management Testing - Systematic Analysis (READ-ONLY)")
-    print("=" * 70)
-    
-    # Run all tests
-    imports = test_account_management_imports()
-    functions = test_account_management_functions()
-    data_structures = test_account_management_data_structures()
-    validation = test_account_management_validation()
-    safe_operations = test_account_management_safe_operations()
-    integration = test_account_management_integration()
-    
-    # Generate summary
-    print("\n" + "=" * 70)
-    print("📊 ACCOUNT MANAGEMENT TESTING SUMMARY")
-    print("=" * 70)
-    
-    # Import summary
-    import_success = sum(1 for result in imports.values() if "SUCCESS" in result)
-    import_total = len(imports)
-    print(f"Imports: {import_success}/{import_total} successful")
-    
-    # Function summary
-    function_success = sum(1 for result in functions.values() if "SUCCESS" in result)
-    function_total = len(functions)
-    print(f"Functions: {function_success}/{function_total} successful")
-    
-    # Data structure summary
-    structure_success = sum(1 for result in data_structures.values() if "VALID" in result or "SUCCESS" in result)
-    structure_total = len(data_structures)
-    print(f"Data Structures: {structure_success}/{structure_total} valid")
-    
-    # Validation summary
-    validation_success = sum(1 for result in validation.values() if "SUCCESS" in result)
-    validation_total = len(validation)
-    print(f"Validation: {validation_success}/{validation_total} successful")
-    
-    # Safe operations summary
-    operation_success = sum(1 for result in safe_operations.values() if "SUCCESS" in result)
-    operation_total = len(safe_operations)
-    print(f"Safe Operations: {operation_success}/{operation_total} successful")
-    
-    # Integration summary
-    integration_success = sum(1 for result in integration.values() if "SUCCESS" in result)
-    integration_total = len(integration)
-    print(f"Integration: {integration_success}/{integration_total} successful")
-    
-    # Detailed results
-    print("\n📋 DETAILED RESULTS")
-    print("-" * 50)
-    
-    print("\n🔧 Import Issues:")
-    for module, result in imports.items():
-        if "SUCCESS" not in result:
-            print(f"  ❌ {module}: {result}")
-    
-    print("\n🔧 Function Issues:")
-    for func, result in functions.items():
-        if "SUCCESS" not in result:
-            print(f"  ❌ {func}: {result}")
-    
-    print("\n🔧 Data Structure Issues:")
-    for struct, result in data_structures.items():
-        if "VALID" not in result and "SUCCESS" not in result:
-            print(f"  ❌ {struct}: {result}")
-    
-    print("\n🔧 Validation Issues:")
-    for valid, result in validation.items():
-        if "SUCCESS" not in result:
-            print(f"  ❌ {valid}: {result}")
-    
-    print("\n🔧 Safe Operation Issues:")
-    for op, result in safe_operations.items():
-        if "SUCCESS" not in result:
-            print(f"  ❌ {op}: {result}")
-    
-    print("\n🔧 Integration Issues:")
-    for integ, result in integration.items():
-        if "SUCCESS" not in result:
-            print(f"  ❌ {integ}: {result}")
-    
-    print("\n" + "=" * 70)
-    print("✅ Account Management Testing Complete! (No real data was modified)")
-    print("=" * 70)
-
-if __name__ == "__main__":
-    main() 
+# Note: This file contains pytest test functions that should be run with pytest
+# The main() function has been removed as it's not compatible with pytest
+# Run tests with: python -m pytest tests/integration/test_account_management.py 

@@ -58,6 +58,27 @@
   - [ ] Verify generated docs follow AI optimization principles
   - [ ] Document improvement metrics and success criteria
 
+#### Test Warnings Cleanup and Reliability Improvements — COMPLETED ✅
+**Goal**: Fix test warnings and improve system reliability
+**Status**: ✅ COMPLETED
+**Estimated Duration**: 1 week
+**Checklist**:
+- [x] **Fixed PytestReturnNotNoneWarning** ✅ **COMPLETED**
+  - [x] Converted test functions from return statements to proper assertions
+  - [x] Updated `tests/integration/test_account_management.py` and `tests/ui/test_dialogs.py`
+  - [x] Removed incompatible `main()` functions from test files
+- [x] **Fixed AsyncIO Deprecation Warnings** ✅ **COMPLETED**
+  - [x] Updated `bot/ai_chatbot.py`, `bot/email_bot.py`, `bot/communication_manager.py`
+  - [x] Replaced `asyncio.get_event_loop()` with `asyncio.get_running_loop()` with fallback
+- [x] **Enhanced Account Validation** ✅ **COMPLETED**
+  - [x] Added strict validation for empty `internal_username` fields
+  - [x] Added validation for invalid channel types
+  - [x] Maintained backward compatibility with existing Pydantic validation
+- [x] **Fixed Test Configuration Issues** ✅ **COMPLETED**
+  - [x] Set CATEGORIES environment variable in test configuration
+  - [x] Fixed user preferences validation in test environment
+  - [x] All 884 tests now passing with only external library warnings remaining
+
 #### Phase 1: Enhanced Task & Check-in Systems — MAJOR PROGRESS
 **Goal**: Improve task reminder system and check-in functionality to align with project vision
 **Status**: Implementation Phase
@@ -602,6 +623,24 @@ MHM/
 **Goal**: Expand test coverage from 54% to 80%+ for critical infrastructure components
 **Current Status**: 682/683 tests passing (99.85% success rate)
 **Progress**: 3/5 critical components completed
+
+### **Test Warnings Cleanup and Reliability Improvements** ✅ **COMPLETED**
+**Goal**: Fix test warnings and improve system reliability
+**Status**: ✅ COMPLETED
+**Duration**: 1 week
+**Results**:
+- **Test Success Rate**: 100% (884/884 tests passing)
+- **Warnings Reduced**: From multiple critical warnings to only external library warnings
+- **Validation Enhanced**: Account validation now properly rejects invalid data
+- **Test Reliability**: Improved test assertions and error handling
+- **Configuration Fixed**: Test environment properly configured with required environment variables
+
+**Key Achievements**:
+- Fixed PytestReturnNotNoneWarning by converting test functions to use proper assertions
+- Fixed AsyncIO deprecation warnings by updating to modern async patterns
+- Enhanced account validation with strict field validation
+- Fixed test configuration by setting CATEGORIES environment variable
+- All tests now pass with only external library warnings remaining
 
 ### **✅ COMPLETED COMPONENTS**
 

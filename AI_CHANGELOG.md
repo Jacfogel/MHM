@@ -30,6 +30,32 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-20 - Test Warnings Cleanup and Reliability Improvements ✅ **COMPLETED**
+- Fixed PytestReturnNotNoneWarning by converting test functions from return statements to proper assertions
+- Addressed asyncIO deprecation warnings by replacing get_event_loop() with get_running_loop() with fallback
+- Enhanced account validation to properly reject invalid data (empty usernames, invalid channel types)
+- Improved test reliability by using assertion-based testing instead of return-based testing
+- Updated test files: test_account_management.py, test_dialogs.py, communication_manager.py, ai_chatbot.py, email_bot.py, user_data_validation.py
+- Removed legacy main() functions from test files that were incompatible with pytest
+- Enhanced error handling in async operations with proper fallback mechanisms
+- Maintained backward compatibility while modernizing async patterns
+- **FINAL RESULT**: All 884 tests passing with only external library warnings remaining (Discord audioop deprecation, zipfile duplicates)
+
+### 2025-08-20 - Windows Logging Error Fix ✅ **COMPLETED**
+- Fixed Windows-specific logging error that occurred during test runs due to file locking issues during log rotation
+- Added Windows-safe log rotation with retry logic and fallback copy-and-delete approach
+- Implemented test-specific log rotation disable via `DISABLE_LOG_ROTATION=1` environment variable
+- Enhanced error handling to prevent log rotation failures from affecting system operation
+- Eliminated `PermissionError: [WinError 32]` errors during test runs for cleaner test output
+
+### 2025-08-20 - Enhanced Multi-Identifier User Lookup System ✅ **COMPLETED**
+- Implemented comprehensive multi-identifier lookup system supporting fast lookups by internal_username, email, discord_user_id, and phone
+- Created hybrid user index structure with simple mappings for fast lookups and detailed mappings for rich information
+- Added unified `get_user_id_by_identifier()` function that automatically detects identifier type
+- Maintained backward compatibility with proper legacy code documentation and removal planning
+- Fixed user index structure inconsistency between test utilities and system implementation
+- All 883 tests passing with 100% success rate and system stability maintained
+
 ### 2025-08-20 - Test User Directory Cleanup and Test Suite Fixes ✅ **COMPLETED**
 - Fixed all 7 failing tests by addressing test user creation issues and weighted question selection non-determinism
 - Refactored tests to use `TestUserFactory.create_basic_user` instead of direct `create_user_files` calls

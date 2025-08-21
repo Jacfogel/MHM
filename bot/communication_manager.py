@@ -94,11 +94,11 @@ class CommunicationManager:
     def _setup_event_loop(self):
         """Set up a dedicated event loop for async operations"""
         try:
-            # Try to get existing loop
-            self._main_loop = asyncio.get_event_loop()
-            self._event_loop = self._main_loop
-            if self._main_loop.is_running():
-                # Create new loop for our operations
+            # Try to get existing loop - use get_running_loop() to avoid deprecation warning
+            try:
+                self._main_loop = asyncio.get_running_loop()
+                self._event_loop = self._main_loop
+                # If we get here, there's a running loop, so create a new one for our operations
                 import threading
                 def run_event_loop():
                     """
@@ -117,8 +117,22 @@ class CommunicationManager:
                 # Wait a moment for loop to start
                 import time
                 time.sleep(0.1)
-        except RuntimeError:
-            # No event loop exists
+            except RuntimeError:
+                # No running loop, try to get current loop
+                try:
+                    # Use get_running_loop() first, fallback to get_event_loop()
+                    try:
+                        self._main_loop = asyncio.get_running_loop()
+                    except RuntimeError:
+                        self._main_loop = asyncio.get_event_loop()
+                    self._event_loop = self._main_loop
+                except RuntimeError:
+                    # No event loop exists, create new one
+                    self._main_loop = asyncio.new_event_loop()
+                    self._event_loop = self._main_loop
+                    asyncio.set_event_loop(self._main_loop)
+        except Exception as e:
+            # Fallback: create new loop
             self._main_loop = asyncio.new_event_loop()
             self._event_loop = self._main_loop
             asyncio.set_event_loop(self._main_loop)
@@ -261,7 +275,11 @@ class CommunicationManager:
                 elif hasattr(channel, 'shutdown'):
                     # Try async shutdown if available
                     try:
-                        loop = asyncio.get_event_loop()
+                        # Use get_running_loop() first, fallback to get_event_loop()
+                        try:
+                            loop = asyncio.get_running_loop()
+                        except RuntimeError:
+                            loop = asyncio.get_event_loop()
                         loop.run_until_complete(channel.shutdown())
                     except RuntimeError:
                         # No running loop, create one
@@ -283,7 +301,11 @@ class CommunicationManager:
             
             # Initialize the new channel
             try:
-                loop = asyncio.get_event_loop()
+                # Use get_running_loop() first, fallback to get_event_loop()
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = asyncio.get_event_loop()
                 success = loop.run_until_complete(self._initialize_channel_with_retry(new_channel, config))
             except RuntimeError:
                 # No running loop, create one
@@ -373,7 +395,11 @@ class CommunicationManager:
         
         # Create event loop for async operations if we're not in one
         try:
-            loop = asyncio.get_event_loop()
+            # Use get_running_loop() first, fallback to get_event_loop()
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.get_event_loop()
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)

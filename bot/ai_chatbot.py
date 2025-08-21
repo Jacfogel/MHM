@@ -788,7 +788,11 @@ Additional Instructions:
         """
         Async variant if you need to integrate with an async context.
         """
-        loop = asyncio.get_event_loop()
+        # Use get_running_loop() first, fallback to get_event_loop()
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.generate_response, user_prompt, AI_TIMEOUT_SECONDS, user_id)
 
     def is_ai_available(self) -> bool:

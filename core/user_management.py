@@ -20,6 +20,7 @@ from core.schemas import (
     validate_preferences_dict,
 )
 import inspect
+from pathlib import Path
 
 logger = get_component_logger('main')
 user_logger = get_component_logger('user_activity')
@@ -777,16 +778,119 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
 
 @handle_errors("getting user id by internal username", default_return=None)
 def get_user_id_by_internal_username(internal_username: str) -> Optional[str]:
-    """Get user ID by internal username."""
+    """Get user ID by internal username using the user index for fast lookup."""
     if not internal_username:
         return None
     
+    # Try fast lookup from user index first
+    try:
+        from core.user_data_manager import load_json_data
+        from core.config import BASE_DATA_DIR
+        
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = load_json_data(index_file) or {}
+        
+        # Check simple mapping first (fastest) - LEGACY COMPATIBILITY
+        if internal_username in index_data:
+            return index_data[internal_username]
+        
+        # Fallback: check detailed mapping
+        users = index_data.get("users", {})
+        for user_id, user_info in users.items():
+            if user_info.get("internal_username") == internal_username:
+                return user_id
+                
+    except Exception as e:
+        logger.warning(f"Error looking up user by internal_username '{internal_username}' in index: {e}")
+    
+    # Fallback: scan all user directories (slow but reliable)
+    logger.debug(f"Falling back to directory scan for internal_username '{internal_username}'")
     user_ids = get_all_user_ids()
     for user_id in user_ids:
         from core.user_data_handlers import get_user_data
         user_data_result = get_user_data(user_id, 'account')
         account_data = user_data_result.get('account')
         if account_data and account_data.get('internal_username') == internal_username:
+            return user_id
+    
+    return None
+
+@handle_errors("getting user id by email", default_return=None)
+def get_user_id_by_email(email: str) -> Optional[str]:
+    """Get user ID by email using the user index for fast lookup."""
+    if not email:
+        return None
+    
+    # Try fast lookup from user index first
+    try:
+        from core.user_data_manager import load_json_data
+        from core.config import BASE_DATA_DIR
+        
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = load_json_data(index_file) or {}
+        
+        # Check email mapping (fastest)
+        email_key = f"email:{email}"
+        if email_key in index_data:
+            return index_data[email_key]
+        
+        # Fallback: check detailed mapping
+        users = index_data.get("users", {})
+        for user_id, user_info in users.items():
+            if user_info.get("email") == email:
+                return user_id
+                
+    except Exception as e:
+        logger.warning(f"Error looking up user by email '{email}' in index: {e}")
+    
+    # Fallback: scan all user directories (slow but reliable)
+    logger.debug(f"Falling back to directory scan for email '{email}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        from core.user_data_handlers import get_user_data
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('email') == email:
+            return user_id
+    
+    return None
+
+@handle_errors("getting user id by phone", default_return=None)
+def get_user_id_by_phone(phone: str) -> Optional[str]:
+    """Get user ID by phone using the user index for fast lookup."""
+    if not phone:
+        return None
+    
+    # Try fast lookup from user index first
+    try:
+        from core.user_data_manager import load_json_data
+        from core.config import BASE_DATA_DIR
+        
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = load_json_data(index_file) or {}
+        
+        # Check phone mapping (fastest)
+        phone_key = f"phone:{phone}"
+        if phone_key in index_data:
+            return index_data[phone_key]
+        
+        # Fallback: check detailed mapping
+        users = index_data.get("users", {})
+        for user_id, user_info in users.items():
+            if user_info.get("phone") == phone:
+                return user_id
+                
+    except Exception as e:
+        logger.warning(f"Error looking up user by phone '{phone}' in index: {e}")
+    
+    # Fallback: scan all user directories (slow but reliable)
+    logger.debug(f"Falling back to directory scan for phone '{phone}'")
+    user_ids = get_all_user_ids()
+    for user_id in user_ids:
+        from core.user_data_handlers import get_user_data
+        user_data_result = get_user_data(user_id, 'account')
+        account_data = user_data_result.get('account')
+        if account_data and account_data.get('phone') == phone:
             return user_id
     
     return None
@@ -809,10 +913,36 @@ def get_user_id_by_chat_id(chat_id: str) -> Optional[str]:
 
 @handle_errors("getting user id by discord user id", default_return=None)
 def get_user_id_by_discord_user_id(discord_user_id: str) -> Optional[str]:
-    """Get user ID by Discord user ID."""
+    """Get user ID by Discord user ID using the user index for fast lookup."""
     if not discord_user_id:
         return None
     
+    # Try fast lookup from user index first
+    try:
+        from core.user_data_manager import load_json_data
+        from core.config import BASE_DATA_DIR
+        
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = load_json_data(index_file) or {}
+        
+        # Check discord mapping (fastest)
+        discord_key = f"discord:{discord_user_id}"
+        if discord_key in index_data:
+            return index_data[discord_key]
+        
+        # Fallback: check detailed mapping
+        users = index_data.get("users", {})
+        for user_id, user_info in users.items():
+            stored_discord_id = user_info.get("discord_user_id", "")
+            # Handle both string and integer comparisons
+            if str(stored_discord_id) == str(discord_user_id):
+                return user_id
+                
+    except Exception as e:
+        logger.warning(f"Error looking up user by discord_user_id '{discord_user_id}' in index: {e}")
+    
+    # Fallback: scan all user directories (slow but reliable)
+    logger.debug(f"Falling back to directory scan for discord_user_id '{discord_user_id}'")
     user_ids = get_all_user_ids()
     for user_id in user_ids:
         from core.user_data_handlers import get_user_data
@@ -1202,3 +1332,82 @@ def clear_personalization_cache(user_id: str = None) -> None:
 # LEGACY shim – function now lives in core.user_data_validation
 from core.user_data_validation import validate_personalization_data  # type: ignore
  
+@handle_errors("getting user id by identifier", default_return=None)
+def get_user_id_by_identifier(identifier: str) -> Optional[str]:
+    """
+    Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+    
+    Automatically detects the identifier type and uses the appropriate lookup method.
+    
+    Args:
+        identifier: The identifier to look up (can be any supported type)
+        
+    Returns:
+        Optional[str]: User ID if found, None otherwise
+    """
+    if not identifier:
+        return None
+    
+    # Try fast lookup from user index first
+    try:
+        from core.user_data_manager import load_json_data
+        from core.config import BASE_DATA_DIR
+        
+        index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+        index_data = load_json_data(index_file) or {}
+        
+        # Check all possible mappings in order of likelihood
+        # 1. Direct internal_username mapping (most common)
+        if identifier in index_data:
+            return index_data[identifier]
+        
+        # 2. Email mapping
+        email_key = f"email:{identifier}"
+        if email_key in index_data:
+            return index_data[email_key]
+        
+        # 3. Discord user ID mapping
+        discord_key = f"discord:{identifier}"
+        if discord_key in index_data:
+            return index_data[discord_key]
+        
+        # 4. Phone mapping
+        phone_key = f"phone:{identifier}"
+        if phone_key in index_data:
+            return index_data[phone_key]
+        
+        # Fallback: check detailed mapping
+        users = index_data.get("users", {})
+        for user_id, user_info in users.items():
+            # Check all identifier fields
+            if (user_info.get("internal_username") == identifier or
+                user_info.get("email") == identifier or
+                str(user_info.get("discord_user_id", "")) == str(identifier) or
+                user_info.get("phone") == identifier):
+                return user_id
+                
+    except Exception as e:
+        logger.warning(f"Error looking up user by identifier '{identifier}' in index: {e}")
+    
+    # Fallback: try specific lookup functions
+    # Try internal_username first (most common)
+    result = get_user_id_by_internal_username(identifier)
+    if result:
+        return result
+    
+    # Try email
+    result = get_user_id_by_email(identifier)
+    if result:
+        return result
+    
+    # Try discord_user_id
+    result = get_user_id_by_discord_user_id(identifier)
+    if result:
+        return result
+    
+    # Try phone
+    result = get_user_id_by_phone(identifier)
+    if result:
+        return result
+    
+    return None 

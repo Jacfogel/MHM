@@ -493,8 +493,9 @@ class TestAccountLifecycle:
         index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
         user_index = load_json_data(index_file) or {}
         
-        if user_id in user_index:
-            index_entry = user_index[user_id]
+        # Check detailed mapping in new structure
+        if "users" in user_index and user_id in user_index["users"]:
+            index_entry = user_index["users"][user_id]
             enabled_features = index_entry.get("enabled_features", [])
             assert "health" in enabled_features, "Health category should be in user index enabled_features"
         

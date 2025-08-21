@@ -65,6 +65,27 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
+## **Test Warnings Cleanup and Reliability Improvements** ✅ **COMPLETED**
+- *What it means*: Fixed multiple test warnings and improved test reliability by addressing validation issues and test configuration
+- *Why it helps*: Improved test reliability, enhanced validation robustness, and reduced technical debt
+- *Estimated effort*: Medium
+- *Subtasks*:
+  - [x] **Fixed PytestReturnNotNoneWarning** ✅ **COMPLETED**
+    - [x] Converted test functions from return statements to proper assertions
+    - [x] Updated `tests/integration/test_account_management.py` and `tests/ui/test_dialogs.py`
+    - [x] Removed incompatible `main()` functions from test files
+  - [x] **Fixed AsyncIO Deprecation Warnings** ✅ **COMPLETED**
+    - [x] Updated `bot/ai_chatbot.py`, `bot/email_bot.py`, `bot/communication_manager.py`
+    - [x] Replaced `asyncio.get_event_loop()` with `asyncio.get_running_loop()` with fallback
+  - [x] **Enhanced Account Validation** ✅ **COMPLETED**
+    - [x] Added strict validation for empty `internal_username` fields
+    - [x] Added validation for invalid channel types
+    - [x] Maintained backward compatibility with existing Pydantic validation
+  - [x] **Fixed Test Configuration Issues** ✅ **COMPLETED**
+    - [x] Set CATEGORIES environment variable in test configuration
+    - [x] Fixed user preferences validation in test environment
+    - [x] All 884 tests now passing with only external library warnings remaining
+
 ## **Test User Directory Cleanup** ✅ **COMPLETED**
 - *What it means*: Ensure test users are created in test directories only, not in real user directories
 - *Why it helps*: Prevents test contamination and maintains clean separation between test and production data
