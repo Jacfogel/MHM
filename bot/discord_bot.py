@@ -222,7 +222,7 @@ class DiscordBot(BaseChannel):
         return False
 
     @contextlib.asynccontextmanager
-    async def _session_cleanup_context(self):
+    async def shutdown__session_cleanup_context(self):
         """Context manager for proper session cleanup with timeout handling"""
         sessions_to_cleanup = []
         try:
@@ -325,7 +325,7 @@ class DiscordBot(BaseChannel):
         
         return status_info
 
-    def _update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
+    def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
         """Update connection status with detailed error information"""
         self._connection_status = status
         if error_info:
@@ -408,7 +408,7 @@ class DiscordBot(BaseChannel):
         
         self._starting = True
         self._set_status(ChannelStatus.INITIALIZING)
-        self._update_connection_status(DiscordConnectionStatus.INITIALIZING)
+        self._shared__update_connection_status(DiscordConnectionStatus.INITIALIZING)
         
         try:
             # Pre-flight network check
@@ -426,14 +426,14 @@ class DiscordBot(BaseChannel):
             
             # Register events and commands
             if not self._events_registered:
-                self._register_events()
+                self.initialize__register_events()
             
             if not self._commands_registered:
-                self._register_commands()
+                self.initialize__register_commands()
             
             # Start bot in a separate thread
             self.discord_thread = threading.Thread(
-                target=self._run_bot_in_thread, 
+                target=self.initialize__run_bot_in_thread, 
                 daemon=True
             )
             self.discord_thread.start()
@@ -451,7 +451,7 @@ class DiscordBot(BaseChannel):
                     self._set_status(ChannelStatus.READY)
                     self._reconnect_attempts = 0  # Reset reconnect attempts on successful connection
                     self._starting = False  # Reset starting flag
-                    self._update_connection_status(DiscordConnectionStatus.CONNECTED)
+                    self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
                     logger.info("Discord bot initialized successfully")
                     return True
                 
@@ -467,7 +467,7 @@ class DiscordBot(BaseChannel):
             # If we get here, the bot didn't become ready in time
             error_msg = f"Discord bot failed to become ready within {max_wait} seconds"
             self._set_status(ChannelStatus.ERROR, error_msg)
-            self._update_connection_status(DiscordConnectionStatus.GATEWAY_ERROR, {
+            self._shared__update_connection_status(DiscordConnectionStatus.GATEWAY_ERROR, {
                 'error': error_msg,
                 'timeout_seconds': max_wait,
                 'timestamp': time.time()
@@ -478,7 +478,7 @@ class DiscordBot(BaseChannel):
         except Exception as e:
             logger.error(f"Error during Discord bot initialization: {e}")
             self._set_status(ChannelStatus.ERROR, f"Initialization error: {e}")
-            self._update_connection_status(DiscordConnectionStatus.UNKNOWN_ERROR, {
+            self._shared__update_connection_status(DiscordConnectionStatus.UNKNOWN_ERROR, {
                 'error': str(e),
                 'error_type': type(e).__name__,
                 'timestamp': time.time()
@@ -489,23 +489,23 @@ class DiscordBot(BaseChannel):
             self._starting = False
 
     @handle_errors("running Discord bot in thread")
-    def _run_bot_in_thread(self):
+    def initialize__run_bot_in_thread(self):
         """Run Discord bot in completely isolated thread with its own event loop"""
         # Create completely new event loop for this thread
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
         
         # Start the bot and process commands
-        self._loop.run_until_complete(self._bot_main_loop())
+        self._loop.run_until_complete(self.initialize__bot_main_loop())
 
     @handle_errors("running Discord bot main loop")
-    async def _bot_main_loop(self):
+    async def initialize__bot_main_loop(self):
         """Main bot loop that handles both Discord and command queue"""
         # Start the Discord bot
         bot_task = asyncio.create_task(self.bot.start(DISCORD_BOT_TOKEN))
         
         # Process command queue concurrently with bot
-        command_task = asyncio.create_task(self._process_command_queue())
+        command_task = asyncio.create_task(self.initialize__process_command_queue())
         
         try:
             # Wait for either the bot to finish or a stop command
@@ -540,7 +540,7 @@ class DiscordBot(BaseChannel):
                 logger.debug(f"Error closing HTTP session in main loop (may already be closed): {e}")
 
     @handle_errors("processing Discord command queue")
-    async def _process_command_queue(self):
+    async def initialize__process_command_queue(self):
         """Process command queue without blocking Discord bot heartbeat"""
         while True:
             try:
@@ -577,7 +577,7 @@ class DiscordBot(BaseChannel):
                 await asyncio.sleep(0.1)
 
     @handle_errors("registering Discord events")
-    def _register_events(self):
+    def initialize__register_events(self):
         """Register Discord event handlers"""
         if self._events_registered or not self.bot:
             return
@@ -590,7 +590,7 @@ class DiscordBot(BaseChannel):
             # Reset reconnect attempts on successful connection
             self._reconnect_attempts = 0
             self._set_status(ChannelStatus.READY)
-            self._update_connection_status(DiscordConnectionStatus.CONNECTED)
+            self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
             logger.info("Discord bot is ready and connected")
 
             # Sync application (slash) commands
@@ -619,7 +619,7 @@ class DiscordBot(BaseChannel):
             if current_status == ChannelStatus.READY:
                 # Only change to ERROR if we were previously ready
                 self._set_status(ChannelStatus.ERROR, "Disconnected")
-            self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
+            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             
             # Let Discord.py handle reconnection, but log our status
             logger.info("Discord.py will handle automatic reconnection")
@@ -642,11 +642,11 @@ class DiscordBot(BaseChannel):
                 if not self._check_dns_resolution():
                     logger.error("DNS resolution failed during error recovery")
                     discord_logger.error("DNS resolution failed during error recovery")
-                    self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
+                    self._shared__update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
                 if not self._check_network_connectivity():
                     logger.error("Network connectivity failed during error recovery")
                     discord_logger.error("Network connectivity failed during error recovery")
-                    self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
+                    self._shared__update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
             
             # Let discord.py handle reconnection for most errors
 
@@ -702,7 +702,7 @@ class DiscordBot(BaseChannel):
         self._events_registered = True
 
     @handle_errors("registering Discord commands")
-    def _register_commands(self):
+    def initialize__register_commands(self):
         """Register Discord commands"""
         if self._commands_registered or not self.bot:
             return
@@ -817,7 +817,7 @@ class DiscordBot(BaseChannel):
         
         # Properly close the bot and event loop with enhanced cleanup
         if self.bot:
-            async with self._session_cleanup_context() as sessions_to_cleanup:
+            async with self.shutdown__session_cleanup_context() as sessions_to_cleanup:
                 try:
                     # Close the bot first
                     if not self.bot.is_closed():
@@ -1032,17 +1032,17 @@ class DiscordBot(BaseChannel):
         # Check basic bot state
         if not self.bot:
             logger.warning("Discord bot not initialized")
-            self._update_connection_status(DiscordConnectionStatus.UNINITIALIZED)
+            self._shared__update_connection_status(DiscordConnectionStatus.UNINITIALIZED)
             return False
         
         if self.bot.is_closed():
             logger.warning("Discord bot is closed")
-            self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
+            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             return False
         
         if not self.bot.is_ready():
             logger.warning("Discord bot is not ready")
-            self._update_connection_status(DiscordConnectionStatus.DISCONNECTED)
+            self._shared__update_connection_status(DiscordConnectionStatus.DISCONNECTED)
             return False
         
         # Enhanced network connectivity checks
@@ -1051,12 +1051,12 @@ class DiscordBot(BaseChannel):
         
         if not dns_ok:
             logger.warning("DNS resolution failed during health check")
-            self._update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
+            self._shared__update_connection_status(DiscordConnectionStatus.DNS_FAILURE)
             return False
         
         if not network_ok:
             logger.warning("Network connectivity failed during health check")
-            self._update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
+            self._shared__update_connection_status(DiscordConnectionStatus.NETWORK_FAILURE)
             return False
         
         # Check Discord-specific metrics
@@ -1070,7 +1070,7 @@ class DiscordBot(BaseChannel):
             logger.warning(f"Could not check Discord latency: {e}")
         
         # Update status to connected if all checks pass
-        self._update_connection_status(DiscordConnectionStatus.CONNECTED)
+        self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
         logger.debug("Discord health check passed")
         return True
 

@@ -36,14 +36,14 @@ def is_valid_phone(phone):
     return cleaned.isdigit() and len(cleaned) >= 10
 
 @handle_errors("validating time format", default_return=False)
-def validate_time_format(time_str: str) -> bool:
+def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
     if not time_str:
         return False
     pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
     return bool(re.match(pattern, time_str))
 
 @handle_errors("converting to title case", default_return="")
-def title_case(text: str) -> str:
+def _shared__title_case(text: str) -> str:
     """Convert text to title case while keeping certain small words lowercase."""
     if not text:
         return ""
@@ -215,14 +215,14 @@ def validate_schedule_periods(periods: Dict[str, Dict[str, Any]], category: str 
             errors.append(f"Period '{period_name}' must have both start_time and end_time")
             continue
             
-        if not validate_time_format(start_time):
+        if not validate_schedule_periods__validate_time_format(start_time):
             errors.append(f"Period '{period_name}' has invalid start_time format: {start_time}")
             
-        if not validate_time_format(end_time):
+        if not validate_schedule_periods__validate_time_format(end_time):
             errors.append(f"Period '{period_name}' has invalid end_time format: {end_time}")
             
         # Validate time ordering
-        if start_time and end_time and validate_time_format(start_time) and validate_time_format(end_time):
+        if start_time and end_time and validate_schedule_periods__validate_time_format(start_time) and validate_schedule_periods__validate_time_format(end_time):
             try:
                 from datetime import datetime as _dt
                 st = _dt.strptime(start_time, "%H:%M")

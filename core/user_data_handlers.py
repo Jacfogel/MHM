@@ -175,7 +175,7 @@ def get_user_data(
 
 @handle_errors("saving user data", default_return={})
 
-def _validate_input_parameters(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
+def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
     """Validate input parameters and initialize result structure."""
     if not user_id:
         logger.error("save_user_data called with None user_id")
@@ -197,7 +197,7 @@ def _validate_input_parameters(user_id: str, data_updates: Dict[str, Dict[str, A
     return True, result, invalid_types
 
 
-def _create_backup_if_needed(user_id: str, valid_types: List[str], create_backup: bool) -> None:
+def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_backup: bool) -> None:
     """Create backup if needed for major data updates."""
     if create_backup and len(valid_types) > 1:
         try:
@@ -208,7 +208,7 @@ def _create_backup_if_needed(user_id: str, valid_types: List[str], create_backup
             logger.warning(f"Failed to create backup before data update: {e}")
 
 
-def _validate_data_for_user(user_id: str, data_updates: Dict[str, Dict[str, Any]], valid_types: List[str], 
+def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[str, Any]], valid_types: List[str], 
                            validate_data: bool, is_new_user: bool) -> tuple[List[str], Dict[str, bool]]:
     """Validate data for new and existing users."""
     result: Dict[str, bool] = {dt: False for dt in data_updates}
@@ -239,7 +239,7 @@ def _validate_data_for_user(user_id: str, data_updates: Dict[str, Dict[str, Any]
     return invalid_types, result
 
 
-def _handle_legacy_account_compatibility(updated: Dict[str, Any], updates: Dict[str, Any]) -> None:
+def _save_user_data__legacy_account(updated: Dict[str, Any], updates: Dict[str, Any]) -> None:
     """Handle legacy account field compatibility."""
     # LEGACY COMPATIBILITY: Preserve legacy account fields
     # TODO: Remove after callers no longer write 'channel' or 'enabled_features' into account.json
@@ -268,7 +268,7 @@ def _handle_legacy_account_compatibility(updated: Dict[str, Any], updates: Dict[
             pass
 
 
-def _handle_legacy_preferences_compatibility(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
+def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
     """Handle legacy preferences compatibility and cleanup."""
     # LEGACY COMPATIBILITY: Detect nested 'enabled' flags in preferences and warn.
     # TODO: Remove after all callers stop writing nested enabled flags
@@ -333,7 +333,7 @@ def _handle_legacy_preferences_compatibility(updated: Dict[str, Any], updates: D
         pass
 
 
-def _normalize_data_with_pydantic(dt: str, updated: Dict[str, Any]) -> None:
+def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> None:
     """Apply Pydantic normalization to data."""
     try:
         if dt == "account":
@@ -355,7 +355,7 @@ def _normalize_data_with_pydantic(dt: str, updated: Dict[str, Any]) -> None:
         pass
 
 
-def _save_single_data_type(user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool) -> bool:
+def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool) -> bool:
     """Save a single data type for a user."""
     try:
         # Check if user exists when auto_create=False
@@ -372,12 +372,12 @@ def _save_single_data_type(user_id: str, dt: str, updates: Dict[str, Any], auto_
         
         # Handle legacy compatibility
         if dt == "account":
-            _handle_legacy_account_compatibility(updated, updates)
+            _save_user_data__legacy_account(updated, updates)
         elif dt == "preferences":
-            _handle_legacy_preferences_compatibility(updated, updates, user_id)
+            _save_user_data__legacy_preferences(updated, updates, user_id)
         
         # Apply Pydantic normalization
-        _normalize_data_with_pydantic(dt, updated)
+        _save_user_data__normalize_data(dt, updated)
         
         logger.debug(f"Save {dt}: current={current}, updates={updates}, merged={updated}")
         
@@ -397,7 +397,7 @@ def _save_single_data_type(user_id: str, dt: str, updates: Dict[str, Any], auto_
         return False
 
 
-def _update_index_and_cache(user_id: str, result: Dict[str, bool], update_index: bool) -> None:
+def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_index: bool) -> None:
     """Update user index and clear cache if needed."""
     # Update index if at least one type succeeded
     if update_index and any(result.values()):
@@ -427,7 +427,7 @@ def save_user_data(
 ) -> Dict[str, bool]:
     """Migrated implementation of save_user_data."""
     # Validate input parameters and initialize result structure
-    is_valid, result, invalid_types = _validate_input_parameters(user_id, data_updates)
+    is_valid, result, invalid_types = _save_user_data__validate_input(user_id, data_updates)
     if not is_valid:
         return result
     
@@ -435,7 +435,7 @@ def save_user_data(
     valid_types_to_process = [dt for dt in data_updates if dt not in invalid_types]
     
     # Create backup if needed
-    _create_backup_if_needed(user_id, valid_types_to_process, create_backup)
+    _save_user_data__create_backup(user_id, valid_types_to_process, create_backup)
     
     # Check if user is new
     from core.config import get_user_data_dir
@@ -443,7 +443,7 @@ def save_user_data(
     logger.debug(f"save_user_data: user_id={user_id}, is_new_user={is_new_user}, valid_types={valid_types_to_process}")
     
     # Validate data
-    invalid_types_from_validation, validation_result = _validate_data_for_user(
+    invalid_types_from_validation, validation_result = _save_user_data__validate_data(
         user_id, data_updates, valid_types_to_process, validate_data, is_new_user
     )
     
@@ -457,11 +457,11 @@ def save_user_data(
     # Save each valid data type
     for dt in valid_types_to_process:
         updates = data_updates[dt]
-        success = _save_single_data_type(user_id, dt, updates, auto_create)
+        success = _save_user_data__save_single_type(user_id, dt, updates, auto_create)
         result[dt] = success
     
     # Update index and cache
-    _update_index_and_cache(user_id, result, update_index)
+    _save_user_data__update_index(user_id, result, update_index)
     
     return result
 

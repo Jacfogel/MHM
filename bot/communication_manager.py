@@ -86,12 +86,12 @@ class CommunicationManager:
         self._restart_cooldown = 300  # 5 minutes between restart attempts
         
         # Set up event loop for async operations
-        self._setup_event_loop()
+        self.__init____setup_event_loop()
         
         # Mark as initialized
         self._initialized = True
             
-    def _setup_event_loop(self):
+    def __init____setup_event_loop(self):
         """Set up a dedicated event loop for async operations"""
         try:
             # Try to get existing loop - use get_running_loop() to avoid deprecation warning
@@ -137,7 +137,7 @@ class CommunicationManager:
             self._event_loop = self._main_loop
             asyncio.set_event_loop(self._main_loop)
     
-    def _run_async_sync(self, coro):
+    def send_message_sync__run_async_sync(self, coro):
         """Run async function synchronously using our managed loop"""
         if self._loop_thread:
             # Submit to running loop
@@ -152,7 +152,7 @@ class CommunicationManager:
         self.scheduler_manager = scheduler_manager
         logger.debug("Scheduler manager set in CommunicationManager.")
 
-    def _queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
+    def send_message_sync__queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
         """Queue a failed message for retry"""
         queued_message = QueuedMessage(
             user_id=user_id,
@@ -165,24 +165,24 @@ class CommunicationManager:
         self._failed_message_queue.put(queued_message)
         logger.info(f"Queued failed message for user {user_id}, category {category} for retry")
 
-    def _start_retry_thread(self):
+    def start_all__start_retry_thread(self):
         """Start the retry thread for failed messages"""
         if self._retry_thread and self._retry_thread.is_alive():
             return
         
         self._retry_running = True
-        self._retry_thread = threading.Thread(target=self._retry_loop, daemon=True)
+        self._retry_thread = threading.Thread(target=self.start_all__retry_loop, daemon=True)
         self._retry_thread.start()
         logger.info("Started message retry thread")
 
-    def _stop_retry_thread(self):
+    def stop_all__stop_retry_thread(self):
         """Stop the retry thread"""
         if self._retry_thread and self._retry_thread.is_alive():
             self._retry_running = False
             self._retry_thread.join(timeout=5)
             logger.debug("Retry thread stopped")
 
-    def _start_restart_monitor(self):
+    def start_all__start_restart_monitor(self):
         """Start the automatic restart monitor thread"""
         if self._restart_monitor_thread and self._restart_monitor_thread.is_alive():
             logger.debug("Restart monitor already running")
@@ -190,27 +190,27 @@ class CommunicationManager:
         
         self._restart_monitor_running = True
         self._restart_monitor_thread = threading.Thread(
-            target=self._restart_monitor_loop,
+            target=self.start_all__restart_monitor_loop,
             daemon=True,
             name="RestartMonitor"
         )
         self._restart_monitor_thread.start()
         logger.info("Automatic restart monitor started")
 
-    def _stop_restart_monitor(self):
+    def stop_all__stop_restart_monitor(self):
         """Stop the automatic restart monitor thread"""
         if self._restart_monitor_thread and self._restart_monitor_thread.is_alive():
             self._restart_monitor_running = False
             self._restart_monitor_thread.join(timeout=5)
             logger.debug("Restart monitor stopped")
 
-    def _restart_monitor_loop(self):
+    def start_all__restart_monitor_loop(self):
         """Monitor channels for stuck states and restart them automatically"""
         logger.info("Restart monitor loop started")
         
         while self._restart_monitor_running:
             try:
-                self._check_and_restart_stuck_channels()
+                self.start_all__check_and_restart_stuck_channels()
                 time.sleep(60)  # Check every minute
             except Exception as e:
                 logger.error(f"Error in restart monitor loop: {e}")
@@ -218,7 +218,7 @@ class CommunicationManager:
         
         logger.info("Restart monitor loop stopped")
 
-    def _check_and_restart_stuck_channels(self):
+    def start_all__check_and_restart_stuck_channels(self):
         """Check for stuck channels and restart them if needed"""
         current_time = time.time()
         
@@ -240,7 +240,7 @@ class CommunicationManager:
                         last_restart = self._last_restart_attempts.get(channel_name, 0)
                         if current_time - last_restart > self._restart_cooldown:
                             logger.warning(f"Channel {channel_name} stuck in INITIALIZING state - attempting restart")
-                            self._attempt_channel_restart(channel_name)
+                            self.start_all__attempt_channel_restart(channel_name)
                             self._last_restart_attempts[channel_name] = current_time
                     
                     # Check for other stuck states
@@ -249,13 +249,13 @@ class CommunicationManager:
                         last_restart = self._last_restart_attempts.get(channel_name, 0)
                         if current_time - last_restart > self._restart_cooldown:
                             logger.warning(f"Channel {channel_name} in ERROR state - attempting restart")
-                            self._attempt_channel_restart(channel_name)
+                            self.start_all__attempt_channel_restart(channel_name)
                             self._last_restart_attempts[channel_name] = current_time
                             
             except Exception as e:
                 logger.error(f"Error checking channel {channel_name} status: {e}")
 
-    def _attempt_channel_restart(self, channel_name: str):
+    def start_all__attempt_channel_restart(self, channel_name: str):
         """Attempt to restart a specific channel"""
         try:
             logger.info(f"Attempting to restart channel: {channel_name}")
@@ -328,18 +328,18 @@ class CommunicationManager:
             # Increment failure count
             self._channel_failure_counts[channel_name] = self._channel_failure_counts.get(channel_name, 0) + 1
 
-    def _retry_loop(self):
+    def start_all__retry_loop(self):
         """Main retry loop for failed messages"""
         while self._retry_running:
             try:
                 # Check for messages to retry
-                self._process_retry_queue()
+                self.start_all__process_retry_queue()
                 time.sleep(60)  # Check every minute
             except Exception as e:
                 logger.error(f"Error in retry loop: {e}")
                 time.sleep(60)
 
-    def _process_retry_queue(self):
+    def start_all__process_retry_queue(self):
         """Process the retry queue and attempt to send failed messages.
         Retries immediately once the channel reports ready; does not burn retries while down.
         """
@@ -405,9 +405,9 @@ class CommunicationManager:
             asyncio.set_event_loop(loop)
         
         # Run the async initialization
-        return loop.run_until_complete(self._initialize_channels_async())
+        return loop.run_until_complete(self.initialize_channels_from_config__initialize_channels_async())
 
-    async def _initialize_channels_async(self):
+    async def initialize_channels_from_config__initialize_channels_async(self):
         """Async method to initialize all configured channels"""
         logger.debug("Starting async channel initialization.")
         
@@ -522,10 +522,10 @@ class CommunicationManager:
                 self.channel_configs = self._get_default_channel_configs()
                 logger.debug("Loaded default channel configurations for startup")
             # Start the retry thread for failed messages
-            self._start_retry_thread()
+            self.start_all__start_retry_thread()
             
             # Start the restart monitor
-            self._start_restart_monitor()
+            self.start_all__start_restart_monitor()
             
             # Try async startup first
             try:
@@ -676,7 +676,7 @@ class CommunicationManager:
                 logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()}) - cannot send messages")
                 # Queue for retry after reconnection
                 try:
-                    self._queue_failed_message(
+                    self.send_message_sync__queue_failed_message(
                         kwargs.get('user_id', ''),
                         kwargs.get('category', 'unknown'),
                         message,
@@ -690,7 +690,7 @@ class CommunicationManager:
             logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()})")
             # Queue for retry after reconnection
             try:
-                self._queue_failed_message(
+                self.send_message_sync__queue_failed_message(
                     kwargs.get('user_id', ''),
                     kwargs.get('category', 'unknown'),
                     message,
@@ -771,7 +771,7 @@ class CommunicationManager:
                 not_ready = True
             if not_ready:
                 logger.error(f"Channel {channel_name} not ready - queuing message for retry")
-                self._queue_failed_message(
+                self.send_message_sync__queue_failed_message(
                     kwargs.get('user_id', ''),
                     kwargs.get('category', 'unknown'),
                     message,
@@ -807,7 +807,7 @@ class CommunicationManager:
                         
             # Fallback to async send
             try:
-                return self._run_async_sync(
+                return self.send_message_sync__run_async_sync(
                     self.send_message(channel_name, recipient, message, **kwargs)
                 )
             except Exception as e:
@@ -818,7 +818,7 @@ class CommunicationManager:
             logger.error(f"Error in simplified send_message_sync: {e}")
             # Queue for retry if this is a scheduled message
             if 'user_id' in kwargs and 'category' in kwargs:
-                self._queue_failed_message(
+                self.send_message_sync__queue_failed_message(
                     kwargs['user_id'],
                     kwargs['category'],
                     message,
@@ -913,10 +913,10 @@ class CommunicationManager:
         
         try:
             # Stop the retry thread first
-            self._stop_retry_thread()
+            self.stop_all__stop_retry_thread()
             
             # Stop the restart monitor
-            self._stop_restart_monitor()
+            self.stop_all__stop_restart_monitor()
             
             # Try async shutdown first
             try:

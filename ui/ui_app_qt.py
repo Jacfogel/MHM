@@ -36,7 +36,7 @@ from core.error_handling import (
 from user.user_context import UserContext
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
-from core.user_data_validation import title_case
+from core.user_data_validation import _shared__title_case
 import core.config as cfg
 
 # Import generated UI for main window
@@ -471,7 +471,7 @@ class MHMManagerUI(QMainWindow):
                     if categories:
                         # Apply title_case to category names for display
                         # Replace underscores with spaces before applying title_case
-                        formatted_categories = [title_case(cat.replace('_', ' ')) for cat in categories]
+                        formatted_categories = [_shared__title_case(cat.replace('_', ' ')) for cat in categories]
                         feature_summary.append(f"Messages: {', '.join(formatted_categories)}")
                 if 'checkins' in enabled_features:
                     feature_summary.append("Check-ins")
@@ -578,7 +578,7 @@ class MHMManagerUI(QMainWindow):
             for category in self.current_user_categories:
                 # Store the original category name as data, display the formatted name
                 # Replace underscores with spaces before applying title_case
-                formatted_category = title_case(category.replace('_', ' '))
+                formatted_category = _shared__title_case(category.replace('_', ' '))
                 self.ui.comboBox_user_categories.addItem(formatted_category, category)
                 
         except Exception as e:
@@ -814,7 +814,7 @@ class MHMManagerUI(QMainWindow):
         
         for category in categories:
             # Replace underscores with spaces before applying title_case
-            formatted_category = title_case(category.replace('_', ' '))
+            formatted_category = _shared__title_case(category.replace('_', ' '))
             button = QPushButton(formatted_category)
             button.clicked.connect(lambda checked, c=category: self.open_message_editor(category_dialog, c))
             layout.addWidget(button)

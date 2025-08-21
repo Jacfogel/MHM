@@ -117,7 +117,7 @@ class TaskManagementHandler(InteractionHandler):
         
         # Convert relative dates to proper dates
         if due_date:
-            due_date = self._parse_relative_date(due_date)
+            due_date = self._handle_create_task__parse_relative_date(due_date)
         
         # Validate priority
         valid_priorities = ['low', 'medium', 'high', 'critical']
@@ -155,7 +155,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to create task. Please try again.", True)
     
-    def _parse_relative_date(self, date_str: str) -> str:
+    def _handle_create_task__parse_relative_date(self, date_str: str) -> str:
         """Convert relative date strings to proper dates"""
         from datetime import datetime, timedelta
         
@@ -194,25 +194,25 @@ class TaskManagementHandler(InteractionHandler):
         tag_filter = entities.get('tag')
         
         # Apply filters and get filtered tasks
-        filtered_tasks = self._apply_task_filters(user_id, tasks, filter_type, priority_filter, tag_filter)
+        filtered_tasks = self._handle_list_tasks__apply_filters(user_id, tasks, filter_type, priority_filter, tag_filter)
         if not filtered_tasks:
-            return self._get_no_tasks_response(filter_type, priority_filter, tag_filter)
+            return self._handle_list_tasks__no_tasks_response(filter_type, priority_filter, tag_filter)
         
         # Sort tasks by priority and due date
-        sorted_tasks = self._sort_tasks_by_priority_and_date(filtered_tasks)
+        sorted_tasks = self._handle_list_tasks__sort_tasks(filtered_tasks)
         
         # Format task list with enhanced details
-        task_list = self._format_task_list(sorted_tasks)
+        task_list = self._handle_list_tasks__format_list(sorted_tasks)
         
         # Build response with filter info
-        filter_info = self._build_filter_info(filter_type, priority_filter, tag_filter)
-        response = self._build_task_list_response(task_list, filter_info, len(sorted_tasks))
+        filter_info = self._handle_list_tasks__build_filter_info(filter_type, priority_filter, tag_filter)
+        response = self._handle_list_tasks__build_response(task_list, filter_info, len(sorted_tasks))
         
         # Generate contextual suggestions
-        suggestions = self._generate_task_suggestions(sorted_tasks, filter_info)
+        suggestions = self._handle_list_tasks__generate_suggestions(sorted_tasks, filter_info)
         
         # Create rich data for Discord embeds
-        rich_data = self._create_task_rich_data(filter_info, sorted_tasks)
+        rich_data = self._handle_list_tasks__create_rich_data(filter_info, sorted_tasks)
         
         return InteractionResponse(
             response, 
@@ -221,7 +221,7 @@ class TaskManagementHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None
         )
 
-    def _apply_task_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
+    def _handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
         """Apply filters to tasks and return filtered list."""
         filtered_tasks = tasks.copy()
         
@@ -245,7 +245,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return filtered_tasks
 
-    def _get_no_tasks_response(self, filter_type, priority_filter, tag_filter):
+    def _handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter):
         """Get appropriate response when no tasks match filters."""
         if filter_type == 'due_soon':
             return InteractionResponse("No tasks due in the next 7 days! 🎉", True)
@@ -260,7 +260,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("You have no active tasks. Great job staying on top of things! 🎉", True)
 
-    def _sort_tasks_by_priority_and_date(self, tasks):
+    def _handle_list_tasks__sort_tasks(self, tasks):
         """Sort tasks by priority and due date."""
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
         return sorted(tasks, key=lambda x: (
@@ -268,14 +268,14 @@ class TaskManagementHandler(InteractionHandler):
             x.get('due_date') or '9999-12-31'  # Handle None due_date properly
         ))
 
-    def _format_task_list(self, tasks):
+    def _handle_list_tasks__format_list(self, tasks):
         """Format task list with enhanced details."""
         task_list = []
         for i, task in enumerate(tasks[:10], 1):  # Limit to 10 tasks
             priority_emoji = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(task.get('priority', 'medium'), '🟡')
             
             # Format due date with urgency indicator
-            due_info = self._format_due_date_info(task.get('due_date'))
+            due_info = self._handle_list_tasks__format_due_date(task.get('due_date'))
             
             # Add tags if present
             tags = task.get('tags', [])
@@ -289,7 +289,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return task_list
 
-    def _format_due_date_info(self, due_date):
+    def _handle_list_tasks__format_due_date(self, due_date):
         """Format due date with urgency indicator."""
         if not due_date:
             return ""
@@ -303,7 +303,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return f" (due: {due_date})"
 
-    def _build_filter_info(self, filter_type, priority_filter, tag_filter):
+    def _handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter):
         """Build filter information list."""
         filter_info = []
         if filter_type:
@@ -314,7 +314,7 @@ class TaskManagementHandler(InteractionHandler):
             filter_info.append(f"tag: {tag_filter}")
         return filter_info
 
-    def _build_task_list_response(self, task_list, filter_info, total_tasks):
+    def _handle_list_tasks__build_response(self, task_list, filter_info, total_tasks):
         """Build the main task list response."""
         response = "**Your Active Tasks"
         if filter_info:
@@ -326,14 +326,14 @@ class TaskManagementHandler(InteractionHandler):
         
         return response
 
-    def _generate_task_suggestions(self, tasks, filter_info):
+    def _handle_list_tasks__generate_suggestions(self, tasks, filter_info):
         """Generate contextual suggestions based on current state."""
         suggestions = []
         
         # Only add suggestions if we have tasks and no filters are applied
         if not filter_info and len(tasks) > 0:
             # Add one contextual "show" suggestion if available
-            contextual_suggestion = self._get_contextual_show_suggestion(tasks)
+            contextual_suggestion = self._handle_list_tasks__get_suggestion(tasks)
             if contextual_suggestion:
                 suggestions.append(contextual_suggestion)
             
@@ -353,7 +353,7 @@ class TaskManagementHandler(InteractionHandler):
         # Limit to exactly 3 suggestions
         return suggestions[:3]
 
-    def _get_contextual_show_suggestion(self, tasks):
+    def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
         from datetime import datetime, timedelta
         
@@ -374,7 +374,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
 
-    def _create_task_rich_data(self, filter_info, tasks):
+    def _handle_list_tasks__create_rich_data(self, filter_info, tasks):
         """Create rich data for Discord embeds."""
         rich_data = {
             'type': 'task',
@@ -424,7 +424,7 @@ class TaskManagementHandler(InteractionHandler):
         
         # Try to find the task
         tasks = load_active_tasks(user_id)
-        task = self._find_task_by_identifier(tasks, task_identifier)
+        task = self._handle_complete_task__find_task_by_identifier(tasks, task_identifier)
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -446,7 +446,7 @@ class TaskManagementHandler(InteractionHandler):
         
         # Try to find the task
         tasks = load_active_tasks(user_id)
-        task = self._find_task_by_identifier(tasks, task_identifier)
+        task = self._handle_delete_task__find_task_by_identifier(tasks, task_identifier)
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -468,7 +468,7 @@ class TaskManagementHandler(InteractionHandler):
         
         # Try to find the task
         tasks = load_active_tasks(user_id)
-        task = self._find_task_by_identifier(tasks, task_identifier)
+        task = self._handle_update_task__find_task_by_identifier(tasks, task_identifier)
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -567,7 +567,119 @@ class TaskManagementHandler(InteractionHandler):
             logger.error(f"Error showing task statistics for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
-    def _find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
+    def _handle_complete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
+        """Find a task by number, name, or task_id"""
+        # Try as task_id first (UUID)
+        for task in tasks:
+            if task.get('task_id') == identifier or task.get('id') == identifier:
+                return task
+        
+        # Try as number
+        try:
+            task_num = int(identifier)
+            if 1 <= task_num <= len(tasks):
+                return tasks[task_num - 1]
+        except ValueError:
+            pass
+        
+        # Try as name with improved matching
+        identifier_lower = identifier.lower().strip()
+        
+        # First try exact match
+        for task in tasks:
+            if identifier_lower == task['title'].lower():
+                return task
+        
+        # Then try contains match
+        for task in tasks:
+            if identifier_lower in task['title'].lower():
+                return task
+        
+        # Then try word-based matching for common task patterns
+        identifier_words = set(identifier_lower.split())
+        for task in tasks:
+            task_words = set(task['title'].lower().split())
+            # Check if any identifier words match task words
+            if identifier_words & task_words:  # Set intersection
+                return task
+        
+        # Finally try fuzzy matching for common variations
+        common_variations = {
+            'teeth': ['brush', 'brushing', 'tooth', 'dental'],
+            'hair': ['wash', 'washing', 'shampoo'],
+            'dishes': ['wash', 'washing', 'clean', 'cleaning'],
+            'laundry': ['wash', 'washing', 'clothes'],
+            'exercise': ['workout', 'gym', 'run', 'running', 'walk', 'walking'],
+            'medication': ['meds', 'medicine', 'pill', 'pills'],
+            'appointment': ['doctor', 'dentist', 'meeting', 'call'],
+        }
+        
+        for task in tasks:
+            task_lower = task['title'].lower()
+            for variation_key, variations in common_variations.items():
+                if identifier_lower in variations or identifier_lower == variation_key:
+                    if any(var in task_lower for var in variations + [variation_key]):
+                        return task
+        
+        return None
+    
+    def _handle_delete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
+        """Find a task by number, name, or task_id"""
+        # Try as task_id first (UUID)
+        for task in tasks:
+            if task.get('task_id') == identifier or task.get('id') == identifier:
+                return task
+        
+        # Try as number
+        try:
+            task_num = int(identifier)
+            if 1 <= task_num <= len(tasks):
+                return tasks[task_num - 1]
+        except ValueError:
+            pass
+        
+        # Try as name with improved matching
+        identifier_lower = identifier.lower().strip()
+        
+        # First try exact match
+        for task in tasks:
+            if identifier_lower == task['title'].lower():
+                return task
+        
+        # Then try contains match
+        for task in tasks:
+            if identifier_lower in task['title'].lower():
+                return task
+        
+        # Then try word-based matching for common task patterns
+        identifier_words = set(identifier_lower.split())
+        for task in tasks:
+            task_words = set(task['title'].lower().split())
+            # Check if any identifier words match task words
+            if identifier_words & task_words:  # Set intersection
+                return task
+        
+        # Finally try fuzzy matching for common variations
+        common_variations = {
+            'teeth': ['brush', 'brushing', 'tooth', 'dental'],
+            'hair': ['wash', 'washing', 'shampoo'],
+            'dishes': ['wash', 'washing', 'clean', 'cleaning'],
+            'laundry': ['wash', 'washing', 'clothes'],
+            'exercise': ['workout', 'gym', 'run', 'running', 'walk', 'walking'],
+            'medication': ['meds', 'medicine', 'pill', 'pills'],
+            'appointment': ['doctor', 'dentist', 'meeting', 'call'],
+        }
+        
+        for task in tasks:
+            task_lower = task['title'].lower()
+            for variation_key, variations in common_variations.items():
+                if identifier_lower in variations or identifier_lower == variation_key:
+                    if any(var in task_lower for var in variations + [variation_key]):
+                        return task
+        
+        return None
+    
+    def _handle_update_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
         # Try as task_id first (UUID)
         for task in tasks:
@@ -1644,8 +1756,8 @@ class ScheduleManagementHandler(InteractionHandler):
             from core.schedule_management import add_schedule_period, get_schedule_time_periods, set_schedule_periods
             
             # Parse and validate time formats
-            start_time = self._parse_time_format(start_time)
-            end_time = self._parse_time_format(end_time)
+            start_time = self._handle_add_schedule_period__parse_time_format(start_time)
+            end_time = self._handle_add_schedule_period__parse_time_format(end_time)
             
             # Parse days if provided
             if isinstance(days, str):
@@ -1690,7 +1802,39 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error adding schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble adding the schedule period: {str(e)}", True)
     
-    def _parse_time_format(self, time_str: str) -> str:
+    def _handle_add_schedule_period__parse_time_format(self, time_str: str) -> str:
+        """Parse various time formats and convert to standard format"""
+        if not time_str:
+            return time_str
+        
+        time_str = time_str.lower().strip()
+        
+        # Handle common time formats
+        if 'am' in time_str or 'pm' in time_str:
+            # Already in 12-hour format, just standardize
+            return time_str.upper()
+        elif ':' in time_str:
+            # Assume 24-hour format, convert to 12-hour
+            try:
+                from datetime import datetime
+                time_obj = datetime.strptime(time_str, '%H:%M')
+                return time_obj.strftime('%I:%M %p')
+            except ValueError:
+                return time_str
+        else:
+            # Try to parse as hour only
+            try:
+                hour = int(time_str)
+                if 0 <= hour <= 23:
+                    from datetime import datetime
+                    time_obj = datetime.strptime(f"{hour:02d}:00", '%H:%M')
+                    return time_obj.strftime('%I:%M %p')
+            except ValueError:
+                pass
+            
+            return time_str
+    
+    def _handle_edit_schedule_period__parse_time_format(self, time_str: str) -> str:
         """Parse various time formats and convert to standard format"""
         if not time_str:
             return time_str
@@ -1759,12 +1903,12 @@ class ScheduleManagementHandler(InteractionHandler):
             updates = []
             
             if new_start_time:
-                new_start_time = self._parse_time_format(new_start_time)
+                new_start_time = self._handle_edit_schedule_period__parse_time_format(new_start_time)
                 current_period['start_time'] = new_start_time
                 updates.append(f"start time to {new_start_time}")
             
             if new_end_time:
-                new_end_time = self._parse_time_format(new_end_time)
+                new_end_time = self._handle_edit_schedule_period__parse_time_format(new_end_time)
                 current_period['end_time'] = new_end_time
                 updates.append(f"end time to {new_end_time}")
             

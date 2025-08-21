@@ -22,7 +22,7 @@ widget_logger = logger
 
 # Import core functionality
 from core.schedule_management import (
-    time_24h_to_12h_display, time_12h_display_to_24h
+    get_period_data__time_24h_to_12h_display, get_period_data__time_12h_display_to_24h
 )
 from core.error_handling import handle_errors
 
@@ -151,7 +151,7 @@ class PeriodRowWidget(QWidget):
         
         # Set start time
         start_time = self.period_data.get('start_time', '18:00')
-        start_hour_12, start_min_val, start_is_pm = time_24h_to_12h_display(start_time)
+        start_hour_12, start_min_val, start_is_pm = get_period_data__time_24h_to_12h_display(start_time)
         self.ui.comboBox_start_time_hours.setCurrentText(f"{start_hour_12}")
         self.ui.comboBox_start_time_minutes.setCurrentText(f"{start_min_val:02d}")
         self.ui.radioButton_start_time_am.setChecked(not start_is_pm)
@@ -159,7 +159,7 @@ class PeriodRowWidget(QWidget):
         
         # Set end time
         end_time = self.period_data.get('end_time', '20:00')
-        end_hour_12, end_min_val, end_is_pm = time_24h_to_12h_display(end_time)
+        end_hour_12, end_min_val, end_is_pm = get_period_data__time_24h_to_12h_display(end_time)
         self.ui.comboBox_end_time_hours.setCurrentText(f"{end_hour_12}")
         self.ui.comboBox_end_time_minutes.setCurrentText(f"{end_min_val:02d}")
         self.ui.radioButton_end_time_am.setChecked(not end_is_pm)
@@ -252,13 +252,13 @@ class PeriodRowWidget(QWidget):
         start_hour = int(self.ui.comboBox_start_time_hours.currentText())
         start_min = int(self.ui.comboBox_start_time_minutes.currentText())
         start_is_pm = self.ui.radioButton_start_time_pm.isChecked()
-        start_time = time_12h_display_to_24h(start_hour, start_min, start_is_pm)
+        start_time = get_period_data__time_12h_display_to_24h(start_hour, start_min, start_is_pm)
         
         # Get end time
         end_hour = int(self.ui.comboBox_end_time_hours.currentText())
         end_min = int(self.ui.comboBox_end_time_minutes.currentText())
         end_is_pm = self.ui.radioButton_end_time_pm.isChecked()
-        end_time = time_12h_display_to_24h(end_hour, end_min, end_is_pm)
+        end_time = get_period_data__time_12h_display_to_24h(end_hour, end_min, end_is_pm)
         
         # Get active status
         active = self.ui.checkBox_active.isChecked()
@@ -334,13 +334,13 @@ class PeriodRowWidget(QWidget):
     
     def set_read_only(self, read_only: bool = True):
         """Set the widget to read-only mode."""
-        self._set_time_inputs_read_only(read_only)
-        self._set_checkbox_states(read_only)
-        self._set_delete_button_visibility(read_only)
-        self._apply_visual_styling(read_only)
-        self._force_style_updates()
+        self._set_read_only__time_inputs(read_only)
+        self._set_read_only__checkbox_states(read_only)
+        self._set_read_only__delete_button_visibility(read_only)
+        self._set_read_only__visual_styling(read_only)
+        self._set_read_only__force_style_updates()
     
-    def _set_time_inputs_read_only(self, read_only: bool):
+    def _set_read_only__time_inputs(self, read_only: bool):
         """Set time input widgets to read-only mode."""
         self.ui.lineEdit_time_period_name.setReadOnly(read_only)
         self.ui.comboBox_start_time_hours.setEnabled(not read_only)
@@ -352,14 +352,14 @@ class PeriodRowWidget(QWidget):
         self.ui.radioButton_end_time_am.setEnabled(not read_only)
         self.ui.radioButton_end_time_pm.setEnabled(not read_only)
     
-    def _set_checkbox_states(self, read_only: bool):
+    def _set_read_only__checkbox_states(self, read_only: bool):
         """Set checkbox states based on read-only mode and period type."""
         if read_only and self.get_period_name().upper() == "ALL":
-            self._set_all_period_read_only()
+            self._set_read_only__all_period_read_only()
         else:
-            self._set_normal_checkbox_states(read_only)
+            self._set_read_only__normal_checkbox_states(read_only)
     
-    def _set_all_period_read_only(self):
+    def _set_read_only__all_period_read_only(self):
         """Set ALL period to read-only with all days selected."""
         # Ensure ALL period is active and has all days selected
         self.ui.checkBox_active.setChecked(True)
@@ -373,7 +373,7 @@ class PeriodRowWidget(QWidget):
             checkbox.setChecked(True)
             checkbox.setEnabled(False)
     
-    def _set_normal_checkbox_states(self, read_only: bool):
+    def _set_read_only__normal_checkbox_states(self, read_only: bool):
         """Set normal checkbox states for non-ALL periods."""
         self.ui.checkBox_active.setEnabled(not read_only)
         self.ui.checkBox_select_all_days.setEnabled(not read_only)
@@ -390,18 +390,18 @@ class PeriodRowWidget(QWidget):
             self.ui.checkBox_saturday
         ]
     
-    def _set_delete_button_visibility(self, read_only: bool):
+    def _set_read_only__delete_button_visibility(self, read_only: bool):
         """Set delete button visibility based on read-only state."""
         self.ui.pushButton_delete.setVisible(not read_only)
     
-    def _apply_visual_styling(self, read_only: bool):
+    def _set_read_only__visual_styling(self, read_only: bool):
         """Apply visual styling for read-only state."""
         if read_only:
-            self._apply_read_only_styling()
+            self._set_read_only__apply_read_only_styling()
         else:
-            self._clear_read_only_styling()
+            self._set_read_only__clear_read_only_styling()
     
-    def _apply_read_only_styling(self):
+    def _set_read_only__apply_read_only_styling(self):
         """Apply read-only visual styling."""
         self.setStyleSheet("QWidget { background-color: #f0f0f0; }")
         self.ui.lineEdit_time_period_name.setStyleSheet("QLineEdit { background-color: #e0e0e0; color: #666666; }")
@@ -414,7 +414,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", True)
     
-    def _clear_read_only_styling(self):
+    def _set_read_only__clear_read_only_styling(self):
         """Clear read-only visual styling."""
         self.setStyleSheet("")
         self.ui.lineEdit_time_period_name.setStyleSheet("")
@@ -427,7 +427,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", False)
     
-    def _force_style_updates(self):
+    def _set_read_only__force_style_updates(self):
         """Force style updates for all checkboxes."""
         self.ui.checkBox_active.style().unpolish(self.ui.checkBox_active)
         self.ui.checkBox_active.style().polish(self.ui.checkBox_active)

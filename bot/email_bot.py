@@ -70,23 +70,23 @@ class EmailBot(BaseChannel):
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._test_smtp_connection)
+        await loop.run_in_executor(None, self.initialize__test_smtp_connection)
         
         # Test IMAP connection
-        await loop.run_in_executor(None, self._test_imap_connection)
+        await loop.run_in_executor(None, self.initialize__test_imap_connection)
         
         self._set_status(ChannelStatus.READY)
         logger.info("EmailBot initialized successfully.")
         return True
 
     @handle_errors("testing SMTP connection")
-    def _test_smtp_connection(self):
+    def initialize__test_smtp_connection(self):
         """Test SMTP connection synchronously"""
         with smtplib.SMTP_SSL(EMAIL_SMTP_SERVER, 465) as server:
             server.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
 
     @handle_errors("testing IMAP connection")
-    def _test_imap_connection(self):
+    def initialize__test_imap_connection(self):
         """Test IMAP connection synchronously"""
         with imaplib.IMAP4_SSL(EMAIL_IMAP_SERVER) as mail:
             mail.login(EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD)
@@ -111,12 +111,12 @@ class EmailBot(BaseChannel):
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._send_email_sync, recipient, message, kwargs)
+        await loop.run_in_executor(None, self.send_message__send_email_sync, recipient, message, kwargs)
         logger.info(f"Email sent to {recipient}")
         return True
 
     @handle_errors("sending email synchronously")
-    def _send_email_sync(self, recipient: str, message: str, kwargs: dict):
+    def send_message__send_email_sync(self, recipient: str, message: str, kwargs: dict):
         """Send email synchronously"""
         subject = kwargs.get('subject', 'Personal Assistant Message')
         
@@ -183,8 +183,8 @@ class EmailBot(BaseChannel):
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, self._test_smtp_connection)
-        await loop.run_in_executor(None, self._test_imap_connection)
+        await loop.run_in_executor(None, self.initialize__test_smtp_connection)
+        await loop.run_in_executor(None, self.initialize__test_imap_connection)
         return True
 
     # Legacy methods for backward compatibility

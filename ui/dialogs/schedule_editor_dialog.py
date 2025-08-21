@@ -32,7 +32,7 @@ from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
 from core.error_handling import handle_errors
-from core.user_data_validation import title_case, validate_schedule_periods
+from core.user_data_validation import _shared__title_case, validate_schedule_periods
 
 # Import our new period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget
@@ -95,7 +95,7 @@ class ScheduleEditorDialog(QDialog):
         self.ui.buttonBox_save_cancel.rejected.connect(self.cancel)
         
         # Update title
-        self.ui.label_EditSchedule.setText(f"Edit Schedule - {title_case(self.category)}")
+        self.ui.label_EditSchedule.setText(f"Edit Schedule - {_shared__title_case(self.category)}")
         
         # Update group box title
         self.ui.groupBox_time_periods.setTitle("Time Periods")

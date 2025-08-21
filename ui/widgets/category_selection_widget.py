@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QCheckBox
 from ui.generated.category_selection_widget_pyqt import Ui_Form_category_selection_widget
-from core.user_data_validation import title_case
+from core.user_data_validation import _shared__title_case
 
 CATEGORY_KEYS = [
     'fun_facts',
@@ -20,7 +20,7 @@ class CategorySelectionWidget(QWidget):
         for key in CATEGORY_KEYS:
             cb = getattr(self.ui, f'checkBox_{key}', None)
             if cb:
-                cb.setText(title_case(key.replace('_', ' ')))
+                cb.setText(_shared__title_case(key.replace('_', ' ')))
 
     def get_selected_categories(self):
         selected = []

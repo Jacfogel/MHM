@@ -248,39 +248,39 @@ def create_user_files(user_id, categories, user_preferences=None):
     user_prefs = user_preferences or {}
     
     # Determine which features are enabled
-    tasks_enabled, checkins_enabled = _determine_feature_enablement(user_prefs)
+    tasks_enabled, checkins_enabled = _create_user_files__determine_feature_enablement(user_prefs)
     
     # Create core user files
-    _create_account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
-    _create_preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
-    _create_context_file(user_id, user_prefs)
-    _create_schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)
+    _create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
+    _create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
+    _create_user_files__context_file(user_id, user_prefs)
+    _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)
     
     # Create log files
-    _create_log_files(user_id)
+    _create_user_files__log_files(user_id)
     
     # Create sent messages file
-    _create_sent_messages_file(user_id)
+    _create_user_files__sent_messages_file(user_id)
     
     # Create task files if enabled
     if tasks_enabled:
-        _create_task_files(user_id)
+        _create_user_files__task_files(user_id)
     
     # Create checkins file if enabled
     if checkins_enabled:
-        _create_checkins_file(user_id)
+        _create_user_files__checkins_file(user_id)
     
     # Create message files for categories
     if categories:
-        _create_message_files(user_id, categories)
+        _create_user_files__message_files(user_id, categories)
     
     # Auto-update message references and user index
-    _update_user_references(user_id)
+    _create_user_files__update_user_references(user_id)
                 
     logger.info(f"Successfully created all user files for user {user_id}")
 
 
-def _determine_feature_enablement(user_prefs):
+def _create_user_files__determine_feature_enablement(user_prefs):
     """
     Determine which features are enabled based on user preferences.
     
@@ -308,7 +308,7 @@ def _determine_feature_enablement(user_prefs):
     return tasks_enabled, checkins_enabled
 
 
-def _create_account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
+def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
     """Create account.json with actual user data."""
     account_file = get_user_file_path(user_id, 'account')
     if os.path.exists(account_file):
@@ -354,7 +354,7 @@ def _create_account_file(user_id, user_prefs, categories, tasks_enabled, checkin
     logger.debug(f"Created account file for user {user_id}")
 
 
-def _create_preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
+def _create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
     """Create preferences.json with actual user data."""
     preferences_file = get_user_file_path(user_id, 'preferences')
     if os.path.exists(preferences_file):
@@ -396,7 +396,7 @@ def _create_preferences_file(user_id, user_prefs, categories, tasks_enabled, che
     logger.debug(f"Created preferences file for user {user_id}")
 
 
-def _create_context_file(user_id, user_prefs):
+def _create_user_files__context_file(user_id, user_prefs):
     """Create user_context.json with actual personalization data."""
     context_file = get_user_file_path(user_id, 'context')
     if os.path.exists(context_file):
@@ -432,7 +432,7 @@ def _create_context_file(user_id, user_prefs):
     logger.debug(f"Created user_context file for user {user_id}")
 
 
-def _create_schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled):
+def _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled):
     """Create schedules file with appropriate structure."""
     schedules_file = get_user_file_path(user_id, 'schedules')
     if not os.path.exists(schedules_file):
@@ -489,7 +489,7 @@ def _create_schedules_file(user_id, categories, user_prefs, tasks_enabled, check
     logger.debug(f"Created schedules file for user {user_id}")
 
 
-def _create_log_files(user_id):
+def _create_user_files__log_files(user_id):
     """Initialize empty log files if they don't exist."""
     log_types = ["checkins", "chat_interactions"]
     for log_type in log_types:
@@ -499,7 +499,7 @@ def _create_log_files(user_id):
             logger.debug(f"Created {log_type} file for user {user_id}")
 
 
-def _create_sent_messages_file(user_id):
+def _create_user_files__sent_messages_file(user_id):
     """Create sent_messages.json in messages/ subdirectory."""
     from pathlib import Path
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
@@ -510,7 +510,7 @@ def _create_sent_messages_file(user_id):
         logger.debug(f"Created sent_messages file for user {user_id}")
 
 
-def _create_task_files(user_id):
+def _create_user_files__task_files(user_id):
     """Create task files if tasks are enabled."""
     try:
         # Get user directory path using the correct function
@@ -538,7 +538,7 @@ def _create_task_files(user_id):
         logger.error(f"Error creating task files for user {user_id}: {e}")
 
 
-def _create_checkins_file(user_id):
+def _create_user_files__checkins_file(user_id):
     """Create checkins.json only if checkins are enabled."""
     checkins_file = get_user_file_path(user_id, 'checkins')
     if not os.path.exists(checkins_file):
@@ -546,7 +546,7 @@ def _create_checkins_file(user_id):
         logger.debug(f"Created checkins file for user {user_id}")
 
 
-def _create_message_files(user_id, categories):
+def _create_user_files__message_files(user_id, categories):
     """Create message files for each enabled category directly."""
     try:
         # Create messages directory for user
@@ -571,7 +571,7 @@ def _create_message_files(user_id, categories):
         logger.error(f"Error creating message files for user {user_id}: {e}")
 
 
-def _update_user_references(user_id):
+def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:
         from core.user_data_manager import update_message_references, update_user_index

@@ -332,7 +332,7 @@ def clear_schedule_periods_cache(user_id=None, category=None):
         logger.debug(f"Cleared all schedule periods cache for user {user_id}")
 
 @handle_errors("validating and formatting time")
-def validate_and_format_time(time_str):
+def get_period_data__validate_and_format_time(time_str):
     """
     Validate and format a time string to HH:MM format.
     
@@ -373,7 +373,7 @@ def validate_and_format_time(time_str):
 
 
 @handle_errors("converting 24-hour time to 12-hour display format")
-def time_24h_to_12h_display(time_24h):
+def get_period_data__time_24h_to_12h_display(time_24h):
     """
     Convert 24-hour time string (HH:MM) to 12-hour display format.
     
@@ -404,7 +404,7 @@ def time_24h_to_12h_display(time_24h):
 
 
 @handle_errors("converting 12-hour display format to 24-hour time")
-def time_12h_display_to_24h(hour_12, minute, is_pm):
+def get_period_data__time_12h_display_to_24h(hour_12, minute, is_pm):
     """
     Convert 12-hour display format to 24-hour time string.
     

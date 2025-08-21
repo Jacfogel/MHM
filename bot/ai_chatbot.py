@@ -65,9 +65,9 @@ class SystemPromptLoader:
                                       "You are warm but not overbearing, intelligent but humble, and always context-aware. "
                                       "Keep responses helpful, encouraging, and under 150 words.")
         }
-        self._load_custom_prompt()
+        self.__init____load_custom_prompt()
     
-    def _load_custom_prompt(self):
+    def __init____load_custom_prompt(self):
         """Load the custom system prompt from file."""
         if not AI_USE_CUSTOM_PROMPT:
             logger.info("Custom system prompt disabled via configuration")
@@ -102,7 +102,7 @@ class SystemPromptLoader:
     
     def reload_prompt(self):
         """Reload the custom prompt from file (useful for development)."""
-        self._load_custom_prompt()
+        self.__init____load_custom_prompt()
         logger.info("System prompt reloaded")
 
 # Global system prompt loader instance
@@ -161,13 +161,13 @@ class ResponseCache:
         with self._lock:
             # Clean up if cache is full
             if len(self.cache) >= self.max_size:
-                self._cleanup_lru()
+                self.set__cleanup_lru()
             
             self.cache[key] = (response, current_time)
             self.access_times[key] = current_time
     
     @handle_errors("cleaning up LRU cache")
-    def _cleanup_lru(self):
+    def set__cleanup_lru(self):
         """Remove least recently used items."""
         if not self.access_times:
             return
@@ -205,12 +205,12 @@ class AIChatBotSingleton:
         self._generation_lock = threading.Lock()  # Prevent concurrent generations
         
         # Test LM Studio connection
-        self._test_lm_studio_connection()
+        self.__init____test_lm_studio_connection()
         
         self._initialized = True
 
     @handle_errors("testing LM Studio connection")
-    def _test_lm_studio_connection(self):
+    def __init____test_lm_studio_connection(self):
         """Test connection to LM Studio server."""
         # Test with a simple request to models endpoint
         response = requests.get(
@@ -705,7 +705,7 @@ Additional Instructions:
         
         # Test connection if not available
         if not self.lm_studio_available:
-            self._test_lm_studio_connection()
+            self.__init____test_lm_studio_connection()
         
         # Use fallback if LM Studio is not available
         if not self.lm_studio_available:

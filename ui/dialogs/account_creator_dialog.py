@@ -29,7 +29,7 @@ dialog_logger = logger
 # Import core functionality
 from user.user_context import UserContext
 from core.message_management import get_message_categories
-from core.user_data_validation import title_case, validate_schedule_periods
+from core.user_data_validation import _shared__title_case, validate_schedule_periods
 from core.user_management import create_new_user, get_user_id_by_internal_username
 from core.file_operations import create_user_files
 from core.error_handling import handle_errors
@@ -558,7 +558,7 @@ class AccountCreatorDialog(QDialog):
         logger.info("Validation successful.")
         return True, ""
     
-    def _collect_basic_user_info(self) -> tuple[str, str]:
+    def _validate_and_accept__collect_basic_user_info(self) -> tuple[str, str]:
         """Collect basic user information from UI fields."""
         username_edit = self.ui.lineEdit_username
         if username_edit:
@@ -571,7 +571,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Collected basic info - username: '{self.username}', preferred_name: '{self.preferred_name}'")
         return self.username, self.preferred_name
     
-    def _collect_feature_settings(self) -> tuple[bool, bool, bool]:
+    def _validate_and_accept__collect_feature_settings(self) -> tuple[bool, bool, bool]:
         """Collect feature enablement states from UI."""
         messages_enabled = self.ui.checkBox_enable_messages.isChecked()
         tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
@@ -579,7 +579,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
         return messages_enabled, tasks_enabled, checkins_enabled
     
-    def _collect_channel_data(self) -> tuple[str, dict, dict]:
+    def _validate_and_accept__collect_channel_data(self) -> tuple[str, dict, dict]:
         """Collect channel and contact information from widgets."""
         # Get selected timezone from channel widget
         timezone = self.channel_widget.get_timezone() if hasattr(self, 'channel_widget') else "America/Regina"
@@ -611,7 +611,7 @@ class AccountCreatorDialog(QDialog):
         
         return timezone, channel_data, contact_info
     
-    def _collect_widget_data(self) -> tuple[list, dict, dict]:
+    def _validate_and_accept__collect_widget_data(self) -> tuple[list, dict, dict]:
         """Collect data from all widgets."""
         logger.info("About to collect category widget data")
         categories = self.category_widget.get_selected_categories() if hasattr(self, 'category_widget') else []
@@ -625,7 +625,7 @@ class AccountCreatorDialog(QDialog):
         
         return categories, task_settings, checkin_settings
     
-    def _build_account_data(self, username: str, preferred_name: str, timezone: str, 
+    def _validate_and_accept__build_account_data(self, username: str, preferred_name: str, timezone: str, 
                            channel_data: dict, contact_info: dict, categories: list,
                            task_settings: dict, checkin_settings: dict,
                            messages_enabled: bool, tasks_enabled: bool, checkins_enabled: bool) -> dict:
@@ -650,7 +650,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Account data built: {account_data}")
         return account_data
     
-    def _show_error_dialog(self, title: str, message: str):
+    def _validate_and_accept__show_error_dialog(self, title: str, message: str):
         """Show an error dialog with the given title and message."""
         error_dialog = QMessageBox(self)
         error_dialog.setIcon(QMessageBox.Icon.Critical)
@@ -660,7 +660,7 @@ class AccountCreatorDialog(QDialog):
         error_dialog.setModal(True)
         error_dialog.exec()
     
-    def _show_success_dialog(self, username: str):
+    def _validate_and_accept__show_success_dialog(self, username: str):
         """Show a success dialog for account creation."""
         success_dialog = QMessageBox(self)
         success_dialog.setIcon(QMessageBox.Icon.Information)
@@ -675,52 +675,52 @@ class AccountCreatorDialog(QDialog):
         logger.info("validate_and_accept() called - starting account creation process")
         
         # Validate input first
-        if not self._validate_input_and_show_errors():
+        if not self._validate_and_accept__input_errors():
             return  # Return without closing the dialog
         
         # Collect all data and create account
         try:
-            account_data = self._collect_all_account_data()
-            success = self._create_account_and_setup(account_data)
+            account_data = self._validate_and_accept__collect_data()
+            success = self._validate_and_accept__create_account(account_data)
             
             if success:
-                self._handle_successful_creation(account_data['username'])
+                self._validate_and_accept__handle_success(account_data['username'])
             else:
-                self._show_error_dialog("Account Creation Failed", "Failed to create account. Please try again.")
+                self._validate_and_accept__show_error_dialog("Account Creation Failed", "Failed to create account. Please try again.")
         except Exception as e:
             logger.error(f"Error during account creation: {e}")
-            self._show_error_dialog("Account Creation Error", f"An error occurred while creating the account: {str(e)}")
+            self._validate_and_accept__show_error_dialog("Account Creation Error", f"An error occurred while creating the account: {str(e)}")
     
-    def _validate_input_and_show_errors(self) -> bool:
+    def _validate_and_accept__input_errors(self) -> bool:
         """Validate input and show error dialog if validation fails."""
-        username, preferred_name = self._collect_basic_user_info()
+        username, preferred_name = self._validate_and_accept__collect_basic_user_info()
         
         is_valid, error_message = self.validate_input()
         logger.info(f"Validation result: valid={is_valid}, error_message='{error_message}'")
         
         if not is_valid:
-            self._show_error_dialog("Validation Error", error_message)
+            self._validate_and_accept__show_error_dialog("Validation Error", error_message)
             logger.warning(f"Account creation failed validation: {error_message}")
             return False
         
         logger.info("Validation passed, proceeding with account creation")
         return True
     
-    def _collect_all_account_data(self) -> dict:
+    def _validate_and_accept__collect_data(self) -> dict:
         """Collect all data from UI and build account data structure."""
-        messages_enabled, tasks_enabled, checkins_enabled = self._collect_feature_settings()
-        timezone, channel_data, contact_info = self._collect_channel_data()
-        categories, task_settings, checkin_settings = self._collect_widget_data()
+        messages_enabled, tasks_enabled, checkins_enabled = self._validate_and_accept__collect_feature_settings()
+        timezone, channel_data, contact_info = self._validate_and_accept__collect_channel_data()
+        categories, task_settings, checkin_settings = self._validate_and_accept__collect_widget_data()
         
-        username, preferred_name = self._collect_basic_user_info()
+        username, preferred_name = self._validate_and_accept__collect_basic_user_info()
         
-        return self._build_account_data(
+        return self._validate_and_accept__build_account_data(
             username, preferred_name, timezone, channel_data, contact_info,
             categories, task_settings, checkin_settings,
             messages_enabled, tasks_enabled, checkins_enabled
         )
     
-    def _create_account_and_setup(self, account_data: dict) -> bool:
+    def _validate_and_accept__create_account(self, account_data: dict) -> bool:
         """Create the account and set up all necessary components."""
         try:
             logger.info("About to call create_account()")
@@ -731,26 +731,26 @@ class AccountCreatorDialog(QDialog):
             logger.error(f"Error during account creation: {e}")
             return False
     
-    def _handle_successful_creation(self, username: str):
+    def _validate_and_accept__handle_success(self, username: str):
         """Handle successful account creation."""
         self.user_changed.emit()
-        self._show_success_dialog(username)
+        self._validate_and_accept__show_success_dialog(username)
         self.close_dialog()
     
     def create_account(self, account_data: Dict[str, Any]) -> bool:
         """Create the user account."""
         try:
             user_id = str(uuid.uuid4())
-            user_preferences = self._build_user_preferences(account_data)
+            user_preferences = self._validate_and_accept__build_user_preferences(account_data)
             
             # Create user files
             from core.file_operations import create_user_files
             create_user_files(user_id, account_data['categories'], user_preferences)
             
             # Set up additional components
-            self._setup_task_tags(user_id, account_data)
-            self._update_user_index(user_id)
-            self._schedule_new_user(user_id)
+            self._validate_and_accept__setup_task_tags(user_id, account_data)
+            self._validate_and_accept__update_user_index(user_id)
+            self._validate_and_accept__schedule_new_user(user_id)
             
             logger.info(f"Created new user: {user_id} ({account_data['username']})")
             return True
@@ -758,7 +758,7 @@ class AccountCreatorDialog(QDialog):
             logger.error(f"Error creating account: {e}")
             return False
     
-    def _build_user_preferences(self, account_data: Dict[str, Any]) -> Dict[str, Any]:
+    def _validate_and_accept__build_user_preferences(self, account_data: Dict[str, Any]) -> Dict[str, Any]:
         """Build user preferences data structure."""
         contact_info = account_data['contact_info']
         features_enabled = account_data.get('features_enabled', {})
@@ -790,7 +790,7 @@ class AccountCreatorDialog(QDialog):
         }
         
         # Add feature-specific settings
-        self._add_feature_settings(user_preferences, account_data, features_enabled)
+        self._validate_and_accept__add_feature_settings(user_preferences, account_data, features_enabled)
         
         return user_preferences
     
@@ -812,7 +812,7 @@ class AccountCreatorDialog(QDialog):
             'task_management': 'enabled' if features_enabled.get('tasks', False) else 'disabled'
         }
     
-    def _add_feature_settings(self, user_preferences: Dict[str, Any], account_data: Dict[str, Any], features_enabled: Dict[str, bool]):
+    def _validate_and_accept__add_feature_settings(self, user_preferences: Dict[str, Any], account_data: Dict[str, Any], features_enabled: Dict[str, bool]):
         """Add feature-specific settings to user preferences."""
         # Add task settings if tasks are enabled
         if features_enabled.get('tasks', False):
@@ -828,7 +828,7 @@ class AccountCreatorDialog(QDialog):
                 del checkin_settings['enabled']
             user_preferences['checkin_settings'] = checkin_settings
     
-    def _setup_task_tags(self, user_id: str, account_data: Dict[str, Any]):
+    def _validate_and_accept__setup_task_tags(self, user_id: str, account_data: Dict[str, Any]):
         """Set up task tags for the new user."""
         features_enabled = account_data.get('features_enabled', {})
         if not features_enabled.get('tasks', False):
@@ -849,7 +849,7 @@ class AccountCreatorDialog(QDialog):
             setup_default_task_tags(user_id)
             logger.info(f"Set up default task tags for new user {user_id}")
     
-    def _update_user_index(self, user_id: str):
+    def _validate_and_accept__update_user_index(self, user_id: str):
         """Update user index for the new user."""
         try:
             from core.user_data_manager import update_user_index
@@ -857,7 +857,7 @@ class AccountCreatorDialog(QDialog):
         except Exception as e:
             logger.warning(f"Failed to update user index for new user {user_id}: {e}")
     
-    def _schedule_new_user(self, user_id: str):
+    def _validate_and_accept__schedule_new_user(self, user_id: str):
         """Schedule the new user in the scheduler."""
         try:
             from core.service import get_scheduler_manager

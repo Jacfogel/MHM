@@ -45,14 +45,14 @@ class TestUserFactory:
             # test_data_dir is now required - all tests should use the modern approach
             if not test_data_dir:
                 raise ValueError("test_data_dir parameter is required - use modern test approach")
-            return TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
+            return TestUserFactory.create_basic_user__with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
             
         except Exception as e:
             print(f"Error creating basic user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_directory_structure(test_data_dir: str, user_id: str) -> tuple[str, str]:
+    def _create_user_files_directly__directory_structure(test_data_dir: str, user_id: str) -> tuple[str, str]:
         """Create the user directory structure and return paths."""
         # Create test users directory
         test_users_dir = os.path.join(test_data_dir, "users")
@@ -69,7 +69,7 @@ class TestUserFactory:
         return actual_user_id, user_dir
     
     @staticmethod
-    def _create_account_data(actual_user_id: str, user_id: str, user_data: dict) -> dict:
+    def _create_user_files_directly__account_data(actual_user_id: str, user_id: str, user_data: dict) -> dict:
         """Create account data structure."""
         return {
             "user_id": actual_user_id,
@@ -90,7 +90,7 @@ class TestUserFactory:
         }
     
     @staticmethod
-    def _create_preferences_data(user_data: dict) -> dict:
+    def _create_user_files_directly__preferences_data(user_data: dict) -> dict:
         """Create preferences data structure."""
         preferences_data = {
             "categories": user_data.get('categories', []),
@@ -110,7 +110,7 @@ class TestUserFactory:
         return preferences_data
     
     @staticmethod
-    def _create_context_data(user_data: dict) -> dict:
+    def _create_user_files_directly__context_data(user_data: dict) -> dict:
         """Create user context data structure."""
         return {
             "preferred_name": user_data.get('preferred_name', ''),
@@ -132,13 +132,13 @@ class TestUserFactory:
         }
     
     @staticmethod
-    def _save_json_file(file_path: str, data: dict):
+    def _create_user_files_directly__save_json(file_path: str, data: dict):
         """Save data to a JSON file."""
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
     
     @staticmethod
-    def _create_schedules_data(categories: list) -> dict:
+    def _create_user_files_directly__schedules_data(categories: list) -> dict:
         """Create default schedule periods for categories."""
         if not categories:
             return {}
@@ -170,7 +170,7 @@ class TestUserFactory:
         return schedules_data
     
     @staticmethod
-    def _create_message_files(user_dir: str, categories: list):
+    def _create_user_files_directly__message_files(user_dir: str, categories: list):
         """Create message directory and default message files."""
         messages_dir = os.path.join(user_dir, "messages")
         os.makedirs(messages_dir, exist_ok=True)
@@ -188,7 +188,7 @@ class TestUserFactory:
                 json.dump([], f, indent=2, ensure_ascii=False)
     
     @staticmethod
-    def _update_user_index(test_data_dir: str, user_id: str, actual_user_id: str):
+    def create_basic_user__update_index(test_data_dir: str, user_id: str, actual_user_id: str):
         """Update user index to map internal_username to UUID."""
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         user_index = {}
@@ -210,39 +210,39 @@ class TestUserFactory:
     def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
         """Helper function to create user files directly in test directory"""
         # Create user directory structure
-        actual_user_id, user_dir = TestUserFactory._create_user_directory_structure(test_data_dir, user_id)
+        actual_user_id, user_dir = TestUserFactory._create_user_files_directly__directory_structure(test_data_dir, user_id)
         
         # Create data structures
-        account_data = TestUserFactory._create_account_data(actual_user_id, user_id, user_data)
-        preferences_data = TestUserFactory._create_preferences_data(user_data)
-        context_data = TestUserFactory._create_context_data(user_data)
+        account_data = TestUserFactory._create_user_files_directly__account_data(actual_user_id, user_id, user_data)
+        preferences_data = TestUserFactory._create_user_files_directly__preferences_data(user_data)
+        context_data = TestUserFactory._create_user_files_directly__context_data(user_data)
         
         # Save main files
         account_file = os.path.join(user_dir, "account.json")
         preferences_file = os.path.join(user_dir, "preferences.json")
         context_file = os.path.join(user_dir, "user_context.json")
         
-        TestUserFactory._save_json_file(account_file, account_data)
-        TestUserFactory._save_json_file(preferences_file, preferences_data)
-        TestUserFactory._save_json_file(context_file, context_data)
+        TestUserFactory._create_user_files_directly__save_json(account_file, account_data)
+        TestUserFactory._create_user_files_directly__save_json(preferences_file, preferences_data)
+        TestUserFactory._create_user_files_directly__save_json(context_file, context_data)
         
         # Create schedules if categories exist
         categories = user_data.get('categories', [])
         if categories:
-            schedules_data = TestUserFactory._create_schedules_data(categories)
+            schedules_data = TestUserFactory._create_user_files_directly__schedules_data(categories)
             schedules_file = os.path.join(user_dir, "schedules.json")
-            TestUserFactory._save_json_file(schedules_file, schedules_data)
+            TestUserFactory._create_user_files_directly__save_json(schedules_file, schedules_data)
         
         # Create message files
-        TestUserFactory._create_message_files(user_dir, categories)
+        TestUserFactory._create_user_files_directly__message_files(user_dir, categories)
         
         # Update user index
-        TestUserFactory._update_user_index(test_data_dir, user_id, actual_user_id)
+        TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id)
         
         return actual_user_id
     
     @staticmethod
-    def _create_basic_user_with_test_dir(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
+    def create_basic_user__with_test_dir(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
         """Create basic user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -287,7 +287,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating basic user with test dir {user_id}: {e}")
@@ -312,14 +312,14 @@ class TestUserFactory:
             # test_data_dir is now required - all tests should use the modern approach
             if not test_data_dir:
                 raise ValueError("test_data_dir parameter is required - use modern test approach")
-            return TestUserFactory._create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)
+            return TestUserFactory.create_discord_user__with_test_dir(user_id, discord_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating discord user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_discord_user_with_test_dir(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
+    def create_discord_user__with_test_dir(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
         """Create discord user with test directory by directly saving files"""
         try:
             if discord_user_id is None:
@@ -392,17 +392,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_full_featured_user_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_full_featured_user__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_full_featured_user_impl(user_id)
+                return TestUserFactory.create_full_featured_user__impl(user_id)
             
         except Exception as e:
             print(f"Error creating full featured user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_full_featured_user_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_full_featured_user__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create full featured user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -456,7 +456,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_full_featured_user_impl(user_id: str) -> bool:
+    def create_full_featured_user__impl(user_id: str) -> bool:
         """Internal implementation of full featured user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -530,17 +530,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_email_user_with_test_dir(user_id, email, test_data_dir)
+                return TestUserFactory.create_email_user__with_test_dir(user_id, email, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_email_user_impl(user_id, email)
+                return TestUserFactory.create_email_user__impl(user_id, email)
             
         except Exception as e:
             print(f"Error creating email user {user_id}: {e}")
             return None
     
     @staticmethod
-    def _create_email_user_with_test_dir(user_id: str, email: str = None, test_data_dir: str = None) -> str:
+    def create_email_user__with_test_dir(user_id: str, email: str = None, test_data_dir: str = None) -> str:
         """Create email user with test directory by directly saving files"""
         try:
             if email is None:
@@ -588,14 +588,14 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_email_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating email user with test dir {user_id}: {e}")
             return None
     
     @staticmethod
-    def _create_email_user_impl(user_id: str, email: str = None) -> str:
+    def create_email_user__impl(user_id: str, email: str = None) -> str:
         """Internal implementation of email user creation"""
         try:
             if email is None:
@@ -677,17 +677,17 @@ class TestUserFactory:
                 # Temporarily patch the config to use test directory
                 with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
                      patch.object(core.config, "USER_INFO_DIR_PATH", test_users_dir):
-                    return TestUserFactory._create_user_with_custom_fields_impl(user_id, custom_fields)
+                    return TestUserFactory.create_user_with_custom_fields__impl(user_id, custom_fields)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_custom_fields_impl(user_id, custom_fields)
+                return TestUserFactory.create_user_with_custom_fields__impl(user_id, custom_fields)
             
         except Exception as e:
             print(f"Error creating custom fields test user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_custom_fields_impl(user_id: str, custom_fields: Dict[str, Any] = None) -> bool:
+    def create_user_with_custom_fields__impl(user_id: str, custom_fields: Dict[str, Any] = None) -> bool:
         """Internal implementation of custom fields user creation"""
         try:
             if custom_fields is None:
@@ -766,17 +766,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_telegram_user_with_test_dir(user_id, telegram_username, test_data_dir)
+                return TestUserFactory.create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_telegram_user_impl(user_id, telegram_username)
+                return TestUserFactory.create_telegram_user__impl(user_id, telegram_username)
             
         except Exception as e:
             print(f"Error creating telegram user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_telegram_user_with_test_dir(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
+    def create_telegram_user__with_test_dir(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
         """Create telegram user with test directory by directly saving files"""
         try:
             if telegram_username is None:
@@ -831,7 +831,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_telegram_user_impl(user_id: str, telegram_username: str = None) -> bool:
+    def create_telegram_user__impl(user_id: str, telegram_username: str = None) -> bool:
         """Internal implementation of telegram user creation"""
         try:
             if telegram_username is None:
@@ -916,17 +916,17 @@ class TestUserFactory:
                 # Temporarily patch the config to use test directory
                 with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
                      patch.object(core.config, "USER_INFO_DIR_PATH", test_users_dir):
-                    return TestUserFactory._create_user_with_schedules_impl(user_id, schedule_config)
+                    return TestUserFactory.create_user_with_schedules__impl(user_id, schedule_config)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_schedules_impl(user_id, schedule_config)
+                return TestUserFactory.create_user_with_schedules__impl(user_id, schedule_config)
             
         except Exception as e:
             print(f"Error creating schedules test user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_schedules_impl(user_id: str, schedule_config: Dict[str, Any] = None) -> bool:
+    def create_user_with_schedules__impl(user_id: str, schedule_config: Dict[str, Any] = None) -> bool:
         """Internal implementation of schedules user creation"""
         try:
             if schedule_config is None:
@@ -1024,17 +1024,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_minimal_user_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_minimal_user__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_minimal_user_impl(user_id)
+                return TestUserFactory.create_minimal_user__impl(user_id)
             
         except Exception as e:
             print(f"Error creating minimal user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_minimal_user_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_minimal_user__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create minimal user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1086,7 +1086,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_minimal_user_impl(user_id: str) -> bool:
+    def create_minimal_user__impl(user_id: str) -> bool:
         """Internal implementation of minimal user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1157,17 +1157,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_complex_checkins_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_complex_checkins__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_complex_checkins_impl(user_id)
+                return TestUserFactory.create_user_with_complex_checkins__impl(user_id)
             
         except Exception as e:
             print(f"Error creating complex checkins user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_complex_checkins_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_complex_checkins__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create complex checkins user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1219,7 +1219,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_complex_checkins_impl(user_id: str) -> bool:
+    def create_user_with_complex_checkins__impl(user_id: str) -> bool:
         """Internal implementation of complex checkins user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1291,17 +1291,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_health_focus_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_health_focus__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_health_focus_impl(user_id)
+                return TestUserFactory.create_user_with_health_focus__impl(user_id)
             
         except Exception as e:
             print(f"Error creating health focus user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_health_focus_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_health_focus__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create health focus user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1353,7 +1353,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_health_focus_impl(user_id: str) -> bool:
+    def create_user_with_health_focus__impl(user_id: str) -> bool:
         """Internal implementation of health focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1425,17 +1425,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_task_focus_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_task_focus__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_task_focus_impl(user_id)
+                return TestUserFactory.create_user_with_task_focus__impl(user_id)
             
         except Exception as e:
             print(f"Error creating task focus user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_task_focus_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_task_focus__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create task focus user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1487,7 +1487,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_task_focus_impl(user_id: str) -> bool:
+    def create_user_with_task_focus__impl(user_id: str) -> bool:
         """Internal implementation of task focus user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1559,17 +1559,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_disabilities_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_disabilities__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_disabilities_impl(user_id)
+                return TestUserFactory.create_user_with_disabilities__impl(user_id)
             
         except Exception as e:
             print(f"Error creating disability user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_disabilities_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_disabilities__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create disability user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1620,7 +1620,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_disabilities_impl(user_id: str) -> bool:
+    def create_user_with_disabilities__impl(user_id: str) -> bool:
         """Internal implementation of disability user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1691,17 +1691,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_limited_data_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_limited_data__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_limited_data_impl(user_id)
+                return TestUserFactory.create_user_with_limited_data__impl(user_id)
             
         except Exception as e:
             print(f"Error creating limited data user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_limited_data_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_limited_data__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create limited data user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1752,7 +1752,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_limited_data_impl(user_id: str) -> bool:
+    def create_user_with_limited_data__impl(user_id: str) -> bool:
         """Internal implementation of limited data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -1823,17 +1823,17 @@ class TestUserFactory:
         try:
             # If test_data_dir is provided, use direct file creation
             if test_data_dir:
-                return TestUserFactory._create_user_with_inconsistent_data_with_test_dir(user_id, test_data_dir)
+                return TestUserFactory.create_user_with_inconsistent_data__with_test_dir(user_id, test_data_dir)
             else:
                 # Use real user directory (for backward compatibility)
-                return TestUserFactory._create_user_with_inconsistent_data_impl(user_id)
+                return TestUserFactory.create_user_with_inconsistent_data__impl(user_id)
             
         except Exception as e:
             print(f"Error creating inconsistent data user {user_id}: {e}")
             return False
     
     @staticmethod
-    def _create_user_with_inconsistent_data_with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
+    def create_user_with_inconsistent_data__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create inconsistent data user with test directory by directly saving files"""
         try:
             # Create user data in the format expected by create_new_user
@@ -1884,7 +1884,7 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_with_inconsistent_data_impl(user_id: str) -> bool:
+    def create_user_with_inconsistent_data__impl(user_id: str) -> bool:
         """Internal implementation of inconsistent data user creation"""
         try:
             # Use the proper create_new_user function to generate UUID and register user
@@ -2007,7 +2007,7 @@ class TestUserFactory:
             return None
     
     @staticmethod
-    def _verify_user_creation_with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> bool:
+    def create_basic_user__verify_creation(user_id: str, actual_user_id: str, test_data_dir: str) -> bool:
         """Helper function to verify user creation with proper configuration patching"""
         # CRITICAL FIX: Patch the configuration to use the test data directory
         # This ensures that system functions can find the created users
@@ -2028,7 +2028,7 @@ class TestUserFactory:
                 return actual_user_id is not None
 
     @staticmethod
-    def _verify_email_user_creation_with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> str:
+    def verify_email_user_creation__with_test_dir(user_id: str, actual_user_id: str, test_data_dir: str) -> str:
         """Helper function to verify email user creation with proper configuration patching"""
         # CRITICAL FIX: Patch the configuration to use the test data directory
         # This ensures that system functions can find the created users
