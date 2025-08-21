@@ -255,7 +255,11 @@ def generate_audit_report():
     complex_functions = []
     for file_path, data in actual_functions.items():
         for func in data['functions']:
-            if func['complexity'] > 50 and not func['is_test']:  # High complexity, not tests
+            # Skip auto-generated code and tests
+            if (func['complexity'] > 50 and 
+                not func['is_test'] and 
+                not ('generated' in file_path and '_pyqt.py' in file_path) and
+                not func['name'] in ['setupUi', 'retranslateUi']):
                 complex_functions.append({
                     'file': file_path,
                     'name': func['name'],

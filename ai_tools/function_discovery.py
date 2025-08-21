@@ -23,6 +23,37 @@ TEST_KEYWORDS = config.FUNCTION_DISCOVERY['test_keywords']
 MAX_COMPLEXITY = config.FUNCTION_DISCOVERY['max_complexity_threshold']
 
 
+def is_auto_generated_code(file_path: str, func_name: str) -> bool:
+    """
+    Determine if a function is in auto-generated code that should be excluded from complexity analysis.
+    
+    Args:
+        file_path: Path to the file containing the function
+        func_name: Name of the function
+        
+    Returns:
+        True if the function should be excluded from complexity analysis
+    """
+    # Exclude PyQt auto-generated files
+    if 'generated' in file_path and '_pyqt.py' in file_path:
+        return True
+    
+    # Exclude specific auto-generated function patterns
+    auto_generated_patterns = {
+        'setupUi',  # PyQt UI setup functions
+        'retranslateUi',  # PyQt translation functions
+    }
+    
+    if func_name in auto_generated_patterns:
+        return True
+    
+    # Exclude files in generated directories
+    if '/generated/' in file_path or '\\generated\\' in file_path:
+        return True
+    
+    return False
+
+
 def is_special_python_method(func_name: str, complexity: int) -> bool:
     """
     Determine if a function is a special Python method that should be excluded from undocumented count.
@@ -112,6 +143,11 @@ def extract_functions(file_path: str) -> List[Dict]:
         for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 name = node.name
+                
+                # Skip auto-generated code
+                if is_auto_generated_code(file_path, name):
+                    continue
+                
                 args = [arg.arg for arg in node.args.args]
                 
                 # Get traditional docstring

@@ -363,8 +363,8 @@ class TestUserManagementEdgeCases:
     @pytest.mark.regression
     def test_update_user_preferences_nonexistent_user(self, mock_config):
         """Test updating preferences for non-existent user."""
-        # With smart auto-create, this should return False since user directory doesn't exist
-        result = update_user_preferences('nonexistent-user', {'test': 'data'})
+        # With auto_create=False, this should return False since user directory doesn't exist
+        result = update_user_preferences('nonexistent-user', {'test': 'data'}, auto_create=False)
         assert result is False
         
         # Verify the user was NOT created

@@ -678,20 +678,16 @@ class DiscordBot(BaseChannel):
                 response = handle_user_message(internal_user_id, message.content, "discord")
                 
                 if response.message:
-                    # Send the main message
-                    await message.channel.send(response.message)
-                    
-                    # Add suggestions if provided
-                    if response.suggestions:
-                        suggestions_text = "\n💡 **Suggestions:**\n" + "\n".join([f"• {s}" for s in response.suggestions[:3]])
-                        await message.channel.send(suggestions_text)
+                    # Use the internal send method that handles rich_data and suggestions properly
+                    await self._send_message_internal(str(message.channel.id), response.message, response.rich_data, response.suggestions)
                     
                     # Log successful message handling
                     discord_logger.info("Discord message handled successfully", 
                                       user_id=internal_user_id, 
                                       message_length=len(message.content),
                                       response_length=len(response.message),
-                                      suggestions_count=len(response.suggestions) if response.suggestions else 0)
+                                      suggestions_count=len(response.suggestions) if response.suggestions else 0,
+                                      has_rich_data=bool(response.rich_data))
                         
             except Exception as e:
                 logger.error(f"Error in enhanced interaction for user {internal_user_id}: {e}")
@@ -730,7 +726,27 @@ class DiscordBot(BaseChannel):
                         return
                     try:
                         response = handle_user_message(internal_user_id, _mapped, "discord")
-                        await interaction.response.send_message(response.message)
+                        
+                        # Create embed if rich_data is provided
+                        embed = None
+                        if response.rich_data:
+                            embed = self._create_discord_embed(response.message, response.rich_data)
+                        
+                        # Create action row with buttons if suggestions are provided
+                        action_row = None
+                        if response.suggestions:
+                            action_row = self._create_action_row(response.suggestions)
+                        
+                        # Send response with embed and/or action row
+                        if embed and action_row:
+                            await interaction.response.send_message(embed=embed, components=[action_row])
+                        elif embed:
+                            await interaction.response.send_message(embed=embed)
+                        elif action_row:
+                            await interaction.response.send_message(response.message, components=[action_row])
+                        else:
+                            await interaction.response.send_message(response.message)
+                            
                     except Exception as e:
                         logger.error(f"Error in app command '{_name}': {e}")
                         await interaction.response.send_message("I'm having trouble right now. Please try again.")

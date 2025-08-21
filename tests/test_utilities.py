@@ -52,8 +52,8 @@ class TestUserFactory:
             return False
     
     @staticmethod
-    def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
-        """Helper function to create user files directly in test directory"""
+    def _create_user_directory_structure(test_data_dir: str, user_id: str) -> tuple[str, str]:
+        """Create the user directory structure and return paths."""
         # Create test users directory
         test_users_dir = os.path.join(test_data_dir, "users")
         os.makedirs(test_users_dir, exist_ok=True)
@@ -66,8 +66,12 @@ class TestUserFactory:
         user_dir = os.path.join(test_users_dir, actual_user_id)
         os.makedirs(user_dir, exist_ok=True)
         
-        # Create account data
-        account_data = {
+        return actual_user_id, user_dir
+    
+    @staticmethod
+    def _create_account_data(actual_user_id: str, user_id: str, user_data: dict) -> dict:
+        """Create account data structure."""
+        return {
             "user_id": actual_user_id,
             "internal_username": user_id,
             "account_status": "active",
@@ -84,8 +88,10 @@ class TestUserFactory:
             },
             "timezone": user_data.get("timezone", "")
         }
-        
-        # Create preferences data
+    
+    @staticmethod
+    def _create_preferences_data(user_data: dict) -> dict:
+        """Create preferences data structure."""
         preferences_data = {
             "categories": user_data.get('categories', []),
             "channel": {
@@ -101,8 +107,12 @@ class TestUserFactory:
         if 'task_settings' in preferences_data and 'enabled' in preferences_data['task_settings']:
             del preferences_data['task_settings']['enabled']
         
-        # Create user context data
-        context_data = {
+        return preferences_data
+    
+    @staticmethod
+    def _create_context_data(user_data: dict) -> dict:
+        """Create user context data structure."""
+        return {
             "preferred_name": user_data.get('preferred_name', ''),
             "gender_identity": user_data.get('gender_identity', []),
             "date_of_birth": user_data.get('date_of_birth', ''),
@@ -120,54 +130,48 @@ class TestUserFactory:
             "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
             "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
+    
+    @staticmethod
+    def _save_json_file(file_path: str, data: dict):
+        """Save data to a JSON file."""
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+    
+    @staticmethod
+    def _create_schedules_data(categories: list) -> dict:
+        """Create default schedule periods for categories."""
+        if not categories:
+            return {}
         
-        # Save files directly to test directory
-        account_file = os.path.join(user_dir, "account.json")
-        preferences_file = os.path.join(user_dir, "preferences.json")
-        context_file = os.path.join(user_dir, "user_context.json")
-        
-        with open(account_file, 'w', encoding='utf-8') as f:
-            json.dump(account_data, f, indent=2, ensure_ascii=False)
-        
-        with open(preferences_file, 'w', encoding='utf-8') as f:
-            json.dump(preferences_data, f, indent=2, ensure_ascii=False)
-        
-        with open(context_file, 'w', encoding='utf-8') as f:
-            json.dump(context_data, f, indent=2, ensure_ascii=False)
-        
-        # Create default schedule periods for initial categories
-        categories = user_data.get('categories', [])
-        if categories:
-            schedules_data = {}
-            for category in categories:
-                schedules_data[category] = {
-                    "periods": {
-                        "Morning": {
-                            "active": True,
-                            "days": ["ALL"],
-                            "start_time": "09:00",
-                            "end_time": "12:00"
-                        },
-                        "Afternoon": {
-                            "active": True,
-                            "days": ["ALL"],
-                            "start_time": "13:00",
-                            "end_time": "17:00"
-                        },
-                        "Evening": {
-                            "active": True,
-                            "days": ["ALL"],
-                            "start_time": "18:00",
-                            "end_time": "21:00"
-                        }
+        schedules_data = {}
+        for category in categories:
+            schedules_data[category] = {
+                "periods": {
+                    "Morning": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "09:00",
+                        "end_time": "12:00"
+                    },
+                    "Afternoon": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "13:00",
+                        "end_time": "17:00"
+                    },
+                    "Evening": {
+                        "active": True,
+                        "days": ["ALL"],
+                        "start_time": "18:00",
+                        "end_time": "21:00"
                     }
                 }
-            
-            schedules_file = os.path.join(user_dir, "schedules.json")
-            with open(schedules_file, 'w', encoding='utf-8') as f:
-                json.dump(schedules_data, f, indent=2, ensure_ascii=False)
-        
-        # Create messages directory and default message files
+            }
+        return schedules_data
+    
+    @staticmethod
+    def _create_message_files(user_dir: str, categories: list):
+        """Create message directory and default message files."""
         messages_dir = os.path.join(user_dir, "messages")
         os.makedirs(messages_dir, exist_ok=True)
         
@@ -182,8 +186,10 @@ class TestUserFactory:
         if not os.path.exists(sent_messages_file):
             with open(sent_messages_file, 'w', encoding='utf-8') as f:
                 json.dump([], f, indent=2, ensure_ascii=False)
-        
-        # Create or update user index to map internal_username to UUID
+    
+    @staticmethod
+    def _update_user_index(test_data_dir: str, user_id: str, actual_user_id: str):
+        """Update user index to map internal_username to UUID."""
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         user_index = {}
         if os.path.exists(user_index_file):
@@ -199,6 +205,39 @@ class TestUserFactory:
         # Save the updated index
         with open(user_index_file, 'w', encoding='utf-8') as f:
             json.dump(user_index, f, indent=2, ensure_ascii=False)
+    
+    @staticmethod
+    def _create_user_files_directly(user_id: str, user_data: Dict[str, Any], test_data_dir: str) -> str:
+        """Helper function to create user files directly in test directory"""
+        # Create user directory structure
+        actual_user_id, user_dir = TestUserFactory._create_user_directory_structure(test_data_dir, user_id)
+        
+        # Create data structures
+        account_data = TestUserFactory._create_account_data(actual_user_id, user_id, user_data)
+        preferences_data = TestUserFactory._create_preferences_data(user_data)
+        context_data = TestUserFactory._create_context_data(user_data)
+        
+        # Save main files
+        account_file = os.path.join(user_dir, "account.json")
+        preferences_file = os.path.join(user_dir, "preferences.json")
+        context_file = os.path.join(user_dir, "user_context.json")
+        
+        TestUserFactory._save_json_file(account_file, account_data)
+        TestUserFactory._save_json_file(preferences_file, preferences_data)
+        TestUserFactory._save_json_file(context_file, context_data)
+        
+        # Create schedules if categories exist
+        categories = user_data.get('categories', [])
+        if categories:
+            schedules_data = TestUserFactory._create_schedules_data(categories)
+            schedules_file = os.path.join(user_dir, "schedules.json")
+            TestUserFactory._save_json_file(schedules_file, schedules_data)
+        
+        # Create message files
+        TestUserFactory._create_message_files(user_dir, categories)
+        
+        # Update user index
+        TestUserFactory._update_user_index(test_data_dir, user_id, actual_user_id)
         
         return actual_user_id
     

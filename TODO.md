@@ -30,6 +30,30 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Helper Function Naming Convention Refactor** 🟡 **PLANNING**
+- *What it means*: Implement consistent helper function naming convention using `_main_function__helper_name` pattern for better traceability and searchability
+- *Why it helps*: Makes code more maintainable by clearly showing which main function owns which helpers, improves searchability and debugging
+- *Estimated effort*: Large (Multi-module refactor)
+- *Subtasks*:
+  - [x] **Planning and Preparation** ✅ **COMPLETED**
+    - [x] Audit current helper functions across all modules
+    - [x] Create comprehensive list of functions to refactor
+    - [x] Test current state to establish baseline
+    - [x] Create backup before starting
+  - [ ] **Refactor Core Modules** 🟡 **IN PROGRESS**
+    - [ ] Refactor `ui/widgets/period_row_widget.py` (set_read_only helpers)
+    - [ ] Refactor `ui/dialogs/account_creator_dialog.py` (validate_and_accept helpers)
+    - [ ] Refactor `core/user_data_handlers.py` (save_user_data helpers)
+    - [ ] Refactor `core/file_operations.py` (create_user_files helpers)
+    - [ ] Refactor `bot/interaction_handlers.py` (_handle_list_tasks helpers)
+    - [ ] Refactor `tests/test_utilities.py` (_create_user_files_directly helpers)
+  - [ ] **Update References and Testing**
+    - [ ] Find all function calls to renamed helpers
+    - [ ] Update all references across the codebase
+    - [ ] Run comprehensive tests after each module
+    - [ ] Run audit to verify no regressions
+    - [ ] Update documentation and changelogs
+
 ## **Phase 1: Enhanced Task & Check-in Systems** ✅ **MAJOR PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
@@ -117,6 +141,39 @@ When adding new tasks, follow this format:
   - [ ] Add pattern recognition to identify common function/module categories
   - [ ] Implement concise summary generation with cross-references to detailed docs
   - [ ] Test generated documentation usability for AI collaborators
+
+## **Fix Profile Display and Document Discord Commands** ⚠️ **NEW PRIORITY**
+- *What it means*: Fix the profile display that's outputting raw JSON instead of formatted text, and document all available Discord commands for user discovery
+- *Why it helps*: Users can properly view their profile information and discover all available commands
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] **Fix Profile Display Formatting**
+    - [ ] Investigate why `_handle_show_profile` outputs raw JSON instead of formatted text
+    - [ ] Fix the response formatting to show user-friendly profile information
+    - [ ] Test profile display in Discord to ensure proper formatting
+    - [ ] Ensure all profile information is displayed (not truncated)
+  - [ ] **Document All Discord Commands**
+    - [ ] Audit all available Discord commands (slash commands, ! commands, natural language)
+    - [ ] Create comprehensive list of commands with examples
+    - [ ] Add command documentation to help system
+    - [ ] Test all commands to ensure they work properly
+    - [ ] Update help system to show all available commands
+
+## **Refactor High Complexity Core Functions** ⚠️ **NEW PRIORITY**
+- *What it means*: Continue refactoring high complexity functions identified in audit, starting with save_user_data and other core functions
+- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
+- *Estimated effort*: Large
+- *Subtasks*:
+  - [ ] **Refactor save_user_data Function**
+    - [ ] Analyze current complexity and identify refactoring opportunities
+    - [ ] Extract helper functions to reduce complexity
+    - [ ] Improve error handling and validation
+    - [ ] Test refactored function thoroughly
+  - [ ] **Continue with Other High Complexity Functions**
+    - [ ] Identify next priority functions from audit results
+    - [ ] Apply same refactoring approach (extract helpers, reduce nesting)
+    - [ ] Maintain functionality while reducing complexity
+    - [ ] Update tests and documentation
 
 ## **Code Complexity Reduction - High Priority Refactoring** ⚠️ **NEW PRIORITY**
 - *What it means*: Address 1686 high complexity functions (>50 nodes) identified in audit to improve maintainability and reduce technical debt

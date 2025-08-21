@@ -175,6 +175,248 @@ def get_user_data(
 
 @handle_errors("saving user data", default_return={})
 
+def _validate_input_parameters(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
+    """Validate input parameters and initialize result structure."""
+    if not user_id:
+        logger.error("save_user_data called with None user_id")
+        return False, {}, []
+    
+    if not data_updates:
+        logger.warning("save_user_data called with empty data_updates")
+        return False, {}, []
+    
+    # Initialize result structure - every requested data_type gets an entry that defaults to False
+    result: Dict[str, bool] = {dt: False for dt in data_updates}
+    
+    # Validate data types
+    available_types = get_available_data_types()
+    invalid_types = [dt for dt in data_updates if dt not in available_types]
+    if invalid_types:
+        logger.error(f"Invalid data types in save_user_data: {invalid_types}. Valid types: {available_types}")
+    
+    return True, result, invalid_types
+
+
+def _create_backup_if_needed(user_id: str, valid_types: List[str], create_backup: bool) -> None:
+    """Create backup if needed for major data updates."""
+    if create_backup and len(valid_types) > 1:
+        try:
+            from core.user_data_manager import UserDataManager
+            backup_path = UserDataManager().backup_user_data(user_id)
+            logger.info(f"Created backup before major data update: {backup_path}")
+        except Exception as e:
+            logger.warning(f"Failed to create backup before data update: {e}")
+
+
+def _validate_data_for_user(user_id: str, data_updates: Dict[str, Dict[str, Any]], valid_types: List[str], 
+                           validate_data: bool, is_new_user: bool) -> tuple[List[str], Dict[str, bool]]:
+    """Validate data for new and existing users."""
+    result: Dict[str, bool] = {dt: False for dt in data_updates}
+    invalid_types = []
+    
+    if not validate_data:
+        return invalid_types, result
+    
+    # Validate new user data
+    if is_new_user and valid_types:
+        ok, errors = validate_new_user_data(user_id, data_updates)
+        if not ok:
+            logger.error(f"New-user validation failed: {errors}")
+            return invalid_types, result
+    
+    # Validate existing user data
+    if not is_new_user:
+        for dt in valid_types:
+            logger.debug(f"Validating {dt} for existing user {user_id}")
+            ok, errors = validate_user_update(user_id, dt, data_updates[dt])
+            if not ok:
+                logger.error(f"Validation failed for {dt}: {errors}")
+                result[dt] = False
+                invalid_types.append(dt)
+            else:
+                logger.debug(f"Validation passed for {dt}")
+    
+    return invalid_types, result
+
+
+def _handle_legacy_account_compatibility(updated: Dict[str, Any], updates: Dict[str, Any]) -> None:
+    """Handle legacy account field compatibility."""
+    # LEGACY COMPATIBILITY: Preserve legacy account fields
+    # TODO: Remove after callers no longer write 'channel' or 'enabled_features' into account.json
+    # REMOVAL PLAN:
+    # 1. Log warnings whenever legacy fields are used (below)
+    # 2. Add metrics to track frequency over 2 weeks
+    # 3. Remove preservation and update tests/callers accordingly
+    # NOTE: Channel data lives in preferences.json; enabled feature flags live under account.features
+    # This block preserves backward compatibility only.
+    if "channel" in updates:
+        updated["channel"] = updates["channel"]
+        try:
+            logger.warning(
+                "LEGACY COMPATIBILITY: 'account.channel' was provided and preserved. Move channel to preferences.channel."
+            )
+        except Exception:
+            pass
+    
+    if "enabled_features" in updates:
+        updated["enabled_features"] = updates["enabled_features"]
+        try:
+            logger.warning(
+                "LEGACY COMPATIBILITY: 'account.enabled_features' was provided and preserved. Use account.features subkeys instead."
+            )
+        except Exception:
+            pass
+
+
+def _handle_legacy_preferences_compatibility(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
+    """Handle legacy preferences compatibility and cleanup."""
+    # LEGACY COMPATIBILITY: Detect nested 'enabled' flags in preferences and warn.
+    # TODO: Remove after all callers stop writing nested enabled flags
+    # REMOVAL PLAN:
+    # 1. Log a one-time warning when these fields are detected
+    # 2. Track usage via logs/metrics for 2 weeks
+    # 3. Start stripping in a future release and update tests/callers
+    try:
+        has_enabled = (
+            isinstance(updated.get("task_settings"), dict) and "enabled" in updated["task_settings"]
+        ) or (
+            isinstance(updated.get("checkin_settings"), dict) and "enabled" in updated["checkin_settings"]
+        )
+        if has_enabled and not globals().get("_warned_enabled_flags_present", False):
+            logger.warning(
+                "LEGACY COMPATIBILITY: Found nested 'enabled' flags under preferences. "
+                "These will be deprecated; prefer account.features."
+            )
+            globals()["_warned_enabled_flags_present"] = True
+    except Exception:
+        pass
+    
+    # If corresponding features are disabled, remove entire settings blocks only for "full" updates
+    # (heuristic: presence of 'categories' implies a full preferences payload). Partial updates preserve blocks.
+    try:
+        acct = get_user_data(user_id, 'account').get('account', {})
+        features = acct.get('features', {}) if isinstance(acct, dict) else {}
+        is_full_update = isinstance(updates, dict) and ('categories' in updates)
+        
+        # Task settings removal when feature disabled and caller did not re-provide the block
+        if (
+            is_full_update and
+            features.get('task_management') == 'disabled' and
+            'task_settings' not in updates and
+            'task_settings' in updated
+        ):
+            updated.pop('task_settings', None)
+            try:
+                logger.warning(
+                    "LEGACY COMPATIBILITY: Removed preferences.task_settings because tasks are disabled "
+                    "and a full preferences update omitted this block."
+                )
+            except Exception:
+                pass
+        
+        # Check-in settings removal when feature disabled and caller did not re-provide the block
+        if (
+            is_full_update and
+            features.get('checkins') == 'disabled' and
+            'checkin_settings' not in updates and
+            'checkin_settings' in updated
+        ):
+            updated.pop('checkin_settings', None)
+            try:
+                logger.warning(
+                    "LEGACY COMPATIBILITY: Removed preferences.checkin_settings because checkins are disabled "
+                    "and a full preferences update omitted this block."
+                )
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+
+def _normalize_data_with_pydantic(dt: str, updated: Dict[str, Any]) -> None:
+    """Apply Pydantic normalization to data."""
+    try:
+        if dt == "account":
+            normalized, errors = validate_account_dict(updated)
+            if not errors and normalized:
+                updated.clear()
+                updated.update(normalized)
+        elif dt == "preferences":
+            normalized, errors = validate_preferences_dict(updated)
+            if not errors and normalized:
+                updated.clear()
+                updated.update(normalized)
+        elif dt == "schedules":
+            normalized, errors = validate_schedules_dict(updated)
+            if not errors and normalized:
+                updated.clear()
+                updated.update(normalized)
+    except Exception:
+        pass
+
+
+def _save_single_data_type(user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool) -> bool:
+    """Save a single data type for a user."""
+    try:
+        # Check if user exists when auto_create=False
+        if not auto_create:
+            from core.config import get_user_data_dir
+            user_dir = get_user_data_dir(user_id)
+            if not os.path.exists(user_dir):
+                logger.debug(f"User directory doesn't exist for {user_id} and auto_create=False, skipping save")
+                return False
+        
+        current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
+        updated = current.copy() if isinstance(current, dict) else {}
+        updated.update(updates)
+        
+        # Handle legacy compatibility
+        if dt == "account":
+            _handle_legacy_account_compatibility(updated, updates)
+        elif dt == "preferences":
+            _handle_legacy_preferences_compatibility(updated, updates, user_id)
+        
+        # Apply Pydantic normalization
+        _normalize_data_with_pydantic(dt, updated)
+        
+        logger.debug(f"Save {dt}: current={current}, updates={updates}, merged={updated}")
+        
+        # Save the data
+        from core.file_operations import save_json_data
+        from core.config import get_user_file_path
+        
+        file_path = get_user_file_path(user_id, dt)
+        success = save_json_data(updated, file_path)
+        logger.debug(f"Saved {dt} data for user {user_id}: success={success}")
+        return success
+        
+    except Exception as e:
+        logger.error(f"Error saving {dt} data for user {user_id}: {e}")
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Exception traceback: {traceback.format_exc()}")
+        return False
+
+
+def _update_index_and_cache(user_id: str, result: Dict[str, bool], update_index: bool) -> None:
+    """Update user index and clear cache if needed."""
+    # Update index if at least one type succeeded
+    if update_index and any(result.values()):
+        try:
+            from core.user_data_manager import update_user_index
+            update_user_index(user_id)
+        except Exception as e:
+            logger.warning(f"Failed to update user index after data save for user {user_id}: {e}")
+    
+    # Clear cache if any saves succeeded
+    if any(result.values()):
+        try:
+            from core.user_management import clear_user_caches
+            clear_user_caches(user_id)
+            logger.debug(f"Cleared cache for user {user_id} after data save")
+        except Exception as e:
+            logger.warning(f"Failed to clear cache for user {user_id}: {e}")
+
+
 def save_user_data(
     user_id: str,
     data_updates: Dict[str, Dict[str, Any]],
@@ -184,215 +426,43 @@ def save_user_data(
     validate_data: bool = True
 ) -> Dict[str, bool]:
     """Migrated implementation of save_user_data."""
-    # -------------------------------------------------------------------
-    # 0. Early sanity-checks & unified result scaffolding
-    # -------------------------------------------------------------------
-    if not user_id:
-        logger.error("save_user_data called with None user_id")
-        return {}
-    if not data_updates:
-        logger.warning("save_user_data called with empty data_updates")
-        return {}
-
-    # Provide a predictable result structure from the outset – every
-    # requested data_type gets an entry that defaults to False until the
-    # corresponding save operation succeeds.
-    result: Dict[str, bool] = {dt: False for dt in data_updates}
-
-    available_types = get_available_data_types()
-    invalid_types = [dt for dt in data_updates if dt not in available_types]
-    if invalid_types:
-        logger.error(f"Invalid data types in save_user_data: {invalid_types}. Valid types: {available_types}")
-        # Don’t raise/return early – we’ll simply skip these types and
-        # keep their result as False so callers can detect the failure.
-
-    # -------------------------------------------------------------------
-    # 1. Optional backup (only when more than one valid data_type supplied)
-    # -------------------------------------------------------------------
+    # Validate input parameters and initialize result structure
+    is_valid, result, invalid_types = _validate_input_parameters(user_id, data_updates)
+    if not is_valid:
+        return result
+    
+    # Get valid types to process
     valid_types_to_process = [dt for dt in data_updates if dt not in invalid_types]
-    if create_backup and len(valid_types_to_process) > 1:
-        try:
-            from core.user_data_manager import UserDataManager
-            backup_path = UserDataManager().backup_user_data(user_id)
-            logger.info(f"Created backup before major data update: {backup_path}")
-        except Exception as e:
-            logger.warning(f"Failed to create backup before data update: {e}")
-
-    # -------------------------------------------------------------------
-    # 2. Validation Phase
-    # -------------------------------------------------------------------
+    
+    # Create backup if needed
+    _create_backup_if_needed(user_id, valid_types_to_process, create_backup)
+    
+    # Check if user is new
     from core.config import get_user_data_dir
     is_new_user = not os.path.exists(get_user_data_dir(user_id))
-    
     logger.debug(f"save_user_data: user_id={user_id}, is_new_user={is_new_user}, valid_types={valid_types_to_process}")
-
-    # a) Whole-dataset validation for a brand-new user
-    if validate_data and is_new_user and valid_types_to_process:
-        ok, errors = validate_new_user_data(user_id, data_updates)
-        if not ok:
-            logger.error(f"New-user validation failed: {errors}")
-            # Nothing else to do – we already defaulted all types to False
-            return result
-
-    # b) Per-data-type validation for existing users
-    if validate_data and not is_new_user:
-        for dt in valid_types_to_process:
-            logger.debug(f"Validating {dt} for existing user {user_id}")
-            ok, errors = validate_user_update(user_id, dt, data_updates[dt])
-            if not ok:
-                logger.error(f"Validation failed for {dt}: {errors}")
-                # Mark as failed and remove from further processing
-                result[dt] = False
-                invalid_types.append(dt)
-            else:
-                logger.debug(f"Validation passed for {dt}")
-
+    
+    # Validate data
+    invalid_types_from_validation, validation_result = _validate_data_for_user(
+        user_id, data_updates, valid_types_to_process, validate_data, is_new_user
+    )
+    
+    # Update result with validation results
+    result.update(validation_result)
+    
     # Refresh valid list after validation failures
-    valid_types_to_process = [dt for dt in valid_types_to_process if dt not in invalid_types]
+    valid_types_to_process = [dt for dt in valid_types_to_process if dt not in invalid_types_from_validation]
     logger.debug(f"After validation: valid_types_to_process={valid_types_to_process}")
-
-    # -------------------------------------------------------------------
-    # 3. Save Phase – iterate only over types that passed validation
-    # -------------------------------------------------------------------
+    
+    # Save each valid data type
     for dt in valid_types_to_process:
         updates = data_updates[dt]
-        try:
-            current = get_user_data(user_id, dt, auto_create=auto_create).get(dt, {})
-            updated = current.copy() if isinstance(current, dict) else {}
-            updated.update(updates)
-
-            # LEGACY COMPATIBILITY: Preserve legacy account fields
-            # TODO: Remove after callers no longer write 'channel' or 'enabled_features' into account.json
-            # REMOVAL PLAN:
-            # 1. Log warnings whenever legacy fields are used (below)
-            # 2. Add metrics to track frequency over 2 weeks
-            # 3. Remove preservation and update tests/callers accordingly
-            # NOTE: Channel data lives in preferences.json; enabled feature flags live under account.features
-            # This block preserves backward compatibility only.
-            if dt == "account":
-                if "channel" in updates:
-                    updated["channel"] = updates["channel"]
-                    try:
-                        logger.warning(
-                            "LEGACY COMPATIBILITY: 'account.channel' was provided and preserved. Move channel to preferences.channel."
-                        )
-                    except Exception:
-                        pass
-                if "enabled_features" in updates:
-                    updated["enabled_features"] = updates["enabled_features"]
-                    try:
-                        logger.warning(
-                            "LEGACY COMPATIBILITY: 'account.enabled_features' was provided and preserved. Use account.features subkeys instead."
-                        )
-                    except Exception:
-                        pass
-
-            # Pydantic normalization – non-blocking
-            try:
-                if dt == "account":
-                    updated, _ = validate_account_dict(updated)
-                elif dt == "preferences":
-                    # LEGACY COMPATIBILITY: Detect nested 'enabled' flags in preferences and warn.
-                    # TODO: Remove after all callers stop writing nested enabled flags
-                    # REMOVAL PLAN:
-                    # 1. Log a one-time warning when these fields are detected
-                    # 2. Track usage via logs/metrics for 2 weeks
-                    # 3. Start stripping in a future release and update tests/callers
-                    try:
-                        has_enabled = (
-                            isinstance(updated.get("task_settings"), dict) and "enabled" in updated["task_settings"]
-                        ) or (
-                            isinstance(updated.get("checkin_settings"), dict) and "enabled" in updated["checkin_settings"]
-                        )
-                        if has_enabled and not globals().get("_warned_enabled_flags_present", False):
-                            logger.warning(
-                                "LEGACY COMPATIBILITY: Found nested 'enabled' flags under preferences. "
-                                "These will be deprecated; prefer account.features."
-                            )
-                            globals()["_warned_enabled_flags_present"] = True
-                    except Exception:
-                        pass
-                    # If corresponding features are disabled, remove entire settings blocks only for "full" updates
-                    # (heuristic: presence of 'categories' implies a full preferences payload). Partial updates preserve blocks.
-                    try:
-                        acct = get_user_data(user_id, 'account').get('account', {})
-                        features = acct.get('features', {}) if isinstance(acct, dict) else {}
-                        is_full_update = isinstance(updates, dict) and ('categories' in updates)
-                        # Task settings removal when feature disabled and caller did not re-provide the block
-                        if (
-                            is_full_update and
-                            features.get('task_management') == 'disabled' and
-                            'task_settings' not in updates and
-                            'task_settings' in updated
-                        ):
-                            updated.pop('task_settings', None)
-                            try:
-                                logger.warning(
-                                    "LEGACY COMPATIBILITY: Removed preferences.task_settings because tasks are disabled "
-                                    "and a full preferences update omitted this block."
-                                )
-                            except Exception:
-                                pass
-                        # Check-in settings removal when feature disabled and caller did not re-provide the block
-                        if (
-                            is_full_update and
-                            features.get('checkins') == 'disabled' and
-                            'checkin_settings' not in updates and
-                            'checkin_settings' in updated
-                        ):
-                            updated.pop('checkin_settings', None)
-                            try:
-                                logger.warning(
-                                    "LEGACY COMPATIBILITY: Removed preferences.checkin_settings because checkins are disabled "
-                                    "and a full preferences update omitted this block."
-                                )
-                            except Exception:
-                                pass
-                    except Exception:
-                        pass
-                    updated, _ = validate_preferences_dict(updated)
-                elif dt == "schedules":
-                    updated, _ = validate_schedules_dict(updated)
-            except Exception:
-                pass
-            
-            logger.debug(f"Save {dt}: current={current}, updates={updates}, merged={updated}")
-
-            # Use the unified save approach - save the data directly
-            from core.file_operations import save_json_data
-            from core.config import get_user_file_path
-            
-            file_path = get_user_file_path(user_id, dt)
-            success = save_json_data(updated, file_path)
-            result[dt] = success
-            logger.debug(f"Saved {dt} data for user {user_id}: success={success}")
-        except Exception as e:
-            logger.error(f"Error saving {dt} data for user {user_id}: {e}")
-            logger.error(f"Exception type: {type(e).__name__}")
-            logger.error(f"Exception traceback: {traceback.format_exc()}")
-            result[dt] = False
-
-    # -------------------------------------------------------------------
-    # 4. Index update (only if at least one type succeeded)
-    # -------------------------------------------------------------------
-    if update_index and any(result.values()):
-        try:
-            from core.user_data_manager import update_user_index
-            update_user_index(user_id)
-        except Exception as e:
-            logger.warning(f"Failed to update user index after data save for user {user_id}: {e}")
-
-    # -------------------------------------------------------------------
-    # 5. Cache clearing (if any saves succeeded)
-    # -------------------------------------------------------------------
-    if any(result.values()):
-        try:
-            from core.user_management import clear_user_caches
-            clear_user_caches(user_id)
-            logger.debug(f"Cleared cache for user {user_id} after data save")
-        except Exception as e:
-            logger.warning(f"Failed to clear cache for user {user_id}: {e}")
-
+        success = _save_single_data_type(user_id, dt, updates, auto_create)
+        result[dt] = success
+    
+    # Update index and cache
+    _update_index_and_cache(user_id, result, update_index)
+    
     return result
 
 @handle_errors("saving user data with transaction", default_return=False)

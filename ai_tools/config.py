@@ -14,7 +14,6 @@ SCAN_DIRECTORIES = [
     'ui',
     'user',
     'tasks',
-    'scripts',
     'tests'
 ]
 

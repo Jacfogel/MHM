@@ -1,3 +1,79 @@
+# MHM Development Plans
+
+## 🗓️ Recent Plans (Most Recent First)
+
+### 2025-08-21 - Helper Function Naming Convention Refactor
+
+**Status**: 🟡 **PLANNING**  
+**Priority**: High  
+**Effort**: Large (Multi-module refactor)  
+**Dependencies**: None  
+
+**Objective**: Implement consistent helper function naming convention using `_main_function__helper_name` pattern for better traceability and searchability.
+
+**Background**: Current helper functions use generic prefixes like `_set_` or `_validate_` which makes it difficult to trace which main function owns which helpers. The new convention will use the full main function name as prefix with double underscore separator.
+
+**Proposed Convention**:
+```python
+def set_read_only(self, read_only: bool = True):
+    self._set_read_only__time_inputs(read_only)
+    self._set_read_only__checkbox_states(read_only)
+    self._set_read_only__visual_styling(read_only)
+
+def validate_and_accept(self):
+    self._validate_and_accept__input_errors()
+    self._validate_and_accept__collect_data()
+    self._validate_and_accept__create_account()
+```
+
+**Benefits**:
+- **Searchable**: `grep "set_read_only"` finds both main function and all helpers
+- **Traceable**: Clear ownership of helper functions
+- **Intuitive**: Natural search patterns
+- **Scalable**: Works with multiple functions doing similar operations
+
+**Phase 1: Planning and Preparation** ✅
+- [x] Audit current helper functions across all modules
+- [x] Create comprehensive list of functions to refactor
+- [x] Test current state to establish baseline
+- [x] Create backup before starting
+
+**Phase 2: Refactor Core Modules**
+- [ ] Refactor `ui/widgets/period_row_widget.py` (set_read_only helpers)
+- [ ] Refactor `ui/dialogs/account_creator_dialog.py` (validate_and_accept helpers)
+- [ ] Refactor `core/user_data_handlers.py` (save_user_data helpers)
+- [ ] Refactor `core/file_operations.py` (create_user_files helpers)
+- [ ] Refactor `bot/interaction_handlers.py` (_handle_list_tasks helpers)
+- [ ] Refactor `tests/test_utilities.py` (_create_user_files_directly helpers)
+
+**Phase 3: Update References**
+- [ ] Find all function calls to renamed helpers
+- [ ] Update all references across the codebase
+- [ ] Update any imports if helpers are imported elsewhere
+
+**Phase 4: Testing and Validation**
+- [ ] Run comprehensive tests after each module
+- [ ] Run audit to verify no regressions
+- [ ] Manual testing of key functionality
+
+**Phase 5: Documentation and Cleanup**
+- [ ] Update documentation files
+- [ ] Update changelogs
+- [ ] Final git commit and push
+
+**Risk Assessment**:
+- **High Impact**: Affects multiple modules and function signatures
+- **Mitigation**: Incremental refactoring with testing after each module
+- **Rollback**: Backup created, can revert if issues arise
+
+**Success Criteria**:
+- All helper functions follow new naming convention
+- All tests pass
+- No functionality regressions
+- Improved code traceability and searchability
+
+---
+
 # PLANS - Development Plans & Strategies
 
 > **Audience**: Human Developer & AI Collaborators  

@@ -193,58 +193,89 @@ class TaskManagementHandler(InteractionHandler):
         priority_filter = entities.get('priority')
         tag_filter = entities.get('tag')
         
+        # Apply filters and get filtered tasks
+        filtered_tasks = self._apply_task_filters(user_id, tasks, filter_type, priority_filter, tag_filter)
+        if not filtered_tasks:
+            return self._get_no_tasks_response(filter_type, priority_filter, tag_filter)
+        
+        # Sort tasks by priority and due date
+        sorted_tasks = self._sort_tasks_by_priority_and_date(filtered_tasks)
+        
+        # Format task list with enhanced details
+        task_list = self._format_task_list(sorted_tasks)
+        
+        # Build response with filter info
+        filter_info = self._build_filter_info(filter_type, priority_filter, tag_filter)
+        response = self._build_task_list_response(task_list, filter_info, len(sorted_tasks))
+        
+        # Generate contextual suggestions
+        suggestions = self._generate_task_suggestions(sorted_tasks, filter_info)
+        
+        # Create rich data for Discord embeds
+        rich_data = self._create_task_rich_data(filter_info, sorted_tasks)
+        
+        return InteractionResponse(
+            response, 
+            True,
+            rich_data=rich_data,
+            suggestions=suggestions if suggestions else None
+        )
+
+    def _apply_task_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
+        """Apply filters to tasks and return filtered list."""
+        filtered_tasks = tasks.copy()
+        
+        # Apply filter type
         if filter_type == 'due_soon':
-            tasks = get_tasks_due_soon(user_id, days=7)
-            if not tasks:
-                return InteractionResponse("No tasks due in the next 7 days! 🎉", True)
+            filtered_tasks = get_tasks_due_soon(user_id, days=7)
         elif filter_type == 'overdue':
             from datetime import datetime
             today = datetime.now().strftime('%Y-%m-%d')
-            tasks = [task for task in tasks if task.get('due_date') and task['due_date'] < today]
-            if not tasks:
-                return InteractionResponse("No overdue tasks! 🎉", True)
+            filtered_tasks = [task for task in filtered_tasks if task.get('due_date') and task['due_date'] < today]
         elif filter_type == 'high_priority':
-            tasks = [task for task in tasks if task.get('priority') == 'high']
-            if not tasks:
-                return InteractionResponse("No high priority tasks! 🎉", True)
+            filtered_tasks = [task for task in filtered_tasks if task.get('priority') == 'high']
         
         # Apply priority filter
         if priority_filter and priority_filter in ['low', 'medium', 'high']:
-            tasks = [task for task in tasks if task.get('priority') == priority_filter]
-            if not tasks:
-                return InteractionResponse(f"No {priority_filter} priority tasks! 🎉", True)
+            filtered_tasks = [task for task in filtered_tasks if task.get('priority') == priority_filter]
         
         # Apply tag filter
         if tag_filter:
-            tasks = [task for task in tasks if tag_filter in task.get('tags', [])]
-            if not tasks:
-                return InteractionResponse(f"No tasks with tag '{tag_filter}'! 🎉", True)
+            filtered_tasks = [task for task in filtered_tasks if tag_filter in task.get('tags', [])]
         
-        # Sort tasks by priority and due date
+        return filtered_tasks
+
+    def _get_no_tasks_response(self, filter_type, priority_filter, tag_filter):
+        """Get appropriate response when no tasks match filters."""
+        if filter_type == 'due_soon':
+            return InteractionResponse("No tasks due in the next 7 days! 🎉", True)
+        elif filter_type == 'overdue':
+            return InteractionResponse("No overdue tasks! 🎉", True)
+        elif filter_type == 'high_priority':
+            return InteractionResponse("No high priority tasks! 🎉", True)
+        elif priority_filter:
+            return InteractionResponse(f"No {priority_filter} priority tasks! 🎉", True)
+        elif tag_filter:
+            return InteractionResponse(f"No tasks with tag '{tag_filter}'! 🎉", True)
+        else:
+            return InteractionResponse("You have no active tasks. Great job staying on top of things! 🎉", True)
+
+    def _sort_tasks_by_priority_and_date(self, tasks):
+        """Sort tasks by priority and due date."""
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
-        tasks.sort(key=lambda x: (
+        return sorted(tasks, key=lambda x: (
             priority_order.get(x.get('priority', 'medium'), 1),
             x.get('due_date') or '9999-12-31'  # Handle None due_date properly
         ))
-        
-        # Format task list with enhanced details
+
+    def _format_task_list(self, tasks):
+        """Format task list with enhanced details."""
         task_list = []
         for i, task in enumerate(tasks[:10], 1):  # Limit to 10 tasks
             priority_emoji = {'high': '🔴', 'medium': '🟡', 'low': '🟢'}.get(task.get('priority', 'medium'), '🟡')
             
             # Format due date with urgency indicator
-            due_date = task.get('due_date')
-            if due_date:
-                from datetime import datetime
-                today = datetime.now().strftime('%Y-%m-%d')
-                if due_date < today:
-                    due_info = f" (OVERDUE: {due_date})"
-                elif due_date == today:
-                    due_info = f" (due TODAY: {due_date})"
-                else:
-                    due_info = f" (due: {due_date})"
-            else:
-                due_info = ""
+            due_info = self._format_due_date_info(task.get('due_date'))
             
             # Add tags if present
             tags = task.get('tags', [])
@@ -256,7 +287,24 @@ class TaskManagementHandler(InteractionHandler):
             
             task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}{tags_info}{desc_info}")
         
-        # Build response with filter info
+        return task_list
+
+    def _format_due_date_info(self, due_date):
+        """Format due date with urgency indicator."""
+        if not due_date:
+            return ""
+        
+        from datetime import datetime
+        today = datetime.now().strftime('%Y-%m-%d')
+        if due_date < today:
+            return f" (OVERDUE: {due_date})"
+        elif due_date == today:
+            return f" (due TODAY: {due_date})"
+        else:
+            return f" (due: {due_date})"
+
+    def _build_filter_info(self, filter_type, priority_filter, tag_filter):
+        """Build filter information list."""
         filter_info = []
         if filter_type:
             filter_info.append(f"filter: {filter_type}")
@@ -264,57 +312,32 @@ class TaskManagementHandler(InteractionHandler):
             filter_info.append(f"priority: {priority_filter}")
         if tag_filter:
             filter_info.append(f"tag: {tag_filter}")
-        
+        return filter_info
+
+    def _build_task_list_response(self, task_list, filter_info, total_tasks):
+        """Build the main task list response."""
         response = "**Your Active Tasks"
         if filter_info:
             response += f" ({', '.join(filter_info)})"
         response += ":**\n" + "\n".join(task_list)
         
-        if len(tasks) > 10:
-            response += f"\n... and {len(tasks) - 10} more tasks"
+        if total_tasks > 10:
+            response += f"\n... and {total_tasks - 10} more tasks"
         
-        # Add contextual suggestions based on current state
+        return response
+
+    def _generate_task_suggestions(self, tasks, filter_info):
+        """Generate contextual suggestions based on current state."""
         suggestions = []
         
         # Only add suggestions if we have tasks and no filters are applied
         if not filter_info and len(tasks) > 0:
-            # Check for overdue tasks
-            overdue_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] < datetime.now().strftime('%Y-%m-%d'))
-            if overdue_count > 0:
-                suggestions.append(f"Show {overdue_count} overdue tasks")
+            # Add one contextual "show" suggestion if available
+            contextual_suggestion = self._get_contextual_show_suggestion(tasks)
+            if contextual_suggestion:
+                suggestions.append(contextual_suggestion)
             
-            # Check for high priority tasks
-            high_priority_count = sum(1 for task in tasks if task.get('priority') == 'high')
-            if high_priority_count > 0:
-                suggestions.append(f"Show {high_priority_count} high priority tasks")
-            
-            # Check for tasks due soon
-            due_soon_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] <= (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d'))
-            if due_soon_count > 0:
-                suggestions.append(f"Show {due_soon_count} tasks due soon")
-        
-        # Create balanced suggestions: one show-type, one action-type, one action-type
-        suggestions = []
-        
-        # Add one contextual "show" suggestion if available
-        if not filter_info and len(tasks) > 0:
-            # Check for overdue tasks first
-            overdue_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] < datetime.now().strftime('%Y-%m-%d'))
-            if overdue_count > 0:
-                suggestions.append(f"Show {overdue_count} overdue tasks")
-            else:
-                # Check for high priority tasks
-                high_priority_count = sum(1 for task in tasks if task.get('priority') == 'high')
-                if high_priority_count > 0:
-                    suggestions.append(f"Show {high_priority_count} high priority tasks")
-                else:
-                    # Check for tasks due soon
-                    due_soon_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] <= (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d'))
-                    if due_soon_count > 0:
-                        suggestions.append(f"Show {due_soon_count} tasks due soon")
-        
-        # Add action-oriented suggestions (only relevant to listing context)
-        if len(tasks) > 0 and not filter_info:
+            # Add action-oriented suggestions (only relevant to listing context)
             suggestions.append("Add a reminder to a task")
             suggestions.append("Edit a task")
         
@@ -328,9 +351,31 @@ class TaskManagementHandler(InteractionHandler):
                 break
         
         # Limit to exactly 3 suggestions
-        suggestions = suggestions[:3]
+        return suggestions[:3]
+
+    def _get_contextual_show_suggestion(self, tasks):
+        """Get contextual show suggestion based on task analysis."""
+        from datetime import datetime, timedelta
         
-        # Create rich data for Discord embeds
+        # Check for overdue tasks first
+        overdue_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] < datetime.now().strftime('%Y-%m-%d'))
+        if overdue_count > 0:
+            return f"Show {overdue_count} overdue tasks"
+        
+        # Check for high priority tasks
+        high_priority_count = sum(1 for task in tasks if task.get('priority') == 'high')
+        if high_priority_count > 0:
+            return f"Show {high_priority_count} high priority tasks"
+        
+        # Check for tasks due soon
+        due_soon_count = sum(1 for task in tasks if task.get('due_date') and task['due_date'] <= (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d'))
+        if due_soon_count > 0:
+            return f"Show {due_soon_count} tasks due soon"
+        
+        return None
+
+    def _create_task_rich_data(self, filter_info, tasks):
+        """Create rich data for Discord embeds."""
         rich_data = {
             'type': 'task',
             'title': 'Your Active Tasks',
@@ -366,12 +411,7 @@ class TaskManagementHandler(InteractionHandler):
                 'inline': True
             })
         
-        return InteractionResponse(
-            response, 
-            True,
-            rich_data=rich_data,
-            suggestions=suggestions if suggestions else None
-        )
+        return rich_data
     
     def _handle_complete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task completion"""

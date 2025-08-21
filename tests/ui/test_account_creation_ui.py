@@ -227,7 +227,9 @@ class TestAccountCreationDialogRealBehavior:
         # Set up username and timezone first (required for validation to proceed past these checks)
         username_edit = dialog.ui.lineEdit_username
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        QTest.keyClicks(username_edit, "testuser")
+        # Use unique username to avoid conflicts
+        unique_username = f"testuser_feature_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        QTest.keyClicks(username_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
         
@@ -285,7 +287,9 @@ class TestAccountCreationDialogRealBehavior:
         # Set up username and timezone first (required for validation to proceed past these checks)
         username_edit = dialog.ui.lineEdit_username
         timezone_combo = dialog.channel_widget.ui.comboBox_timezone
-        QTest.keyClicks(username_edit, "testuser")
+        # Use unique username to avoid conflicts
+        unique_username = f"testuser_messages_validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        QTest.keyClicks(username_edit, unique_username)
         timezone_combo.setCurrentText("America/New_York")
         QApplication.processEvents()
         

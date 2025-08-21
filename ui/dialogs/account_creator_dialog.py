@@ -558,11 +558,8 @@ class AccountCreatorDialog(QDialog):
         logger.info("Validation successful.")
         return True, ""
     
-    def validate_and_accept(self):
-        """Validate input and accept the dialog."""
-        logger.info("validate_and_accept() called - starting account creation process")
-        
-        # Read current values from UI fields
+    def _collect_basic_user_info(self) -> tuple[str, str]:
+        """Collect basic user information from UI fields."""
         username_edit = self.ui.lineEdit_username
         if username_edit:
             self.username = username_edit.text().strip().lower()
@@ -572,253 +569,306 @@ class AccountCreatorDialog(QDialog):
             self.preferred_name = preferred_name_edit.text().strip()
         
         logger.info(f"Collected basic info - username: '{self.username}', preferred_name: '{self.preferred_name}'")
+        return self.username, self.preferred_name
+    
+    def _collect_feature_settings(self) -> tuple[bool, bool, bool]:
+        """Collect feature enablement states from UI."""
+        messages_enabled = self.ui.checkBox_enable_messages.isChecked()
+        tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
+        checkins_enabled = self.ui.checkBox_enable_checkins.isChecked()
+        logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
+        return messages_enabled, tasks_enabled, checkins_enabled
+    
+    def _collect_channel_data(self) -> tuple[str, dict, dict]:
+        """Collect channel and contact information from widgets."""
+        # Get selected timezone from channel widget
+        timezone = self.channel_widget.get_timezone() if hasattr(self, 'channel_widget') else "America/Regina"
+        logger.info(f"Timezone: {timezone}")
+        
+        # Use the correct method names from ChannelSelectionWidget
+        selected_service, contact_value = self.channel_widget.get_selected_channel() if hasattr(self, 'channel_widget') else (None, None)
+        channel_data = {'type': selected_service.lower() if selected_service else 'discord'}
+        logger.info(f"Channel widget data - service: {selected_service}, contact: {contact_value}")
+        
+        # Collect contact info
+        if hasattr(self, 'channel_widget'):
+            # Collect ALL contact info fields, not just the selected one
+            # Get all contact fields from the channel widget
+            email = self.channel_widget.ui.lineEdit_email.text().strip()
+            # Phone field was removed when Telegram was removed - use safe access
+            phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
+            phone = phone.text().strip() if phone else ""
+            discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
+            logger.info(f"Contact fields - email: '{email}', phone: '{phone}', discord: '{discord_id}'")
+        else:
+            email = phone = discord_id = ""
+        
+        contact_info = {
+            'email': email,
+            'phone': phone,
+            'discord': discord_id
+        }
+        
+        return timezone, channel_data, contact_info
+    
+    def _collect_widget_data(self) -> tuple[list, dict, dict]:
+        """Collect data from all widgets."""
+        logger.info("About to collect category widget data")
+        categories = self.category_widget.get_selected_categories() if hasattr(self, 'category_widget') else []
+        logger.info(f"Selected categories: {categories}")
+        
+        logger.info("About to collect task widget data")
+        task_settings = self.task_widget.get_task_settings() if hasattr(self, 'task_widget') else {}
+        
+        logger.info("About to collect checkin widget data")
+        checkin_settings = self.checkin_widget.get_checkin_settings() if hasattr(self, 'checkin_widget') else {}
+        
+        return categories, task_settings, checkin_settings
+    
+    def _build_account_data(self, username: str, preferred_name: str, timezone: str, 
+                           channel_data: dict, contact_info: dict, categories: list,
+                           task_settings: dict, checkin_settings: dict,
+                           messages_enabled: bool, tasks_enabled: bool, checkins_enabled: bool) -> dict:
+        """Build the complete account data structure."""
+        logger.info("About to build account_data")
+        account_data = {
+            'username': username,
+            'preferred_name': preferred_name,
+            'categories': categories,
+            'channel': channel_data,
+            'contact_info': contact_info,
+            'task_settings': task_settings,
+            'checkin_settings': checkin_settings,
+            'personalization_data': self.personalization_data,
+            'timezone': timezone,
+            'features_enabled': {
+                'messages': messages_enabled,
+                'tasks': tasks_enabled,
+                'checkins': checkins_enabled
+            }
+        }
+        logger.info(f"Account data built: {account_data}")
+        return account_data
+    
+    def _show_error_dialog(self, title: str, message: str):
+        """Show an error dialog with the given title and message."""
+        error_dialog = QMessageBox(self)
+        error_dialog.setIcon(QMessageBox.Icon.Critical)
+        error_dialog.setWindowTitle(title)
+        error_dialog.setText(message)
+        error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        error_dialog.setModal(True)
+        error_dialog.exec()
+    
+    def _show_success_dialog(self, username: str):
+        """Show a success dialog for account creation."""
+        success_dialog = QMessageBox(self)
+        success_dialog.setIcon(QMessageBox.Icon.Information)
+        success_dialog.setWindowTitle("Account Created Successfully")
+        success_dialog.setText(f"Account '{username}' has been created successfully!")
+        success_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+        success_dialog.setModal(True)
+        success_dialog.exec()
+    
+    def validate_and_accept(self):
+        """Validate input and accept the dialog."""
+        logger.info("validate_and_accept() called - starting account creation process")
+        
+        # Validate input first
+        if not self._validate_input_and_show_errors():
+            return  # Return without closing the dialog
+        
+        # Collect all data and create account
+        try:
+            account_data = self._collect_all_account_data()
+            success = self._create_account_and_setup(account_data)
+            
+            if success:
+                self._handle_successful_creation(account_data['username'])
+            else:
+                self._show_error_dialog("Account Creation Failed", "Failed to create account. Please try again.")
+        except Exception as e:
+            logger.error(f"Error during account creation: {e}")
+            self._show_error_dialog("Account Creation Error", f"An error occurred while creating the account: {str(e)}")
+    
+    def _validate_input_and_show_errors(self) -> bool:
+        """Validate input and show error dialog if validation fails."""
+        username, preferred_name = self._collect_basic_user_info()
         
         is_valid, error_message = self.validate_input()
         logger.info(f"Validation result: valid={is_valid}, error_message='{error_message}'")
         
         if not is_valid:
-            # Use a modal dialog that doesn't close the account creation dialog
-            error_dialog = QMessageBox(self)
-            error_dialog.setIcon(QMessageBox.Icon.Critical)
-            error_dialog.setWindowTitle("Validation Error")
-            error_dialog.setText(error_message)
-            error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-            error_dialog.setModal(True)
-            error_dialog.exec()
+            self._show_error_dialog("Validation Error", error_message)
             logger.warning(f"Account creation failed validation: {error_message}")
-            return  # Return without closing the dialog
+            return False
         
         logger.info("Validation passed, proceeding with account creation")
+        return True
+    
+    def _collect_all_account_data(self) -> dict:
+        """Collect all data from UI and build account data structure."""
+        messages_enabled, tasks_enabled, checkins_enabled = self._collect_feature_settings()
+        timezone, channel_data, contact_info = self._collect_channel_data()
+        categories, task_settings, checkin_settings = self._collect_widget_data()
         
+        username, preferred_name = self._collect_basic_user_info()
+        
+        return self._build_account_data(
+            username, preferred_name, timezone, channel_data, contact_info,
+            categories, task_settings, checkin_settings,
+            messages_enabled, tasks_enabled, checkins_enabled
+        )
+    
+    def _create_account_and_setup(self, account_data: dict) -> bool:
+        """Create the account and set up all necessary components."""
         try:
-            # Get selected timezone from channel widget
-            timezone = self.channel_widget.get_timezone() if hasattr(self, 'channel_widget') else "America/Regina"
-            logger.info(f"Timezone: {timezone}")
-            
-            # Get feature enablement states
-            messages_enabled = self.ui.checkBox_enable_messages.isChecked()
-            tasks_enabled = self.ui.checkBox_enable_task_management.isChecked()
-            checkins_enabled = self.ui.checkBox_enable_checkins.isChecked()
-            logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
-            
-            # Collect data from widgets
-            logger.info("About to collect channel widget data")
-            # Use the correct method names from ChannelSelectionWidget
-            selected_service, contact_value = self.channel_widget.get_selected_channel() if hasattr(self, 'channel_widget') else (None, None)
-            channel_data = {'type': selected_service.lower() if selected_service else 'discord'}
-            logger.info(f"Channel widget data - service: {selected_service}, contact: {contact_value}")
-            
-            # Collect contact info
-            if hasattr(self, 'channel_widget'):
-                # Collect ALL contact info fields, not just the selected one
-                # Get all contact fields from the channel widget
-                email = self.channel_widget.ui.lineEdit_email.text().strip()
-                # Phone field was removed when Telegram was removed - use safe access
-                phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
-                phone = phone.text().strip() if phone else ""
-                discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
-                logger.info(f"Contact fields - email: '{email}', phone: '{phone}', discord: '{discord_id}'")
-            else:
-                email = phone = discord_id = ""
-            
-            logger.info("About to collect category widget data")
-            categories = self.category_widget.get_selected_categories() if hasattr(self, 'category_widget') else []
-            logger.info(f"Selected categories: {categories}")
-            
-            logger.info("About to collect task widget data")
-            task_settings = self.task_widget.get_task_settings() if hasattr(self, 'task_widget') else {}
-            
-            logger.info("About to collect checkin widget data")
-            checkin_settings = self.checkin_widget.get_checkin_settings() if hasattr(self, 'checkin_widget') else {}
-            
-            # Build account data
-            logger.info("About to build account_data")
-            account_data = {
-                'username': self.username,
-                'preferred_name': self.preferred_name,
-                'categories': categories,
-                'channel': channel_data,
-                'contact_info': {
-                    'email': email,
-                    'phone': phone,
-                    'discord': discord_id
-                },
-                'task_settings': task_settings,
-                'checkin_settings': checkin_settings,
-                'personalization_data': self.personalization_data,
-                'timezone': timezone,
-                'features_enabled': {
-                    'messages': messages_enabled,
-                    'tasks': tasks_enabled,
-                    'checkins': checkins_enabled
-                }
-            }
-            logger.info(f"Account data built: {account_data}")
-            
-            # Create the account
-            try:
-                logger.info("About to call create_account()")
-                success = self.create_account(account_data)
-                logger.info(f"create_account() returned: {success}")
-                if success:
-                    self.user_changed.emit()
-                    # Show success message and close dialog
-                    success_dialog = QMessageBox(self)
-                    success_dialog.setIcon(QMessageBox.Icon.Information)
-                    success_dialog.setWindowTitle("Account Created Successfully")
-                    success_dialog.setText(f"Account '{self.username}' has been created successfully!")
-                    success_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-                    success_dialog.setModal(True)
-                    success_dialog.exec()
-                    # Close the dialog after successful account creation
-                    self.close_dialog()
-                else:
-                    # Use a modal dialog for account creation failure as well
-                    error_dialog = QMessageBox(self)
-                    error_dialog.setIcon(QMessageBox.Icon.Critical)
-                    error_dialog.setWindowTitle("Account Creation Failed")
-                    error_dialog.setText("Failed to create account. Please try again.")
-                    error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-                    error_dialog.setModal(True)
-                    error_dialog.exec()
-            except Exception as e:
-                # Handle actual errors during account creation
-                logger.error(f"Error during account creation: {e}")
-                error_dialog = QMessageBox(self)
-                error_dialog.setIcon(QMessageBox.Icon.Critical)
-                error_dialog.setWindowTitle("Account Creation Error")
-                error_dialog.setText(f"An error occurred while creating the account: {str(e)}")
-                error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-                error_dialog.setModal(True)
-                error_dialog.exec()
+            logger.info("About to call create_account()")
+            success = self.create_account(account_data)
+            logger.info(f"create_account() returned: {success}")
+            return success
         except Exception as e:
-            # Handle actual errors during account creation
             logger.error(f"Error during account creation: {e}")
-            error_dialog = QMessageBox(self)
-            error_dialog.setIcon(QMessageBox.Icon.Critical)
-            error_dialog.setWindowTitle("Account Creation Error")
-            error_dialog.setText(f"An error occurred while creating the account: {str(e)}")
-            error_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
-            error_dialog.setModal(True)
-            error_dialog.exec()
+            return False
+    
+    def _handle_successful_creation(self, username: str):
+        """Handle successful account creation."""
+        self.user_changed.emit()
+        self._show_success_dialog(username)
+        self.close_dialog()
     
     def create_account(self, account_data: Dict[str, Any]) -> bool:
         """Create the user account."""
         try:
-            # Generate a new user ID
             user_id = str(uuid.uuid4())
-            # Map contact info correctly
-            contact_info = account_data['contact_info']
-            email = contact_info.get('email', '')
-            phone = contact_info.get('phone', '')  # Changed from 'telegram' to 'phone'
-            discord_user_id = contact_info.get('discord', '')
-
-            # Determine chat_id based on service type
-            channel_type = account_data['channel']['type']
-            chat_id = ''
-            if channel_type == 'email':
-                chat_id = email
-            elif channel_type == 'telegram':
-                chat_id = phone
-            elif channel_type == 'discord':
-                chat_id = discord_user_id
-
-            # Get feature enablement from the correct key
-            features_enabled = account_data.get('features_enabled', {})
-            messages_enabled = features_enabled.get('messages', False)
-            tasks_enabled = features_enabled.get('tasks', False)
-            checkins_enabled = features_enabled.get('checkins', False)
-
-            # Build the features dict in the correct format
-            features = {
-                'automated_messages': 'enabled' if messages_enabled else 'disabled',
-                'checkins': 'enabled' if checkins_enabled else 'disabled',
-                'task_management': 'enabled' if tasks_enabled else 'disabled'
-            }
-
-            # Prepare user preferences data for create_user_files
-            user_preferences = {
-                'internal_username': account_data['username'],
-                'chat_id': chat_id,
-                'phone': phone,
-                'email': email,
-                'discord_user_id': discord_user_id,
-                'timezone': account_data['timezone'],
-                'channel': account_data['channel'],
-                'categories': account_data['categories'],
-                'features': features,
-                # Pass the complete personalization data structure
-                'personalization_data': account_data.get('personalization_data', {}),
-                # Add feature enablement information for create_user_files
-                'features_enabled': {
-                    'messages': messages_enabled,
-                    'tasks': tasks_enabled,
-                    'checkins': checkins_enabled
-                }
-            }
-
-            # Add task settings if tasks are enabled (without enabled flag)
-            if tasks_enabled:
-                task_settings = account_data.get('task_settings', {})
-                # Remove enabled flag if present - it goes in account.json features
-                if 'enabled' in task_settings:
-                    del task_settings['enabled']
-                user_preferences['task_settings'] = task_settings
-                
-            # Add check-in settings if check-ins are enabled (without enabled flag)
-            if checkins_enabled:
-                checkin_settings = account_data.get('checkin_settings', {})
-                # Remove enabled flag if present - it goes in account.json features
-                if 'enabled' in checkin_settings:
-                    del checkin_settings['enabled']
-                user_preferences['checkin_settings'] = checkin_settings
-                
-            # Create user files with actual data
+            user_preferences = self._build_user_preferences(account_data)
+            
+            # Create user files
             from core.file_operations import create_user_files
             create_user_files(user_id, account_data['categories'], user_preferences)
             
-            # Set up task tags if task management is enabled
-            if tasks_enabled:
-                task_settings = account_data.get('task_settings', {})
-                custom_tags = task_settings.get('tags', [])
-                
-                if custom_tags:
-                    # Save custom tags that were added during account creation
-                    from tasks.task_management import add_user_task_tag
-                    for tag in custom_tags:
-                        add_user_task_tag(user_id, tag)
-                    logger.info(f"Saved {len(custom_tags)} custom tags for new user {user_id}: {custom_tags}")
-                else:
-                    # Set up default tags only if no custom tags were added
-                    from tasks.task_management import setup_default_task_tags
-                    setup_default_task_tags(user_id)
-                    logger.info(f"Set up default task tags for new user {user_id}")
-
-            # Update user index
-            try:
-                from core.user_data_manager import update_user_index
-                update_user_index(user_id)
-            except Exception as e:
-                logger.warning(f"Failed to update user index for new user {user_id}: {e}")
-
-            # Schedule the new user in the scheduler
-            try:
-                from core.service import get_scheduler_manager
-                scheduler_manager = get_scheduler_manager()
-                if scheduler_manager:
-                    scheduler_manager.schedule_new_user(user_id)
-                    logger.info(f"Scheduled new user {user_id} in scheduler")
-                else:
-                    logger.warning(f"Scheduler manager not available, new user {user_id} not scheduled")
-            except Exception as e:
-                logger.warning(f"Failed to schedule new user {user_id} in scheduler: {e}")
-
+            # Set up additional components
+            self._setup_task_tags(user_id, account_data)
+            self._update_user_index(user_id)
+            self._schedule_new_user(user_id)
+            
             logger.info(f"Created new user: {user_id} ({account_data['username']})")
             return True
-
         except Exception as e:
             logger.error(f"Error creating account: {e}")
             return False
+    
+    def _build_user_preferences(self, account_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Build user preferences data structure."""
+        contact_info = account_data['contact_info']
+        features_enabled = account_data.get('features_enabled', {})
+        
+        # Extract contact info
+        email = contact_info.get('email', '')
+        phone = contact_info.get('phone', '')
+        discord_user_id = contact_info.get('discord', '')
+        
+        # Determine chat_id based on service type
+        chat_id = self._determine_chat_id(account_data['channel']['type'], email, phone, discord_user_id)
+        
+        # Build features dict
+        features = self._build_features_dict(features_enabled)
+        
+        # Build base preferences
+        user_preferences = {
+            'internal_username': account_data['username'],
+            'chat_id': chat_id,
+            'phone': phone,
+            'email': email,
+            'discord_user_id': discord_user_id,
+            'timezone': account_data['timezone'],
+            'channel': account_data['channel'],
+            'categories': account_data['categories'],
+            'features': features,
+            'personalization_data': account_data.get('personalization_data', {}),
+            'features_enabled': features_enabled
+        }
+        
+        # Add feature-specific settings
+        self._add_feature_settings(user_preferences, account_data, features_enabled)
+        
+        return user_preferences
+    
+    def _determine_chat_id(self, channel_type: str, email: str, phone: str, discord_user_id: str) -> str:
+        """Determine chat_id based on channel type."""
+        if channel_type == 'email':
+            return email
+        elif channel_type == 'telegram':
+            return phone
+        elif channel_type == 'discord':
+            return discord_user_id
+        return ''
+    
+    def _build_features_dict(self, features_enabled: Dict[str, bool]) -> Dict[str, str]:
+        """Build features dictionary in the correct format."""
+        return {
+            'automated_messages': 'enabled' if features_enabled.get('messages', False) else 'disabled',
+            'checkins': 'enabled' if features_enabled.get('checkins', False) else 'disabled',
+            'task_management': 'enabled' if features_enabled.get('tasks', False) else 'disabled'
+        }
+    
+    def _add_feature_settings(self, user_preferences: Dict[str, Any], account_data: Dict[str, Any], features_enabled: Dict[str, bool]):
+        """Add feature-specific settings to user preferences."""
+        # Add task settings if tasks are enabled
+        if features_enabled.get('tasks', False):
+            task_settings = account_data.get('task_settings', {}).copy()
+            if 'enabled' in task_settings:
+                del task_settings['enabled']
+            user_preferences['task_settings'] = task_settings
+        
+        # Add check-in settings if check-ins are enabled
+        if features_enabled.get('checkins', False):
+            checkin_settings = account_data.get('checkin_settings', {}).copy()
+            if 'enabled' in checkin_settings:
+                del checkin_settings['enabled']
+            user_preferences['checkin_settings'] = checkin_settings
+    
+    def _setup_task_tags(self, user_id: str, account_data: Dict[str, Any]):
+        """Set up task tags for the new user."""
+        features_enabled = account_data.get('features_enabled', {})
+        if not features_enabled.get('tasks', False):
+            return
+        
+        task_settings = account_data.get('task_settings', {})
+        custom_tags = task_settings.get('tags', [])
+        
+        if custom_tags:
+            # Save custom tags that were added during account creation
+            from tasks.task_management import add_user_task_tag
+            for tag in custom_tags:
+                add_user_task_tag(user_id, tag)
+            logger.info(f"Saved {len(custom_tags)} custom tags for new user {user_id}: {custom_tags}")
+        else:
+            # Set up default tags only if no custom tags were added
+            from tasks.task_management import setup_default_task_tags
+            setup_default_task_tags(user_id)
+            logger.info(f"Set up default task tags for new user {user_id}")
+    
+    def _update_user_index(self, user_id: str):
+        """Update user index for the new user."""
+        try:
+            from core.user_data_manager import update_user_index
+            update_user_index(user_id)
+        except Exception as e:
+            logger.warning(f"Failed to update user index for new user {user_id}: {e}")
+    
+    def _schedule_new_user(self, user_id: str):
+        """Schedule the new user in the scheduler."""
+        try:
+            from core.service import get_scheduler_manager
+            scheduler_manager = get_scheduler_manager()
+            if scheduler_manager:
+                scheduler_manager.schedule_new_user(user_id)
+                logger.info(f"Scheduled new user {user_id} in scheduler")
+            else:
+                logger.warning(f"Scheduler manager not available, new user {user_id} not scheduled")
+        except Exception as e:
+            logger.warning(f"Failed to schedule new user {user_id} in scheduler: {e}")
     
     def get_account_data(self):
         """Get the account data from the form."""

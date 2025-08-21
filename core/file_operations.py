@@ -247,139 +247,193 @@ def create_user_files(user_id, categories, user_preferences=None):
     # Always use a dict for user_prefs to avoid NoneType errors
     user_prefs = user_preferences or {}
     
-    # Determine which features are enabled first
-    tasks_enabled = False
-    checkins_enabled = False
+    # Determine which features are enabled
+    tasks_enabled, checkins_enabled = _determine_feature_enablement(user_prefs)
     
-    if user_prefs:
-        # Check for explicit feature enablement in account_data
-        features_enabled = user_prefs.get('features_enabled', {})
-        if features_enabled:
-            tasks_enabled = features_enabled.get('tasks', False)
-            checkins_enabled = features_enabled.get('checkins', False)
-        else:
-            # Fallback to checking settings (legacy approach)
-            checkin_settings = user_prefs.get('checkin_settings', {})
-            task_settings = user_prefs.get('task_settings', {})
-            tasks_enabled = task_settings.get('enabled', False)
-            checkins_enabled = checkin_settings.get('enabled', False)
+    # Create core user files
+    _create_account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
+    _create_preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)
+    _create_context_file(user_id, user_prefs)
+    _create_schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)
+    
+    # Create log files
+    _create_log_files(user_id)
+    
+    # Create sent messages file
+    _create_sent_messages_file(user_id)
+    
+    # Create task files if enabled
+    if tasks_enabled:
+        _create_task_files(user_id)
+    
+    # Create checkins file if enabled
+    if checkins_enabled:
+        _create_checkins_file(user_id)
+    
+    # Create message files for categories
+    if categories:
+        _create_message_files(user_id, categories)
+    
+    # Auto-update message references and user index
+    _update_user_references(user_id)
+                
+    logger.info(f"Successfully created all user files for user {user_id}")
+
+
+def _determine_feature_enablement(user_prefs):
+    """
+    Determine which features are enabled based on user preferences.
+    
+    Args:
+        user_prefs: User preferences dictionary
+        
+    Returns:
+        tuple: (tasks_enabled, checkins_enabled)
+    """
+    if not user_prefs:
+        return False, False
+    
+    # Check for explicit feature enablement in account_data
+    features_enabled = user_prefs.get('features_enabled', {})
+    if features_enabled:
+        tasks_enabled = features_enabled.get('tasks', False)
+        checkins_enabled = features_enabled.get('checkins', False)
     else:
-        # Default to not creating files if no preferences provided
-        tasks_enabled = False
-        checkins_enabled = False
+        # Fallback to checking settings (legacy approach)
+        checkin_settings = user_prefs.get('checkin_settings', {})
+        task_settings = user_prefs.get('task_settings', {})
+        tasks_enabled = task_settings.get('enabled', False)
+        checkins_enabled = checkin_settings.get('enabled', False)
     
-    # Create account.json with actual user data
+    return tasks_enabled, checkins_enabled
+
+
+def _create_account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
+    """Create account.json with actual user data."""
     account_file = get_user_file_path(user_id, 'account')
-    if not os.path.exists(account_file):
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Get actual user data from user_preferences if available
-        internal_username = user_prefs.get('internal_username', "")
-        chat_id = user_prefs.get('chat_id', "")
-        phone = user_prefs.get('phone', "")
-        email = user_prefs.get('email', "")
-        discord_user_id = user_prefs.get('discord_user_id', "")
-        timezone = user_prefs.get('timezone', "")
-        
-        # Determine chat_id based on channel type
-        channel = user_prefs.get('channel', {})
-        channel_type = channel.get('type', 'email')
-        if channel_type == 'email':
-            chat_id = email
-        # Telegram removed
-        elif channel_type == 'discord':
-            chat_id = discord_user_id
-        
-        account_data = {
-            "user_id": user_id,
-            "internal_username": internal_username,
-            "account_status": "active",
-            "chat_id": chat_id,
-            "phone": phone,
-            "email": email,
-            "discord_user_id": discord_user_id,
-            "timezone": timezone,
-            "created_at": current_time,
-            "updated_at": current_time,
-            "features": {
-                "automated_messages": "enabled" if categories else "disabled",
-                "checkins": "enabled" if checkins_enabled else "disabled",
-                "task_management": "enabled" if tasks_enabled else "disabled"
-            }
-        }
-        save_json_data(account_data, account_file)
-        logger.debug(f"Created account file for user {user_id}")
+    if os.path.exists(account_file):
+        return
     
-    # Create preferences.json with actual user data
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Get actual user data from user_preferences if available
+    internal_username = user_prefs.get('internal_username', "")
+    chat_id = user_prefs.get('chat_id', "")
+    phone = user_prefs.get('phone', "")
+    email = user_prefs.get('email', "")
+    discord_user_id = user_prefs.get('discord_user_id', "")
+    timezone = user_prefs.get('timezone', "")
+    
+    # Determine chat_id based on channel type
+    channel = user_prefs.get('channel', {})
+    channel_type = channel.get('type', 'email')
+    if channel_type == 'email':
+        chat_id = email
+    # LEGACY COMPATIBILITY: Telegram removed
+    elif channel_type == 'discord':
+        chat_id = discord_user_id
+    
+    account_data = {
+        "user_id": user_id,
+        "internal_username": internal_username,
+        "account_status": "active",
+        "chat_id": chat_id,
+        "phone": phone,
+        "email": email,
+        "discord_user_id": discord_user_id,
+        "timezone": timezone,
+        "created_at": current_time,
+        "updated_at": current_time,
+        "features": {
+            "automated_messages": "enabled" if categories else "disabled",
+            "checkins": "enabled" if checkins_enabled else "disabled",
+            "task_management": "enabled" if tasks_enabled else "disabled"
+        }
+    }
+    save_json_data(account_data, account_file)
+    logger.debug(f"Created account file for user {user_id}")
+
+
+def _create_preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
+    """Create preferences.json with actual user data."""
     preferences_file = get_user_file_path(user_id, 'preferences')
-    if not os.path.exists(preferences_file):
-        # Use actual user preferences if available, otherwise create defaults
-        if user_prefs:
-            default_preferences = {
-                "categories": categories or [],
-                "channel": user_prefs.get('channel', {"type": "email"})
-            }
-            # Add check-in settings if available (but remove schedule periods)
-            if checkins_enabled and 'checkin_settings' in user_prefs:
-                checkin_settings = user_prefs['checkin_settings'].copy()
-                # Remove time_periods from preferences (they go in schedules.json)
-                if 'time_periods' in checkin_settings:
-                    del checkin_settings['time_periods']
-                default_preferences["checkin_settings"] = checkin_settings
-            # Add task settings if available (but remove schedule periods)
-            if tasks_enabled and 'task_settings' in user_prefs:
-                task_settings = user_prefs['task_settings'].copy()
-                # Remove time_periods from preferences (they go in schedules.json)
-                if 'time_periods' in task_settings:
-                    del task_settings['time_periods']
-                default_preferences["task_settings"] = task_settings
-        else:
-            default_preferences = {
-                "categories": categories or [],
-                "channel": {"type": "email"}
-            }
-            # Only add check-in settings if check-ins are enabled (without enabled flag)
-            if checkins_enabled:
-                default_preferences["checkin_settings"] = {}
-            # Only add task settings if tasks are enabled (without enabled flag)
-            if tasks_enabled:
-                default_preferences["task_settings"] = {}
-        save_json_data(default_preferences, preferences_file)
-        logger.debug(f"Created preferences file for user {user_id}")
+    if os.path.exists(preferences_file):
+        return
     
-    # Create user_context.json with actual personalization data
-    context_file = get_user_file_path(user_id, 'context')
-    if not os.path.exists(context_file):
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Get actual personalization data if available
-        personalization_data = user_prefs.get('personalization_data', {})
-        
-        # Get custom fields with proper nesting
-        custom_fields = personalization_data.get('custom_fields', {})
-        
-        context_data = {
-            "preferred_name": personalization_data.get('preferred_name', ""),
-            "gender_identity": personalization_data.get('gender_identity', []),
-            "date_of_birth": personalization_data.get('date_of_birth', ""),
-            "custom_fields": {
-                "health_conditions": custom_fields.get('health_conditions', []),
-                "medications_treatments": custom_fields.get('medications_treatments', []),
-                "reminders_needed": custom_fields.get('reminders_needed', []),
-                "allergies_sensitivities": custom_fields.get('allergies_sensitivities', [])
-            },
-            "interests": personalization_data.get('interests', []),
-            "goals": personalization_data.get('goals', []),
-            "loved_ones": personalization_data.get('loved_ones', []),
-            "activities_for_encouragement": personalization_data.get('activities_for_encouragement', []),
-            "notes_for_ai": personalization_data.get('notes_for_ai', []),
-            "created_at": current_time,
-            "last_updated": current_time
+    # Use actual user preferences if available, otherwise create defaults
+    if user_prefs:
+        default_preferences = {
+            "categories": categories or [],
+            "channel": user_prefs.get('channel', {"type": "email"})
         }
-        save_json_data(context_data, context_file)
-        logger.debug(f"Created user_context file for user {user_id}")
+        # Add check-in settings if available (but remove schedule periods)
+        if checkins_enabled and 'checkin_settings' in user_prefs:
+            checkin_settings = user_prefs['checkin_settings'].copy()
+            # Remove time_periods from preferences (they go in schedules.json)
+            if 'time_periods' in checkin_settings:
+                del checkin_settings['time_periods']
+            default_preferences["checkin_settings"] = checkin_settings
+        # Add task settings if available (but remove schedule periods)
+        if tasks_enabled and 'task_settings' in user_prefs:
+            task_settings = user_prefs['task_settings'].copy()
+            # Remove time_periods from preferences (they go in schedules.json)
+            if 'time_periods' in task_settings:
+                del task_settings['time_periods']
+            default_preferences["task_settings"] = task_settings
+    else:
+        default_preferences = {
+            "categories": categories or [],
+            "channel": {"type": "email"}
+        }
+        # Only add check-in settings if check-ins are enabled (without enabled flag)
+        if checkins_enabled:
+            default_preferences["checkin_settings"] = {}
+        # Only add task settings if tasks are enabled (without enabled flag)
+        if tasks_enabled:
+            default_preferences["task_settings"] = {}
     
-    # Create schedules file if it doesn't exist
+    save_json_data(default_preferences, preferences_file)
+    logger.debug(f"Created preferences file for user {user_id}")
+
+
+def _create_context_file(user_id, user_prefs):
+    """Create user_context.json with actual personalization data."""
+    context_file = get_user_file_path(user_id, 'context')
+    if os.path.exists(context_file):
+        return
+    
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Get actual personalization data if available
+    personalization_data = user_prefs.get('personalization_data', {})
+    
+    # Get custom fields with proper nesting
+    custom_fields = personalization_data.get('custom_fields', {})
+    
+    context_data = {
+        "preferred_name": personalization_data.get('preferred_name', ""),
+        "gender_identity": personalization_data.get('gender_identity', []),
+        "date_of_birth": personalization_data.get('date_of_birth', ""),
+        "custom_fields": {
+            "health_conditions": custom_fields.get('health_conditions', []),
+            "medications_treatments": custom_fields.get('medications_treatments', []),
+            "reminders_needed": custom_fields.get('reminders_needed', []),
+            "allergies_sensitivities": custom_fields.get('allergies_sensitivities', [])
+        },
+        "interests": personalization_data.get('interests', []),
+        "goals": personalization_data.get('goals', []),
+        "loved_ones": personalization_data.get('loved_ones', []),
+        "activities_for_encouragement": personalization_data.get('activities_for_encouragement', []),
+        "notes_for_ai": personalization_data.get('notes_for_ai', []),
+        "created_at": current_time,
+        "last_updated": current_time
+    }
+    save_json_data(context_data, context_file)
+    logger.debug(f"Created user_context file for user {user_id}")
+
+
+def _create_schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled):
+    """Create schedules file with appropriate structure."""
     schedules_file = get_user_file_path(user_id, 'schedules')
     if not os.path.exists(schedules_file):
         schedules_data = {}
@@ -433,16 +487,20 @@ def create_user_files(user_id, categories, user_preferences=None):
     
     save_json_data(schedules_data, schedules_file)
     logger.debug(f"Created schedules file for user {user_id}")
-    
-    # Initialize empty log files if they don't exist
+
+
+def _create_log_files(user_id):
+    """Initialize empty log files if they don't exist."""
     log_types = ["checkins", "chat_interactions"]
     for log_type in log_types:
         log_file = get_user_file_path(user_id, log_type)
         if not os.path.exists(log_file):
             save_json_data([], log_file)
             logger.debug(f"Created {log_type} file for user {user_id}")
-    
-    # Create sent_messages.json in messages/ subdirectory
+
+
+def _create_sent_messages_file(user_id):
+    """Create sent_messages.json in messages/ subdirectory."""
     from pathlib import Path
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
     os.makedirs(user_messages_dir, exist_ok=True)
@@ -452,70 +510,69 @@ def create_user_files(user_id, categories, user_preferences=None):
         logger.debug(f"Created sent_messages file for user {user_id}")
 
 
-    
-    # Only create task files if tasks are enabled
-    if tasks_enabled:
-        try:
-            # Get user directory path using the correct function
-            user_dir = Path(get_user_data_dir(user_id))
-            tasks_dir = user_dir / 'tasks'
-            
-            # Create tasks directory if it doesn't exist
-            if not os.path.exists(tasks_dir):
-                os.makedirs(tasks_dir, exist_ok=True)
-                logger.debug(f"Created tasks directory for user {user_id}")
-            
-            # Create initial task files
-            task_files = {
-                'active_tasks': [],
-                'completed_tasks': [],
-                'task_schedules': {}
-            }
-            
-            for task_file, default_data in task_files.items():
-                task_file_path = tasks_dir / f"{task_file}.json"
-                if not os.path.exists(task_file_path):
-                    save_json_data(default_data, str(task_file_path))
-                    logger.debug(f"Created {task_file} file for user {user_id}")
-        except Exception as e:
-            logger.error(f"Error creating task files for user {user_id}: {e}")
-    else:
-        logger.debug(f"Tasks not enabled for user {user_id}, skipping task file creation")
-    
-    # Create checkins.json only if checkins are enabled
-    if checkins_enabled:
-        checkins_file = get_user_file_path(user_id, 'checkins')
-        if not os.path.exists(checkins_file):
-            save_json_data([], checkins_file)
-            logger.debug(f"Created checkins file for user {user_id}")
-    else:
-        logger.debug(f"Check-ins not enabled for user {user_id}, skipping checkins file creation")
+def _create_task_files(user_id):
+    """Create task files if tasks are enabled."""
+    try:
+        # Get user directory path using the correct function
+        user_dir = Path(get_user_data_dir(user_id))
+        tasks_dir = user_dir / 'tasks'
+        
+        # Create tasks directory if it doesn't exist
+        if not os.path.exists(tasks_dir):
+            os.makedirs(tasks_dir, exist_ok=True)
+            logger.debug(f"Created tasks directory for user {user_id}")
+        
+        # Create initial task files
+        task_files = {
+            'active_tasks': [],
+            'completed_tasks': [],
+            'task_schedules': {}
+        }
+        
+        for task_file, default_data in task_files.items():
+            task_file_path = tasks_dir / f"{task_file}.json"
+            if not os.path.exists(task_file_path):
+                save_json_data(default_data, str(task_file_path))
+                logger.debug(f"Created {task_file} file for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error creating task files for user {user_id}: {e}")
 
-    # Create message files for each enabled category directly
-    if categories:
-        try:
-            # Create messages directory for user
-            user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
-            user_messages_dir.mkdir(parents=True, exist_ok=True)
 
-            # Create message files for each category
-            from core.message_management import create_message_file_from_defaults
-            success_count = 0
-            for category in categories:
-                if create_message_file_from_defaults(user_id, category):
-                    success_count += 1
-                    logger.debug(f"Created message file for category {category} for user {user_id}")
-                else:
-                    logger.warning(f"Failed to create message file for category {category} for user {user_id}")
+def _create_checkins_file(user_id):
+    """Create checkins.json only if checkins are enabled."""
+    checkins_file = get_user_file_path(user_id, 'checkins')
+    if not os.path.exists(checkins_file):
+        save_json_data([], checkins_file)
+        logger.debug(f"Created checkins file for user {user_id}")
 
-            if success_count == len(categories):
-                logger.debug(f"Created all message files for user {user_id}")
+
+def _create_message_files(user_id, categories):
+    """Create message files for each enabled category directly."""
+    try:
+        # Create messages directory for user
+        user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+        user_messages_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create message files for each category
+        from core.message_management import create_message_file_from_defaults
+        success_count = 0
+        for category in categories:
+            if create_message_file_from_defaults(user_id, category):
+                success_count += 1
+                logger.debug(f"Created message file for category {category} for user {user_id}")
             else:
-                logger.warning(f"Failed to create {len(categories) - success_count} message files for user {user_id}")
-        except Exception as e:
-            logger.error(f"Error creating message files for user {user_id}: {e}")
-    
-    # Auto-update message references and user index
+                logger.warning(f"Failed to create message file for category {category} for user {user_id}")
+
+        if success_count == len(categories):
+            logger.debug(f"Created all message files for user {user_id}")
+        else:
+            logger.warning(f"Failed to create {len(categories) - success_count} message files for user {user_id}")
+    except Exception as e:
+        logger.error(f"Error creating message files for user {user_id}: {e}")
+
+
+def _update_user_references(user_id):
+    """Auto-update message references and user index."""
     try:
         from core.user_data_manager import update_message_references, update_user_index
         update_message_references(user_id)
@@ -524,6 +581,4 @@ def create_user_files(user_id, categories, user_preferences=None):
     except ImportError:
         logger.debug("User data manager not available, skipping reference updates")
     except Exception as e:
-        logger.warning(f"Failed to update message references for user {user_id}: {e}")
-                
-    logger.info(f"Successfully created all user files for user {user_id}") 
+        logger.warning(f"Failed to update message references for user {user_id}: {e}") 
