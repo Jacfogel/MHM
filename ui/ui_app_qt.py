@@ -447,9 +447,12 @@ class MHMManagerUI(QMainWindow):
             self.ui.comboBox_users.clear()
             self.ui.comboBox_users.addItem("Select a user...")
             
+            # Get the users section (detailed user info)
+            users = index_data.get('users', {})
+            
             # Sort users by preferred name, then internal username
             sorted_users = sorted(
-                index_data.items(),
+                users.items(),
                 key=lambda x: (
                     x[1].get('preferred_name', '') or x[1].get('internal_username', ''),
                     x[1].get('internal_username', '')
