@@ -800,7 +800,7 @@ class CheckinHandler(InteractionHandler):
                 pass
         
         # Delegate to conversation manager for proper check-in flow (modern API)
-        from bot.conversation_manager import conversation_manager
+        from communication.message_processing.conversation_flow_manager import conversation_manager
         
         try:
             message, completed = conversation_manager.start_checkin(user_id)

@@ -15,8 +15,8 @@ import queue
 import discord
 from discord.ext import commands
 
-from bot.discord_bot import DiscordBot, DiscordConnectionStatus
-from bot.base_channel import ChannelStatus, ChannelType
+from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
+from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
 from core.config import ensure_user_directory
 from core.user_management import save_user_account_data, save_user_preferences_data
 
@@ -350,7 +350,7 @@ class TestDiscordBotBehavior:
         assert internal_uid
 
         # Call handle_user_message twice with the same content to simulate separate messages
-        from bot.interaction_manager import handle_user_message
+        from communication.message_processing.interaction_manager import handle_user_message
         resp1 = handle_user_message(internal_uid, "list tasks", "discord")
         resp2 = handle_user_message(internal_uid, "list tasks", "discord")
         assert resp1 and resp1.message
@@ -370,7 +370,7 @@ class TestDiscordBotBehavior:
         internal_uid = get_user_id_by_internal_username("checkin_user")
         assert internal_uid
 
-        from bot.interaction_manager import handle_user_message
+        from communication.message_processing.interaction_manager import handle_user_message
         # Avoid touching real logs by using test user IDs and not starting the real bot; handle via InteractionManager only
         start_resp = handle_user_message(internal_uid, "/checkin", "discord")
         assert start_resp and start_resp.message
@@ -399,7 +399,7 @@ class TestDiscordBotBehavior:
         internal_uid = get_user_id_by_internal_username("task_user")
         assert internal_uid
 
-        from bot.interaction_manager import handle_user_message
+        from communication.message_processing.interaction_manager import handle_user_message
         # Our parser extracts title only; due date may be ignored in this path in tests – assert creation by title
         create_resp = handle_user_message(internal_uid, "create task Clean desk", "discord")
         assert create_resp and create_resp.message
@@ -431,7 +431,7 @@ class TestDiscordBotBehavior:
         t_id = create_task(internal_uid, "Pet Davey", due_date="2025-07-07")
         assert t_id
 
-        from bot.interaction_manager import handle_user_message
+        from communication.message_processing.interaction_manager import handle_user_message
         resp = handle_user_message(internal_uid, "complete per davey", "discord")
         assert resp and resp.message
         assert "completed: pet davey" in resp.message.lower()
@@ -454,7 +454,7 @@ class TestDiscordBotBehavior:
         create_task(internal_uid, "Brush your teeth", due_date="2025-07-07")
         create_task(internal_uid, "Clean desk", due_date="2026-08-06")
 
-        from bot.interaction_manager import handle_user_message
+        from communication.message_processing.interaction_manager import handle_user_message
         resp = handle_user_message(internal_uid, "complete task 1", "discord")
         assert resp and resp.message
         assert "completed" in resp.message.lower()
@@ -528,7 +528,7 @@ class TestDiscordBotIntegration:
     @pytest.mark.regression
     def test_discord_bot_integration_with_conversation_manager(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with conversation manager"""
-        from bot.conversation_manager import conversation_manager
+        from communication.message_processing.conversation_flow_manager import conversation_manager
         
         bot = DiscordBot()
         
@@ -587,7 +587,7 @@ class TestDiscordBotIntegration:
                 channel = fake_channel
 
             # Call through InteractionManager directly (avoids discord.py internals in test)
-            from bot.interaction_manager import handle_user_message
+            from communication.message_processing.interaction_manager import handle_user_message
             resp = handle_user_message(internal_uid, "complete task", "discord")
 
             # Assert: response should be helpful (either ask which task or indicate not found), not a generic error

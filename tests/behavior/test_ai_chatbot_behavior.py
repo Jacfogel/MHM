@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timedelta
 
 # Import the modules we're testing
-from bot.ai_chatbot import (
+from ai.chatbot import (
     AIChatBotSingleton, SystemPromptLoader, ResponseCache, get_ai_chatbot
 )
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
@@ -49,8 +49,8 @@ class TestAIChatBotBehavior:
         
         try:
             # Mock the AI_SYSTEM_PROMPT_PATH to use our temp file
-            with patch('bot.ai_chatbot.AI_SYSTEM_PROMPT_PATH', temp_prompt_path):
-                with patch('bot.ai_chatbot.AI_USE_CUSTOM_PROMPT', True):
+            with patch('ai.chatbot.AI_SYSTEM_PROMPT_PATH', temp_prompt_path):
+                with patch('ai.chatbot.AI_USE_CUSTOM_PROMPT', True):
                     loader = SystemPromptLoader()
                     
                     # Test that custom prompt is loaded
@@ -322,7 +322,7 @@ class TestAIChatBotBehavior:
     @pytest.mark.regression
     def test_ai_chatbot_conversation_manager_integration(self, test_data_dir):
         """Test that AI chatbot integrates properly with conversation manager."""
-        from bot.conversation_manager import ConversationManager
+        from communication.message_processing.conversation_flow_manager import ConversationManager
         
         conversation_manager = ConversationManager()
         user_id = "test_conv_user"
@@ -344,7 +344,7 @@ class TestAIChatBotBehavior:
     @pytest.mark.regression
     def test_ai_chatbot_user_context_manager_integration(self, test_data_dir):
         """Test that AI chatbot integrates properly with user context manager."""
-        from bot.user_context_manager import UserContextManager
+        from user.context_manager import UserContextManager
         
         context_manager = UserContextManager()
         user_id = "test_context_integration_user"

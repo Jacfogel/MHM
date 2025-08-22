@@ -849,7 +849,7 @@ class TestStandaloneFunctions:
         user_id = 'test-user'
         category = 'motivational'
         
-        with patch('bot.communication_manager.CommunicationManager') as mock_comm_manager:
+        with patch('communication.core.channel_orchestrator.CommunicationManager') as mock_comm_manager:
             mock_comm_instance = Mock()
             mock_comm_manager.return_value = mock_comm_instance
             

@@ -22,8 +22,8 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the actual functions from communication_manager
-from bot.communication_manager import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
-from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
+from communication.core.channel_orchestrator import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from core.config import get_user_data_dir
 
 class TestCommunicationManager:
@@ -90,7 +90,7 @@ class TestCommunicationManager:
     @pytest.mark.communication
     @pytest.mark.critical
     @pytest.mark.regression
-    @patch('bot.communication_manager.ChannelFactory')
+    @patch('communication.core.channel_orchestrator.ChannelFactory')
     def test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel):
         """Test channel initialization from configuration with realistic channel behavior."""
         # Mock the channel factory to return our realistic mock

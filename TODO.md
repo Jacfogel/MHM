@@ -30,17 +30,35 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Bot Module Refactoring - Phase 2 Testing** - Test remaining module extractions
+- *What it means*: Test each module extraction as it's completed to ensure no regressions
+- *Why it helps*: Ensures system stability as we break down large modules into focused components
+- *Estimated effort*: Small (ongoing)
+- *Testing Requirements*:
+  - Run full test suite after each module extraction
+  - Test application startup and channel initialization
+  - Verify no import errors or functionality regressions
+  - Update import scripts as new modules are created
+
 ## **User Context & Preferences Integration Investigation** - Investigate and improve integration
 - *What it means*: Investigate how user/user_context.py and user/user_preferences.py are integrated and used by other modules, identify gaps and improvements
 - *Why it helps*: Ensures user state and preferences are properly utilized across the system for better personalization
 - *Estimated effort*: Medium
 - *Status*: From PLANS.md - needs investigation and action
 
-## **Bot Module Naming & Clarity Refactoring** - Improve module clarity and separation
-- *What it means*: Consider renaming and/or clearly separating purposes of bot modules (communication_manager.py, conversation_manager.py, enhanced_command_parser.py, interaction_handlers.py, interaction_manager.py)
-- *Why it helps*: Improves code organization and makes module purposes clearer for maintainability
-- *Estimated effort*: Medium
-- *Status*: From PLANS.md - needs investigation and action
+## **Bot Module Naming & Clarity Refactoring** 🔄 **MAJOR PROGRESS**
+- *What it means*: Reorganizing bot modules with clear separation of purposes - directory structure complete, module breakdown in progress
+- *Why it helps*: Improved code organization and made module purposes clearer for maintainability
+- *Estimated effort*: Medium (1 week remaining)
+- *Status*: 🔄 **IN PROGRESS** - Directory structure complete, need to extract remaining functionality into focused modules
+- *Remaining Work*:
+  - Extract retry logic and channel monitoring from channel_orchestrator.py
+  - Extract command registry, message formatting, and rich formatting utilities
+  - Extract Discord API client and event handling
+  - Extract remaining command handlers (profile, schedule, checkin, analytics)
+  - Extract message routing logic
+  - Extract AI prompt management, caching, context building, and conversation history
+  - Remove legacy compatibility code
 
 ## **Phase 1: Enhanced Task & Check-in Systems** ✅ **MAJOR PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision

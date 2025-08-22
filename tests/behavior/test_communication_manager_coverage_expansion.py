@@ -27,8 +27,8 @@ import threading
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from bot.communication_manager import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
-from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
+from communication.core.channel_orchestrator import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from tests.test_utilities import TestUserFactory, TestDataFactory, create_test_user
 
 class TestCommunicationManagerCoverageExpansion:
@@ -160,7 +160,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager.channel_configs['restart_channel'] = mock_channel_config
         
         # Mock channel factory
-        with patch('bot.communication_manager.ChannelFactory') as mock_factory:
+        with patch('communication.core.channel_orchestrator.ChannelFactory') as mock_factory:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test restart attempt
@@ -231,7 +231,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager.channel_configs = {'test_channel': mock_channel_config}
         
         # Mock channel factory
-        with patch('bot.communication_manager.ChannelFactory') as mock_factory:
+        with patch('communication.core.channel_orchestrator.ChannelFactory') as mock_factory:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test async initialization
@@ -273,8 +273,8 @@ class TestCommunicationManagerCoverageExpansion:
     def test_default_channel_configs_real_behavior(self, comm_manager):
         """Test default channel configuration generation."""
         # Mock environment variables
-        with patch('bot.communication_manager.EMAIL_SMTP_SERVER', 'smtp.test.com'), \
-             patch('bot.communication_manager.DISCORD_BOT_TOKEN', 'test_token'):
+        with patch('communication.core.channel_orchestrator.EMAIL_SMTP_SERVER', 'smtp.test.com'), \
+             patch('communication.core.channel_orchestrator.DISCORD_BOT_TOKEN', 'test_token'):
             
             configs = comm_manager._get_default_channel_configs()
             
@@ -293,7 +293,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager.channel_configs = {'test_channel': mock_channel_config}
         
         # Mock channel factory
-        with patch('bot.communication_manager.ChannelFactory') as mock_factory:
+        with patch('communication.core.channel_orchestrator.ChannelFactory') as mock_factory:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test async startup
@@ -312,7 +312,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager.channel_configs = {'test_channel': mock_channel_config}
         
         # Mock channel factory
-        with patch('bot.communication_manager.ChannelFactory') as mock_factory:
+        with patch('communication.core.channel_orchestrator.ChannelFactory') as mock_factory:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test sync startup
@@ -331,7 +331,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         
         # Mock network check
-        with patch('bot.communication_manager.wait_for_network', return_value=True):
+        with patch('communication.core.channel_orchestrator.wait_for_network', return_value=True):
             # Test async message sending
             result = asyncio.run(comm_manager.send_message('test_channel', 'test_recipient', 'Test message'))
             
@@ -376,7 +376,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager._channels_dict['channel2'] = realistic_mock_channel
         
         # Mock network check
-        with patch('bot.communication_manager.wait_for_network', return_value=True):
+        with patch('communication.core.channel_orchestrator.wait_for_network', return_value=True):
             # Test broadcast message
             recipients = {'channel1': 'recipient1', 'channel2': 'recipient2'}
             result = asyncio.run(comm_manager.broadcast_message(recipients, 'Test broadcast'))
@@ -511,7 +511,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock send_message_sync and other dependencies
         with patch.object(comm_manager, 'send_message_sync', return_value=True), \
-             patch('bot.communication_manager.get_user_data', return_value={'preferences': {'messaging_service': 'discord'}}):
+             patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'messaging_service': 'discord'}}):
             # Test message sending
             comm_manager.handle_message_sending(user_id, 'motivational')
             
@@ -529,7 +529,7 @@ class TestCommunicationManagerCoverageExpansion:
         test_user_factory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
         # Mock get_user_data to return preferences
-        with patch('bot.communication_manager.get_user_data', return_value={'preferences': {'discord_id': 'test_discord_id'}}):
+        with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'discord_id': 'test_discord_id'}}):
             # Test getting recipient
             result = comm_manager._get_recipient_for_service(user_id, 'discord', {})
             
@@ -564,7 +564,7 @@ class TestCommunicationManagerCoverageExpansion:
         test_user_factory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
         # Mock get_user_data to return preferences
-        with patch('bot.communication_manager.get_user_data', return_value={'preferences': {'checkin_enabled': True}}), \
+        with patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'checkin_enabled': True}}), \
              patch.object(comm_manager, '_send_checkin_prompt'):
             # Test scheduled checkin
             comm_manager._handle_scheduled_checkin(user_id, 'discord', 'test_recipient')
@@ -629,7 +629,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock send_message_sync and determine_file_path
         with patch.object(comm_manager, 'send_message_sync', return_value=True), \
-             patch('bot.communication_manager.determine_file_path', return_value=message_file):
+             patch('communication.core.channel_orchestrator.determine_file_path', return_value=message_file):
             # Test sending predefined message
             comm_manager._send_predefined_message(user_id, 'motivational', 'discord', 'test_recipient')
             
@@ -657,7 +657,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock send_message_sync and get_user_data
         with patch.object(comm_manager, 'send_message_sync', return_value=True), \
-             patch('bot.communication_manager.get_user_data', return_value={'preferences': {'messaging_service': 'discord'}}):
+             patch('communication.core.channel_orchestrator.get_user_data', return_value={'preferences': {'messaging_service': 'discord'}}):
             # Test task reminder
             comm_manager.handle_task_reminder(user_id, 'task1')
             
@@ -730,7 +730,7 @@ class TestCommunicationManagerCoverageExpansion:
         comm_manager.channel_configs = {'test_channel': mock_channel_config}
         
         # Mock channel factory and async startup
-        with patch('bot.communication_manager.ChannelFactory') as mock_factory, \
+        with patch('communication.core.channel_orchestrator.ChannelFactory') as mock_factory, \
              patch.object(comm_manager, '_start_all_async', new_callable=AsyncMock) as mock_async:
             mock_factory.create_channel.return_value = realistic_mock_channel
             mock_async.return_value = True

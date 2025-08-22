@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timedelta
 
 # Import the modules we're testing
-from bot.interaction_handlers import (
+from communication.command_handlers.interaction_handlers import (
     InteractionHandler, TaskManagementHandler, CheckinHandler, ProfileHandler,
     ScheduleManagementHandler, AnalyticsHandler, HelpHandler,
     InteractionResponse, ParsedCommand, get_interaction_handler, get_all_handlers

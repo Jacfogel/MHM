@@ -13,7 +13,7 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
-from bot.user_context_manager import UserContextManager
+from user.context_manager import UserContextManager
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
 
@@ -48,7 +48,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-123"
         
         # Mock UserContext to return our test user
-        with patch('bot.user_context_manager.UserContext') as mock_user_context_class:
+        with patch('user.context_manager.UserContext') as mock_user_context_class:
             mock_user_context = MagicMock()
             mock_user_context.get_user_id.return_value = test_user_id
             mock_user_context_class.return_value = mock_user_context
@@ -70,7 +70,7 @@ class TestUserContextManagerBehavior:
         manager = UserContextManager()
         
         # Mock UserContext to return no user
-        with patch('bot.user_context_manager.UserContext') as mock_user_context_class:
+        with patch('user.context_manager.UserContext') as mock_user_context_class:
             mock_user_context = MagicMock()
             mock_user_context.get_user_id.return_value = None
             mock_user_context_class.return_value = mock_user_context
@@ -93,10 +93,10 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-456"
         
         # Mock all the data retrieval functions
-        with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('bot.user_context_manager.get_last_10_messages') as mock_get_messages:
+        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
+             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
+             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
+             patch('user.context_manager.get_last_10_messages') as mock_get_messages:
             
             # Setup mock returns
             mock_get_user_data.side_effect = lambda user_id, data_type: {
@@ -131,7 +131,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-789"
         
         # Mock data retrieval
-        with patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
+        with patch('user.context_manager.get_user_data') as mock_get_user_data:
             mock_get_user_data.side_effect = lambda user_id, data_type: {
                 'preferences': {'preferences': {}},
                 'account': {'account': {}},
@@ -239,8 +239,8 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-profile"
         
         # Mock UserContext and data retrieval
-        with patch('bot.user_context_manager.UserContext') as mock_user_context_class, \
-             patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
+        with patch('user.context_manager.UserContext') as mock_user_context_class, \
+             patch('user.context_manager.get_user_data') as mock_get_user_data:
             
             mock_user_context = MagicMock()
             mock_user_context.get_preferred_name.return_value = "TestUser"
@@ -277,8 +277,8 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-activity"
         
         # Mock data retrieval functions
-        with patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
+        with patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
+             patch('user.context_manager.get_user_data') as mock_get_user_data:
             
             # Setup mock returns
             mock_get_checkins.return_value = [
@@ -313,7 +313,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-insights"
         
         # Mock chat interactions data
-        with patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions:
+        with patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions:
             mock_get_interactions.return_value = [
                 {'user_message': 'I\'m feeling sad', 'ai_response': 'I\'m sorry to hear that'},
                 {'user_message': 'I need motivation', 'ai_response': 'You can do this!'},
@@ -340,7 +340,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-mood"
         
         # Mock checkin data with numeric mood values
-        with patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins:
+        with patch('user.context_manager.get_recent_checkins') as mock_get_checkins:
             mock_get_checkins.return_value = [
                 {'date': '2025-01-01', 'mood': 8, 'energy': 7},
                 {'date': '2025-01-02', 'mood': 6, 'energy': 5},
@@ -477,7 +477,7 @@ class TestUserContextManagerBehavior:
         test_user_id = "test-user-error"
         
         # Mock get_user_data to raise an exception
-        with patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
+        with patch('user.context_manager.get_user_data') as mock_get_user_data:
             mock_get_user_data.side_effect = Exception("Test error")
             
             # Act - Should not raise exception due to error handling
@@ -501,9 +501,9 @@ class TestUserContextManagerBehavior:
         manager.add_conversation_exchange(test_user_id, "Hello", "Hi there!")
         
         # Mock data retrieval for context generation
-        with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions:
+        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
+             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
+             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions:
             
             mock_get_user_data.side_effect = lambda user_id, data_type: {
                 'preferences': {'preferences': {'categories': ['motivational'], 'channel': {'type': 'discord'}}},
@@ -539,10 +539,10 @@ class TestUserContextManagerBehavior:
             manager.add_conversation_exchange(test_user_id, f"Message {i}", f"Response {i}")
         
         # Mock data retrieval for performance testing
-        with patch('bot.user_context_manager.get_user_data') as mock_get_user_data, \
-             patch('bot.user_context_manager.get_recent_checkins') as mock_get_checkins, \
-             patch('bot.user_context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('bot.user_context_manager.get_last_10_messages') as mock_get_messages:
+        with patch('user.context_manager.get_user_data') as mock_get_user_data, \
+             patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
+             patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
+             patch('user.context_manager.get_last_10_messages') as mock_get_messages:
             
             mock_get_user_data.side_effect = lambda user_id, data_type: {
                 'preferences': {'preferences': {}},
@@ -612,8 +612,8 @@ class TestUserContextManagerIntegration:
         assert update_success, "User context should be updated successfully"
         
         # Mock UserContext and data retrieval to return the correct data
-        with patch('bot.user_context_manager.UserContext') as mock_user_context_class, \
-             patch('bot.user_context_manager.get_user_data') as mock_get_user_data:
+        with patch('user.context_manager.UserContext') as mock_user_context_class, \
+             patch('user.context_manager.get_user_data') as mock_get_user_data:
             
             mock_user_context = MagicMock()
             mock_user_context.get_preferred_name.return_value = "realuser"

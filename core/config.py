@@ -172,9 +172,9 @@ def get_channel_class_mapping() -> Dict[str, str]:
         Dict[str, str]: Mapping of channel name to fully qualified class name
     """
     return {
-        'email': 'bot.email_bot.EmailBot',
-        'discord': 'bot.discord_bot.DiscordBot',
-        # 'telegram': 'bot.telegram_bot.TelegramBot',  # Deactivated
+        'email': 'communication.communication_channels.email.bot.EmailBot',
+        'discord': 'communication.communication_channels.discord.bot.DiscordBot',
+        # 'telegram': 'communication.communication_channels.telegram.bot.TelegramBot',  # Deactivated
     }
 
 # Scheduler Configuration

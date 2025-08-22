@@ -10,7 +10,7 @@ from typing import List, Dict, Any
 
 from core.config import EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
 from core.logger import get_logger, get_component_logger
-from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )

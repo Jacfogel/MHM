@@ -1,5 +1,5 @@
 from typing import Dict, Type, Optional
-from bot.base_channel import BaseChannel, ChannelConfig
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
 from core.logger import get_logger, get_component_logger
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors

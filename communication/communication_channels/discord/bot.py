@@ -16,8 +16,8 @@ import contextlib
 
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_logger, get_component_logger
-from bot.conversation_manager import conversation_manager
-from bot.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
+from communication.message_processing.conversation_flow_manager import conversation_manager
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 from core.user_management import get_user_id_by_discord_user_id
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -693,7 +693,7 @@ class DiscordBot(BaseChannel):
 
             # Use the new interaction manager for enhanced user interactions
             try:
-                from bot.interaction_manager import handle_user_message
+                from communication.message_processing.interaction_manager import handle_user_message
                 response = handle_user_message(internal_user_id, message.content, "discord")
                 
                 if response.message:
@@ -734,7 +734,7 @@ class DiscordBot(BaseChannel):
 
         # Register dynamic application (slash) commands from the channel-agnostic map
         try:
-            from bot.interaction_manager import get_interaction_manager, handle_user_message
+            from communication.message_processing.interaction_manager import get_interaction_manager, handle_user_message
             im = get_interaction_manager()
             cmd_defs = im.get_command_definitions()
 
@@ -787,7 +787,7 @@ class DiscordBot(BaseChannel):
 
         # Dynamically expose a set of native-style classic commands based on the central slash map.
         try:
-            from bot.interaction_manager import get_interaction_manager
+            from communication.message_processing.interaction_manager import get_interaction_manager
             im = get_interaction_manager()
             cmd_defs = im.get_command_definitions()
 
@@ -805,7 +805,7 @@ class DiscordBot(BaseChannel):
                         await ctx.send("Please register first to use this feature.")
                         return
                     try:
-                        from bot.interaction_manager import handle_user_message
+                        from communication.message_processing.interaction_manager import handle_user_message
                         response = handle_user_message(internal_user_id, _mapped, "discord")
                         await ctx.send(response.message)
                     except Exception as e:

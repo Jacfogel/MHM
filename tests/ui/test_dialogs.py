@@ -231,7 +231,7 @@ def test_dialog_instantiation():
         os.environ['CATEGORIES'] = '["general", "health", "tasks"]'
         
         # Import and set up communication manager for testing
-        from bot.communication_manager import CommunicationManager
+        from communication.core.channel_orchestrator import CommunicationManager
         comm_manager = CommunicationManager()
         
         # Test with a safe test user

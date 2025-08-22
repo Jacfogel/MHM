@@ -31,7 +31,7 @@ except Exception as _fa_err:
 from core.config import validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError
 
 # Import the communication manager (channels auto-register from config)
-from bot.communication_manager import CommunicationManager
+from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path

@@ -15,10 +15,10 @@ from dataclasses import dataclass
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_MAX_RESPONSE_LENGTH
-from bot.enhanced_command_parser import get_enhanced_command_parser, ParsingResult
-from bot.interaction_handlers import InteractionResponse, get_interaction_handler, get_all_handlers, ParsedCommand
-from bot.ai_chatbot import get_ai_chatbot
-from bot.conversation_manager import conversation_manager
+from communication.message_processing.command_parser import get_enhanced_command_parser, ParsingResult
+from communication.command_handlers.interaction_handlers import InteractionResponse, get_interaction_handler, get_all_handlers, ParsedCommand
+from ai.chatbot import get_ai_chatbot
+from communication.message_processing.conversation_flow_manager import conversation_manager
 
 logger = get_component_logger('communication_manager')
 interaction_logger = logger
@@ -441,7 +441,7 @@ Keep the response under 200 words.
         help_handler = get_interaction_handler('help')
         if help_handler:
             # Create a parsed command for help
-            from bot.interaction_handlers import ParsedCommand
+            from communication.command_handlers.interaction_handlers import ParsedCommand
             parsed_command = ParsedCommand('help', {'topic': topic}, 1.0, f"help {topic}")
             return help_handler.handle(user_id, parsed_command)
         

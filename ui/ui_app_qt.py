@@ -641,7 +641,7 @@ class MHMManagerUI(QMainWindow):
         logger.info("Admin Panel: Opening create new user dialog")
         try:
             from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-            from bot.communication_manager import CommunicationManager
+            from communication.core.channel_orchestrator import CommunicationManager
             temp_comm_manager = CommunicationManager()
             dialog = AccountCreatorDialog(self, temp_comm_manager)
             dialog.user_changed.connect(self.refresh_user_list)
@@ -1417,7 +1417,7 @@ For detailed setup instructions, see the README.md file.
             if is_running:
                 try:
                     # Import communication manager to check Discord status
-                    from bot.communication_manager import CommunicationManager
+                    from communication.core.channel_orchestrator import CommunicationManager
                     comm_manager = CommunicationManager()
                     discord_status = comm_manager.get_discord_connectivity_status()
                     

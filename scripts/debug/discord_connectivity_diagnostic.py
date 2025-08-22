@@ -20,8 +20,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.insert(0, project_root)
 
 from core.logger import get_component_logger
-from bot.discord_bot import DiscordBot, DiscordConnectionStatus
-from bot.communication_manager import CommunicationManager
+from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
+from communication.core.channel_orchestrator import CommunicationManager
 
 logger = get_component_logger('main')
 

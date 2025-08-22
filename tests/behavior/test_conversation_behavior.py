@@ -13,8 +13,8 @@ import pytest
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
-from bot.conversation_manager import ConversationManager, FLOW_NONE, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
-from bot.conversation_manager import QUESTION_STATES
+from communication.message_processing.conversation_flow_manager import ConversationManager, FLOW_NONE, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
+from communication.message_processing.conversation_flow_manager import QUESTION_STATES
 
 
 class TestConversationManagerBehavior:
@@ -47,7 +47,7 @@ class TestConversationManagerBehavior:
         message_text = "Hello"
         
         # Mock AI chatbot to return a response
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.generate_contextual_response.return_value = "Hi there! How can I help you today?"
             mock_get_ai_chatbot.return_value = mock_chatbot
@@ -81,7 +81,7 @@ class TestConversationManagerBehavior:
         }
         
         # Mock AI chatbot
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.get_response.return_value = "I see you're in a check-in flow."
             mock_get_ai_chatbot.return_value = mock_chatbot
@@ -106,8 +106,8 @@ class TestConversationManagerBehavior:
         test_user_id = "test-user-checkin"
         
         # Mock check-in enabled
-        with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('bot.conversation_manager.get_user_checkin_preferences') as mock_prefs:
+        with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
+             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
             
             mock_enabled.return_value = True
             mock_prefs.return_value = {
@@ -149,7 +149,7 @@ class TestConversationManagerBehavior:
         test_user_id = "test-user-disabled"
         
         # Mock check-in disabled
-        with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled:
+        with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled:
             mock_enabled.return_value = False
             
             # Act
@@ -319,7 +319,7 @@ class TestConversationManagerBehavior:
         message_text = "How am I doing today?"
         
         # Mock AI chatbot
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.generate_contextual_response.return_value = "Based on your recent check-ins, you're doing great!"
             mock_get_ai_chatbot.return_value = mock_chatbot
@@ -343,7 +343,7 @@ class TestConversationManagerBehavior:
         test_user_id = "test-user-error"
         
         # Mock AI chatbot to raise an exception
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.generate_contextual_response.side_effect = Exception("Test error")
             mock_get_ai_chatbot.return_value = mock_chatbot
@@ -367,7 +367,7 @@ class TestConversationManagerBehavior:
         test_user_ids = [f"user-{i}" for i in range(100)]
         
         # Mock AI chatbot for performance testing
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.generate_contextual_response.return_value = "Performance test response"
             mock_get_ai_chatbot.return_value = mock_chatbot
@@ -421,9 +421,9 @@ class TestConversationManagerBehavior:
         test_user_id = "test-user-tracking"
         
         # Mock response tracking functions
-        with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('bot.conversation_manager.get_user_checkin_preferences') as mock_prefs, \
-             patch('bot.conversation_manager.store_checkin_response') as mock_store:
+        with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
+             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs, \
+             patch('communication.message_processing.conversation_flow_manager.store_checkin_response') as mock_store:
             
             mock_enabled.return_value = True
             mock_prefs.return_value = {
@@ -472,8 +472,8 @@ class TestConversationManagerBehavior:
         test_user_id = "test-user-command"
         
         # Mock check-in enabled
-        with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('bot.conversation_manager.get_user_checkin_preferences') as mock_prefs:
+        with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
+             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
             
             mock_enabled.return_value = True
             mock_prefs.return_value = {
@@ -549,8 +549,8 @@ class TestConversationManagerIntegration:
         assert update_success, "User preferences should be updated successfully"
         
         # Mock response tracking functions
-        with patch('bot.conversation_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('bot.conversation_manager.get_user_checkin_preferences') as mock_prefs:
+        with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
+             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
             
             mock_enabled.return_value = True
             mock_prefs.return_value = {
@@ -601,7 +601,7 @@ class TestConversationManagerIntegration:
         test_user_id = "concurrent-user-test"
         
         # Mock AI chatbot
-        with patch('bot.conversation_manager.get_ai_chatbot') as mock_get_ai_chatbot:
+        with patch('communication.message_processing.conversation_flow_manager.get_ai_chatbot') as mock_get_ai_chatbot:
             mock_chatbot = MagicMock()
             mock_chatbot.generate_contextual_response.return_value = "Concurrent test response"
             mock_get_ai_chatbot.return_value = mock_chatbot

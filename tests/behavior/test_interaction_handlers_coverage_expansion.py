@@ -10,7 +10,7 @@ import tempfile
 from unittest.mock import patch, Mock, MagicMock, AsyncMock
 from datetime import datetime, timedelta
 
-from bot.interaction_handlers import (
+from communication.command_handlers.interaction_handlers import (
     InteractionHandler, TaskManagementHandler, CheckinHandler, ProfileHandler,
     ScheduleManagementHandler, AnalyticsHandler, HelpHandler,
     InteractionResponse, ParsedCommand, get_interaction_handler, get_all_handlers

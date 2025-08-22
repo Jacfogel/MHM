@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
-from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
-from bot.channel_factory import ChannelFactory
+from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
+from communication.core.factory import ChannelFactory
 from core.user_data_handlers import get_user_data, get_all_user_ids
 from core.response_tracking import get_recent_checkins
 from core.message_management import store_sent_message
@@ -1035,7 +1035,7 @@ class CommunicationManager:
         # Expire any active check-in flow if we just sent an unrelated outbound message
         try:
             if category not in ["checkin"]:
-                from bot.conversation_manager import conversation_manager
+                from communication.message_processing.conversation_flow_manager import conversation_manager
                 conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
         except Exception as _e:
             logger.debug(f"Check-in flow expiration after outbound message failed for user {user_id}: {_e}")
@@ -1136,7 +1136,7 @@ class CommunicationManager:
         """
         try:
             # Initialize the dynamic check-in flow properly
-            from bot.conversation_manager import conversation_manager
+            from communication.message_processing.conversation_flow_manager import conversation_manager
             
             # Initialize flow without logging start yet; log only after successful send
             reply_text, completed = conversation_manager._start_dynamic_checkin(user_id)
@@ -1164,7 +1164,7 @@ class CommunicationManager:
     def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
         """Send an AI-generated personalized message using contextual AI"""
         try:
-            from bot.ai_chatbot import get_ai_chatbot
+            from ai.chatbot import get_ai_chatbot
             ai_bot = get_ai_chatbot()
             
             # Use contextual AI for richer, more personalized messages

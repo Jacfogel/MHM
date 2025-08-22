@@ -1170,7 +1170,7 @@ def process_category_schedule(user_id: str, category: str):
     """Process schedule for a specific user and category."""
     try:
         # Create a scheduler instance to process this category
-        from bot.communication_manager import CommunicationManager
+        from communication.core.channel_orchestrator import CommunicationManager
         
         communication_manager = CommunicationManager()
         scheduler_manager = SchedulerManager(communication_manager)
