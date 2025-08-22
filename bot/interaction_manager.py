@@ -120,7 +120,34 @@ class InteractionManager:
             message = message_stripped[1:]
 
         elif message_stripped.startswith("!"):
-            # Unknown bang-prefixed input from non-Discord channels: drop prefix and continue to parser
+            # Handle bang-prefixed commands (like !tasks, !help, etc.)
+            lowered = message_stripped.lower()
+            # Extract the command name after '!'
+            parts = lowered.split()
+            cmd_name = parts[0][1:] if parts and parts[0].startswith('!') else ''
+
+            # Look up command definition
+            cmd_def = next((c for c in self._command_definitions if c.name == cmd_name), None)
+
+            # Flow-marked commands delegate to conversation manager starters
+            if cmd_def and cmd_def.is_flow:
+                if cmd_name == 'checkin':
+                    reply_text, completed = conversation_manager.start_checkin(user_id)
+                    return InteractionResponse(reply_text, completed)
+                starter_name = f'start_{cmd_name}_flow'
+                starter_fn = getattr(conversation_manager, starter_name, None)
+                if callable(starter_fn):
+                    reply_text, completed = starter_fn(user_id)
+                    return InteractionResponse(reply_text, completed)
+                else:
+                    return InteractionResponse(f"Flow '{cmd_name}' is not available yet.", True)
+
+            # Otherwise, map to single-turn intent via mapped message
+            for key, mapped in self.slash_command_map.items():
+                if lowered == key or lowered.startswith(key + ' '):
+                    return self.handle_message(user_id, mapped, channel_type)
+
+            # Unknown bang command → drop prefix and continue to structured parsing below
             message = message_stripped[1:]
 
         # Check if user is in an active conversation flow

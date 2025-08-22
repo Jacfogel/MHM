@@ -97,7 +97,7 @@ class TestCommunicationManager:
         mock_factory.create_channel.return_value = realistic_mock_channel
         
         # Mock the async initialization
-        with patch.object(comm_manager, '_initialize_channels_async', new_callable=AsyncMock) as mock_async:
+        with patch.object(comm_manager, 'initialize_channels_from_config__initialize_channels_async', new_callable=AsyncMock) as mock_async:
             mock_async.return_value = True
             result = comm_manager.initialize_channels_from_config({'test': mock_channel_config})
             

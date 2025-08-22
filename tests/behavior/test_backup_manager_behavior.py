@@ -21,7 +21,7 @@ import pytest
 
 from core.backup_manager import BackupManager, create_automatic_backup, validate_system_state, perform_safe_operation
 from tests.test_utilities import TestUserFactory, TestDataFactory
-import core.config as cfg
+import core.config
 
 
 class TestBackupManagerBehavior:
@@ -56,8 +56,8 @@ class TestBackupManagerBehavior:
                     self.backup_manager = BackupManager()
         
         # Store the original config values for restoration tests
-        self.original_base_data_dir = cfg.BASE_DATA_DIR
-        self.original_user_info_dir = cfg.USER_INFO_DIR_PATH
+        self.original_base_data_dir = core.config.BASE_DATA_DIR
+        self.original_user_info_dir = core.config.USER_INFO_DIR_PATH
         
         yield
         

@@ -15,9 +15,9 @@ from core.service_utilities import (
     create_reschedule_request,
     is_service_running,
     wait_for_network,
-    load_and_localize_datetime,
-    title_case
+    load_and_localize_datetime
 )
+from core.user_data_validation import _shared__title_case
 
 
 class TestServiceUtilitiesBehavior:
@@ -258,7 +258,7 @@ class TestServiceUtilitiesBehavior:
         
         # Act & Assert
         for input_text, expected_output in test_cases:
-            result = title_case(input_text)
+            result = _shared__title_case(input_text)
             assert result == expected_output, f"Failed for '{input_text}': expected '{expected_output}', got '{result}'"
     
     def test_title_case_handles_special_words_correctly(self, test_data_dir):
@@ -283,7 +283,7 @@ class TestServiceUtilitiesBehavior:
         
         # Act & Assert
         for input_text, expected_output in special_cases:
-            result = title_case(input_text)
+            result = _shared__title_case(input_text)
             assert result == expected_output, f"Failed for '{input_text}': expected '{expected_output}', got '{result}'"
     
     def test_title_case_preserves_mixed_case_words(self, test_data_dir):
@@ -299,7 +299,7 @@ class TestServiceUtilitiesBehavior:
         
         # Act & Assert
         for input_text, expected_output in mixed_case_tests:
-            result = title_case(input_text)
+            result = _shared__title_case(input_text)
             assert result == expected_output, f"Failed for '{input_text}': expected '{expected_output}', got '{result}'"
     
     def test_service_utilities_error_handling_preserves_system_stability(self, test_data_dir):
@@ -367,8 +367,8 @@ class TestServiceUtilitiesBehavior:
         
         # Test title case consistency
         test_text = "ai chatbot mhm system"
-        result1 = title_case(test_text)
-        result2 = title_case(test_text)
+        result1 = _shared__title_case(test_text)
+        result2 = _shared__title_case(test_text)
         assert result1 == result2, "Title case should be consistent"
         assert result1 == "AI Chatbot MHM System", "Should produce correct title case"
 
@@ -448,7 +448,7 @@ class TestServiceUtilitiesIntegration:
         test_text = "ai chatbot"
         results = []
         for i in range(5):
-            results.append(title_case(test_text))
+            results.append(_shared__title_case(test_text))
         
         # Assert - All results should be identical
         assert all(result == "AI Chatbot" for result in results), "Title case should be consistent across calls" 

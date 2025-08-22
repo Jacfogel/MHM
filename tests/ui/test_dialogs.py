@@ -226,17 +226,21 @@ def test_dialog_instantiation():
         if app is None:
             app = QApplication(sys.argv)
         
+        # Set up test environment
+        os.environ['MHM_TESTING'] = '1'
+        os.environ['CATEGORIES'] = '["general", "health", "tasks"]'
+        
+        # Import and set up communication manager for testing
+        from bot.communication_manager import CommunicationManager
+        comm_manager = CommunicationManager()
+        
         # Test with a safe test user
         test_user = "test-user"  # Use the basic test user
         
         # Test Account Creator Dialog
         try:
             from ui.dialogs.account_creator_dialog import AccountCreatorDialog
-            from bot.communication_manager import CommunicationManager
-            from bot.channel_registry import register_all_channels
             
-            register_all_channels()
-            comm_manager = CommunicationManager()
             dialog = AccountCreatorDialog(None, comm_manager)
             print(f"  ✅ Account Creator: Instantiation successful")
             assert dialog is not None, "Account Creator dialog should be instantiated"

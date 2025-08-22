@@ -14,8 +14,8 @@ from datetime import datetime
 from core.user_data_validation import (
     is_valid_email,
     is_valid_phone,
-    validate_time_format,
-    title_case,
+    validate_schedule_periods__validate_time_format,
+    _shared__title_case,
     validate_user_update,
     validate_schedule_periods,
     validate_new_user_data,
@@ -112,7 +112,7 @@ class TestPrimitiveValidators:
         ]
         
         for time_str in valid_times:
-            result = validate_time_format(time_str)
+            result = validate_schedule_periods__validate_time_format(time_str)
             assert result is True, f"Time {time_str} should be valid"
     
     @pytest.mark.unit
@@ -133,7 +133,7 @@ class TestPrimitiveValidators:
         ]
         
         for time_str in invalid_times:
-            result = validate_time_format(time_str)
+            result = validate_schedule_periods__validate_time_format(time_str)
             assert result is False, f"Time {time_str} should be invalid"
     
     @pytest.mark.unit
@@ -154,7 +154,7 @@ class TestPrimitiveValidators:
         ]
         
         for input_text, expected in test_cases:
-            result = title_case(input_text)
+            result = _shared__title_case(input_text)
             assert result == expected, f"Title case of '{input_text}' should be '{expected}', got '{result}'"
 
 

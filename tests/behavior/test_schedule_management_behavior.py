@@ -18,9 +18,9 @@ from core.schedule_management import (
     edit_schedule_period,
     delete_schedule_period,
     clear_schedule_periods_cache,
-    validate_and_format_time,
-    time_24h_to_12h_display,
-    time_12h_display_to_24h,
+    get_period_data__validate_and_format_time,
+    get_period_data__time_24h_to_12h_display,
+    get_period_data__time_12h_display_to_24h,
     get_current_day_names,
     set_schedule_periods,
     get_schedule_days,
@@ -130,31 +130,31 @@ class TestScheduleManagementBehavior:
     def test_validate_and_format_time_enforces_rules(self):
         """Test that time validation actually enforces format rules."""
         # Test valid times - including formats that are actually accepted
-        assert validate_and_format_time("08:30") == "08:30", "Valid time should be returned as-is"
-        assert validate_and_format_time("23:59") == "23:59", "Valid time should be returned as-is"
-        assert validate_and_format_time("8:30") == "8:30", "Time without leading zero should be accepted"
-        assert validate_and_format_time("8") == "8:00", "Hour only should add :00"
+        assert get_period_data__validate_and_format_time("08:30") == "08:30", "Valid time should be returned as-is"
+        assert get_period_data__validate_and_format_time("23:59") == "23:59", "Valid time should be returned as-is"
+        assert get_period_data__validate_and_format_time("8:30") == "8:30", "Time without leading zero should be accepted"
+        assert get_period_data__validate_and_format_time("8") == "8:00", "Hour only should add :00"
         
         # Test invalid times - these should return None due to error handling
-        assert validate_and_format_time("25:00") is None, "Invalid hour should return None"
-        assert validate_and_format_time("12:60") is None, "Invalid minute should return None"
-        assert validate_and_format_time("08:5") is None, "Missing leading zero in minutes should return None"
+        assert get_period_data__validate_and_format_time("25:00") is None, "Invalid hour should return None"
+        assert get_period_data__validate_and_format_time("12:60") is None, "Invalid minute should return None"
+        assert get_period_data__validate_and_format_time("08:5") is None, "Missing leading zero in minutes should return None"
 
     @pytest.mark.schedules
     @pytest.mark.regression
     def test_time_conversion_functions_work_correctly(self):
         """Test that time conversion functions produce accurate results."""
         # Test 24h to 12h conversion - functions return integers, not strings
-        assert time_24h_to_12h_display("08:30") == (8, 30, False), "8:30 AM should convert correctly"
-        assert time_24h_to_12h_display("13:45") == (1, 45, True), "1:45 PM should convert correctly"
-        assert time_24h_to_12h_display("00:00") == (12, 0, False), "12:00 AM should convert correctly"
-        assert time_24h_to_12h_display("12:00") == (12, 0, True), "12:00 PM should convert correctly"
+        assert get_period_data__time_24h_to_12h_display("08:30") == (8, 30, False), "8:30 AM should convert correctly"
+        assert get_period_data__time_24h_to_12h_display("13:45") == (1, 45, True), "1:45 PM should convert correctly"
+        assert get_period_data__time_24h_to_12h_display("00:00") == (12, 0, False), "12:00 AM should convert correctly"
+        assert get_period_data__time_24h_to_12h_display("12:00") == (12, 0, True), "12:00 PM should convert correctly"
         
         # Test 12h to 24h conversion - functions expect integers, not strings
-        assert time_12h_display_to_24h(8, 30, False) == "08:30", "8:30 AM should convert to 08:30"
-        assert time_12h_display_to_24h(1, 45, True) == "13:45", "1:45 PM should convert to 13:45"
-        assert time_12h_display_to_24h(12, 0, False) == "00:00", "12:00 AM should convert to 00:00"
-        assert time_12h_display_to_24h(12, 0, True) == "12:00", "12:00 PM should convert to 12:00"
+        assert get_period_data__time_12h_display_to_24h(8, 30, False) == "08:30", "8:30 AM should convert to 08:30"
+        assert get_period_data__time_12h_display_to_24h(1, 45, True) == "13:45", "1:45 PM should convert to 13:45"
+        assert get_period_data__time_12h_display_to_24h(12, 0, False) == "00:00", "12:00 AM should convert to 00:00"
+        assert get_period_data__time_12h_display_to_24h(12, 0, True) == "12:00", "12:00 PM should convert to 12:00"
 
     @pytest.mark.schedules
     @pytest.mark.regression

@@ -25,8 +25,21 @@ dialog_logger = logger
 
 # Import core functionality
 from core.schedule_management import (
-    get_schedule_time_periods, set_schedule_periods, clear_schedule_periods_cache,
-    validate_and_format_time, time_24h_to_12h_display, time_12h_display_to_24h
+    get_schedule_time_periods,
+    set_schedule_period_active,
+    is_schedule_period_active,
+    get_current_time_periods_with_validation,
+    add_schedule_period,
+    edit_schedule_period,
+    delete_schedule_period,
+    clear_schedule_periods_cache,
+    get_period_data__validate_and_format_time as validate_and_format_time,
+    get_period_data__time_24h_to_12h_display as time_24h_to_12h_display,
+    get_period_data__time_12h_display_to_24h as time_12h_display_to_24h,
+    get_current_day_names,
+    set_schedule_periods,
+    get_schedule_days,
+    set_schedule_days
 )
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets

@@ -31,7 +31,6 @@ from bot.communication_manager import CommunicationManager, QueuedMessage, BotIn
 from bot.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from tests.test_utilities import TestUserFactory, TestDataFactory, create_test_user
 
-
 class TestCommunicationManagerCoverageExpansion:
     """Comprehensive tests for CommunicationManager uncovered functionality."""
     
@@ -84,7 +83,7 @@ class TestCommunicationManagerCoverageExpansion:
     def test_message_queuing_real_behavior(self, comm_manager):
         """Test message queuing functionality for failed messages."""
         # Test queuing a failed message
-        comm_manager._queue_failed_message(
+        comm_manager.send_message_sync__queue_failed_message(
             user_id="test_user",
             category="motivational",
             message="Test message",
@@ -110,14 +109,14 @@ class TestCommunicationManagerCoverageExpansion:
     def test_retry_thread_management_real_behavior(self, comm_manager):
         """Test retry thread start/stop functionality."""
         # Test starting retry thread
-        comm_manager._start_retry_thread()
+        comm_manager.start_all__start_retry_thread()
         assert hasattr(comm_manager, '_retry_running')
         assert comm_manager._retry_running is True
         assert comm_manager._retry_thread is not None
         assert comm_manager._retry_thread.is_alive()
         
         # Test stopping retry thread
-        comm_manager._stop_retry_thread()
+        comm_manager.stop_all__stop_retry_thread()
         assert comm_manager._retry_running is False
 
     @pytest.mark.behavior
@@ -126,14 +125,14 @@ class TestCommunicationManagerCoverageExpansion:
     def test_restart_monitor_management_real_behavior(self, comm_manager):
         """Test restart monitor thread start/stop functionality."""
         # Test starting restart monitor
-        comm_manager._start_restart_monitor()
+        comm_manager.start_all__start_restart_monitor()
         assert hasattr(comm_manager, '_restart_monitor_running')
         assert comm_manager._restart_monitor_running is True
         assert comm_manager._restart_monitor_thread is not None
         assert comm_manager._restart_monitor_thread.is_alive()
         
         # Test stopping restart monitor
-        comm_manager._stop_restart_monitor()
+        comm_manager.stop_all__stop_restart_monitor()
         assert comm_manager._restart_monitor_running is False
 
     @pytest.mark.behavior
@@ -146,7 +145,7 @@ class TestCommunicationManagerCoverageExpansion:
         realistic_mock_channel.get_status.return_value = ChannelStatus.INITIALIZING
         
         # Test checking stuck channels
-        comm_manager._check_and_restart_stuck_channels()
+        comm_manager.start_all__check_and_restart_stuck_channels()
         
         # Verify the method handles stuck channels gracefully
         # (The actual restart logic is complex, so we just verify it doesn't crash)
@@ -165,7 +164,7 @@ class TestCommunicationManagerCoverageExpansion:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test restart attempt
-            comm_manager._attempt_channel_restart('restart_channel')
+            comm_manager.start_all__attempt_channel_restart('restart_channel')
             
             # Verify restart was attempted
             mock_factory.create_channel.assert_called_once()
@@ -191,7 +190,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock send_message_sync to return success
         with patch.object(comm_manager, 'send_message_sync', return_value=True):
-            comm_manager._process_retry_queue()
+            comm_manager.start_all__process_retry_queue()
             
             # Verify queue was processed
             assert comm_manager._failed_message_queue.empty()
@@ -217,7 +216,7 @@ class TestCommunicationManagerCoverageExpansion:
         
         # Mock send_message_sync to return failure
         with patch.object(comm_manager, 'send_message_sync', return_value=False):
-            comm_manager._process_retry_queue()
+            comm_manager.start_all__process_retry_queue()
             
             # Verify message was requeued with incremented retry count
             # Note: The actual logic may not requeue immediately, so we just verify the method runs
@@ -236,7 +235,7 @@ class TestCommunicationManagerCoverageExpansion:
             mock_factory.create_channel.return_value = realistic_mock_channel
             
             # Test async initialization
-            result = asyncio.run(comm_manager._initialize_channels_async())
+            result = asyncio.run(comm_manager.initialize_channels_from_config__initialize_channels_async())
             
             # Verify initialization succeeded
             assert result is True
@@ -689,10 +688,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.critical
     def test_event_loop_setup_real_behavior(self, comm_manager):
         """Test event loop setup functionality."""
-        # Test event loop setup
-        comm_manager._setup_event_loop()
-        
-        # Verify event loop was set up
+        # Verify event loop was set up during initialization
         assert hasattr(comm_manager, '_main_loop')
         assert hasattr(comm_manager, '_event_loop')
 
@@ -706,7 +702,7 @@ class TestCommunicationManagerCoverageExpansion:
             return "test_result"
         
         # Test running async function synchronously
-        result = comm_manager._run_async_sync(test_coro())
+        result = comm_manager.send_message_sync__run_async_sync(test_coro())
         
         # Verify result
         assert result == "test_result"

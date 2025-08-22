@@ -145,6 +145,38 @@ DISCORD_APPLICATION_ID = int(_app_id_env) if _app_id_env and _app_id_env.isdigit
 if not DISCORD_BOT_TOKEN:
     logger.warning("DISCORD_BOT_TOKEN not found - Discord channel will be disabled")
 
+def get_available_channels() -> List[str]:
+    """
+    Get list of available communication channels based on configuration.
+    
+    Returns:
+        List[str]: List of available channel names that can be used with ChannelFactory
+    """
+    available_channels = []
+    
+    # Check email configuration
+    if all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
+        available_channels.append('email')
+    
+    # Check Discord configuration
+    if DISCORD_BOT_TOKEN:
+        available_channels.append('discord')
+    
+    return available_channels
+
+def get_channel_class_mapping() -> Dict[str, str]:
+    """
+    Get mapping of channel names to their class names for dynamic imports.
+    
+    Returns:
+        Dict[str, str]: Mapping of channel name to fully qualified class name
+    """
+    return {
+        'email': 'bot.email_bot.EmailBot',
+        'discord': 'bot.discord_bot.DiscordBot',
+        # 'telegram': 'bot.telegram_bot.TelegramBot',  # Deactivated
+    }
+
 # Scheduler Configuration
 SCHEDULER_INTERVAL = int(os.getenv('SCHEDULER_INTERVAL', '60'))
 
@@ -572,21 +604,6 @@ def validate_discord_config():
     if not DISCORD_BOT_TOKEN:
         raise ConfigurationError("DISCORD_BOT_TOKEN is missing from environment configuration.")
     return True
-
-@handle_errors("getting available channels", user_friendly=False)
-def get_available_channels():
-    """Get list of available communication channels based on configuration."""
-    available_channels = []
-    
-    # Check email configuration
-    if all([EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD]):
-        available_channels.append('email')
-    
-    # Check Discord configuration
-    if DISCORD_BOT_TOKEN:
-        available_channels.append('discord')
-    
-    return available_channels
 
 @handle_errors("validating minimum configuration", user_friendly=False)
 def validate_minimum_config():

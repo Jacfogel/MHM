@@ -1045,14 +1045,10 @@ class CommunicationManager:
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
         """Get the appropriate recipient ID for the messaging service"""
         if messaging_service == "discord":
-            # Get discord_user_id from account.json, not preferences
-            # Get user account data
-            user_data_result = get_user_data(user_id, 'account', normalize_on_read=True)
-            account_data = user_data_result.get('account')
-            if not account_data:
-                logger.error(f"User account not found for {user_id}")
-                return False
-            return account_data.get('discord_user_id', '') if account_data else None
+            # For Discord, we need to get the channel ID, not the user ID
+            # The Discord bot handles user ID mapping internally
+            # We'll use a special marker that the Discord bot can recognize
+            return f"discord_user:{user_id}"
         elif messaging_service == "telegram":
             logger.error("Telegram channel has been deactivated")
             return None

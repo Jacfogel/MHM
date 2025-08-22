@@ -37,7 +37,7 @@ from user.user_context import UserContext
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
 from core.user_data_validation import _shared__title_case
-import core.config as cfg
+import core.config
 
 # Import generated UI for main window
 from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
@@ -441,7 +441,7 @@ class MHMManagerUI(QMainWindow):
             current_user_id = self.current_user
             
             # Load user index
-            index_file = os.path.join(cfg.BASE_DATA_DIR, "user_index.json")
+            index_file = os.path.join(core.config.BASE_DATA_DIR, "user_index.json")
             index_data = load_json_data(index_file) or {}
             
             self.ui.comboBox_users.clear()
@@ -642,8 +642,6 @@ class MHMManagerUI(QMainWindow):
         try:
             from ui.dialogs.account_creator_dialog import AccountCreatorDialog
             from bot.communication_manager import CommunicationManager
-            from bot.channel_registry import register_all_channels
-            register_all_channels()
             temp_comm_manager = CommunicationManager()
             dialog = AccountCreatorDialog(self, temp_comm_manager)
             dialog.user_changed.connect(self.refresh_user_list)
@@ -1450,7 +1448,7 @@ For detailed setup instructions, see the README.md file.
             text_widget.append(f"✓ Total Users: {len(user_ids)}\n")
             
             # Check data directories
-            required_dirs = [cfg.BASE_DATA_DIR, cfg.USER_INFO_DIR_PATH]
+            required_dirs = [core.config.BASE_DATA_DIR, core.config.USER_INFO_DIR_PATH]
             for dir_path in required_dirs:
                 exists = os.path.exists(dir_path)
                 status = "✓" if exists else "✗"
@@ -1460,9 +1458,9 @@ For detailed setup instructions, see the README.md file.
             text_widget.append("\nChecking for common issues...\n")
             
             # Check for orphaned message files
-            if os.path.exists(cfg.USER_INFO_DIR_PATH):
+            if os.path.exists(core.config.USER_INFO_DIR_PATH):
                 orphaned_files = 0
-                for root, dirs, files in os.walk(cfg.USER_INFO_DIR_PATH):
+                for root, dirs, files in os.walk(core.config.USER_INFO_DIR_PATH):
                     for file in files:
                         if file.endswith('.json'):
                             # Extract user_id from filename

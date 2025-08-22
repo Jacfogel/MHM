@@ -30,35 +30,17 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-## **Helper Function Naming Convention Refactor** ✅ **COMPLETED**
-- *What it means*: Implement consistent helper function naming convention using `_main_function__helper_name` pattern for better traceability and searchability
-- *Why it helps*: Makes code more maintainable by clearly showing which main function owns which helpers, improves searchability and debugging
-- *Estimated effort*: Large (Multi-module refactor)
-- *Achievement*: **113 helper functions refactored across 13 modules** ✅
-- *Subtasks*:
-  - [x] **Planning and Preparation** ✅ **COMPLETED**
-    - [x] Audit current helper functions across all modules
-    - [x] Create comprehensive list of functions to refactor
-    - [x] Test current state to establish baseline
-    - [x] Create backup before starting
-  - [x] **Phase 2: Core Modules** ✅ **COMPLETED**
-    - [x] Refactor `ui/widgets/period_row_widget.py` (6 helper functions)
-    - [x] Refactor `ui/dialogs/account_creator_dialog.py` (12 helper functions)
-    - [x] Refactor `core/user_data_handlers.py` (6 helper functions)
-    - [x] Refactor `core/file_operations.py` (6 helper functions)
-    - [x] Refactor `bot/interaction_handlers.py` (6 helper functions)
-    - [x] Refactor `tests/test_utilities.py` (8 helper functions)
-  - [x] **Phase 2B: Extended Modules** ✅ **COMPLETED**
-    - [x] **Priority 1**: High priority production code (18 functions across 2 modules)
-    - [x] **Priority 2**: Medium priority production code (25 functions across 4 modules)
-    - [x] **Priority 3**: Non-underscore helper functions (8 functions across 3 modules)
-    - [x] **Priority 4**: Test utilities helper functions (26 functions in 1 module)
-  - [x] **Final Steps** ✅ **COMPLETED**
-    - [x] Updated all function calls to renamed helpers
-    - [x] Updated all references across the codebase
-    - [x] Ran comprehensive tests after each module
-    - [x] Ran audit to verify no regressions
-    - [x] Updated documentation and changelogs
+## **User Context & Preferences Integration Investigation** - Investigate and improve integration
+- *What it means*: Investigate how user/user_context.py and user/user_preferences.py are integrated and used by other modules, identify gaps and improvements
+- *Why it helps*: Ensures user state and preferences are properly utilized across the system for better personalization
+- *Estimated effort*: Medium
+- *Status*: From PLANS.md - needs investigation and action
+
+## **Bot Module Naming & Clarity Refactoring** - Improve module clarity and separation
+- *What it means*: Consider renaming and/or clearly separating purposes of bot modules (communication_manager.py, conversation_manager.py, enhanced_command_parser.py, interaction_handlers.py, interaction_manager.py)
+- *Why it helps*: Improves code organization and makes module purposes clearer for maintainability
+- *Estimated effort*: Medium
+- *Status*: From PLANS.md - needs investigation and action
 
 ## **Phase 1: Enhanced Task & Check-in Systems** ✅ **MAJOR PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision

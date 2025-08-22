@@ -672,22 +672,47 @@ class DiscordBot(BaseChannel):
                 )
                 return
 
+            # Validate that the stored Discord user ID is still accessible
+            # This helps catch cases where the user's Discord account was deleted or they blocked the bot
+            stored_discord_id = None
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data_result = get_user_data(internal_user_id, 'account')
+                account_data = user_data_result.get('account', {})
+                stored_discord_id = account_data.get('discord_user_id')
+                
+                if stored_discord_id and str(stored_discord_id) != discord_user_id:
+                    # The user's Discord ID has changed - update it
+                    logger.info(f"Updating Discord user ID for user {internal_user_id} from {stored_discord_id} to {discord_user_id}")
+                    account_data['discord_user_id'] = discord_user_id
+                    from core.user_data_handlers import save_user_data
+                    save_user_data(internal_user_id, 'account', account_data)
+                    
+            except Exception as e:
+                logger.warning(f"Error validating Discord user ID for {internal_user_id}: {e}")
+
             # Use the new interaction manager for enhanced user interactions
             try:
                 from bot.interaction_manager import handle_user_message
                 response = handle_user_message(internal_user_id, message.content, "discord")
                 
                 if response.message:
-                    # Use the internal send method that handles rich_data and suggestions properly
-                    await self._send_message_internal(str(message.channel.id), response.message, response.rich_data, response.suggestions)
+                    # Send response directly to the channel (bypass _send_message_internal to avoid DM attempts)
+                    send_success = await self._send_to_channel(message.channel, response.message, response.rich_data, response.suggestions)
                     
-                    # Log successful message handling
-                    discord_logger.info("Discord message handled successfully", 
-                                      user_id=internal_user_id, 
-                                      message_length=len(message.content),
-                                      response_length=len(response.message),
-                                      suggestions_count=len(response.suggestions) if response.suggestions else 0,
-                                      has_rich_data=bool(response.rich_data))
+                    if send_success:
+                        # Log successful message handling
+                        discord_logger.info("Discord message handled successfully", 
+                                          user_id=internal_user_id, 
+                                          message_length=len(message.content),
+                                          response_length=len(response.message),
+                                          suggestions_count=len(response.suggestions) if response.suggestions else 0,
+                                          has_rich_data=bool(response.rich_data))
+                    else:
+                        # Message send failed - could be due to user not being accessible
+                        discord_logger.warning("Discord message send failed for user", 
+                                             user_id=internal_user_id,
+                                             discord_user_id=discord_user_id)
                         
             except Exception as e:
                 logger.error(f"Error in enhanced interaction for user {internal_user_id}: {e}")
@@ -732,18 +757,18 @@ class DiscordBot(BaseChannel):
                         if response.rich_data:
                             embed = self._create_discord_embed(response.message, response.rich_data)
                         
-                        # Create action row with buttons if suggestions are provided
-                        action_row = None
+                        # Create view with buttons if suggestions are provided
+                        view = None
                         if response.suggestions:
-                            action_row = self._create_action_row(response.suggestions)
+                            view = self._create_action_row(response.suggestions)
                         
-                        # Send response with embed and/or action row
-                        if embed and action_row:
-                            await interaction.response.send_message(embed=embed, components=[action_row])
+                        # Send response with embed and/or view
+                        if embed and view:
+                            await interaction.response.send_message(embed=embed, view=view)
                         elif embed:
                             await interaction.response.send_message(embed=embed)
-                        elif action_row:
-                            await interaction.response.send_message(response.message, components=[action_row])
+                        elif view:
+                            await interaction.response.send_message(response.message, view=view)
                         else:
                             await interaction.response.send_message(response.message)
                             
@@ -869,6 +894,66 @@ class DiscordBot(BaseChannel):
         logger.error(f"Timeout waiting for Discord message send to {recipient}")
         return False
 
+    async def _validate_discord_user_accessibility(self, user_id: str) -> bool:
+        """Validate if a Discord user ID is still accessible"""
+        try:
+            user_id_int = int(user_id)
+            user = self.bot.get_user(user_id_int)
+            if not user:
+                try:
+                    user = await self.bot.fetch_user(user_id_int)
+                    return True
+                except discord.NotFound:
+                    logger.warning(f"Discord user {user_id} not found (404)")
+                    return False
+                except discord.Forbidden:
+                    logger.warning(f"Bot forbidden from accessing Discord user {user_id} (403)")
+                    return False
+            return True
+        except (ValueError, TypeError):
+            return False
+
+    async def _send_to_channel(self, channel, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
+        """Send message directly to a Discord channel (for regular message responses)"""
+        try:
+            rich_data = rich_data or {}
+            suggestions = suggestions or []
+            
+            # Create Discord embed if rich data is provided
+            embed = None
+            if rich_data:
+                embed = self._create_discord_embed(message, rich_data)
+            
+            # Create view with buttons if suggestions are provided
+            view = None
+            if suggestions:
+                view = self._create_action_row(suggestions)
+            
+            # Send to the channel
+            if embed and view:
+                await channel.send(embed=embed, view=view)
+            elif embed:
+                await channel.send(embed=embed)
+            elif view:
+                await channel.send(message, view=view)
+            else:
+                await channel.send(message)
+            
+            logger.info(f"Message sent to Discord channel {channel.id}")
+            discord_logger.info("Discord channel message sent", 
+                              channel_id=str(channel.id), 
+                              message_length=len(message),
+                              has_embed=bool(embed),
+                              has_components=bool(view))
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error sending message to Discord channel {channel.id}: {e}")
+            discord_logger.error("Discord channel message send failed", 
+                               channel_id=str(channel.id),
+                               error=str(e))
+            return False
+
     @handle_errors("sending Discord message internally", default_return=False)
     async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
         """Send message safely within async context with rich response support"""
@@ -880,22 +965,22 @@ class DiscordBot(BaseChannel):
         if rich_data:
             embed = self._create_discord_embed(message, rich_data)
         
-        # Create action row with buttons if suggestions are provided
-        action_row = None
+        # Create view with buttons if suggestions are provided
+        view = None
         if suggestions:
-            action_row = self._create_action_row(suggestions)
+            view = self._create_action_row(suggestions)
         
-        # Try as a channel first
+        # Try as a channel first (preferred method)
         try:
             channel_id = int(recipient)
             channel = self.bot.get_channel(channel_id)
             if channel:
-                if embed and action_row:
-                    await channel.send(embed=embed, components=[action_row])
+                if embed and view:
+                    await channel.send(embed=embed, view=view)
                 elif embed:
                     await channel.send(embed=embed)
-                elif action_row:
-                    await channel.send(message, components=[action_row])
+                elif view:
+                    await channel.send(message, view=view)
                 else:
                     await channel.send(message)
                 logger.info(f"Message sent to Discord channel {recipient}")
@@ -903,36 +988,59 @@ class DiscordBot(BaseChannel):
                                   channel_id=recipient, 
                                   message_length=len(message),
                                   has_embed=bool(embed),
-                                  has_components=bool(action_row))
+                                  has_components=bool(view))
                 return True
+            else:
+                logger.warning(f"Could not find Discord channel with ID {recipient}")
         except (ValueError, TypeError):
+            logger.warning(f"Invalid channel ID format: {recipient}")
             pass  # Not a valid channel ID
         
-        # Try as a user DM
-        try:
-            user_id = int(recipient)
-            user = self.bot.get_user(user_id)
-            if not user:
-                user = await self.bot.fetch_user(user_id)
-            
-            if user:
-                if embed and action_row:
-                    await user.send(embed=embed, components=[action_row])
-                elif embed:
-                    await user.send(embed=embed)
-                elif action_row:
-                    await user.send(message, components=[action_row])
+        # Handle special Discord user marker
+        if recipient.startswith("discord_user:"):
+            internal_user_id = recipient.split(":", 1)[1]
+            # Get the user's Discord user ID and send a DM
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data_result = get_user_data(internal_user_id, 'account')
+                account_data = user_data_result.get('account', {})
+                discord_user_id = account_data.get('discord_user_id')
+                
+                if discord_user_id:
+                    user_id_int = int(discord_user_id)
+                    user = self.bot.get_user(user_id_int)
+                    if not user:
+                        user = await self.bot.fetch_user(user_id_int)
+                    
+                    if user:
+                        if embed and view:
+                            await user.send(embed=embed, view=view)
+                        elif embed:
+                            await user.send(embed=embed)
+                        elif view:
+                            await user.send(message, view=view)
+                        else:
+                            await user.send(message)
+                        logger.info(f"DM sent to Discord user {discord_user_id}")
+                        discord_logger.info("Discord DM sent", 
+                                          user_id=discord_user_id, 
+                                          message_length=len(message),
+                                          has_embed=bool(embed),
+                                          has_components=bool(view))
+                        return True
+                    else:
+                        logger.warning(f"Could not find Discord user {discord_user_id}")
                 else:
-                    await user.send(message)
-                logger.info(f"DM sent to Discord user {recipient}")
-                discord_logger.info("Discord DM sent", 
-                                  user_id=recipient, 
-                                  message_length=len(message),
-                                  has_embed=bool(embed),
-                                  has_components=bool(action_row))
-                return True
-        except (ValueError, TypeError):
-            pass  # Not a valid user ID
+                    logger.warning(f"No Discord user ID found for internal user {internal_user_id}")
+            except Exception as e:
+                logger.error(f"Error sending DM to Discord user: {e}")
+                return False
+        
+        # If we get here, we couldn't send the message
+        logger.error(f"Could not find Discord channel or user with ID {recipient}")
+        discord_logger.error("Discord message send failed - recipient not found", 
+                           recipient=recipient)
+        return False
         
         logger.error(f"Could not find Discord channel or user with ID {recipient}")
         discord_logger.error("Discord message send failed - recipient not found", 
@@ -961,18 +1069,18 @@ class DiscordBot(BaseChannel):
         
         # Set color based on type or use default
         color_map = {
-            'success': 0x00ff00,  # Green
-            'error': 0xff0000,    # Red
-            'warning': 0xffff00,  # Yellow
-            'info': 0x0099ff,     # Blue
-            'task': 0x9932cc,     # Purple
-            'profile': 0xff6b35,  # Orange
-            'schedule': 0x00bfff, # Deep Sky Blue
-            'analytics': 0x32cd32 # Lime Green
+            'success': discord.Color.green(),
+            'error': discord.Color.red(),
+            'warning': discord.Color.yellow(),
+            'info': discord.Color.blue(),
+            'task': discord.Color.purple(),
+            'profile': discord.Color.orange(),
+            'schedule': discord.Color.blue(),
+            'analytics': discord.Color.green()
         }
         
         embed_type = rich_data.get('type', 'info')
-        embed.color = color_map.get(embed_type, 0x0099ff)
+        embed.color = color_map.get(embed_type, discord.Color.blue())
         
         # Add fields
         if 'fields' in rich_data:
@@ -992,21 +1100,22 @@ class DiscordBot(BaseChannel):
         
         return embed
     
-    def _create_action_row(self, suggestions: List[str]) -> discord.ActionRow:
-        """Create a Discord action row with buttons from suggestions"""
-        action_row = discord.ActionRow()
+    def _create_action_row(self, suggestions: List[str]) -> discord.ui.View:
+        """Create a Discord view with buttons from suggestions"""
+        # Use discord.ui.View instead of ActionRow for discord.py v2.x compatibility
+        view = discord.ui.View()
         
         # Limit to 5 buttons (Discord limit)
         for i, suggestion in enumerate(suggestions[:5]):
             # Create a button with a unique custom_id
-            button = discord.Button(
+            button = discord.ui.Button(
                 style=discord.ButtonStyle.primary,
                 label=suggestion[:80],  # Discord button label limit
                 custom_id=f"suggestion_{i}_{hash(suggestion) % 10000}"
             )
-            action_row.add_item(button)
+            view.add_item(button)
         
-        return action_row
+        return view
 
     @handle_errors("receiving Discord messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:

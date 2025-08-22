@@ -367,7 +367,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating discord user with test dir {user_id}: {e}")
@@ -449,7 +449,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating full featured user with test dir {user_id}: {e}")
@@ -824,7 +824,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating telegram user with test dir {user_id}: {e}")
@@ -1079,7 +1079,7 @@ class TestUserFactory:
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating minimal user with test dir {user_id}: {e}")
@@ -1212,7 +1212,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating complex checkins user with test dir {user_id}: {e}")
@@ -1346,7 +1346,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating health focus user with test dir {user_id}: {e}")
@@ -1480,7 +1480,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating task focus user with test dir {user_id}: {e}")
@@ -1613,7 +1613,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating disability user with test dir {user_id}: {e}")
@@ -1745,7 +1745,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating limited data user with test dir {user_id}: {e}")
@@ -1877,7 +1877,7 @@ class TestUserFactory:
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
             # Verify user creation with proper configuration patching
-            return TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
             print(f"Error creating inconsistent data user with test dir {user_id}: {e}")

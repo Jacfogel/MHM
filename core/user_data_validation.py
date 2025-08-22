@@ -44,18 +44,48 @@ def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
 
 @handle_errors("converting to title case", default_return="")
 def _shared__title_case(text: str) -> str:
-    """Convert text to title case while keeping certain small words lowercase."""
+    """Convert text to title case with special handling for technical terms."""
+    if text is None:
+        return None
     if not text:
         return ""
-    text = text.lower()
-    abbreviations = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'if', 'in', 'is', 'it', 'of', 'on', 'or', 'the', 'to', 'up', 'via']
-    words = text.split()
+        
+    # Special words that should be all uppercase
+    special_words = {
+        'ai', 'api', 'ui', 'ux', 'mhm', 'id', 'url', 'http', 'https', 'json', 'xml', 
+        'yaml', 'toml', 'ini', 'cfg', 'log', 'tmp', 'temp', 'etc', 'usr', 'var', 
+        'bin', 'lib', 'src', 'doc', 'docs', 'test', 'backup', 'config', 'data',
+        'files', 'images', 'media', 'audio', 'video', 'photos', 'downloads', 
+        'uploads', 'cache', 'logs', 'html', 'css', 'js', 'asp', 'jsp'
+    }
+    
+    # Special case mappings
+    special_mappings = {
+        'dotnet': '.NET',
+        'c++': 'C++',
+        'c#': 'C#'
+    }
+    
+    # Small words that should stay lowercase (except at beginning/end)
+    small_words = {'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'if', 'in', 'is', 'it', 'of', 'on', 'or', 'the', 'to', 'up', 'via'}
+    
+    words = text.lower().split()
     result = []
+    
     for i, word in enumerate(words):
-        if i == 0 or i == len(words)-1 or word not in abbreviations:
+        # Check special mappings first
+        if word in special_mappings:
+            result.append(special_mappings[word])
+        # Check if it's a special technical word that should be uppercase
+        elif word in special_words:
+            result.append(word.upper())
+        # First/last word or not a small word - capitalize normally
+        elif i == 0 or i == len(words)-1 or word not in small_words:
             result.append(word.capitalize())
+        # Small word in middle - keep lowercase
         else:
             result.append(word)
+    
     return ' '.join(result)
 
 # ---------------------------------------------------------------------------

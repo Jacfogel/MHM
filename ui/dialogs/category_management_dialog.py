@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDialog, QMessageBox
-from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_management as Ui_Dialog
+from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_management
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from PySide6.QtCore import Signal
 from core.logger import get_logger, get_component_logger
@@ -18,7 +18,7 @@ class CategoryManagementDialog(QDialog):
         super().__init__(parent)
         self.user_id = user_id
         self.setWindowTitle("Category Settings")
-        self.ui = Ui_Dialog()
+        self.ui = Ui_Dialog_category_management()
         self.ui.setupUi(self)
         # Add the category widget to the group box layout
         self.category_widget = CategorySelectionWidget(self)

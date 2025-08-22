@@ -29,7 +29,7 @@ sys.path.insert(0, str(project_root))
 
 from core.user_data_handlers import save_user_data, get_user_data
 from core.file_operations import create_user_files, get_user_file_path
-from core.user_data_validation import is_valid_email, validate_time_format
+from core.user_data_validation import is_valid_email, validate_schedule_periods__validate_time_format
 from ui.dialogs.account_creator_dialog import AccountCreatorDialog
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget

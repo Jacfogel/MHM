@@ -2,7 +2,62 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
-### 2025-08-21 - Helper Function Naming Convention Refactor
+### 2025-08-22 - User Context & Preferences Integration Investigation
+
+**Status**: 🟡 **PLANNING**  
+**Priority**: High  
+**Effort**: Medium  
+**Dependencies**: None  
+
+**Objective**: Investigate and improve the integration of `user/user_context.py` and `user/user_preferences.py` modules across the system.
+
+**Background**: User observed that these modules may not be used as extensively or in all the ways they were intended to be.
+
+**Investigation Plan**:
+- [ ] Audit current usage of `user/user_context.py` across all modules
+- [ ] Audit current usage of `user/user_preferences.py` across all modules
+- [ ] Identify gaps between intended functionality and actual usage
+- [ ] Document integration patterns and missing connections
+- [ ] Propose improvements for better integration
+
+**Success Criteria**:
+- Complete understanding of current integration state
+- Identified gaps and improvement opportunities
+- Action plan for enhancing integration
+
+---
+
+### 2025-08-22 - Bot Module Naming & Clarity Refactoring
+
+**Status**: 🟡 **PLANNING**  
+**Priority**: High  
+**Effort**: Medium  
+**Dependencies**: None  
+
+**Objective**: Improve clarity and separation of purposes for bot modules.
+
+**Target Modules**:
+- `bot/communication_manager.py`
+- `bot/conversation_manager.py`
+- `bot/enhanced_command_parser.py`
+- `bot/interaction_handlers.py`
+- `bot/interaction_manager.py`
+
+**Investigation Plan**:
+- [ ] Analyze current module purposes and responsibilities
+- [ ] Identify overlapping functionality and unclear boundaries
+- [ ] Document current naming conventions and their clarity
+- [ ] Propose improved naming and separation strategies
+- [ ] Create refactoring plan if needed
+
+**Success Criteria**:
+- Clear understanding of each module's purpose
+- Identified naming and organization improvements
+- Action plan for refactoring if beneficial
+
+---
+
+### 2025-08-21 - Helper Function Naming Convention Refactor ✅ **COMPLETED**
 
 **Status**: ✅ **COMPLETED**  
 **Priority**: High  
@@ -109,7 +164,104 @@ def validate_and_accept(self):
 - **Maintainable**: Easy to update and keep current
 - **Useful**: Provides value for both human developer and AI collaborators 
 
-## 🎯 Active Plans
+## �� Active Plans
+
+#### **User Context & Preferences Integration Investigation** ⚠️ **NEW PRIORITY**
+**Goal**: Investigate and improve the integration of user/user_context.py and user/user_preferences.py modules
+**Status**: Investigation Phase
+**Estimated Duration**: 1-2 weeks
+**Checklist**:
+- [ ] **Investigate Current Usage Patterns**
+  - [ ] Audit all imports and usage of UserContext and UserPreferences across codebase
+  - [ ] Identify where these modules are actually being used vs. where they should be used
+  - [ ] Document current integration gaps and missed opportunities
+  - [ ] Analyze if UserPreferences is truly needed or if it duplicates UserContext functionality
+- [ ] **Assess Integration Quality**
+  - [ ] Check if user context is properly passed to AI conversations
+  - [ ] Verify if user preferences are being used for personalization
+  - [ ] Identify where direct file access bypasses these modules
+  - [ ] Document any inconsistent data access patterns
+- [ ] **Plan Integration Improvements**
+  - [ ] Consolidate duplicate functionality between UserContext and UserPreferences
+  - [ ] Ensure all user data access goes through these modules
+  - [ ] Improve AI context building with user preferences
+  - [ ] Add missing integration points for better personalization
+- [ ] **Implementation**
+  - [ ] Refactor modules to eliminate redundancy
+  - [ ] Update all direct data access to use these modules
+  - [ ] Enhance AI context with user preferences
+  - [ ] Add comprehensive tests for integration points
+
+#### **Channel Registry Simplification** ✅ **COMPLETED**
+**Goal**: Simplify channel management by removing redundant channel_registry.py and using config.py instead
+**Status**: ✅ **COMPLETED**
+**Estimated Duration**: 1 week
+**Checklist**:
+- [x] **Analyze Current Channel Management** ✅ **COMPLETED**
+  - [x] Document how channel_registry.py, channel_factory.py, and base_channel.py interact
+  - [x] Identify redundancy between channel_registry.py and config.py channel settings
+  - [x] Check if channel availability should be determined by .env/config instead of hardcoded registry
+  - [x] Analyze if factory pattern is overkill for current channel count
+- [x] **Design Simplified Architecture** ✅ **COMPLETED**
+  - [x] Move channel availability to config.py based on .env settings
+  - [x] Consider removing channel_registry.py entirely
+  - [x] Simplify channel_factory.py to read from config instead of registry
+  - [x] Maintain base_channel.py as the interface definition
+- [x] **Implementation** ✅ **COMPLETED**
+  - [x] Update config.py to include channel availability logic
+  - [x] Modify channel_factory.py to use config-based channel discovery
+  - [x] Remove channel_registry.py if no longer needed
+  - [x] Update all channel creation code to use new approach
+  - [x] Add tests for config-based channel management
+
+**Results Achieved**:
+- **Eliminated Redundancy**: Removed 15-line channel_registry.py file that duplicated config.py functionality
+- **Config-Based Discovery**: Channel availability now determined by .env settings in config.py
+- **Dynamic Registration**: ChannelFactory auto-registers channels based on configuration
+- **Simplified Architecture**: Single source of truth for channel availability
+- **Maintained Compatibility**: All existing functionality preserved
+- **Improved Maintainability**: Adding new channels only requires updating config.py mapping
+
+**Files Modified**:
+- `core/config.py`: Added `get_available_channels()` and `get_channel_class_mapping()` functions
+- `bot/channel_factory.py`: Updated to use config-based auto-registration
+- `core/service.py`: Removed channel registry import and registration
+- `ui/ui_app_qt.py`: Removed channel registry import and registration
+- `tests/ui/test_dialogs.py`: Removed channel registry import and registration
+- `bot/channel_registry.py`: **DELETED** - No longer needed
+
+**Benefits Realized**:
+- **Reduced Complexity**: Eliminated redundant registration system
+- **Single Source of Truth**: Channel availability determined by configuration
+- **Easier Maintenance**: Adding new channels requires only config.py changes
+- **Better Error Messages**: Factory now shows available channels when unknown type requested
+- **Cleaner Startup**: No manual registration calls needed
+
+#### **Bot Module Naming and Purpose Clarification** ⚠️ **NEW PRIORITY**
+**Goal**: Clarify and potentially rename bot modules to better reflect their distinct purposes
+**Status**: Investigation Phase
+**Estimated Duration**: 1-2 weeks
+**Checklist**:
+- [ ] **Analyze Current Module Purposes**
+  - [ ] Document exact responsibilities of each module:
+    - `bot/communication_manager.py` - Channel lifecycle and message routing
+    - `bot/conversation_manager.py` - Conversation state and context
+    - `bot/enhanced_command_parser.py` - Natural language command parsing
+    - `bot/interaction_handlers.py` - Specific command implementations
+    - `bot/interaction_manager.py` - Message routing and intent determination
+  - [ ] Identify naming confusion and overlapping responsibilities
+  - [ ] Check if any modules could be merged or split for clarity
+- [ ] **Design Improved Architecture**
+  - [ ] Consider renaming modules for clarity (e.g., interaction_manager → message_router)
+  - [ ] Clarify boundaries between conversation vs communication management
+  - [ ] Ensure each module has a single, clear responsibility
+  - [ ] Document the distinct purposes and relationships
+- [ ] **Implementation**
+  - [ ] Rename modules if beneficial for clarity
+  - [ ] Update all imports and references
+  - [ ] Improve module documentation and purpose statements
+  - [ ] Add architectural diagrams showing clear module boundaries
+  - [ ] Update tests to reflect new module names/purposes
 
 #### AI Tools Improvement Plan — NEW
 **Goal**: Improve AI tools to generate more valuable, concise documentation for AI collaborators

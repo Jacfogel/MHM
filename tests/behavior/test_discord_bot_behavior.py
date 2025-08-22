@@ -141,7 +141,7 @@ class TestDiscordBotBehavior:
         initial_status = bot._connection_status
         
         error_info = {"test": "error"}
-        bot._update_connection_status(DiscordConnectionStatus.CONNECTED, error_info)
+        bot._shared__update_connection_status(DiscordConnectionStatus.CONNECTED, error_info)
         
         assert bot._connection_status == DiscordConnectionStatus.CONNECTED, "Status should be updated"
         assert bot._detailed_error_info["test"] == "error", "Error info should be stored"
@@ -566,7 +566,7 @@ class TestDiscordBotIntegration:
             dbot = DiscordBot()
             # Initialize minimal event handlers without real network
             dbot.bot = mock_bot
-            dbot._register_events()
+            dbot.initialize__register_events()
 
             # Build a fake message object
             fake_channel = MagicMock()

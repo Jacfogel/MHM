@@ -129,28 +129,28 @@ class TestTaskManagementHandlerCoverage:
     def test_parse_relative_date_today(self):
         """Test relative date parsing for 'today'."""
         handler = TaskManagementHandler()
-        result = handler._parse_relative_date("today")
+        result = handler._handle_create_task__parse_relative_date("today")
         expected = datetime.now().strftime('%Y-%m-%d')
         assert result == expected
     
     def test_parse_relative_date_tomorrow(self):
         """Test relative date parsing for 'tomorrow'."""
         handler = TaskManagementHandler()
-        result = handler._parse_relative_date("tomorrow")
+        result = handler._handle_create_task__parse_relative_date("tomorrow")
         expected = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
         assert result == expected
     
     def test_parse_relative_date_next_week(self):
         """Test relative date parsing for 'next week'."""
         handler = TaskManagementHandler()
-        result = handler._parse_relative_date("next week")
+        result = handler._handle_create_task__parse_relative_date("next week")
         expected = (datetime.now() + timedelta(days=7)).strftime('%Y-%m-%d')
         assert result == expected
     
     def test_parse_relative_date_next_month(self):
         """Test relative date parsing for 'next month'."""
         handler = TaskManagementHandler()
-        result = handler._parse_relative_date("next month")
+        result = handler._handle_create_task__parse_relative_date("next month")
         # Should be approximately next month
         assert len(result) == 10  # YYYY-MM-DD format
         assert result.count('-') == 2
@@ -159,7 +159,7 @@ class TestTaskManagementHandlerCoverage:
         """Test relative date parsing for existing date."""
         handler = TaskManagementHandler()
         existing_date = "2024-12-25"
-        result = handler._parse_relative_date(existing_date)
+        result = handler._handle_create_task__parse_relative_date(existing_date)
         assert result == existing_date
     
     def test_handle_list_tasks_no_tasks(self, test_data_dir):

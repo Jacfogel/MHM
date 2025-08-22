@@ -26,7 +26,7 @@ from core.user_data_handlers import (
     update_user_schedules
 )
 from tests.test_utilities import TestUserFactory
-from core.user_data_validation import is_valid_email, validate_time_format
+from core.user_data_validation import is_valid_email, validate_schedule_periods__validate_time_format
 
 class TestUserCreationScenarios:
     """Test comprehensive user creation scenarios."""
