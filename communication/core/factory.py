@@ -24,6 +24,7 @@ class ChannelFactory:
             
         from core.config import get_available_channels, get_channel_class_mapping
         
+        # Use configured channels for auto-registration
         available_channels = get_available_channels()
         channel_mapping = get_channel_class_mapping()
         
@@ -51,6 +52,7 @@ class ChannelFactory:
     @handle_errors("registering channel")
     def register_channel(cls, name: str, channel_class: Type[BaseChannel]):
         """Register a new channel type (legacy compatibility)"""
+        logger.warning("LEGACY COMPATIBILITY: ChannelFactory.register_channel() called - use auto-registration via config instead")
         cls._channel_registry[name] = channel_class
         logger.debug(f"Manually registered channel type: {name}")
     
@@ -69,9 +71,16 @@ class ChannelFactory:
         return channel_class(config)
     
     @classmethod
-    @handle_errors("getting available channels", default_return=[])
-    def get_available_channels(cls) -> list:
-        """Get list of available channel types"""
+    @handle_errors("getting registered channels", default_return=[])
+    def get_registered_channels(cls) -> list:
+        """Get list of registered channel types"""
         # Ensure registry is initialized
         cls._initialize_registry()
-        return list(cls._channel_registry.keys()) 
+        return list(cls._channel_registry.keys())
+    
+    @classmethod
+    @handle_errors("getting available channels", default_return=[])
+    def get_available_channels(cls) -> list:
+        """Get list of available channel types (legacy compatibility)"""
+        logger.warning("LEGACY COMPATIBILITY: ChannelFactory.get_available_channels() called - use get_registered_channels() instead")
+        return cls.get_registered_channels() 

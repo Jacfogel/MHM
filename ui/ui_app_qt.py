@@ -1031,8 +1031,8 @@ class MHMManagerUI(QMainWindow):
     def view_log_file(self):
         """Open the log file in the default text editor."""
         import webbrowser
-        from core.config import LOG_FILE_PATH
-        webbrowser.open(LOG_FILE_PATH)
+        from core.config import LOG_MAIN_FILE
+        webbrowser.open(LOG_MAIN_FILE)
     
     @handle_errors("viewing cache status")
     def view_cache_status(self):
@@ -1200,14 +1200,14 @@ Current cache files found:
         
         # Add current configuration values
         from core.config import (
-            BASE_DATA_DIR, LOG_FILE_PATH, LOG_LEVEL, LM_STUDIO_BASE_URL, 
+            BASE_DATA_DIR, LOG_MAIN_FILE, LOG_LEVEL, LM_STUDIO_BASE_URL, 
             AI_TIMEOUT_SECONDS, SCHEDULER_INTERVAL, EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, 
             EMAIL_SMTP_USERNAME, DISCORD_BOT_TOKEN
         )
         
         config_values = [
             ("Base Data Directory", BASE_DATA_DIR),
-            ("Log File", LOG_FILE_PATH),
+            ("Log File", LOG_MAIN_FILE),
             ("Log Level", LOG_LEVEL),
             ("LM Studio URL", LM_STUDIO_BASE_URL),
             ("AI Timeout", f"{AI_TIMEOUT_SECONDS}s"),
@@ -1274,7 +1274,7 @@ OPTIONAL SETTINGS:
 =================
 
 - BASE_DATA_DIR (default: data)
-- LOG_FILE_PATH (default: app.log)
+- LOG_MAIN_FILE (default: app.log)
 - LOG_LEVEL (default: INFO)
 - AI_TIMEOUT_SECONDS (default: 30)
 - SCHEDULER_INTERVAL (default: 60)

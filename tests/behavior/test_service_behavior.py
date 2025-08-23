@@ -120,7 +120,7 @@ class TestMHMService:
         with patch('core.service.get_all_user_ids', return_value=['user1', 'user2']), \
              patch('core.service.get_user_data') as mock_get_user_data, \
                      patch('core.service.get_user_data_dir', return_value=temp_dir), \
-        patch('core.service.LOG_FILE_PATH', os.path.join(temp_dir, 'log.txt')), \
+        patch('core.service.LOG_MAIN_FILE', os.path.join(temp_dir, 'log.txt')), \
         patch('core.service.USER_INFO_DIR_PATH', temp_dir):
             
             # Mock get_user_data to return real data structure
@@ -158,7 +158,7 @@ class TestMHMService:
         # Verify log file exists
         assert os.path.exists(log_file)
         
-        with patch('core.service.LOG_FILE_PATH', log_file), \
+        with patch('core.service.LOG_MAIN_FILE', log_file), \
              patch('core.service.logging.getLogger') as mock_get_logger:
             
             mock_logger = Mock()

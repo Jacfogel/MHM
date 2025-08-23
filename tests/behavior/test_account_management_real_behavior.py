@@ -98,10 +98,10 @@ def test_user_data_loading_real_behavior(test_data_dir):
     
     try:
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         
         # Get the UUID for the basic user
-        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        basic_user_id = get_user_id_by_identifier("test-user-basic")
         assert basic_user_id is not None, "Should be able to get UUID for basic user"
         
         # Test loading basic user
@@ -121,7 +121,7 @@ def test_user_data_loading_real_behavior(test_data_dir):
         print("  ✅ Basic user data loading: Success")
         
         # Get the UUID for the full user
-        full_user_id = get_user_id_by_internal_username("test-user-full")
+        full_user_id = get_user_id_by_identifier("test-user-full")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         # Test loading full user
@@ -161,10 +161,10 @@ def test_feature_enablement_real_behavior(test_data_dir):
 
     try:
         from core.user_data_handlers import save_user_data, get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         
         # Get the UUID for the basic user
-        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        basic_user_id = get_user_id_by_identifier("test-user-basic")
         assert basic_user_id is not None, "Should be able to get UUID for basic user"
         
         # Test enabling check-ins for basic user
@@ -192,7 +192,7 @@ def test_feature_enablement_real_behavior(test_data_dir):
         print("  ✅ Enable check-ins: Success")
         
         # Get the UUID for the full user
-        full_user_id = get_user_id_by_internal_username("test-user-full")
+        full_user_id = get_user_id_by_identifier("test-user-full")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         # Test disabling tasks for full user
@@ -414,10 +414,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
     try:
         from core.user_data_handlers import save_user_data, get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
 
         # Get the UUID for the basic user
-        basic_user_id = get_user_id_by_internal_username("test-user-basic")
+        basic_user_id = get_user_id_by_identifier("test-user-basic")
         assert basic_user_id is not None, "Should be able to get UUID for basic user"
 
         # Scenario 1: User opts into check-ins for the first time
@@ -475,7 +475,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         print("  Testing: User disables task management and re-enables it")
         
         # Get the UUID for the full user
-        full_user_id = get_user_id_by_internal_username("test-user-full")
+        full_user_id = get_user_id_by_identifier("test-user-full")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         full_data = get_user_data(full_user_id, "all")
@@ -510,8 +510,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 
         # Ensure task directory is created when tasks are enabled
         from tasks.task_management import ensure_task_directory
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username("test-user-full")
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier("test-user-full")
         if actual_user_id:
             ensure_task_directory(actual_user_id)
 

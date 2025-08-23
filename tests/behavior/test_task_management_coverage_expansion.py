@@ -669,9 +669,9 @@ class TestTaskManagementCoverageExpansion:
 
     def test_get_user_task_tags_real_behavior(self, mock_user_data_dir, user_id):
         """Test getting user task tags from preferences."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs:
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'personal', 'health']}
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data:
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'personal', 'health']}}
             }
             
             tags = get_user_task_tags(user_id)
@@ -686,28 +686,30 @@ class TestTaskManagementCoverageExpansion:
 
     def test_add_user_task_tag_new_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test adding a new task tag."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs, \
-             patch('core.user_management.save_user_preferences_data') as mock_save_prefs:
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
+             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
             
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'personal']}
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'personal']}}
             }
-            mock_save_prefs.return_value = True
+            mock_save_user_data.return_value = {'preferences': True}
             
             result = add_user_task_tag(user_id, 'health')
             
             assert result is True
-            mock_save_prefs.assert_called_once()
+            mock_save_user_data.assert_called_once()
             
             # Verify the call included the new tag
-            call_args = mock_save_prefs.call_args[0][1]
-            assert 'health' in call_args['task_settings']['tags']
+            call_args = mock_save_user_data.call_args[0]
+            assert call_args[0] == user_id
+            assert call_args[1] == 'preferences'
+            assert 'health' in call_args[2]['task_settings']['tags']
 
     def test_add_user_task_tag_existing_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test adding an existing task tag."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs:
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'personal', 'health']}
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data:
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'personal', 'health']}}
             }
             
             result = add_user_task_tag(user_id, 'health')
@@ -728,28 +730,30 @@ class TestTaskManagementCoverageExpansion:
 
     def test_remove_user_task_tag_real_behavior(self, mock_user_data_dir, user_id):
         """Test removing a task tag."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs, \
-             patch('core.user_management.save_user_preferences_data') as mock_save_prefs:
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
+             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
             
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'personal', 'health']}
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'personal', 'health']}}
             }
-            mock_save_prefs.return_value = True
+            mock_save_user_data.return_value = {'preferences': True}
             
             result = remove_user_task_tag(user_id, 'health')
             
             assert result is True
-            mock_save_prefs.assert_called_once()
+            mock_save_user_data.assert_called_once()
             
             # Verify the call excluded the removed tag
-            call_args = mock_save_prefs.call_args[0][1]
-            assert 'health' not in call_args['task_settings']['tags']
+            call_args = mock_save_user_data.call_args[0]
+            assert call_args[0] == user_id
+            assert call_args[1] == 'preferences'
+            assert 'health' not in call_args[2]['task_settings']['tags']
 
     def test_remove_user_task_tag_not_found_real_behavior(self, mock_user_data_dir, user_id):
         """Test removing a non-existent task tag."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs:
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'personal']}
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data:
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'personal']}}
             }
             
             result = remove_user_task_tag(user_id, 'health')
@@ -758,11 +762,11 @@ class TestTaskManagementCoverageExpansion:
 
     def test_setup_default_task_tags_new_user_real_behavior(self, mock_user_data_dir, user_id):
         """Test setting up default task tags for new user."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs, \
-             patch('core.user_management.save_user_preferences_data') as mock_save_prefs:
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data, \
+             patch('core.user_data_handlers.save_user_data') as mock_save_user_data:
             
-            mock_load_prefs.return_value = {'task_settings': {'tags': []}}
-            mock_save_prefs.return_value = True
+            mock_get_user_data.return_value = {'preferences': {'task_settings': {'tags': []}}}
+            mock_save_user_data.return_value = {'preferences': True}
             
             result = setup_default_task_tags(user_id)
             
@@ -778,9 +782,9 @@ class TestTaskManagementCoverageExpansion:
 
     def test_setup_default_task_tags_existing_user_real_behavior(self, mock_user_data_dir, user_id):
         """Test setting up default task tags for user with existing tags."""
-        with patch('tasks.task_management.load_user_preferences_data') as mock_load_prefs:
-            mock_load_prefs.return_value = {
-                'task_settings': {'tags': ['work', 'custom']}
+        with patch('tasks.task_management.get_user_data') as mock_get_user_data:
+            mock_get_user_data.return_value = {
+                'preferences': {'task_settings': {'tags': ['work', 'custom']}}
             }
             
             result = setup_default_task_tags(user_id)

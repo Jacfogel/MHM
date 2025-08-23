@@ -17,7 +17,18 @@ from core.error_handling import (
 )
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
-from core.user_management import load_user_preferences_data
+# LEGACY COMPATIBILITY: Using get_user_data instead of load_user_preferences_data
+# TODO: Remove after all calls are updated to use get_user_data
+# REMOVAL PLAN:
+# 1. Update all load_user_preferences_data calls to use get_user_data
+# 2. Remove this import
+# 3. Update any save_user_preferences_data calls to use save_user_data
+# USAGE TRACKING: Monitor for any remaining calls to load_user_preferences_data
+# TODO: Remove after all calls are updated to use get_user_data
+# REMOVAL PLAN:
+# 1. Update all load_user_preferences_data calls to use get_user_data
+# 2. Remove this import
+# 3. Update any save_user_preferences_data calls to use save_user_data
 
 logger = get_component_logger('tasks')
 task_logger = get_component_logger('main')
@@ -577,7 +588,8 @@ def get_user_task_tags(user_id: str) -> List[str]:
             logger.error("User ID is required for getting task tags")
             return []
         
-        preferences_data = load_user_preferences_data(user_id)
+        preferences_result = get_user_data(user_id, 'preferences')
+        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         task_settings = preferences_data.get('task_settings', {})
         tags = task_settings.get('tags', [])
         
@@ -596,9 +608,10 @@ def add_user_task_tag(user_id: str, tag: str) -> bool:
             logger.error("User ID and tag are required for adding task tag")
             return False
         
-        from core.user_management import save_user_preferences_data
+        from core.user_data_handlers import save_user_data
         
-        preferences_data = load_user_preferences_data(user_id)
+        preferences_result = get_user_data(user_id, 'preferences')
+        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         task_settings = preferences_data.get('task_settings', {})
         tags = task_settings.get('tags', [])
         
@@ -607,7 +620,7 @@ def add_user_task_tag(user_id: str, tag: str) -> bool:
             task_settings['tags'] = tags
             preferences_data['task_settings'] = task_settings
             
-            if save_user_preferences_data(user_id, preferences_data):
+            if save_user_data(user_id, 'preferences', preferences_data):
                 logger.info(f"Added tag '{tag}' for user {user_id}")
                 return True
             else:
@@ -629,12 +642,13 @@ def setup_default_task_tags(user_id: str) -> bool:
             logger.error("User ID is required for setting up default task tags")
             return False
         
-        from core.user_management import save_user_preferences_data
+        from core.user_data_handlers import save_user_data
         
         # Default tags to set up
         default_tags = ["work", "personal", "health"]
         
-        preferences_data = load_user_preferences_data(user_id)
+        preferences_result = get_user_data(user_id, 'preferences')
+        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         task_settings = preferences_data.get('task_settings', {})
         existing_tags = task_settings.get('tags', [])
         
@@ -643,7 +657,7 @@ def setup_default_task_tags(user_id: str) -> bool:
             task_settings['tags'] = default_tags
             preferences_data['task_settings'] = task_settings
             
-            if save_user_preferences_data(user_id, preferences_data):
+            if save_user_data(user_id, 'preferences', preferences_data):
                 logger.info(f"Set up default task tags for user {user_id}: {default_tags}")
                 return True
             else:
@@ -665,9 +679,10 @@ def remove_user_task_tag(user_id: str, tag: str) -> bool:
             logger.error("User ID and tag are required for removing task tag")
             return False
         
-        from core.user_management import save_user_preferences_data
+        from core.user_data_handlers import save_user_data
         
-        preferences_data = load_user_preferences_data(user_id)
+        preferences_result = get_user_data(user_id, 'preferences')
+        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         task_settings = preferences_data.get('task_settings', {})
         tags = task_settings.get('tags', [])
         
@@ -676,7 +691,7 @@ def remove_user_task_tag(user_id: str, tag: str) -> bool:
             task_settings['tags'] = tags
             preferences_data['task_settings'] = task_settings
             
-            if save_user_preferences_data(user_id, preferences_data):
+            if save_user_data(user_id, 'preferences', preferences_data):
                 logger.info(f"Removed tag '{tag}' for user {user_id}")
                 return True
             else:

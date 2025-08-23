@@ -48,7 +48,7 @@ def _normalize_path(value: str) -> str:
 BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 
 # Paths - Updated for better organization
-LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', 'app.log')  # Move log to root
+# LOG_FILE_PATH environment variable removed - using LOG_MAIN_FILE directly
 USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users')))
 # Fix: Use forward slashes for cross-platform compatibility and avoid path normalization issues
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')
@@ -120,11 +120,6 @@ LOG_DISCORD_FILE = _normalize_path(os.getenv('LOG_DISCORD_FILE', os.path.join(LO
 LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log')))  # AI interactions log
 LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log')))  # User activity log
 LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
-
-# LEGACY COMPATIBILITY: LOG_FILE_PATH env is deprecated. We now always derive
-# the main log file path from LOGS_DIR/LOG_MAIN_FILE to ensure consistent
-# component-based logging without noisy warnings.
-LOG_FILE_PATH = LOG_MAIN_FILE
 
 # Communication Channel Configurations (non-blocking)
 # TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated
@@ -313,7 +308,7 @@ def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
     
     # Check log file path
     try:
-        log_path = Path(LOG_FILE_PATH)
+        log_path = Path(LOG_MAIN_FILE)
         log_dir = log_path.parent
         if log_dir.exists() and not os.access(log_dir, os.W_OK):
             errors.append(f"Cannot write to log directory: {log_dir}")
@@ -324,7 +319,7 @@ def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
             except Exception as e:
                 errors.append(f"Cannot create log directory {log_dir}: {e}")
     except Exception as e:
-        errors.append(f"Error validating log file path {LOG_FILE_PATH}: {e}")
+        errors.append(f"Error validating log file path {LOG_MAIN_FILE}: {e}")
     
     # Validate log rotation settings
     if LOG_MAX_BYTES < 1024 * 1024:  # Less than 1MB
@@ -336,8 +331,8 @@ def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
         warnings.append(f"LOG_BACKUP_COUNT ({LOG_BACKUP_COUNT}) is very high, consider reducing")
     
     # Check current log file size if it exists
-    if os.path.exists(LOG_FILE_PATH):
-        current_size = os.path.getsize(LOG_FILE_PATH)
+    if os.path.exists(LOG_MAIN_FILE):
+        current_size = os.path.getsize(LOG_MAIN_FILE)
         current_size_mb = current_size / (1024 * 1024)
         if current_size_mb > 10:  # More than 10MB
             warnings.append(f"Current log file is {current_size_mb:.1f}MB, consider reducing LOG_LEVEL or increasing LOG_MAX_BYTES")
@@ -507,7 +502,7 @@ def print_configuration_report():
     # Print current configuration values
     print(f"\nCURRENT CONFIGURATION:")
     print(f"  Base Data Directory: {BASE_DATA_DIR}")
-    print(f"  Log File: {LOG_FILE_PATH}")
+    print(f"  Log File: {LOG_MAIN_FILE}")
     print(f"  Log Level: {LOG_LEVEL}")
     print(f"  LM Studio URL: {LM_STUDIO_BASE_URL}")
     print(f"  AI Timeout: {AI_TIMEOUT_SECONDS}s")

@@ -265,35 +265,55 @@ def validate_and_accept(self):
     - [x] `communication/core/factory.py` - Channel factory and creation
   - [x] **Base Channel Module Breakdown** ✅ **COMPLETED**
     - [x] `communication/communication_channels/base/base_channel.py` - Abstract interface
-    - [ ] `communication/communication_channels/base/command_registry.py` - Command registration utilities
-    - [ ] `communication/communication_channels/base/message_formatter.py` - Message formatting utilities
-    - [ ] `communication/communication_channels/base/rich_formatter.py` - Rich formatting utilities
+    - [x] `communication/communication_channels/base/command_registry.py` - Command registration utilities
+    - [x] `communication/communication_channels/base/message_formatter.py` - Message formatting utilities
+    - [x] `communication/communication_channels/base/rich_formatter.py` - Rich formatting utilities
   - [x] **Discord Channel Module Breakdown** ✅ **COMPLETED**
     - [x] `communication/communication_channels/discord/bot.py` - Main Discord bot
-    - [ ] `communication/communication_channels/discord/api_client.py` - Discord API client
-    - [ ] `communication/communication_channels/discord/event_handler.py` - Discord event handling
-  - [x] **Command Handlers Module Breakdown** 🔄 **PARTIAL**
+    - [x] `communication/communication_channels/discord/api_client.py` - Discord API client
+    - [x] `communication/communication_channels/discord/event_handler.py` - Discord event handling
+  - [x] **Command Handlers Module Breakdown** ✅ **COMPLETED**
     - [x] `communication/command_handlers/base_handler.py` - Base handler interface
     - [x] `communication/command_handlers/task_handler.py` - Task management commands
-    - [ ] `communication/command_handlers/profile_handler.py` - Profile management commands
-    - [ ] `communication/command_handlers/schedule_handler.py` - Schedule management commands
-    - [ ] `communication/command_handlers/checkin_handler.py` - Check-in commands
-    - [ ] `communication/command_handlers/analytics_handler.py` - Analytics commands
-  - [ ] **Message Processing Module Breakdown** 🔄 **PARTIAL**
+    - [x] `communication/command_handlers/profile_handler.py` - Profile management commands
+    - [x] `communication/command_handlers/schedule_handler.py` - Schedule management commands
+    - [x] `communication/command_handlers/checkin_handler.py` - Check-in commands
+    - [x] `communication/command_handlers/analytics_handler.py` - Analytics commands
+  - [x] **Message Processing Module Breakdown** ✅ **COMPLETED**
     - [x] `communication/message_processing/command_parser.py` - Command parsing
-    - [ ] `communication/message_processing/message_router.py` - Message routing logic
+    - [x] `communication/message_processing/message_router.py` - Message routing logic
     - [x] `communication/message_processing/conversation_flow_manager.py` - Conversation flow
     - [x] `communication/message_processing/interaction_manager.py` - Interaction management
-  - [ ] **AI Module Breakdown** 🔄 **PARTIAL**
+  - [x] **AI Module Breakdown** ✅ **COMPLETED**
     - [x] `ai/chatbot.py` - Main AI chatbot
-    - [ ] `ai/prompt_manager.py` - Prompt management and optimization
-    - [ ] `ai/cache_manager.py` - Response caching and management
-    - [ ] `ai/context_builder.py` - Context building and management
-    - [ ] `ai/conversation_history.py` - Conversation history management
+    - [x] `ai/prompt_manager.py` - Prompt management and optimization
+    - [x] `ai/cache_manager.py` - Response caching and management
+    - [x] `ai/context_builder.py` - Context building and management
+    - [x] `ai/conversation_history.py` - Conversation history management
   - [x] **User Module Breakdown** ✅ **COMPLETED**
     - [x] `user/context.py` - User context data structures
     - [x] `user/preferences.py` - User preferences management
     - [x] `user/context_manager.py` - Context management logic
+
+- [x] **Function Call Updates and Legacy Code Management** ✅ **COMPLETED**
+  - [x] Created `communication/command_handlers/shared_types.py` for centralized data structures
+  - [x] Updated all command handlers to import from `shared_types.py` and `base_handler.py`
+  - [x] Updated `tasks/task_management.py` to use new `get_user_data`/`save_user_data` functions
+  - [x] Updated `communication/command_handlers/interaction_handlers.py` to use new user data functions
+  - [x] Added legacy compatibility comments and removal plans per Legacy Code Standards
+  - [x] Verified all imports work correctly and system starts successfully
+
+- [x] **Duplicate Function Consolidation** ✅ **COMPLETED**
+  - [x] Created `core/schedule_utilities.py` for shared schedule functions
+  - [x] Consolidated `_get_active_schedules()` functions from both user modules
+  - [x] Updated UserContext to delegate preference methods to UserPreferences
+  - [x] Renamed context functions for clarity (`get_ai_context()` vs `get_instance_context()`)
+  - [x] Added legacy compatibility warnings with usage logging
+- [x] Added proper legacy compatibility comments and removal plans
+- [x] **Legacy Code Management Strategy**: Created systematic approach to legacy code management
+- [x] **LOG_FILE_PATH Cleanup**: Successfully removed legacy LOG_FILE_PATH environment variable
+- [x] **Legacy Documentation Standardization**: Applied proper legacy code management documentation to all simplified comments
+  - [x] Verified all changes work correctly and maintain backward compatibility
 
 - [ ] **Phase 3: Legacy Code Cleanup** 📋 **PENDING**
   - [ ] Remove legacy import from `communication/command_handlers/interaction_handlers.py`

@@ -76,8 +76,8 @@ class TestAccountLifecycle:
         assert success, "Test user should be created successfully"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Update user data to match the test requirements
@@ -133,8 +133,8 @@ class TestAccountLifecycle:
         assert success, "Full featured user should be created successfully"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Add specific schedule data

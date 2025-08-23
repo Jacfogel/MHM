@@ -17,8 +17,9 @@ from datetime import datetime, timedelta
 from communication.command_handlers.interaction_handlers import (
     InteractionHandler, TaskManagementHandler, CheckinHandler, ProfileHandler,
     ScheduleManagementHandler, AnalyticsHandler, HelpHandler,
-    InteractionResponse, ParsedCommand, get_interaction_handler, get_all_handlers
+    get_interaction_handler, get_all_handlers
 )
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.user_management import load_user_account_data, save_user_account_data
 from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks, complete_task, delete_task
@@ -221,8 +222,8 @@ class TestInteractionHandlersBehavior:
         assert self._create_test_user(user_id, test_data_dir=test_data_dir), "Failed to create test user"
         
         # Get the actual UUID for the created user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
 
         # Create a test task first
@@ -285,12 +286,12 @@ class TestInteractionHandlersBehavior:
         
         # Create test user using centralized utilities
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the created user
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
         # Update user context with profile-specific data

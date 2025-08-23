@@ -28,7 +28,7 @@ LOG_FILE_OPS_FILE = os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_
 LOG_SCHEDULER_FILE = os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log'))
 
 # Legacy support - these will be imported from config when available
-LOG_FILE_PATH = os.getenv('LOG_FILE_PATH', LOG_MAIN_FILE)
+# LOG_MAIN_FILE removed - using LOG_MAIN_FILE directly
 LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
 LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'
@@ -681,10 +681,10 @@ def get_log_file_info():
         # Get current log file
         current_log_size = 0
         current_log_info = None
-        if os.path.exists(LOG_FILE_PATH):
-            current_log_size = os.path.getsize(LOG_FILE_PATH)
+        if os.path.exists(LOG_MAIN_FILE):
+            current_log_size = os.path.getsize(LOG_MAIN_FILE)
             current_log_info = {
-                'name': os.path.basename(LOG_FILE_PATH),
+                'name': os.path.basename(LOG_MAIN_FILE),
                 'location': 'current',
                 'size_bytes': current_log_size,
                 'size_mb': round(current_log_size / (1024 * 1024), 2)
@@ -695,7 +695,7 @@ def get_log_file_info():
         backup_file_info = []
         backup_total_size = 0
         if os.path.exists(LOG_BACKUP_DIR):
-            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_FILE_PATH)}*")
+            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_MAIN_FILE)}*")
             backup_file_paths = glob.glob(backup_pattern)
             
             for backup_file in backup_file_paths:
@@ -753,7 +753,7 @@ def cleanup_old_logs(max_total_size_mb=50):
         import glob
         backup_files = []
         if os.path.exists(LOG_BACKUP_DIR):
-            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_FILE_PATH)}*")
+            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_MAIN_FILE)}*")
             backup_files = glob.glob(backup_pattern)
         
         log_files_with_time = []
@@ -919,7 +919,7 @@ def force_restart_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always DEBUG)
-        file_handler = BackupDirectoryRotatingFileHandler(LOG_FILE_PATH, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(LOG_MAIN_FILE, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)
 

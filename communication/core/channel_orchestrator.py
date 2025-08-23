@@ -1,18 +1,18 @@
-# communication_manager.py
+# channel_orchestrator.py
 
 import asyncio
 import threading
 import time
-import queue
 import random
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from communication.core.factory import ChannelFactory
+from communication.core.retry_manager import RetryManager
+from communication.core.channel_monitor import ChannelMonitor
 from core.user_data_handlers import get_user_data, get_all_user_ids
 from core.response_tracking import get_recent_checkins
 from core.message_management import store_sent_message
@@ -23,21 +23,8 @@ from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
 from core.service_utilities import wait_for_network
 
 # Route orchestration logs to channels component; keep module logger for local debug if needed
-comm_logger = get_component_logger('communication_manager')
+comm_logger = get_component_logger('channel_orchestrator')
 logger = comm_logger
-
-@dataclass
-class QueuedMessage:
-    """Represents a message that failed to send and is queued for retry"""
-    user_id: str
-    category: str
-    message: str
-    recipient: str
-    channel_name: str
-    timestamp: datetime
-    retry_count: int = 0
-    max_retries: int = 3
-    retry_delay: int = 300  # 5 minutes
 
 class BotInitializationError(Exception):
     """Custom exception for bot initialization failures."""
@@ -73,17 +60,11 @@ class CommunicationManager:
         self._running = False
         self._main_loop = None
         self._loop_thread = None
-        self._retry_thread = None
-        self._failed_message_queue = queue.Queue()
         self.scheduler_manager = None
         
-        # Add automatic restart monitoring
-        self._restart_monitor_thread = None
-        self._restart_monitor_running = False
-        self._channel_failure_counts = {}  # Track consecutive failures per channel
-        self._last_restart_attempts = {}   # Track last restart attempt time per channel
-        self._max_consecutive_failures = 3  # Restart after 3 consecutive failures
-        self._restart_cooldown = 300  # 5 minutes between restart attempts
+        # Initialize extracted modules
+        self.retry_manager = RetryManager()
+        self.channel_monitor = ChannelMonitor()
         
         # Set up event loop for async operations
         self.__init____setup_event_loop()
@@ -154,236 +135,27 @@ class CommunicationManager:
 
     def send_message_sync__queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
         """Queue a failed message for retry"""
-        queued_message = QueuedMessage(
-            user_id=user_id,
-            category=category,
-            message=message,
-            recipient=recipient,
-            channel_name=channel_name,
-            timestamp=datetime.now()
-        )
-        self._failed_message_queue.put(queued_message)
-        logger.info(f"Queued failed message for user {user_id}, category {category} for retry")
+        self.retry_manager.queue_failed_message(user_id, category, message, recipient, channel_name)
 
     def start_all__start_retry_thread(self):
         """Start the retry thread for failed messages"""
-        if self._retry_thread and self._retry_thread.is_alive():
-            return
-        
-        self._retry_running = True
-        self._retry_thread = threading.Thread(target=self.start_all__retry_loop, daemon=True)
-        self._retry_thread.start()
-        logger.info("Started message retry thread")
+        self.retry_manager.start_retry_thread()
 
     def stop_all__stop_retry_thread(self):
         """Stop the retry thread"""
-        if self._retry_thread and self._retry_thread.is_alive():
-            self._retry_running = False
-            self._retry_thread.join(timeout=5)
-            logger.debug("Retry thread stopped")
+        self.retry_manager.stop_retry_thread()
 
     def start_all__start_restart_monitor(self):
         """Start the automatic restart monitor thread"""
-        if self._restart_monitor_thread and self._restart_monitor_thread.is_alive():
-            logger.debug("Restart monitor already running")
-            return
-        
-        self._restart_monitor_running = True
-        self._restart_monitor_thread = threading.Thread(
-            target=self.start_all__restart_monitor_loop,
-            daemon=True,
-            name="RestartMonitor"
-        )
-        self._restart_monitor_thread.start()
-        logger.info("Automatic restart monitor started")
+        self.channel_monitor.set_channels(self._channels_dict)
+        self.channel_monitor.start_restart_monitor()
 
     def stop_all__stop_restart_monitor(self):
         """Stop the automatic restart monitor thread"""
-        if self._restart_monitor_thread and self._restart_monitor_thread.is_alive():
-            self._restart_monitor_running = False
-            self._restart_monitor_thread.join(timeout=5)
-            logger.debug("Restart monitor stopped")
+        self.channel_monitor.stop_restart_monitor()
 
-    def start_all__restart_monitor_loop(self):
-        """Monitor channels for stuck states and restart them automatically"""
-        logger.info("Restart monitor loop started")
-        
-        while self._restart_monitor_running:
-            try:
-                self.start_all__check_and_restart_stuck_channels()
-                time.sleep(60)  # Check every minute
-            except Exception as e:
-                logger.error(f"Error in restart monitor loop: {e}")
-                time.sleep(60)  # Continue monitoring even after errors
-        
-        logger.info("Restart monitor loop stopped")
-
-    def start_all__check_and_restart_stuck_channels(self):
-        """Check for stuck channels and restart them if needed"""
-        current_time = time.time()
-        
-        # Create a copy of the channels dict to avoid modification during iteration
-        channels_to_check = dict(self._channels_dict)
-        
-        for channel_name, channel in channels_to_check.items():
-            if not channel:
-                continue
-                
-            try:
-                # Check if channel is stuck in INITIALIZING state
-                if hasattr(channel, 'get_status'):
-                    status = channel.get_status()
-                    
-                    # Check if channel has been stuck for too long
-                    if status == ChannelStatus.INITIALIZING:
-                        # Check if we should attempt a restart
-                        last_restart = self._last_restart_attempts.get(channel_name, 0)
-                        if current_time - last_restart > self._restart_cooldown:
-                            logger.warning(f"Channel {channel_name} stuck in INITIALIZING state - attempting restart")
-                            self.start_all__attempt_channel_restart(channel_name)
-                            self._last_restart_attempts[channel_name] = current_time
-                    
-                    # Check for other stuck states
-                    elif status == ChannelStatus.ERROR:
-                        # Check if we should attempt a restart
-                        last_restart = self._last_restart_attempts.get(channel_name, 0)
-                        if current_time - last_restart > self._restart_cooldown:
-                            logger.warning(f"Channel {channel_name} in ERROR state - attempting restart")
-                            self.start_all__attempt_channel_restart(channel_name)
-                            self._last_restart_attempts[channel_name] = current_time
-                            
-            except Exception as e:
-                logger.error(f"Error checking channel {channel_name} status: {e}")
-
-    def start_all__attempt_channel_restart(self, channel_name: str):
-        """Attempt to restart a specific channel"""
-        try:
-            logger.info(f"Attempting to restart channel: {channel_name}")
-            
-            # Get the channel and its config
-            channel = self._channels_dict.get(channel_name)
-            config = self.channel_configs.get(channel_name)
-            
-            if not channel or not config:
-                logger.error(f"Cannot restart {channel_name}: missing channel or config")
-                return
-            
-            # Stop the current channel
-            try:
-                if hasattr(channel, 'stop'):
-                    channel.stop()
-                elif hasattr(channel, 'shutdown'):
-                    # Try async shutdown if available
-                    try:
-                        # Use get_running_loop() first, fallback to get_event_loop()
-                        try:
-                            loop = asyncio.get_running_loop()
-                        except RuntimeError:
-                            loop = asyncio.get_event_loop()
-                        loop.run_until_complete(channel.shutdown())
-                    except RuntimeError:
-                        # No running loop, create one
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(channel.shutdown())
-                        loop.close()
-            except Exception as e:
-                logger.warning(f"Error stopping channel {channel_name}: {e}")
-            
-            # Remove from channels dict
-            self._channels_dict.pop(channel_name, None)
-            
-            # Create new channel instance
-            new_channel = ChannelFactory.create_channel(channel_name, config)
-            if not new_channel:
-                logger.error(f"Failed to create new {channel_name} channel instance")
-                return
-            
-            # Initialize the new channel
-            try:
-                # Use get_running_loop() first, fallback to get_event_loop()
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = asyncio.get_event_loop()
-                success = loop.run_until_complete(self._initialize_channel_with_retry(new_channel, config))
-            except RuntimeError:
-                # No running loop, create one
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                success = loop.run_until_complete(self._initialize_channel_with_retry(new_channel, config))
-                loop.close()
-            
-            if success:
-                self._channels_dict[channel_name] = new_channel
-                self._channel_failure_counts[channel_name] = 0  # Reset failure count
-                logger.info(f"Successfully restarted channel: {channel_name}")
-            else:
-                logger.error(f"Failed to restart channel: {channel_name}")
-                # Increment failure count
-                self._channel_failure_counts[channel_name] = self._channel_failure_counts.get(channel_name, 0) + 1
-                
-        except Exception as e:
-            logger.error(f"Error during channel restart for {channel_name}: {e}")
-            # Increment failure count
-            self._channel_failure_counts[channel_name] = self._channel_failure_counts.get(channel_name, 0) + 1
-
-    def start_all__retry_loop(self):
-        """Main retry loop for failed messages"""
-        while self._retry_running:
-            try:
-                # Check for messages to retry
-                self.start_all__process_retry_queue()
-                time.sleep(60)  # Check every minute
-            except Exception as e:
-                logger.error(f"Error in retry loop: {e}")
-                time.sleep(60)
-
-    def start_all__process_retry_queue(self):
-        """Process the retry queue and attempt to send failed messages.
-        Retries immediately once the channel reports ready; does not burn retries while down.
-        """
-        while not self._failed_message_queue.empty():
-            try:
-                queued_message = self._failed_message_queue.get_nowait()
-
-                # If channel not ready yet, requeue and exit (we'll check again soon)
-                channel = self._channels_dict.get(queued_message.channel_name)
-                channel_ready = False
-                try:
-                    if channel:
-                        if queued_message.channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
-                            channel_ready = channel.can_send_messages()
-                        else:
-                            channel_ready = channel.is_ready()
-                except Exception:
-                    channel_ready = False
-
-                if not channel or not channel_ready:
-                    self._failed_message_queue.put(queued_message)
-                    break
-
-                # Attempt to send now
-                success = self.send_message_sync(
-                    queued_message.channel_name,
-                    queued_message.recipient,
-                    queued_message.message
-                )
-
-                if success:
-                    logger.info(f"Successfully retried message for user {queued_message.user_id}, category {queued_message.category}")
-                else:
-                    queued_message.retry_count += 1
-                    if queued_message.retry_count < queued_message.max_retries:
-                        self._failed_message_queue.put(queued_message)
-                    else:
-                        logger.warning(f"Message for user {queued_message.user_id} failed after {queued_message.max_retries} retries")
-
-            except queue.Empty:
-                break
-            except Exception as e:
-                logger.error(f"Error processing retry queue: {e}")
-                break
+    # Old restart monitor methods removed - now handled by ChannelMonitor
+    # Old retry loop methods removed - now handled by RetryManager
 
     def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
         """Initialize channels from configuration"""
@@ -1249,13 +1021,21 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error in predefined message handling for user {user_id}, category {category}: {e}")
 
-    # Legacy compatibility methods
+    # LEGACY COMPATIBILITY: Methods for backward compatibility
+    # TODO: Remove after all callers are updated to use new channel management
+    # REMOVAL PLAN:
+    # 1. Update all callers to use new channel management methods
+    # 2. Remove these legacy methods
+    # 3. Monitor for any remaining usage
+    # USAGE TRACKING: Monitor for calls to get_available_channels() and is_channel_ready()
     def get_available_channels(self) -> List[str]:
         """Get list of available/initialized channels"""
+        logger.warning("LEGACY COMPATIBILITY: CommunicationManager.get_available_channels() called - use get_active_channels() instead")
         return list(self._channels_dict.keys())
 
     def is_channel_ready(self, channel_name: str) -> bool:
         """Check if a specific channel is ready"""
+        logger.warning("LEGACY COMPATIBILITY: CommunicationManager.is_channel_ready() called - use get_channel_status() instead")
         channel = self._channels_dict.get(channel_name)
         if not channel:
             return False
@@ -1269,6 +1049,21 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error checking if channel {channel_name} is ready: {e}")
             return False
+
+    # NEW METHODS: More specific channel management methods
+    def get_active_channels(self) -> List[str]:
+        """Get list of currently active/running channels"""
+        return list(self._channels_dict.keys())
+    
+    def get_configured_channels(self) -> List[str]:
+        """Get list of channels that are configured (from config)"""
+        from core.config import get_available_channels
+        return get_available_channels()
+    
+    def get_registered_channels(self) -> List[str]:
+        """Get list of channels that are registered in the factory"""
+        from communication.core.factory import ChannelFactory
+        return ChannelFactory.get_registered_channels()
 
     def handle_task_reminder(self, user_id: str, task_id: str):
         """

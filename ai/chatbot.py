@@ -29,6 +29,8 @@ from core.config import (
 from core.response_tracking import get_recent_responses, store_chat_interaction
 from core.user_data_handlers import get_user_data
 from user.context_manager import user_context_manager
+from ai.prompt_manager import get_prompt_manager
+from ai.cache_manager import get_response_cache, get_context_cache
 from datetime import datetime
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
@@ -106,7 +108,7 @@ class SystemPromptLoader:
         logger.info("System prompt reloaded")
 
 # Global system prompt loader instance
-system_prompt_loader = SystemPromptLoader()
+system_prompt_loader = get_prompt_manager()
 
 class ResponseCache:
     """Simple in-memory cache for AI responses to avoid repeated calculations."""
@@ -201,7 +203,7 @@ class AIChatBotSingleton:
             return
         logger.info("Initializing shared AIChatBot with LM Studio API (singleton).")
         self.lm_studio_available = False
-        self.response_cache = ResponseCache()
+        self.response_cache = get_response_cache()
         self._generation_lock = threading.Lock()  # Prevent concurrent generations
         
         # Test LM Studio connection

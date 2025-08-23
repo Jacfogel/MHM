@@ -77,8 +77,8 @@ class TestUserCreationScenarios:
         assert success, "Test user should be created successfully"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Update user context with additional data
@@ -117,8 +117,8 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create custom fields test user {user_id}"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify complex data can be loaded
@@ -140,8 +140,8 @@ class TestUserCreationScenarios:
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify schedule data can be loaded

@@ -777,8 +777,8 @@ def create_new_user(user_data: Dict[str, Any]) -> str:
     return user_id
 
 @handle_errors("getting user id by internal username", default_return=None)
-def get_user_id_by_internal_username(internal_username: str) -> Optional[str]:
-    """Get user ID by internal username using the user index for fast lookup."""
+def _get_user_id_by_identifier__by_internal_username(internal_username: str) -> Optional[str]:
+    """Helper function: Get user ID by internal username using the user index for fast lookup."""
     if not internal_username:
         return None
     
@@ -790,7 +790,7 @@ def get_user_id_by_internal_username(internal_username: str) -> Optional[str]:
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = load_json_data(index_file) or {}
         
-        # Check simple mapping first (fastest) - LEGACY COMPATIBILITY
+        # Check simple mapping first (fastest)
         if internal_username in index_data:
             return index_data[internal_username]
         
@@ -816,8 +816,8 @@ def get_user_id_by_internal_username(internal_username: str) -> Optional[str]:
     return None
 
 @handle_errors("getting user id by email", default_return=None)
-def get_user_id_by_email(email: str) -> Optional[str]:
-    """Get user ID by email using the user index for fast lookup."""
+def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
+    """Helper function: Get user ID by email using the user index for fast lookup."""
     if not email:
         return None
     
@@ -856,8 +856,8 @@ def get_user_id_by_email(email: str) -> Optional[str]:
     return None
 
 @handle_errors("getting user id by phone", default_return=None)
-def get_user_id_by_phone(phone: str) -> Optional[str]:
-    """Get user ID by phone using the user index for fast lookup."""
+def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
+    """Helper function: Get user ID by phone using the user index for fast lookup."""
     if not phone:
         return None
     
@@ -896,8 +896,8 @@ def get_user_id_by_phone(phone: str) -> Optional[str]:
     return None
 
 @handle_errors("getting user id by chat id", default_return=None)
-def get_user_id_by_chat_id(chat_id: str) -> Optional[str]:
-    """Get user ID by chat ID."""
+def _get_user_id_by_identifier__by_chat_id(chat_id: str) -> Optional[str]:
+    """Helper function: Get user ID by chat ID."""
     if not chat_id:
         return None
     
@@ -912,8 +912,8 @@ def get_user_id_by_chat_id(chat_id: str) -> Optional[str]:
     return None
 
 @handle_errors("getting user id by discord user id", default_return=None)
-def get_user_id_by_discord_user_id(discord_user_id: str) -> Optional[str]:
-    """Get user ID by Discord user ID using the user index for fast lookup."""
+def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Optional[str]:
+    """Helper function: Get user ID by Discord user ID using the user index for fast lookup."""
     if not discord_user_id:
         return None
     
@@ -1391,22 +1391,22 @@ def get_user_id_by_identifier(identifier: str) -> Optional[str]:
     
     # Fallback: try specific lookup functions
     # Try internal_username first (most common)
-    result = get_user_id_by_internal_username(identifier)
+    result = _get_user_id_by_identifier__by_internal_username(identifier)
     if result:
         return result
     
     # Try email
-    result = get_user_id_by_email(identifier)
+    result = _get_user_id_by_identifier__by_email(identifier)
     if result:
         return result
     
     # Try discord_user_id
-    result = get_user_id_by_discord_user_id(identifier)
+    result = _get_user_id_by_identifier__by_discord_user_id(identifier)
     if result:
         return result
     
     # Try phone
-    result = get_user_id_by_phone(identifier)
+    result = _get_user_id_by_identifier__by_phone(identifier)
     if result:
         return result
     

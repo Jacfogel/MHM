@@ -146,9 +146,9 @@ class TestUtilitiesDemo:
         assert TestUserFactory.create_minimal_user("multi_minimal", test_data_dir=test_data_dir), "Minimal user should be created"
         
         # Verify all users were created by checking they can be found by internal username
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         for user_id in ["multi_basic", "multi_discord", "multi_full", "multi_minimal"]:
-            actual_user_id = get_user_id_by_internal_username(user_id)
+            actual_user_id = get_user_id_by_identifier(user_id)
             assert actual_user_id is not None, f"User should be found by internal username: {user_id}"
             
             # Verify user directory exists
@@ -165,8 +165,8 @@ class TestUtilitiesDemo:
         assert success, "Email user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be found by internal username"
         
         # Verify user directory exists
@@ -190,8 +190,8 @@ class TestUtilitiesDemo:
         assert success, "Telegram user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be found by internal username"
         
         # Verify user directory exists
@@ -218,8 +218,8 @@ class TestUtilitiesDemo:
         assert success, "Custom fields user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be found by internal username"
         
         # Verify user directory exists
@@ -264,8 +264,8 @@ class TestUtilitiesDemo:
         assert success, "Scheduled user should be created successfully"
         
         # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "User should be found by internal username"
         
         # Verify user directory exists
@@ -361,13 +361,13 @@ class TestUtilitiesDemo:
         """Test scenarios that mirror real user data patterns."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         
         # Scenario 1: User with phone but no email (like real user c59410b9...)
         success1 = TestUserFactory.create_user_with_inconsistent_data("phone_only_user", test_data_dir=test_data_dir)
         assert success1, "Phone-only user should be created successfully"
         
-        actual_user_id1 = get_user_id_by_internal_username("phone_only_user")
+        actual_user_id1 = get_user_id_by_identifier("phone_only_user")
         user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data("phone_only_user")
         assert user_data1['account']['phone'] == "3062619228", "Should have phone number"
         assert user_data1['account']['email'] == "", "Should have empty email"
@@ -377,7 +377,7 @@ class TestUtilitiesDemo:
         success2 = TestUserFactory.create_user_with_complex_checkins("complex_checkin_user", test_data_dir=test_data_dir)
         assert success2, "Complex check-in user should be created successfully"
         
-        actual_user_id2 = get_user_id_by_internal_username("complex_checkin_user")
+        actual_user_id2 = get_user_id_by_identifier("complex_checkin_user")
         user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data("complex_checkin_user")
         checkin_settings = user_data2['preferences'].get('checkin_settings', {})
         custom_questions = checkin_settings.get('custom_questions', [])
@@ -392,7 +392,7 @@ class TestUtilitiesDemo:
         success3 = TestUserFactory.create_user_with_limited_data("minimal_data_user", test_data_dir=test_data_dir)
         assert success3, "Minimal data user should be created successfully"
         
-        actual_user_id3 = get_user_id_by_internal_username("minimal_data_user")
+        actual_user_id3 = get_user_id_by_identifier("minimal_data_user")
         user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("minimal_data_user")
         
         # Verify minimal data structure
@@ -405,7 +405,7 @@ class TestUtilitiesDemo:
         success4 = TestUserFactory.create_user_with_health_focus("health_focus_user", test_data_dir=test_data_dir)
         assert success4, "Health focus user should be created successfully"
         
-        actual_user_id4 = get_user_id_by_internal_username("health_focus_user")
+        actual_user_id4 = get_user_id_by_identifier("health_focus_user")
         user_data4 = get_user_data(actual_user_id4) if actual_user_id4 else get_user_data("health_focus_user")
         
         # Verify health-focused data
@@ -422,7 +422,7 @@ class TestUtilitiesDemo:
         success5 = TestUserFactory.create_user_with_task_focus("task_focus_user", test_data_dir=test_data_dir)
         assert success5, "Task focus user should be created successfully"
         
-        actual_user_id5 = get_user_id_by_internal_username("task_focus_user")
+        actual_user_id5 = get_user_id_by_identifier("task_focus_user")
         user_data5 = get_user_data(actual_user_id5) if actual_user_id5 else get_user_data("task_focus_user")
         
         # Verify task-focused data
@@ -440,14 +440,14 @@ class TestUtilitiesDemo:
         """Test edge cases and boundary conditions for user creation."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         
         # Edge case 1: User with very long user_id
         long_user_id = "a" * 50  # 50 character user ID (more reasonable)
         success1 = TestUserFactory.create_basic_user(long_user_id, test_data_dir=test_data_dir)
         assert success1, "Long user ID should be handled"
         
-        actual_user_id1 = get_user_id_by_internal_username(long_user_id)
+        actual_user_id1 = get_user_id_by_identifier(long_user_id)
         user_data1 = get_user_data(actual_user_id1) if actual_user_id1 else get_user_data(long_user_id)
         assert user_data1 is not None, "Long user ID should have loadable data"
         
@@ -456,7 +456,7 @@ class TestUtilitiesDemo:
         success2 = TestUserFactory.create_basic_user(special_user_id, test_data_dir=test_data_dir)
         assert success2, "Special characters in user ID should be handled"
         
-        actual_user_id2 = get_user_id_by_internal_username(special_user_id)
+        actual_user_id2 = get_user_id_by_identifier(special_user_id)
         user_data2 = get_user_data(actual_user_id2) if actual_user_id2 else get_user_data(special_user_id)
         assert user_data2 is not None, "Special character user ID should have loadable data"
         
@@ -464,7 +464,7 @@ class TestUtilitiesDemo:
         success3 = TestUserFactory.create_basic_user("disabled_user", enable_checkins=False, enable_tasks=False, test_data_dir=test_data_dir)
         assert success3, "User with all features disabled should be created"
         
-        actual_user_id3 = get_user_id_by_internal_username("disabled_user")
+        actual_user_id3 = get_user_id_by_identifier("disabled_user")
         user_data3 = get_user_data(actual_user_id3) if actual_user_id3 else get_user_data("disabled_user")
         features = user_data3['account']['features']
         assert features['checkins'] == "disabled", "Check-ins should be disabled"
@@ -488,7 +488,7 @@ class TestUtilitiesDemo:
         success6 = TestUserFactory.create_basic_user(numeric_user_id, test_data_dir=test_data_dir)
         assert success6, "Numeric user ID should be handled"
         
-        actual_user_id6 = get_user_id_by_internal_username(numeric_user_id)
+        actual_user_id6 = get_user_id_by_identifier(numeric_user_id)
         user_data6 = get_user_data(actual_user_id6) if actual_user_id6 else get_user_data(numeric_user_id)
         assert user_data6 is not None, "Numeric user ID should have loadable data"
         
@@ -498,7 +498,7 @@ class TestUtilitiesDemo:
         """Test that all user types produce consistent data structures."""
         from tests.test_utilities import TestUserFactory
         from core.user_data_handlers import get_user_data
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         
         # Test multiple user types and verify consistent structure
         test_users = [
@@ -516,7 +516,7 @@ class TestUtilitiesDemo:
                 assert success, f"{user_id} should be created successfully"
                 
                 # Load user data
-                actual_user_id = get_user_id_by_internal_username(user_id)
+                actual_user_id = get_user_id_by_identifier(user_id)
                 user_data = get_user_data(actual_user_id) if actual_user_id else get_user_data(user_id)
                 assert user_data is not None, f"{user_id} should have loadable data"
                 

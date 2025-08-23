@@ -54,7 +54,7 @@ class TestAccountCreationDialogRealBehavior:
         """Create account creation dialog for testing."""
         # Create a mock communication manager
         mock_comm_manager = Mock()
-        mock_comm_manager.get_available_channels.return_value = ['email', 'discord', 'telegram']
+        mock_comm_manager.get_active_channels.return_value = ['email', 'discord', 'telegram']
         
         # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)
@@ -169,7 +169,7 @@ class TestAccountCreationDialogRealBehavior:
         assert "Username is required" in error_message, "Should show username required error"
         
         # Test entering duplicate username (if exists)
-        with patch('ui.dialogs.account_creator_dialog.get_user_id_by_internal_username', return_value="existing-user-id"):
+        with patch('ui.dialogs.account_creator_dialog.get_user_id_by_identifier', return_value="existing-user-id"):
             QTest.keyClicks(username_edit, "existinguser")
             QApplication.processEvents()
             

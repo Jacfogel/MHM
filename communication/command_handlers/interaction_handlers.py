@@ -21,34 +21,28 @@ from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
     get_user_task_stats, get_tasks_due_soon
 )
-from core.user_management import (
-    load_user_account_data, load_user_preferences_data, load_user_context_data,
-    save_user_context_data, get_user_categories
-)
+# LEGACY COMPATIBILITY: Using get_user_data instead of individual load functions
+# TODO: Remove after all calls are updated to use get_user_data
+# REMOVAL PLAN:
+# 1. Update all load_user_*_data calls to use get_user_data
+# 2. Update all save_user_*_data calls to use save_user_data
+# 3. Remove these imports
+# USAGE TRACKING: Monitor for any remaining calls to individual load functions
+# TODO: Remove after all calls are updated to use get_user_data
+# REMOVAL PLAN:
+# 1. Update all load_user_*_data calls to use get_user_data
+# 2. Update all save_user_*_data calls to use save_user_data
+# 3. Remove these imports
+from core.user_management import get_user_categories
+from core.user_data_handlers import get_user_data, save_user_data
 from core.response_tracking import (
     is_user_checkins_enabled, get_user_checkin_preferences, get_recent_checkins
 )
-from core.user_management import load_user_schedules_data
+
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 
 logger = get_component_logger('communication_manager')
 handlers_logger = logger
-
-@dataclass
-class InteractionResponse:
-    """Response from an interaction handler"""
-    message: str
-    completed: bool = True
-    rich_data: Optional[Dict[str, Any]] = None
-    suggestions: Optional[List[str]] = None
-    error: Optional[str] = None
-
-@dataclass
-class ParsedCommand:
-    """Parsed command with intent and entities"""
-    intent: str
-    entities: Dict[str, Any]
-    confidence: float
-    original_message: str
 
 class InteractionHandler(ABC):
     """Abstract base class for interaction handlers"""
@@ -877,9 +871,12 @@ class ProfileHandler(InteractionHandler):
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
         """Handle showing user profile with comprehensive personalization data"""
         # Load user data
-        account_data = load_user_account_data(user_id)
-        context_data = load_user_context_data(user_id)
-        preferences_data = load_user_preferences_data(user_id)
+        account_result = get_user_data(user_id, 'account')
+        account_data = account_result.get('account', {}) if account_result else {}
+        context_result = get_user_data(user_id, 'context')
+        context_data = context_result.get('context', {}) if context_result else {}
+        preferences_result = get_user_data(user_id, 'preferences')
+        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         
         # Format profile information
         response = "**Your Profile:**\n"
@@ -1054,7 +1051,8 @@ class ProfileHandler(InteractionHandler):
             )
         
         # Load current context data
-        context_data = load_user_context_data(user_id) or {}
+        context_result = get_user_data(user_id, 'context')
+        context_data = context_result.get('context', {}) if context_result else {}
         
         # Initialize custom_fields if not present
         if 'custom_fields' not in context_data:
@@ -1152,14 +1150,15 @@ class ProfileHandler(InteractionHandler):
         
         # Email update (stored in account data)
         if 'email' in entities:
-            account_data = load_user_account_data(user_id) or {}
+            account_result = get_user_data(user_id, 'account')
+            account_data = account_result.get('account', {}) if account_result else {}
             account_data['email'] = entities['email']
             # Note: Would need to implement save_user_account_data
             updates.append('email')
         
         # Save updates
         if updates:
-            if save_user_context_data(user_id, context_data):
+            if save_user_data(user_id, 'context', context_data):
                 response = f"✅ Profile updated: {', '.join(updates)}"
                 return InteractionResponse(
                     response, 
@@ -1394,12 +1393,12 @@ class HelpHandler(InteractionHandler):
     def _handle_status(self, user_id: str) -> InteractionResponse:
         """Handle status request with detailed system information"""
         try:
-            from core.user_management import load_user_account_data
             from tasks.task_management import load_active_tasks
             from core.response_tracking import is_user_checkins_enabled
             
             # Load user data
-            account_data = load_user_account_data(user_id)
+            account_result = get_user_data(user_id, 'account')
+            account_data = account_result.get('account', {}) if account_result else {}
             if not account_data:
                 return InteractionResponse("I'm up and running! 🌟\n\nPlease register first to see your personal status.", True)
             
@@ -1464,11 +1463,11 @@ class HelpHandler(InteractionHandler):
     def _handle_messages(self, user_id: str) -> InteractionResponse:
         """Handle messages request with message history and settings"""
         try:
-            from core.user_management import load_user_account_data
             from core.response_tracking import get_recent_checkins
             
             # Load user data
-            account_data = load_user_account_data(user_id)
+            account_result = get_user_data(user_id, 'account')
+            account_data = account_result.get('account', {}) if account_result else {}
             if not account_data:
                 return InteractionResponse("Please register first to view your messages.", True)
             

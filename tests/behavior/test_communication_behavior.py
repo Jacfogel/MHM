@@ -22,7 +22,8 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import the actual functions from communication_manager
-from communication.core.channel_orchestrator import CommunicationManager, QueuedMessage, BotInitializationError, MessageSendError
+from communication.core.channel_orchestrator import CommunicationManager, BotInitializationError, MessageSendError
+from communication.core.retry_manager import QueuedMessage
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
 from core.config import get_user_data_dir
 
@@ -111,8 +112,8 @@ class TestCommunicationManager:
     @pytest.mark.communication
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_get_available_channels(self, comm_manager, realistic_mock_channel):
-        """Test getting available channels with realistic channel setup."""
+    def test_get_active_channels(self, comm_manager, realistic_mock_channel):
+        """Test getting active channels with realistic channel setup."""
         # Add realistic mock channels
         comm_manager._channels_dict = {
             'discord': realistic_mock_channel,
@@ -120,7 +121,7 @@ class TestCommunicationManager:
             'telegram': realistic_mock_channel
         }
         
-        available = comm_manager.get_available_channels()
+        available = comm_manager.get_active_channels()
         assert 'discord' in available
         assert 'email' in available
         assert 'telegram' in available
@@ -207,4 +208,4 @@ class TestCommunicationManager:
         
         # Test that is_channel_ready handles exceptions gracefully
         result = comm_manager.is_channel_ready('error_channel')
-        assert result is False 
+        assert result is False  # Should return False for error channels 

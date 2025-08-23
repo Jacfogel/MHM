@@ -16,7 +16,8 @@ from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
 from core.config import AI_MAX_RESPONSE_LENGTH
 from communication.message_processing.command_parser import get_enhanced_command_parser, ParsingResult
-from communication.command_handlers.interaction_handlers import InteractionResponse, get_interaction_handler, get_all_handlers, ParsedCommand
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+from communication.command_handlers.interaction_handlers import get_interaction_handler, get_all_handlers
 from ai.chatbot import get_ai_chatbot
 from communication.message_processing.conversation_flow_manager import conversation_manager
 

@@ -18,7 +18,7 @@ from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
 from core.logger import get_logger, get_component_logger
 from communication.message_processing.conversation_flow_manager import conversation_manager
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
-from core.user_management import get_user_id_by_discord_user_id
+from core.user_management import get_user_id_by_identifier
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -663,7 +663,7 @@ class DiscordBot(BaseChannel):
 
             # Map Discord user ID to internal user ID
             discord_user_id = str(message.author.id)
-            internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+            internal_user_id = get_user_id_by_identifier(discord_user_id)
             
             if not internal_user_id:
                 await message.channel.send(
@@ -745,7 +745,7 @@ class DiscordBot(BaseChannel):
 
                 async def _app_cb(interaction: discord.Interaction, _mapped=mapped, _name=name):
                     discord_user_id = str(interaction.user.id)
-                    internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+                    internal_user_id = get_user_id_by_identifier(discord_user_id)
                     if not internal_user_id:
                         await interaction.response.send_message("Please register first to use this feature.")
                         return
@@ -800,7 +800,7 @@ class DiscordBot(BaseChannel):
 
                 async def _dynamic(ctx, _mapped=mapped, _name=name):
                     discord_user_id = str(ctx.author.id)
-                    internal_user_id = get_user_id_by_discord_user_id(discord_user_id)
+                    internal_user_id = get_user_id_by_identifier(discord_user_id)
                     if not internal_user_id:
                         await ctx.send("Please register first to use this feature.")
                         return
@@ -1281,6 +1281,13 @@ class DiscordBot(BaseChannel):
             return False
 
     # LEGACY COMPATIBILITY: Synchronous interface for testing and backward compatibility
+# TODO: Remove after migrating all tests to use async initialize() method
+# REMOVAL PLAN:
+# 1. Update behavior tests to use async initialize() instead of start()
+# 2. Update communication manager to use shutdown() instead of stop()
+# 3. Monitor usage for 1 week after migration
+# 4. Remove legacy methods if no usage detected
+# USAGE TRACKING: Monitor for calls to start() and stop() methods
     # TODO: Remove after migrating all tests to use async initialize() method
     # REMOVAL PLAN:
     # 1. Update behavior tests to use async initialize() instead of start()

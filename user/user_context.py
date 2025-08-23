@@ -27,6 +27,7 @@ class UserContext:
             if cls._instance is None:
                 cls._instance = super(UserContext, cls).__new__(cls)
                 cls._instance.user_data = {}
+                cls._instance.preferences = None  # Will be initialized when user_id is set
         return cls._instance
 
     @handle_errors("loading user data")
@@ -119,10 +120,14 @@ class UserContext:
         """
         if user_id:
             self.user_data['user_id'] = user_id
+            # Initialize UserPreferences for this user
+            from user.user_preferences import UserPreferences
+            self.preferences = UserPreferences(user_id)
             logger.debug(f"UserContext: set_user_id called with {user_id}")
         else:
             logger.debug("UserContext: Clearing user_id (set to None during logout)")
             self.user_data['user_id'] = None
+            self.preferences = None
 
     @handle_errors("getting user ID", default_return=None)
     def get_user_id(self):
@@ -180,22 +185,32 @@ class UserContext:
         """
         return self.user_data.get('preferred_name')
 
+    # LEGACY COMPATIBILITY: Preference methods now delegate to UserPreferences
+    # TODO: Remove after all callers are updated to use UserPreferences directly
+    # REMOVAL PLAN:
+    # 1. Update all callers to use UserPreferences directly
+    # 2. Remove these delegation methods
+    # 3. Remove UserPreferences import when no longer needed
+    
     @handle_errors("setting preference")
     def set_preference(self, key, value):
         """
-        Sets a user preference in the user_data dictionary.
+        Sets a user preference using UserPreferences.
         
         Args:
             key (str): The preference key to be set.
             value (any): The preference value to be set.
         """
-        self.user_data.setdefault('preferences', {})[key] = value
-        logger.debug(f"UserContext: set_preference called with {key} = {value}")
+        logger.warning("LEGACY COMPATIBILITY: UserContext.set_preference() called - use UserPreferences.set_preference() directly")
+        if hasattr(self, 'preferences') and self.preferences:
+            self.preferences.set_preference(key, value)
+        else:
+            logger.warning("UserPreferences not initialized - cannot set preference")
 
     @handle_errors("getting preference", default_return=None)
     def get_preference(self, key):
         """
-        Retrieves a user preference from the user_data dictionary.
+        Retrieves a user preference using UserPreferences.
         
         Args:
             key (str): The preference key to retrieve.
@@ -203,24 +218,33 @@ class UserContext:
         Returns:
             any: The current preference value, or None if not set.
         """
-        return self.user_data.get('preferences', {}).get(key)
+        logger.warning("LEGACY COMPATIBILITY: UserContext.get_preference() called - use UserPreferences.get_preference() directly")
+        if hasattr(self, 'preferences') and self.preferences:
+            return self.preferences.get_preference(key)
+        return None
 
     @handle_errors("updating preference")
     def update_preference(self, key, value):
         """
-        Updates a user preference and saves the data.
+        Updates a user preference using UserPreferences.
         
         Args:
             key (str): The preference key to be updated.
             value (any): The preference value to be set.
         """
-        self.set_preference(key, value)
-        user_id = self.get_user_id()
-        if user_id:
-            self.save_user_data(user_id)
+        logger.warning("LEGACY COMPATIBILITY: UserContext.update_preference() called - use UserPreferences.update_preference() directly")
+        if hasattr(self, 'preferences') and self.preferences:
+            self.preferences.update_preference(key, value)
         else:
-            logger.warning("Cannot save preference update: no user_id set")
+            logger.warning("UserPreferences not initialized - cannot update preference")
 
+    # LEGACY COMPATIBILITY: Now uses shared schedule utility
+    # TODO: Remove after all callers are updated to use core.schedule_utilities directly
+    # REMOVAL PLAN:
+    # 1. Update all callers to use core.schedule_utilities.get_active_schedules directly
+    # 2. Remove this method
+    # 3. Remove the import when no longer needed
+    
     @handle_errors("getting active schedules")
     def _get_active_schedules(self, schedules):
         """
@@ -232,23 +256,17 @@ class UserContext:
         Returns:
             list: List of active schedule period names
         """
-        if not schedules:
-            return []
-        
-        active_periods = []
-        for period_name, period_data in schedules.items():
-            if isinstance(period_data, dict) and period_data.get('active', True):
-                active_periods.append(period_name)
-        
-        return active_periods
+        logger.warning("LEGACY COMPATIBILITY: UserContext._get_active_schedules() called - use core.schedule_utilities.get_active_schedules() directly")
+        from core.schedule_utilities import get_active_schedules
+        return get_active_schedules(schedules)
 
-    @handle_errors("getting user context")
-    def get_user_context(self):
+    @handle_errors("getting instance context")
+    def get_instance_context(self):
         """
-        Get comprehensive user context for AI conversations.
+        Get basic user context from the current UserContext instance.
         
         Returns:
-            dict: Dictionary containing all relevant user context information
+            dict: Dictionary containing basic user context information
         """
         user_id = self.get_user_id()
         if not user_id:
@@ -266,7 +284,7 @@ class UserContext:
         context_result = get_user_data(user_id, 'context')
         context_data = context_result.get('context') or {}
         
-        # Build comprehensive context
+        # Build basic context
         context = {
             'user_id': user_id,
             'preferred_name': context_data.get('preferred_name', ''),
@@ -276,3 +294,14 @@ class UserContext:
         }
         
         return context
+    
+    # LEGACY COMPATIBILITY: Alias for backward compatibility
+    # TODO: Remove after all callers are updated to use get_instance_context
+    # REMOVAL PLAN:
+    # 1. Update all callers to use get_instance_context
+    # 2. Remove this alias method
+    
+    def get_user_context(self):
+        """Legacy alias for get_instance_context - use get_instance_context instead."""
+        logger.warning("LEGACY COMPATIBILITY: UserContext.get_user_context() called - use get_instance_context() instead")
+        return self.get_instance_context()

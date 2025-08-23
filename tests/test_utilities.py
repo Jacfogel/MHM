@@ -2018,13 +2018,13 @@ class TestUserFactory:
              patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
             
             # Verify the user was created successfully by trying to find it
-            from core.user_management import get_user_id_by_internal_username
-            found_user_id = get_user_id_by_internal_username(user_id)
+            from core.user_management import get_user_id_by_identifier
+            found_user_id = get_user_id_by_identifier(user_id)
             
             if found_user_id:
                 return True
             else:
-                print(f"Warning: User {user_id} was created but not found by get_user_id_by_internal_username")
+                print(f"Warning: User {user_id} was created but not found by get_user_id_by_identifier")
                 return actual_user_id is not None
 
     @staticmethod
@@ -2039,13 +2039,13 @@ class TestUserFactory:
              patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')):
             
             # Verify the user was created successfully by trying to find it
-            from core.user_management import get_user_id_by_internal_username
-            found_user_id = get_user_id_by_internal_username(user_id)
+            from core.user_management import get_user_id_by_identifier
+            found_user_id = get_user_id_by_identifier(user_id)
             
             if found_user_id:
                 return actual_user_id
             else:
-                print(f"Warning: Email user {user_id} was created but not found by get_user_id_by_internal_username")
+                print(f"Warning: Email user {user_id} was created but not found by get_user_id_by_identifier")
                 return actual_user_id if actual_user_id else None
 
 

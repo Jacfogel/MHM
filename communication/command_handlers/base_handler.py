@@ -9,24 +9,7 @@ that all command handlers inherit from and use.
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-
-@dataclass
-class InteractionResponse:
-    """Response from an interaction handler"""
-    message: str
-    completed: bool = True
-    rich_data: Optional[Dict[str, Any]] = None
-    suggestions: Optional[List[str]] = None
-    error: Optional[str] = None
-
-@dataclass
-class ParsedCommand:
-    """Parsed command with intent and entities"""
-    intent: str
-    entities: Dict[str, Any]
-    confidence: float
-    original_message: str
+from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 
 class InteractionHandler(ABC):
     """Abstract base class for interaction handlers"""

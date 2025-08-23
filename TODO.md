@@ -30,7 +30,7 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-## **Bot Module Refactoring - Phase 2 Testing** - Test remaining module extractions
+## **Bot Module Refactoring - Phase 2 Testing** ✅ **COMPLETED**
 - *What it means*: Test each module extraction as it's completed to ensure no regressions
 - *Why it helps*: Ensures system stability as we break down large modules into focused components
 - *Estimated effort*: Small (ongoing)
@@ -39,6 +39,7 @@ When adding new tasks, follow this format:
   - Test application startup and channel initialization
   - Verify no import errors or functionality regressions
   - Update import scripts as new modules are created
+- *Status*: ✅ **COMPLETED** - Fixed test failures related to module refactoring, updated test patches to use correct modules
 
 ## **User Context & Preferences Integration Investigation** - Investigate and improve integration
 - *What it means*: Investigate how user/user_context.py and user/user_preferences.py are integrated and used by other modules, identify gaps and improvements
@@ -46,16 +47,23 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Medium
 - *Status*: From PLANS.md - needs investigation and action
 
-## **Bot Module Naming & Clarity Refactoring** 🔄 **MAJOR PROGRESS**
-- *What it means*: Reorganizing bot modules with clear separation of purposes - directory structure complete, module breakdown in progress
+## **Load User Functions Migration Investigation** ✅ **COMPLETED**
+- *What it means*: Investigate the complexity of migrating direct calls to `load_user_*` functions to use `get_user_data()`
+- *Why it helps*: Understand if this migration is feasible and what approach to take
+- *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - Investigation revealed significant complexity due to different function signatures and return types. Migration paused for now.
+
+## **Bot Module Naming & Clarity Refactoring** 🔄 **SIGNIFICANT PROGRESS**
+- *What it means*: Reorganizing bot modules with clear separation of purposes - directory structure complete, major module breakdown completed
 - *Why it helps*: Improved code organization and made module purposes clearer for maintainability
-- *Estimated effort*: Medium (1 week remaining)
-- *Status*: 🔄 **IN PROGRESS** - Directory structure complete, need to extract remaining functionality into focused modules
+- *Estimated effort*: Medium (3-4 days remaining)
+- *Status*: 🔄 **IN PROGRESS** - Directory structure complete, major command handlers extracted, remaining work focused on message processing and AI modules
+- *Completed Work*:
+  - ✅ Extract retry logic and channel monitoring from channel_orchestrator.py
+  - ✅ Extract command handlers (profile, schedule, checkin, analytics)
 - *Remaining Work*:
-  - Extract retry logic and channel monitoring from channel_orchestrator.py
   - Extract command registry, message formatting, and rich formatting utilities
   - Extract Discord API client and event handling
-  - Extract remaining command handlers (profile, schedule, checkin, analytics)
   - Extract message routing logic
   - Extract AI prompt management, caching, context building, and conversation history
   - Remove legacy compatibility code

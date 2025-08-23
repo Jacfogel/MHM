@@ -32,7 +32,7 @@ from core.config import validate_and_raise_if_invalid, print_configuration_repor
 
 # Import the communication manager (channels auto-register from config)
 from communication.core.channel_orchestrator import CommunicationManager
-from core.config import LOG_FILE_PATH, USER_INFO_DIR_PATH, get_user_data_dir
+from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
 from core.file_operations import verify_file_access, determine_file_path
 from core.user_data_handlers import get_all_user_ids
@@ -90,7 +90,7 @@ class MHMService:
             List[str]: List of all initialized file paths
         """
         paths = [
-            LOG_FILE_PATH,
+            LOG_MAIN_FILE,
             USER_INFO_DIR_PATH
         ]
         
@@ -146,14 +146,14 @@ class MHMService:
             time.sleep(0.5)
             
             # Check if log file exists and is accessible
-            from core.config import LOG_FILE_PATH
-            if not os.path.exists(LOG_FILE_PATH):
+            from core.config import LOG_MAIN_FILE
+            if not os.path.exists(LOG_MAIN_FILE):
                 logger.warning("Log file does not exist - logging may have issues")
                 raise Exception("Log file missing")
             
             # Try to read the last few lines to verify logging is working
             try:
-                with open(LOG_FILE_PATH, 'r', encoding='utf-8') as f:
+                with open(LOG_MAIN_FILE, 'r', encoding='utf-8') as f:
                     # Read last 1000 characters to check for recent activity
                     f.seek(0, 2)  # Go to end
                     file_size = f.tell()

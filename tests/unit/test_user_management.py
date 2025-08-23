@@ -296,8 +296,8 @@ class TestUserManagement:
         assert success is True, "Failed to create test user"
 
         # Get the actual user ID (UUID) that was created
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
 
         account_data = {
@@ -435,8 +435,8 @@ class TestUserManagementEdgeCases:
         # Step 2: Test data loading and verification
         # ✅ VERIFY REAL BEHAVIOR: Check data can be loaded using unified API
         # Get the actual user ID (UUID) that was created
-        from core.user_management import get_user_id_by_internal_username
-        actual_user_id = get_user_id_by_internal_username(user_id)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
         assert actual_user_id is not None, "Should be able to get UUID for created user"
         
         user_data = get_user_data(actual_user_id, 'all')

@@ -343,10 +343,10 @@ class TestDiscordBotBehavior:
     def test_interaction_manager_single_response(self, test_data_dir):
         """Ensure a single inbound message yields one main response (no duplicates)."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         created = TestUserFactory.create_basic_user("dup_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created
-        internal_uid = get_user_id_by_internal_username("dup_user")
+        internal_uid = get_user_id_by_identifier("dup_user")
         assert internal_uid
 
         # Call handle_user_message twice with the same content to simulate separate messages
@@ -363,11 +363,11 @@ class TestDiscordBotBehavior:
     def test_discord_checkin_flow_end_to_end(self, test_data_dir):
         """Simulate a Discord user going through a check-in flow via /checkin and responding to prompts."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
 
         ok = TestUserFactory.create_user_with_complex_checkins("checkin_user")
         assert ok
-        internal_uid = get_user_id_by_internal_username("checkin_user")
+        internal_uid = get_user_id_by_identifier("checkin_user")
         assert internal_uid
 
         from communication.message_processing.interaction_manager import handle_user_message
@@ -391,12 +391,12 @@ class TestDiscordBotBehavior:
     def test_discord_task_create_update_complete(self, test_data_dir):
         """Create a task, update it, then complete it through InteractionManager natural language."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         from tasks.task_management import load_active_tasks
 
         ok = TestUserFactory.create_basic_user("task_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
-        internal_uid = get_user_id_by_internal_username("task_user")
+        internal_uid = get_user_id_by_identifier("task_user")
         assert internal_uid
 
         from communication.message_processing.interaction_manager import handle_user_message
@@ -420,12 +420,12 @@ class TestDiscordBotBehavior:
     def test_discord_complete_task_by_name_variation(self, test_data_dir):
         """Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         from tasks.task_management import create_task, load_active_tasks
 
         ok = TestUserFactory.create_basic_user("fuzzy_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
-        internal_uid = get_user_id_by_internal_username("fuzzy_user")
+        internal_uid = get_user_id_by_identifier("fuzzy_user")
         assert internal_uid
 
         t_id = create_task(internal_uid, "Pet Davey", due_date="2025-07-07")
@@ -443,12 +443,12 @@ class TestDiscordBotBehavior:
     def test_discord_response_after_task_reminder(self, test_data_dir):
         """Simulate a user replying to a reminder by completing the first task."""
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username
+        from core.user_management import get_user_id_by_identifier
         from tasks.task_management import create_task
 
         ok = TestUserFactory.create_basic_user("reminder_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert ok
-        internal_uid = get_user_id_by_internal_username("reminder_user")
+        internal_uid = get_user_id_by_identifier("reminder_user")
         assert internal_uid
 
         create_task(internal_uid, "Brush your teeth", due_date="2025-07-07")
@@ -544,11 +544,11 @@ class TestDiscordBotIntegration:
         """End-to-end-ish: ensure plain 'complete task' routes to InteractionManager and returns a helpful prompt, not a generic error."""
         # Arrange: create a basic user and map a fake Discord ID
         from tests.test_utilities import TestUserFactory
-        from core.user_management import get_user_id_by_internal_username, load_user_account_data, save_user_account_data
+        from core.user_management import load_user_account_data, save_user_account_data, get_user_id_by_identifier
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
         created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"
-        internal_uid = get_user_id_by_internal_username("e2e_user")
+        internal_uid = get_user_id_by_identifier("e2e_user")
         assert internal_uid is not None, "Should resolve internal user id"
 
         # Load current account data and add discord_user_id
@@ -601,18 +601,18 @@ class TestDiscordBotIntegration:
     @pytest.mark.regression
     def test_discord_bot_integration_with_user_management(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with user management"""
-        from core.user_management import get_user_id_by_discord_user_id, get_all_user_ids
+        from core.user_management import get_all_user_ids, get_user_id_by_identifier
         
         # Test that the function handles empty input
-        empty_result = get_user_id_by_discord_user_id("")
+        empty_result = get_user_id_by_identifier("")
         assert empty_result is None, "Should return None for empty Discord ID"
         
         # Test that the function handles None input
-        none_result = get_user_id_by_discord_user_id(None)
+        none_result = get_user_id_by_identifier(None)
         assert none_result is None, "Should return None for None Discord ID"
         
         # Test that the function returns None for non-existent Discord ID
-        non_existent_user = get_user_id_by_discord_user_id("999999999")
+        non_existent_user = get_user_id_by_identifier("999999999")
         assert non_existent_user is None, "Should return None for non-existent Discord ID"
         
         # Test that the function can process existing users (if any)

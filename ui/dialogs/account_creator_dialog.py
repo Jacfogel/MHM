@@ -30,7 +30,7 @@ dialog_logger = logger
 from user.user_context import UserContext
 from core.message_management import get_message_categories
 from core.user_data_validation import _shared__title_case, validate_schedule_periods
-from core.user_management import create_new_user, get_user_id_by_internal_username
+from core.user_management import create_new_user, get_user_id_by_identifier
 from core.file_operations import create_user_files
 from core.error_handling import handle_errors
 
@@ -447,7 +447,7 @@ class AccountCreatorDialog(QDialog):
             return False, "Username is required."
         
         # Check if username is already taken
-        if get_user_id_by_internal_username(self.username):
+        if get_user_id_by_identifier(self.username):
             logger.warning(f"Validation failed: Username '{self.username}' is already taken")
             return False, "Username is already taken."
         
