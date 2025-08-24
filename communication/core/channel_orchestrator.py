@@ -101,11 +101,13 @@ class CommunicationManager:
             except RuntimeError:
                 # No running loop, try to get current loop
                 try:
-                    # Use get_running_loop() first, fallback to get_event_loop()
+                    # Use get_running_loop() first, fallback to new_event_loop()
                     try:
                         self._main_loop = asyncio.get_running_loop()
                     except RuntimeError:
-                        self._main_loop = asyncio.get_event_loop()
+                        # No running loop, create new one instead of using deprecated get_event_loop()
+                        self._main_loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(self._main_loop)
                     self._event_loop = self._main_loop
                 except RuntimeError:
                     # No event loop exists, create new one
@@ -167,11 +169,13 @@ class CommunicationManager:
         
         # Create event loop for async operations if we're not in one
         try:
-            # Use get_running_loop() first, fallback to get_event_loop()
+            # Use get_running_loop() first, fallback to new_event_loop()
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
-                loop = asyncio.get_event_loop()
+                # No running loop, create new one instead of using deprecated get_event_loop()
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
         except RuntimeError:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
@@ -445,7 +449,7 @@ class CommunicationManager:
         # Special handling for Discord bot - check if it can actually send messages
         if channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
             if not channel.can_send_messages():
-                logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()}) - cannot send messages")
+                logger.error(f"Channel {channel_name} not ready - cannot send messages")
                 # Queue for retry after reconnection
                 try:
                     self.send_message_sync__queue_failed_message(
@@ -459,7 +463,8 @@ class CommunicationManager:
                     pass
                 return False
         elif not channel.is_ready():
-            logger.error(f"Channel {channel_name} not ready (status: {channel.get_status()})")
+            # Don't call async get_status() in sync context - just log the issue
+            logger.error(f"Channel {channel_name} not ready")
             # Queue for retry after reconnection
             try:
                 self.send_message_sync__queue_failed_message(
@@ -632,7 +637,11 @@ class CommunicationManager:
         """Get status of a specific channel"""
         channel = self._channels_dict.get(channel_name)
         if channel:
-            return await channel.get_status()
+            try:
+                return await channel.get_status()
+            except Exception as e:
+                logger.error(f"Error getting status for channel {channel_name}: {e}")
+                return None
         return None
 
     async def get_all_statuses(self) -> Dict[str, ChannelStatus]:

@@ -325,15 +325,15 @@ class TestDiscordBotBehavior:
 
     @pytest.mark.channels
     @pytest.mark.critical
-    def test_discord_bot_start_creates_thread(self, test_data_dir):
-        """Test that Discord bot start actually creates a thread"""
+    def test_discord_bot_initialize_creates_thread(self, test_data_dir):
+        """Test that Discord bot initialize actually creates a thread"""
         bot = DiscordBot()
         
         with patch('threading.Thread') as mock_thread_class:
             mock_thread = MagicMock()
             mock_thread_class.return_value = mock_thread
             
-            bot.start()
+            asyncio.run(bot.initialize())
             
             assert mock_thread_class.called, "Thread should be created"
             assert mock_thread.start.called, "Thread should be started"
@@ -460,12 +460,12 @@ class TestDiscordBotBehavior:
 
     @pytest.mark.channels
     @pytest.mark.critical
-    def test_discord_bot_stop_actually_stops_thread(self, test_data_dir):
-        """Test that Discord bot stop actually stops the thread"""
+    def test_discord_bot_shutdown_actually_stops_thread(self, test_data_dir):
+        """Test that Discord bot shutdown actually stops the thread"""
         bot = DiscordBot()
         bot.discord_thread = MagicMock()
         
-        bot.stop()
+        asyncio.run(bot.shutdown())
         
         assert bot.discord_thread.join.called, "Thread should be joined"
 

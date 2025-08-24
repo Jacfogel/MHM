@@ -21,18 +21,6 @@ from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
     get_user_task_stats, get_tasks_due_soon
 )
-# LEGACY COMPATIBILITY: Using get_user_data instead of individual load functions
-# TODO: Remove after all calls are updated to use get_user_data
-# REMOVAL PLAN:
-# 1. Update all load_user_*_data calls to use get_user_data
-# 2. Update all save_user_*_data calls to use save_user_data
-# 3. Remove these imports
-# USAGE TRACKING: Monitor for any remaining calls to individual load functions
-# TODO: Remove after all calls are updated to use get_user_data
-# REMOVAL PLAN:
-# 1. Update all load_user_*_data calls to use get_user_data
-# 2. Update all save_user_*_data calls to use save_user_data
-# 3. Remove these imports
 from core.user_management import get_user_categories
 from core.user_data_handlers import get_user_data, save_user_data
 from core.response_tracking import (

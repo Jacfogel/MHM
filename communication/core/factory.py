@@ -49,14 +49,6 @@ class ChannelFactory:
         logger.info(f"Channel factory initialized with {len(cls._channel_registry)} channels: {list(cls._channel_registry.keys())}")
     
     @classmethod
-    @handle_errors("registering channel")
-    def register_channel(cls, name: str, channel_class: Type[BaseChannel]):
-        """Register a new channel type (legacy compatibility)"""
-        logger.warning("LEGACY COMPATIBILITY: ChannelFactory.register_channel() called - use auto-registration via config instead")
-        cls._channel_registry[name] = channel_class
-        logger.debug(f"Manually registered channel type: {name}")
-    
-    @classmethod
     @handle_errors("creating channel", default_return=None)
     def create_channel(cls, name: str, config: ChannelConfig) -> Optional[BaseChannel]:
         """Create a channel instance"""
@@ -78,9 +70,4 @@ class ChannelFactory:
         cls._initialize_registry()
         return list(cls._channel_registry.keys())
     
-    @classmethod
-    @handle_errors("getting available channels", default_return=[])
-    def get_available_channels(cls) -> list:
-        """Get list of available channel types (legacy compatibility)"""
-        logger.warning("LEGACY COMPATIBILITY: ChannelFactory.get_available_channels() called - use get_registered_channels() instead")
-        return cls.get_registered_channels() 
+ 

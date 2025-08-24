@@ -41,14 +41,7 @@ logger = get_component_logger('communication_manager')
 FLOW_NONE = 0
 FLOW_CHECKIN = 1
 
-# LEGACY COMPATIBILITY: Redundant assignment for backward compatibility
-# TODO: Remove after all references are updated to use FLOW_CHECKIN directly
-# REMOVAL PLAN:
-# 1. Search for all references to FLOW_CHECKIN in tests and modules
-# 2. Update them to use FLOW_CHECKIN directly
-# 3. Remove this redundant assignment
-# USAGE TRACKING: Monitor for any remaining references to this constant
-FLOW_CHECKIN = FLOW_CHECKIN
+
 
 # We'll define states for check-in - now dynamic based on user preferences
 CHECKIN_START = 100

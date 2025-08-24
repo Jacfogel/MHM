@@ -63,6 +63,7 @@ class TestCommunicationManager:
         mock_channel.start = AsyncMock(return_value=True)
         mock_channel.stop = AsyncMock(return_value=True)
         mock_channel.initialize = AsyncMock(return_value=True)
+        mock_channel.get_status = AsyncMock(return_value=ChannelStatus.READY)
         mock_channel.status = ChannelStatus.READY
         return mock_channel
     
@@ -131,22 +132,29 @@ class TestCommunicationManager:
     @pytest.mark.communication
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel):
-        """Test checking if a channel is ready with realistic channel behavior."""
+    @pytest.mark.asyncio
+    async def test_get_channel_status_with_realistic_channel(self, comm_manager, realistic_mock_channel):
+        """Test checking channel status with realistic channel behavior."""
         comm_manager._channels_dict['test_channel'] = realistic_mock_channel
         
+        # Mock the channel's get_status method
+        realistic_mock_channel.get_status.return_value = ChannelStatus.READY
+        
         # Test ready channel
-        assert comm_manager.is_channel_ready('test_channel') is True
+        status = await comm_manager.get_channel_status('test_channel')
+        assert status == ChannelStatus.READY
         
         # Test non-existent channel
-        assert comm_manager.is_channel_ready('nonexistent') is False
+        status = await comm_manager.get_channel_status('nonexistent')
+        assert status is None
         
         # Test channel that's not ready
-        realistic_mock_channel.is_ready.return_value = False
-        assert comm_manager.is_channel_ready('test_channel') is False
+        realistic_mock_channel.get_status.return_value = ChannelStatus.ERROR
+        status = await comm_manager.get_channel_status('test_channel')
+        assert status == ChannelStatus.ERROR
         
-        # Verify the is_ready method was called
-        assert realistic_mock_channel.is_ready.call_count >= 2
+        # Verify the get_status method was called
+        assert realistic_mock_channel.get_status.call_count >= 2
     
     @pytest.mark.behavior
     @pytest.mark.communication
@@ -201,11 +209,12 @@ class TestCommunicationManager:
     @pytest.mark.communication
     @pytest.mark.critical
     @pytest.mark.regression
-    def test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel):
+    @pytest.mark.asyncio
+    async def test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel):
         """Test error handling in communication manager."""
-        realistic_mock_channel.is_ready.side_effect = Exception("Channel error")
+        realistic_mock_channel.get_status.side_effect = Exception("Channel error")
         comm_manager._channels_dict['error_channel'] = realistic_mock_channel
         
-        # Test that is_channel_ready handles exceptions gracefully
-        result = comm_manager.is_channel_ready('error_channel')
-        assert result is False  # Should return False for error channels 
+        # Test that get_channel_status handles exceptions gracefully
+        result = await comm_manager.get_channel_status('error_channel')
+        assert result is None  # Should return None for error channels 

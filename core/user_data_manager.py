@@ -236,9 +236,24 @@ class UserDataManager:
         Returns:
             Dict containing summary information about the user's data
         """
-        # Resilient summary structure – nested dicts so we don’t hit KeyError when
-        # assigning sub-fields.
-        summary: Dict[str, Any] = {
+        summary = self._get_user_data_summary__initialize_summary(user_id)
+        
+        # Check user directory files
+        user_dir = get_user_data_dir(user_id)
+        if os.path.exists(user_dir):
+            self._get_user_data_summary__process_core_files(user_id, summary)
+        
+        # Process message files
+        self._get_user_data_summary__process_message_files(user_id, summary)
+        
+        # Process log files
+        self._get_user_data_summary__process_log_files(user_id, summary)
+        
+        return summary
+
+    def _get_user_data_summary__initialize_summary(self, user_id: str) -> Dict[str, Any]:
+        """Initialize the summary structure with default values."""
+        return {
             "user_id": user_id,
             "files": {},        # generic file-type map, e.g. files['profile']
             "messages": {},     # per-category message file info
@@ -247,123 +262,152 @@ class UserDataManager:
             "total_size_bytes": 0,
             "last_modified": None,
         }
-        
-        # Check user directory files
-        user_dir = get_user_data_dir(user_id)
-        if os.path.exists(user_dir):
-            from core.user_data_handlers import USER_DATA_LOADERS
 
-            # Build list of core file types dynamically from registered loaders
-            dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
+    def _get_user_data_summary__process_core_files(self, user_id: str, summary: Dict[str, Any]) -> None:
+        """Process core user data files (profile, preferences, schedules, etc.)."""
+        from core.user_data_handlers import USER_DATA_LOADERS
 
-            for file_type in dynamic_types:
-                file_path = get_user_file_path(user_id, file_type)
-                if os.path.exists(file_path):
-                    size = os.path.getsize(file_path)
-                    summary["files"].setdefault(file_type, {})
-                    summary["files"][file_type]["exists"] = True
-                    summary["files"][file_type]["size"] = size
-                    summary["total_files"] += 1
-                    summary["total_size_bytes"] += size
-                    
-                    # Additional details for schedules
-                    if file_type == "schedules":
-                        data = load_json_data(file_path)
-                        if data:
-                            total_periods = sum(len(cat_schedules) for cat_schedules in data.values())
-                            summary["files"][file_type]["periods"] = total_periods
-                    
-                    # Additional details for sent messages
-                    if file_type == "sent_messages":
-                        data = load_json_data(file_path)
-                        if data:
-                            total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
-                            summary["files"][file_type]["count"] = total_messages
-        
-        # Check message files using ensure_user_message_files
+        # Build list of core file types dynamically from registered loaders
+        dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
+
+        for file_type in dynamic_types:
+            file_path = get_user_file_path(user_id, file_type)
+            if os.path.exists(file_path):
+                self._get_user_data_summary__add_file_info(file_path, file_type, summary)
+                self._get_user_data_summary__add_special_file_details(file_path, file_type, summary)
+
+    def _get_user_data_summary__add_file_info(self, file_path: str, file_type: str, summary: Dict[str, Any]) -> None:
+        """Add basic file information to the summary."""
+        size = os.path.getsize(file_path)
+        summary["files"].setdefault(file_type, {})
+        summary["files"][file_type]["exists"] = True
+        summary["files"][file_type]["size"] = size
+        summary["total_files"] += 1
+        summary["total_size_bytes"] += size
+
+    def _get_user_data_summary__add_special_file_details(self, file_path: str, file_type: str, summary: Dict[str, Any]) -> None:
+        """Add special details for specific file types (schedules, sent_messages)."""
+        if file_type == "schedules":
+            self._get_user_data_summary__add_schedule_details(file_path, summary)
+        elif file_type == "sent_messages":
+            self._get_user_data_summary__add_sent_messages_details(file_path, summary)
+
+    def _get_user_data_summary__add_schedule_details(self, file_path: str, summary: Dict[str, Any]) -> None:
+        """Add schedule-specific details to the summary."""
+        data = load_json_data(file_path)
+        if data:
+            total_periods = sum(len(cat_schedules) for cat_schedules in data.values())
+            summary["files"]["schedules"]["periods"] = total_periods
+
+    def _get_user_data_summary__add_sent_messages_details(self, file_path: str, summary: Dict[str, Any]) -> None:
+        """Add sent messages count to the summary."""
+        data = load_json_data(file_path)
+        if data:
+            total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
+            summary["files"]["sent_messages"]["count"] = total_messages
+
+    def _get_user_data_summary__process_message_files(self, user_id: str, summary: Dict[str, Any]) -> None:
+        """Process message files for all user categories."""
+        # Get user categories
         prefs_result = get_user_data(user_id, 'preferences')
         categories = prefs_result.get('preferences', {}).get('categories', [])
         
-        if categories:
-            try:
-                from core.message_management import ensure_user_message_files
-                # This will check which files are missing and create them
-                result = ensure_user_message_files(user_id, categories)
-                if result["success"]:
-                    logger.info(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}")
-                else:
-                    logger.warning(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, some failures occurred")
-            except Exception as e:
-                logger.error(f"Error ensuring message files during validation for user {user_id}: {e}")
+        # Ensure message files exist
+        self._get_user_data_summary__ensure_message_files(user_id, categories)
         
-        # Now get the message files (after ensuring they exist)
+        # Get existing message files
         message_files = self.get_user_message_files(user_id)
         
-        # Report on all message files
+        # Process enabled category message files
+        self._get_user_data_summary__process_enabled_message_files(user_id, categories, summary)
+        
+        # Process orphaned message files
+        self._get_user_data_summary__process_orphaned_message_files(user_id, categories, message_files, summary)
+
+    def _get_user_data_summary__ensure_message_files(self, user_id: str, categories: List[str]) -> None:
+        """Ensure message files exist for all user categories."""
+        if not categories:
+            return
+            
+        try:
+            from core.message_management import ensure_user_message_files
+            # This will check which files are missing and create them
+            result = ensure_user_message_files(user_id, categories)
+            if result["success"]:
+                logger.info(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, directory_created={result['directory_created']}")
+            else:
+                logger.warning(f"Message files validation for user {user_id}: checked {result['files_checked']} categories, created {result['files_created']} files, some failures occurred")
+        except Exception as e:
+            logger.error(f"Error ensuring message files during validation for user {user_id}: {e}")
+
+    def _get_user_data_summary__process_enabled_message_files(self, user_id: str, categories: List[str], summary: Dict[str, Any]) -> None:
+        """Process message files for enabled categories."""
         for category in categories:
             file_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
             
             if os.path.exists(file_path):
-                # File exists, report its details
-                size = os.path.getsize(file_path)
-                data = load_json_data(file_path)
-                message_count = len(data.get("messages", [])) if data else 0
-                
-                summary["messages"][category] = {
-                    "exists": True,
-                    "size": size,
-                    "message_count": message_count,
-                    "path": file_path
-                }
-                summary["total_files"] += 1
-                summary["total_size_bytes"] += size
+                self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=False)
             else:
-                # File still missing after ensure_user_message_files
-                summary["messages"][category] = {
-                    "exists": False,
-                    "size": 0,
-                    "message_count": 0,
-                    "path": file_path,
-                    "creation_failed": True
-                }
-                logger.warning(f"Message file for category {category} still missing after ensure_user_message_files for user {user_id}")
-        
-        # Also check any existing message files that might not be in enabled categories
+                self._get_user_data_summary__add_missing_message_file_info(file_path, category, summary, user_id)
+
+    def _get_user_data_summary__process_orphaned_message_files(self, user_id: str, categories: List[str], message_files: Dict[str, str], summary: Dict[str, Any]) -> None:
+        """Process orphaned message files (categories not enabled but files exist)."""
         for category, file_path in message_files.items():
             if category not in categories and os.path.exists(file_path):
-                # This is an orphaned message file (category not enabled but file exists)
-                size = os.path.getsize(file_path)
-                data = load_json_data(file_path)
-                message_count = len(data.get("messages", [])) if data else 0
-                
-                summary["messages"][category] = {
-                    "exists": True,
-                    "size": size,
-                    "message_count": message_count,
-                    "path": file_path,
-                    "orphaned": True  # Mark as orphaned for potential cleanup
-                }
-                summary["total_files"] += 1
-                summary["total_size_bytes"] += size
+                self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=True)
+
+    def _get_user_data_summary__add_message_file_info(self, file_path: str, category: str, summary: Dict[str, Any], orphaned: bool = False) -> None:
+        """Add message file information to the summary."""
+        size = os.path.getsize(file_path)
+        data = load_json_data(file_path)
+        message_count = len(data.get("messages", [])) if data else 0
         
-        # Check log files
+        message_info = {
+            "exists": True,
+            "size": size,
+            "message_count": message_count,
+            "path": file_path
+        }
+        
+        if orphaned:
+            message_info["orphaned"] = True  # Mark as orphaned for potential cleanup
+            
+        summary["messages"][category] = message_info
+        summary["total_files"] += 1
+        summary["total_size_bytes"] += size
+
+    def _get_user_data_summary__add_missing_message_file_info(self, file_path: str, category: str, summary: Dict[str, Any], user_id: str) -> None:
+        """Add information for missing message files."""
+        summary["messages"][category] = {
+            "exists": False,
+            "size": 0,
+            "message_count": 0,
+            "path": file_path,
+            "creation_failed": True
+        }
+        logger.warning(f"Message file for category {category} still missing after ensure_user_message_files for user {user_id}")
+
+    def _get_user_data_summary__process_log_files(self, user_id: str, summary: Dict[str, Any]) -> None:
+        """Process log files (checkins, chat_interactions)."""
         log_types = ["checkins", "chat_interactions"]
         for log_type in log_types:
             log_file = get_user_file_path(user_id, log_type)
             if os.path.exists(log_file):
-                size = os.path.getsize(log_file)
-                data = load_json_data(log_file)
-                entry_count = len(data) if isinstance(data, list) else 0
-                
-                summary["logs"][log_type] = {
-                    "exists": True,
-                    "size": size,
-                    "entry_count": entry_count
-                }
-                summary["total_files"] += 1
-                summary["total_size_bytes"] += size
+                self._get_user_data_summary__add_log_file_info(log_file, log_type, summary)
+
+    def _get_user_data_summary__add_log_file_info(self, log_file: str, log_type: str, summary: Dict[str, Any]) -> None:
+        """Add log file information to the summary."""
+        size = os.path.getsize(log_file)
+        data = load_json_data(log_file)
+        entry_count = len(data) if isinstance(data, list) else 0
         
-        return summary
+        summary["logs"][log_type] = {
+            "exists": True,
+            "size": size,
+            "entry_count": entry_count
+        }
+        summary["total_files"] += 1
+        summary["total_size_bytes"] += size
     
     @handle_errors("getting last interaction", default_return="1970-01-01 00:00:00")
     def _get_last_interaction(self, user_id: str) -> str:
