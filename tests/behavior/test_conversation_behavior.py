@@ -107,15 +107,19 @@ class TestConversationManagerBehavior:
         
         # Mock check-in enabled
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
+             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
-            mock_prefs.return_value = {
-                'questions': {
-                    'mood': {'enabled': True},
-                    'energy': {'enabled': True}
-                },
-                'welcome_message': 'Welcome to your check-in!'
+            mock_get_data.return_value = {
+                'preferences': {
+                    'checkin_settings': {
+                        'questions': {
+                            'mood': {'enabled': True},
+                            'energy': {'enabled': True}
+                        },
+                        'welcome_message': 'Welcome to your check-in!'
+                    }
+                }
             }
             
             # Act
@@ -422,15 +426,19 @@ class TestConversationManagerBehavior:
         
         # Mock response tracking functions
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs, \
+             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data, \
              patch('communication.message_processing.conversation_flow_manager.store_checkin_response') as mock_store:
             
             mock_enabled.return_value = True
-            mock_prefs.return_value = {
-                'questions': {
-                    'mood': {'enabled': True}
-                },
-                'welcome_message': 'Welcome!'
+            mock_get_data.return_value = {
+                'preferences': {
+                    'checkin_settings': {
+                        'questions': {
+                            'mood': {'enabled': True}
+                        },
+                        'welcome_message': 'Welcome!'
+                    }
+                }
             }
             mock_store.return_value = True
             
@@ -473,14 +481,18 @@ class TestConversationManagerBehavior:
         
         # Mock check-in enabled
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
+             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
-            mock_prefs.return_value = {
-                'questions': {
-                    'mood': {'enabled': True}
-                },
-                'welcome_message': 'Welcome!'
+            mock_get_data.return_value = {
+                'preferences': {
+                    'checkin_settings': {
+                        'questions': {
+                            'mood': {'enabled': True}
+                        },
+                        'welcome_message': 'Welcome!'
+                    }
+                }
             }
             
             # Act - Test check-in command
@@ -550,16 +562,20 @@ class TestConversationManagerIntegration:
         
         # Mock response tracking functions
         with patch('communication.message_processing.conversation_flow_manager.is_user_checkins_enabled') as mock_enabled, \
-             patch('communication.message_processing.conversation_flow_manager.get_user_checkin_preferences') as mock_prefs:
+             patch('communication.message_processing.conversation_flow_manager.get_user_data') as mock_get_data:
             
             mock_enabled.return_value = True
-            mock_prefs.return_value = {
-                'questions': {
-                    'mood': {'enabled': True},
-                    'energy': {'enabled': True},
-                    'daily_reflection': {'enabled': True}
-                },
-                'welcome_message': 'Welcome to your check-in!'
+            mock_get_data.return_value = {
+                'preferences': {
+                    'checkin_settings': {
+                        'questions': {
+                            'mood': {'enabled': True},
+                            'energy': {'enabled': True},
+                            'daily_reflection': {'enabled': True}
+                        },
+                        'welcome_message': 'Welcome to your check-in!'
+                    }
+                }
             }
             
             # Act

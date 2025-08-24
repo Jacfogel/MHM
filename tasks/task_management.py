@@ -17,18 +17,18 @@ from core.error_handling import (
 )
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
-# LEGACY COMPATIBILITY: Using get_user_data instead of load_user_preferences_data
-# TODO: Remove after all calls are updated to use get_user_data
+# LEGACY COMPATIBILITY: Using get_user_data instead of individual load/save functions
+# TODO: Remove after all calls are updated to use get_user_data/save_user_data
 # REMOVAL PLAN:
-# 1. Update all load_user_preferences_data calls to use get_user_data
+# 1. Update all individual load/save function calls to use get_user_data/save_user_data
 # 2. Remove this import
-# 3. Update any save_user_preferences_data calls to use save_user_data
-# USAGE TRACKING: Monitor for any remaining calls to load_user_preferences_data
-# TODO: Remove after all calls are updated to use get_user_data
+# 3. Update any individual save function calls to use save_user_data
+# USAGE TRACKING: Monitor for any remaining calls to individual load/save functions
+# TODO: Remove after all calls are updated to use get_user_data/save_user_data
 # REMOVAL PLAN:
-# 1. Update all load_user_preferences_data calls to use get_user_data
+# 1. Update all individual load/save function calls to use get_user_data/save_user_data
 # 2. Remove this import
-# 3. Update any save_user_preferences_data calls to use save_user_data
+# 3. Update any individual save function calls to use save_user_data
 
 logger = get_component_logger('tasks')
 task_logger = get_component_logger('main')
@@ -580,25 +580,7 @@ def cleanup_task_reminders(user_id: str, task_id: str) -> bool:
         logger.error(f"Error cleaning up task reminders for task {task_id}: {e}")
         return False
 
-@handle_errors("getting user task tags", default_return=[])
-def get_user_task_tags(user_id: str) -> List[str]:
-    """Get the list of available tags for a user from their preferences."""
-    try:
-        if not user_id:
-            logger.error("User ID is required for getting task tags")
-            return []
-        
-        preferences_result = get_user_data(user_id, 'preferences')
-        preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
-        task_settings = preferences_data.get('task_settings', {})
-        tags = task_settings.get('tags', [])
-        
-        logger.debug(f"Loaded {len(tags)} tags for user {user_id}")
-        return tags
-        
-    except Exception as e:
-        logger.error(f"Error getting task tags for user {user_id}: {e}")
-        return []
+# Removed unnecessary wrapper function - use get_user_data() directly
 
 @handle_errors("adding user task tag")
 def add_user_task_tag(user_id: str, tag: str) -> bool:

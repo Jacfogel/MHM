@@ -15,12 +15,11 @@ from datetime import datetime, timedelta
 
 # Import the modules we're testing
 from communication.command_handlers.interaction_handlers import (
-    InteractionHandler, TaskManagementHandler, CheckinHandler, ProfileHandler,
+    TaskManagementHandler, CheckinHandler, ProfileHandler,
     ScheduleManagementHandler, AnalyticsHandler, HelpHandler,
     get_interaction_handler, get_all_handlers
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
-from core.user_management import load_user_account_data, save_user_account_data
 from core.user_data_handlers import get_user_data, save_user_data
 from tasks.task_management import create_task, load_active_tasks, complete_task, delete_task
 from tests.test_utilities import TestUserFactory, create_test_user

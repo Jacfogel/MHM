@@ -394,6 +394,29 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
+## **Comprehensive Testing After Major Refactoring** - Verify system stability
+- *What it means*: Run comprehensive testing to ensure the major user data function refactoring didn't introduce any regressions
+- *Why it helps*: Ensures system stability after removing 6 wrapper functions and consolidating duplicate implementations
+- *Estimated effort*: Small
+- *Testing Requirements*:
+  - Run full test suite (883 tests) to verify all tests pass
+  - Test application startup and basic functionality
+  - Verify user data loading/saving works correctly
+  - Test communication channels and bot functionality
+  - Monitor for any performance regressions
+- *Status*: ✅ **COMPLETED** - All 883 tests passing, system stability confirmed
+
+## **Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions
+- *What it means*: Review the current `get_user_suggestions()` function and implement proper personalized suggestion functionality
+- *Why it helps*: Provides users with meaningful, personalized suggestions based on their data and preferences
+- *Estimated effort*: Medium
+- *Current Status*: Function exists but needs proper implementation for personalized suggestions
+- *Requirements*:
+  - Analyze user data patterns and preferences
+  - Implement suggestion algorithms based on user context
+  - Add suggestion categories (tasks, health, motivation, etc.)
+  - Test suggestion relevance and personalization
+
 **Discord Application ID Configuration Docs**
 - *What it means*: Document optional `DISCORD_APPLICATION_ID` to prevent slash command sync warnings.
 - *Why it helps*: Cleaner logs and fewer false alarms.

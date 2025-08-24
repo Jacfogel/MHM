@@ -16,14 +16,13 @@ from datetime import datetime, timedelta
 import pytz
 import schedule
 
+from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
     cleanup_task_reminders,
     get_user_categories,
     process_user_schedules,
-    get_user_task_preferences,
-    get_user_checkin_preferences,
     process_category_schedule
 )
 from core.error_handling import SchedulerError
@@ -882,7 +881,8 @@ class TestStandaloneFunctions:
             }
             
             # Test real behavior: function should return check-in preferences
-            prefs = get_user_checkin_preferences(user_id)
+            prefs_result = mock_get_data(user_id, 'preferences')
+            prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
             
             # Verify side effects
             assert isinstance(prefs, dict)

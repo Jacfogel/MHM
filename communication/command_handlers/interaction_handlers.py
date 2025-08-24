@@ -36,7 +36,7 @@ from tasks.task_management import (
 from core.user_management import get_user_categories
 from core.user_data_handlers import get_user_data, save_user_data
 from core.response_tracking import (
-    is_user_checkins_enabled, get_user_checkin_preferences, get_recent_checkins
+    is_user_checkins_enabled, get_recent_checkins
 )
 
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
@@ -1153,7 +1153,7 @@ class ProfileHandler(InteractionHandler):
             account_result = get_user_data(user_id, 'account')
             account_data = account_result.get('account', {}) if account_result else {}
             account_data['email'] = entities['email']
-            # Note: Would need to implement save_user_account_data
+            # Note: Using save_user_data instead of individual save function
             updates.append('email')
         
         # Save updates

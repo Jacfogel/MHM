@@ -20,9 +20,9 @@ import os
 import json
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_logger, get_component_logger
+from core.user_data_handlers import get_user_data
 from core.response_tracking import (
     is_user_checkins_enabled,
-    get_user_checkin_preferences,
     get_recent_checkins,
     store_checkin_response,
     store_checkin_response as _legacy_store_checkin_response,
@@ -217,7 +217,8 @@ class ConversationManager:
     def _start_dynamic_checkin(self, user_id: str) -> tuple[str, bool]:
         """Start a dynamic check-in flow based on user preferences with weighted question selection"""
         # Get user's check-in preferences
-        checkin_prefs = get_user_checkin_preferences(user_id)
+        prefs_result = get_user_data(user_id, 'preferences')
+        checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
         enabled_questions = checkin_prefs.get('questions', {})
         
         # Use weighted selection for question order

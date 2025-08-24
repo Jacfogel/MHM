@@ -614,23 +614,8 @@ def get_scheduler_manager():
         return service.scheduler_manager
     return None
 
-def get_user_categories(user_id: str) -> List[str]:
-    """
-    Get the message categories for a specific user.
-    
-    Args:
-        user_id: The user's ID
-        
-    Returns:
-        List[str]: List of message categories the user is subscribed to
-    """
-    try:
-        user_data = get_user_data(user_id, 'preferences')
-        categories = user_data.get('preferences', {}).get('categories', [])
-        return categories if isinstance(categories, list) else []
-    except Exception as e:
-        logger.error(f"Error getting categories for user {user_id}: {e}")
-        return []
+# Import get_user_categories from user_management to avoid duplication
+from core.user_management import get_user_categories
 
 @handle_errors("main service function")
 def main():

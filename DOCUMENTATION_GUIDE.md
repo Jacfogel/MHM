@@ -106,6 +106,82 @@
 - Use encouraging, supportive language
 - Include examples and troubleshooting
 
+## 🏗️ Coding Standards and Naming Conventions
+
+### **Helper Function Naming Convention**
+
+**Pattern**: `_main_function__helper_name`
+
+**Purpose**: Improve code traceability and searchability by clearly indicating which main function owns each helper function.
+
+**Examples**:
+```python
+def _handle_list_tasks(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+    # Main function logic
+    filtered_tasks = self._handle_list_tasks__apply_filters(user_id, tasks, filter_type, priority_filter, tag_filter)
+    sorted_tasks = self._handle_list_tasks__sort_tasks(filtered_tasks)
+    task_list = self._handle_list_tasks__format_list(sorted_tasks)
+    # ... more logic
+
+def _handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
+    """Apply filters to tasks and return filtered list."""
+    # Helper function logic
+
+def _handle_list_tasks__sort_tasks(self, tasks):
+    """Sort tasks by priority and due date."""
+    # Helper function logic
+
+def _handle_list_tasks__format_list(self, tasks):
+    """Format task list with enhanced details."""
+    # Helper function logic
+```
+
+**Benefits**:
+- **Searchability**: `grep "handle_list_tasks"` finds both main function and all helpers
+- **Traceability**: Clear ownership of helper functions
+- **Debugging**: Clearer call stack traces with meaningful function names
+- **Maintainability**: Easy to find all related code for a specific feature
+
+### **Function Type Distinctions**
+
+#### **Implementation Functions** (Core API)
+- **Purpose**: Core functionality used across multiple modules
+- **Scope**: Public API, imported by other modules
+- **Naming**: Standard Python snake_case (`create_task`, `get_user_data`)
+- **Examples**: `create_task()`, `load_active_tasks()`, `get_user_data()`, `save_user_data()`
+
+#### **Helper Functions** (Internal Support)
+- **Purpose**: Break down complexity within a single main function
+- **Scope**: Private to class/module, support specific main functions
+- **Naming**: `_main_function__helper_name` pattern
+- **Examples**: `_handle_list_tasks__format_due_date()`, `_handle_create_task__parse_relative_date()`
+
+#### **Main Functions** (Public Interface)
+- **Purpose**: Primary entry points for functionality
+- **Scope**: Public methods that orchestrate helper functions
+- **Naming**: Standard Python snake_case with descriptive names
+- **Examples**: `_handle_list_tasks()`, `_handle_create_task()`, `handle()`
+
+### **When to Use Each Type**
+
+**Use Implementation Functions When**:
+- Multiple modules need the same functionality
+- Providing core business logic or data access
+- Creating public API that other parts of the system should use
+- Implementing reusable logic that doesn't belong to a specific handler
+
+**Use Helper Functions When**:
+- Breaking down complex logic within a single main function
+- Improving readability of large, complex methods
+- Each helper has a single, clear responsibility
+- The helper clearly belongs to a specific main function
+
+**Use Main Functions When**:
+- Creating public interfaces for handlers or classes
+- Orchestrating multiple helper functions
+- Providing entry points for specific functionality
+- Handling user interactions or external requests
+
 ## 🔄 Maintenance Guidelines
 
 ### **Paired Document Maintenance**

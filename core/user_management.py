@@ -122,10 +122,10 @@ def get_all_user_ids():
     return user_ids
 
 @handle_errors("loading user account data", default_return=None)
-def load_user_account_data(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
     """Load user account data from account.json."""
     if not user_id:
-        logger.error("load_user_account_data called with None user_id")
+        logger.error("_get_user_data__load_account called with None user_id")
         return None
     
     # Check cache first
@@ -189,10 +189,10 @@ def load_user_account_data(user_id: str, auto_create: bool = True) -> Optional[D
     return account_data
 
 @handle_errors("saving user account data")
-def save_user_account_data(user_id: str, account_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_account(user_id: str, account_data: Dict[str, Any]) -> bool:
     """Save user account data to account.json."""
     if not user_id:
-        logger.error("save_user_account_data called with None user_id")
+        logger.error("_save_user_data__save_account called with None user_id")
         return False
     
     ensure_user_directory(user_id)
@@ -223,10 +223,10 @@ def save_user_account_data(user_id: str, account_data: Dict[str, Any]) -> bool:
     return True
 
 @handle_errors("loading user preferences data", default_return=None)
-def load_user_preferences_data(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+def _get_user_data__load_preferences(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
     """Load user preferences data from preferences.json."""
     if not user_id:
-        logger.error("load_user_preferences_data called with None user_id")
+        logger.error("_get_user_data__load_preferences called with None user_id")
         return None
     
     # Check cache first
@@ -292,10 +292,10 @@ def load_user_preferences_data(user_id: str, auto_create: bool = True) -> Option
     return preferences_data
 
 @handle_errors("saving user preferences data")
-def save_user_preferences_data(user_id: str, preferences_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_preferences(user_id: str, preferences_data: Dict[str, Any]) -> bool:
     """Save user preferences data to preferences.json."""
     if not user_id:
-        logger.error("save_user_preferences_data called with None user_id")
+        logger.error("_save_user_data__save_preferences called with None user_id")
         return False
     
     ensure_user_directory(user_id)
@@ -323,10 +323,10 @@ def save_user_preferences_data(user_id: str, preferences_data: Dict[str, Any]) -
     return True
 
 @handle_errors("loading user context data", default_return=None)
-def load_user_context_data(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+def _get_user_data__load_context(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
     """Load user context data from user_context.json."""
     if not user_id:
-        logger.error("load_user_context_data called with None user_id")
+        logger.error("_get_user_data__load_context called with None user_id")
         return None
 
     # Check cache first
@@ -399,10 +399,10 @@ def load_user_context_data(user_id: str, auto_create: bool = True) -> Optional[D
     return context_data
 
 @handle_errors("saving user context data")
-def save_user_context_data(user_id: str, context_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_context(user_id: str, context_data: Dict[str, Any]) -> bool:
     """Save user context data to user_context.json."""
     if not user_id:
-        logger.error("save_user_context_data called with None user_id")
+        logger.error("_save_user_data__save_context called with None user_id")
         return False
     
     ensure_user_directory(user_id)
@@ -428,10 +428,10 @@ def save_user_context_data(user_id: str, context_data: Dict[str, Any]) -> bool:
     return True
 
 @handle_errors("loading user schedules data", default_return=None)
-def load_user_schedules_data(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
+def _get_user_data__load_schedules(user_id: str, auto_create: bool = True) -> Optional[Dict[str, Any]]:
     """Load user schedules data from schedules.json."""
     if not user_id:
-        logger.error("load_user_schedules_data called with None user_id")
+        logger.error("_get_user_data__load_schedules called with None user_id")
         return None
     
     user_dir = os.path.dirname(get_user_file_path(user_id, 'schedules'))
@@ -461,10 +461,10 @@ def load_user_schedules_data(user_id: str, auto_create: bool = True) -> Optional
     return schedules_data
 
 @handle_errors("saving user schedules data")
-def save_user_schedules_data(user_id: str, schedules_data: Dict[str, Any]) -> bool:
+def _save_user_data__save_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     """Save user schedules data to schedules.json."""
     if not user_id:
-        logger.error("save_user_schedules_data called with None user_id")
+        logger.error("_save_user_data__save_schedules called with None user_id")
         return False
     
     ensure_user_directory(user_id)
@@ -566,14 +566,14 @@ def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
         return False
     
     try:
-        schedules_data = load_user_schedules_data(user_id) or {}
+        schedules_data = _get_user_data__load_schedules(user_id) or {}
         logger.debug(f"Current schedules data for user {user_id}: {schedules_data}")
         
         # Migrate legacy structure if needed
         if schedules_data and any(isinstance(v, dict) and 'periods' not in v for v in schedules_data.values()):
             logger.info(f"Migrating legacy schedules structure for user {user_id}")
             schedules_data = migrate_legacy_schedules_structure(schedules_data)
-            save_user_schedules_data(user_id, schedules_data)
+            _save_user_data__save_schedules(user_id, schedules_data)
         
         # Check if category exists and has periods
         category_exists = category in schedules_data
@@ -596,7 +596,7 @@ def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
                 schedules_data[category]['periods'] = default_periods
             
             # Save the updated schedules
-            save_user_schedules_data(user_id, schedules_data)
+            _save_user_data__save_schedules(user_id, schedules_data)
             logger.info(f"Created default schedule periods for category '{category}' for user {user_id}")
             return True
         
@@ -626,7 +626,7 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: 
         return False
     
     # Load current preferences to check for category changes
-    preferences_data = load_user_preferences_data(user_id, auto_create=auto_create)
+    preferences_data = _get_user_data__load_preferences(user_id, auto_create=auto_create)
     if preferences_data is None:
         logger.warning(f"Could not load or create preferences for user {user_id}")
         return False
@@ -1066,66 +1066,31 @@ def ensure_all_categories_have_schedules(user_id: str) -> bool:
 
 # Register all data loaders in the centralized registry
 # This happens after all functions are defined
-register_data_loader('account', load_user_account_data, 'account')
-register_data_loader('preferences', load_user_preferences_data, 'preferences')
-register_data_loader('context', load_user_context_data, 'user_context')
-register_data_loader('schedules', load_user_schedules_data, 'schedules')
+register_data_loader('account', _get_user_data__load_account, 'account')
+register_data_loader('preferences', _get_user_data__load_preferences, 'preferences')
+register_data_loader('context', _get_user_data__load_context, 'user_context')
+register_data_loader('schedules', _get_user_data__load_schedules, 'schedules')
 
 logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized registry")
 
 # ============================================================================
-# CONVENIENCE FUNCTIONS USING CENTRALIZED SYSTEM
+# USER DATA UTILITY FUNCTIONS
 # ============================================================================
-
-def get_user_email(user_id: str) -> Optional[str]:
-    """Get user's email address using centralized system."""
-    from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'account', fields='email')
-    return user_data.get('account')
 
 def get_user_categories(user_id: str) -> List[str]:
     """Get user's message categories using centralized system."""
     from core.user_data_handlers import get_user_data
     user_data = get_user_data(user_id, 'preferences', fields='categories')
-    categories = user_data.get('preferences', [])
-    if isinstance(categories, dict):
-        return list(categories.keys())
-    elif isinstance(categories, list):
-        return categories
+    if isinstance(user_data, dict):
+        return list(user_data.keys())
+    elif isinstance(user_data, list):
+        return user_data
     return []
-
-def get_user_channel_type(user_id: str) -> str:
-    """Get user's communication channel type using centralized system."""
-    from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'preferences', fields={'preferences': ['channel']})
-    channel_data = user_data.get('preferences', {}).get('channel', {})
-    return channel_data.get('type', 'email')
-
-def get_user_preferred_name(user_id: str) -> str:
-    """Get user's preferred name using centralized system."""
-    from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'context', fields='preferred_name')
-    return user_data.get('context', '')
-
-def get_user_account_status(user_id: str) -> str:
-    """Get user's account status using centralized system."""
-    from core.user_data_handlers import get_user_data
-    user_data = get_user_data(user_id, 'account', fields='account_status')
-    return user_data.get('account', 'inactive')
 
 def get_user_data_with_metadata(user_id: str, data_types: Union[str, List[str]] = 'all') -> Dict[str, Any]:
     """Get user data with file metadata using centralized system."""
     from core.user_data_handlers import get_user_data
     return get_user_data(user_id, data_types, include_metadata=True)
-
-def get_user_essential_info(user_id: str) -> Dict[str, Any]:
-    """Get essential user information using centralized system."""
-    from core.user_data_handlers import get_user_data
-    return get_user_data(user_id, 'all', fields={
-        'account': ['user_id', 'internal_username', 'email', 'account_status'],
-        'preferences': ['categories', 'channel'],
-        'context': ['preferred_name']
-    })
 
 # ============================================================================
 # PERSONALIZATION UTILITY FUNCTIONS (Moved from personalization_management)

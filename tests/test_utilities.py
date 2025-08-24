@@ -17,7 +17,8 @@ from datetime import datetime
 # Add parent directory to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.user_management import create_new_user, save_user_account_data, save_user_preferences_data
+from core.user_management import create_new_user
+from core.user_data_handlers import save_user_data
 from core.file_operations import ensure_user_directory
 
 # Setup logger for test utilities
@@ -1001,8 +1002,9 @@ class TestUserFactory:
                 return False
             
             # Add schedule data using the correct function
-            from core.user_management import save_user_schedules_data
-            schedule_success = save_user_schedules_data(actual_user_id, schedule_config)
+            from core.user_data_handlers import save_user_data
+            result = save_user_data(actual_user_id, {'schedules': schedule_config})
+            schedule_success = result.get('schedules', False)
             
             return schedule_success
         except Exception as e:

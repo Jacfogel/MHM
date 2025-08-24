@@ -138,7 +138,6 @@ class TestAccountLifecycle:
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Add specific schedule data
-        from core.user_management import save_user_schedules_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational", "health"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
@@ -152,7 +151,9 @@ class TestAccountLifecycle:
             "start_time": "18:00",
             "end_time": "20:00"
         }
-        save_user_schedules_data(actual_user_id, schedules_data)
+        from core.user_data_handlers import save_user_data
+        result = save_user_data(actual_user_id, {'schedules': schedules_data})
+        assert result.get('schedules', False), "Schedule data should save successfully"
         
         # Assert - Verify actual file creation
         user_dir = os.path.join(test_data_dir, "users", actual_user_id)

@@ -18,7 +18,6 @@ from discord.ext import commands
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
 from core.config import ensure_user_directory
-from core.user_management import save_user_account_data, save_user_preferences_data
 
 
 class TestDiscordBotBehavior:
@@ -544,18 +543,21 @@ class TestDiscordBotIntegration:
         """End-to-end-ish: ensure plain 'complete task' routes to InteractionManager and returns a helpful prompt, not a generic error."""
         # Arrange: create a basic user and map a fake Discord ID
         from tests.test_utilities import TestUserFactory
-        from core.user_management import load_user_account_data, save_user_account_data, get_user_id_by_identifier
         # Create under the session-patched tests/data/users dir (omit test_data_dir)
         created = TestUserFactory.create_basic_user("e2e_user", enable_tasks=True, test_data_dir=test_data_dir)
         assert created, "Test user should be created"
+        from core.user_management import get_user_id_by_identifier
         internal_uid = get_user_id_by_identifier("e2e_user")
         assert internal_uid is not None, "Should resolve internal user id"
 
         # Load current account data and add discord_user_id
-        acct_data = load_user_account_data(internal_uid) or {}
+        from core.user_data_handlers import get_user_data, save_user_data
+        account_result = get_user_data(internal_uid, 'account')
+        acct_data = account_result.get('account', {}) or {}
         acct_data["internal_username"] = "e2e_user"
         acct_data["discord_user_id"] = "123456789012345678"
-        ok = save_user_account_data(internal_uid, acct_data)
+        result = save_user_data(internal_uid, {'account': acct_data})
+        ok = result.get('account', False)
         assert ok is True, "Account data should save"
 
         # Patch Discord internals and message send to capture output

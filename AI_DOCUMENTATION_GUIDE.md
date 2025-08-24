@@ -49,6 +49,26 @@
 - **Pattern-focused**: Decision trees and common scenarios
 - **Cross-referenced**: Clear links to detailed docs
 
+## 🏗️ Coding Standards
+
+### **Helper Function Naming Convention**
+- **Pattern**: `_main_function__helper_name`
+- **Purpose**: Improve traceability and searchability
+- **Examples**: 
+  - `_handle_list_tasks__format_due_date()`
+  - `_handle_create_task__parse_relative_date()`
+- **Benefits**: Clear ownership, easy search, better debugging
+
+### **Function Types**
+- **Implementation Functions**: Core API (`create_task`, `get_user_data`) - standard snake_case
+- **Helper Functions**: Internal support (`_main_function__helper_name`) - double underscore pattern
+- **Main Functions**: Public interface (`_handle_list_tasks()`) - standard snake_case
+
+### **When to Use Each**
+- **Implementation**: Core functionality used across modules
+- **Helper**: Break down complexity within main functions
+- **Main**: Public interfaces and orchestration
+
 ---
 
 **Remember**: Keep AI documentation concise, pattern-focused, always cross-referenced.

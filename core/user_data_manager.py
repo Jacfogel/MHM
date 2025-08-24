@@ -848,50 +848,47 @@ def rebuild_user_index() -> bool:
 
 @handle_errors("getting user info for data manager", default_return=None)
 def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
-    """Get user info for data manager operations - uses new hybrid structure."""
-    if not user_id:
-        return None
-    
-    # Use the hybrid function to get account data
-    user_data = get_user_data(user_id, 'account')
-    account_data = user_data.get('account')
-    
-    if not account_data:
-        logger.warning(f"No account data found for user {user_id}")
-        return None
-    
-    # Extract relevant fields from account data
-    user_info = {
-        "user_id": account_data.get("user_id", user_id),
-        "internal_username": account_data.get("internal_username", ""),
-        "active": account_data.get("account_status") == "active",
-        "preferred_name": account_data.get("preferred_name", ""),
-        "chat_id": account_data.get("chat_id", ""),
-        "phone": account_data.get("phone", ""),
-        "email": account_data.get("email", ""),
-        "created_at": account_data.get("created_at", ""),
-        "last_updated": account_data.get("updated_at", "")
-    }
-    
-    return user_info
-
-@handle_errors("getting user categories", default_return=[])
-def get_user_categories(user_id: str) -> List[str]:
-    """Get user's message categories."""
+    """Get user info using the new centralized data structure."""
     try:
-        prefs_result = get_user_data(user_id, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        if categories is None:
-            return []
-        elif isinstance(categories, list):
-            return categories
-        elif isinstance(categories, dict):
-            return list(categories.keys())
-        else:
-            return []
+        from core.user_management import get_user_data
+        
+        # Get all user data
+        user_data = get_user_data(user_id, 'all')
+        if not user_data:
+            return None
+        
+        # Build user info structure
+        account_data = user_data.get('account', {})
+        context_data = user_data.get('context', {})
+        
+        user_info = {
+            "user_id": user_id,
+            "internal_username": account_data.get('internal_username', ''),
+            "preferred_name": context_data.get('preferred_name', ''),
+            "account_status": account_data.get('account_status', 'unknown'),
+            "email": account_data.get('email', ''),
+            "message_files": {}  # Will be populated below
+        }
+        
+        # Get message files
+        from core.user_management import get_user_categories
+        categories = get_user_categories(user_id)
+        
+        for category in categories:
+            category_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f'{category}.json')
+            user_info["message_files"][category] = {
+                "path": category_path,
+                "exists": os.path.exists(category_path)
+            }
+        
+        return user_info
+        
     except Exception as e:
-        logger.error(f"Error getting categories for user {user_id}: {e}")
-        return []
+        logger.error(f"Error getting user info for data manager: {e}")
+        return None
+
+# Import get_user_categories from user_management to avoid duplication
+from core.user_management import get_user_categories
 
 @handle_errors("building user index", default_return={})
 def build_user_index() -> Dict[str, Any]:

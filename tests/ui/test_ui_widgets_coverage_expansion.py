@@ -103,7 +103,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_management_mode_initialization_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test TagWidget initialization in management mode."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             assert widget.mode == "management"
@@ -118,7 +118,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_selection_mode_initialization_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test TagWidget initialization in selection mode."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal', 'health']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal', 'health']}}}):
             widget = TagWidget(
                 user_id=user_id, 
                 mode="selection", 
@@ -151,7 +151,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_add_tag_management_mode_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test adding a tag in management mode."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']), \
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}), \
              patch('ui.widgets.tag_widget.add_user_task_tag', return_value=True):
             
             widget = TagWidget(user_id=user_id, mode="management")
@@ -176,7 +176,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_add_duplicate_tag_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test adding a duplicate tag."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']), \
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}), \
              patch('ui.widgets.tag_widget.add_user_task_tag', return_value=True):
             
             widget = TagWidget(user_id=user_id, mode="management")
@@ -189,7 +189,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_add_empty_tag_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test adding an empty tag."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Try to add empty tag
@@ -200,7 +200,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_edit_tag_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test editing a tag."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']), \
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}), \
              patch('ui.widgets.tag_widget.remove_user_task_tag', return_value=True), \
              patch('ui.widgets.tag_widget.add_user_task_tag', return_value=True), \
              patch('PySide6.QtWidgets.QInputDialog.getText', return_value=("personal", True)):
@@ -234,7 +234,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_delete_tag_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test deleting a tag."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']), \
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}), \
              patch('ui.widgets.tag_widget.remove_user_task_tag', return_value=True), \
              patch('PySide6.QtWidgets.QMessageBox.question', return_value=QMessageBox.StandardButton.Yes):
             
@@ -282,7 +282,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_selection_mode_checkbox_behavior_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test checkbox behavior in selection mode."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(
                 user_id=user_id, 
                 mode="selection", 
@@ -299,7 +299,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_selection_changed_signal_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test that selection changes emit signals."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(user_id=user_id, mode="selection")
             
             # Connect to signal
@@ -320,7 +320,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_get_selected_tags_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test getting selected tags."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(
                 user_id=user_id, 
                 mode="selection", 
@@ -332,7 +332,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_set_selected_tags_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test setting selected tags."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(user_id=user_id, mode="selection")
             
             widget.set_selected_tags(['personal'])
@@ -340,7 +340,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_refresh_tags_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test refreshing tags."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Change available tags
@@ -564,7 +564,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_tag_widget_error_handling_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test error handling in TagWidget."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', side_effect=Exception("Database error")):
+        with patch('ui.widgets.tag_widget.get_user_data', side_effect=Exception("Database error")):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Should handle error gracefully
@@ -604,7 +604,7 @@ class TestUIWidgetsCoverageExpansion:
     def test_widget_integration_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test integration between widgets."""
         # Test TagWidget with real data
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work', 'personal']), \
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work', 'personal']}}}), \
              patch('ui.widgets.tag_widget.add_user_task_tag', return_value=True):
             
             tag_widget = TagWidget(user_id=user_id, mode="management")
@@ -623,7 +623,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_widget_lifecycle_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test widget lifecycle management."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Test widget creation
@@ -641,7 +641,7 @@ class TestUIWidgetsCoverageExpansion:
         """Test widget performance with large datasets."""
         # Test TagWidget with many tags
         many_tags = [f"tag_{i}" for i in range(100)]
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=many_tags):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': many_tags}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Should handle many tags efficiently
@@ -649,7 +649,7 @@ class TestUIWidgetsCoverageExpansion:
 
     def test_widget_memory_usage_real_behavior(self, app, mock_user_data_dir, user_id):
         """Test widget memory usage."""
-        with patch('ui.widgets.tag_widget.get_user_task_tags', return_value=['work']):
+        with patch('ui.widgets.tag_widget.get_user_data', return_value={'preferences': {'task_settings': {'tags': ['work']}}}):
             widget = TagWidget(user_id=user_id, mode="management")
             
             # Widget should be created without memory issues

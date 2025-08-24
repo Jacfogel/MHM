@@ -146,15 +146,7 @@ def get_recent_chat_interactions(user_id: str, limit: int = 10):
 
 
 
-@handle_errors("getting user checkin preferences", default_return={})
-def get_user_checkin_preferences(user_id: str) -> dict:
-    """Get user's check-in preferences from their preferences file."""
-    prefs_result = get_user_data(user_id, 'preferences')
-    user_preferences = prefs_result.get('preferences')
-    if not user_preferences:
-        return {}
-    
-    return user_preferences.get('checkin_settings', {})
+# Removed unnecessary wrapper function - use get_user_data() directly
 
 @handle_errors("checking if user checkins enabled", default_return=False)
 def is_user_checkins_enabled(user_id: str) -> bool:
@@ -166,11 +158,7 @@ def is_user_checkins_enabled(user_id: str) -> bool:
     
     return user_account.get('features', {}).get('checkins') == 'enabled'
 
-@handle_errors("getting user checkin questions", default_return={})
-def get_user_checkin_questions(user_id: str) -> dict:
-    """Get the enabled check-in questions for a user."""
-    checkin_prefs = get_user_checkin_preferences(user_id)
-    return checkin_prefs.get('questions', {})
+# Removed unnecessary wrapper function - use get_user_data() directly
 
 def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
     """Get user information for response tracking."""

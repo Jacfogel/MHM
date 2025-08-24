@@ -3,6 +3,23 @@
 > **Purpose**: Essential development patterns for AI collaborators  
 > **For details**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
 
+## 🎯 **CRITICAL: Code Quality Philosophy**
+
+### **User's Strong Preference: Clean, Well-Designed Code**
+- **NEVER accept "worse is better" shortcuts** - User strongly prefers thorough, clean refactoring
+- **Quality over speed**: Take time to do it right, not fast
+- **Remove unnecessary wrappers**: Don't keep functions that just delegate to other functions
+- **Consolidate duplicates**: Eliminate code duplication even if it requires more work
+- **Clean architecture**: Prefer clean, maintainable code over quick hacks
+- **Thorough refactoring**: When refactoring, do it completely and properly
+
+### **Code Quality Standards**
+- **No unnecessary wrappers**: Functions should add value, not just delegate
+- **Consolidate duplicates**: Multiple identical functions should be unified
+- **Clean interfaces**: APIs should be simple and consistent
+- **Proper error handling**: Handle errors gracefully, not just ignore them
+- **Comprehensive testing**: Test thoroughly, not just happy path
+
 ## 🚀 Quick Commands
 ```powershell
 python run_mhm.py                    # Test system

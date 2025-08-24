@@ -10,7 +10,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PySide6.QtWidgets import QWidget, QListWidgetItem, QInputDialog, QMessageBox
 from PySide6.QtCore import Qt, Signal
 from ui.generated.tag_widget_pyqt import Ui_Widget_tag
-from tasks.task_management import get_user_task_tags, add_user_task_tag, remove_user_task_tag
+from tasks.task_management import add_user_task_tag, remove_user_task_tag
+from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
 from core.logger import setup_logging, get_logger, get_component_logger
 
@@ -89,7 +90,10 @@ class TagWidget(QWidget):
             return
             
         try:
-            self.available_tags = get_user_task_tags(self.user_id)
+            prefs_result = get_user_data(self.user_id, 'preferences')
+            preferences_data = prefs_result.get('preferences', {}) if prefs_result else {}
+            task_settings = preferences_data.get('task_settings', {})
+            self.available_tags = task_settings.get('tags', [])
             self.refresh_tag_list()
             if self.mode == "management":
                 self.update_button_states()

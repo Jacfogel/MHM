@@ -1132,22 +1132,8 @@ def cleanup_task_reminders(user_id, task_id=None):
     except Exception as e:
         logger.error(f"Error in task reminder cleanup request for user {user_id}: {e}")
 
-def get_user_categories(user_id: str) -> List[str]:
-    """Get user's message categories."""
-    try:
-        prefs_result = get_user_data(user_id, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        if categories is None:
-            return []
-        elif isinstance(categories, list):
-            return categories
-        elif isinstance(categories, dict):
-            return list(categories.keys())
-        else:
-            return []
-    except Exception as e:
-        logger.error(f"Error getting categories for user {user_id}: {e}")
-        return []
+# Import get_user_categories from user_management to avoid duplication
+from core.user_management import get_user_categories
 
 def process_user_schedules(user_id: str):
     """Process schedules for a specific user."""
@@ -1183,26 +1169,4 @@ def process_category_schedule(user_id: str, category: str):
     except Exception as e:
         logger.error(f"Error processing schedule for user {user_id}, category {category}: {e}")
 
-def get_user_task_preferences(user_id: str) -> Dict[str, Any]:
-    """Get user's task preferences."""
-    try:
-        prefs_result = get_user_data(user_id, 'preferences')
-        task_prefs = prefs_result.get('preferences', {}).get('task_management', {})
-        if task_prefs is None:
-            return {}
-        return task_prefs
-    except Exception as e:
-        logger.error(f"Error getting task preferences for user {user_id}: {e}")
-        return {}
-
-def get_user_checkin_preferences(user_id: str) -> Dict[str, Any]:
-    """Get user's check-in preferences."""
-    try:
-        prefs_result = get_user_data(user_id, 'preferences')
-        checkin_prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
-        if checkin_prefs is None:
-            return {}
-        return checkin_prefs
-    except Exception as e:
-        logger.error(f"Error getting check-in preferences for user {user_id}: {e}")
-        return {}
+# Removed unnecessary wrapper functions - use get_user_data() directly

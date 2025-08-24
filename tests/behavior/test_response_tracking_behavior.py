@@ -8,6 +8,7 @@ import json
 import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock
+from core.user_data_handlers import get_user_data
 from core.response_tracking import (
     store_user_response,
     store_checkin_response,
@@ -15,9 +16,7 @@ from core.response_tracking import (
     get_recent_responses,
     get_recent_checkins,
     get_recent_chat_interactions,
-    get_user_checkin_preferences,
     is_user_checkins_enabled,
-    get_user_checkin_questions,
     get_user_info_for_tracking,
     track_user_response
 )
@@ -260,7 +259,8 @@ class TestResponseTrackingBehavior:
         # Act - Get checkin preferences
         with patch('core.response_tracking.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"preferences": test_preferences}
-            prefs = get_user_checkin_preferences(user_id)
+            prefs_result = mock_get_user_data(user_id, 'preferences')
+            prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
         
         # Assert - Verify preferences are returned
         assert prefs["enabled"] is True, "Should return enabled status"
@@ -320,9 +320,10 @@ class TestResponseTrackingBehavior:
         }
         
         # Act - Get checkin questions
-        with patch('core.response_tracking.get_user_checkin_preferences') as mock_get_prefs:
-            mock_get_prefs.return_value = {"questions": test_questions}
-            questions = get_user_checkin_questions(user_id)
+        with patch('core.response_tracking.get_user_data') as mock_get_user_data:
+            mock_get_user_data.return_value = {"preferences": {"checkin_settings": {"questions": test_questions}}}
+            prefs_result = mock_get_user_data(user_id, 'preferences')
+            questions = prefs_result.get('preferences', {}).get('checkin_settings', {}).get('questions', {})
         
         # Assert - Verify questions are returned
         assert "mood" in questions, "Should include mood question"
@@ -565,7 +566,8 @@ class TestResponseTrackingIntegration:
                 enabled = is_user_checkins_enabled(user_id)
                 
                 # 2. Get checkin preferences
-                prefs = get_user_checkin_preferences(user_id)
+                prefs_result = mock_get_user_data(user_id, 'preferences')
+                prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
                 
                 # 3. Store a checkin response
                 if enabled:

@@ -13,14 +13,13 @@ from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, timedelta
 import pytz
 
+from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
     cleanup_task_reminders,
     get_user_categories,
-    process_user_schedules,
-    get_user_task_preferences,
-    get_user_checkin_preferences
+    process_user_schedules
 )
 from core.error_handling import SchedulerError
 
@@ -226,12 +225,9 @@ class TestSchedulerFunctions:
         """Test getting user categories successfully."""
         user_id = mock_user_data['user_id']
         
-        with patch('core.scheduler.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                'preferences': {
-                    'categories': ['motivational', 'health', 'fun_facts']
-                }
-            }
+        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
+            # get_user_data with fields='categories' returns the list directly
+            mock_get_data.return_value = ['motivational', 'health', 'fun_facts']
             
             categories = get_user_categories(user_id)
             
@@ -244,7 +240,7 @@ class TestSchedulerFunctions:
     @pytest.mark.schedules
     def test_get_user_categories_no_user(self):
         """Test getting categories for non-existent user."""
-        with patch('core.scheduler.get_user_data') as mock_get_data:
+        with patch('core.user_data_handlers.get_user_data') as mock_get_data:
             mock_get_data.return_value = {}
             
             categories = get_user_categories('nonexistent-user')
@@ -257,39 +253,26 @@ class TestSchedulerFunctions:
     def test_get_user_task_preferences_success(self, mock_user_data):
         """Test getting user task preferences successfully."""
         user_id = mock_user_data['user_id']
-        
-        with patch('core.scheduler.get_user_data') as mock_get_data:
-            # Mock the real data structure that the function expects
-            mock_get_data.return_value = {
-                'preferences': {
-                    'task_management': {  # Note: function looks for 'task_management', not 'task_settings'
-                        'enabled': True,
-                        'default_reminder_time': '18:00'
-                    }
-                }
-            }
-            
-            prefs = get_user_task_preferences(user_id)
-            
-            # Test real behavior: function returns the task_management dict
-            assert isinstance(prefs, dict)
-            assert prefs.get('enabled') is True
-            assert prefs.get('default_reminder_time') == '18:00'
-            
-            # Verify side effect: function should have called get_user_data
-            mock_get_data.assert_called_once_with(user_id, 'preferences')
+
+        # Test the actual get_user_data function with real data
+        prefs_result = get_user_data(user_id, 'preferences')
+        prefs = prefs_result.get('preferences', {}).get('task_settings', {})
+
+        # Test real behavior: function returns the task_settings dict
+        assert isinstance(prefs, dict)
+        # Note: mock_user_data has task_settings.enabled = False by default
+        assert prefs.get('enabled') is False
+        assert prefs.get('reminder_time') == '10:00'
     
     @pytest.mark.behavior
     @pytest.mark.schedules
     def test_get_user_task_preferences_no_user(self):
         """Test getting task preferences for non-existent user."""
-        with patch('core.scheduler.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {}
-            
-            prefs = get_user_task_preferences('nonexistent-user')
-            
-            assert isinstance(prefs, dict)
-            assert len(prefs) == 0
+        prefs_result = get_user_data('nonexistent-user', 'preferences')
+        prefs = prefs_result.get('preferences', {}).get('task_settings', {})
+        
+        assert isinstance(prefs, dict)
+        assert len(prefs) == 0
     
     @pytest.mark.behavior
     @pytest.mark.schedules
@@ -297,33 +280,24 @@ class TestSchedulerFunctions:
         """Test getting user check-in preferences successfully."""
         user_id = mock_user_data['user_id']
         
-        with patch('core.scheduler.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {
-                'preferences': {
-                    'checkin_settings': {
-                        'enabled': True,
-                        'frequency': 'daily'
-                    }
-                }
-            }
-            
-            prefs = get_user_checkin_preferences(user_id)
-            
-            assert isinstance(prefs, dict)
-            assert prefs.get('enabled') is True
-            assert prefs.get('frequency') == 'daily'
+        # Test the actual get_user_data function with real data
+        prefs_result = get_user_data(user_id, 'preferences')
+        prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+        
+        assert isinstance(prefs, dict)
+        # Note: mock_user_data has checkin_settings.enabled = False by default
+        assert prefs.get('enabled') is False
+        assert prefs.get('frequency') == 'daily'
     
     @pytest.mark.behavior
     @pytest.mark.schedules
     def test_get_user_checkin_preferences_no_user(self):
         """Test getting check-in preferences for non-existent user."""
-        with patch('core.scheduler.get_user_data') as mock_get_data:
-            mock_get_data.return_value = {}
-            
-            prefs = get_user_checkin_preferences('nonexistent-user')
-            
-            assert isinstance(prefs, dict)
-            assert len(prefs) == 0
+        prefs_result = get_user_data('nonexistent-user', 'preferences')
+        prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+        
+        assert isinstance(prefs, dict)
+        assert len(prefs) == 0
 
 class TestSchedulerIntegration:
     """Test scheduler integration scenarios."""

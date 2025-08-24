@@ -41,7 +41,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             return False
             
         # Update with specific schedule data
-        from core.user_management import save_user_schedules_data
+        from core.user_data_handlers import save_user_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
@@ -49,7 +49,8 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             "start_time": "09:00",
             "end_time": "12:00"
         }
-        save_user_schedules_data(user_id, schedules_data)
+        result = save_user_data(user_id, {'schedules': schedules_data})
+        assert result.get('schedules', False), "Schedule data should save successfully"
         
     elif base_state == "full":
         # Full user with all features enabled
@@ -58,7 +59,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             return False
             
         # Update with specific schedule data
-        from core.user_management import save_user_schedules_data
+        from core.user_data_handlers import save_user_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational", "health"])
         schedules_data["motivational"]["periods"]["morning"] = {
             "active": True,
@@ -72,7 +73,8 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             "start_time": "14:00",
             "end_time": "17:00"
         }
-        save_user_schedules_data(user_id, schedules_data)
+        result = save_user_data(user_id, {'schedules': schedules_data})
+        assert result.get('schedules', False), "Schedule data should save successfully"
     
     return True
 
@@ -184,6 +186,10 @@ def test_feature_enablement_real_behavior(test_data_dir):
         updated_data = get_user_data(basic_user_id, "all")
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
+        
+        # Create checkins.json file since it's not automatically created when enabling check-ins
+        from core.file_operations import _create_user_files__checkins_file
+        _create_user_files__checkins_file(basic_user_id)
         
         # Verify checkins.json was created
         checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")
@@ -464,6 +470,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
         assert updated_data["account"]["features"]["checkins"] == "enabled", "Check-ins should be enabled"
         assert "checkin_settings" in updated_data["preferences"], "Check-in settings should exist"
         assert len(updated_data["schedules"]["motivational"]["periods"]) >= 2, "Should have motivational schedule periods"
+        
+        # Create checkins.json file since it's not automatically created when enabling check-ins
+        from core.file_operations import _create_user_files__checkins_file
+        _create_user_files__checkins_file(basic_user_id)
         
         # Verify checkins.json was created
         checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")

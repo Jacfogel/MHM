@@ -466,8 +466,9 @@ class TestAIChatBotIntegration:
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Verify user data was saved by loading it
-        from core.user_management import load_user_account_data
-        loaded_account = load_user_account_data(actual_user_id)
+        from core.user_data_handlers import get_user_data
+        account_result = get_user_data(actual_user_id, 'account')
+        loaded_account = account_result.get('account', {})
         assert loaded_account is not None, "User account should be saved and retrievable"
         assert loaded_account.get('internal_username') == user_id, "User account should be correct"
         

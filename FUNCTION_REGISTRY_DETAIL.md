@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-08-19 23:40:23
+> **Last Updated**: 2025-08-23 15:42:57
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -11,18 +11,18 @@
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 93.9% ⚠️ NEEDS ATTENTION**
-- **Files Scanned**: 176
-- **Functions Found**: 2238
-- **Methods Found**: 1738
-- **Classes Found**: 254
-- **Total Items**: 3976
-- **Functions Documented**: 2090
-- **Methods Documented**: 1642
-- **Classes Documented**: 206
-- **Total Documented**: 3732
-- **Template-Generated**: 53
-- **Last Updated**: 2025-08-19
+### **Function Documentation Coverage: 94.6% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 114
+- **Functions Found**: 1907
+- **Methods Found**: 1530
+- **Classes Found**: 219
+- **Total Items**: 3437
+- **Functions Documented**: 1791
+- **Methods Documented**: 1462
+- **Classes Documented**: 177
+- **Total Documented**: 3253
+- **Template-Generated**: 31
+- **Last Updated**: 2025-08-23
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -36,767 +36,25 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (341)
+### **Core System Functions** (365)
 Core system utilities, configuration, error handling, and data management functions.
 
-### **Communication Functions** (230)
+### **Communication Functions** (0)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (325)
+### **User Interface Functions** (354)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (24)
+### **User Management Functions** (39)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (20)
 Task management and scheduling functions.
 
-### **Test Functions** (1118)
+### **Test Functions** (1124)
 Test functions and testing utilities.
 
 ## 📁 **Module Organization**
-
-### `bot/` - Communication Channel Implementations
-
-#### `bot/ai_chatbot.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object
-- ✅ `__init__(self, max_size, ttl)` - Initialize the object.
-- ✅ `__init__(self)` - Initialize the object.
-- ✅ `__new__(cls)` - Create a new instance.
-- ✅ `_call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
-- ✅ `_cleanup_lru(self)` - Remove least recently used items.
-- ✅ `_create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON.
-- ✅ `_create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
-- ✅ `_detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
-- ✅ `_detect_resource_constraints(self)` - Detect if system is resource-constrained.
-- ✅ `_generate_key(self, prompt, user_id)` - Generate cache key from prompt and optional user context.
-- ✅ `_get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
-- ✅ `_get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
-Now actually analyzes user's check-in data for meaningful responses.
-- ✅ `_get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
-- ✅ `_get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
-- ✅ `_load_custom_prompt(self)` - Load the custom system prompt from file.
-- ✅ `_optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-- ✅ `_test_lm_studio_connection(self)` - Test connection to LM Studio server.
-- ✅ `generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
-Integrates with existing UserContext and UserPreferences systems.
-- ✅ `generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
-- ✅ `generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
-Uses shorter timeout optimized for responsiveness.
-- ✅ `generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
-Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
-- ✅ `get(self, prompt, user_id)` - Get cached response if available and not expired.
-- ✅ `get_ai_chatbot()` - Return the shared AIChatBot instance.
-- ✅ `get_ai_status(self)` - Get detailed status information about the AI system.
-- ✅ `get_system_prompt(self, prompt_type)` - Get the appropriate system prompt for the given type.
-
-Args:
-    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
-    
-Returns:
-    The system prompt string
-- ✅ `is_ai_available(self)` - Check if the AI model is available and functional.
-- ✅ `reload_prompt(self)` - Reload the custom prompt from file (useful for development).
-- ✅ `reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
-- ✅ `set(self, prompt, response, user_id)` - Cache a response.
-- ✅ `test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
-**Classes:**
-- ✅ `AIChatBotSingleton` - A Singleton container for LM Studio API client.
-  - ✅ `AIChatBotSingleton.__init__(self)` - Initialize the object.
-  - ✅ `AIChatBotSingleton.__new__(cls)` - Create a new instance.
-  - ✅ `AIChatBotSingleton._call_lm_studio_api(self, messages, max_tokens, temperature, timeout)` - Make an API call to LM Studio using OpenAI-compatible format.
-  - ✅ `AIChatBotSingleton._create_command_parsing_prompt(self, user_prompt)` - Create a prompt instructing the model to return strict JSON.
-  - ✅ `AIChatBotSingleton._create_comprehensive_context_prompt(self, user_id, user_prompt)` - Create a comprehensive context prompt with all user data for LM Studio.
-  - ✅ `AIChatBotSingleton._detect_mode(self, user_prompt)` - Detect whether the prompt is a command or a chat query.
-  - ✅ `AIChatBotSingleton._detect_resource_constraints(self)` - Detect if system is resource-constrained.
-  - ✅ `AIChatBotSingleton._get_adaptive_timeout(self, base_timeout)` - Get adaptive timeout based on system resources.
-  - ✅ `AIChatBotSingleton._get_contextual_fallback(self, user_prompt, user_id)` - Provide contextually aware fallback responses based on user data and prompt analysis.
-Now actually analyzes user's check-in data for meaningful responses.
-  - ✅ `AIChatBotSingleton._get_fallback_personalized_message(self, user_id)` - Provide fallback personalized messages when AI model is not available.
-  - ✅ `AIChatBotSingleton._get_fallback_response(self, user_prompt)` - Legacy fallback method for backwards compatibility.
-  - ✅ `AIChatBotSingleton._optimize_prompt(self, user_prompt, context)` - Create optimized messages array for LM Studio API.
-  - ✅ `AIChatBotSingleton._test_lm_studio_connection(self)` - Test connection to LM Studio server.
-  - ✅ `AIChatBotSingleton.generate_contextual_response(self, user_id, user_prompt, timeout)` - Generate a context-aware response using comprehensive user data.
-Integrates with existing UserContext and UserPreferences systems.
-  - ✅ `AIChatBotSingleton.generate_personalized_message(self, user_id, timeout)` - Generate a personalized message by examining the user's recent responses
-(check-in data). Uses longer timeout since this is not real-time.
-  - ✅ `AIChatBotSingleton.generate_quick_response(self, user_prompt, user_id)` - Generate a quick response for real-time chat (Discord, etc.).
-Uses shorter timeout optimized for responsiveness.
-  - ✅ `AIChatBotSingleton.generate_response(self, user_prompt, timeout, user_id, mode)` - Generate a basic AI response from user_prompt, using LM Studio API.
-Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
-  - ✅ `AIChatBotSingleton.get_ai_status(self)` - Get detailed status information about the AI system.
-  - ✅ `AIChatBotSingleton.is_ai_available(self)` - Check if the AI model is available and functional.
-  - ✅ `AIChatBotSingleton.reload_system_prompt(self)` - Reload the system prompt from file (useful for development and testing).
-  - ✅ `AIChatBotSingleton.test_system_prompt_integration(self)` - Test the system prompt integration and return status information.
-- ✅ `ResponseCache` - Simple in-memory cache for AI responses to avoid repeated calculations.
-  - ✅ `ResponseCache.__init__(self, max_size, ttl)` - Initialize the object.
-  - ✅ `ResponseCache._cleanup_lru(self)` - Remove least recently used items.
-  - ✅ `ResponseCache._generate_key(self, prompt, user_id)` - Generate cache key from prompt and optional user context.
-  - ✅ `ResponseCache.get(self, prompt, user_id)` - Get cached response if available and not expired.
-  - ✅ `ResponseCache.set(self, prompt, response, user_id)` - Cache a response.
-- ✅ `SystemPromptLoader` - Handles loading and managing the AI system prompt from the custom prompt file.
-Provides fallback prompts if the custom file is not available.
-  - ✅ `SystemPromptLoader.__init__(self)` - Initialize the object
-  - ✅ `SystemPromptLoader._load_custom_prompt(self)` - Load the custom system prompt from file.
-  - ✅ `SystemPromptLoader.get_system_prompt(self, prompt_type)` - Get the appropriate system prompt for the given type.
-
-Args:
-    prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
-    
-Returns:
-    The system prompt string
-  - ✅ `SystemPromptLoader.reload_prompt(self)` - Reload the custom prompt from file (useful for development).
-
-#### `bot/base_channel.py`
-**Functions:**
-- ✅ `__init__(self, config)` - Initialize the object.
-- ✅ `__post_init__(self)` - Post-initialization setup.
-- ✅ `_set_status(self, status, error_message)` - Internal method to update status
-- ✅ `channel_type(self)` - Return whether this channel is sync or async
-- ✅ `get_error(self)` - Get last error message
-- ✅ `get_status(self)` - Get current channel status
-- ✅ `is_ready(self)` - Check if channel is ready to send/receive messages
-**Classes:**
-- ✅ `BaseChannel` - Abstract base class for all communication channels
-  - ✅ `BaseChannel.__init__(self, config)` - Initialize the object.
-  - ✅ `BaseChannel._set_status(self, status, error_message)` - Internal method to update status
-  - ✅ `BaseChannel.channel_type(self)` - Return whether this channel is sync or async
-  - ✅ `BaseChannel.get_error(self)` - Get last error message
-  - ✅ `BaseChannel.get_status(self)` - Get current channel status
-  - ✅ `BaseChannel.is_ready(self)` - Check if channel is ready to send/receive messages
-- ✅ `ChannelConfig` - Configuration for communication channels
-  - ✅ `ChannelConfig.__post_init__(self)` - Post-initialization setup.
-- ❌ `ChannelStatus` - No description
-- ❌ `ChannelType` - No description
-
-#### `bot/channel_factory.py`
-**Functions:**
-- ✅ `create_channel(cls, name, config)` - Create a channel instance
-- ✅ `get_available_channels(cls)` - Get list of available channel types
-- ✅ `register_channel(cls, name, channel_class)` - Register a new channel type
-**Classes:**
-- ✅ `ChannelFactory` - Factory for creating communication channels
-  - ✅ `ChannelFactory.create_channel(cls, name, config)` - Create a channel instance
-  - ✅ `ChannelFactory.get_available_channels(cls)` - Get list of available channel types
-  - ✅ `ChannelFactory.register_channel(cls, name, channel_class)` - Register a new channel type
-
-#### `bot/channel_registry.py`
-**Functions:**
-- ✅ `register_all_channels()` - Register all available communication channels
-
-#### `bot/communication_manager.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the CommunicationManager singleton
-- ✅ `__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
-- ✅ `_attempt_channel_restart(self, channel_name)` - Attempt to restart a specific channel
-- ✅ `_check_and_restart_stuck_channels(self)` - Check for stuck channels and restart them if needed
-- ✅ `_check_logging_health(self)` - Check if logging is still working and recover if needed.
-
-Verifies that the logging system is functional and attempts to restart it if issues are detected.
-- ✅ `_create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-- ✅ `_get_default_channel_configs(self)` - Get default channel configurations
-- ✅ `_get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get the appropriate recipient ID for the messaging service
-- ✅ `_handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
-- ✅ `_initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-- ✅ `_process_retry_queue(self)` - Process the retry queue and attempt to send failed messages.
-Retries immediately once the channel reports ready; does not burn retries while down.
-- ✅ `_queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
-- ✅ `_restart_monitor_loop(self)` - Monitor channels for stuck states and restart them automatically
-- ✅ `_retry_loop(self)` - Main retry loop for failed messages
-- ✅ `_run_async_sync(self, coro)` - Run async function synchronously using our managed loop
-- ✅ `_send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI
-- ✅ `_send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
-- ✅ `_send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library
-- ✅ `_setup_event_loop(self)` - Set up a dedicated event loop for async operations
-- ✅ `_should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
-For check-ins, we respect the schedule-based approach - if the scheduler
-triggered this function, it means it's time for a check-in during the
-scheduled period.
-- ✅ `_shutdown_sync(self)` - Synchronous shutdown method for all channels.
-
-Stops all communication channels and cleans up resources.
-- ✅ `_start_restart_monitor(self)` - Start the automatic restart monitor thread
-- ✅ `_start_retry_thread(self)` - Start the retry thread for failed messages
-- ✅ `_start_sync(self)` - Synchronous method to start all configured channels
-- ✅ `_stop_restart_monitor(self)` - Stop the automatic restart monitor thread
-- ✅ `_stop_retry_thread(self)` - Stop the retry thread
-- ✅ `get_available_channels(self)` - Get list of available/initialized channels
-- ✅ `get_discord_connectivity_status(self)` - Get detailed Discord connectivity status if available
-- ✅ `handle_message_sending(self, user_id, category)` - Handle sending messages for a user and category with improved recipient resolution.
-Now uses scheduled check-ins instead of random replacement.
-- ✅ `handle_task_reminder(self, user_id, task_id)` - Handle sending task reminders for a user.
-- ✅ `initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration
-- ✅ `is_channel_ready(self, channel_name)` - Check if a specific channel is ready
-- ✅ `run_event_loop()` - Run the event loop in a separate thread for async operations.
-
-This nested function is used to manage the event loop for async channel operations.
-- ✅ `send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
-- ✅ `set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
-- ✅ `start_all(self)` - Start all communication channels
-- ✅ `stop_all(self)` - Stop all communication channels
-**Classes:**
-- ✅ `BotInitializationError` - Custom exception for bot initialization failures.
-- ✅ `CommunicationManager` - Manages all communication channels with improved modularity
-  - ✅ `CommunicationManager.__init__(self)` - Initialize the CommunicationManager singleton
-  - ✅ `CommunicationManager.__new__(cls)` - Ensure that only one instance of the CommunicationManager exists (Singleton pattern).
-  - ✅ `CommunicationManager._attempt_channel_restart(self, channel_name)` - Attempt to restart a specific channel
-  - ✅ `CommunicationManager._check_and_restart_stuck_channels(self)` - Check for stuck channels and restart them if needed
-  - ✅ `CommunicationManager._check_logging_health(self)` - Check if logging is still working and recover if needed.
-
-Verifies that the logging system is functional and attempts to restart it if issues are detected.
-  - ✅ `CommunicationManager._create_task_reminder_message(self, task)` - Create a formatted task reminder message.
-  - ✅ `CommunicationManager._get_default_channel_configs(self)` - Get default channel configurations
-  - ✅ `CommunicationManager._get_recipient_for_service(self, user_id, messaging_service, preferences)` - Get the appropriate recipient ID for the messaging service
-  - ✅ `CommunicationManager._handle_scheduled_checkin(self, user_id, messaging_service, recipient)` - Handle scheduled check-in messages based on user preferences and frequency.
-  - ✅ `CommunicationManager._initialize_channel_with_retry_sync(self, channel, config)` - Synchronous version of channel initialization with retry logic
-  - ✅ `CommunicationManager._process_retry_queue(self)` - Process the retry queue and attempt to send failed messages.
-Retries immediately once the channel reports ready; does not burn retries while down.
-  - ✅ `CommunicationManager._queue_failed_message(self, user_id, category, message, recipient, channel_name)` - Queue a failed message for retry
-  - ✅ `CommunicationManager._restart_monitor_loop(self)` - Monitor channels for stuck states and restart them automatically
-  - ✅ `CommunicationManager._retry_loop(self)` - Main retry loop for failed messages
-  - ✅ `CommunicationManager._run_async_sync(self, coro)` - Run async function synchronously using our managed loop
-  - ✅ `CommunicationManager._send_ai_generated_message(self, user_id, category, messaging_service, recipient)` - Send an AI-generated personalized message using contextual AI
-  - ✅ `CommunicationManager._send_checkin_prompt(self, user_id, messaging_service, recipient)` - Send a check-in prompt message to start the check-in flow.
-  - ✅ `CommunicationManager._send_predefined_message(self, user_id, category, messaging_service, recipient)` - Send a pre-defined message from the user's message library
-  - ✅ `CommunicationManager._setup_event_loop(self)` - Set up a dedicated event loop for async operations
-  - ✅ `CommunicationManager._should_send_checkin_prompt(self, user_id, checkin_prefs)` - Determine if it's time to send a check-in prompt based on user preferences.
-For check-ins, we respect the schedule-based approach - if the scheduler
-triggered this function, it means it's time for a check-in during the
-scheduled period.
-  - ✅ `CommunicationManager._shutdown_sync(self)` - Synchronous shutdown method for all channels.
-
-Stops all communication channels and cleans up resources.
-  - ✅ `CommunicationManager._start_restart_monitor(self)` - Start the automatic restart monitor thread
-  - ✅ `CommunicationManager._start_retry_thread(self)` - Start the retry thread for failed messages
-  - ✅ `CommunicationManager._start_sync(self)` - Synchronous method to start all configured channels
-  - ✅ `CommunicationManager._stop_restart_monitor(self)` - Stop the automatic restart monitor thread
-  - ✅ `CommunicationManager._stop_retry_thread(self)` - Stop the retry thread
-  - ✅ `CommunicationManager.get_available_channels(self)` - Get list of available/initialized channels
-  - ✅ `CommunicationManager.get_discord_connectivity_status(self)` - Get detailed Discord connectivity status if available
-  - ✅ `CommunicationManager.handle_message_sending(self, user_id, category)` - Handle sending messages for a user and category with improved recipient resolution.
-Now uses scheduled check-ins instead of random replacement.
-  - ✅ `CommunicationManager.handle_task_reminder(self, user_id, task_id)` - Handle sending task reminders for a user.
-  - ✅ `CommunicationManager.initialize_channels_from_config(self, channel_configs)` - Initialize channels from configuration
-  - ✅ `CommunicationManager.is_channel_ready(self, channel_name)` - Check if a specific channel is ready
-  - ✅ `CommunicationManager.send_message_sync(self, channel_name, recipient, message)` - Synchronous wrapper with logging health check
-  - ✅ `CommunicationManager.set_scheduler_manager(self, scheduler_manager)` - Set the scheduler manager for the communication manager.
-  - ✅ `CommunicationManager.start_all(self)` - Start all communication channels
-  - ✅ `CommunicationManager.stop_all(self)` - Stop all communication channels
-- ✅ `MessageSendError` - Custom exception for message sending failures.
-- ✅ `QueuedMessage` - Represents a message that failed to send and is queued for retry
-
-#### `bot/conversation_manager.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object.
-- ✅ `_complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
-- ✅ `_generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
-- ✅ `_get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
-- ✅ `_get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-- ✅ `_get_question_text(self, question_key, previous_data)` - Get appropriate question text based on question type and previous responses
-- ✅ `_handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
-- ✅ `_start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences
-- ✅ `_validate_response(self, question_key, response)` - Validate user response based on question type
-- ✅ `expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
-Safe no-op if no flow or different flow is active.
-- ✅ `handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
-Perfect for one-off questions that benefit from user context.
-- ✅ `handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
-
-Now defaults to contextual chat for all messages unless user is in a specific flow
-or uses a special command.
-- ❌ `start_analytics_flow(self, user_id)` - No description
-- ✅ `start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
-This is the proper way to initiate check-ins from external modules.
-- ❌ `start_messages_flow(self, user_id)` - No description
-- ❌ `start_profile_flow(self, user_id)` - No description
-- ❌ `start_schedule_flow(self, user_id)` - No description
-- ✅ `start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
-**Classes:**
-- ❌ `ConversationManager` - No description
-  - ✅ `ConversationManager.__init__(self)` - Initialize the object.
-  - ✅ `ConversationManager._complete_checkin(self, user_id, user_state)` - Complete the check-in and provide personalized feedback
-  - ✅ `ConversationManager._generate_completion_message(self, user_id, data)` - Generate a personalized completion message based on responses
-  - ✅ `ConversationManager._get_next_question(self, user_id, user_state)` - Get the next question in the check-in flow
-  - ✅ `ConversationManager._get_personalized_welcome(self, user_id, question_count)` - Generate a personalized welcome message based on user history
-  - ✅ `ConversationManager._get_question_text(self, question_key, previous_data)` - Get appropriate question text based on question type and previous responses
-  - ✅ `ConversationManager._handle_checkin(self, user_id, user_state, message_text)` - Enhanced check-in flow with dynamic questions and better validation
-  - ✅ `ConversationManager._start_dynamic_checkin(self, user_id)` - Start a dynamic check-in flow based on user preferences
-  - ✅ `ConversationManager._validate_response(self, question_key, response)` - Validate user response based on question type
-  - ✅ `ConversationManager.expire_checkin_flow_due_to_unrelated_outbound(self, user_id)` - Expire an active check-in flow when an unrelated outbound message is sent.
-Safe no-op if no flow or different flow is active.
-  - ✅ `ConversationManager.handle_contextual_question(self, user_id, message_text)` - Handle a single contextual question without entering a conversation flow.
-Perfect for one-off questions that benefit from user context.
-  - ✅ `ConversationManager.handle_inbound_message(self, user_id, message_text)` - Primary entry point. Takes user's message and returns a (reply_text, completed).
-
-Now defaults to contextual chat for all messages unless user is in a specific flow
-or uses a special command.
-  - ❌ `ConversationManager.start_analytics_flow(self, user_id)` - No description
-  - ✅ `ConversationManager.start_checkin(self, user_id)` - Public method to start a check-in flow for a user.
-This is the proper way to initiate check-ins from external modules.
-  - ❌ `ConversationManager.start_messages_flow(self, user_id)` - No description
-  - ❌ `ConversationManager.start_profile_flow(self, user_id)` - No description
-  - ❌ `ConversationManager.start_schedule_flow(self, user_id)` - No description
-  - ✅ `ConversationManager.start_tasks_flow(self, user_id)` - Starter for a future tasks multi-step flow (placeholder).
-
-#### `bot/discord_bot.py`
-**Functions:**
-- ✅ `__init__(self, config)` - Initialize the object.
-- ✅ `_check_dns_resolution(self, hostname)` - Check DNS resolution for a hostname with enhanced fallback and error reporting
-- ✅ `_check_network_connectivity(self, hostname, port)` - Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling
-- ✅ `_check_network_health(self)` - Comprehensive network health check with detailed reporting
-- ✅ `_create_action_row(self, suggestions)` - Create a Discord action row with buttons from suggestions
-- ✅ `_create_discord_embed(self, message, rich_data)` - Create a Discord embed from rich data
-- ✅ `_get_detailed_connection_status(self)` - Get detailed connection status information
-- ✅ `_register_commands(self)` - Register Discord commands
-- ✅ `_register_events(self)` - Register Discord event handlers
-- ✅ `_run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
-- ✅ `_should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
-- ✅ `_update_connection_status(self, status, error_info)` - Update connection status with detailed error information
-- ✅ `_wait_for_network_recovery(self, max_wait)` - Wait for network connectivity to recover with enhanced monitoring and early exit
-- ✅ `can_send_messages(self)` - Check if the Discord bot can actually send messages
-- ✅ `channel_type(self)` - Get the channel type for Discord bot.
-
-Returns:
-    ChannelType.ASYNC: Discord bot operates asynchronously
-- ✅ `get_connection_status_summary(self)` - Get a human-readable connection status summary
-- ✅ `get_health_status(self)` - Get comprehensive health status information
-- ✅ `is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
-- ✅ `is_initialized(self)` - Legacy method for backward compatibility.
-
-Returns:
-    bool: True if the Discord bot is initialized and ready
-This method is maintained for testing infrastructure compatibility.
-- ✅ `start(self)` - Legacy start method for backward compatibility.
-
-Initializes the Discord bot if not already running.
-This method is maintained for testing infrastructure compatibility.
-- ✅ `stop(self)` - Legacy stop method for backward compatibility - thread-safe.
-
-Stops the Discord bot and cleans up resources.
-This method is maintained for communication manager compatibility.
-**Classes:**
-- ❌ `DiscordBot` - No description
-  - ✅ `DiscordBot.__init__(self, config)` - Initialize the object.
-  - ✅ `DiscordBot._check_dns_resolution(self, hostname)` - Check DNS resolution for a hostname with enhanced fallback and error reporting
-  - ✅ `DiscordBot._check_network_connectivity(self, hostname, port)` - Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling
-  - ✅ `DiscordBot._check_network_health(self)` - Comprehensive network health check with detailed reporting
-  - ✅ `DiscordBot._create_action_row(self, suggestions)` - Create a Discord action row with buttons from suggestions
-  - ✅ `DiscordBot._create_discord_embed(self, message, rich_data)` - Create a Discord embed from rich data
-  - ✅ `DiscordBot._get_detailed_connection_status(self)` - Get detailed connection status information
-  - ✅ `DiscordBot._register_commands(self)` - Register Discord commands
-  - ✅ `DiscordBot._register_events(self)` - Register Discord event handlers
-  - ✅ `DiscordBot._run_bot_in_thread(self)` - Run Discord bot in completely isolated thread with its own event loop
-  - ✅ `DiscordBot._should_attempt_reconnection(self)` - Determine if reconnection should be attempted based on various factors
-  - ✅ `DiscordBot._update_connection_status(self, status, error_info)` - Update connection status with detailed error information
-  - ✅ `DiscordBot._wait_for_network_recovery(self, max_wait)` - Wait for network connectivity to recover with enhanced monitoring and early exit
-  - ✅ `DiscordBot.can_send_messages(self)` - Check if the Discord bot can actually send messages
-  - ✅ `DiscordBot.channel_type(self)` - Get the channel type for Discord bot.
-
-Returns:
-    ChannelType.ASYNC: Discord bot operates asynchronously
-  - ✅ `DiscordBot.get_connection_status_summary(self)` - Get a human-readable connection status summary
-  - ✅ `DiscordBot.get_health_status(self)` - Get comprehensive health status information
-  - ✅ `DiscordBot.is_actually_connected(self)` - Check if the Discord bot is actually connected, regardless of initialization status
-  - ✅ `DiscordBot.is_initialized(self)` - Legacy method for backward compatibility.
-
-Returns:
-    bool: True if the Discord bot is initialized and ready
-This method is maintained for testing infrastructure compatibility.
-  - ✅ `DiscordBot.start(self)` - Legacy start method for backward compatibility.
-
-Initializes the Discord bot if not already running.
-This method is maintained for testing infrastructure compatibility.
-  - ✅ `DiscordBot.stop(self)` - Legacy stop method for backward compatibility - thread-safe.
-
-Stops the Discord bot and cleans up resources.
-This method is maintained for communication manager compatibility.
-- ✅ `DiscordConnectionStatus` - Detailed Discord connection status for better error reporting
-
-#### `bot/email_bot.py`
-**Functions:**
-- ✅ `__init__(self, config)` - Initialize the EmailBot with configuration.
-
-Args:
-    config: Channel configuration object. If None, creates default config
-           with email-specific settings (max_retries=3, retry_delay=1.0,
-           backoff_multiplier=2.0)
-- ✅ `_receive_emails_sync(self)` - Receive emails synchronously
-- ✅ `_send_email_sync(self, recipient, message, kwargs)` - Send email synchronously
-- ✅ `_test_imap_connection(self)` - Test IMAP connection synchronously
-- ✅ `_test_smtp_connection(self)` - Test SMTP connection synchronously
-- ✅ `channel_type(self)` - Get the channel type for email bot.
-
-Returns:
-    ChannelType.SYNC: Email operations are synchronous
-- ✅ `is_initialized(self)` - Legacy method for backward compatibility.
-
-Returns:
-    bool: True if the email bot is initialized and ready
-- ✅ `start(self)` - Legacy start method.
-
-Initializes the email bot using the legacy interface.
-- ✅ `stop(self)` - Legacy stop method.
-
-Shuts down the email bot using the legacy interface.
-**Classes:**
-- ❌ `EmailBot` - No description
-  - ✅ `EmailBot.__init__(self, config)` - Initialize the EmailBot with configuration.
-
-Args:
-    config: Channel configuration object. If None, creates default config
-           with email-specific settings (max_retries=3, retry_delay=1.0,
-           backoff_multiplier=2.0)
-  - ✅ `EmailBot._receive_emails_sync(self)` - Receive emails synchronously
-  - ✅ `EmailBot._send_email_sync(self, recipient, message, kwargs)` - Send email synchronously
-  - ✅ `EmailBot._test_imap_connection(self)` - Test IMAP connection synchronously
-  - ✅ `EmailBot._test_smtp_connection(self)` - Test SMTP connection synchronously
-  - ✅ `EmailBot.channel_type(self)` - Get the channel type for email bot.
-
-Returns:
-    ChannelType.SYNC: Email operations are synchronous
-  - ✅ `EmailBot.is_initialized(self)` - Legacy method for backward compatibility.
-
-Returns:
-    bool: True if the email bot is initialized and ready
-  - ✅ `EmailBot.start(self)` - Legacy start method.
-
-Initializes the email bot using the legacy interface.
-  - ✅ `EmailBot.stop(self)` - Legacy stop method.
-
-Shuts down the email bot using the legacy interface.
-- ✅ `EmailBotError` - Custom exception for email bot-related errors.
-
-#### `bot/enhanced_command_parser.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object
-- ✅ `_ai_enhanced_parse(self, message)` - Parse using AI chatbot capabilities
-- ✅ `_calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
-- ✅ `_extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
-- ✅ `_extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
-- ✅ `_extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
-- ✅ `_extract_task_entities(self, title)` - Extract task-related entities from title
-- ✅ `_extract_task_name_from_context(self, message)` - Extract task name from natural language context
-- ✅ `_extract_update_entities(self, update_text)` - Extract update entities from update text
-- ✅ `_is_valid_intent(self, intent)` - Check if intent is supported by any handler
-- ✅ `_rule_based_parse(self, message)` - Parse using rule-based patterns
-- ✅ `get_enhanced_command_parser()` - Get the global enhanced command parser instance
-- ✅ `get_suggestions(self, partial_message)` - Get command suggestions based on partial input
-- ✅ `parse(self, message)` - Parse a user message into a structured command.
-
-Returns:
-    ParsingResult with parsed command, confidence, and method used
-- ✅ `parse_command(message)` - Convenience function to parse a command
-**Classes:**
-- ✅ `EnhancedCommandParser` - Enhanced command parser that combines rule-based and AI parsing
-  - ✅ `EnhancedCommandParser.__init__(self)` - Initialize the object
-  - ✅ `EnhancedCommandParser._ai_enhanced_parse(self, message)` - Parse using AI chatbot capabilities
-  - ✅ `EnhancedCommandParser._calculate_confidence(self, intent, match, message)` - Calculate confidence score for a parsed command
-  - ✅ `EnhancedCommandParser._extract_entities_from_ai_response(self, ai_response)` - Extract entities from AI response text
-  - ✅ `EnhancedCommandParser._extract_entities_rule_based(self, intent, match, message)` - Extract entities using rule-based patterns
-  - ✅ `EnhancedCommandParser._extract_intent_from_ai_response(self, ai_response)` - Extract intent from AI response text
-  - ✅ `EnhancedCommandParser._extract_task_entities(self, title)` - Extract task-related entities from title
-  - ✅ `EnhancedCommandParser._extract_task_name_from_context(self, message)` - Extract task name from natural language context
-  - ✅ `EnhancedCommandParser._extract_update_entities(self, update_text)` - Extract update entities from update text
-  - ✅ `EnhancedCommandParser._is_valid_intent(self, intent)` - Check if intent is supported by any handler
-  - ✅ `EnhancedCommandParser._rule_based_parse(self, message)` - Parse using rule-based patterns
-  - ✅ `EnhancedCommandParser.get_suggestions(self, partial_message)` - Get command suggestions based on partial input
-  - ✅ `EnhancedCommandParser.parse(self, message)` - Parse a user message into a structured command.
-
-Returns:
-    ParsingResult with parsed command, confidence, and method used
-- ✅ `ParsingResult` - Result of command parsing with confidence and method used
-
-#### `bot/interaction_handlers.py`
-**Functions:**
-- ✅ `_find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-- ✅ `_handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-- ✅ `_handle_checkin_history(self, user_id, entities)` - Show check-in history
-- ✅ `_handle_checkin_status(self, user_id)` - Handle check-in status request
-- ✅ `_handle_commands_list(self, user_id)` - Handle commands list request
-- ✅ `_handle_complete_task(self, user_id, entities)` - Handle task completion
-- ✅ `_handle_completion_rate(self, user_id, entities)` - Show completion rate
-- ✅ `_handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
-- ✅ `_handle_create_task(self, user_id, entities)` - Handle task creation
-- ✅ `_handle_delete_task(self, user_id, entities)` - Handle task deletion
-- ✅ `_handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-- ✅ `_handle_examples(self, user_id, entities)` - Handle examples request
-- ✅ `_handle_general_help(self, user_id, entities)` - Handle general help request
-- ✅ `_handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-- ✅ `_handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-- ✅ `_handle_messages(self, user_id)` - Handle messages request with message history and settings
-- ✅ `_handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-- ✅ `_handle_profile_stats(self, user_id)` - Handle profile statistics
-- ✅ `_handle_schedule_status(self, user_id, entities)` - Show status of schedules
-- ✅ `_handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-- ✅ `_handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
-- ✅ `_handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
-- ✅ `_handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-- ✅ `_handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-- ✅ `_handle_status(self, user_id)` - Handle status request with detailed system information
-- ✅ `_handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
-- ✅ `_handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-- ✅ `_handle_update_schedule(self, user_id, entities)` - Update schedule settings
-- ✅ `_handle_update_task(self, user_id, entities)` - Handle task updates
-- ✅ `_handle_wellness_score(self, user_id, entities)` - Show wellness score
-- ✅ `_parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-- ✅ `_parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-- ✅ `can_handle(self, intent)` - Check if this handler can handle the given intent
-- ❌ `can_handle(self, intent)` - No description
-- ❌ `can_handle(self, intent)` - No description
-- ❌ `can_handle(self, intent)` - No description
-- ❌ `can_handle(self, intent)` - No description
-- ❌ `can_handle(self, intent)` - No description
-- ❌ `can_handle(self, intent)` - No description
-- ✅ `get_all_handlers()` - Get all registered handlers
-- ✅ `get_examples(self)` - Get example commands for this handler
-- ❌ `get_examples(self)` - No description
-- ❌ `get_examples(self)` - No description
-- ❌ `get_examples(self)` - No description
-- ❌ `get_examples(self)` - No description
-- ❌ `get_examples(self)` - No description
-- ❌ `get_examples(self)` - No description
-- ✅ `get_help(self)` - Get help text for this handler
-- ❌ `get_help(self)` - No description
-- ❌ `get_help(self)` - No description
-- ❌ `get_help(self)` - No description
-- ❌ `get_help(self)` - No description
-- ❌ `get_help(self)` - No description
-- ❌ `get_help(self)` - No description
-- ✅ `get_interaction_handler(intent)` - Get the appropriate handler for an intent
-- ✅ `handle(self, user_id, parsed_command)` - Handle the interaction and return a response
-- ❌ `handle(self, user_id, parsed_command)` - No description
-- ❌ `handle(self, user_id, parsed_command)` - No description
-- ❌ `handle(self, user_id, parsed_command)` - No description
-- ❌ `handle(self, user_id, parsed_command)` - No description
-- ❌ `handle(self, user_id, parsed_command)` - No description
-- ❌ `handle(self, user_id, parsed_command)` - No description
-**Classes:**
-- ✅ `AnalyticsHandler` - Handler for analytics and insights interactions
-  - ✅ `AnalyticsHandler._handle_checkin_history(self, user_id, entities)` - Show check-in history
-  - ✅ `AnalyticsHandler._handle_completion_rate(self, user_id, entities)` - Show completion rate
-  - ✅ `AnalyticsHandler._handle_habit_analysis(self, user_id, entities)` - Show habit analysis
-  - ✅ `AnalyticsHandler._handle_mood_trends(self, user_id, entities)` - Show mood trends analysis
-  - ✅ `AnalyticsHandler._handle_show_analytics(self, user_id, entities)` - Show comprehensive analytics overview
-  - ✅ `AnalyticsHandler._handle_sleep_analysis(self, user_id, entities)` - Show sleep analysis
-  - ✅ `AnalyticsHandler._handle_wellness_score(self, user_id, entities)` - Show wellness score
-  - ❌ `AnalyticsHandler.can_handle(self, intent)` - No description
-  - ❌ `AnalyticsHandler.get_examples(self)` - No description
-  - ❌ `AnalyticsHandler.get_help(self)` - No description
-  - ❌ `AnalyticsHandler.handle(self, user_id, parsed_command)` - No description
-- ✅ `CheckinHandler` - Handler for check-in interactions
-  - ✅ `CheckinHandler._handle_checkin_status(self, user_id)` - Handle check-in status request
-  - ✅ `CheckinHandler._handle_continue_checkin(self, user_id, entities)` - Handle continuing a check-in
-  - ✅ `CheckinHandler._handle_start_checkin(self, user_id)` - Handle starting a check-in by delegating to conversation manager
-  - ❌ `CheckinHandler.can_handle(self, intent)` - No description
-  - ❌ `CheckinHandler.get_examples(self)` - No description
-  - ❌ `CheckinHandler.get_help(self)` - No description
-  - ❌ `CheckinHandler.handle(self, user_id, parsed_command)` - No description
-- ✅ `HelpHandler` - Handler for help and command information
-  - ✅ `HelpHandler._handle_commands_list(self, user_id)` - Handle commands list request
-  - ✅ `HelpHandler._handle_examples(self, user_id, entities)` - Handle examples request
-  - ✅ `HelpHandler._handle_general_help(self, user_id, entities)` - Handle general help request
-  - ✅ `HelpHandler._handle_messages(self, user_id)` - Handle messages request with message history and settings
-  - ✅ `HelpHandler._handle_status(self, user_id)` - Handle status request with detailed system information
-  - ❌ `HelpHandler.can_handle(self, intent)` - No description
-  - ❌ `HelpHandler.get_examples(self)` - No description
-  - ❌ `HelpHandler.get_help(self)` - No description
-  - ❌ `HelpHandler.handle(self, user_id, parsed_command)` - No description
-- ✅ `InteractionHandler` - Abstract base class for interaction handlers
-  - ✅ `InteractionHandler.can_handle(self, intent)` - Check if this handler can handle the given intent
-  - ✅ `InteractionHandler.get_examples(self)` - Get example commands for this handler
-  - ✅ `InteractionHandler.get_help(self)` - Get help text for this handler
-  - ✅ `InteractionHandler.handle(self, user_id, parsed_command)` - Handle the interaction and return a response
-- ✅ `InteractionResponse` - Response from an interaction handler
-- ✅ `ParsedCommand` - Parsed command with intent and entities
-- ✅ `ProfileHandler` - Handler for profile management interactions
-  - ✅ `ProfileHandler._handle_profile_stats(self, user_id)` - Handle profile statistics
-  - ✅ `ProfileHandler._handle_show_profile(self, user_id)` - Handle showing user profile with comprehensive personalization data
-  - ✅ `ProfileHandler._handle_update_profile(self, user_id, entities)` - Handle comprehensive profile updates
-  - ❌ `ProfileHandler.can_handle(self, intent)` - No description
-  - ❌ `ProfileHandler.get_examples(self)` - No description
-  - ❌ `ProfileHandler.get_help(self)` - No description
-  - ❌ `ProfileHandler.handle(self, user_id, parsed_command)` - No description
-- ✅ `ScheduleManagementHandler` - Handler for schedule management interactions
-  - ✅ `ScheduleManagementHandler._handle_add_schedule_period(self, user_id, entities)` - Add a new schedule period with enhanced options
-  - ✅ `ScheduleManagementHandler._handle_edit_schedule_period(self, user_id, entities)` - Edit an existing schedule period with enhanced options
-  - ✅ `ScheduleManagementHandler._handle_schedule_status(self, user_id, entities)` - Show status of schedules
-  - ✅ `ScheduleManagementHandler._handle_show_schedule(self, user_id, entities)` - Show schedule for a specific category or all categories
-  - ✅ `ScheduleManagementHandler._handle_update_schedule(self, user_id, entities)` - Update schedule settings
-  - ✅ `ScheduleManagementHandler._parse_time_format(self, time_str)` - Parse various time formats and convert to standard format
-  - ❌ `ScheduleManagementHandler.can_handle(self, intent)` - No description
-  - ❌ `ScheduleManagementHandler.get_examples(self)` - No description
-  - ❌ `ScheduleManagementHandler.get_help(self)` - No description
-  - ❌ `ScheduleManagementHandler.handle(self, user_id, parsed_command)` - No description
-- ✅ `TaskManagementHandler` - Handler for task management interactions
-  - ✅ `TaskManagementHandler._find_task_by_identifier(self, tasks, identifier)` - Find a task by number, name, or task_id
-  - ✅ `TaskManagementHandler._handle_complete_task(self, user_id, entities)` - Handle task completion
-  - ✅ `TaskManagementHandler._handle_create_task(self, user_id, entities)` - Handle task creation
-  - ✅ `TaskManagementHandler._handle_delete_task(self, user_id, entities)` - Handle task deletion
-  - ✅ `TaskManagementHandler._handle_list_tasks(self, user_id, entities)` - Handle task listing with enhanced filtering and details
-  - ✅ `TaskManagementHandler._handle_task_stats(self, user_id, entities)` - Handle task statistics with dynamic time periods
-  - ✅ `TaskManagementHandler._handle_update_task(self, user_id, entities)` - Handle task updates
-  - ✅ `TaskManagementHandler._parse_relative_date(self, date_str)` - Convert relative date strings to proper dates
-  - ❌ `TaskManagementHandler.can_handle(self, intent)` - No description
-  - ❌ `TaskManagementHandler.get_examples(self)` - No description
-  - ❌ `TaskManagementHandler.get_help(self)` - No description
-  - ❌ `TaskManagementHandler.handle(self, user_id, parsed_command)` - No description
-
-#### `bot/interaction_manager.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object
-- ✅ `_enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
-- ✅ `_get_help_response(self, user_id, message)` - Get a help response when command parsing fails
-- ✅ `_handle_contextual_chat(self, user_id, message, channel_type)` - Handle contextual chat using AI chatbot
-- ✅ `_handle_structured_command(self, user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers
-- ✅ `get_available_commands(self, user_id)` - Get list of available commands for the user
-- ✅ `get_command_definitions(self)` - Return canonical command definitions: name, mapped_message, description.
-- ✅ `get_interaction_manager()` - Get the global interaction manager instance
-- ✅ `get_slash_command_map(self)` - Expose slash command mappings without coupling callers to internals.
-Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-- ✅ `get_user_suggestions(self, user_id, context)` - Get personalized suggestions for the user
-- ✅ `handle_help_request(self, user_id, topic)` - Handle help requests with topic-specific information
-- ✅ `handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
-
-Args:
-    user_id: The user's ID
-    message: The user's message
-    channel_type: Type of channel (discord, email)
-    
-Returns:
-    InteractionResponse with appropriate response
-- ✅ `handle_user_message(user_id, message, channel_type)` - Convenience function to handle a user message
-**Classes:**
-- ❌ `CommandDefinition` - No description
-- ✅ `InteractionManager` - Main manager for handling user interactions across all channels
-  - ✅ `InteractionManager.__init__(self)` - Initialize the object
-  - ✅ `InteractionManager._enhance_response_with_ai(self, user_id, response, parsed_command)` - Enhance a structured response with AI contextual information
-  - ✅ `InteractionManager._get_help_response(self, user_id, message)` - Get a help response when command parsing fails
-  - ✅ `InteractionManager._handle_contextual_chat(self, user_id, message, channel_type)` - Handle contextual chat using AI chatbot
-  - ✅ `InteractionManager._handle_structured_command(self, user_id, parsing_result, channel_type)` - Handle a structured command using interaction handlers
-  - ✅ `InteractionManager.get_available_commands(self, user_id)` - Get list of available commands for the user
-  - ✅ `InteractionManager.get_command_definitions(self)` - Return canonical command definitions: name, mapped_message, description.
-  - ✅ `InteractionManager.get_slash_command_map(self)` - Expose slash command mappings without coupling callers to internals.
-Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
-  - ✅ `InteractionManager.get_user_suggestions(self, user_id, context)` - Get personalized suggestions for the user
-  - ✅ `InteractionManager.handle_help_request(self, user_id, topic)` - Handle help requests with topic-specific information
-  - ✅ `InteractionManager.handle_message(self, user_id, message, channel_type)` - Main entry point for handling user messages.
-
-Args:
-    user_id: The user's ID
-    message: The user's message
-    channel_type: Type of channel (discord, email)
-    
-Returns:
-    InteractionResponse with appropriate response
-
-#### `bot/user_context_manager.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the UserContextManager.
-
-Sets up conversation history storage for tracking user interactions.
-- ✅ `_get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
-- ✅ `_get_conversation_history(self, user_id)` - Get recent conversation history with this user.
-- ✅ `_get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
-- ✅ `_get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
-
-Args:
-    user_id: The user's ID (can be None for anonymous context)
-    
-Returns:
-    dict: Minimal context with basic information
-- ✅ `_get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
-- ✅ `_get_recent_activity(self, user_id)` - Get recent user activity and responses.
-- ✅ `_get_user_preferences(self, user_id)` - Get user preferences using new structure.
-- ✅ `_get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
-- ✅ `add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
-
-Args:
-    user_id: The user's ID
-    user_message: The user's message
-    ai_response: The AI's response
-- ✅ `format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
-
-Args:
-    context: User context dictionary
-    
-Returns:
-    str: Formatted context string for AI consumption
-- ✅ `get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
-
-Args:
-    include_conversation_history: Whether to include recent conversation history
-    
-Returns:
-    Dict containing all relevant user context for current user
-- ✅ `get_user_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
-
-Args:
-    user_id: The user's ID
-    include_conversation_history: Whether to include recent conversation history
-    
-Returns:
-    Dict containing all relevant user context
-**Classes:**
-- ✅ `UserContextManager` - Manages rich user context for AI conversations.
-  - ✅ `UserContextManager.__init__(self)` - Initialize the UserContextManager.
-
-Sets up conversation history storage for tracking user interactions.
-  - ✅ `UserContextManager._get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
-  - ✅ `UserContextManager._get_conversation_history(self, user_id)` - Get recent conversation history with this user.
-  - ✅ `UserContextManager._get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
-  - ✅ `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
-
-Args:
-    user_id: The user's ID (can be None for anonymous context)
-    
-Returns:
-    dict: Minimal context with basic information
-  - ✅ `UserContextManager._get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
-  - ✅ `UserContextManager._get_recent_activity(self, user_id)` - Get recent user activity and responses.
-  - ✅ `UserContextManager._get_user_preferences(self, user_id)` - Get user preferences using new structure.
-  - ✅ `UserContextManager._get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
-  - ✅ `UserContextManager.add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
-
-Args:
-    user_id: The user's ID
-    user_message: The user's message
-    ai_response: The AI's response
-  - ✅ `UserContextManager.format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
-
-Args:
-    context: User context dictionary
-    
-Returns:
-    str: Formatted context string for AI consumption
-  - ✅ `UserContextManager.get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
-
-Args:
-    include_conversation_history: Whether to include recent conversation history
-    
-Returns:
-    Dict containing all relevant user context for current user
-  - ✅ `UserContextManager.get_user_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
-
-Args:
-    user_id: The user's ID
-    include_conversation_history: Whether to include recent conversation history
-    
-Returns:
-    Dict containing all relevant user context
 
 ### `core/` - Core System Modules
 
@@ -974,8 +232,15 @@ This class provides analytics and insights from check-in data.
 - Normalizes separators to OS-specific
 - ✅ `ensure_user_directory(user_id)` - Ensure user directory exists if using subdirectories.
 - ✅ `get_available_channels()` - Get list of available communication channels based on configuration.
+
+Returns:
+    List[str]: List of available channel names that can be used with ChannelFactory
 - ✅ `get_backups_dir()` - Get the backups directory, redirected under tests when MHM_TESTING=1.
 Returns tests/data/backups if testing, otherwise BASE_DATA_DIR/backups.
+- ✅ `get_channel_class_mapping()` - Get mapping of channel names to their class names for dynamic imports.
+
+Returns:
+    Dict[str, str]: Mapping of channel name to fully qualified class name
 - ✅ `get_user_data_dir(user_id)` - Get the data directory for a specific user.
 - ✅ `get_user_file_path(user_id, file_type)` - Get the file path for a specific user file type.
 - ✅ `print_configuration_report()` - Print a detailed configuration report to the console.
@@ -1227,6 +492,23 @@ Args:
 
 #### `core/file_operations.py`
 **Functions:**
+- ✅ `_create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)` - Create account.json with actual user data.
+- ✅ `_create_user_files__checkins_file(user_id)` - Create checkins.json only if checkins are enabled.
+- ✅ `_create_user_files__context_file(user_id, user_prefs)` - Create user_context.json with actual personalization data.
+- ✅ `_create_user_files__determine_feature_enablement(user_prefs)` - Determine which features are enabled based on user preferences.
+
+Args:
+    user_prefs: User preferences dictionary
+    
+Returns:
+    tuple: (tasks_enabled, checkins_enabled)
+- ✅ `_create_user_files__log_files(user_id)` - Initialize empty log files if they don't exist.
+- ✅ `_create_user_files__message_files(user_id, categories)` - Create message files for each enabled category directly.
+- ✅ `_create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)` - Create preferences.json with actual user data.
+- ✅ `_create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled)` - Create schedules file with appropriate structure.
+- ✅ `_create_user_files__sent_messages_file(user_id)` - Create sent_messages.json in messages/ subdirectory.
+- ✅ `_create_user_files__task_files(user_id)` - Create task files if tasks are enabled.
+- ✅ `_create_user_files__update_user_references(user_id)` - Auto-update message references and user index.
 - ✅ `create_user_files(user_id, categories, user_preferences)` - Creates files for a new user in the appropriate structure.
 Ensures schedules.json contains a block for each category, plus checkin and task reminder blocks.
 
@@ -1529,6 +811,35 @@ Args:
 - ✅ `get_current_day_names()` - Returns the name of the current day plus 'ALL' for universal day messages.
 - ✅ `get_current_time_periods_with_validation(user_id, category)` - Returns the current active time periods for a user and category.
 If no active period is found, defaults to the first available period.
+- ✅ `get_period_data__time_12h_display_to_24h(hour_12, minute, is_pm)` - Convert 12-hour display format to 24-hour time string.
+
+Args:
+    hour_12 (int): Hour in 12-hour format (1-12)
+    minute (int): Minute (0-59)
+    is_pm (bool): True if PM, False if AM
+    
+Returns:
+    str: Time in 24-hour format (HH:MM)
+- ✅ `get_period_data__time_24h_to_12h_display(time_24h)` - Convert 24-hour time string (HH:MM) to 12-hour display format.
+
+Args:
+    time_24h (str): Time in 24-hour format (e.g., "14:30")
+    
+Returns:
+    tuple: (hour_12, minute, is_pm) where:
+        - hour_12 (int): Hour in 12-hour format (1-12)
+        - minute (int): Minute (0-59)
+        - is_pm (bool): True if PM, False if AM
+- ✅ `get_period_data__validate_and_format_time(time_str)` - Validate and format a time string to HH:MM format.
+
+Args:
+    time_str: Time string to validate and format
+    
+Returns:
+    str: Formatted time string in HH:MM format
+    
+Raises:
+    ValueError: If the time format is invalid
 - ✅ `get_schedule_days(user_id, category)` - Get the schedule days for a user and category.
 
 Args:
@@ -1566,35 +877,16 @@ Returns:
     bool: True if the period was found and updated, False otherwise
 - ✅ `set_schedule_periods(user_id, category, periods_dict)` - Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time}).
 - ❌ `sort_key(item)` - No description
-- ✅ `time_12h_display_to_24h(hour_12, minute, is_pm)` - Convert 12-hour display format to 24-hour time string.
+
+#### `core/schedule_utilities.py`
+**Functions:**
+- ✅ `get_active_schedules(schedules)` - Get list of currently active schedule periods.
 
 Args:
-    hour_12 (int): Hour in 12-hour format (1-12)
-    minute (int): Minute (0-59)
-    is_pm (bool): True if PM, False if AM
+    schedules: Dictionary containing schedule periods
     
 Returns:
-    str: Time in 24-hour format (HH:MM)
-- ✅ `time_24h_to_12h_display(time_24h)` - Convert 24-hour time string (HH:MM) to 12-hour display format.
-
-Args:
-    time_24h (str): Time in 24-hour format (e.g., "14:30")
-    
-Returns:
-    tuple: (hour_12, minute, is_pm) where:
-        - hour_12 (int): Hour in 12-hour format (1-12)
-        - minute (int): Minute (0-59)
-        - is_pm (bool): True if PM, False if AM
-- ✅ `validate_and_format_time(time_str)` - Validate and format a time string to HH:MM format.
-
-Args:
-    time_str: Time string to validate and format
-    
-Returns:
-    str: Formatted time string in HH:MM format
-    
-Raises:
-    ValueError: If the time format is invalid
+    list: List of active schedule period names
 
 #### `core/scheduler.py`
 **Functions:**
@@ -1645,6 +937,13 @@ Schedule a reminder for a specific task at the specified time.
 - ✅ `schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
 - ✅ `schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
 - ❌ `scheduler_loop()` - No description
+- ✅ `select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
+
+Args:
+    incomplete_tasks: List of incomplete tasks to choose from
+    
+Returns:
+    Selected task dictionary
 - ✅ `set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
 
 Args:
@@ -1693,6 +992,13 @@ Args:
 Schedule a reminder for a specific task at the specified time.
   - ✅ `SchedulerManager.schedule_task_reminder_at_datetime(self, user_id, task_id, date_str, time_str)` - Schedule a reminder for a specific task at a specific date and time.
   - ✅ `SchedulerManager.schedule_task_reminder_at_time(self, user_id, task_id, reminder_time)` - Schedule a reminder for a specific task at the specified time (daily).
+  - ✅ `SchedulerManager.select_task_for_reminder(self, incomplete_tasks)` - Select a task for reminder using priority-based and due date proximity weighting.
+
+Args:
+    incomplete_tasks: List of incomplete tasks to choose from
+    
+Returns:
+    Selected task dictionary
   - ✅ `SchedulerManager.set_wake_timer(self, schedule_time, user_id, category, period, wake_ahead_minutes)` - Set a Windows scheduled task to wake the computer before a scheduled message.
 
 Args:
@@ -1839,13 +1145,6 @@ Raises:
 
 Returns:
     bool: True if the operation should run, False if it should be throttled
-- ✅ `title_case(text)` - Convert text to title case with proper handling of special cases.
-
-Args:
-    text: The text to convert to title case
-    
-Returns:
-    str: Text converted to title case
 - ✅ `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 **Classes:**
 - ✅ `InvalidTimeFormatError` - Exception raised when time format is invalid.
@@ -1925,6 +1224,14 @@ Returns:
 
 #### `core/user_data_handlers.py`
 **Functions:**
+- ✅ `_save_user_data__create_backup(user_id, valid_types, create_backup)` - Create backup if needed for major data updates.
+- ✅ `_save_user_data__legacy_account(updated, updates)` - Handle legacy account field compatibility.
+- ✅ `_save_user_data__legacy_preferences(updated, updates, user_id)` - Handle legacy preferences compatibility and cleanup.
+- ✅ `_save_user_data__normalize_data(dt, updated)` - Apply Pydantic normalization to data.
+- ✅ `_save_user_data__save_single_type(user_id, dt, updates, auto_create)` - Save a single data type for a user.
+- ✅ `_save_user_data__update_index(user_id, result, update_index)` - Update user index and clear cache if needed.
+- ✅ `_save_user_data__validate_data(user_id, data_updates, valid_types, validate_data, is_new_user)` - Validate data for new and existing users.
+- ✅ `_save_user_data__validate_input(user_id, data_updates)` - Validate input parameters and initialize result structure.
 - ✅ `get_all_user_ids()` - Return a list of *all* user IDs known to the system.
 - ✅ `get_user_data(user_id, data_types, fields, auto_create, include_metadata, normalize_on_read)` - Migrated implementation of get_user_data.
 - ✅ `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Proxy to the original *register_data_loader*.
@@ -2021,7 +1328,9 @@ Returns:
 - ✅ `get_user_summary(user_id)` - Get a summary of user data and message statistics.
 - ✅ `rebuild_full_index(self)` - Rebuild the complete user index from scratch.
 
-Scans all user directories and creates a fresh index with current information.
+Creates a comprehensive multi-identifier structure:
+- Fast lookups: {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+- Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
 
 Returns:
     bool: True if index was rebuilt successfully
@@ -2031,8 +1340,10 @@ Returns:
     bool: True if index was rebuilt successfully
 - ✅ `remove_from_index(self, user_id)` - Remove a user from the index.
 
+Removes all identifier mappings (internal_username, email, discord_user_id, phone) and detailed mapping.
+
 Args:
-    user_id: The user's ID
+    user_id: The user's ID (UUID)
     
 Returns:
     bool: True if user was removed from index successfully
@@ -2061,8 +1372,12 @@ Returns:
     bool: True if index was updated successfully
 - ✅ `update_user_index(self, user_id)` - Update the user index with current information for a specific user.
 
+Creates a comprehensive multi-identifier structure:
+- Fast lookups: {"internal_username": "UUID", "email": "UUID", "discord_user_id": "UUID", "phone": "UUID"}
+- Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
+
 Args:
-    user_id: The user's ID
+    user_id: The user's ID (UUID)
     
 Returns:
     bool: True if index was updated successfully
@@ -2091,14 +1406,18 @@ Returns:
   - ✅ `UserDataManager.get_user_message_files(self, user_id)` - Get all message file paths for a user
   - ✅ `UserDataManager.rebuild_full_index(self)` - Rebuild the complete user index from scratch.
 
-Scans all user directories and creates a fresh index with current information.
+Creates a comprehensive multi-identifier structure:
+- Fast lookups: {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+- Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
 
 Returns:
     bool: True if index was rebuilt successfully
   - ✅ `UserDataManager.remove_from_index(self, user_id)` - Remove a user from the index.
 
+Removes all identifier mappings (internal_username, email, discord_user_id, phone) and detailed mapping.
+
 Args:
-    user_id: The user's ID
+    user_id: The user's ID (UUID)
     
 Returns:
     bool: True if user was removed from index successfully
@@ -2113,17 +1432,21 @@ Returns:
   - ✅ `UserDataManager.update_message_references(self, user_id)` - Add/update message file references in user profile
   - ✅ `UserDataManager.update_user_index(self, user_id)` - Update the user index with current information for a specific user.
 
+Creates a comprehensive multi-identifier structure:
+- Fast lookups: {"internal_username": "UUID", "email": "UUID", "discord_user_id": "UUID", "phone": "UUID"}
+- Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
+
 Args:
-    user_id: The user's ID
+    user_id: The user's ID (UUID)
     
 Returns:
     bool: True if index was updated successfully
 
 #### `core/user_data_validation.py`
 **Functions:**
+- ✅ `_shared__title_case(text)` - Convert text to title case with special handling for technical terms.
 - ❌ `is_valid_email(email)` - No description
 - ❌ `is_valid_phone(phone)` - No description
-- ✅ `title_case(text)` - Convert text to title case while keeping certain small words lowercase.
 - ✅ `validate_new_user_data(user_id, data_updates)` - Validate complete dataset required for a brand-new user.
 - ✅ `validate_personalization_data(data)` - Validate *context/personalization* structure.
 
@@ -2137,12 +1460,25 @@ Args:
 
 Returns:
     Tuple of (is_valid, list_of_error_messages)
-- ❌ `validate_time_format(time_str)` - No description
+- ❌ `validate_schedule_periods__validate_time_format(time_str)` - No description
 - ✅ `validate_user_update(user_id, data_type, updates)` - Validate partial updates to an existing user's data.
 
 #### `core/user_management.py`
 **Functions:**
+- ✅ `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
+- ✅ `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
+- ✅ `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
+- ✅ `_get_user_data__load_schedules(user_id, auto_create)` - Load user schedules data from schedules.json.
+- ✅ `_get_user_id_by_identifier__by_chat_id(chat_id)` - Helper function: Get user ID by chat ID.
+- ✅ `_get_user_id_by_identifier__by_discord_user_id(discord_user_id)` - Helper function: Get user ID by Discord user ID using the user index for fast lookup.
+- ✅ `_get_user_id_by_identifier__by_email(email)` - Helper function: Get user ID by email using the user index for fast lookup.
+- ✅ `_get_user_id_by_identifier__by_internal_username(internal_username)` - Helper function: Get user ID by internal username using the user index for fast lookup.
+- ✅ `_get_user_id_by_identifier__by_phone(phone)` - Helper function: Get user ID by phone using the user index for fast lookup.
 - ✅ `_load_presets_json()` - Load presets from resources/presets.json (cached).
+- ✅ `_save_user_data__save_account(user_id, account_data)` - Save user account data to account.json.
+- ✅ `_save_user_data__save_context(user_id, context_data)` - Save user context data to user_context.json.
+- ✅ `_save_user_data__save_preferences(user_id, preferences_data)` - Save user preferences data to preferences.json.
+- ✅ `_save_user_data__save_schedules(user_id, schedules_data)` - Save user schedules data to schedules.json.
 - ✅ `add_personalization_item(user_id, field, item)` - Add an item to a list field in personalization data using centralized system.
 - ✅ `clear_personalization_cache(user_id)` - Clear the personalization cache for a specific user or all users.
 - ✅ `clear_user_caches(user_id)` - Clear user data caches.
@@ -2164,15 +1500,17 @@ Returns:
 - ✅ `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
 - ✅ `get_user_email(user_id)` - Get user's email address using centralized system.
 - ✅ `get_user_essential_info(user_id)` - Get essential user information using centralized system.
-- ✅ `get_user_id_by_chat_id(chat_id)` - Get user ID by chat ID.
-- ✅ `get_user_id_by_discord_user_id(discord_user_id)` - Get user ID by Discord user ID.
-- ✅ `get_user_id_by_internal_username(internal_username)` - Get user ID by internal username.
+- ✅ `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
+
+Automatically detects the identifier type and uses the appropriate lookup method.
+
+Args:
+    identifier: The identifier to look up (can be any supported type)
+    
+Returns:
+    Optional[str]: User ID if found, None otherwise
 - ✅ `get_user_preferred_name(user_id)` - Get user's preferred name using centralized system.
 - ✅ `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
-- ✅ `load_user_account_data(user_id, auto_create)` - Load user account data from account.json.
-- ✅ `load_user_context_data(user_id, auto_create)` - Load user context data from user_context.json.
-- ✅ `load_user_preferences_data(user_id, auto_create)` - Load user preferences data from preferences.json.
-- ✅ `load_user_schedules_data(user_id, auto_create)` - Load user schedules data from schedules.json.
 - ✅ `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
 - ✅ `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
 
@@ -2184,10 +1522,6 @@ Args:
     metadata_fields: Fields that contain metadata
     description: Human-readable description
 - ✅ `remove_personalization_item(user_id, field, item)` - Remove an item from a list field in personalization data using centralized system.
-- ✅ `save_user_account_data(user_id, account_data)` - Save user account data to account.json.
-- ✅ `save_user_context_data(user_id, context_data)` - Save user context data to user_context.json.
-- ✅ `save_user_preferences_data(user_id, preferences_data)` - Save user preferences data to preferences.json.
-- ✅ `save_user_schedules_data(user_id, schedules_data)` - Save user schedules data to schedules.json.
 - ✅ `update_channel_preferences(user_id, updates, auto_create)` - Update channel preferences without triggering category schedule creation.
 - ✅ `update_personalization_field(user_id, field, value)` - Update a specific field in personalization data using centralized system.
 - ✅ `update_user_account(user_id, updates, auto_create)` - Update user account information.
@@ -2210,407 +1544,6 @@ Args:
 - ✅ `main()` - Main entry point for the module
 - ✅ `print_test_mode_info()` - Print helpful information about test modes.
 - ✅ `run_command(cmd, description, progress_interval)` - Run a command and return success status with periodic progress logs.
-
-### `scripts/` - Unknown Directory
-
-#### `scripts/audit_legacy_channels.py`
-**Functions:**
-- ✅ `__init__(self, project_root)` - Initialize the object
-- ✅ `analyze_results(self)` - Analyze the search results and generate summary.
-- ✅ `check_specific_issues(self)` - Check for specific potential issues.
-- ✅ `generate_report(self)` - Generate a comprehensive audit report.
-- ✅ `main()` - Main function to run the legacy channels audit.
-- ✅ `run_audit(self)` - Run the complete legacy channels audit.
-- ✅ `save_report(self, report, output_file)` - Save the audit report to a file.
-- ✅ `search_codebase(self)` - Search the entire codebase for legacy patterns.
-- ✅ `search_file(self, file_path)` - Search a single file for legacy patterns.
-- ✅ `should_exclude_file(self, file_path)` - Check if a file should be excluded from the search.
-**Classes:**
-- ✅ `LegacyChannelsAuditor` - Auditor for finding legacy channel references in the codebase.
-  - ✅ `LegacyChannelsAuditor.__init__(self, project_root)` - Initialize the object
-  - ✅ `LegacyChannelsAuditor.analyze_results(self)` - Analyze the search results and generate summary.
-  - ✅ `LegacyChannelsAuditor.check_specific_issues(self)` - Check for specific potential issues.
-  - ✅ `LegacyChannelsAuditor.generate_report(self)` - Generate a comprehensive audit report.
-  - ✅ `LegacyChannelsAuditor.run_audit(self)` - Run the complete legacy channels audit.
-  - ✅ `LegacyChannelsAuditor.save_report(self, report, output_file)` - Save the audit report to a file.
-  - ✅ `LegacyChannelsAuditor.search_codebase(self)` - Search the entire codebase for legacy patterns.
-  - ✅ `LegacyChannelsAuditor.search_file(self, file_path)` - Search a single file for legacy patterns.
-  - ✅ `LegacyChannelsAuditor.should_exclude_file(self, file_path)` - Check if a file should be excluded from the search.
-
-#### `scripts/debug/debug_category_dialog.py`
-**Functions:**
-- ✅ `main()` - Run all tests
-- ✅ `test_category_widget_clear()` - Test if CategorySelectionWidget.set_selected_categories([]) works
-- ✅ `test_preferences_update()` - Test if update_user_preferences works
-- ✅ `test_user_data_functions()` - Test if update_user_account and update_user_preferences work
-
-#### `scripts/debug/debug_comprehensive_prompt.py`
-**Functions:**
-- ✅ `debug_comprehensive_prompt()` - Debug the comprehensive context prompt generation.
-
-#### `scripts/debug/debug_discord_connectivity.py`
-**Functions:**
-- ✅ `main()` - Run the Discord connectivity diagnostic.
-- ✅ `test_alternative_dns_servers()` - Test connectivity to alternative DNS servers.
-- ✅ `test_bot_token()` - Test if the Discord bot token is valid.
-- ✅ `test_discord_api()` - Test Discord API accessibility.
-- ✅ `test_discord_endpoints()` - Test connectivity to various Discord endpoints.
-- ✅ `test_dns_resolution(hostname)` - Test DNS resolution for a given hostname.
-- ✅ `test_network_connectivity(hostname, port, timeout)` - Test network connectivity to a specific host and port.
-
-#### `scripts/debug/debug_lm_studio_timeout.py`
-**Functions:**
-- ✅ `check_lm_studio_process()` - Check if LM Studio process is running and using resources.
-- ✅ `test_chat_completions()` - Test the chat completions endpoint with different timeouts.
-- ✅ `test_models_endpoint()` - Test the models endpoint with different timeouts.
-- ✅ `test_network_connectivity()` - Test basic network connectivity to LM Studio.
-- ✅ `test_system_info()` - Test system information endpoints.
-
-#### `scripts/debug/debug_preferences.py`
-**Functions:**
-- ❌ `debug_preferences()` - No description
-
-#### `scripts/debug/discord_connectivity_diagnostic.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object
-- ✅ `generate_recommendations(self)` - Generate recommendations based on test results
-- ✅ `main()` - Main diagnostic function
-- ✅ `print_results(self)` - Print formatted results to console
-- ✅ `run_all_tests(self)` - Run all diagnostic tests
-- ✅ `test_communication_manager(self)` - Test communication manager Discord status
-- ✅ `test_discord_bot_status(self)` - Test Discord bot status and health
-- ✅ `test_dns_resolution(self)` - Test DNS resolution for Discord-related domains
-- ✅ `test_network_connectivity(self)` - Test network connectivity to Discord servers
-**Classes:**
-- ✅ `DiscordConnectivityDiagnostic` - Comprehensive Discord connectivity diagnostic tool
-  - ✅ `DiscordConnectivityDiagnostic.__init__(self)` - Initialize the object
-  - ✅ `DiscordConnectivityDiagnostic.generate_recommendations(self)` - Generate recommendations based on test results
-  - ✅ `DiscordConnectivityDiagnostic.print_results(self)` - Print formatted results to console
-  - ✅ `DiscordConnectivityDiagnostic.run_all_tests(self)` - Run all diagnostic tests
-  - ✅ `DiscordConnectivityDiagnostic.test_communication_manager(self)` - Test communication manager Discord status
-  - ✅ `DiscordConnectivityDiagnostic.test_discord_bot_status(self)` - Test Discord bot status and health
-  - ✅ `DiscordConnectivityDiagnostic.test_dns_resolution(self)` - Test DNS resolution for Discord-related domains
-  - ✅ `DiscordConnectivityDiagnostic.test_network_connectivity(self)` - Test network connectivity to Discord servers
-
-#### `scripts/debug/test_dns_fallback.py`
-**Functions:**
-- ✅ `test_dns_fallback()` - Test the enhanced DNS resolution with fallback servers
-
-#### `scripts/focused_legacy_audit.py`
-**Functions:**
-- ✅ `__init__(self, project_root)` - Initialize the object
-- ✅ `analyze_results(self)` - Analyze the search results.
-- ✅ `check_specific_files(self)` - Check specific files that are most likely to have issues.
-- ✅ `generate_report(self)` - Generate a focused audit report.
-- ✅ `main()` - Main function to run the focused legacy channels audit.
-- ✅ `run_audit(self)` - Run the focused legacy channels audit.
-- ✅ `save_report(self, report, output_file)` - Save the audit report to a file.
-- ✅ `search_codebase(self)` - Search the entire codebase for critical legacy patterns.
-- ✅ `search_file(self, file_path)` - Search a single file for critical legacy patterns.
-**Classes:**
-- ✅ `FocusedLegacyAuditor` - Focused auditor for finding actual legacy channel issues.
-  - ✅ `FocusedLegacyAuditor.__init__(self, project_root)` - Initialize the object
-  - ✅ `FocusedLegacyAuditor.analyze_results(self)` - Analyze the search results.
-  - ✅ `FocusedLegacyAuditor.check_specific_files(self)` - Check specific files that are most likely to have issues.
-  - ✅ `FocusedLegacyAuditor.generate_report(self)` - Generate a focused audit report.
-  - ✅ `FocusedLegacyAuditor.run_audit(self)` - Run the focused legacy channels audit.
-  - ✅ `FocusedLegacyAuditor.save_report(self, report, output_file)` - Save the audit report to a file.
-  - ✅ `FocusedLegacyAuditor.search_codebase(self)` - Search the entire codebase for critical legacy patterns.
-  - ✅ `FocusedLegacyAuditor.search_file(self, file_path)` - Search a single file for critical legacy patterns.
-
-#### `scripts/migration/migrate_messaging_service.py`
-**Functions:**
-- ✅ `migrate_messaging_service()` - Migrate messaging_service to channel.type for all users.
-- ✅ `verify_migration(users)` - Verify that the migration was successful.
-
-#### `scripts/migration/migrate_schedule_format.py`
-**Functions:**
-- ✅ `main()` - Main migration function.
-- ✅ `migrate_legacy_schedules_structure(schedules_data)` - Convert legacy flat schedule structure to new nested format.
-- ✅ `migrate_user_files()` - Migrate all user files to new format.
-- ✅ `remove_enabled_fields_from_preferences(prefs)` - Remove 'enabled' fields from preferences.
-- ✅ `remove_enabled_fields_from_schedules(schedules_data)` - Remove 'enabled' fields from schedule periods.
-
-#### `scripts/migration/migrate_schedules_cleanup.py`
-**Functions:**
-- ✅ `collapse_days(days)` - Collapse a list of days to ['ALL'] if all days of the week are present.
-
-If the days list contains all seven days of the week, it is collapsed
-to ['ALL'] for more efficient storage and processing.
-
-Args:
-    days: List of day names to check
-    
-Returns:
-    List containing either ['ALL'] if all days present, or the original days list
-- ✅ `find_all_schedules_files(base_dir)` - Find all user schedule files in the data directory.
-
-Searches for schedules.json files in user subdirectories
-within the specified base directory.
-
-Args:
-    base_dir: Base directory to search in (default: "data/users")
-    
-Returns:
-    List of file paths to user schedule files
-- ✅ `main()` - Main function to migrate all user schedule files.
-
-Finds all user schedule files and applies the migration
-to clean up schedule data structure and optimize day lists.
-- ❌ `migrate_schedules_file(schedules_path)` - No description
-
-#### `scripts/migration/migrate_sent_messages.py`
-**Functions:**
-- ✅ `main()` - Main migration function.
-- ✅ `migrate_sent_messages()` - Migrate sent_messages.json files from user root directories to messages folders.
-- ✅ `update_file_operations_code()` - Update the file operations code to use the new sent_messages path structure.
-
-#### `scripts/migration/migrate_user_data_structure.py`
-**Functions:**
-- ✅ `__init__(self, dry_run, backup)` - Initialize the object
-- ✅ `backup_user_data(self, user_id, user_dir)` - Create backup of user data before migration.
-- ✅ `cleanup_old_files(self, user_dir)` - Remove old files after successful migration.
-- ✅ `is_already_migrated(self, user_dir)` - Check if user data is already in new structure.
-- ✅ `load_current_data(self, user_id, user_dir)` - Load all current data files for a user.
-- ✅ `main()` - Main migration function.
-- ✅ `migrate_all_users(self)` - Migrate all users in the system.
-- ✅ `migrate_user(self, user_id)` - Migrate a single user's data.
-- ✅ `save_new_data(self, user_id, new_data)` - Save the new data structure for a user.
-- ✅ `transform_data(self, user_id, current_data)` - Transform current data structure to new structure.
-**Classes:**
-- ✅ `UserDataMigrator` - Handles migration of user data from old structure to new structure.
-  - ✅ `UserDataMigrator.__init__(self, dry_run, backup)` - Initialize the object
-  - ✅ `UserDataMigrator.backup_user_data(self, user_id, user_dir)` - Create backup of user data before migration.
-  - ✅ `UserDataMigrator.cleanup_old_files(self, user_dir)` - Remove old files after successful migration.
-  - ✅ `UserDataMigrator.is_already_migrated(self, user_dir)` - Check if user data is already in new structure.
-  - ✅ `UserDataMigrator.load_current_data(self, user_id, user_dir)` - Load all current data files for a user.
-  - ✅ `UserDataMigrator.migrate_all_users(self)` - Migrate all users in the system.
-  - ✅ `UserDataMigrator.migrate_user(self, user_id)` - Migrate a single user's data.
-  - ✅ `UserDataMigrator.save_new_data(self, user_id, new_data)` - Save the new data structure for a user.
-  - ✅ `UserDataMigrator.transform_data(self, user_id, current_data)` - Transform current data structure to new structure.
-
-#### `scripts/static_checks/check_channel_loggers.py`
-**Functions:**
-- ❌ `find_matches(root)` - No description
-- ✅ `main()` - Main entry point for the module
-- ❌ `scan_repo_for_forbidden_logging(repo_root)` - No description
-
-#### `scripts/test_ai_parsing.py`
-**Functions:**
-- ✅ `forced_ai_parse(message)` - Force AI parsing by skipping rule-based parsing.
-- ✅ `test_ai_parsing()` - Test AI-enhanced parsing with various natural language inputs.
-- ✅ `test_forced_ai_parsing()` - Test AI parsing by temporarily disabling rule-based parsing.
-
-#### `scripts/test_ai_raw.py`
-**Functions:**
-- ✅ `test_ai_raw()` - Test AI chatbot directly to see what it returns.
-
-#### `scripts/test_centralized_config.py`
-**Functions:**
-- ✅ `test_centralized_configurations()` - Test that all centralized configurations are properly set and accessible.
-- ✅ `test_environment_override()` - Test that environment variables can override default values.
-
-#### `scripts/test_comprehensive_fixes.py`
-**Functions:**
-- ✅ `test_ai_enhancement_disabled()` - Test that AI enhancement is disabled for task responses
-- ✅ `test_response_length_limits()` - Test that responses are properly length-limited
-- ✅ `test_task_formatting_fixes()` - Test that task responses are properly formatted (no JSON, no system prompts)
-- ✅ `test_task_listing_suggestions()` - Test that task listing suggestions are action-oriented
-- ✅ `test_task_suggestions()` - Test that task suggestions are improved
-
-#### `scripts/test_discord_commands.py`
-**Functions:**
-- ✅ `__init__(self)` - Initialize the object
-- ✅ `generate_enhancement_plan(self)` - Generate a plan for Discord enhancements
-- ✅ `main()` - Main test function
-- ✅ `test_command_parsing(self)` - Test the enhanced command parser with various inputs
-- ✅ `test_current_discord_commands(self)` - Test the current Discord bot commands
-- ✅ `test_interaction_handlers(self)` - Test interaction handlers with parsed commands
-- ✅ `test_natural_language_processing(self)` - Test natural language processing capabilities
-**Classes:**
-- ✅ `DiscordCommandTester` - Test class for Discord commands and interaction handlers
-  - ✅ `DiscordCommandTester.__init__(self)` - Initialize the object
-  - ✅ `DiscordCommandTester.generate_enhancement_plan(self)` - Generate a plan for Discord enhancements
-  - ✅ `DiscordCommandTester.test_command_parsing(self)` - Test the enhanced command parser with various inputs
-  - ✅ `DiscordCommandTester.test_current_discord_commands(self)` - Test the current Discord bot commands
-  - ✅ `DiscordCommandTester.test_interaction_handlers(self)` - Test interaction handlers with parsed commands
-  - ✅ `DiscordCommandTester.test_natural_language_processing(self)` - Test natural language processing capabilities
-
-#### `scripts/test_discord_connection.py`
-
-#### `scripts/test_enhanced_discord_commands.py`
-**Functions:**
-- ✅ `test_enhanced_discord_commands()` - Test the enhanced Discord commands
-
-#### `scripts/test_enhanced_parser_direct.py`
-**Functions:**
-- ✅ `test_enhanced_parser_direct()` - Test enhanced command parser directly with debug output.
-
-#### `scripts/test_network_connectivity.py`
-**Functions:**
-- ✅ `main()` - Run all network connectivity tests
-- ✅ `test_dns_resolution()` - Test DNS resolution with fallback servers
-- ✅ `test_network_connectivity()` - Test network connectivity to Discord endpoints
-- ✅ `test_network_health()` - Test comprehensive network health check
-- ✅ `test_reconnection_logic()` - Test reconnection logic
-
-#### `scripts/test_task_response_formatting.py`
-**Functions:**
-- ✅ `test_enhanced_command_parser()` - Test enhanced command parser directly
-- ✅ `test_task_handler_directly()` - Test task handler directly
-- ✅ `test_task_listing_response()` - Test task listing response formatting
-
-#### `scripts/testing/ai/test_ai_with_clear_cache.py`
-**Functions:**
-- ✅ `test_ai_with_clear_cache()` - Test AI responses with cleared cache.
-- ✅ `test_direct_api_call()` - Test direct API call with comprehensive context.
-
-#### `scripts/testing/ai/test_comprehensive_ai.py`
-**Functions:**
-- ✅ `test_ai_status()` - Test the AI status to confirm it's using comprehensive context.
-- ✅ `test_comprehensive_ai_access()` - Test the comprehensive AI access to user data.
-
-#### `scripts/testing/ai/test_data_integrity.py`
-**Functions:**
-- ✅ `test_data_integrity()` - Test Data Integrity
-
-#### `scripts/testing/ai/test_lm_studio.py`
-**Functions:**
-- ✅ `test_ai_chatbot_status()` - Test the AI chatbot status.
-- ✅ `test_lm_studio_connection()` - Test the LM Studio connection directly.
-- ✅ `test_simple_response()` - Test a simple AI response.
-
-#### `scripts/testing/ai/test_new_modules.py`
-**Functions:**
-- ✅ `main()` - Run all tests
-- ✅ `test_file_operations_module()` - Test file_operations.py module
-- ✅ `test_message_management_module()` - Test message_management.py module
-- ✅ `test_response_tracking_module()` - Test response_tracking.py module
-- ✅ `test_schedule_management_module()` - Test schedule_management.py module
-- ✅ `test_service_utilities_module()` - Test service_utilities.py module
-- ✅ `test_user_management_module()` - Test user_management.py module
-- ✅ `test_validation_module()` - Test validation.py module
-
-#### `scripts/testing/analyze_documentation_overlap.py`
-**Functions:**
-- ✅ `analyze_file_purposes(docs)` - Analyze the purpose and content of each documentation file.
-- ✅ `extract_sections(content)` - Extract sections from markdown content.
-- ✅ `find_common_topics(docs)` - Find common topics across documentation files.
-- ✅ `generate_consolidation_report()` - Generate a report on documentation consolidation opportunities.
-- ✅ `get_documentation_files()` - Get all documentation files and their content.
-
-#### `scripts/testing/test_user_data_analysis.py`
-**Functions:**
-- ✅ `test_fallback_directly()` - Test the fallback method directly.
-- ✅ `test_user_data_analysis()` - Test the enhanced fallback with user-specific questions.
-
-#### `scripts/testing/test_utils_functions.py`
-**Functions:**
-- ✅ `main()` - Run all tests
-- ✅ `test_basic_imports()` - Test that we can import all the key modules
-- ✅ `test_file_operations()` - Test basic file operations
-- ✅ `test_user_operations()` - Test user-related operations
-- ✅ `test_utility_functions()` - Test utility functions
-
-#### `scripts/testing/validate_config.py`
-**Functions:**
-- ✅ `main()` - Main entry point for the module
-
-#### `scripts/utilities/add_checkin_schedules.py`
-**Functions:**
-- ✅ `add_checkin_schedules_to_existing_users()` - Add check-in schedules to existing users who have check-ins enabled
-- ✅ `show_user_checkin_status()` - Show the current check-in status for all users
-
-#### `scripts/utilities/check_checkin_schedules.py`
-**Functions:**
-- ✅ `check_checkin_schedules()` - Check check-in schedules for all users
-- ✅ `show_management_commands()` - Show how to manage check-in schedules
-- ✅ `show_schedule_period_structure()` - Show the structure of check-in schedule periods
-
-#### `scripts/utilities/cleanup/cleanup_backups.py`
-**Functions:**
-- ✅ `main()` - Main entry point for the module
-
-#### `scripts/utilities/cleanup/cleanup_data_test_users.py`
-**Functions:**
-- ✅ `cleanup_data_test_users()` - Remove test users from the data/users directory
-- ✅ `main()` - Main cleanup function
-
-#### `scripts/utilities/cleanup/cleanup_real_test_users.py`
-**Functions:**
-- ✅ `cleanup_real_test_users()` - Clean up test users in the real data directory.
-
-#### `scripts/utilities/cleanup/cleanup_test_data.py`
-**Functions:**
-- ✅ `cleanup_backup_files()` - Remove backup files from migration and testing
-- ✅ `cleanup_old_scripts()` - Remove old migration and testing scripts that are no longer needed
-- ✅ `cleanup_test_users()` - Remove test user directories
-- ✅ `get_script_dir()` - Get the MHM root directory
-- ✅ `main()` - Run the cleanup process
-
-#### `scripts/utilities/cleanup/cleanup_user_message_files.py`
-**Functions:**
-- ✅ `check_message_file_format(file_path)` - Check if a message file is in the old format (list of strings).
-- ✅ `cleanup_user_message_files()` - Clean up user message files by removing unwanted files and ensuring proper ones exist.
-- ✅ `main()` - Main function to run the cleanup.
-
-#### `scripts/utilities/cleanup_duplicate_messages.py`
-**Functions:**
-- ✅ `check_duplicates_in_file(filepath)` - Check for duplicate messages in a single file.
-- ✅ `clean_duplicates(args)` - Main function to clean duplicates from all message files.
-- ✅ `create_backup(filepath)` - Create a backup of the file before modification.
-- ✅ `find_message_files()` - Find all JSON message files in the configured messages directory.
-- ✅ `main()` - Main entry point for the module
-
-#### `scripts/utilities/cleanup_test_users.py`
-**Functions:**
-- ✅ `cleanup_test_users()` - Remove test users from the real data directory
-- ✅ `main()` - Main cleanup function
-
-#### `scripts/utilities/fix_user_schedules.py`
-**Functions:**
-- ✅ `fix_user_schedules(user_id)` - Fix the schedule structure for a specific user.
-
-#### `scripts/utilities/rebuild_index.py`
-**Functions:**
-- ✅ `main()` - Rebuild the user index.
-
-#### `scripts/utilities/refactoring/analyze_migration_needs.py`
-**Functions:**
-- ✅ `analyze_migration_needs()` - Analyze what needs to be migrated from core.user_management.
-- ✅ `extract_imports_from_file(filepath)` - Extract all imports from a Python file.
-
-#### `scripts/utilities/refactoring/find_legacy_get_user_data.py`
-
-#### `scripts/utilities/refactoring/find_legacy_imports.py`
-
-#### `scripts/utilities/refactoring/fix_broken_imports.py`
-**Functions:**
-- ✅ `backup_file(filepath)` - Create a backup of the file.
-- ✅ `fix_imports_in_file(filepath)` - Fix broken imports in a single file.
-- ✅ `main()` - Main fix function.
-
-#### `scripts/utilities/refactoring/migrate_legacy_imports.py`
-**Functions:**
-- ✅ `backup_file(filepath)` - Create a backup of the file.
-- ✅ `main()` - Main migration function.
-- ✅ `migrate_imports_in_file(filepath)` - Migrate imports in a single file.
-
-#### `scripts/utilities/restore_custom_periods.py`
-**Functions:**
-- ✅ `main()` - Main restoration function.
-- ✅ `migrate_legacy_schedules_structure(schedules_data)` - Convert legacy flat schedule structure to new nested format.
-- ✅ `restore_custom_periods()` - Restore custom periods from backup for all users.
-
-#### `scripts/utilities/user_data_cli.py`
-**Functions:**
-- ✅ `cmd_backup_user(args)` - Create a backup of user data
-- ✅ `cmd_index(args)` - Manage user index
-- ✅ `cmd_list_users(args)` - List all users with basic info
-- ✅ `cmd_summary(args)` - Show user data summary
-- ✅ `cmd_update_references(args)` - Update message references for a user
-- ✅ `format_size(size_bytes)` - Format bytes to human readable format
-- ✅ `main()` - Main entry point for the module
 
 ### `tasks/` - Task Management
 
@@ -2896,7 +1829,7 @@ to clean up schedule data structure and optimize day lists.
 - ✅ `test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel)` - Test error handling in communication manager.
 - ✅ `test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
 - ✅ `test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
-- ✅ `test_get_available_channels(self, comm_manager, realistic_mock_channel)` - Test getting available channels with realistic channel setup.
+- ✅ `test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
 - ✅ `test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel)` - Test channel initialization from configuration with realistic channel behavior.
 - ✅ `test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test checking if a channel is ready with realistic channel behavior.
 - ✅ `test_send_message_sync_channel_not_found(self, comm_manager)` - Test synchronous message sending when channel doesn't exist.
@@ -2911,7 +1844,7 @@ to clean up schedule data structure and optimize day lists.
   - ✅ `TestCommunicationManager.test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel)` - Test error handling in communication manager.
   - ✅ `TestCommunicationManager.test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
   - ✅ `TestCommunicationManager.test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
-  - ✅ `TestCommunicationManager.test_get_available_channels(self, comm_manager, realistic_mock_channel)` - Test getting available channels with realistic channel setup.
+  - ✅ `TestCommunicationManager.test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
   - ✅ `TestCommunicationManager.test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel)` - Test channel initialization from configuration with realistic channel behavior.
   - ✅ `TestCommunicationManager.test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test checking if a channel is ready with realistic channel behavior.
   - ✅ `TestCommunicationManager.test_send_message_sync_channel_not_found(self, comm_manager)` - Test synchronous message sending when channel doesn't exist.
@@ -4140,7 +3073,6 @@ Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
 
 #### `tests/integration/test_account_management.py`
 **Functions:**
-- ✅ `main()` - Run all account management tests and generate a comprehensive report
 - ✅ `test_account_management_data_structures()` - Test that account management can handle the expected data structures
 - ✅ `test_account_management_functions()` - Test that all account management functions can be called (with safe test data)
 - ✅ `test_account_management_imports()` - Test that all account management modules can be imported without errors
@@ -4186,33 +3118,14 @@ Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
 
 #### `tests/test_utilities.py`
 **Functions:**
-- ✅ `_create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)` - Create basic user with test directory by directly saving files
-- ✅ `_create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)` - Create discord user with test directory by directly saving files
-- ✅ `_create_email_user_impl(user_id, email)` - Internal implementation of email user creation
-- ✅ `_create_email_user_with_test_dir(user_id, email, test_data_dir)` - Create email user with test directory by directly saving files
-- ✅ `_create_full_featured_user_impl(user_id)` - Internal implementation of full featured user creation
-- ✅ `_create_full_featured_user_with_test_dir(user_id, test_data_dir)` - Create full featured user with test directory by directly saving files
-- ✅ `_create_minimal_user_impl(user_id)` - Internal implementation of minimal user creation
-- ✅ `_create_minimal_user_with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
-- ✅ `_create_telegram_user_impl(user_id, telegram_username)` - Internal implementation of telegram user creation
-- ✅ `_create_telegram_user_with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
 - ✅ `_create_user_files_directly(user_id, user_data, test_data_dir)` - Helper function to create user files directly in test directory
-- ✅ `_create_user_with_complex_checkins_impl(user_id)` - Internal implementation of complex checkins user creation
-- ✅ `_create_user_with_complex_checkins_with_test_dir(user_id, test_data_dir)` - Create complex checkins user with test directory by directly saving files
-- ✅ `_create_user_with_custom_fields_impl(user_id, custom_fields)` - Internal implementation of custom fields user creation
-- ✅ `_create_user_with_disabilities_impl(user_id)` - Internal implementation of disability user creation
-- ✅ `_create_user_with_disabilities_with_test_dir(user_id, test_data_dir)` - Create disability user with test directory by directly saving files
-- ✅ `_create_user_with_health_focus_impl(user_id)` - Internal implementation of health focus user creation
-- ✅ `_create_user_with_health_focus_with_test_dir(user_id, test_data_dir)` - Create health focus user with test directory by directly saving files
-- ✅ `_create_user_with_inconsistent_data_impl(user_id)` - Internal implementation of inconsistent data user creation
-- ✅ `_create_user_with_inconsistent_data_with_test_dir(user_id, test_data_dir)` - Create inconsistent data user with test directory by directly saving files
-- ✅ `_create_user_with_limited_data_impl(user_id)` - Internal implementation of limited data user creation
-- ✅ `_create_user_with_limited_data_with_test_dir(user_id, test_data_dir)` - Create limited data user with test directory by directly saving files
-- ✅ `_create_user_with_schedules_impl(user_id, schedule_config)` - Internal implementation of schedules user creation
-- ✅ `_create_user_with_task_focus_impl(user_id)` - Internal implementation of task focus user creation
-- ✅ `_create_user_with_task_focus_with_test_dir(user_id, test_data_dir)` - Create task focus user with test directory by directly saving files
-- ✅ `_verify_email_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify email user creation with proper configuration patching
-- ✅ `_verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify user creation with proper configuration patching
+- ✅ `_create_user_files_directly__account_data(actual_user_id, user_id, user_data)` - Create account data structure.
+- ✅ `_create_user_files_directly__context_data(user_data)` - Create user context data structure.
+- ✅ `_create_user_files_directly__directory_structure(test_data_dir, user_id)` - Create the user directory structure and return paths.
+- ✅ `_create_user_files_directly__message_files(user_dir, categories)` - Create message directory and default message files.
+- ✅ `_create_user_files_directly__preferences_data(user_data)` - Create preferences data structure.
+- ✅ `_create_user_files_directly__save_json(file_path, data)` - Save data to a JSON file.
+- ✅ `_create_user_files_directly__schedules_data(categories)` - Create default schedule periods for categories.
 - ✅ `cleanup_test_data_environment(test_dir)` - Convenience function to clean up test data environment
 
 Args:
@@ -4239,6 +3152,9 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_basic_user__update_index(test_data_dir, user_id, actual_user_id)` - Update user index to map internal_username to UUID.
+- ✅ `create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)` - Helper function to verify user creation with proper configuration patching
+- ✅ `create_basic_user__with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)` - Create basic user with test directory by directly saving files
 - ✅ `create_context_data()` - Create standard context data structure with optional overrides
 
 Args:
@@ -4263,6 +3179,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_discord_user__with_test_dir(user_id, discord_user_id, test_data_dir)` - Create discord user with test directory by directly saving files
 - ✅ `create_email_user(user_id, email, test_data_dir)` - Create a test user specifically configured for email testing
 
 Args:
@@ -4272,6 +3189,8 @@ Args:
     
 Returns:
     str: User ID if user was created successfully, None otherwise
+- ✅ `create_email_user__impl(user_id, email)` - Internal implementation of email user creation
+- ✅ `create_email_user__with_test_dir(user_id, email, test_data_dir)` - Create email user with test directory by directly saving files
 - ✅ `create_full_featured_user(user_id, test_data_dir)` - Create a test user with all features enabled and comprehensive data
 
 Args:
@@ -4280,6 +3199,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_full_featured_user__impl(user_id)` - Internal implementation of full featured user creation
+- ✅ `create_full_featured_user__with_test_dir(user_id, test_data_dir)` - Create full featured user with test directory by directly saving files
 - ✅ `create_minimal_user(user_id, test_data_dir)` - Create a minimal test user with only basic messaging enabled
 
 Args:
@@ -4288,6 +3209,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_minimal_user__impl(user_id)` - Internal implementation of minimal user creation
+- ✅ `create_minimal_user__with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
 - ✅ `create_preferences_data(user_id)` - Create standard preferences data structure with optional overrides
 
 Args:
@@ -4312,6 +3235,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_telegram_user__impl(user_id, telegram_username)` - Internal implementation of telegram user creation
+- ✅ `create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
 - ✅ `create_test_message_data(category, message_count)` - Create test message data for testing message management
 
 Args:
@@ -4366,6 +3291,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_complex_checkins__impl(user_id)` - Internal implementation of complex checkins user creation
+- ✅ `create_user_with_complex_checkins__with_test_dir(user_id, test_data_dir)` - Create complex checkins user with test directory by directly saving files
 - ✅ `create_user_with_custom_fields(user_id, custom_fields, test_data_dir)` - Create a test user with custom fields for testing custom field functionality
 
 Args:
@@ -4375,6 +3302,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_custom_fields__impl(user_id, custom_fields)` - Internal implementation of custom fields user creation
 - ✅ `create_user_with_disabilities(user_id, test_data_dir)` - Create a test user with disability-focused features and data
 
 Args:
@@ -4383,6 +3311,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_disabilities__impl(user_id)` - Internal implementation of disability user creation
+- ✅ `create_user_with_disabilities__with_test_dir(user_id, test_data_dir)` - Create disability user with test directory by directly saving files
 - ✅ `create_user_with_health_focus(user_id, test_data_dir)` - Create a test user with health-focused features and data
 
 Args:
@@ -4391,6 +3321,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_health_focus__impl(user_id)` - Internal implementation of health focus user creation
+- ✅ `create_user_with_health_focus__with_test_dir(user_id, test_data_dir)` - Create health focus user with test directory by directly saving files
 - ✅ `create_user_with_inconsistent_data(user_id, test_data_dir)` - Create a test user with inconsistent data for testing edge cases
 
 Args:
@@ -4399,6 +3331,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_inconsistent_data__impl(user_id)` - Internal implementation of inconsistent data user creation
+- ✅ `create_user_with_inconsistent_data__with_test_dir(user_id, test_data_dir)` - Create inconsistent data user with test directory by directly saving files
 - ✅ `create_user_with_limited_data(user_id, test_data_dir)` - Create a test user with minimal data for testing edge cases
 
 Args:
@@ -4407,6 +3341,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_limited_data__impl(user_id)` - Internal implementation of limited data user creation
+- ✅ `create_user_with_limited_data__with_test_dir(user_id, test_data_dir)` - Create limited data user with test directory by directly saving files
 - ✅ `create_user_with_schedules(user_id, schedule_config, test_data_dir)` - Create a test user with comprehensive schedule configuration
 
 Args:
@@ -4416,6 +3352,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_schedules__impl(user_id, schedule_config)` - Internal implementation of schedules user creation
 - ✅ `create_user_with_task_focus(user_id, test_data_dir)` - Create a test user with task management focus
 
 Args:
@@ -4424,6 +3361,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+- ✅ `create_user_with_task_focus__impl(user_id)` - Internal implementation of task focus user creation
+- ✅ `create_user_with_task_focus__with_test_dir(user_id, test_data_dir)` - Create task focus user with test directory by directly saving files
 - ✅ `get_test_user_data(user_id, test_data_dir)` - Get user data from test directory
 - ✅ `get_test_user_id_by_internal_username(internal_username, test_data_dir)` - Get user ID by internal username from test directory
 - ✅ `setup_test_data_environment()` - Convenience function to set up test data environment
@@ -4434,6 +3373,7 @@ Returns:
 
 Returns:
     tuple: (test_dir, test_data_dir, test_test_data_dir)
+- ✅ `verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify email user creation with proper configuration patching
 **Classes:**
 - ✅ `TestDataFactory` - Factory for creating test data for various scenarios
   - ✅ `TestDataFactory.create_corrupted_user_data(user_id, corruption_type)` - Create a user with corrupted data for testing error handling
@@ -4507,33 +3447,14 @@ Args:
 Returns:
     Dict containing schedules data
 - ✅ `TestUserFactory` - Factory for creating test users with different configurations
-  - ✅ `TestUserFactory._create_basic_user_with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)` - Create basic user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_discord_user_with_test_dir(user_id, discord_user_id, test_data_dir)` - Create discord user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_email_user_impl(user_id, email)` - Internal implementation of email user creation
-  - ✅ `TestUserFactory._create_email_user_with_test_dir(user_id, email, test_data_dir)` - Create email user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_full_featured_user_impl(user_id)` - Internal implementation of full featured user creation
-  - ✅ `TestUserFactory._create_full_featured_user_with_test_dir(user_id, test_data_dir)` - Create full featured user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_minimal_user_impl(user_id)` - Internal implementation of minimal user creation
-  - ✅ `TestUserFactory._create_minimal_user_with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_telegram_user_impl(user_id, telegram_username)` - Internal implementation of telegram user creation
-  - ✅ `TestUserFactory._create_telegram_user_with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
   - ✅ `TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)` - Helper function to create user files directly in test directory
-  - ✅ `TestUserFactory._create_user_with_complex_checkins_impl(user_id)` - Internal implementation of complex checkins user creation
-  - ✅ `TestUserFactory._create_user_with_complex_checkins_with_test_dir(user_id, test_data_dir)` - Create complex checkins user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_user_with_custom_fields_impl(user_id, custom_fields)` - Internal implementation of custom fields user creation
-  - ✅ `TestUserFactory._create_user_with_disabilities_impl(user_id)` - Internal implementation of disability user creation
-  - ✅ `TestUserFactory._create_user_with_disabilities_with_test_dir(user_id, test_data_dir)` - Create disability user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_user_with_health_focus_impl(user_id)` - Internal implementation of health focus user creation
-  - ✅ `TestUserFactory._create_user_with_health_focus_with_test_dir(user_id, test_data_dir)` - Create health focus user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_user_with_inconsistent_data_impl(user_id)` - Internal implementation of inconsistent data user creation
-  - ✅ `TestUserFactory._create_user_with_inconsistent_data_with_test_dir(user_id, test_data_dir)` - Create inconsistent data user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_user_with_limited_data_impl(user_id)` - Internal implementation of limited data user creation
-  - ✅ `TestUserFactory._create_user_with_limited_data_with_test_dir(user_id, test_data_dir)` - Create limited data user with test directory by directly saving files
-  - ✅ `TestUserFactory._create_user_with_schedules_impl(user_id, schedule_config)` - Internal implementation of schedules user creation
-  - ✅ `TestUserFactory._create_user_with_task_focus_impl(user_id)` - Internal implementation of task focus user creation
-  - ✅ `TestUserFactory._create_user_with_task_focus_with_test_dir(user_id, test_data_dir)` - Create task focus user with test directory by directly saving files
-  - ✅ `TestUserFactory._verify_email_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify email user creation with proper configuration patching
-  - ✅ `TestUserFactory._verify_user_creation_with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify user creation with proper configuration patching
+  - ✅ `TestUserFactory._create_user_files_directly__account_data(actual_user_id, user_id, user_data)` - Create account data structure.
+  - ✅ `TestUserFactory._create_user_files_directly__context_data(user_data)` - Create user context data structure.
+  - ✅ `TestUserFactory._create_user_files_directly__directory_structure(test_data_dir, user_id)` - Create the user directory structure and return paths.
+  - ✅ `TestUserFactory._create_user_files_directly__message_files(user_dir, categories)` - Create message directory and default message files.
+  - ✅ `TestUserFactory._create_user_files_directly__preferences_data(user_data)` - Create preferences data structure.
+  - ✅ `TestUserFactory._create_user_files_directly__save_json(file_path, data)` - Save data to a JSON file.
+  - ✅ `TestUserFactory._create_user_files_directly__schedules_data(categories)` - Create default schedule periods for categories.
   - ✅ `TestUserFactory.create_basic_user(user_id, enable_checkins, enable_tasks, test_data_dir)` - Create a test user with basic functionality enabled
 
 Args:
@@ -4544,6 +3465,9 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_basic_user__update_index(test_data_dir, user_id, actual_user_id)` - Update user index to map internal_username to UUID.
+  - ✅ `TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)` - Helper function to verify user creation with proper configuration patching
+  - ✅ `TestUserFactory.create_basic_user__with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)` - Create basic user with test directory by directly saving files
   - ✅ `TestUserFactory.create_discord_user(user_id, discord_user_id, test_data_dir)` - Create a test user specifically configured for Discord testing
 
 Args:
@@ -4553,6 +3477,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_discord_user__with_test_dir(user_id, discord_user_id, test_data_dir)` - Create discord user with test directory by directly saving files
   - ✅ `TestUserFactory.create_email_user(user_id, email, test_data_dir)` - Create a test user specifically configured for email testing
 
 Args:
@@ -4562,6 +3487,8 @@ Args:
     
 Returns:
     str: User ID if user was created successfully, None otherwise
+  - ✅ `TestUserFactory.create_email_user__impl(user_id, email)` - Internal implementation of email user creation
+  - ✅ `TestUserFactory.create_email_user__with_test_dir(user_id, email, test_data_dir)` - Create email user with test directory by directly saving files
   - ✅ `TestUserFactory.create_full_featured_user(user_id, test_data_dir)` - Create a test user with all features enabled and comprehensive data
 
 Args:
@@ -4570,6 +3497,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_full_featured_user__impl(user_id)` - Internal implementation of full featured user creation
+  - ✅ `TestUserFactory.create_full_featured_user__with_test_dir(user_id, test_data_dir)` - Create full featured user with test directory by directly saving files
   - ✅ `TestUserFactory.create_minimal_user(user_id, test_data_dir)` - Create a minimal test user with only basic messaging enabled
 
 Args:
@@ -4578,6 +3507,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_minimal_user__impl(user_id)` - Internal implementation of minimal user creation
+  - ✅ `TestUserFactory.create_minimal_user__with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
   - ✅ `TestUserFactory.create_telegram_user(user_id, telegram_username, test_data_dir)` - Create a test user specifically configured for Telegram testing
 
 Args:
@@ -4587,6 +3518,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_telegram_user__impl(user_id, telegram_username)` - Internal implementation of telegram user creation
+  - ✅ `TestUserFactory.create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir)` - Create a test user with complex check-in configurations
 
 Args:
@@ -4595,6 +3528,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_complex_checkins__impl(user_id)` - Internal implementation of complex checkins user creation
+  - ✅ `TestUserFactory.create_user_with_complex_checkins__with_test_dir(user_id, test_data_dir)` - Create complex checkins user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_custom_fields(user_id, custom_fields, test_data_dir)` - Create a test user with custom fields for testing custom field functionality
 
 Args:
@@ -4604,6 +3539,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_custom_fields__impl(user_id, custom_fields)` - Internal implementation of custom fields user creation
   - ✅ `TestUserFactory.create_user_with_disabilities(user_id, test_data_dir)` - Create a test user with disability-focused features and data
 
 Args:
@@ -4612,6 +3548,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_disabilities__impl(user_id)` - Internal implementation of disability user creation
+  - ✅ `TestUserFactory.create_user_with_disabilities__with_test_dir(user_id, test_data_dir)` - Create disability user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_health_focus(user_id, test_data_dir)` - Create a test user with health-focused features and data
 
 Args:
@@ -4620,6 +3558,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_health_focus__impl(user_id)` - Internal implementation of health focus user creation
+  - ✅ `TestUserFactory.create_user_with_health_focus__with_test_dir(user_id, test_data_dir)` - Create health focus user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_inconsistent_data(user_id, test_data_dir)` - Create a test user with inconsistent data for testing edge cases
 
 Args:
@@ -4628,6 +3568,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_inconsistent_data__impl(user_id)` - Internal implementation of inconsistent data user creation
+  - ✅ `TestUserFactory.create_user_with_inconsistent_data__with_test_dir(user_id, test_data_dir)` - Create inconsistent data user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_limited_data(user_id, test_data_dir)` - Create a test user with minimal data for testing edge cases
 
 Args:
@@ -4636,6 +3578,8 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_limited_data__impl(user_id)` - Internal implementation of limited data user creation
+  - ✅ `TestUserFactory.create_user_with_limited_data__with_test_dir(user_id, test_data_dir)` - Create limited data user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_schedules(user_id, schedule_config, test_data_dir)` - Create a test user with comprehensive schedule configuration
 
 Args:
@@ -4645,6 +3589,7 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_schedules__impl(user_id, schedule_config)` - Internal implementation of schedules user creation
   - ✅ `TestUserFactory.create_user_with_task_focus(user_id, test_data_dir)` - Create a test user with task management focus
 
 Args:
@@ -4653,8 +3598,11 @@ Args:
     
 Returns:
     bool: True if user was created successfully, False otherwise
+  - ✅ `TestUserFactory.create_user_with_task_focus__impl(user_id)` - Internal implementation of task focus user creation
+  - ✅ `TestUserFactory.create_user_with_task_focus__with_test_dir(user_id, test_data_dir)` - Create task focus user with test directory by directly saving files
   - ✅ `TestUserFactory.get_test_user_data(user_id, test_data_dir)` - Get user data from test directory
   - ✅ `TestUserFactory.get_test_user_id_by_internal_username(internal_username, test_data_dir)` - Get user ID by internal username from test directory
+  - ✅ `TestUserFactory.verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir)` - Helper function to verify email user creation with proper configuration patching
 
 #### `tests/ui/test_account_creation_ui.py`
 **Functions:**
@@ -4822,7 +3770,6 @@ Returns:
 
 #### `tests/ui/test_dialogs.py`
 **Functions:**
-- ✅ `main()` - Run all tests and generate a comprehensive report
 - ❌ `mock_save(data)` - No description
 - ✅ `test_dialog_imports()` - Test that all dialog modules can be imported without errors
 - ✅ `test_dialog_instantiation()` - Test that dialogs can be instantiated (without showing them)
@@ -5490,6 +4437,24 @@ Returns:
 #### `ui/dialogs/account_creator_dialog.py`
 **Functions:**
 - ✅ `__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
+- ✅ `_build_features_dict(self, features_enabled)` - Build features dictionary in the correct format.
+- ✅ `_determine_chat_id(self, channel_type, email, phone, discord_user_id)` - Determine chat_id based on channel type.
+- ✅ `_validate_and_accept__add_feature_settings(self, user_preferences, account_data, features_enabled)` - Add feature-specific settings to user preferences.
+- ✅ `_validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
+- ✅ `_validate_and_accept__build_user_preferences(self, account_data)` - Build user preferences data structure.
+- ✅ `_validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
+- ✅ `_validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
+- ✅ `_validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
+- ✅ `_validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
+- ✅ `_validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
+- ✅ `_validate_and_accept__create_account(self, account_data)` - Create the account and set up all necessary components.
+- ✅ `_validate_and_accept__handle_success(self, username)` - Handle successful account creation.
+- ✅ `_validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
+- ✅ `_validate_and_accept__schedule_new_user(self, user_id)` - Schedule the new user in the scheduler.
+- ✅ `_validate_and_accept__setup_task_tags(self, user_id, account_data)` - Set up task tags for the new user.
+- ✅ `_validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
+- ✅ `_validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
+- ✅ `_validate_and_accept__update_user_index(self, user_id)` - Update user index for the new user.
 - ✅ `accept(self)` - Override accept to prevent automatic dialog closing.
 - ✅ `center_dialog(self)` - Center the dialog on the parent window.
 - ✅ `close_dialog(self)` - Close the dialog properly.
@@ -5519,6 +4484,24 @@ Returns:
 **Classes:**
 - ✅ `AccountCreatorDialog` - Account creation dialog using existing UI files.
   - ✅ `AccountCreatorDialog.__init__(self, parent, communication_manager)` - Initialize the account creator dialog.
+  - ✅ `AccountCreatorDialog._build_features_dict(self, features_enabled)` - Build features dictionary in the correct format.
+  - ✅ `AccountCreatorDialog._determine_chat_id(self, channel_type, email, phone, discord_user_id)` - Determine chat_id based on channel type.
+  - ✅ `AccountCreatorDialog._validate_and_accept__add_feature_settings(self, user_preferences, account_data, features_enabled)` - Add feature-specific settings to user preferences.
+  - ✅ `AccountCreatorDialog._validate_and_accept__build_account_data(self, username, preferred_name, timezone, channel_data, contact_info, categories, task_settings, checkin_settings, messages_enabled, tasks_enabled, checkins_enabled)` - Build the complete account data structure.
+  - ✅ `AccountCreatorDialog._validate_and_accept__build_user_preferences(self, account_data)` - Build user preferences data structure.
+  - ✅ `AccountCreatorDialog._validate_and_accept__collect_basic_user_info(self)` - Collect basic user information from UI fields.
+  - ✅ `AccountCreatorDialog._validate_and_accept__collect_channel_data(self)` - Collect channel and contact information from widgets.
+  - ✅ `AccountCreatorDialog._validate_and_accept__collect_data(self)` - Collect all data from UI and build account data structure.
+  - ✅ `AccountCreatorDialog._validate_and_accept__collect_feature_settings(self)` - Collect feature enablement states from UI.
+  - ✅ `AccountCreatorDialog._validate_and_accept__collect_widget_data(self)` - Collect data from all widgets.
+  - ✅ `AccountCreatorDialog._validate_and_accept__create_account(self, account_data)` - Create the account and set up all necessary components.
+  - ✅ `AccountCreatorDialog._validate_and_accept__handle_success(self, username)` - Handle successful account creation.
+  - ✅ `AccountCreatorDialog._validate_and_accept__input_errors(self)` - Validate input and show error dialog if validation fails.
+  - ✅ `AccountCreatorDialog._validate_and_accept__schedule_new_user(self, user_id)` - Schedule the new user in the scheduler.
+  - ✅ `AccountCreatorDialog._validate_and_accept__setup_task_tags(self, user_id, account_data)` - Set up task tags for the new user.
+  - ✅ `AccountCreatorDialog._validate_and_accept__show_error_dialog(self, title, message)` - Show an error dialog with the given title and message.
+  - ✅ `AccountCreatorDialog._validate_and_accept__show_success_dialog(self, username)` - Show a success dialog for account creation.
+  - ✅ `AccountCreatorDialog._validate_and_accept__update_user_index(self, user_id)` - Update user index for the new user.
   - ✅ `AccountCreatorDialog.accept(self)` - Override accept to prevent automatic dialog closing.
   - ✅ `AccountCreatorDialog.center_dialog(self)` - Center the dialog on the parent window.
   - ✅ `AccountCreatorDialog.close_dialog(self)` - Close the dialog properly.
@@ -5725,6 +4708,7 @@ Args:
 - ✅ `load_task_data(self)` - Load existing task data into the form.
 - ✅ `on_hour_changed(self, hour_text)` - Handle hour selection change.
 - ✅ `on_minute_changed(self, minute_text)` - Handle minute selection change.
+- ✅ `on_no_due_date_toggled(self, checked)` - Handle No Due Date checkbox toggle.
 - ✅ `render_reminder_period_row(self, index, period)` - Render a single reminder period row.
 - ✅ `render_reminder_periods(self)` - Render the reminder periods in the UI.
 - ✅ `save_task(self)` - Save the task data.
@@ -5745,6 +4729,7 @@ Args:
   - ✅ `TaskEditDialog.load_task_data(self)` - Load existing task data into the form.
   - ✅ `TaskEditDialog.on_hour_changed(self, hour_text)` - Handle hour selection change.
   - ✅ `TaskEditDialog.on_minute_changed(self, minute_text)` - Handle minute selection change.
+  - ✅ `TaskEditDialog.on_no_due_date_toggled(self, checked)` - Handle No Due Date checkbox toggle.
   - ✅ `TaskEditDialog.render_reminder_period_row(self, index, period)` - Render a single reminder period row.
   - ✅ `TaskEditDialog.render_reminder_periods(self)` - Render the reminder periods in the UI.
   - ✅ `TaskEditDialog.save_task(self)` - Save the task data.
@@ -6331,6 +5316,16 @@ Args:
 #### `ui/widgets/period_row_widget.py`
 **Functions:**
 - ✅ `__init__(self, parent, period_name, period_data)` - Initialize the object.
+- ✅ `_get_day_checkboxes(self)` - Get list of day checkboxes.
+- ✅ `_set_read_only__all_period_read_only(self)` - Set ALL period to read-only with all days selected.
+- ✅ `_set_read_only__apply_read_only_styling(self)` - Apply read-only visual styling.
+- ✅ `_set_read_only__checkbox_states(self, read_only)` - Set checkbox states based on read-only mode and period type.
+- ✅ `_set_read_only__clear_read_only_styling(self)` - Clear read-only visual styling.
+- ✅ `_set_read_only__delete_button_visibility(self, read_only)` - Set delete button visibility based on read-only state.
+- ✅ `_set_read_only__force_style_updates(self)` - Force style updates for all checkboxes.
+- ✅ `_set_read_only__normal_checkbox_states(self, read_only)` - Set normal checkbox states for non-ALL periods.
+- ✅ `_set_read_only__time_inputs(self, read_only)` - Set time input widgets to read-only mode.
+- ✅ `_set_read_only__visual_styling(self, read_only)` - Apply visual styling for read-only state.
 - ✅ `get_period_data(self)` - Get the current period data from the widget.
 - ✅ `get_period_name(self)` - Get the current period name.
 - ✅ `get_selected_days(self)` - Get the currently selected days.
@@ -6346,6 +5341,16 @@ Args:
 **Classes:**
 - ✅ `PeriodRowWidget` - Reusable widget for editing time periods with days selection.
   - ✅ `PeriodRowWidget.__init__(self, parent, period_name, period_data)` - Initialize the object.
+  - ✅ `PeriodRowWidget._get_day_checkboxes(self)` - Get list of day checkboxes.
+  - ✅ `PeriodRowWidget._set_read_only__all_period_read_only(self)` - Set ALL period to read-only with all days selected.
+  - ✅ `PeriodRowWidget._set_read_only__apply_read_only_styling(self)` - Apply read-only visual styling.
+  - ✅ `PeriodRowWidget._set_read_only__checkbox_states(self, read_only)` - Set checkbox states based on read-only mode and period type.
+  - ✅ `PeriodRowWidget._set_read_only__clear_read_only_styling(self)` - Clear read-only visual styling.
+  - ✅ `PeriodRowWidget._set_read_only__delete_button_visibility(self, read_only)` - Set delete button visibility based on read-only state.
+  - ✅ `PeriodRowWidget._set_read_only__force_style_updates(self)` - Force style updates for all checkboxes.
+  - ✅ `PeriodRowWidget._set_read_only__normal_checkbox_states(self, read_only)` - Set normal checkbox states for non-ALL periods.
+  - ✅ `PeriodRowWidget._set_read_only__time_inputs(self, read_only)` - Set time input widgets to read-only mode.
+  - ✅ `PeriodRowWidget._set_read_only__visual_styling(self, read_only)` - Apply visual styling for read-only state.
   - ✅ `PeriodRowWidget.get_period_data(self)` - Get the current period data from the widget.
   - ✅ `PeriodRowWidget.get_period_name(self)` - Get the current period name.
   - ✅ `PeriodRowWidget.get_selected_days(self)` - Get the currently selected days.
@@ -6476,6 +5481,115 @@ Args:
 
 ### `user/` - User Data and Context
 
+#### `user/context_manager.py`
+**Functions:**
+- ✅ `__init__(self)` - Initialize the UserContextManager.
+
+Sets up conversation history storage for tracking user interactions.
+- ✅ `_get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
+
+Args:
+    schedules: Dictionary containing schedule periods
+    
+Returns:
+    list: List of active schedule period names
+- ✅ `_get_conversation_history(self, user_id)` - Get recent conversation history with this user.
+- ✅ `_get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
+- ✅ `_get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
+
+Args:
+    user_id: The user's ID (can be None for anonymous context)
+    
+Returns:
+    dict: Minimal context with basic information
+- ✅ `_get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
+- ✅ `_get_recent_activity(self, user_id)` - Get recent user activity and responses.
+- ✅ `_get_user_preferences(self, user_id)` - Get user preferences using new structure.
+- ✅ `_get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
+- ✅ `add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
+
+Args:
+    user_id: The user's ID
+    user_message: The user's message
+    ai_response: The AI's response
+- ✅ `format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
+
+Args:
+    context: User context dictionary
+    
+Returns:
+    str: Formatted context string for AI consumption
+- ✅ `get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
+
+Args:
+    user_id: The user's ID
+    include_conversation_history: Whether to include recent conversation history
+    
+Returns:
+    Dict containing all relevant user context for AI processing
+- ✅ `get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
+
+Args:
+    include_conversation_history: Whether to include recent conversation history
+    
+Returns:
+    Dict containing all relevant user context for current user
+- ✅ `get_user_context(self, user_id, include_conversation_history)` - Legacy alias for get_ai_context - use get_ai_context instead.
+**Classes:**
+- ✅ `UserContextManager` - Manages rich user context for AI conversations.
+  - ✅ `UserContextManager.__init__(self)` - Initialize the UserContextManager.
+
+Sets up conversation history storage for tracking user interactions.
+  - ✅ `UserContextManager._get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
+
+Args:
+    schedules: Dictionary containing schedule periods
+    
+Returns:
+    list: List of active schedule period names
+  - ✅ `UserContextManager._get_conversation_history(self, user_id)` - Get recent conversation history with this user.
+  - ✅ `UserContextManager._get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
+  - ✅ `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
+
+Args:
+    user_id: The user's ID (can be None for anonymous context)
+    
+Returns:
+    dict: Minimal context with basic information
+  - ✅ `UserContextManager._get_mood_trends(self, user_id)` - Analyze recent mood and energy trends.
+  - ✅ `UserContextManager._get_recent_activity(self, user_id)` - Get recent user activity and responses.
+  - ✅ `UserContextManager._get_user_preferences(self, user_id)` - Get user preferences using new structure.
+  - ✅ `UserContextManager._get_user_profile(self, user_id)` - Get basic user profile information using existing user infrastructure.
+  - ✅ `UserContextManager.add_conversation_exchange(self, user_id, user_message, ai_response)` - Add a conversation exchange to history.
+
+Args:
+    user_id: The user's ID
+    user_message: The user's message
+    ai_response: The AI's response
+  - ✅ `UserContextManager.format_context_for_ai(self, context)` - Format user context into a concise string for AI prompt.
+
+Args:
+    context: User context dictionary
+    
+Returns:
+    str: Formatted context string for AI consumption
+  - ✅ `UserContextManager.get_ai_context(self, user_id, include_conversation_history)` - Get comprehensive user context for AI conversation.
+
+Args:
+    user_id: The user's ID
+    include_conversation_history: Whether to include recent conversation history
+    
+Returns:
+    Dict containing all relevant user context for AI processing
+  - ✅ `UserContextManager.get_current_user_context(self, include_conversation_history)` - Get context for the currently logged-in user using the existing UserContext singleton.
+
+Args:
+    include_conversation_history: Whether to include recent conversation history
+    
+Returns:
+    Dict containing all relevant user context for current user
+  - ✅ `UserContextManager.get_user_context(self, user_id, include_conversation_history)` - Legacy alias for get_ai_context - use get_ai_context instead.
+
 #### `user/user_context.py`
 **Functions:**
 - ✅ `__new__(cls)` - Create a new instance.
@@ -6486,11 +5600,15 @@ Args:
     
 Returns:
     list: List of active schedule period names
+- ✅ `get_instance_context(self)` - Get basic user context from the current UserContext instance.
+
+Returns:
+    dict: Dictionary containing basic user context information
 - ✅ `get_internal_username(self)` - Retrieves the internal_username from the user_data dictionary.
 
 Returns:
     str: The current internal username, or None if not set.
-- ✅ `get_preference(self, key)` - Retrieves a user preference from the user_data dictionary.
+- ✅ `get_preference(self, key)` - Retrieves a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to retrieve.
@@ -6501,10 +5619,7 @@ Returns:
 
 Returns:
     str: The current preferred name, or None if not set.
-- ✅ `get_user_context(self)` - Get comprehensive user context for AI conversations.
-
-Returns:
-    dict: Dictionary containing all relevant user context information
+- ✅ `get_user_context(self)` - Legacy alias for get_instance_context - use get_instance_context instead.
 - ✅ `get_user_id(self)` - Retrieves the user_id from the user_data dictionary.
 
 Returns:
@@ -6521,7 +5636,7 @@ Args:
 
 Args:
     internal_username (str): The internal username to be set.
-- ✅ `set_preference(self, key, value)` - Sets a user preference in the user_data dictionary.
+- ✅ `set_preference(self, key, value)` - Sets a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to be set.
@@ -6534,7 +5649,7 @@ Args:
 
 Args:
     user_id (str): The user ID to be set.
-- ✅ `update_preference(self, key, value)` - Updates a user preference and saves the data.
+- ✅ `update_preference(self, key, value)` - Updates a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to be updated.
@@ -6549,11 +5664,15 @@ Args:
     
 Returns:
     list: List of active schedule period names
+  - ✅ `UserContext.get_instance_context(self)` - Get basic user context from the current UserContext instance.
+
+Returns:
+    dict: Dictionary containing basic user context information
   - ✅ `UserContext.get_internal_username(self)` - Retrieves the internal_username from the user_data dictionary.
 
 Returns:
     str: The current internal username, or None if not set.
-  - ✅ `UserContext.get_preference(self, key)` - Retrieves a user preference from the user_data dictionary.
+  - ✅ `UserContext.get_preference(self, key)` - Retrieves a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to retrieve.
@@ -6564,10 +5683,7 @@ Returns:
 
 Returns:
     str: The current preferred name, or None if not set.
-  - ✅ `UserContext.get_user_context(self)` - Get comprehensive user context for AI conversations.
-
-Returns:
-    dict: Dictionary containing all relevant user context information
+  - ✅ `UserContext.get_user_context(self)` - Legacy alias for get_instance_context - use get_instance_context instead.
   - ✅ `UserContext.get_user_id(self)` - Retrieves the user_id from the user_data dictionary.
 
 Returns:
@@ -6584,7 +5700,7 @@ Args:
 
 Args:
     internal_username (str): The internal username to be set.
-  - ✅ `UserContext.set_preference(self, key, value)` - Sets a user preference in the user_data dictionary.
+  - ✅ `UserContext.set_preference(self, key, value)` - Sets a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to be set.
@@ -6597,7 +5713,7 @@ Args:
 
 Args:
     user_id (str): The user ID to be set.
-  - ✅ `UserContext.update_preference(self, key, value)` - Updates a user preference and saves the data.
+  - ✅ `UserContext.update_preference(self, key, value)` - Updates a user preference using UserPreferences.
 
 Args:
     key (str): The preference key to be updated.

@@ -320,7 +320,7 @@ class ProfileHandler(InteractionHandler):
             account_result = get_user_data(user_id, 'account')
             account_data = account_result.get('account', {}) if account_result else {}
             account_data['email'] = entities['email']
-            # Note: Would need to implement save_user_account_data
+            # Note: Using save_user_data instead of individual save function
             updates.append('email')
         
         # Save updates
