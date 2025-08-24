@@ -239,48 +239,19 @@ class InteractionManager:
     def _handle_contextual_chat(self, user_id: str, message: str, channel_type: str) -> InteractionResponse:
         """Handle contextual chat using AI chatbot"""
         try:
-            # Use existing AI chatbot for contextual responses
-            response_text = self.ai_chatbot.generate_contextual_response(user_id, message)
+            # Try AI command parsing first for ambiguous messages
+            ai_command_result = self._try_ai_command_parsing(user_id, message, channel_type)
+            if ai_command_result:
+                return ai_command_result
             
-            # Only add suggestions for certain types of messages
-            # Don't add suggestions for general conversational responses
-            suggestions = []
-            
-            # Add suggestions only for:
-            # 1. Greetings (to guide new users)
-            # 2. Help requests
-            # 3. When user seems unsure what to do
-            message_lower = message.lower()
-            print(f"DEBUG: Checking message: '{message}'")
-            print(f"DEBUG: Message lower: '{message_lower}'")
-            
-            greeting_triggers = ['hello', 'hi', 'hey']
-            help_triggers = ['help', 'what can you do']
-            if message_lower.strip() in greeting_triggers or \
-               any(message_lower.strip().startswith(trigger) for trigger in help_triggers):
-                suggestions = self.command_parser.get_suggestions(message)
-                print(f"DEBUG: Adding suggestions for greeting/help")
-            elif any(phrase in message_lower for phrase in [
-                "i don't know what to do", "i don't know how", "what should i do", "i'm not sure"
-            ]):
-                suggestions = self.command_parser.get_suggestions(message)
-                print(f"DEBUG: Adding suggestions for uncertainty")
-            else:
-                print(f"DEBUG: No suggestions for message: {message}")
-            
-            return InteractionResponse(
-                response_text,
-                True,
-                suggestions=suggestions
-            )
+            # If AI command parsing didn't find a command, generate contextual response
+            ai_chatbot = get_ai_chatbot()
+            response = ai_chatbot.generate_response(user_id, message, mode="chat")
+            return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error in contextual chat for user {user_id}: {e}")
-            return InteractionResponse(
-                "I'm having trouble with contextual responses right now. "
-                "Try using a specific command like 'help' or 'show my tasks'.",
-                True
-            )
+            logger.error(f"Error in contextual chat: {e}")
+            return InteractionResponse("I'm having trouble processing your message right now. Please try again.", True)
     
     def _enhance_response_with_ai(self, user_id: str, response: InteractionResponse, parsed_command: ParsedCommand) -> InteractionResponse:
         """Enhance a structured response with AI contextual information"""
@@ -436,25 +407,143 @@ Keep the response under 200 words.
         ])
         
         return suggestions[:5]  # Limit to 5 suggestions
-    
-    def handle_help_request(self, user_id: str, topic: str = "general") -> InteractionResponse:
-        """Handle help requests with topic-specific information"""
-        help_handler = get_interaction_handler('help')
-        if help_handler:
-            # Create a parsed command for help
-            from communication.command_handlers.interaction_handlers import ParsedCommand
-            parsed_command = ParsedCommand('help', {'topic': topic}, 1.0, f"help {topic}")
-            return help_handler.handle(user_id, parsed_command)
+
+    def _is_ai_command_response(self, ai_response: str) -> bool:
+        """Check if AI response indicates this was a command"""
+        # Look for JSON structure or command indicators
+        if ai_response.strip().startswith('{') and ai_response.strip().endswith('}'):
+            return True
         
-        # Fallback help
-        return InteractionResponse(
-            "I'm here to help! Try these commands:\n"
-            "• 'help tasks' - Task management help\n"
-            "• 'help checkin' - Check-in help\n"
-            "• 'help profile' - Profile management help\n"
-            "• 'commands' - List all available commands",
-            True
-        )
+        # Look for command action keywords
+        command_indicators = ['action', 'intent', 'command', 'task', 'checkin', 'profile', 'schedule']
+        return any(indicator in ai_response.lower() for indicator in command_indicators)
+    
+    def _parse_ai_command_response(self, ai_response: str, original_message: str) -> Optional[ParsedCommand]:
+        """Parse AI command response into ParsedCommand"""
+        try:
+            import json
+            # Try to parse as JSON first
+            if ai_response.strip().startswith('{') and ai_response.strip().endswith('}'):
+                data = json.loads(ai_response)
+                return ParsedCommand(
+                    intent=data.get('intent', 'unknown'),
+                    entities=data.get('entities', {}),
+                    confidence=data.get('confidence', 0.7),
+                    original_message=original_message
+                )
+            
+            # Fallback: try to extract intent from text response
+            ai_response_lower = ai_response.lower()
+            if 'checkin' in ai_response_lower:
+                return ParsedCommand(intent='start_checkin', entities={}, confidence=0.6, original_message=original_message)
+            elif 'task' in ai_response_lower:
+                return ParsedCommand(intent='list_tasks', entities={}, confidence=0.6, original_message=original_message)
+            elif 'profile' in ai_response_lower:
+                return ParsedCommand(intent='show_profile', entities={}, confidence=0.6, original_message=original_message)
+            elif 'mood' in ai_response_lower or 'analytics' in ai_response_lower:
+                return ParsedCommand(intent='show_analytics', entities={}, confidence=0.6, original_message=original_message)
+            
+            return None
+        except Exception as e:
+            logger.debug(f"Failed to parse AI command response: {e}")
+            return None
+    
+    def _is_clarification_request(self, ai_response: str) -> bool:
+        """Check if AI response is asking for clarification"""
+        clarification_indicators = [
+            'could you clarify', 'can you clarify', 'please clarify',
+            'what do you mean', 'could you be more specific',
+            'are you asking', 'do you want', 'would you like',
+            'i\'m not sure what you mean', 'i need more information',
+            'which one', 'what type', 'when', 'how'
+        ]
+        
+        response_lower = ai_response.lower()
+        return any(indicator in response_lower for indicator in clarification_indicators)
+    
+    def _extract_intent_from_text(self, text: str) -> Optional[str]:
+        """Extract intent from AI text response"""
+        # Map common AI response patterns to intents
+        intent_mappings = {
+            'create task': 'create_task',
+            'list tasks': 'list_tasks',
+            'complete task': 'complete_task',
+            'delete task': 'delete_task',
+            'update task': 'update_task',
+            'task stats': 'task_stats',
+            'start checkin': 'start_checkin',
+            'checkin status': 'checkin_status',
+            'checkin history': 'checkin_history',
+            'checkin analysis': 'checkin_analysis',
+            'show profile': 'show_profile',
+            'update profile': 'update_profile',
+            'profile stats': 'profile_stats',
+            'mood trends': 'mood_trends',
+            'habit analysis': 'habit_analysis',
+            'sleep analysis': 'sleep_analysis',
+            'wellness score': 'wellness_score',
+            'show analytics': 'show_analytics',
+            'help': 'help',
+            'commands': 'commands',
+            'examples': 'examples',
+        }
+        
+        text_lower = text.lower()
+        for pattern, intent in intent_mappings.items():
+            if pattern in text_lower:
+                return intent
+        
+        return None
+    
+    def _is_valid_intent(self, intent: str) -> bool:
+        """Check if intent is supported by any handler"""
+        for handler in self.interaction_handlers.values():
+            if handler.can_handle(intent):
+                return True
+        return False
+
+    def _try_ai_command_parsing(self, user_id: str, message: str, channel_type: str) -> Optional[InteractionResponse]:
+        """Attempt to parse ambiguous messages using AI command parsing."""
+        try:
+            # First try regular command parsing
+            ai_response = self.ai_chatbot.generate_response(
+                message, 
+                mode="command",
+                timeout=5  # Short timeout for command parsing
+            )
+            
+            # Check if AI detected this as a command
+            if self._is_ai_command_response(ai_response):
+                # AI thinks this is a command, try to parse it
+                parsed_command = self._parse_ai_command_response(ai_response, message)
+                if parsed_command and parsed_command.intent != "unknown":
+                    logger.debug(f"AI detected command: {parsed_command.intent}")
+                    return self._handle_structured_command(user_id, 
+                        ParsingResult(parsed_command, 0.7, "ai_command"), channel_type)
+            
+            # If regular command parsing didn't work, try clarification mode
+            clarification_response = self.ai_chatbot.generate_response(
+                message,
+                mode="command_with_clarification", 
+                timeout=8  # Slightly longer timeout for clarification
+            )
+            
+            # Check if AI is asking for clarification
+            if self._is_clarification_request(clarification_response):
+                return InteractionResponse(clarification_response, True)
+            
+            # If clarification mode found a command, handle it
+            if self._is_ai_command_response(clarification_response):
+                parsed_command = self._parse_ai_command_response(clarification_response, message)
+                if parsed_command and parsed_command.intent != "unknown":
+                    logger.debug(f"AI detected command in clarification mode: {parsed_command.intent}")
+                    return self._handle_structured_command(user_id, 
+                        ParsingResult(parsed_command, 0.6, "ai_command_clarified"), channel_type)
+                        
+        except Exception as e:
+            logger.debug(f"AI command parsing failed: {e}")
+        
+        return None
 
 # Global instance
 _interaction_manager_instance = None

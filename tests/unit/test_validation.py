@@ -285,16 +285,16 @@ class TestUserUpdateValidation:
         updates = {
             "categories": ["invalid_category", "motivational"]
         }
-        
+
         # Mock get_message_categories
         with patch('core.message_management.get_message_categories') as mock_categories:
             mock_categories.return_value = ["motivational", "health", "fun_facts"]
-            
+
             is_valid, errors = validate_user_update(user_id, 'preferences', updates)
-            
-            # Pydantic validation doesn't validate category membership like old validation did
-            # The test expectation was based on old validation logic
-            assert is_valid is True, f"Preferences update should be valid with Pydantic validation, got errors: {errors}"
+
+            # Pydantic validation now correctly validates category membership
+            assert is_valid is False, f"Preferences update should be invalid with invalid categories, got valid"
+            assert "Invalid categories" in errors[0], f"Should have category validation error, got: {errors}"
     
     @pytest.mark.unit
     @pytest.mark.user_management

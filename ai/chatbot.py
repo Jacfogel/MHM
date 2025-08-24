@@ -673,6 +673,23 @@ Additional Instructions:
         user_message = {"role": "user", "content": user_prompt}
         return [system_message, user_message]
 
+    @handle_errors(
+        "creating command parsing with clarification prompt",
+        default_return=[
+            {"role": "system", "content": "You are a command parser. Your job is to extract the user's intent and return it as JSON. If the user's request is ambiguous or incomplete, you should ask for clarification. Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, wellness_score, help, commands, examples, status, messages."},
+            {"role": "user", "content": "Hello"},
+        ],
+    )
+    def _create_command_parsing_with_clarification_prompt(self, user_prompt: str) -> list:
+        """Create a prompt instructing the model to return strict JSON and ask for clarification if ambiguous."""
+        system_message = {
+            "role": "system",
+            "content": system_prompt_loader.get_system_prompt('command'),
+        }
+
+        user_message = {"role": "user", "content": user_prompt}
+        return [system_message, user_message]
+
     @handle_errors("generating AI response", default_return="I'm having trouble generating a response right now. Please try again in a moment.")
     def generate_response(
         self,
@@ -740,9 +757,14 @@ Additional Instructions:
             messages = self._create_command_parsing_prompt(user_prompt)
             max_tokens = 60
             temperature = 0.0
+        elif mode == "command_with_clarification":
+            messages = self._create_command_parsing_with_clarification_prompt(user_prompt)
+            max_tokens = 120
+            temperature = 0.1
         else:
             messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-            max_tokens = min(120, max(50, len(user_prompt) // 2))
+            # Calculate max_tokens based on AI_MAX_RESPONSE_LENGTH (roughly 4 characters per token)
+            max_tokens = min(200, max(50, AI_MAX_RESPONSE_LENGTH // 4))
             temperature = 0.2
         
         try:

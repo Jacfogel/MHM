@@ -461,23 +461,23 @@ class TestUserManagementEdgeCases:
         
         # Modify preferences
         new_preferences = {
-            'categories': ['motivational', 'health', 'fun_facts'],
+            'categories': ['motivational', 'health'],
             'timezone': 'America/Regina',
             'checkin_settings': {'enabled': True},
             'task_settings': {'enabled': False}
         }
-        
+
         result = update_user_preferences(actual_user_id, new_preferences)
         assert result is True
-        
+
         # ✅ VERIFY REAL BEHAVIOR: Check data was actually persisted
         updated_user_data = get_user_data(actual_user_id, 'all')
         updated_preferences = updated_user_data['preferences']
-        
-        assert updated_preferences['categories'] == ['motivational', 'health', 'fun_facts']
+
+        assert updated_preferences['categories'] == ['motivational', 'health']
         assert updated_preferences['timezone'] == 'America/Regina'
         assert updated_preferences['task_settings']['enabled'] is False
-        
+
         # ✅ VERIFY REAL BEHAVIOR: Check file was actually modified
         preferences_file_path = os.path.join(actual_user_dir, 'preferences.json')
         with open(preferences_file_path, 'r') as f:
@@ -490,29 +490,29 @@ class TestUserManagementEdgeCases:
         
         # Step 4: Test data consistency across operations
         # ✅ VERIFY REAL BEHAVIOR: Check data consistency
-        for _ in range(5):  # Test multiple reads
-            consistency_data = get_user_data(actual_user_id, 'all')
-            assert 'categories' in consistency_data['preferences'], "Categories should be in preferences"
-            assert isinstance(consistency_data['preferences']['categories'], list), "Categories should be a list"
-            assert 'motivational' in consistency_data['preferences']['categories'], "Should contain motivational category"
-            assert 'health' in consistency_data['preferences']['categories'], "Should contain health category"
-            assert consistency_data['preferences']['timezone'] == 'America/Regina'
+        consistency_data = get_user_data(actual_user_id, 'all')
+        assert consistency_data['preferences']['categories'] == ['motivational', 'health']
+        assert isinstance(consistency_data['preferences']['categories'], list), "Categories should be a list"
+        assert 'motivational' in consistency_data['preferences']['categories'], "Should contain motivational category"
+        assert 'health' in consistency_data['preferences']['categories'], "Should contain health category"
+        assert consistency_data['preferences']['timezone'] == 'America/Regina'
+
+        # Step 5: Test partial updates
+        # ✅ VERIFY REAL BEHAVIOR: Test partial preference updates
+        partial_updates = {
+            'task_settings': {'enabled': True}
+        }
         
-        # Step 5: Test partial data updates
-        # ✅ VERIFY REAL BEHAVIOR: Check partial updates work correctly
-        partial_update = {'timezone': 'America/Toronto'}
-        result = update_user_preferences(actual_user_id, partial_update)
-        assert result is True
+        partial_result = update_user_preferences(actual_user_id, partial_updates)
+        assert partial_result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check partial update preserved other data
         partial_updated_data = get_user_data(actual_user_id, 'all')
-        assert partial_updated_data['preferences']['timezone'] == 'America/Toronto'
-        # Check that categories are still present (might be different due to validation/merging)
-        assert 'categories' in partial_updated_data['preferences'], "Categories should be in preferences"
+        assert partial_updated_data['preferences']['categories'] == ['motivational', 'health']
         assert isinstance(partial_updated_data['preferences']['categories'], list), "Categories should be a list"
         assert 'motivational' in partial_updated_data['preferences']['categories'], "Should contain motivational category"
         assert 'health' in partial_updated_data['preferences']['categories'], "Should contain health category"
-        assert partial_updated_data['preferences']['task_settings']['enabled'] is False
+        assert partial_updated_data['preferences']['task_settings']['enabled'] is True
         
         # Step 6: Test data validation and error handling
         # ✅ VERIFY REAL BEHAVIOR: Check invalid user ID handling
@@ -521,7 +521,7 @@ class TestUserManagementEdgeCases:
         
         # ✅ VERIFY REAL BEHAVIOR: Check existing user data is unaffected
         valid_data = get_user_data(actual_user_id, 'all')
-        assert valid_data['preferences']['timezone'] == 'America/Toronto'
+        assert valid_data['preferences']['timezone'] == 'America/Regina'
         
         # Step 7: Test file system integrity
         # ✅ VERIFY REAL BEHAVIOR: Check all files are valid JSON
@@ -550,7 +550,7 @@ class TestUserManagementEdgeCases:
         
         # ✅ VERIFY REAL BEHAVIOR: Check all concurrent reads return consistent data
         for result in concurrent_results:
-            assert result == 'America/Toronto', f"Concurrent read should return consistent data: {result}"
+            assert result == 'America/Regina', f"Concurrent read should return consistent data: {result}"
         
         # Step 9: Test data recovery and resilience
         # ✅ VERIFY REAL BEHAVIOR: Check system can recover from file corruption

@@ -145,6 +145,43 @@ class PreferencesModel(BaseModel):
     checkin_settings: Dict[str, Any] | None = None
     task_settings: Dict[str, Any] | None = None
 
+    @field_validator("categories")
+    @classmethod
+    def _validate_categories(cls, v: List[str]) -> List[str]:
+        """Validate that all categories are in the allowed list."""
+        if not v:
+            return v
+        
+        try:
+            from core.message_management import get_message_categories
+            allowed_categories = get_message_categories()
+            invalid_categories = [c for c in v if c not in allowed_categories]
+            
+            if invalid_categories:
+                raise ValueError(f"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}")
+            
+            return v
+        except ImportError:
+            # If message_management is not available, allow all categories
+            return v
+        except ValueError:
+            # Re-raise ValueError (invalid categories) - don't catch this
+            raise
+        except Exception as e:
+            # If there's any other error (like missing env vars), use default categories
+            from core.logger import get_component_logger
+            logger = get_component_logger(__name__)
+            logger.warning(f"Category validation error: {e}, using default categories")
+            
+            # Default categories that should always be valid
+            default_categories = ['motivational', 'health', 'fun_facts', 'quotes_to_ponder', 'word_of_the_day']
+            invalid_categories = [c for c in v if c not in default_categories]
+            
+            if invalid_categories:
+                raise ValueError(f"Invalid categories: {invalid_categories}. Allowed categories: {default_categories}")
+            
+            return v
+
 
 # --------------------------------- Schedules ---------------------------------
 

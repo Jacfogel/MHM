@@ -94,7 +94,7 @@ AI_AI_PARSING_BASE_CONFIDENCE = float(os.getenv('AI_AI_PARSING_BASE_CONFIDENCE',
 AI_AI_PARSING_PARTIAL_CONFIDENCE = float(os.getenv('AI_AI_PARSING_PARTIAL_CONFIDENCE', '0.6'))  # Confidence for partial AI parsing results
 
 # AI Response Length Configuration
-AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '150'))  # Maximum character length for AI-generated responses
+AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '800'))  # Maximum character length for AI-generated responses
 
 # User Context Caching
 CONTEXT_CACHE_TTL = int(os.getenv('CONTEXT_CACHE_TTL', '300'))  # 5 minutes
