@@ -61,7 +61,7 @@ def generate_all_documentation():
         print("\n[NEXT] Next Steps:")
         print("   - Review the generated documentation")
         print("   - Commit changes to version control")
-        print("   - Update CHANGELOG.md if needed")
+        print("   - Update CHANGELOG_DETAIL.md if needed")
     else:
         print("[ERROR] Some documentation generation failed!")
         if not success1:

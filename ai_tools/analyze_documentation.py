@@ -17,7 +17,7 @@ def get_documentation_files() -> Dict[str, str]:
     # Documentation files to analyze
     doc_files = [
         'ARCHITECTURE.md',
-        'CHANGELOG.md', 
+        'CHANGELOG_DETAIL.md', 
         'DEVELOPMENT_WORKFLOW.md',
         'DOCUMENTATION_GUIDE.md',
         'FUNCTION_REGISTRY_DETAIL.md',
@@ -25,7 +25,6 @@ def get_documentation_files() -> Dict[str, str]:
         'QUICK_REFERENCE.md',
         'UI_MIGRATION_PLAN_DETAIL.md',
         'TODO.md',
-        'TESTING_IMPROVEMENT_PLAN_DETAIL.md',
         'DEVELOPMENT_GUIDELINES.md',
         'MODULE_DEPENDENCIES_DETAIL.md'
     ]

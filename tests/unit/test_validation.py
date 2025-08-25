@@ -806,7 +806,7 @@ class TestNewUserDataValidation:
         is_valid, errors = validate_new_user_data(user_id, data_updates)
         
         assert is_valid is False, "Invalid channel type should be invalid"
-        assert "Invalid channel type. Must be one of: email, discord, telegram" in errors
+        assert "Invalid channel type. Must be one of: email, discord" in errors
     
     @pytest.mark.unit
     @pytest.mark.user_management

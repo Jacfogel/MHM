@@ -87,9 +87,8 @@ MHM/
 ├── core/        # Backend service (refactored into focused modules)
 ├── custom_data/ # User data with backups and user index
 ├── data/        # User data (gitignored)
-├── resources/
-│   └── default_messages/
 ├── resources/   # Application resources and presets
+│   └── default_messages/
 ├── scripts/     # Utilities and tools
 ├── styles/      # QSS theme files
 ├── tasks/       # Task/reminder framework

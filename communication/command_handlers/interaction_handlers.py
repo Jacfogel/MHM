@@ -5,7 +5,7 @@ Interaction handlers for channel-neutral user interactions.
 
 This module provides a framework for handling different types of user interactions
 (like task management, check-ins, profile management) in a way that works across
-all communication channels (Discord, email, Telegram, etc.).
+all communication channels (Discord, email, etc.).
 """
 
 import re

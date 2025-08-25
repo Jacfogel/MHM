@@ -247,8 +247,7 @@ def infer_module_purpose(file_path: str, data: Dict, all_modules: Dict[str, Dict
             return "Discord bot implementation"
         elif 'email_bot' in file_path:
             return "Email bot implementation"
-        elif 'telegram_bot' in file_path:
-            return "Telegram bot implementation"
+
         elif 'user_context_manager' in file_path:
             return "Manages user context for AI conversations"
         else:
@@ -489,7 +488,7 @@ def get_module_purpose(file_path: str) -> str:
         'communication/message_processing/conversation_flow_manager.py': 'Manages conversation flows and check-ins',
         'communication/communication_channels/discord/bot.py': 'Discord bot implementation',
         'communication/communication_channels/email/bot.py': 'Email bot implementation',
-        'communication/communication_channels/telegram/bot.py': 'Telegram bot implementation',
+
         'user/context_manager.py': 'Manages user context for AI conversations',
         
         # User modules
@@ -852,7 +851,7 @@ Communication Dependencies:
 ├── Specific Channels
 │   ├── `communication/communication_channels/discord/bot.py` ← Third-party (discord.py), communication/communication_channels/base/base_channel
 │   ├── `communication/communication_channels/email/bot.py` ← Standard library (smtplib, imaplib), communication/communication_channels/base/base_channel
-│   └── `communication/communication_channels/telegram/bot.py` ← Third-party (telegram), communication/communication_channels/base/base_channel
+
 └── Conversation Flow
     └── `communication/message_processing/conversation_flow_manager.py` ← core/user_data_handlers, user/context_manager
 ```
@@ -937,7 +936,7 @@ UI Dependencies:
 ### **Third-Party Risks**
 - `communication/communication_channels/discord/bot.py` → `discord.py` (External API dependency)
 - `ui/ui_app_qt.py` → `PySide6` (UI framework dependency)
-- `communication/communication_channels/telegram/bot.py` → `python-telegram-bot` (External API dependency)
+
 
 ### **Circular Dependencies** (Potential Issues)
 - Monitor: `communication/core/channel_orchestrator.py` ↔ `communication/message_processing/conversation_flow_manager.py`

@@ -608,5 +608,5 @@ def validate_minimum_config():
     """Ensure at least one communication channel is configured"""
     available = get_available_channels()
     if not available:
-        raise ConfigurationError("No communication channels are properly configured. Please set up at least one channel (Telegram, Email, or Discord).")
+        raise ConfigurationError("No communication channels are properly configured. Please set up at least one channel (Email or Discord).")
     return available

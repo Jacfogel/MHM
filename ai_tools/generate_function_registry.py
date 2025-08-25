@@ -496,7 +496,7 @@ Communication Decision Tree:
 ├── Specific Channels
 │   ├── `communication/communication_channels/discord/bot.py` - Discord integration (19 functions)
 │   ├── `communication/communication_channels/email/bot.py` - Email integration (9 functions)
-│   └── `communication/communication_channels/telegram/bot.py` - Telegram integration (29/35 functions)
+
 └── Conversation Flow
     └── `communication/message_processing/conversation_flow_manager.py` - Conversation management (13 functions)
 ```

@@ -257,7 +257,7 @@ class MHMService:
             paths = self.initialize_paths()
             verify_file_access(paths)
 
-            # Step 2: Start CommunicationManager (Telegram, Email, Discord)
+            # Step 2: Start CommunicationManager (Email, Discord)
             for attempt in range(max_retries):
                 try:
                     self.communication_manager = CommunicationManager()

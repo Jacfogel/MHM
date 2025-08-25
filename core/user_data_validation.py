@@ -315,8 +315,8 @@ def validate_new_user_data(user_id: str, data_updates: Dict[str, Dict[str, Any]]
     channel = prefs.get('channel')
     if not isinstance(channel, dict) or not channel.get('type'):
         errors.append("channel.type is required for new user creation")
-    elif channel['type'] not in ['email', 'discord', 'telegram']:
-        errors.append("Invalid channel type. Must be one of: email, discord, telegram")
+    elif channel['type'] not in ['email', 'discord']:
+        errors.append("Invalid channel type. Must be one of: email, discord")
 
     # CONTEXT (optional)
     context = data_updates.get('context', {})

@@ -4,7 +4,7 @@
 conversation_manager.py
 
 Provides a single place to handle 'conversation flows' that can be used
-by any platform: Telegram, Discord, Email, etc.
+by any platform: Discord, Email, etc.
 
 We keep track of each user's 'state' in a dictionary, so if a user is in the middle
 of check-in or an AI chat flow, we know what question to ask next.

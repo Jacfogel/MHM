@@ -4,7 +4,7 @@
 ai/chatbot.py
 
 A separate module to handle AI chatbot logic for any platform
-(Discord, Telegram, Email, etc.). This keeps AI-specific code in one place,
+(Discord, Email, etc.). This keeps AI-specific code in one place,
 so we can phase in or out different messaging services without duplicating logic.
 """
 
