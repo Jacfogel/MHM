@@ -114,7 +114,7 @@ class TestConfigValidation:
         """Test successful communication channels validation."""
         with patch.dict(os.environ, {
             'DISCORD_BOT_TOKEN': 'test_discord_token',
-            'TELEGRAM_BOT_TOKEN': 'test_telegram_token',
+
             'EMAIL_SMTP_SERVER': 'smtp.test.com'
         }):
             is_valid, errors, warnings = validate_communication_channels()

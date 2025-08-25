@@ -751,145 +751,7 @@ class TestUserFactory:
             print(f"Error creating custom fields test user {user_id}: {e}")
             return False
     
-    @staticmethod
-    def create_telegram_user(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
-        """
-        Create a test user specifically configured for Telegram testing
-        
-        Args:
-            user_id: Unique identifier for the test user
-            telegram_username: Telegram username (defaults to user_id if not provided)
-            test_data_dir: Test data directory to use (if None, uses real user directory)
-            
-        Returns:
-            bool: True if user was created successfully, False otherwise
-        """
-        try:
-            # If test_data_dir is provided, use direct file creation
-            if test_data_dir:
-                return TestUserFactory.create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)
-            else:
-                # Use real user directory (for backward compatibility)
-                return TestUserFactory.create_telegram_user__impl(user_id, telegram_username)
-            
-        except Exception as e:
-            print(f"Error creating telegram user {user_id}: {e}")
-            return False
-    
-    @staticmethod
-    def create_telegram_user__with_test_dir(user_id: str, telegram_username: str = None, test_data_dir: str = None) -> bool:
-        """Create telegram user with test directory by directly saving files"""
-        try:
-            if telegram_username is None:
-                telegram_username = user_id
-            
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "telegram"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Telegram User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
-            
-            # Use helper function to create files
-            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
-            
-            # Verify user creation with proper configuration patching
-            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
-            
-        except Exception as e:
-            print(f"Error creating telegram user with test dir {user_id}: {e}")
-            return False
-    
-    @staticmethod
-    def create_telegram_user__impl(user_id: str, telegram_username: str = None) -> bool:
-        """Internal implementation of telegram user creation"""
-        try:
-            if telegram_username is None:
-                telegram_username = user_id
-            
-            # Use the proper create_new_user function to generate UUID and register user
-            from core.user_management import create_new_user
-            
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "telegram"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Telegram User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
-            
-            # Create the user using the proper function
-            actual_user_id = create_new_user(user_data)
-            
-            if actual_user_id:
-                return True
-            else:
-                return False
-            
-        except Exception as e:
-            print(f"Error creating telegram user {user_id}: {e}")
-            return False
+
     
     @staticmethod
     def create_user_with_schedules(user_id: str, schedule_config: Dict[str, Any] = None, test_data_dir: str = None) -> bool:
@@ -2223,7 +2085,7 @@ def create_test_user(user_id: str, user_type: str = "basic", test_data_dir: str 
             - "basic": Basic user with configurable features
             - "discord": Discord-specific user
             - "email": Email-specific user
-            - "telegram": Telegram-specific user
+
             - "full": Full featured user with all capabilities
             - "minimal": Minimal user with only messaging
             - "health": Health-focused user
@@ -2254,9 +2116,7 @@ def create_test_user(user_id: str, user_type: str = "basic", test_data_dir: str 
             email = kwargs.get('email')
             return TestUserFactory.create_email_user(user_id, email, test_data_dir)
         
-        elif user_type == "telegram":
-            telegram_username = kwargs.get('telegram_username')
-            return TestUserFactory.create_telegram_user(user_id, telegram_username, test_data_dir)
+
         
         elif user_type == "full":
             return TestUserFactory.create_full_featured_user(user_id, test_data_dir)

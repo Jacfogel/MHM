@@ -125,9 +125,7 @@ LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.
 LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
 
 # Communication Channel Configurations (non-blocking)
-# TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')  # Deactivated
-# if not TELEGRAM_BOT_TOKEN:
-#     logger.warning("TELEGRAM_BOT_TOKEN not found - Telegram channel will be disabled")
+
 
 EMAIL_SMTP_SERVER = os.getenv('EMAIL_SMTP_SERVER')
 EMAIL_IMAP_SERVER = os.getenv('EMAIL_IMAP_SERVER')
@@ -172,7 +170,7 @@ def get_channel_class_mapping() -> Dict[str, str]:
     return {
         'email': 'communication.communication_channels.email.bot.EmailBot',
         'discord': 'communication.communication_channels.discord.bot.DiscordBot',
-        # 'telegram': 'communication.communication_channels.telegram.bot.TelegramBot',  # Deactivated
+        
     }
 
 # Scheduler Configuration
@@ -561,16 +559,7 @@ def ensure_user_directory(user_id: str) -> bool:
         return False
 
 # Legacy validation functions (kept for backward compatibility)
-def validate_telegram_config():
-    """LEGACY COMPATIBILITY: kept for tests; always raises to indicate removal.
-    TODO: Remove after references are fully eliminated from UI and tests.
-    REMOVAL PLAN:
-    1. Search for any remaining imports or references and delete.
-    2. Remove this function and related constants.
-    3. Update docs to reflect Telegram removal.
-    """
-    raise ConfigurationError("Telegram channel has been removed from the application.")
-    # return True
+
 
 @handle_errors("validating email configuration", user_friendly=False)
 def validate_email_config():

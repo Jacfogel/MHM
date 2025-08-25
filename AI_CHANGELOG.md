@@ -30,6 +30,37 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-25 - Complete Telegram Integration Removal ✅ **COMPLETED**
+
+**🧹 Legacy Code Cleanup:**
+- **Removed All Telegram References**: Eliminated all Telegram bot integration code, configuration, and documentation
+- **Updated Channel Validation**: Removed 'telegram' from valid channel types in validation logic
+- **Cleaned Configuration**: Removed Telegram token and channel mapping from core config
+- **Updated Error Messages**: Fixed error messages to exclude Telegram references
+
+**📚 Documentation Updates:**
+- **Fixed Outdated References**: Updated all `bot/` references to `communication/` and `ai/` in documentation generation scripts
+- **Removed Legacy Comments**: Cleaned up Telegram-related comments throughout codebase
+- **Updated Test Descriptions**: Fixed test descriptions to reflect new module paths
+- **Regenerated Documentation**: Updated function registry and module dependencies
+
+**🧪 Test Suite Cleanup:**
+- **Removed Telegram Tests**: Eliminated all Telegram-related test functions and test data
+- **Updated Test Configuration**: Removed Telegram environment variables from test setup
+- **Fixed Test Assertions**: Updated validation tests to expect correct error messages
+- **Cleaned Test Utilities**: Removed Telegram user creation functions from test utilities
+
+**🎯 UI Cleanup:**
+- **Updated Dialog Comments**: Removed Telegram references from UI dialog files
+- **Fixed Channel Selection**: Updated channel selection logic to exclude Telegram
+- **Cleaned Widget Code**: Removed Telegram-related code from channel selection widget
+
+**Results:**
+- ✅ All fast tests pass (139/139)
+- ✅ Documentation generation successful
+- ✅ No remaining Telegram references in codebase
+- ✅ Cleaner, more maintainable codebase
+
 ### 2025-08-25 - Comprehensive AI Chatbot Improvements and Fixes ✅ **COMPLETED**
 
 **🎯 Critical Bug Fixes:**

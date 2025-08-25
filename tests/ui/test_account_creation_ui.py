@@ -54,7 +54,7 @@ class TestAccountCreationDialogRealBehavior:
         """Create account creation dialog for testing."""
         # Create a mock communication manager
         mock_comm_manager = Mock()
-        mock_comm_manager.get_active_channels.return_value = ['email', 'discord', 'telegram']
+        mock_comm_manager.get_active_channels.return_value = ['email', 'discord']
         
         # Create dialog (DO NOT show() - this would display UI during testing)
         dialog = AccountCreatorDialog(parent=None, communication_manager=mock_comm_manager)

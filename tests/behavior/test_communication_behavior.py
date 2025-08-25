@@ -2,7 +2,7 @@
 Tests for the communication manager module - Message delivery across channels.
 
 This module tests:
-- Message delivery to different channels (Discord, Email, Telegram)
+- Message delivery to different channels (Discord, Email)
 - Channel selection and routing
 - Message formatting and validation
 - Delivery status tracking
@@ -119,13 +119,13 @@ class TestCommunicationManager:
         comm_manager._channels_dict = {
             'discord': realistic_mock_channel,
             'email': realistic_mock_channel,
-            'telegram': realistic_mock_channel
+    
         }
         
         available = comm_manager.get_active_channels()
         assert 'discord' in available
         assert 'email' in available
-        assert 'telegram' in available
+
         assert len(available) == 3
     
     @pytest.mark.behavior

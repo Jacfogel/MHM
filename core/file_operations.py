@@ -329,7 +329,7 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
     channel_type = channel.get('type', 'email')
     if channel_type == 'email':
         chat_id = email
-    # Telegram channel removed
+    
     elif channel_type == 'discord':
         chat_id = discord_user_id
     

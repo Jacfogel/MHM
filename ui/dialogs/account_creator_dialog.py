@@ -502,12 +502,11 @@ class AccountCreatorDialog(QDialog):
                     if not is_valid_email(contact_value):
                         logger.warning("Validation failed: Please enter a valid email address")
                         return False, "Please enter a valid email address."
-                # Telegram removed
                 # Discord doesn't need format validation - any string is acceptable
                 
                 # Validate ALL contact fields that have values (not just the selected one)
                 email = self.channel_widget.ui.lineEdit_email.text().strip()
-                # Telegram removed: some old UIs/tests expect phone field to exist; guard it
+                # Phone field was removed - use safe access
                 phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
                 phone = phone.text().strip() if phone else ""
                 discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
@@ -595,7 +594,7 @@ class AccountCreatorDialog(QDialog):
             # Collect ALL contact info fields, not just the selected one
             # Get all contact fields from the channel widget
             email = self.channel_widget.ui.lineEdit_email.text().strip()
-            # Phone field was removed when Telegram was removed - use safe access
+            # Phone field was removed - use safe access
             phone = getattr(self.channel_widget.ui, 'lineEdit_phone', None)
             phone = phone.text().strip() if phone else ""
             discord_id = self.channel_widget.ui.lineEdit_discordID.text().strip()
@@ -798,8 +797,7 @@ class AccountCreatorDialog(QDialog):
         """Determine chat_id based on channel type."""
         if channel_type == 'email':
             return email
-        elif channel_type == 'telegram':
-            return phone
+
         elif channel_type == 'discord':
             return discord_user_id
         return ''
@@ -880,7 +878,6 @@ class AccountCreatorDialog(QDialog):
         contact_info = {}
         if selected_service == 'Email':
             contact_info['email'] = contact_value
-                # Telegram removed
         elif selected_service == 'Discord':
             contact_info['discord'] = contact_value
         

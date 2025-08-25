@@ -53,7 +53,7 @@ class ChannelManagementDialog(QDialog):
                 value = ''
                 if channel_lc == 'email':
                     value = email
-                # Telegram removed
+
                 elif channel_lc == 'discord':
                     value = discord_id
                 self.channel_widget.set_selected_channel(channel_cap, value)
@@ -85,7 +85,6 @@ class ChannelManagementDialog(QDialog):
             # Validate that the selected channel has valid contact info
             if channel == 'Email' and not contact_info['email']:
                 validation_errors.append("Email address is required for Email service.")
-            # Telegram removed
             elif channel == 'Discord' and not contact_info['discord_id']:
                 validation_errors.append("Discord ID is required for Discord service.")
             
@@ -114,7 +113,6 @@ class ChannelManagementDialog(QDialog):
             chat_id = ''
             if channel == 'Email':
                 chat_id = contact_info['email']
-            # Telegram removed
             elif channel == 'Discord':
                 chat_id = contact_info['discord_id']
             

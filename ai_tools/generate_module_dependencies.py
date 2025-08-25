@@ -905,7 +905,7 @@ UI Dependencies:
 **Examples**:
 - `communication/communication_channels/discord/bot.py` → `discord.py`
 - `ui/ui_app_qt.py` → `PySide6`
-- `communication/communication_channels/telegram/bot.py` → `python-telegram-bot`
+
 
 **Why Important**: Provides external service integration and UI framework
 

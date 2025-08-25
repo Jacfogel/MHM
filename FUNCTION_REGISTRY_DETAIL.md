@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-08-23 15:42:57
+> **Last Updated**: 2025-08-25 04:53:30
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -11,18 +11,18 @@
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 94.6% ⚠️ NEEDS ATTENTION**
-- **Files Scanned**: 114
-- **Functions Found**: 1907
-- **Methods Found**: 1530
+### **Function Documentation Coverage: 94.7% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 113
+- **Functions Found**: 1900
+- **Methods Found**: 1539
 - **Classes Found**: 219
-- **Total Items**: 3437
-- **Functions Documented**: 1791
-- **Methods Documented**: 1462
+- **Total Items**: 3439
+- **Functions Documented**: 1786
+- **Methods Documented**: 1471
 - **Classes Documented**: 177
-- **Total Documented**: 3253
+- **Total Documented**: 3257
 - **Template-Generated**: 31
-- **Last Updated**: 2025-08-23
+- **Last Updated**: 2025-08-25
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -48,10 +48,10 @@ UI dialogs, widgets, and user interaction functions.
 ### **User Management Functions** (39)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (20)
+### **Task Management Functions** (19)
 Task management and scheduling functions.
 
-### **Test Functions** (1124)
+### **Test Functions** (1119)
 Test functions and testing utilities.
 
 ## 📁 **Module Organization**
@@ -284,12 +284,6 @@ Raises:
 - ✅ `validate_logging_configuration()` - Validate logging configuration.
 - ✅ `validate_minimum_config()` - Ensure at least one communication channel is configured
 - ✅ `validate_scheduler_configuration()` - Validate scheduler configuration.
-- ✅ `validate_telegram_config()` - LEGACY COMPATIBILITY: kept for tests; always raises to indicate removal.
-TODO: Remove after references are fully eliminated from UI and tests.
-REMOVAL PLAN:
-1. Search for any remaining imports or references and delete.
-2. Remove this function and related constants.
-3. Update docs to reflect Telegram removal.
 **Classes:**
 - ✅ `ConfigValidationError` - Custom exception for configuration validation errors with detailed information.
   - ✅ `ConfigValidationError.__init__(self, message, missing_configs, warnings)` - Initialize the object.
@@ -783,12 +777,9 @@ Raises:
 **Functions:**
 - ✅ `_get_response_log_filename(response_type)` - Get the filename for a response log type.
 - ✅ `get_recent_chat_interactions(user_id, limit)` - Get recent chat interactions for a user.
-- ❌ `get_recent_checkins(user_id, limit)` - No description
 - ✅ `get_recent_checkins(user_id, limit)` - Get recent check-in responses for a user.
 - ✅ `get_recent_responses(user_id, response_type, limit)` - Get recent responses for a user from appropriate file structure.
 - ✅ `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting
-- ✅ `get_user_checkin_preferences(user_id)` - Get user's check-in preferences from their preferences file.
-- ✅ `get_user_checkin_questions(user_id)` - Get the enabled check-in questions for a user.
 - ✅ `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
 - ✅ `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
 - ✅ `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
@@ -905,9 +896,6 @@ Args:
     end_time: End time in HH:MM format (e.g., "18:00")
 Returns:
     Random time in HH:MM format
-- ✅ `get_user_categories(user_id)` - Get user's message categories.
-- ✅ `get_user_checkin_preferences(user_id)` - Get user's check-in preferences.
-- ✅ `get_user_task_preferences(user_id)` - Get user's task preferences.
 - ✅ `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay)` - Handles the sending of scheduled messages with retries.
 - ✅ `handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 - ✅ `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
@@ -1019,6 +1007,7 @@ Args:
 - ❌ `_normalize_periods(cls, v)` - No description
 - ❌ `_valid_days(cls, v)` - No description
 - ❌ `_valid_time(cls, v)` - No description
+- ✅ `_validate_categories(cls, v)` - Validate that all categories are in the allowed list.
 - ❌ `_validate_discord_id(cls, v)` - No description
 - ❌ `_validate_email(cls, v)` - No description
 - ❌ `_validate_timezone(cls, v)` - No description
@@ -1047,6 +1036,7 @@ Args:
   - ❌ `PeriodModel._valid_days(cls, v)` - No description
   - ❌ `PeriodModel._valid_time(cls, v)` - No description
 - ❌ `PreferencesModel` - No description
+  - ✅ `PreferencesModel._validate_categories(cls, v)` - Validate that all categories are in the allowed list.
 - ❌ `SchedulesModel` - No description
   - ❌ `SchedulesModel.to_dict(self)` - No description
 
@@ -1063,13 +1053,6 @@ Sets up communication manager, scheduler manager, and registers emergency shutdo
 - ✅ `emergency_shutdown(self)` - Emergency shutdown handler registered with atexit
 - ✅ `get_scheduler_manager()` - Get the scheduler manager instance from the global service.
 Safely handle cases where the global 'service' symbol may not be defined yet.
-- ✅ `get_user_categories(user_id)` - Get the message categories for a specific user.
-
-Args:
-    user_id: The user's ID
-    
-Returns:
-    List[str]: List of message categories the user is subscribed to
 - ✅ `initialize_paths(self)` - Initialize and verify all required file paths for the service.
 
 Creates paths for log files, user data directories, and message files for all users.
@@ -1142,9 +1125,6 @@ Returns:
 Raises:
     InvalidTimeFormatError: If datetime_str format is invalid
 - ✅ `should_run(self)` - Check if enough time has passed since the last run to allow another execution.
-
-Returns:
-    bool: True if the operation should run, False if it should be throttled
 - ✅ `wait_for_network(timeout)` - Wait for the network to be available, retrying every 5 seconds up to a timeout.
 **Classes:**
 - ✅ `InvalidTimeFormatError` - Exception raised when time format is invalid.
@@ -1158,9 +1138,6 @@ Prevents operations from running too frequently by tracking the last execution t
 Args:
     interval: Time interval in seconds between allowed operations
   - ✅ `Throttler.should_run(self)` - Check if enough time has passed since the last run to allow another execution.
-
-Returns:
-    bool: True if the operation should run, False if it should be throttled
 
 #### `core/ui_management.py`
 **Functions:**
@@ -1272,6 +1249,20 @@ Args:
     
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
+- ✅ `_get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+- ✅ `_get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
+- ✅ `_get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
+- ✅ `_get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
+- ✅ `_get_user_data_summary__add_schedule_details(self, file_path, summary)` - Add schedule-specific details to the summary.
+- ✅ `_get_user_data_summary__add_sent_messages_details(self, file_path, summary)` - Add sent messages count to the summary.
+- ✅ `_get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
+- ✅ `_get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
+- ✅ `_get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
+- ✅ `_get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
+- ✅ `_get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+- ✅ `_get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
+- ✅ `_get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
+- ✅ `_get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
 - ✅ `backup_user_data(user_id, include_messages)` - Create a backup of user data.
 
 Args:
@@ -1308,7 +1299,6 @@ Args:
     
 Returns:
     Dict containing analytics summary information
-- ✅ `get_user_categories(user_id)` - Get user's message categories.
 - ✅ `get_user_data_summary(user_id)` - Get a summary of user data.
 
 Args:
@@ -1323,7 +1313,7 @@ Args:
     
 Returns:
     Dict containing summary information about the user's data
-- ✅ `get_user_info_for_data_manager(user_id)` - Get user info for data manager operations - uses new hybrid structure.
+- ✅ `get_user_info_for_data_manager(user_id)` - Get user info using the new centralized data structure.
 - ✅ `get_user_message_files(self, user_id)` - Get all message file paths for a user
 - ✅ `get_user_summary(user_id)` - Get a summary of user data and message statistics.
 - ✅ `rebuild_full_index(self)` - Rebuild the complete user index from scratch.
@@ -1393,6 +1383,20 @@ Args:
     
 Returns:
     str: ISO format timestamp of last interaction, or default if none found
+  - ✅ `UserDataManager._get_user_data_summary__add_file_info(self, file_path, file_type, summary)` - Add basic file information to the summary.
+  - ✅ `UserDataManager._get_user_data_summary__add_log_file_info(self, log_file, log_type, summary)` - Add log file information to the summary.
+  - ✅ `UserDataManager._get_user_data_summary__add_message_file_info(self, file_path, category, summary, orphaned)` - Add message file information to the summary.
+  - ✅ `UserDataManager._get_user_data_summary__add_missing_message_file_info(self, file_path, category, summary, user_id)` - Add information for missing message files.
+  - ✅ `UserDataManager._get_user_data_summary__add_schedule_details(self, file_path, summary)` - Add schedule-specific details to the summary.
+  - ✅ `UserDataManager._get_user_data_summary__add_sent_messages_details(self, file_path, summary)` - Add sent messages count to the summary.
+  - ✅ `UserDataManager._get_user_data_summary__add_special_file_details(self, file_path, file_type, summary)` - Add special details for specific file types (schedules, sent_messages).
+  - ✅ `UserDataManager._get_user_data_summary__ensure_message_files(self, user_id, categories)` - Ensure message files exist for all user categories.
+  - ✅ `UserDataManager._get_user_data_summary__initialize_summary(self, user_id)` - Initialize the summary structure with default values.
+  - ✅ `UserDataManager._get_user_data_summary__process_core_files(self, user_id, summary)` - Process core user data files (profile, preferences, schedules, etc.).
+  - ✅ `UserDataManager._get_user_data_summary__process_enabled_message_files(self, user_id, categories, summary)` - Process message files for enabled categories.
+  - ✅ `UserDataManager._get_user_data_summary__process_log_files(self, user_id, summary)` - Process log files (checkins, chat_interactions).
+  - ✅ `UserDataManager._get_user_data_summary__process_message_files(self, user_id, summary)` - Process message files for all user categories.
+  - ✅ `UserDataManager._get_user_data_summary__process_orphaned_message_files(self, user_id, categories, message_files, summary)` - Process orphaned message files (categories not enabled but files exist).
   - ✅ `UserDataManager.backup_user_data(self, user_id, include_messages)` - Create a complete backup of user's data
   - ✅ `UserDataManager.delete_user_completely(self, user_id, create_backup)` - Completely remove all traces of a user from the system
   - ✅ `UserDataManager.export_user_data(self, user_id, export_format)` - Export all user data to a structured format
@@ -1494,12 +1498,8 @@ Returns:
 - ✅ `get_personalization_field(user_id, field)` - Get a specific field from personalization data using centralized system.
 - ✅ `get_predefined_options(field)` - Return predefined options for a personalization field.
 - ✅ `get_timezone_options()` - Get timezone options.
-- ✅ `get_user_account_status(user_id)` - Get user's account status using centralized system.
 - ✅ `get_user_categories(user_id)` - Get user's message categories using centralized system.
-- ✅ `get_user_channel_type(user_id)` - Get user's communication channel type using centralized system.
 - ✅ `get_user_data_with_metadata(user_id, data_types)` - Get user data with file metadata using centralized system.
-- ✅ `get_user_email(user_id)` - Get user's email address using centralized system.
-- ✅ `get_user_essential_info(user_id)` - Get essential user information using centralized system.
 - ✅ `get_user_id_by_identifier(identifier)` - Get user ID by any identifier (internal_username, email, discord_user_id, phone).
 
 Automatically detects the identifier type and uses the appropriate lookup method.
@@ -1509,7 +1509,6 @@ Args:
     
 Returns:
     Optional[str]: User ID if found, None otherwise
-- ✅ `get_user_preferred_name(user_id)` - Get user's preferred name using centralized system.
 - ✅ `load_and_ensure_ids(user_id)` - Load messages for all categories and ensure IDs are unique for a user.
 - ✅ `migrate_legacy_schedules_structure(schedules_data)` - Migrate legacy schedules structure to new format.
 - ✅ `register_data_loader(data_type, loader_func, file_type, default_fields, metadata_fields, description)` - Register a new data loader for the centralized system.
@@ -1526,14 +1525,9 @@ Args:
 - ✅ `update_personalization_field(user_id, field, value)` - Update a specific field in personalization data using centralized system.
 - ✅ `update_user_account(user_id, updates, auto_create)` - Update user account information.
 - ✅ `update_user_context(user_id, updates, auto_create)` - Update user context information.
-- ✅ `update_user_preferences(user_id, updates, auto_create)` - Update user preferences.
 - ✅ `update_user_schedules(user_id, schedules_data)` - Update user schedules data.
 
 ### `root/` - Root Files
-
-#### `conftest.py`
-**Functions:**
-- ❌ `_isolate_logging_globally()` - No description
 
 #### `run_mhm.py`
 **Functions:**
@@ -1559,7 +1553,6 @@ Args:
 - ✅ `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
 - ✅ `get_tasks_due_soon(user_id, days_ahead)` - Get tasks due within the specified number of days.
 - ✅ `get_user_task_stats(user_id)` - Get task statistics for a user.
-- ✅ `get_user_task_tags(user_id)` - Get the list of available tags for a user from their preferences.
 - ✅ `load_active_tasks(user_id)` - Load active tasks for a user.
 - ✅ `load_completed_tasks(user_id)` - Load completed tasks for a user.
 - ✅ `remove_user_task_tag(user_id, tag)` - Remove a tag from the user's task settings.
@@ -1608,11 +1601,11 @@ Args:
 - ✅ `test_ai_chatbot_tracks_conversation_history(self, test_data_dir)` - Test that AI chatbot actually tracks conversation history.
 - ✅ `test_ai_chatbot_user_context_manager_integration(self, test_data_dir)` - Test that AI chatbot integrates properly with user context manager.
 - ✅ `test_ai_chatbot_uses_user_context_for_personalization(self, test_data_dir)` - Test that AI chatbot actually uses user context for personalized responses.
-- ✅ `test_ai_chatbot_with_real_user_data(self, test_data_dir)` - Test AI chatbot with real user data files.
+- ✅ `test_ai_chatbot_with_real_user_data(self, test_data_dir, mock_config)` - Test AI chatbot with real user data files.
+- ✅ `test_prompt_manager_creates_actual_file(self, test_data_dir)` - Test that prompt manager actually creates and manages prompt files.
 - ✅ `test_response_cache_actually_stores_and_retrieves_data(self, test_data_dir)` - Test that response cache actually stores and retrieves data.
 - ✅ `test_response_cache_cleanup_actually_removes_entries(self, test_data_dir)` - Test that response cache cleanup actually removes old entries.
 - ✅ `test_singleton_behavior_creates_single_instance(self, test_data_dir)` - Test that AI chatbot singleton actually creates only one instance.
-- ✅ `test_system_prompt_loader_creates_actual_file(self, test_data_dir)` - Test that system prompt loader actually creates and manages prompt files.
 **Classes:**
 - ✅ `TestAIChatBotBehavior` - Test AI chatbot real behavior and side effects.
   - ✅ `TestAIChatBotBehavior.test_ai_chatbot_adaptive_timeout_responds_to_system_resources(self, test_data_dir)` - Test that AI chatbot adaptive timeout actually responds to system resources.
@@ -1631,14 +1624,14 @@ Args:
   - ✅ `TestAIChatBotBehavior.test_ai_chatbot_tracks_conversation_history(self, test_data_dir)` - Test that AI chatbot actually tracks conversation history.
   - ✅ `TestAIChatBotBehavior.test_ai_chatbot_user_context_manager_integration(self, test_data_dir)` - Test that AI chatbot integrates properly with user context manager.
   - ✅ `TestAIChatBotBehavior.test_ai_chatbot_uses_user_context_for_personalization(self, test_data_dir)` - Test that AI chatbot actually uses user context for personalized responses.
+  - ✅ `TestAIChatBotBehavior.test_prompt_manager_creates_actual_file(self, test_data_dir)` - Test that prompt manager actually creates and manages prompt files.
   - ✅ `TestAIChatBotBehavior.test_response_cache_actually_stores_and_retrieves_data(self, test_data_dir)` - Test that response cache actually stores and retrieves data.
   - ✅ `TestAIChatBotBehavior.test_response_cache_cleanup_actually_removes_entries(self, test_data_dir)` - Test that response cache cleanup actually removes old entries.
   - ✅ `TestAIChatBotBehavior.test_singleton_behavior_creates_single_instance(self, test_data_dir)` - Test that AI chatbot singleton actually creates only one instance.
-  - ✅ `TestAIChatBotBehavior.test_system_prompt_loader_creates_actual_file(self, test_data_dir)` - Test that system prompt loader actually creates and manages prompt files.
 - ✅ `TestAIChatBotIntegration` - Test AI chatbot integration with other system components.
   - ✅ `TestAIChatBotIntegration.test_ai_chatbot_concurrent_access_safety(self, test_data_dir)` - Test that AI chatbot handles concurrent access safely.
   - ✅ `TestAIChatBotIntegration.test_ai_chatbot_error_recovery_with_real_files(self, test_data_dir)` - Test AI chatbot error recovery with real file operations.
-  - ✅ `TestAIChatBotIntegration.test_ai_chatbot_with_real_user_data(self, test_data_dir)` - Test AI chatbot with real user data files.
+  - ✅ `TestAIChatBotIntegration.test_ai_chatbot_with_real_user_data(self, test_data_dir, mock_config)` - Test AI chatbot with real user data files.
 
 #### `tests/behavior/test_auto_cleanup_behavior.py`
 **Functions:**
@@ -1826,12 +1819,10 @@ Args:
 - ✅ `mock_channel_config(self)` - Create a mock channel configuration.
 - ✅ `realistic_mock_channel(self)` - Create a realistic mock channel with proper async methods.
 - ✅ `temp_dir(self)` - Create a temporary directory for testing.
-- ✅ `test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel)` - Test error handling in communication manager.
 - ✅ `test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
 - ✅ `test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
 - ✅ `test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
 - ✅ `test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel)` - Test channel initialization from configuration with realistic channel behavior.
-- ✅ `test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test checking if a channel is ready with realistic channel behavior.
 - ✅ `test_send_message_sync_channel_not_found(self, comm_manager)` - Test synchronous message sending when channel doesn't exist.
 - ✅ `test_send_message_sync_channel_not_ready(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending when channel is not ready.
 - ✅ `test_send_message_sync_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending with realistic channel behavior.
@@ -1841,12 +1832,10 @@ Args:
   - ✅ `TestCommunicationManager.mock_channel_config(self)` - Create a mock channel configuration.
   - ✅ `TestCommunicationManager.realistic_mock_channel(self)` - Create a realistic mock channel with proper async methods.
   - ✅ `TestCommunicationManager.temp_dir(self)` - Create a temporary directory for testing.
-  - ✅ `TestCommunicationManager.test_communication_manager_error_handling(self, comm_manager, realistic_mock_channel)` - Test error handling in communication manager.
   - ✅ `TestCommunicationManager.test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
   - ✅ `TestCommunicationManager.test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
   - ✅ `TestCommunicationManager.test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
   - ✅ `TestCommunicationManager.test_initialize_channels_from_config(self, mock_factory, comm_manager, mock_channel_config, realistic_mock_channel)` - Test channel initialization from configuration with realistic channel behavior.
-  - ✅ `TestCommunicationManager.test_is_channel_ready_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test checking if a channel is ready with realistic channel behavior.
   - ✅ `TestCommunicationManager.test_send_message_sync_channel_not_found(self, comm_manager)` - Test synchronous message sending when channel doesn't exist.
   - ✅ `TestCommunicationManager.test_send_message_sync_channel_not_ready(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending when channel is not ready.
   - ✅ `TestCommunicationManager.test_send_message_sync_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending with realistic channel behavior.
@@ -2005,6 +1994,7 @@ Args:
 - ✅ `test_discord_bot_initialization_with_dns_failure(self, test_data_dir)` - Test that Discord bot initialization handles DNS failures gracefully
 - ✅ `test_discord_bot_initialization_with_valid_token(self, test_data_dir, mock_discord_bot)` - Test that Discord bot initialization actually creates bot instance with valid token
 - ✅ `test_discord_bot_initialization_without_token(self, test_data_dir)` - Test that Discord bot initialization fails gracefully without token
+- ✅ `test_discord_bot_initialize_creates_thread(self, test_data_dir)` - Test that Discord bot initialize actually creates a thread
 - ✅ `test_discord_bot_integration_with_conversation_manager(self, test_data_dir, test_user_setup)` - Test that Discord bot integrates properly with conversation manager
 - ✅ `test_discord_bot_integration_with_user_management(self, test_data_dir, test_user_setup)` - Test that Discord bot integrates properly with user management
 - ✅ `test_discord_bot_is_actually_connected_checks_real_state(self, test_data_dir, mock_discord_bot)` - Test that Discord bot is_actually_connected checks real connection state
@@ -2016,8 +2006,7 @@ Args:
 - ✅ `test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot)` - Test that Discord bot send_message actually sends messages
 - ✅ `test_discord_bot_send_message_handles_errors(self, test_data_dir, mock_discord_bot)` - Test that Discord bot send_message handles errors gracefully
 - ✅ `test_discord_bot_shutdown_actually_cleans_up(self, test_data_dir, mock_discord_bot)` - Test that Discord bot shutdown actually cleans up resources
-- ✅ `test_discord_bot_start_creates_thread(self, test_data_dir)` - Test that Discord bot start actually creates a thread
-- ✅ `test_discord_bot_stop_actually_stops_thread(self, test_data_dir)` - Test that Discord bot stop actually stops the thread
+- ✅ `test_discord_bot_shutdown_actually_stops_thread(self, test_data_dir)` - Test that Discord bot shutdown actually stops the thread
 - ✅ `test_discord_bot_with_real_user_data(self, test_data_dir, test_user_setup)` - Test Discord bot with real user data
 - ✅ `test_discord_checkin_flow_end_to_end(self, test_data_dir)` - Simulate a Discord user going through a check-in flow via /checkin and responding to prompts.
 - ✅ `test_discord_complete_task_by_name_variation(self, test_data_dir)` - Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'.
@@ -2046,6 +2035,7 @@ Args:
   - ✅ `TestDiscordBotBehavior.test_discord_bot_initialization_with_dns_failure(self, test_data_dir)` - Test that Discord bot initialization handles DNS failures gracefully
   - ✅ `TestDiscordBotBehavior.test_discord_bot_initialization_with_valid_token(self, test_data_dir, mock_discord_bot)` - Test that Discord bot initialization actually creates bot instance with valid token
   - ✅ `TestDiscordBotBehavior.test_discord_bot_initialization_without_token(self, test_data_dir)` - Test that Discord bot initialization fails gracefully without token
+  - ✅ `TestDiscordBotBehavior.test_discord_bot_initialize_creates_thread(self, test_data_dir)` - Test that Discord bot initialize actually creates a thread
   - ✅ `TestDiscordBotBehavior.test_discord_bot_is_actually_connected_checks_real_state(self, test_data_dir, mock_discord_bot)` - Test that Discord bot is_actually_connected checks real connection state
   - ✅ `TestDiscordBotBehavior.test_discord_bot_is_initialized_checks_actual_state(self, test_data_dir, mock_discord_bot)` - Test that Discord bot is_initialized checks actual initialization state
   - ✅ `TestDiscordBotBehavior.test_discord_bot_manual_reconnect_actually_reconnects(self, test_data_dir, mock_discord_bot)` - Test that Discord bot manual reconnect actually attempts reconnection
@@ -2054,8 +2044,7 @@ Args:
   - ✅ `TestDiscordBotBehavior.test_discord_bot_send_message_actually_sends(self, test_data_dir, mock_discord_bot)` - Test that Discord bot send_message actually sends messages
   - ✅ `TestDiscordBotBehavior.test_discord_bot_send_message_handles_errors(self, test_data_dir, mock_discord_bot)` - Test that Discord bot send_message handles errors gracefully
   - ✅ `TestDiscordBotBehavior.test_discord_bot_shutdown_actually_cleans_up(self, test_data_dir, mock_discord_bot)` - Test that Discord bot shutdown actually cleans up resources
-  - ✅ `TestDiscordBotBehavior.test_discord_bot_start_creates_thread(self, test_data_dir)` - Test that Discord bot start actually creates a thread
-  - ✅ `TestDiscordBotBehavior.test_discord_bot_stop_actually_stops_thread(self, test_data_dir)` - Test that Discord bot stop actually stops the thread
+  - ✅ `TestDiscordBotBehavior.test_discord_bot_shutdown_actually_stops_thread(self, test_data_dir)` - Test that Discord bot shutdown actually stops the thread
   - ✅ `TestDiscordBotBehavior.test_discord_checkin_flow_end_to_end(self, test_data_dir)` - Simulate a Discord user going through a check-in flow via /checkin and responding to prompts.
   - ✅ `TestDiscordBotBehavior.test_discord_complete_task_by_name_variation(self, test_data_dir)` - Complete a task by a fuzzy name match like 'complete per davey' -> 'Pet Davey'.
   - ✅ `TestDiscordBotBehavior.test_discord_response_after_task_reminder(self, test_data_dir)` - Simulate a user replying to a reminder by completing the first task.
@@ -2980,7 +2969,6 @@ real service startup behavior for testing.
 - ✅ `test_real_user_scenarios(self, test_data_dir, mock_config)` - Test scenarios that mirror real user data patterns.
 - ✅ `test_reduced_code_duplication(self, test_data_dir)` - Show how much less code is needed with centralized utilities
 - ✅ `test_scheduled_user_creation(self, test_data_dir)` - Test creating a user with comprehensive schedules.
-- ✅ `test_telegram_user_creation(self, test_data_dir)` - Test creating a Telegram user with specific username.
 - ✅ `test_user_data_consistency(self, test_data_dir)` - Test that all user types produce consistent data structures.
 - ✅ `test_user_data_factory_usage(self, test_data_dir)` - Demonstrate using the user data factory for custom data structures
 **Classes:**
@@ -3002,7 +2990,6 @@ real service startup behavior for testing.
   - ✅ `TestUtilitiesDemo.test_multiple_user_types_in_single_test(self, test_data_dir)` - Test creating multiple different user types in a single test.
   - ✅ `TestUtilitiesDemo.test_real_user_scenarios(self, test_data_dir, mock_config)` - Test scenarios that mirror real user data patterns.
   - ✅ `TestUtilitiesDemo.test_scheduled_user_creation(self, test_data_dir)` - Test creating a user with comprehensive schedules.
-  - ✅ `TestUtilitiesDemo.test_telegram_user_creation(self, test_data_dir)` - Test creating a Telegram user with specific username.
   - ✅ `TestUtilitiesDemo.test_user_data_consistency(self, test_data_dir)` - Test that all user types produce consistent data structures.
   - ✅ `TestUtilitiesDemo.test_user_data_factory_usage(self, test_data_dir)` - Demonstrate using the user data factory for custom data structures
 
@@ -3013,6 +3000,7 @@ real service startup behavior for testing.
 Returns the number of files removed.
 - ❌ `_update_index(user_id)` - No description
 - ✅ `cleanup_test_users_after_session()` - Remove test users from both data/users/ and tests/data/users/ after all tests.
+- ✅ `clear_user_caches_between_tests()` - Clear user caches between tests to prevent state pollution.
 - ✅ `isolate_logging()` - Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log.
 - ✅ `mock_ai_response()` - Mock AI response for testing.
 - ✅ `mock_communication_data()` - Mock communication data for testing.
@@ -3226,17 +3214,6 @@ Args:
     
 Returns:
     Dict containing schedules data
-- ✅ `create_telegram_user(user_id, telegram_username, test_data_dir)` - Create a test user specifically configured for Telegram testing
-
-Args:
-    user_id: Unique identifier for the test user
-    telegram_username: Telegram username (defaults to user_id if not provided)
-    test_data_dir: Test data directory to use (if None, uses real user directory)
-    
-Returns:
-    bool: True if user was created successfully, False otherwise
-- ✅ `create_telegram_user__impl(user_id, telegram_username)` - Internal implementation of telegram user creation
-- ✅ `create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
 - ✅ `create_test_message_data(category, message_count)` - Create test message data for testing message management
 
 Args:
@@ -3267,7 +3244,7 @@ Args:
         - "basic": Basic user with configurable features
         - "discord": Discord-specific user
         - "email": Email-specific user
-        - "telegram": Telegram-specific user
+
         - "full": Full featured user with all capabilities
         - "minimal": Minimal user with only messaging
         - "health": Health-focused user
@@ -3509,17 +3486,6 @@ Returns:
     bool: True if user was created successfully, False otherwise
   - ✅ `TestUserFactory.create_minimal_user__impl(user_id)` - Internal implementation of minimal user creation
   - ✅ `TestUserFactory.create_minimal_user__with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
-  - ✅ `TestUserFactory.create_telegram_user(user_id, telegram_username, test_data_dir)` - Create a test user specifically configured for Telegram testing
-
-Args:
-    user_id: Unique identifier for the test user
-    telegram_username: Telegram username (defaults to user_id if not provided)
-    test_data_dir: Test data directory to use (if None, uses real user directory)
-    
-Returns:
-    bool: True if user was created successfully, False otherwise
-  - ✅ `TestUserFactory.create_telegram_user__impl(user_id, telegram_username)` - Internal implementation of telegram user creation
-  - ✅ `TestUserFactory.create_telegram_user__with_test_dir(user_id, telegram_username, test_data_dir)` - Create telegram user with test directory by directly saving files
   - ✅ `TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir)` - Create a test user with complex check-in configurations
 
 Args:

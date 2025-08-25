@@ -392,7 +392,6 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'errors': LOG_ERRORS_FILE,
             'communication_manager': LOG_COMMUNICATION_MANAGER_FILE,
             'email': LOG_EMAIL_FILE,
-            # Telegram removed
             'ui': LOG_UI_FILE,
             'file_ops': LOG_FILE_OPS_FILE,
             'scheduler': LOG_SCHEDULER_FILE,
@@ -559,7 +558,6 @@ def suppress_noisy_logging():
     while keeping important warnings and errors visible.
     """
     logging.getLogger("httpx").setLevel(logging.WARNING)
-    # Telegram removed
     logging.getLogger("asyncio").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)

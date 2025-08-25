@@ -171,7 +171,7 @@ class TestMHMService:
             # Verify real behavior - log file still exists after check
             assert os.path.exists(log_file)
             # The function calls getLogger multiple times for different loggers
-            # (httpx, telegram, discord, etc.), so we check it was called at least once
+            # (httpx, discord, etc.), so we check it was called at least once
             assert mock_get_logger.call_count >= 1
     
     @pytest.mark.service

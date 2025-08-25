@@ -72,7 +72,7 @@ os.environ['LOG_USER_ACTIVITY_FILE'] = str(tests_logs_dir / 'user_activity.log')
 os.environ['LOG_ERRORS_FILE'] = str(tests_logs_dir / 'errors.log')
 os.environ['LOG_COMMUNICATION_MANAGER_FILE'] = str(tests_logs_dir / 'communication_manager.log')
 os.environ['LOG_EMAIL_FILE'] = str(tests_logs_dir / 'email.log')
-os.environ['LOG_TELEGRAM_FILE'] = str(tests_logs_dir / 'telegram.log')
+
 os.environ['LOG_UI_FILE'] = str(tests_logs_dir / 'ui.log')
 os.environ['LOG_FILE_OPS_FILE'] = str(tests_logs_dir / 'file_ops.log')
 os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')

@@ -259,9 +259,7 @@ class CommunicationManager:
         configs = {}
         
         # Only create configs for channels that have tokens/configs available
-        # if TELEGRAM_BOT_TOKEN:  # Deactivated
-        #     configs['telegram'] = ChannelConfig(
-        #         name='telegram',
+        
         #         enabled=True,
         #         max_retries=5,
         #         retry_delay=2.0,
@@ -830,8 +828,7 @@ class CommunicationManager:
             # The Discord bot handles user ID mapping internally
             # We'll use a special marker that the Discord bot can recognize
             return f"discord_user:{user_id}"
-        elif messaging_service == "telegram":
-            logger.error("Telegram channel has been deactivated")
+
             return None
         elif messaging_service == "email":
             # Get email from account.json, not preferences

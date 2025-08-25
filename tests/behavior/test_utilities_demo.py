@@ -182,30 +182,7 @@ class TestUtilitiesDemo:
         assert account_data.get("email") == email, "Email should be saved correctly"
         assert account_data.get("features", {}).get("automated_messages") == "enabled", "Messages should be enabled"
     
-    def test_telegram_user_creation(self, test_data_dir):
-        """Test creating a Telegram user with specific username."""
-        user_id = "test_telegram_user"
-        telegram_username = "test_telegram_user_123"
-        
-        success = TestUserFactory.create_telegram_user(user_id, telegram_username=telegram_username, test_data_dir=test_data_dir)
-        assert success, "Telegram user should be created successfully"
-        
-        # Verify user was created by checking internal username
-        from core.user_management import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id is not None, "User should be found by internal username"
-        
-        # Verify user directory exists
-        from core.config import get_user_data_dir
-        user_dir = get_user_data_dir(actual_user_id)
-        assert os.path.exists(user_dir), "User directory should exist"
-        
-        # Verify account data contains Telegram username
-        from core.user_data_handlers import get_user_data
-        account_result = get_user_data(actual_user_id, 'account')
-        account_data = account_result.get('account', {})
-        assert account_data is not None, "Account data should be loadable"
-        assert account_data.get("discord_user_id") == "", "Discord user ID should be empty for Telegram user"
+
     
     def test_custom_fields_user_creation(self, test_data_dir):
         """Test creating a user with custom fields."""
@@ -302,7 +279,7 @@ class TestUtilitiesDemo:
             ("basic_user", TestUserFactory.create_basic_user, "test_basic"),
             ("discord_user", TestUserFactory.create_discord_user, "test_discord"),
             ("email_user", TestUserFactory.create_email_user, "test_email"),
-            ("telegram_user", TestUserFactory.create_telegram_user, "test_telegram"),
+
             ("full_featured_user", TestUserFactory.create_full_featured_user, "test_full"),
             ("minimal_user", TestUserFactory.create_minimal_user, "test_minimal"),
             ("health_focus_user", TestUserFactory.create_user_with_health_focus, "test_health"),
@@ -322,8 +299,7 @@ class TestUtilitiesDemo:
                     success = factory_method(user_id, discord_user_id="123456789", test_data_dir=test_data_dir)
                 elif user_type_name == "email_user":
                     success = factory_method(user_id, email=f"{user_id}@example.com", test_data_dir=test_data_dir)
-                elif user_type_name == "telegram_user":
-                    success = factory_method(user_id, telegram_username=f"@{user_id}", test_data_dir=test_data_dir)
+
                 else:
                     success = factory_method(user_id, test_data_dir=test_data_dir)
                 

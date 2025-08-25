@@ -6,11 +6,11 @@
 
 ## 🎯 **Current Status**
 
-### **Documentation Coverage: 94.6% ⚠️ GOOD**
-- **Total Functions**: 1907
-- **Total Methods**: 1530
-- **Documented**: 3253/3437
-- **Files Scanned**: 114
+### **Documentation Coverage: 94.7% ⚠️ GOOD**
+- **Total Functions**: 1900
+- **Total Methods**: 1539
+- **Documented**: 3257/3439
+- **Files Scanned**: 113
 
 ## 🧠 **Decision Trees for AI Context**
 
@@ -32,28 +32,28 @@ User Data Operations Decision Tree:
 ```
 AI Operations Decision Tree:
 ├── AI Chatbot
-│   ├── `bot/ai_chatbot.py` - Main AI implementation (31 functions)
-│   └── `bot/user_context_manager.py` - Context for AI (13 functions)
+│   ├── `ai/chatbot.py` - Main AI implementation (31 functions)
+│   └── `user/context_manager.py` - Context for AI (13 functions)
 ├── Command Parsing
-│   ├── `bot/enhanced_command_parser.py` - Natural language parsing (15 functions)
-│   └── `bot/interaction_handlers.py` - Command handlers (38/62 functions)
+│   ├── `communication/message_processing/command_parser.py` - Natural language parsing (15 functions)
+│   └── `communication/command_handlers/interaction_handlers.py` - Command handlers (38/62 functions)
 └── Interaction Management
-    └── `bot/interaction_manager.py` - Main interaction flow (11 functions)
+    └── `communication/message_processing/interaction_manager.py` - Main interaction flow (11 functions)
 ```
 
 ### **💬 Need Communication/Channels?**
 ```
 Communication Decision Tree:
 ├── Channel Management
-│   ├── `bot/communication_manager.py` - Main communication (37 functions)
-│   ├── `bot/base_channel.py` - Channel base class (7 functions)
-│   └── `bot/channel_factory.py` - Channel creation (3 functions)
+│   ├── `communication/core/channel_orchestrator.py` - Main communication (37 functions)
+│   ├── `communication/communication_channels/base/base_channel.py` - Channel base class (7 functions)
+│   └── `communication/core/factory.py` - Channel creation (3 functions)
 ├── Specific Channels
-│   ├── `bot/discord_bot.py` - Discord integration (19 functions)
-│   ├── `bot/email_bot.py` - Email integration (9 functions)
-│   └── `bot/telegram_bot.py` - Telegram integration (29/35 functions)
+│   ├── `communication/communication_channels/discord/bot.py` - Discord integration (19 functions)
+│   ├── `communication/communication_channels/email/bot.py` - Email integration (9 functions)
+
 └── Conversation Flow
-    └── `bot/conversation_manager.py` - Conversation management (13 functions)
+    └── `communication/message_processing/conversation_flow_manager.py` - Conversation management (13 functions)
 ```
 
 ### **🖥️ Need UI/User Interface?**
@@ -93,7 +93,7 @@ Core System Decision Tree:
 
 ### **Handler Pattern** (Most Common)
 **Purpose**: Handle specific user intents or operations
-**Location**: `bot/interaction_handlers.py`, `ui/dialogs/`, `core/`
+**Location**: `communication/command_handlers/interaction_handlers.py`, `ui/dialogs/`, `core/`
 **Pattern**: 
 - `can_handle(intent)` - Check if handler supports intent
 - `handle(user_id, parsed_command)` - Process the command
@@ -107,7 +107,7 @@ Core System Decision Tree:
 
 ### **Manager Pattern** (Singleton)
 **Purpose**: Centralized management of system components
-**Location**: `bot/communication_manager.py`, `bot/interaction_manager.py`
+**Location**: `communication/core/channel_orchestrator.py`, `communication/message_processing/interaction_manager.py`
 **Pattern**:
 - Singleton instance management
 - Lifecycle methods (`start()`, `stop()`, `initialize()`)
@@ -115,7 +115,7 @@ Core System Decision Tree:
 
 ### **Factory Pattern**
 **Purpose**: Create instances of related objects
-**Location**: `bot/channel_factory.py`
+**Location**: `communication/core/factory.py`
 **Pattern**:
 - `register_channel(name, channel_class)` - Register channel types
 - `create_channel(name, config)` - Create channel instances
@@ -132,8 +132,8 @@ Core System Decision Tree:
 ## 🎯 **Critical Functions for AI Context**
 
 ### **Entry Points** (Start Here)
-- `bot/interaction_manager.py::handle_message()` - Main message entry point
-- `bot/ai_chatbot.py::generate_response()` - AI response generation
+- `communication/message_processing/interaction_manager.py::handle_message()` - Main message entry point
+- `ai/chatbot.py::generate_response()` - AI response generation
 - `core/user_data_handlers.py::get_user_data()` - User data access
 - `ui/ui_app_qt.py::__init__()` - UI application startup
 
@@ -143,14 +143,14 @@ Core System Decision Tree:
 - **File Operations**: `core/file_operations.py` (5 functions)
 
 ### **Communication Patterns**
-- **Message Sending**: `bot/communication_manager.py::send_message_sync()`
-- **Channel Status**: `bot/communication_manager.py::is_channel_ready()`
-- **Command Parsing**: `bot/enhanced_command_parser.py::parse()`
+- **Message Sending**: `communication/core/channel_orchestrator.py::send_message_sync()`
+- **Channel Status**: `communication/core/channel_orchestrator.py::is_channel_ready()`
+- **Command Parsing**: `communication/message_processing/command_parser.py::parse()`
 
 ## ⚠️ **Areas Needing Attention**
 
 ### **High Priority** (Missing Documentation)
-- `bot/interaction_handlers.py` - 24/62 functions undocumented
+- `communication/command_handlers/interaction_handlers.py` - 24/62 functions undocumented
 - `core/user_data_validation.py` - 3/8 functions undocumented
 - `ui/dialogs/task_management_dialog.py` - 2/4 functions undocumented
 
@@ -162,8 +162,8 @@ Core System Decision Tree:
 ## 🚀 **Quick Reference for AI**
 
 ### **Common Operations**
-1. **User Message**: `bot/interaction_manager.py::handle_message()`
-2. **AI Response**: `bot/ai_chatbot.py::generate_response()`
+1. **User Message**: `communication/message_processing/interaction_manager.py::handle_message()`
+2. **AI Response**: `ai/chatbot.py::generate_response()`
 3. **User Data**: `core/user_data_handlers.py::get_user_data()`
 4. **File Save**: `core/file_operations.py::save_json_data()`
 5. **Error Handling**: `core/error_handling.py::handle_errors` decorator
@@ -176,10 +176,11 @@ Core System Decision Tree:
 
 ### **File Organization**
 - `core/` - System utilities and data management
-- `bot/` - Communication and AI functionality
+- `communication/` - Communication channels and message processing
+- `ai/` - AI chatbot functionality
 - `ui/` - User interface components
 - `user/` - User context and preferences
 - `tasks/` - Task management system
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-08-23 15:42:57
+> **Last Updated**: 2025-08-25 04:53:30

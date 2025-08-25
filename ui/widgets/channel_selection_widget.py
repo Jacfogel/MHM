@@ -49,7 +49,6 @@ class ChannelSelectionWidget(QWidget):
             return 'Discord', self.ui.lineEdit_discordID.text()
         elif self.ui.radioButton_Email.isChecked():
             return 'Email', self.ui.lineEdit_email.text()
-        # Telegram removed
         else:
             return None, None
 
@@ -74,7 +73,7 @@ class ChannelSelectionWidget(QWidget):
         elif channel == 'Email':
             self.ui.radioButton_Email.setChecked(True)
             self.ui.lineEdit_email.setText(value)
-        # Telegram removed
+
 
     def set_timezone(self, timezone):
         """Set the timezone."""
