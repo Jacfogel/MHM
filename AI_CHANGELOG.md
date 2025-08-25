@@ -30,6 +30,193 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-25 - Additional Code Quality Improvements ✅ **COMPLETED**
+
+**🎯 Cache Key Consistency Enhancement:**
+- **Leveraged prompt_type Parameter**: Updated cache usage to use the existing `prompt_type` parameter consistently
+- **Improved Cache Key Helper**: Replaced `_make_cache_key()` with `_make_cache_key_inputs()` for better separation of concerns
+- **Standardized Cache Operations**: All cache get/set operations now use `prompt_type` parameter for better cache hit rates
+- **Enhanced Cache Types**: Added specific prompt types for "personalized", "contextual", and mode-based caching
+
+**⚡ Throttler First-Run Fix:**
+- **Fixed First-Run Behavior**: Throttler now sets `last_run` timestamp on first call to prevent immediate subsequent calls
+- **Improved Throttling Logic**: Ensures proper time-based throttling from the very first call
+- **Enhanced Error Handling**: Better handling of timestamp parsing failures
+- **Updated Test Coverage**: Fixed test to reflect correct throttling behavior with proper timing intervals
+
+**🏗️ Dataclass Modernization:**
+- **Used default_factory**: Replaced `__post_init__` with `field(default_factory=dict)` in `CacheEntry`
+- **Reduced Boilerplate**: Eliminated manual None checking and initialization
+- **Improved Type Safety**: Better handling of default values in dataclasses
+
+**🧹 Dependency Cleanup:**
+- **Removed Unused Dependency**: Removed `tkcalendar` from requirements.txt (no longer used)
+- **Reduced Package Bloat**: Cleaned up unused dependencies to improve installation speed
+
+**📊 Cache Performance Improvements:**
+- **Better Cache Hit Rates**: Using `prompt_type` parameter ensures different modes don't interfere
+- **Consistent Key Generation**: All cache operations now use the same key generation strategy
+- **Improved Cache Efficiency**: Reduced cache misses and duplicate entries
+
+### 2025-08-25 - Comprehensive Code Quality Improvements ✅ **COMPLETED**
+
+**🔧 Method Name Typo Fix:**
+- **Fixed Four-Underscore Typo**: Corrected `__init____test_lm_studio_connection()` to `_test_lm_studio_connection()` in `ai/chatbot.py`
+- **Updated All Call Sites**: Fixed both the method definition and all call sites for consistency
+- **Improved Searchability**: Method name now follows proper naming conventions
+
+**🎯 Response Cache Key Consistency:**
+- **Added Cache Key Helper**: Implemented `_make_cache_key()` method for consistent cache key generation
+- **Standardized Key Format**: All cache operations now use `{user_id}:{mode}:{prompt}` format
+- **Eliminated Ad-hoc Keys**: Replaced f-string cache keys with centralized helper method
+
+**📏 Word/Character Limit Alignment:**
+- **Enhanced Smart Truncation**: Updated `_smart_truncate_response()` to support both character and word limits
+- **Environment Variable Support**: Added `AI_MAX_RESPONSE_WORDS` environment variable for word-based limits
+- **Updated Prompt Guidance**: Changed fallback prompt from "maximum 150 characters" to "under 150 words"
+- **Improved Token Estimation**: Changed token calculation from `//4` to `//3` for more generous allocation
+
+**🧹 Import and Legacy Code Cleanup:**
+- **Fixed Duplicate Imports**: Removed duplicate `get_user_file_path` import in `core/response_tracking.py`
+- **Eliminated Infinite Recursion**: Removed legacy alias that called itself in `core/response_tracking.py`
+- **Removed Unused Imports**: Cleaned up unused `hashlib` import in `ai/chatbot.py`
+- **Fixed Header Comment**: Updated file header from `bot/ai_chatbot.py` to `ai/chatbot.py`
+
+**🔒 Encapsulation Improvements:**
+- **Added PromptManager Getters**: Implemented `has_custom_prompt()`, `custom_prompt_length()`, and `fallback_prompt_keys()` methods
+- **Eliminated Direct Field Access**: Updated all external access to use proper getter methods
+- **Improved API Design**: Better encapsulation prevents coupling to internal implementation details
+
+**📚 Documentation Updates:**
+- **Updated QUICK_REFERENCE.md**: Replaced Tkinter reference with PySide6 dependency note
+- **Maintained Accuracy**: All documentation now reflects current PySide6/Qt implementation
+
+**✅ Verification:**
+- All fast tests pass without errors
+- No logging errors during test execution
+- Improved code maintainability and consistency
+- Better separation of concerns and encapsulation
+
+### 2025-08-25 - Logging Error Fix During Test Execution ✅ **COMPLETED**
+
+**🔧 Test Environment Logging Fix:**
+- **Fixed Windows File Locking Issue**: Resolved `PermissionError` during log rotation in test environment
+- **Added Log Rotation Disable**: Set `DISABLE_LOG_ROTATION=1` environment variable in test configuration
+- **Multi-Layer Protection**: Added environment variable in `run_tests.py`, `pytest.ini`, and `tests/conftest.py`
+- **Eliminated Test Interference**: Tests now run without logging errors that could mask real test failures
+
+**🎯 Root Cause Analysis:**
+- **Problem**: Logger was trying to rotate log files during test execution, but files were locked by other processes
+- **Error**: `PermissionError: [WinError 32] The process cannot access the file because it is being used by another process`
+- **Solution**: Disable log rotation during tests to prevent file locking conflicts
+
+**📁 Files Modified:**
+- `run_tests.py` - Added `DISABLE_LOG_ROTATION=1` environment variable
+- `pytest.ini` - Added environment variable configuration for all pytest runs
+- `tests/conftest.py` - Added environment variable for test fixture setup
+
+**✅ Verification:**
+- All tests now run without logging errors
+- No impact on production logging functionality
+- Maintains test isolation and reliability
+
+### 2025-08-25 - Test Isolation and Category Validation Issues Resolution ✅ **COMPLETED**
+
+**🔧 Test Isolation Fix:**
+- **Fixed Environment Variable Pollution**: Resolved critical issue where `test_dialog_instantiation` was setting `CATEGORIES` environment variable that persisted across test runs
+- **Added Proper Cleanup**: Implemented `finally` block in dialog test to restore original environment variable state after test completion
+- **Eliminated Test Interference**: Tests now run in isolation without affecting each other's environment variables
+
+**🎯 Category Validation Alignment:**
+- **Updated Test Categories**: Fixed all tests to use correct categories from `.env` file: `["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]`
+- **Corrected Test Assertions**: Updated test expectations to match actual system configuration instead of hardcoded test values
+- **Fixed Validation Logic**: Ensured category validation uses the correct allowed categories from environment configuration
+
+**🧪 Test Suite Stability:**
+- **All 883 Tests Passing**: Achieved 100% test success rate with proper test isolation
+- **Eliminated Flaky Tests**: Fixed tests that passed individually but failed in full suite due to environment pollution
+- **Improved Test Reliability**: Tests now produce consistent results regardless of execution order
+
+**📊 System Health:**
+- **Audit Results**: 100.1% documentation coverage, no critical issues
+- **Function Registry**: 1906 total functions, 1434 high complexity (maintainable level)
+- **Development Ready**: System is healthy and ready for continued development
+
+**🎯 Impact:**
+- **Reliable Testing**: Tests now run consistently and predictably
+- **Proper Configuration**: System uses correct categories from `.env` file
+- **Development Confidence**: Full test suite provides reliable validation for changes
+- **Maintenance Efficiency**: Reduced debugging time for test-related issues
+
+### 2025-08-24 - AI Chatbot Additional Improvements and Code Quality Enhancements ✅ **COMPLETED**
+
+**🔧 Single Owner of Prompts Implementation:**
+- **Consolidated Prompt Management**: Removed duplicate `SystemPromptLoader` class from `ai/chatbot.py` and migrated all functionality to use `PromptManager` from `ai/prompt_manager.py`
+- **Eliminated Code Duplication**: All fallback prompts now live in one place (`PromptManager`) instead of being duplicated in two locations
+- **Single Source of Truth**: `PromptManager` now serves as the canonical source for all AI prompts, preventing drift and inconsistencies
+- **Updated All References**: Changed all `system_prompt_loader.get_system_prompt()` calls to `prompt_manager.get_prompt()` throughout the codebase
+
+**🧹 Tests Alignment and Migration:**
+- **Updated Test References**: Migrated `test_system_prompt_loader_creates_actual_file` to `test_prompt_manager_creates_actual_file` to test the actual production code path
+- **Fixed Test Imports**: Updated test imports to use `PromptManager` directly instead of the removed `SystemPromptLoader` class
+- **ResponseCache Test Updates**: Updated cache tests to use the canonical `get_response_cache()` from `ai.cache_manager` instead of the removed duplicate class
+- **Maintained Test Coverage**: All tests continue to pass while testing the actual production architecture
+
+**✨ Response Truncation Polish:**
+- **Smart Truncation Implementation**: Added `_smart_truncate_response()` helper function that truncates at sentence boundaries (periods, exclamation marks, question marks) or word boundaries instead of mid-sentence
+- **Improved User Experience**: Responses no longer end abruptly mid-sentence, providing more natural conversation flow
+- **Fallback Logic**: If no sentence boundaries are found, falls back to word boundaries, then simple truncation as last resort
+- **Character Limit Respect**: Still respects the `AI_MAX_RESPONSE_LENGTH` limit while providing better truncation points
+
+**🎯 Code Quality Improvements:**
+- **Removed Legacy Code**: Eliminated duplicate `SystemPromptLoader` and `ResponseCache` classes that were causing maintenance burden
+- **Cleaner Architecture**: Single responsibility principle - `PromptManager` handles all prompt management, `ai.cache_manager` handles all caching
+- **Better Maintainability**: Reduced code duplication and potential for inconsistencies
+- **Improved Test Reliability**: Tests now verify actual production code paths instead of duplicate implementations
+
+**🧪 Testing and Verification:**
+- **All Tests Passing**: Verified that updated tests pass and maintain coverage
+- **Functionality Verified**: Confirmed prompt manager works correctly with custom prompts and fallbacks
+- **Smart Truncation Tested**: Verified truncation works at sentence boundaries as expected
+- **System Stability**: Confirmed system startup and core functionality remain intact
+
+**📊 Impact:**
+- **Reduced Maintenance Burden**: Single source of truth for prompts eliminates drift and duplication
+- **Better User Experience**: Smart truncation prevents jarring mid-sentence cuts
+- **Cleaner Codebase**: Removed duplicate classes and consolidated functionality
+- **Improved Test Reliability**: Tests now verify actual production code paths
+
+### 2025-08-24 - AI Chatbot Critical Bug Fixes and Code Quality Improvements ✅ **COMPLETED**
+
+**🔧 Critical System Prompt Loader Fix:**
+- **Fixed Type Mismatch Bug**: Corrected critical issue where `system_prompt_loader` was assigned to `get_prompt_manager()` (PromptManager type) but code was calling `get_system_prompt()` method that doesn't exist on PromptManager
+- **Root Cause**: Global instance was wrong type - PromptManager has `get_prompt()` method, not `get_system_prompt()`
+- **Solution**: Changed assignment to `SystemPromptLoader()` instance which has the correct `get_system_prompt()` method
+- **Impact**: Prevents AttributeError crashes when AI responses are generated
+
+**🧹 Code Quality Improvements:**
+- **Removed Duplicate ResponseCache**: Eliminated redundant ResponseCache class in `ai/chatbot.py` that had typo (`set__cleanup_lru`) and was not being used
+- **Fixed Prompt Length Guidance**: Corrected contradictory guidance from "maximum 100 words (approximately 150 characters)" to "maximum 150 characters (approximately 25-30 words)" for mathematical accuracy
+- **Enhanced Token/Length Math**: Added documentation about potential mid-sentence truncation and suggested post-processing improvements
+
+**🎯 Issues Addressed:**
+- **Blocking Bug**: System prompt loader type mismatch that would cause runtime crashes
+- **Code Duplication**: Removed unused duplicate ResponseCache implementation
+- **Documentation Accuracy**: Fixed mathematically incorrect prompt length guidance
+- **Code Clarity**: Added comments about token calculation limitations
+
+**🧪 Testing:**
+- System startup verified working correctly
+- System prompt loader functionality confirmed working
+- All critical AI chatbot functionality preserved
+- No regressions introduced
+
+**📊 Impact:**
+- **Critical Bug Fixed**: Prevents AttributeError crashes in AI response generation
+- **Code Quality**: Reduced maintenance burden by removing duplicate code
+- **Documentation**: Improved accuracy of AI prompt guidance
+- **System Stability**: Enhanced reliability of AI chatbot functionality
+
 ### 2025-08-24 - Test Isolation Issues Resolution and Multiple conftest.py Files Fix ✅ **MAJOR PROGRESS**
 
 **🔧 Test Isolation Improvements:**

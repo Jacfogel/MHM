@@ -173,6 +173,18 @@ class PromptManager:
         self._load_custom_prompt()
         logger.info("Custom system prompt reloaded")
     
+    def has_custom_prompt(self) -> bool:
+        """Check if a custom prompt is loaded."""
+        return self._custom_prompt is not None
+
+    def custom_prompt_length(self) -> int:
+        """Get the length of the custom prompt."""
+        return len(self._custom_prompt or "")
+
+    def fallback_prompt_keys(self) -> list[str]:
+        """Get the keys of available fallback prompts."""
+        return list(self._fallback_prompts.keys()) if isinstance(self._fallback_prompts, dict) else []
+    
     def get_available_prompts(self) -> Dict[str, str]:
         """
         Get all available prompt types and their descriptions

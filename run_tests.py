@@ -136,6 +136,9 @@ def main():
     if args.verbose:
         cmd.append("-v")
     
+    # Set test environment variables
+    os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during tests
+    
     # Add coverage if requested
     if args.coverage:
         cmd.extend(["--cov=core", "--cov=bot", "--cov=tasks", "--cov-report=html:tests/htmlcov", "--cov-report=term"])

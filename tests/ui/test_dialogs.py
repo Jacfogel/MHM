@@ -228,7 +228,8 @@ def test_dialog_instantiation():
         
         # Set up test environment
         os.environ['MHM_TESTING'] = '1'
-        os.environ['CATEGORIES'] = '["general", "health", "tasks"]'
+        original_categories = os.environ.get('CATEGORIES')
+        os.environ['CATEGORIES'] = '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
         
         # Import and set up communication manager for testing
         from communication.core.channel_orchestrator import CommunicationManager
@@ -288,6 +289,14 @@ def test_dialog_instantiation():
     except Exception as e:
         print(f"  ❌ Dialog instantiation testing failed: {e}")
         assert False, f"Dialog instantiation testing failed: {e}"
+    finally:
+        # Clean up environment variables
+        if 'MHM_TESTING' in os.environ:
+            del os.environ['MHM_TESTING']
+        if original_categories is not None:
+            os.environ['CATEGORIES'] = original_categories
+        elif 'CATEGORIES' in os.environ:
+            del os.environ['CATEGORIES']
 
 # Note: This file contains pytest test functions that should be run with pytest
 # The main() function has been removed as it's not compatible with pytest

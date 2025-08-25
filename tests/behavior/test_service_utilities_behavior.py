@@ -58,23 +58,21 @@ class TestServiceUtilitiesBehavior:
     @pytest.mark.regression
     def test_throttler_should_run_respects_interval(self, test_data_dir):
         """Test that Throttler should_run respects the time interval."""
-        throttler = Throttler(0.01)  # 10ms interval for faster testing
+        throttler = Throttler(1)  # 1 second interval for more reliable testing
 
-        # Current Throttler behavior: always returns True when last_run is None
-        # This is a known issue - the Throttler never sets last_run on first call
+        # First call should set last_run and return True
         assert throttler.should_run() is True
-        assert throttler.should_run() is True
-        assert throttler.last_run is None, "last_run remains None (known issue)"
+        assert throttler.last_run is not None, "last_run should be set on first call"
+
+        # Second call should return False (within interval)
+        assert throttler.should_run() is False, "Should return False when within interval"
 
         # Wait for interval to pass
-        time.sleep(0.015)  # Wait longer than interval
+        time.sleep(1.1)  # Wait longer than interval
         
-        # Even after waiting, should_run still returns True because last_run is None
-        assert throttler.should_run() is True
-        assert throttler.last_run is None, "last_run still None (known issue)"
-        
-        # The Throttler is currently broken - it never throttles because last_run is never set
-        # TODO: Fix Throttler implementation to properly set last_run on first call
+        # After waiting, should_run should return True and update last_run
+        assert throttler.should_run() is True, "Should return True after interval passes"
+        assert throttler.last_run is not None, "last_run should be updated after interval"
     
     @pytest.mark.behavior
     @pytest.mark.service

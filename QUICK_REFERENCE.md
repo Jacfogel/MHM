@@ -107,7 +107,7 @@ Get-ChildItem -Path . -Recurse -Include "__pycache__" | Remove-Item -Recurse -Fo
 
 #### **UI Issues**
 - **Problem**: UI won't launch or looks broken
-- **Solution**: Try the modern Qt interface instead of legacy Tkinter
+- **Solution**: Ensure PySide6 is installed for Qt interface
 - **UI**: Use `python ui/ui_app_qt.py` for admin interface
 
 ### App Won't Start

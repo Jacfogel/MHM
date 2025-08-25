@@ -2,6 +2,78 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
+### 2025-08-25 - Windows Fatal Exception Investigation
+
+**Status**: 🔄 **INVESTIGATION**  
+**Priority**: High  
+**Effort**: Medium  
+**Dependencies**: None  
+
+**Objective**: Investigate and fix the Windows fatal exception (access violation) that occurs during full test suite execution.
+
+**Background**: During comprehensive testing, a Windows fatal exception was encountered during full test suite execution. This issue needs investigation to ensure system stability and prevent crashes during testing.
+
+**Investigation Plan**:
+- [ ] Analyze crash logs and error patterns
+- [ ] Identify if issue is related to Discord bot threads or UI widget cleanup
+- [ ] Determine if issue is Windows-specific or affects all platforms
+- [ ] Check for memory management or threading issues
+- [ ] Implement appropriate fix based on root cause analysis
+- [ ] Test fix with full test suite execution
+- [ ] Add crash detection and recovery mechanisms
+
+**Success Criteria**:
+- Root cause identified and documented
+- Fix implemented and tested
+- Full test suite runs without fatal exceptions
+- Prevention measures in place
+
+---
+
+### 2025-08-25 - Additional Code Quality Improvements ✅ **COMPLETED**
+
+**Status**: ✅ **COMPLETED**  
+**Priority**: High  
+**Effort**: Medium  
+**Dependencies**: None  
+
+**Objective**: Implement comprehensive code quality improvements for better system performance, reliability, and maintainability.
+
+**Background**: User provided suggestions for improving cache key consistency, fixing throttler behavior, modernizing dataclasses, and cleaning up dependencies.
+
+**Implementation Plan**:
+- [x] **Cache Key Consistency Enhancement**
+  - [x] Leveraged prompt_type parameter for better cache hit rates
+  - [x] Updated all cache operations to use consistent key generation
+  - [x] Improved cache performance across different AI response modes
+- [x] **Throttler First-Run Fix**
+  - [x] Fixed throttler to set last_run timestamp on first call
+  - [x] Ensured proper time-based throttling from initial execution
+  - [x] Updated test to reflect correct behavior
+- [x] **Dataclass Modernization**
+  - [x] Used default_factory for better type safety
+  - [x] Eliminated manual None checking and initialization
+  - [x] Improved dataclass patterns across the codebase
+- [x] **Dependency Cleanup**
+  - [x] Removed unused tkcalendar dependency
+  - [x] Reduced package bloat and improved installation speed
+  - [x] Cleaned up requirements.txt
+
+**Success Criteria**:
+- ✅ Better cache performance with consistent key generation
+- ✅ Proper throttling behavior from first call
+- ✅ Modern dataclass patterns with improved type safety
+- ✅ Cleaner dependencies and reduced package bloat
+- ✅ All tests passing with improved reliability
+
+**Results**:
+- **Performance**: Improved cache hit rates and response times
+- **Reliability**: Fixed throttler behavior and improved system stability
+- **Maintainability**: Modern code patterns and cleaner dependencies
+- **Testing**: All tests passing with enhanced reliability
+
+---
+
 ### 2025-08-24 - Streamlined Message Flow Implementation ✅ **COMPLETED**
 
 **Status**: ✅ **COMPLETED**  

@@ -13,7 +13,7 @@ pydantic>=2.7.0  # For JSON schema validation and parsing
 # gpt4all  # Removed - replaced with LM Studio API
 
 # UI dependencies
-tkcalendar>=1.6.1  # For date picker in UI dialogs
+
 PySide6>=6.5.0  # For Qt-based UI (replacing tkinter)
 
 # Testing dependencies (optional)

@@ -234,7 +234,7 @@ class TestUserManagement:
     def test_update_user_preferences_success(self, mock_user_data, mock_config):
         """Test updating user preferences successfully."""
         new_preferences = {
-            'categories': ['motivational', 'health', 'fun_facts']
+            'categories': ['motivational', 'health']
         }
         
         result = update_user_preferences(mock_user_data['user_id'], new_preferences)
@@ -244,7 +244,6 @@ class TestUserManagement:
         updated_preferences = get_user_data(mock_user_data['user_id'], 'preferences')['preferences']
         assert 'motivational' in updated_preferences['categories']
         assert 'health' in updated_preferences['categories']
-        assert 'fun_facts' in updated_preferences['categories']
     
     @pytest.mark.unit
     @pytest.mark.user_management

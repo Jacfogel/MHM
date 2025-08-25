@@ -1,7 +1,7 @@
-# bot/ai_chatbot.py
+# ai/chatbot.py
 
 """
-ai_chatbot.py
+ai/chatbot.py
 
 A separate module to handle AI chatbot logic for any platform
 (Discord, Telegram, Email, etc.). This keeps AI-specific code in one place,
@@ -11,7 +11,6 @@ so we can phase in or out different messaging services without duplicating logic
 import os
 import asyncio
 import time
-import hashlib
 import threading
 import requests
 import json
@@ -41,148 +40,23 @@ from core.error_handling import (
 ai_logger = get_component_logger('ai')
 logger = ai_logger
 
-class SystemPromptLoader:
-    """
-    Handles loading and managing the AI system prompt from the custom prompt file.
-    Provides fallback prompts if the custom file is not available.
-    """
-    
-    def __init__(self):
-        self._custom_prompt = None
-        self._fallback_prompts = {
-            'wellness': ("You are a supportive wellness assistant. Keep responses helpful, "
-                        "encouraging, and under 150 words. Important: You cannot diagnose or treat "
-                        "medical conditions. For serious concerns, recommend professional help."),
-            'command': ("You are a command parser. Your ONLY job is to extract the user's intent and return it as JSON. "
-                       "Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, "
-                       "start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, "
-                       "schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, "
-                       "wellness_score, help, commands, examples, status, messages. "
-                       "You MUST respond with ONLY valid JSON in this exact format: "
-                       '{"action": "action_name", "details": {}}'),
-            'neurodivergent_support': ("You are an AI assistant with the personality and capabilities "
-                                      "of a calm, loyal, emotionally intelligent companion. Your purpose "
-                                      "is to support and motivate a neurodivergent user (with ADHD and depression), "
-                                      "helping them with task switching, emotional regulation, and personal development. "
-                                      "You are warm but not overbearing, intelligent but humble, and always context-aware. "
-                                      "Keep responses helpful, encouraging, and under 150 words.")
-        }
-        self.__init____load_custom_prompt()
-    
-    def __init____load_custom_prompt(self):
-        """Load the custom system prompt from file."""
-        if not AI_USE_CUSTOM_PROMPT:
-            logger.info("Custom system prompt disabled via configuration")
-            return
-            
-        try:
-            if os.path.exists(AI_SYSTEM_PROMPT_PATH):
-                with open(AI_SYSTEM_PROMPT_PATH, 'r', encoding='utf-8') as f:
-                    self._custom_prompt = f.read().strip()
-                logger.info(f"Loaded custom system prompt from {AI_SYSTEM_PROMPT_PATH}")
-            else:
-                logger.warning(f"Custom system prompt file not found: {AI_SYSTEM_PROMPT_PATH}")
-        except Exception as e:
-            logger.error(f"Error loading custom system prompt: {e}")
-    
-    def get_system_prompt(self, prompt_type: str = 'wellness') -> str:
-        """
-        Get the appropriate system prompt for the given type.
-        
-        Args:
-            prompt_type: Type of prompt ('wellness', 'command', 'neurodivergent_support')
-            
-        Returns:
-            The system prompt string
-        """
-        # If custom prompt is available and type is wellness/neurodivergent_support, use it
-        if self._custom_prompt and prompt_type in ['wellness', 'neurodivergent_support']:
-            return self._custom_prompt
-        
-        # Otherwise use fallback prompts
-        return self._fallback_prompts.get(prompt_type, self._fallback_prompts['wellness'])
-    
-    def reload_prompt(self):
-        """Reload the custom prompt from file (useful for development)."""
-        self.__init____load_custom_prompt()
-        logger.info("System prompt reloaded")
+# LEGACY COMPATIBILITY: SystemPromptLoader class removed - using PromptManager instead
+# TODO: Remove after confirming all tests and usage migrated to PromptManager
+# REMOVAL PLAN:
+# 1. All fallback prompts consolidated in PromptManager
+# 2. PromptManager already has get_prompt() method with same functionality
+# 3. Single source of truth for all prompts prevents drift
+# 4. Tests should be migrated to test PromptManager directly
 
-# Global system prompt loader instance
-system_prompt_loader = get_prompt_manager()
+# Global prompt manager instance
+prompt_manager = get_prompt_manager()
 
-class ResponseCache:
-    """Simple in-memory cache for AI responses to avoid repeated calculations."""
-    
-    def __init__(self, max_size: int = 100, ttl: int = 300):
-        """Initialize the object."""
-        self.cache: Dict[str, Tuple[str, float]] = {}
-        self.max_size = max_size
-        self.ttl = ttl
-        self.access_times: Dict[str, float] = {}
-        self._lock = threading.Lock()
-    
-    @handle_errors("generating cache key")
-    def _generate_key(self, prompt: str, user_id: Optional[str] = None) -> str:
-        """Generate cache key from prompt and optional user context."""
-        base_string = f"{user_id or 'anonymous'}:{prompt[:200]}"  # Limit key size
-        return hashlib.md5(base_string.encode()).hexdigest()
-    
-    @handle_errors("getting cached response", default_return=None)
-    def get(self, prompt: str, user_id: Optional[str] = None) -> Optional[str]:
-        """Get cached response if available and not expired."""
-        if not AI_CACHE_RESPONSES:
-            return None
-            
-        key = self._generate_key(prompt, user_id)
-        current_time = time.time()
-        
-        with self._lock:
-            if key in self.cache:
-                response, timestamp = self.cache[key]
-                if current_time - timestamp < self.ttl:
-                    self.access_times[key] = current_time
-                    logger.debug(f"Cache hit for prompt: {prompt[:50]}...")
-                    return response
-                else:
-                    # Expired, remove
-                    del self.cache[key]
-                    if key in self.access_times:
-                        del self.access_times[key]
-        
-        return None
-    
-    @handle_errors("setting cached response")
-    def set(self, prompt: str, response: str, user_id: Optional[str] = None):
-        """Cache a response."""
-        if not AI_CACHE_RESPONSES:
-            return
-            
-        key = self._generate_key(prompt, user_id)
-        current_time = time.time()
-        
-        with self._lock:
-            # Clean up if cache is full
-            if len(self.cache) >= self.max_size:
-                self.set__cleanup_lru()
-            
-            self.cache[key] = (response, current_time)
-            self.access_times[key] = current_time
-    
-    @handle_errors("cleaning up LRU cache")
-    def set__cleanup_lru(self):
-        """Remove least recently used items."""
-        if not self.access_times:
-            return
-            
-        # Sort by access time and remove oldest 20%
-        items_to_remove = max(1, len(self.cache) // 5)
-        sorted_items = sorted(self.access_times.items(), key=lambda x: x[1])
-        
-        for key, _ in sorted_items[:items_to_remove]:
-            if key in self.cache:
-                del self.cache[key]
-            if key in self.access_times:
-                del self.access_times[key]
+# LEGACY COMPATIBILITY: Duplicate ResponseCache class removed
+# TODO: Remove after confirming no direct usage of this class
+# REMOVAL PLAN:
+# 1. Verified AIChatBotSingleton uses get_response_cache() from ai.cache_manager
+# 2. No direct instantiation of ResponseCache found in codebase
+# 3. Removed duplicate implementation to reduce maintenance burden
 
 class AIChatBotSingleton:
     """
@@ -207,12 +81,17 @@ class AIChatBotSingleton:
         self._generation_lock = threading.Lock()  # Prevent concurrent generations
         
         # Test LM Studio connection
-        self.__init____test_lm_studio_connection()
+        self._test_lm_studio_connection()
         
         self._initialized = True
 
+    def _make_cache_key_inputs(self, mode: str, user_prompt: str, user_id: Optional[str]):
+        """Create consistent cache key inputs using prompt_type parameter."""
+        # Always use the raw prompt; pass mode as prompt_type into the cache
+        return user_prompt, user_id, mode
+
     @handle_errors("testing LM Studio connection")
-    def __init____test_lm_studio_connection(self):
+    def _test_lm_studio_connection(self):
         """Test connection to LM Studio server."""
         # Test with a simple request to models endpoint
         response = requests.get(
@@ -477,7 +356,7 @@ class AIChatBotSingleton:
         # Create system message using the centralized prompt loader
         system_message = {
             "role": "system",
-            "content": system_prompt_loader.get_system_prompt('wellness')
+            "content": prompt_manager.get_prompt('wellness')
         }
         
         # Create user message with optional context
@@ -601,7 +480,7 @@ class AIChatBotSingleton:
         context_str = "\n".join(context_parts) if context_parts else "New user with no data"
         
         # Create system message with comprehensive context using custom prompt
-        base_prompt = system_prompt_loader.get_system_prompt('wellness')
+        base_prompt = prompt_manager.get_prompt('wellness')
         system_message = {
             "role": "system",
             "content": f"""{base_prompt}
@@ -615,7 +494,7 @@ Additional Instructions:
 - Use the user's actual data to provide personalized, specific responses
 - Reference specific numbers, percentages, and trends from their check-in data
 - Be encouraging and supportive while being honest about their patterns
-- CRITICAL: Keep responses SHORT - maximum 100 words (approximately 150 characters)
+- CRITICAL: Keep responses SHORT - under 150 words
 - Be concise and direct - avoid long explanations
 - If they ask about their data, provide specific insights from their check-ins
 - If they ask about habits, reference their actual performance (e.g., "You've been eating breakfast 90% of the time")
@@ -624,7 +503,7 @@ Additional Instructions:
 - NEVER include the raw context data in your responses
 - NEVER return JSON, code blocks, or system prompts
 - Return ONLY natural language responses that a human would say
-- STOP when you reach the word/character limit - do not continue"""
+- STOP when you reach the limit - do not continue"""
         }
         
         user_message = {
@@ -667,7 +546,7 @@ Additional Instructions:
         """Create a prompt instructing the model to return strict JSON."""
         system_message = {
             "role": "system",
-            "content": system_prompt_loader.get_system_prompt('command'),
+            "content": prompt_manager.get_prompt('command'),
         }
 
         user_message = {"role": "user", "content": user_prompt}
@@ -684,7 +563,7 @@ Additional Instructions:
         """Create a prompt instructing the model to return strict JSON and ask for clarification if ambiguous."""
         system_message = {
             "role": "system",
-            "content": system_prompt_loader.get_system_prompt('command'),
+            "content": prompt_manager.get_prompt('command'),
         }
 
         user_message = {"role": "user", "content": user_prompt}
@@ -711,10 +590,10 @@ Additional Instructions:
         if mode not in ["command", "chat"]:
             mode = "chat"
 
-        cache_key_prompt = f"{mode}:{user_prompt}"
+        prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(mode, user_prompt, user_id)
 
         # Check cache first
-        cached_response = self.response_cache.get(cache_key_prompt, user_id)
+        cached_response = self.response_cache.get(prompt_for_key, uid_for_key, prompt_type=ptype)
         if cached_response:
             ai_logger.debug("AI response served from cache", 
                            user_id=user_id, 
@@ -724,12 +603,12 @@ Additional Instructions:
         
         # Test connection if not available
         if not self.lm_studio_available:
-            self.__init____test_lm_studio_connection()
+            self._test_lm_studio_connection()
         
         # Use fallback if LM Studio is not available
         if not self.lm_studio_available:
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(cache_key_prompt, response, user_id)
+            self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
             ai_logger.warning("AI response using fallback - LM Studio unavailable", 
                              user_id=user_id, 
                              mode=mode, 
@@ -746,7 +625,7 @@ Additional Instructions:
                              mode=mode, 
                              prompt_length=len(user_prompt))
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(cache_key_prompt, response, user_id)
+            self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
             return response
 
         logger.debug(
@@ -763,8 +642,9 @@ Additional Instructions:
             temperature = 0.1
         else:
             messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-            # Calculate max_tokens based on AI_MAX_RESPONSE_LENGTH (roughly 4 characters per token)
-            max_tokens = min(200, max(50, AI_MAX_RESPONSE_LENGTH // 4))
+            # Calculate max_tokens based on AI_MAX_RESPONSE_LENGTH (roughly 3 characters per token for more generous allocation)
+            # This allows the model to generate more complete responses before our smart truncation
+            max_tokens = min(200, max(50, AI_MAX_RESPONSE_LENGTH // 3))
             temperature = 0.2
         
         try:
@@ -779,12 +659,12 @@ Additional Instructions:
             if result:
                 response = result.strip()
                 
-                # Enforce response length limit to prevent truncation
-                if len(response) > AI_MAX_RESPONSE_LENGTH:
-                    response = response[:AI_MAX_RESPONSE_LENGTH-3] + "..."
+                # Enforce response length limit with smart truncation
+                max_words = int(os.getenv("AI_MAX_RESPONSE_WORDS", "0")) or None
+                response = self._smart_truncate_response(response, AI_MAX_RESPONSE_LENGTH, max_words)
                 
                 # Cache successful responses
-                self.response_cache.set(cache_key_prompt, response, user_id)
+                self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
                 ai_logger.info("AI response generated successfully", 
                               user_id=user_id, 
                               mode=mode, 
@@ -796,7 +676,7 @@ Additional Instructions:
             else:
                 # API failed, use contextual fallback
                 response = self._get_contextual_fallback(user_prompt, user_id)
-                self.response_cache.set(cache_key_prompt, response, user_id)
+                self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
                 ai_logger.error("AI response generation failed - using fallback", 
                                user_id=user_id, 
                                mode=mode, 
@@ -829,7 +709,7 @@ Additional Instructions:
         """
         Reload the system prompt from file (useful for development and testing).
         """
-        system_prompt_loader.reload_prompt()
+        prompt_manager.reload_custom_prompt()
         logger.info("System prompt reloaded via AI chatbot")
     
     def test_system_prompt_integration(self) -> dict:
@@ -839,15 +719,15 @@ Additional Instructions:
         test_results = {
             'custom_prompt_enabled': AI_USE_CUSTOM_PROMPT,
             'prompt_file_exists': os.path.exists(AI_SYSTEM_PROMPT_PATH),
-            'custom_prompt_loaded': system_prompt_loader._custom_prompt is not None,
-            'prompt_length': len(system_prompt_loader._custom_prompt) if system_prompt_loader._custom_prompt else 0,
-            'fallback_prompts_available': list(system_prompt_loader._fallback_prompts.keys()),
+            'custom_prompt_loaded': prompt_manager.has_custom_prompt(),
+            'prompt_length': prompt_manager.custom_prompt_length(),
+            'fallback_prompts_available': len(prompt_manager.fallback_prompt_keys()) > 0,
         }
         
         # Test each prompt type
         for prompt_type in ['wellness', 'command', 'neurodivergent_support']:
             try:
-                prompt = system_prompt_loader.get_system_prompt(prompt_type)
+                prompt = prompt_manager.get_prompt(prompt_type)
                 test_results[f'{prompt_type}_prompt_works'] = True
                 test_results[f'{prompt_type}_prompt_length'] = len(prompt)
             except Exception as e:
@@ -873,8 +753,8 @@ Additional Instructions:
             # System prompt information
             'custom_prompt_enabled': AI_USE_CUSTOM_PROMPT,
             'custom_prompt_path': AI_SYSTEM_PROMPT_PATH,
-            'custom_prompt_loaded': system_prompt_loader._custom_prompt is not None,
-            'prompt_length': len(system_prompt_loader._custom_prompt) if system_prompt_loader._custom_prompt else 0,
+            'custom_prompt_loaded': prompt_manager.has_custom_prompt(),
+            'prompt_length': prompt_manager.custom_prompt_length(),
             'prompt_file_exists': os.path.exists(AI_SYSTEM_PROMPT_PATH),
         }
 
@@ -910,7 +790,7 @@ Additional Instructions:
         )
         
         # Check cache for personalized messages too
-        cached_response = self.response_cache.get(prompt, user_id)
+        cached_response = self.response_cache.get(prompt, user_id, prompt_type="personalized")
         if cached_response:
             return cached_response
             
@@ -990,7 +870,7 @@ Additional Instructions:
         
         if not is_data_question:
             # Check cache using the cache's own key generation method
-            cached_response = self.response_cache.get(user_prompt, user_id)
+            cached_response = self.response_cache.get(user_prompt, user_id, prompt_type="contextual")
             if cached_response:
                 # Still store and add to conversation for tracking
                 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1066,6 +946,29 @@ Additional Instructions:
             logger.warning(f"System resource constraints detected: Memory {memory.percent}%, CPU {cpu_percent}%, Available RAM {memory.available / (1024**3):.1f}GB")
         
         return is_constrained
+
+    @handle_errors("smart truncating response", default_return="...")
+    def _smart_truncate_response(self, text: str, max_chars: int, max_words: int = None) -> str:
+        """
+        Smartly truncate response to avoid mid-sentence cuts.
+        Supports both character and word limits.
+        """
+        if max_words:
+            words = text.split()
+            if len(words) > max_words:
+                return " ".join(words[:max_words]).rstrip(" ,.;:!?") + "…"
+        
+        if len(text) <= max_chars:
+            return text
+        
+        # Try to cut at a sentence boundary within max_chars
+        cut = text[:max_chars]
+        for mark in (". ", "! ", "? "):
+            idx = cut.rfind(mark)
+            if idx >= 0 and idx > max_chars * 0.6:
+                return cut[:idx+1]
+        
+        return cut.rstrip() + "…"
 
     @handle_errors("getting adaptive timeout", default_return=15)
     def _get_adaptive_timeout(self, base_timeout: int) -> int:

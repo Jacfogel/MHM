@@ -53,6 +53,7 @@ setup_logging_isolation()
 # Set environment variable to indicate we're running tests, and enable verbose component logs under tests/logs
 os.environ['MHM_TESTING'] = '1'
 os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '1')
+os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during tests
 
 # Force all log paths to tests/logs for absolute isolation, even if modules read env at import time
 tests_logs_dir = (Path(__file__).parent / 'logs').resolve()

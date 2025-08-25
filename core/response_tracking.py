@@ -12,10 +12,7 @@ from typing import List, Dict, Any, Optional
 from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
-from core.config import (
-    USER_INFO_DIR_PATH,
-    get_user_file_path, ensure_user_directory
-)
+from core.config import USER_INFO_DIR_PATH, ensure_user_directory
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -30,10 +27,7 @@ tracking_logger = get_component_logger('user_activity')
 # 2. Update imports in remaining modules/tests
 # 3. Remove these aliases after 2 weeks of no usage
 
-@handle_errors("legacy get_recent_checkins", default_return=[])
-def get_recent_checkins(user_id: str, limit: int = 7):
-    logger.warning("LEGACY COMPATIBILITY: get_recent_checkins() called; use get_recent_checkins() instead")
-    return get_recent_checkins(user_id, limit)
+
 
 @handle_errors("legacy store_checkin_response")
 def store_checkin_response(user_id: str, response_data: dict):

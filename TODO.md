@@ -30,6 +30,28 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Windows Fatal Exception Investigation** ⚠️ **NEW PRIORITY**
+- *What it means*: Investigate and fix the Windows fatal exception (access violation) that occurs during full test suite execution
+- *Why it helps*: Ensures system stability and prevents crashes during comprehensive testing
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **INVESTIGATION NEEDED** - Issue identified during full test suite execution
+- *Subtasks*:
+  - [ ] **Investigate Root Cause**
+    - [ ] Analyze crash logs and error patterns
+    - [ ] Identify if issue is related to Discord bot threads or UI widget cleanup
+    - [ ] Determine if issue is Windows-specific or affects all platforms
+    - [ ] Check for memory management or threading issues
+  - [ ] **Implement Fix**
+    - [ ] Apply appropriate fix based on root cause analysis
+    - [ ] Test fix with full test suite execution
+    - [ ] Verify no regressions in core functionality
+    - [ ] Monitor for recurrence of the issue
+  - [ ] **Prevention Measures**
+    - [ ] Add crash detection and recovery mechanisms
+    - [ ] Implement proper resource cleanup in test environment
+    - [ ] Add monitoring for similar issues in production
+    - [ ] Document prevention strategies
+
 ## **Streamlined Message Flow Implementation** ✅ **COMPLETED**
 - *What it means*: Implemented optimized message processing flow that removes redundant keyword checking and improves AI command parsing with clarification capability
 - *Why it helps*: Provides faster, more intelligent command processing while maintaining all existing functionality
@@ -618,3 +640,21 @@ When adding new tasks, follow this format:
   - [ ] Investigate remaining test isolation issues with mock_user_data fixture
   - [ ] Consider making failing tests more robust to handle state pollution
   - [ ] Monitor test stability over time to ensure improvements are maintained
+
+## **Additional Code Quality Improvements** ✅ **COMPLETED**
+- *What it means*: Implemented comprehensive code quality improvements including cache key consistency, throttler fixes, dataclass modernization, and dependency cleanup
+- *Why it helps*: Improves system performance, reliability, and maintainability
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - All improvements implemented and tested successfully
+- *Completed Work*:
+  - ✅ **Cache Key Consistency Enhancement**: Leveraged prompt_type parameter for better cache hit rates
+  - ✅ **Throttler First-Run Fix**: Fixed throttler to set last_run timestamp on first call
+  - ✅ **Dataclass Modernization**: Used default_factory for better type safety
+  - ✅ **Dependency Cleanup**: Removed unused tkcalendar dependency
+  - ✅ **Test Updates**: Fixed throttler test to reflect correct behavior
+- *Results*:
+  - Better cache performance with consistent key generation
+  - Proper throttling behavior from first call
+  - Modern dataclass patterns with improved type safety
+  - Cleaner dependencies and reduced package bloat
+  - All tests passing with improved reliability

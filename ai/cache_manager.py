@@ -4,7 +4,7 @@ import hashlib
 import threading
 import time
 from typing import Dict, Optional, Tuple, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -21,12 +21,7 @@ class CacheEntry:
     timestamp: float
     prompt_type: str
     user_id: Optional[str] = None
-    metadata: Dict[str, Any] = None
-    
-    def __post_init__(self):
-        """Post-initialization setup"""
-        if self.metadata is None:
-            self.metadata = {}
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 class ResponseCache:
     """Simple in-memory cache for AI responses to avoid repeated calculations"""
@@ -87,7 +82,7 @@ class ResponseCache:
                 timestamp=current_time,
                 prompt_type=prompt_type,
                 user_id=user_id,
-                metadata=metadata or {}
+                metadata=metadata
             )
             
             self.cache[key] = entry

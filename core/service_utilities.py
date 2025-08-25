@@ -47,27 +47,26 @@ class Throttler:
     def should_run(self):
         """
         Check if enough time has passed since the last run to allow another execution.
-        
-        Returns:
-            bool: True if the operation should run, False if it should be throttled
         """
         current_time = datetime.now()
-        
+
         if self.last_run is None:
+            # Set first-run timestamp so we actually throttle subsequent calls
+            self.last_run = current_time.strftime('%Y-%m-%d %H:%M:%S')
             return True
-        
-        # Parse human-readable timestamp format
+
         try:
             last_run_date = datetime.strptime(self.last_run, '%Y-%m-%d %H:%M:%S')
         except (ValueError, TypeError):
-            # If parsing fails, allow run
+            # If parsing fails, allow run and reset timestamp
+            self.last_run = current_time.strftime('%Y-%m-%d %H:%M:%S')
             return True
-        
+
         time_since_last_run = (current_time - last_run_date).total_seconds()
         if time_since_last_run >= self.interval:
             self.last_run = current_time.strftime('%Y-%m-%d %H:%M:%S')
             return True
-        
+
         return False
 
 class InvalidTimeFormatError(Exception):
