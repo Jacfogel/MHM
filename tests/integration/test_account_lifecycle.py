@@ -81,7 +81,7 @@ class TestAccountLifecycle:
         assert actual_user_id is not None, f"Should be able to get UUID for user {user_id}"
         
         # Update user data to match the test requirements
-        from core.user_management import update_user_account, update_user_preferences
+        from core.user_data_handlers import update_user_account, update_user_preferences
         update_account_success = update_user_account(actual_user_id, {
             "timezone": "America/New_York"
         })

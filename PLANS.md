@@ -742,15 +742,6 @@ Note: Telegram integration has been removed from scope.
 - [ ] **Intelligent Reminders**: AI-determined optimal reminder timing
 - [ ] **Task Analytics**: AI-powered insights into task completion patterns
 
-## Message Data Structure Reorganization Plan ⚠️ **PLANNED**
-**Goal**: Reorganize message files to `data/messages/{user_id}/messages/{category}.json` and colocate `sent_messages.json`.
-
-- [ ] Design migration strategy and fallback compatibility window
-- [ ] Implement migration script and update file path resolution
-- [ ] Update message CRUD/readers/writers to new structure
-- [ ] Update tests and backfill fixtures
-- [ ] Validate performance and rollback path
-
 ## User Preferences Refactor Plan ⚠️ **PLANNED**
 **Goal**: Introduce `UserPreferences` class for centralized, type-safe preference management.
 

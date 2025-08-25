@@ -575,11 +575,26 @@ def patch_user_data_dirs():
 def cleanup_test_users_after_session():
     """Remove test users from both data/users/ and tests/data/users/ after all tests."""
     yield  # Run all tests first
+    
+    # Clear all user caches to prevent state pollution between test runs
+    try:
+        from core.user_management import clear_user_caches
+        clear_user_caches()  # Clear all caches
+    except Exception:
+        pass  # Ignore errors during cleanup
+    
     for base_dir in ["data/users", "tests/data/users"]:
         abs_dir = os.path.abspath(base_dir)
         if os.path.exists(abs_dir):
             for item in os.listdir(abs_dir):
-                if item.startswith("test-") or item.startswith("test_") or item.startswith("testuser"):
+                # Clean up test directories (test-*, test_*, testuser*) and UUID directories
+                # UUIDs are 32 hex characters in 8-4-4-4-12 format
+                import re
+                uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+                if (item.startswith("test-") or 
+                    item.startswith("test_") or 
+                    item.startswith("testuser") or
+                    uuid_pattern.match(item)):
                     item_path = os.path.join(abs_dir, item)
                     try:
                         if os.path.isdir(item_path):
@@ -588,6 +603,40 @@ def cleanup_test_users_after_session():
                             os.remove(item_path)
                     except Exception:
                         pass
+    
+    # Additional cleanup: Remove ALL directories in tests/data/users/ for complete isolation
+    # This ensures no test data persists between test runs
+    test_users_dir = os.path.abspath("tests/data/users")
+    if os.path.exists(test_users_dir):
+        for item in os.listdir(test_users_dir):
+            item_path = os.path.join(test_users_dir, item)
+            try:
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                else:
+                    os.remove(item_path)
+            except Exception:
+                pass
+    
+    # Also clean up the user index file to prevent stale entries
+    test_data_dir = os.path.abspath("tests/data")
+    user_index_file = os.path.join(test_data_dir, "user_index.json")
+    if os.path.exists(user_index_file):
+        try:
+            os.remove(user_index_file)
+        except Exception:
+            pass
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_user_caches_between_tests():
+    """Clear user caches between tests to prevent state pollution."""
+    yield  # Run the test
+    # Clear caches after each test
+    try:
+        from core.user_management import clear_user_caches
+        clear_user_caches()  # Clear all caches
+    except Exception:
+        pass  # Ignore errors during cleanup
 
 @pytest.fixture(scope="function")
 def mock_logger():

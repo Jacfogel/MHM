@@ -197,5 +197,6 @@ def get_command_registry(channel_type: str, platform_instance=None) -> CommandRe
     elif channel_type == 'email':
         return EmailCommandRegistry()
     else:
-        # Return a basic registry for other channels
-        return CommandRegistry()
+        # Return email registry as fallback for unknown channels
+        # (EmailCommandRegistry is concrete, CommandRegistry is abstract)
+        return EmailCommandRegistry()

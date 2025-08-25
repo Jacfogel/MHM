@@ -618,51 +618,12 @@ def update_user_account(user_id: str, updates: Dict[str, Any], auto_create: bool
     result = save_user_data(user_id, {'account': updates}, auto_create=auto_create)
     return result.get('account', False)
 
-@handle_errors("updating user preferences")
-def update_user_preferences(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:
-    """Update user preferences."""
-    if not user_id:
-        logger.error("update_user_preferences called with None user_id")
-        return False
-    
-    # Load current preferences to check for category changes
-    preferences_data = _get_user_data__load_preferences(user_id, auto_create=auto_create)
-    if preferences_data is None:
-        logger.warning(f"Could not load or create preferences for user {user_id}")
-        return False
-    
-    # Check if categories are being updated
-    if 'categories' in updates:
-        old_categories = set(preferences_data.get('categories', []))
-        new_categories = set(updates['categories'])
-        added_categories = new_categories - old_categories
-        
-        logger.info(f"Categories update detected for user {user_id}: old={old_categories}, new={new_categories}, added={added_categories}")
-        
-        # Create default schedule periods for newly added categories
-        for category in added_categories:
-            logger.info(f"Creating default schedule for category '{category}' for user {user_id}")
-            ensure_category_has_default_schedule(user_id, category)
-        
-        # Also ensure all categories have schedules (in case some were missing)
-        ensure_all_categories_have_schedules(user_id)
-        
-        # Ensure message files exist for newly added categories
-        if added_categories:
-            try:
-                from core.message_management import ensure_user_message_files
-                result = ensure_user_message_files(user_id, list(added_categories))
-                if result["success"]:
-                    logger.info(f"Category update for user {user_id}: created {result['files_created']} message files for {len(added_categories)} new categories, directory_created={result['directory_created']}")
-                else:
-                    logger.warning(f"Category update for user {user_id}: created {result['files_created']} message files for {len(added_categories)} new categories, some failures occurred")
-            except Exception as e:
-                logger.error(f"Error creating message files for user {user_id} after category update: {e}")
-    
-    # Use the centralized save_user_data function
-    from core.user_data_handlers import save_user_data
-    result = save_user_data(user_id, {'preferences': updates}, auto_create=auto_create)
-    return result.get('preferences', False)
+# LEGACY COMPATIBILITY: update_user_preferences moved to core.user_data_handlers
+# TODO: Remove after all callers are updated to use core.user_data_handlers.update_user_preferences
+# REMOVAL PLAN:
+# 1. Update all callers to use core.user_data_handlers.update_user_preferences
+# 2. Remove this function
+# 3. Remove the import when no longer needed
 
 @handle_errors("updating user context")
 def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:

@@ -148,9 +148,7 @@ class TestUserManagement:
         """Test saving user data successfully using centralized utilities."""
         from tests.test_utilities import TestUserDataFactory
         
-        user_id = 'test-save-user'
-        user_dir = os.path.join(test_data_dir, 'users', user_id)
-        os.makedirs(user_dir, exist_ok=True)  # Ensure user directory exists
+        user_id = 'test-save-user-data-success'
         
         # Create test data using centralized utilities
         account_data = TestUserDataFactory.create_account_data(
@@ -183,10 +181,14 @@ class TestUserManagement:
         assert result.get('preferences') is True
         assert result.get('context') is True
         
+        # Get the actual user directory (UUID-based)
+        from core.config import get_user_data_dir
+        actual_user_dir = get_user_data_dir(user_id)
+        
         # Verify the files were created
-        assert os.path.exists(os.path.join(user_dir, 'account.json'))
-        assert os.path.exists(os.path.join(user_dir, 'preferences.json'))
-        assert os.path.exists(os.path.join(user_dir, 'user_context.json'))
+        assert os.path.exists(os.path.join(actual_user_dir, 'account.json'))
+        assert os.path.exists(os.path.join(actual_user_dir, 'preferences.json'))
+        assert os.path.exists(os.path.join(actual_user_dir, 'user_context.json'))
         
         # Verify data can be loaded using the new hybrid function
         loaded_data = get_user_data(user_id, 'all')
@@ -378,7 +380,7 @@ class TestUserManagementEdgeCases:
     @pytest.mark.slow
     def test_user_lifecycle(self, test_data_dir, mock_config):
         """Test complete user lifecycle with real side effects and system state verification."""
-        user_id = 'test-lifecycle-user'
+        user_id = 'test-user-lifecycle-complete'
         
         # ✅ VERIFY INITIAL STATE: Check test environment
         assert os.path.exists(test_data_dir), f"Test directory should exist: {test_data_dir}"

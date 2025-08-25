@@ -38,7 +38,7 @@ from core.user_management import (
 
 from core.user_management import (
     USER_DATA_LOADERS as USER_DATA_LOADERS,  # shared dict – same object
-    register_data_loader,
+    register_data_loader as _register_data_loader,
 )
 
 
@@ -59,7 +59,7 @@ def register_data_loader(
     …and forget about *core.user_management*.
     """
 
-    return register_data_loader(
+    return _register_data_loader(
         data_type,
         loader_func,
         file_type,

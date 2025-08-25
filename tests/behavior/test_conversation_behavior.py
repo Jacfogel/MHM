@@ -550,7 +550,7 @@ class TestConversationManagerIntegration:
         assert actual_user_id is not None, f"Should be able to get UUID for user {test_user_id}"
         
         # Update user preferences with check-in settings
-        from core.user_management import update_user_preferences
+        from core.user_data_handlers import update_user_preferences
         update_success = update_user_preferences(actual_user_id, {
             "checkin_settings": {
                 "enabled": True,
