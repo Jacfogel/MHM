@@ -14,6 +14,7 @@ import time
 import threading
 import requests
 import json
+import collections
 from typing import Dict, Optional, Tuple
 from core.logger import get_logger, get_component_logger
 from core.config import (
@@ -79,6 +80,7 @@ class AIChatBotSingleton:
         self.lm_studio_available = False
         self.response_cache = get_response_cache()
         self._generation_lock = threading.Lock()  # Prevent concurrent generations
+        self._locks_by_user = collections.defaultdict(threading.Lock)  # Per-user locks for better concurrency
         
         # Test LM Studio connection
         self._test_lm_studio_connection()
@@ -615,9 +617,9 @@ Additional Instructions:
                              prompt_length=len(user_prompt))
             return response
 
-        # Use a more permissive lock approach for better reliability
-        # Try to acquire lock, but don't fail immediately if busy
-        lock_acquired = self._generation_lock.acquire(blocking=True, timeout=3)
+        # Use per-user locks for better concurrency
+        lock = self._locks_by_user[user_id or "__anon__"]
+        lock_acquired = lock.acquire(blocking=True, timeout=3)
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             ai_logger.warning("AI response using fallback - API busy", 
@@ -685,7 +687,7 @@ Additional Instructions:
         finally:
             # Always release the lock
             if lock_acquired:
-                self._generation_lock.release()
+                lock.release()
 
     @handle_errors("generating async AI response")
     async def async_generate_response(self, user_prompt: str, user_id: Optional[str] = None) -> str:
@@ -795,6 +797,13 @@ Additional Instructions:
             return cached_response
             
         response = self.generate_response(prompt, timeout=timeout, user_id=user_id)
+        
+        # Cache the final response for personalized messages
+        self.response_cache.set(
+            prompt, response, user_id, prompt_type="personalized",
+            metadata={"mode": "personalized"}
+        )
+        
         return response
 
     @handle_errors("generating quick response", default_return="I'm having trouble responding right now. Please try again in a moment.")
@@ -879,8 +888,9 @@ Additional Instructions:
                 return cached_response
 
         # Generate AI response with context
-        # Use a more permissive lock approach for better reliability
-        lock_acquired = self._generation_lock.acquire(blocking=True, timeout=5)
+        # Use per-user locks for better concurrency
+        lock = self._locks_by_user[user_id or "__anon__"]
+        lock_acquired = lock.acquire(blocking=True, timeout=5)
         if not lock_acquired:
             logger.warning("API is busy, using enhanced contextual fallback")
             fallback_response = self._get_contextual_fallback(user_prompt, user_id)
@@ -907,14 +917,17 @@ Additional Instructions:
                 if user_name and user_name.lower() not in response.lower():
                     # Prepend name if not already included
                     response = f"{user_name}, {response}"
-                
-                # Cache successful responses
-                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                store_chat_interaction(user_id, user_prompt, response, context_used=True)
             else:
                 response = self._get_contextual_fallback(user_prompt, user_id)
+                logger.info("Using contextual fallback response")
             
-            # Store the chat interaction and add to conversation history
+            # Cache the final response for contextual prompts
+            self.response_cache.set(
+                user_prompt, response, user_id, prompt_type="contextual",
+                metadata={"mode": "contextual"}
+            )
+            
+            # Single call to record the interaction
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             store_chat_interaction(user_id, user_prompt, response, context_used=True)
             user_context_manager.add_conversation_exchange(user_id, user_prompt, response)
@@ -923,7 +936,7 @@ Additional Instructions:
         finally:
             # Always release the lock
             if lock_acquired:
-                self._generation_lock.release()
+                lock.release()
 
     @handle_errors("detecting resource constraints", default_return=False)
     def _detect_resource_constraints(self) -> bool:

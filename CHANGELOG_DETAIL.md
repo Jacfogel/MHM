@@ -10,6 +10,84 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+### 2025-08-25 - Comprehensive AI Chatbot Improvements and Fixes ✅ **COMPLETED**
+
+**Summary**: Implemented comprehensive fixes for critical bugs, performance improvements, and code quality enhancements in the AI chatbot system.
+
+**Critical Bug Fixes:**
+
+1. **Double-Logging Fix in generate_contextual_response**
+   - **Problem**: `store_chat_interaction` was being called twice on the success path
+   - **Solution**: Consolidated to single call after response generation
+   - **Impact**: Eliminates duplicate logging and improves data consistency
+
+2. **Cache Consistency for Personalized Messages**
+   - **Problem**: Personalized messages were fetched with `prompt_type="personalized"` but cached with default type
+   - **Solution**: Added explicit cache set with `prompt_type="personalized"` and metadata
+   - **Impact**: Ensures cache hits work correctly for personalized responses
+
+3. **Wrong Function Signature in Conversation History**
+   - **Problem**: `store_chat_interaction` was being called with wrong signature `(user_id, role, content, metadata)`
+   - **Solution**: Removed incorrect usage from conversation history module
+   - **Impact**: Prevents runtime errors and data corruption
+
+4. **Cache Key Collisions**
+   - **Problem**: Cache keys were truncated to 200 characters, causing collisions for similar prompts
+   - **Solution**: Updated to hash the full prompt string
+   - **Impact**: Eliminates false cache hits and improves cache effectiveness
+
+**Performance Improvements:**
+
+1. **Per-User Generation Locks**
+   - **Problem**: Global lock serialized all user requests
+   - **Solution**: Implemented `collections.defaultdict(threading.Lock)` keyed by user_id
+   - **Impact**: Better concurrency and reduced blocking between users
+
+2. **Cache TTL Configuration**
+   - **Problem**: Cache TTL was hardcoded
+   - **Solution**: Added `AI_RESPONSE_CACHE_TTL` environment variable and config option
+   - **Impact**: Operational flexibility for tuning cache behavior
+
+3. **Enhanced Cache Operations**
+   - **Problem**: Inconsistent cache key generation and metadata handling
+   - **Solution**: Standardized all cache operations to use `prompt_type` parameter
+   - **Impact**: Better cache hit rates and consistent behavior
+
+**Code Quality Enhancements:**
+
+1. **Import Cleanup**
+   - **Problem**: Unused imports and function signature mismatches
+   - **Solution**: Removed unused imports and fixed function calls
+   - **Impact**: Cleaner code and reduced potential for errors
+
+2. **Cache API Standardization**
+   - **Problem**: Mixed usage of encoded prompts vs prompt_type parameter
+   - **Solution**: Ensured all cache operations use `prompt_type` parameter consistently
+   - **Impact**: Consistent API usage and better maintainability
+
+3. **Response Caching**
+   - **Problem**: Missing cache operations for contextual and personalized responses
+   - **Solution**: Added proper cache set operations with appropriate metadata
+   - **Impact**: Better performance through effective caching
+
+**Files Modified:**
+- `ai/chatbot.py`: Double-logging fix, per-user locks, cache consistency improvements
+- `ai/conversation_history.py`: Removed incorrect store_chat_interaction usage
+- `ai/cache_manager.py`: Full prompt hashing, config TTL integration
+- `core/config.py`: Added AI_RESPONSE_CACHE_TTL configuration
+
+**Testing Results:**
+- ✅ All fast tests pass (139/139)
+- ✅ AI chatbot behavior tests pass (23/23)
+- ✅ System startup successful
+- ✅ No regressions introduced
+
+**Technical Details:**
+- **Cache Key Generation**: Now uses full prompt hash instead of truncated version
+- **Locking Strategy**: Per-user locks with fallback to anonymous user lock
+- **Cache TTL**: Configurable via `AI_RESPONSE_CACHE_TTL` environment variable
+- **Metadata Handling**: Consistent metadata structure across all cache operations
+
 ### 2025-08-25 - Additional Code Quality Improvements ✅ **COMPLETED**
 
 **Status**: ✅ **COMPLETED**

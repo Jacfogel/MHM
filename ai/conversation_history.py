@@ -8,7 +8,7 @@ import os
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.response_tracking import store_chat_interaction
+# Removed store_chat_interaction import - this function is for check-ins/chat pairs, not generic chat history
 
 # Route conversation history logs to AI component
 history_logger = get_component_logger('ai_conversation')
@@ -160,11 +160,8 @@ class ConversationHistory:
                 # Keep only the most recent messages
                 session.messages = session.messages[-self.max_messages_per_session:]
             
-            # Store interaction in response tracking
-            try:
-                store_chat_interaction(user_id, role, content, metadata)
-            except Exception as e:
-                logger.warning(f"Failed to store chat interaction: {e}")
+            # Note: store_chat_interaction is for check-ins/chat pairs, not generic chat history
+            # If you want a general chat log, create a dedicated writer later
             
             logger.debug(f"Added {role} message to session {session.session_id} for user {user_id}")
             return True

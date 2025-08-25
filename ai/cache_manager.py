@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL
+from core.config import AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL, AI_RESPONSE_CACHE_TTL
 
 # Route cache manager logs to AI component
 cache_logger = get_component_logger('ai_cache')
@@ -37,7 +37,7 @@ class ResponseCache:
     @handle_errors("generating cache key")
     def _generate_key(self, prompt: str, user_id: Optional[str] = None, prompt_type: str = "default") -> str:
         """Generate cache key from prompt, user context, and prompt type"""
-        base_string = f"{user_id or 'anonymous'}:{prompt_type}:{prompt[:200]}"  # Limit key size
+        base_string = f"{user_id or 'anonymous'}:{prompt_type}:{prompt}"  # Hash the full prompt to avoid collisions
         return hashlib.md5(base_string.encode()).hexdigest()
     
     @handle_errors("getting cached response", default_return=None)
@@ -258,7 +258,7 @@ def get_response_cache() -> ResponseCache:
     """Get the global response cache instance"""
     global _response_cache
     if _response_cache is None:
-        _response_cache = ResponseCache()
+        _response_cache = ResponseCache(ttl=AI_RESPONSE_CACHE_TTL)
     return _response_cache
 
 def get_context_cache() -> ContextCache:

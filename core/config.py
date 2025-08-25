@@ -100,6 +100,9 @@ AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '800'))  # Maxi
 CONTEXT_CACHE_TTL = int(os.getenv('CONTEXT_CACHE_TTL', '300'))  # 5 minutes
 CONTEXT_CACHE_MAX_SIZE = int(os.getenv('CONTEXT_CACHE_MAX_SIZE', '100'))
 
+# AI Response Cache Configuration
+AI_RESPONSE_CACHE_TTL = int(os.getenv('AI_RESPONSE_CACHE_TTL', '300'))  # 5 minutes
+
 # File Organization Settings
 AUTO_CREATE_USER_DIRS = os.getenv('AUTO_CREATE_USER_DIRS', 'true').lower() == 'true'
 
