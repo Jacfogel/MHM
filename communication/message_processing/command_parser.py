@@ -1,4 +1,4 @@
-# bot/enhanced_command_parser.py
+# communication/message_processing/command_parser.py
 
 """
 Enhanced command parser that builds on existing AI chatbot capabilities.

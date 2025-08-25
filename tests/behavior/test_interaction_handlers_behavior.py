@@ -1,7 +1,7 @@
 """
 Interaction Handlers Behavior Tests
 
-Tests for bot/interaction_handlers.py focusing on real behavior and side effects.
+Tests for communication/command_handlers/interaction_handlers.py focusing on real behavior and side effects.
 These tests verify that the interaction handlers actually work and produce expected
 side effects rather than just returning values.
 """

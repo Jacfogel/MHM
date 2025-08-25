@@ -1,4 +1,4 @@
-# bot/discord_bot.py
+# communication/communication_channels/discord/bot.py
 
 import os
 import discord

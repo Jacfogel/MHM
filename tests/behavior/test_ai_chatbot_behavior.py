@@ -1,7 +1,7 @@
 """
 AI Chatbot Behavior Tests
 
-Tests for bot/ai_chatbot.py focusing on real behavior and side effects.
+Tests for ai/chatbot.py focusing on real behavior and side effects.
 These tests verify that the AI chatbot actually changes system state and
 produces expected side effects rather than just returning values.
 """

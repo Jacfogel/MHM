@@ -1,4 +1,4 @@
-# bot/conversation_manager.py
+# communication/message_processing/conversation_flow_manager.py
 
 """
 conversation_manager.py

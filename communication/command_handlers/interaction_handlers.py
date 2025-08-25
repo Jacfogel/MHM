@@ -1,4 +1,4 @@
-# bot/interaction_handlers.py
+# communication/command_handlers/interaction_handlers.py
 
 """
 Interaction handlers for channel-neutral user interactions.

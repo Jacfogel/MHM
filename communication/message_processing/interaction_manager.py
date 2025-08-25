@@ -1,4 +1,4 @@
-# bot/interaction_manager.py
+# communication/message_processing/interaction_manager.py
 
 """
 Interaction Manager - Main integration layer for user interactions.

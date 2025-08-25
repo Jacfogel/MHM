@@ -1,7 +1,7 @@
 """
 Discord Bot Behavior Tests
 
-Tests for bot/discord_bot.py focusing on real behavior and side effects.
+Tests for communication/communication_channels/discord/bot.py focusing on real behavior and side effects.
 Tests verify actual system changes, not just return values.
 """
 
