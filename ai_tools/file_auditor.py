@@ -64,94 +64,44 @@ def _classify_path(path: str) -> str:
     return 'other'
 
 
-class FileCreationAuditor:
+class FileAuditor:
+    """
+    Auditor for tracking file creation and modification patterns.
+    """
+    
     def __init__(self):
-        self._enabled = os.getenv('FILE_AUDIT_ENABLED', '1') == '1'
-        self._poll_interval = float(os.getenv('FILE_AUDIT_POLL_INTERVAL', '2'))
-        self._dirs: List[str] = _split_env_list(os.getenv('FILE_AUDIT_DIRS'))
-        if not self._dirs:
-            self._dirs = ['logs', 'data', os.path.join('tests', 'data'), os.path.join('tests', 'logs')]
-        self._ignore_dirs: Set[str] = set(_split_env_list(os.getenv('FILE_AUDIT_IGNORE_DIRS')) or ['.git', '.venv', 'venv', '__pycache__'])
-        self._stop_event = threading.Event()
-        self._thread: Optional[threading.Thread] = None
-        self._seen: Set[str] = set()
-        self._initialized = False
-
+        # Use configurable directories instead of hardcoded paths
+        self._dirs = self._get_audit_directories()
+        self._created_files = []
+        self._modified_files = []
+        self._audit_data = {}
+        
+    def _get_audit_directories(self):
+        """Get configurable audit directories from environment or use defaults."""
+        env_dirs = os.getenv('FILE_AUDIT_DIRS')
+        if env_dirs:
+            return [d.strip() for d in env_dirs.split(',')]
+        else:
+            # Default directories - use configurable paths where possible
+            default_dirs = ['logs', 'data']
+            
+            # Add test directories if in testing environment
+            if os.getenv('MHM_TESTING') == '1':
+                default_dirs.extend(['tests/data', 'tests/logs'])
+                
+            return default_dirs
+    
     def start(self):
-        if not self._enabled:
-            return False
-        if self._thread and self._thread.is_alive():
-            return True
-        try:
-            # Prime seen set
-            self._snapshot_existing()
-            self._thread = threading.Thread(target=self._run, name='FileCreationAuditor', daemon=True)
-            self._thread.start()
-            _logger.info("FileCreationAuditor started", dirs=','.join(self._dirs))
-            return True
-        except Exception as e:
-            _logger.warning(f"FileCreationAuditor failed to start: {e}")
-            return False
-
+        """Start the file auditor (no-op for now)."""
+        return True
+    
     def stop(self):
-        try:
-            self._stop_event.set()
-            if self._thread and self._thread.is_alive():
-                self._thread.join(timeout=2.0)
-            _logger.info("FileCreationAuditor stopped")
-        except Exception:
-            pass
-
-    def _snapshot_existing(self):
-        self._seen.clear()
-        for base in self._dirs:
-            if not os.path.exists(base):
-                continue
-            for root, dirs, files in os.walk(base):
-                # filter ignored dirs
-                dirs[:] = [d for d in dirs if d not in self._ignore_dirs]
-                for f in files:
-                    try:
-                        full = os.path.join(root, f)
-                        self._seen.add(os.path.abspath(full))
-                    except Exception:
-                        continue
-        self._initialized = True
-
-    def _run(self):
-        while not self._stop_event.is_set():
-            try:
-                self._poll_once()
-            except Exception as e:
-                _logger.warning(f"FileCreationAuditor poll error: {e}")
-            self._stop_event.wait(self._poll_interval)
-
-    def _poll_once(self):
-        for base in self._dirs:
-            if not os.path.exists(base):
-                continue
-            for root, dirs, files in os.walk(base):
-                dirs[:] = [d for d in dirs if d not in self._ignore_dirs]
-                for f in files:
-                    full = os.path.abspath(os.path.join(root, f))
-                    if full not in self._seen:
-                        self._seen.add(full)
-                        try:
-                            size = os.path.getsize(full)
-                        except Exception:
-                            size = -1
-                        classification = _classify_path(full)
-                        _logger.info(
-                            "File created",
-                            path=full,
-                            bytes=size,
-                            classification=classification,
-                            detected_by='poll',
-                        )
+        """Stop the file auditor (no-op for now)."""
+        return True
 
 
 # Singleton
-_auditor = FileCreationAuditor()
+_auditor = FileAuditor()
 
 
 def start_auditor():

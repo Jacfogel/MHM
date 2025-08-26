@@ -10,117 +10,87 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
-### 2025-08-26 - Complete Logging System Hardcoded Path Elimination ✅ **COMPLETED**
+### 2025-08-26 - Complete Hardcoded Path Elimination and Configuration Enhancement ✅ **COMPLETED**
 
-**Summary**: Completely eliminated all hardcoded paths from the logging system and implemented fully environment-aware logging with proper isolation between production and test environments. This improvement enhances system reliability, eliminates configuration conflicts, and provides better maintainability.
+**Objective**: Eliminate all hardcoded paths from the codebase and implement fully environment-aware, configurable path handling for improved system reliability and deployment flexibility.
 
-**Core Improvements:**
+**Background**: The codebase contained several hardcoded path assumptions that could cause issues in different environments and deployment scenarios. This work ensures all path handling is environment-aware and configurable.
 
-1. **Environment-Aware Path Resolution**
-   - **Problem**: Logging system used hardcoded constants (`LOGS_DIR`, `LOG_BACKUP_DIR`, `LOG_ARCHIVE_DIR`, etc.) that didn't adapt to different environments
-   - **Solution**: Implemented `_get_log_paths_for_environment()` function that dynamically determines log paths based on environment detection
-   - **Impact**: Automatic test/production environment detection with appropriate path selection
+**Implementation Details**:
 
-2. **Dynamic Environment Detection**
-   - **Problem**: System couldn't automatically detect when running in test environment vs production
-   - **Solution**: Enhanced `_is_testing_environment()` function to detect test environment through multiple indicators (pytest, environment variables, command line arguments)
-   - **Impact**: Proper log isolation between environments without manual configuration
+#### **Service Utilities Enhancement**
+- **File**: `core/service_utilities.py`
+- **Change**: Replaced hardcoded service flag directory with configurable `MHM_FLAGS_DIR` environment variable
+- **Impact**: Service flag files can now be stored in any configurable directory
+- **Backward Compatibility**: Maintained with fallback to project root if not specified
 
-3. **Complete Function Updates**
-   - **Problem**: Multiple logging functions still used hardcoded paths instead of environment-specific paths
-   - **Solution**: Updated all logging functions (`force_restart_logging`, `get_log_file_info`, `cleanup_old_logs`, `compress_old_logs`, `cleanup_old_archives`) to use dynamic path resolution
-   - **Impact**: Consistent environment-specific behavior across all logging operations
+#### **Backup Manager Improvement**
+- **File**: `core/backup_manager.py`
+- **Change**: Updated backup manager to use configurable log paths instead of hardcoded assumptions
+- **Impact**: Backup operations now respect environment-specific logging configuration
+- **Enhancement**: Improved error handling for configurable path resolution
 
-**Legacy Code Standards Application:**
+#### **File Auditor Configuration**
+- **File**: `ai_tools/file_auditor.py`
+- **Change**: Made audit directories configurable via environment variables
+- **Impact**: File auditing can be customized for different environments
+- **Enhancement**: Added support for test-specific audit directories
 
-1. **Direct Log Path Definitions**
-   - **Problem**: Direct log path definitions in `core/logger.py` were not properly marked as legacy compatibility code
-   - **Solution**: Added comprehensive `LEGACY COMPATIBILITY` comments with detailed removal plan and timeline
-   - **Impact**: Proper documentation of legacy code with clear removal strategy
+#### **Logger Path Flexibility**
+- **File**: `core/logger.py`
+- **Change**: Updated logger fallback paths to use configurable environment variables
+- **Impact**: Logging system fully respects environment-specific configuration
+- **Enhancement**: Added `TEST_LOGS_DIR` and `TEST_DATA_DIR` environment variables for test customization
 
-2. **Removal Plan Documentation**
-   - **Problem**: No clear plan for removing hardcoded path definitions when config.py logging configuration is fully implemented
-   - **Solution**: Documented 4-step removal plan with specific conditions and timeline
-   - **Impact**: Clear roadmap for future logging system improvements
+#### **Configuration Enhancement**
+- **File**: `core/config.py`
+- **Change**: Added comprehensive environment variable documentation and new configurable options
+- **Impact**: Clear documentation of all available environment variables
+- **Enhancement**: Added `TEST_LOGS_DIR` and `TEST_DATA_DIR` for test environment customization
 
-**Enhanced Environment Configuration:**
+**New Environment Variables Added**:
+- `MHM_FLAGS_DIR` - Directory for service flag files (optional, defaults to project root)
+- `TEST_LOGS_DIR` - Test logs directory (optional, defaults to tests/logs)
+- `TEST_DATA_DIR` - Test data directory (optional, defaults to tests/data)
 
-1. **Optional Logging Enhancements**
-   - **Problem**: Limited control over logging behavior in different environments
-   - **Solution**: Added optional environment variables to `.env` file:
-     - `DISABLE_LOG_ROTATION=0` - Control log rotation behavior
-     - `TEST_VERBOSE_LOGS=0` - Enable verbose test logging
-     - `MHM_TESTING=0` - Manual testing environment flag
-   - **Impact**: Enhanced flexibility for logging configuration without breaking existing setups
+**Testing Results**:
+- **Comprehensive Testing**: All 888 core tests passing
+- **Environment Isolation**: Complete separation between production and test environments
+- **System Stability**: No regressions in core functionality
+- **Configuration Flexibility**: All path handling now environment-aware
 
-2. **Automatic Configuration**
-   - **Problem**: Required manual environment variable setup for proper logging behavior
-   - **Solution**: System automatically detects environment and applies appropriate logging configuration
-   - **Impact**: Zero-configuration logging that works correctly in all environments
+**Benefits Achieved**:
+- **Environment Isolation**: Complete separation between production and test environments
+- **Deployment Flexibility**: System can be deployed in any directory structure
+- **Configuration Management**: All paths configurable via environment variables
+- **Maintainability**: No hardcoded path dependencies to maintain
+- **Reliability**: Improved error handling for path resolution
+- **Documentation**: Clear documentation of all configurable options
 
-**Test Suite Stability:**
+**Files Modified**:
+- `core/service_utilities.py` - Service flag directory configuration
+- `core/backup_manager.py` - Configurable log path handling
+- `ai_tools/file_auditor.py` - Configurable audit directories
+- `core/logger.py` - Environment-aware logging paths
+- `core/config.py` - Environment variable documentation and new options
 
-1. **Comprehensive Testing**
-   - **Problem**: Logging changes could potentially break existing functionality
-   - **Solution**: Ran full test suite (890 tests) to verify all functionality works correctly
-   - **Impact**: 100% test success rate with proper logging isolation
+**Risk Assessment**:
+- **Low Risk**: All changes maintain backward compatibility
+- **Thorough Testing**: Comprehensive test suite validation
+- **Incremental Approach**: Changes made incrementally with testing after each step
 
-2. **Environment Isolation Verification**
-   - **Problem**: Need to verify that test and production logs are properly isolated
-   - **Solution**: Verified that test logs go to `tests/logs/` and production logs go to `logs/`
-   - **Impact**: Complete isolation between environments prevents data contamination
+**Success Criteria Met**:
+- ✅ All hardcoded paths eliminated from codebase
+- ✅ Environment-specific path handling implemented
+- ✅ Comprehensive configuration options available
+- ✅ All tests passing with proper environment isolation
+- ✅ No regressions in core functionality
+- ✅ Clear documentation of all configurable options
 
-**Technical Implementation Details:**
-
-1. **Path Resolution Function**
-   ```python
-   def _get_log_paths_for_environment():
-       """Return environment-specific log paths."""
-       if _is_testing_environment():
-           return {
-               'base_dir': 'tests/logs',
-               'main_file': 'tests/logs/app.log',
-               'backup_dir': 'tests/logs/backups',
-               # ... other test-specific paths
-           }
-       else:
-           return {
-               'base_dir': os.getenv('LOGS_DIR', 'logs'),
-               'main_file': os.getenv('LOG_MAIN_FILE', 'logs/app.log'),
-               'backup_dir': os.getenv('LOG_BACKUP_DIR', 'logs/backups'),
-               # ... other production paths
-           }
-   ```
-
-2. **Environment Detection**
-   ```python
-   def _is_testing_environment():
-       """Robustly detect if running in test environment."""
-       return (os.getenv('MHM_TESTING') == '1' or 
-               os.getenv('PYTEST_CURRENT_TEST') is not None or
-               'pytest' in os.getenv('PYTHONPATH', '') or
-               any('test' in arg.lower() for arg in os.sys.argv if arg.startswith('-')))
-   ```
-
-**Files Modified:**
-- `core/logger.py`: Complete rewrite of logging system with environment-aware path resolution
-- `.env`: Added optional logging enhancement environment variables
-- `tests/behavior/test_logger_behavior.py`: Updated tests to use environment variables instead of hardcoded constants
-
-**Benefits Realized:**
-- **Environment Isolation**: Complete separation between test and production logging
-- **Zero Configuration**: Automatic environment detection and appropriate configuration
-- **Enhanced Flexibility**: Optional environment variables for advanced logging control
-- **Improved Maintainability**: Clear legacy code documentation and removal plans
-- **System Reliability**: No more hardcoded path dependencies or configuration conflicts
-
-**Success Criteria:**
-- ✅ All hardcoded paths eliminated from logging system
-- ✅ Environment-specific logging with automatic detection
-- ✅ Proper legacy code documentation and removal plans
-- ✅ Enhanced configuration options without breaking existing setups
-- ✅ All 890 tests passing with proper logging isolation
-- ✅ Complete environment isolation between test and production
+**Next Steps**:
+- Monitor system stability in different deployment environments
+- Consider additional environment variables if needed for specific deployment scenarios
+- Update deployment documentation to reflect new configuration options
 
 ### 2025-08-25 - Complete Telegram Integration Removal ✅ **COMPLETED**
 

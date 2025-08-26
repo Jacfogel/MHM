@@ -106,6 +106,13 @@ AI_RESPONSE_CACHE_TTL = int(os.getenv('AI_RESPONSE_CACHE_TTL', '300'))  # 5 minu
 # File Organization Settings
 AUTO_CREATE_USER_DIRS = os.getenv('AUTO_CREATE_USER_DIRS', 'true').lower() == 'true'
 
+# Service and Flag Files Configuration
+MHM_FLAGS_DIR = os.getenv('MHM_FLAGS_DIR')  # Directory for service flag files (defaults to project root)
+
+# Test Environment Configuration
+TEST_LOGS_DIR = os.getenv('TEST_LOGS_DIR')  # Test logs directory (defaults to tests/logs)
+TEST_DATA_DIR = os.getenv('TEST_DATA_DIR')  # Test data directory (defaults to tests/data)
+
 # Logging Configuration
 LOG_LEVEL = os.getenv('LOG_LEVEL', 'WARNING').upper()  # Default to WARNING for quiet operation
 LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
@@ -524,7 +531,9 @@ def get_backups_dir() -> str:
     Returns tests/data/backups if testing, otherwise BASE_DATA_DIR/backups.
     """
     if os.getenv('MHM_TESTING') == '1':
-        return os.path.join('tests', 'data', 'backups')
+        # Use configurable test data directory
+        test_data_dir = os.getenv('TEST_DATA_DIR', os.path.join('tests', 'data'))
+        return os.path.join(test_data_dir, 'backups')
     return os.path.join(BASE_DATA_DIR, 'backups')
 
 def get_user_file_path(user_id: str, file_type: str) -> str:

@@ -126,6 +126,7 @@ class BackupManager:
         ]
         
         for config_file in config_files:
+            # Use configurable base directory instead of hardcoded assumption
             config_path = os.path.join(core.config.BASE_DATA_DIR, config_file)
             if os.path.exists(config_path):
                 zipf.write(config_path, f"config/{config_file}")
@@ -135,15 +136,20 @@ class BackupManager:
     @handle_errors("backing up log files")
     def _backup_log_files(self, zipf: zipfile.ZipFile) -> None:
         """Backup log files."""
+        # Use configurable log paths instead of hardcoded assumptions
+        from core.config import LOG_MAIN_FILE, LOG_DISCORD_FILE, LOG_AI_FILE, LOG_USER_ACTIVITY_FILE, LOG_ERRORS_FILE
+        
         log_files = [
-            "app.log",
-            "service.log"
+            ("app.log", LOG_MAIN_FILE),
+            ("discord.log", LOG_DISCORD_FILE),
+            ("ai.log", LOG_AI_FILE),
+            ("user_activity.log", LOG_USER_ACTIVITY_FILE),
+            ("errors.log", LOG_ERRORS_FILE)
         ]
         
-        for log_file in log_files:
-            log_path = os.path.join(core.config.BASE_DATA_DIR, log_file)
+        for log_name, log_path in log_files:
             if os.path.exists(log_path):
-                zipf.write(log_path, f"logs/{log_file}")
+                zipf.write(log_path, f"logs/{log_name}")
         
         logger.debug("Log files backed up successfully")
     

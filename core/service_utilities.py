@@ -80,9 +80,18 @@ class InvalidTimeFormatError(Exception):
 # Global throttler instance
 throttler = Throttler(SCHEDULER_INTERVAL)
 
-@handle_errors("creating reschedule request")
-def create_reschedule_request(user_id, category):
-    """Create a reschedule request flag file for the service to pick up"""
+@handle_errors("creating reschedule request", default_return=False)
+def create_reschedule_request(user_id: str, category: str) -> bool:
+    """
+    Create a reschedule request file that the service will pick up.
+    
+    Args:
+        user_id: The user ID
+        category: The category to reschedule
+        
+    Returns:
+        bool: True if request was created successfully
+    """
     # First check if service is running - if not, no need to reschedule
     # The service will pick up changes on next startup
     if not is_service_running():
@@ -104,11 +113,13 @@ def create_reschedule_request(user_id, category):
     # Determine base directory for flag files
     # In tests, redirect to tests/data/flags to avoid touching real service watchers/logs
     if os.environ.get("MHM_TESTING") == "1":
-        base_dir = os.path.abspath(os.path.join("tests", "data", "flags"))
+        # Use configurable test data directory
+        from core.config import get_backups_dir
+        base_dir = os.path.join(os.path.dirname(get_backups_dir()), "flags")
         os.makedirs(base_dir, exist_ok=True)
     else:
-        # Project root (service watches here)
-        base_dir = os.path.dirname(os.path.dirname(__file__))
+        # Project root (service watches here) - use configurable approach
+        base_dir = os.getenv('MHM_FLAGS_DIR', os.path.dirname(os.path.dirname(__file__)))
     request_file = os.path.join(base_dir, filename)
 
     # Write the request file

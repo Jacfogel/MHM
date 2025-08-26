@@ -155,7 +155,8 @@ class ComponentLogger:
             # In test verbose mode, route errors to tests/logs as well to avoid writing to real logs
             errors_log_path = log_paths['errors_file']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-                tests_logs_dir = log_paths['base_dir'] or os.path.join('tests', 'logs')
+                # Use configurable test logs directory
+                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
                 try:
                     os.makedirs(tests_logs_dir, exist_ok=True)
                     errors_log_path = os.path.join(tests_logs_dir, os.path.basename(log_paths['errors_file']))
@@ -163,7 +164,8 @@ class ComponentLogger:
                     pass
             errors_backup_dir = log_paths['backup_dir']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-                tests_logs_dir = log_paths['base_dir'] or os.path.join('tests', 'logs')
+                # Use configurable test logs directory
+                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
                 errors_backup_dir = os.path.join(tests_logs_dir, 'backups')
                 try:
                     os.makedirs(errors_backup_dir, exist_ok=True)
@@ -400,7 +402,8 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     if os.getenv('MHM_TESTING') == '1':
         if os.getenv('TEST_VERBOSE_LOGS') == '1':
             try:
-                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                # Use configurable test logs directory
+                tests_logs_dir = os.getenv('LOGS_DIR') or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
                 os.makedirs(tests_logs_dir, exist_ok=True)
             except Exception:
                 pass
