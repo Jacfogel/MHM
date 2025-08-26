@@ -1092,6 +1092,81 @@ class SchedulerManager:
             logger.error(f"Error cleaning up task reminders for user {user_id}: {e}")
 
 # Standalone functions for admin UI access
+@handle_errors("running full scheduler standalone")
+def run_full_scheduler_standalone():
+    """
+    Standalone function to run the full scheduler for all users.
+    This can be called from the admin UI without needing a scheduler instance.
+    """
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        from core.scheduler import SchedulerManager
+        
+        # Create communication manager and scheduler manager
+        communication_manager = CommunicationManager()
+        scheduler_manager = SchedulerManager(communication_manager)
+        
+        # Run the full scheduler
+        logger.info("Standalone: Running full scheduler for all users")
+        scheduler_manager.run_daily_scheduler()
+        
+        logger.info("Standalone: Full scheduler started successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Standalone: Error running full scheduler: {e}")
+        return False
+
+@handle_errors("running user scheduler standalone")
+def run_user_scheduler_standalone(user_id):
+    """
+    Standalone function to run scheduler for a specific user.
+    This can be called from the admin UI without needing a scheduler instance.
+    """
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        from core.scheduler import SchedulerManager
+        
+        # Create communication manager and scheduler manager
+        communication_manager = CommunicationManager()
+        scheduler_manager = SchedulerManager(communication_manager)
+        
+        # Run scheduler for the specific user
+        logger.info(f"Standalone: Running scheduler for user {user_id}")
+        scheduler_manager.schedule_new_user(user_id)
+        
+        logger.info(f"Standalone: User scheduler started successfully for {user_id}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Standalone: Error running user scheduler: {e}")
+        return False
+
+@handle_errors("running category scheduler standalone")
+def run_category_scheduler_standalone(user_id, category):
+    """
+    Standalone function to run scheduler for a specific user and category.
+    This can be called from the admin UI without needing a scheduler instance.
+    """
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        from core.scheduler import SchedulerManager
+        
+        # Create communication manager and scheduler manager
+        communication_manager = CommunicationManager()
+        scheduler_manager = SchedulerManager(communication_manager)
+        
+        # Run scheduler for the specific user and category
+        logger.info(f"Standalone: Running category scheduler for user {user_id}, category {category}")
+        scheduler_manager.schedule_daily_message_job(user_id, category)
+        
+        logger.info(f"Standalone: Category scheduler started successfully for {user_id}, {category}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Standalone: Error running category scheduler: {e}")
+        return False
+
 @handle_errors("scheduling all task reminders for user")
 def schedule_all_task_reminders(user_id):
     """

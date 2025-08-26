@@ -98,7 +98,7 @@ class ServiceManager:
     @handle_errors("checking service status", default_return=(False, None))
     def is_service_running(self):
         """Check if the MHM service is running"""
-        # Look for python processes running service.py
+        # Look for python processes running service.py as their main script
         service_pids = []
         for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
             # Skip if process info is not accessible (already terminated)
@@ -106,7 +106,11 @@ class ServiceManager:
                 continue
             
             cmdline = proc.info.get('cmdline', [])
-            if cmdline and any('service.py' in arg for arg in cmdline):
+            # Only detect processes that are actually running service.py as their main script
+            # Check if the last argument in cmdline is service.py (the main script being run)
+            if (cmdline and len(cmdline) >= 2 and 
+                cmdline[-1].endswith('service.py') and 
+                'service.py' in cmdline[-1]):
                 # Double-check process is still running
                 if proc.is_running():
                     service_pids.append(proc.info['pid'])
@@ -203,7 +207,11 @@ class ServiceManager:
                 if not proc.info['name'] or 'python' not in proc.info['name'].lower():
                     continue
                 cmdline = proc.info.get('cmdline', [])
-                if cmdline and any('service.py' in arg for arg in cmdline):
+                # Only detect processes that are actually running service.py as their main script
+                # Check if the last argument in cmdline is service.py (the main script being run)
+                if (cmdline and len(cmdline) >= 2 and 
+                    cmdline[-1].endswith('service.py') and 
+                    'service.py' in cmdline[-1]):
                     if proc.is_running():
                         found_processes.append(proc)
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -348,6 +356,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_stop_service.clicked.connect(self.stop_service)
         self.ui.pushButton_restart_service.clicked.connect(self.restart_service)
         self.ui.pushButton_refresh_server_status.clicked.connect(self.update_service_status)
+        self.ui.pushButton_run_scheduler.clicked.connect(self.run_full_scheduler)
         
         # User management
         self.ui.pushButton_create_new_user.clicked.connect(self.create_new_user)
@@ -360,12 +369,14 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_checkin_settings.clicked.connect(self.manage_checkins)
         self.ui.pushButton_task_management.clicked.connect(self.manage_tasks)
         self.ui.pushButton_task_crud.clicked.connect(self.manage_task_crud)
+        self.ui.pushButton_run_user_scheduler.clicked.connect(self.run_user_scheduler)
         
         # Category actions
         self.ui.comboBox_user_categories.currentTextChanged.connect(self.on_category_selected)
         self.ui.pushButton_edit_messages.clicked.connect(self.edit_user_messages)
         self.ui.pushButton_edit_schedules.clicked.connect(self.edit_user_schedules)
         self.ui.pushButton_send_test_message.clicked.connect(self.send_test_message)
+        self.ui.pushButton_run_category_scheduler.clicked.connect(self.run_category_scheduler)
         
         # Menu actions
         self.ui.actionToggle_Verbose_Logging.triggered.connect(self.toggle_logging_verbosity)
@@ -429,6 +440,67 @@ class MHMManagerUI(QMainWindow):
         """Restart the MHM service"""
         if self.service_manager.restart_service():
             self.update_service_status()
+    
+    def run_full_scheduler(self):
+        """Run the full scheduler for all users"""
+        try:
+            from core.scheduler import run_full_scheduler_standalone
+            
+            logger.info("UI: Running full scheduler for all users")
+            success = run_full_scheduler_standalone()
+            
+            if success:
+                QMessageBox.information(None, "Scheduler", "Full scheduler started successfully for all users")
+            else:
+                QMessageBox.warning(None, "Scheduler", "Failed to start full scheduler")
+        except Exception as e:
+            logger.error(f"UI: Error running full scheduler: {e}")
+            QMessageBox.critical(None, "Scheduler Error", f"Failed to run full scheduler: {e}")
+    
+    def run_user_scheduler(self):
+        """Run scheduler for the selected user"""
+        if not self.current_user:
+            QMessageBox.warning(None, "Scheduler", "Please select a user first")
+            return
+        
+        try:
+            from core.scheduler import run_user_scheduler_standalone
+            
+            logger.info(f"UI: Running scheduler for user {self.current_user}")
+            success = run_user_scheduler_standalone(self.current_user)
+            
+            if success:
+                QMessageBox.information(None, "Scheduler", f"User scheduler started successfully for {self.current_user}")
+            else:
+                QMessageBox.warning(None, "Scheduler", f"Failed to start user scheduler for {self.current_user}")
+        except Exception as e:
+            logger.error(f"UI: Error running user scheduler: {e}")
+            QMessageBox.critical(None, "Scheduler Error", f"Failed to run user scheduler: {e}")
+    
+    def run_category_scheduler(self):
+        """Run scheduler for the selected user and category"""
+        if not self.current_user:
+            QMessageBox.warning(None, "Scheduler", "Please select a user first")
+            return
+        
+        category = self.ui.comboBox_user_categories.currentText()
+        if not category:
+            QMessageBox.warning(None, "Scheduler", "Please select a category first")
+            return
+        
+        try:
+            from core.scheduler import run_category_scheduler_standalone
+            
+            logger.info(f"UI: Running category scheduler for user {self.current_user}, category {category}")
+            success = run_category_scheduler_standalone(self.current_user, category)
+            
+            if success:
+                QMessageBox.information(None, "Scheduler", f"Category scheduler started successfully for {self.current_user}, {category}")
+            else:
+                QMessageBox.warning(None, "Scheduler", f"Failed to start category scheduler for {self.current_user}, {category}")
+        except Exception as e:
+            logger.error(f"UI: Error running category scheduler: {e}")
+            QMessageBox.critical(None, "Scheduler Error", f"Failed to run category scheduler: {e}")
     
     @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):

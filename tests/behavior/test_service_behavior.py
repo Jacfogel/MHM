@@ -537,7 +537,8 @@ class TestMHMService:
             mock_scheduler_class.assert_called_once_with(mock_comm_manager)
             mock_comm_manager.set_scheduler_manager.assert_called_once_with(mock_scheduler_manager)
             mock_comm_manager.start_all.assert_called_once()
-            mock_scheduler_manager.run_daily_scheduler.assert_called_once()
+            # Note: run_daily_scheduler is no longer called automatically on startup
+            # It's now available via UI buttons for manual execution
             
             # Verify real object relationships
             assert isinstance(mock_comm_manager, Mock)

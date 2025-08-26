@@ -30,6 +30,19 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-08-26 - Scheduler UI Enhancement and Service Management Improvements ✅ **COMPLETED**
+- **Scheduler UI Integration**: Added comprehensive scheduler control buttons to the admin UI
+- **Run Full Scheduler Button**: Added "Run Full Scheduler" button in Service Management section to start scheduler for all users
+- **Run User Scheduler Button**: Added "Run User Scheduler" button in User Management section to start scheduler for selected user
+- **Run Category Scheduler Button**: Added "Run Category Scheduler" button in Category Actions section to start scheduler for selected user and category
+- **Standalone Scheduler Functions**: Created standalone scheduler functions that work independently of the running service
+- **Service Startup Behavior**: Removed automatic scheduler startup from service initialization - now requires manual activation via UI buttons
+- **UI Button Connections**: Properly connected all new scheduler buttons to their respective functions
+- **Error Handling**: Added comprehensive error handling and user feedback for all scheduler operations
+- **Import Error Fix**: Fixed critical import error in user_data_manager.py that was preventing service startup
+- **Service Management**: UI service start/stop/restart functionality works correctly without interference
+- **Testing Results**: All 890 tests passing with comprehensive test coverage
+
 ### 2025-08-26 - Complete Hardcoded Path Elimination and Configuration Enhancement ✅ **COMPLETED**
 - **Environment-Aware Path Configuration**: Eliminated all remaining hardcoded paths from core system files
 - **Configurable Test Directories**: Added TEST_LOGS_DIR and TEST_DATA_DIR environment variables for test path customization

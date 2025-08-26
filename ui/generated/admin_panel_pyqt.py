@@ -77,6 +77,11 @@ class Ui_ui_app_mainwindow(object):
 
         self.gridLayout.addWidget(self.pushButton_refresh_server_status, 1, 3, 1, 1)
 
+        self.pushButton_run_scheduler = QPushButton(self.groupBox_server_management)
+        self.pushButton_run_scheduler.setObjectName(u"pushButton_run_scheduler")
+
+        self.gridLayout.addWidget(self.pushButton_run_scheduler, 2, 0, 1, 1)
+
         self.label_service_status = QLabel(self.groupBox_server_management)
         self.label_service_status.setObjectName(u"label_service_status")
 
@@ -147,6 +152,11 @@ class Ui_ui_app_mainwindow(object):
 
         self.gridLayout_2.addWidget(self.pushButton_task_crud, 1, 2, 1, 1)
 
+        self.pushButton_run_user_scheduler = QPushButton(self.groupBox_user_management)
+        self.pushButton_run_user_scheduler.setObjectName(u"pushButton_run_user_scheduler")
+
+        self.gridLayout_2.addWidget(self.pushButton_run_user_scheduler, 2, 0, 1, 3)
+
 
         self.gridLayout_3.addLayout(self.gridLayout_2, 2, 0, 2, 4)
 
@@ -186,6 +196,11 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_edit_schedules.setObjectName(u"pushButton_edit_schedules")
 
         self.gridLayout_4.addWidget(self.pushButton_edit_schedules, 1, 0, 1, 1)
+
+        self.pushButton_run_category_scheduler = QPushButton(self.groupBox_category_actions)
+        self.pushButton_run_category_scheduler.setObjectName(u"pushButton_run_category_scheduler")
+
+        self.gridLayout_4.addWidget(self.pushButton_run_category_scheduler, 2, 0, 1, 3)
 
 
         self.verticalLayout_5.addLayout(self.gridLayout_4)
@@ -243,6 +258,7 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_stop_service.setText(QCoreApplication.translate("ui_app_mainwindow", u"Stop Service", None))
         self.pushButton_restart_service.setText(QCoreApplication.translate("ui_app_mainwindow", u"Restart", None))
         self.pushButton_refresh_server_status.setText(QCoreApplication.translate("ui_app_mainwindow", u"Refresh", None))
+        self.pushButton_run_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run Full Scheduler", None))
         self.label_service_status.setText(QCoreApplication.translate("ui_app_mainwindow", u"Service Status:", None))
         self.pushButton_create_new_user.setText(QCoreApplication.translate("ui_app_mainwindow", u"Create New User", None))
         self.groupBox_user_management.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"User Management", None))
@@ -253,11 +269,13 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_checkin_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Check-in Settings", None))
         self.pushButton_task_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task Management", None))
         self.pushButton_task_crud.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task CRUD", None))
+        self.pushButton_run_user_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run User Scheduler", None))
         self.groupBox_category_actions.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Category Actions", None))
         self.pushButton_send_test_message.setText(QCoreApplication.translate("ui_app_mainwindow", u"Send Test Message", None))
         self.label_select_category.setText(QCoreApplication.translate("ui_app_mainwindow", u"Select Category:", None))
         self.pushButton_edit_messages.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Messages", None))
         self.pushButton_edit_schedules.setText(QCoreApplication.translate("ui_app_mainwindow", u"Edit Schedules", None))
+        self.pushButton_run_category_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run Category Scheduler", None))
         self.menuDebug.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Debug", None))
         self.menuCache_Management.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Cache Management", None))
         self.menuAdmin.setTitle(QCoreApplication.translate("ui_app_mainwindow", u"Admin", None))

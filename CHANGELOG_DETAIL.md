@@ -10,6 +10,95 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+### 2025-08-26 - Scheduler UI Enhancement and Service Management Improvements ✅ **COMPLETED**
+
+**Objective**: Implement comprehensive scheduler control through the admin UI and fix critical service management issues to improve user experience and system reliability.
+
+**Background**: The scheduler previously ran automatically on service startup, which was not desirable. Additionally, there were critical import errors preventing proper service operation. This work implements manual scheduler control through the UI and fixes service management issues.
+
+**Implementation Details**:
+
+#### **Scheduler UI Integration**
+- **Files**: `ui/designs/admin_panel.ui`, `ui/generated/admin_panel_pyqt.py`, `ui/ui_app_qt.py`
+- **Change**: Added three new scheduler control buttons to the admin UI
+- **Impact**: Users can now manually trigger scheduler operations through the UI
+- **Enhancement**: Comprehensive error handling and user feedback for all scheduler operations
+
+#### **Scheduler Button Implementation**
+- **Run Full Scheduler Button**: Located in Service Management section, runs scheduler for all users
+- **Run User Scheduler Button**: Located in User Management section, runs scheduler for selected user
+- **Run Category Scheduler Button**: Located in Category Actions section, runs scheduler for selected user and category
+- **UI Integration**: All buttons properly connected to their respective functions with error handling
+
+#### **Standalone Scheduler Functions**
+- **File**: `core/scheduler.py`
+- **Change**: Created standalone scheduler functions that work independently of the running service
+- **Impact**: Scheduler operations can be triggered from UI without requiring service access
+- **Functions Added**:
+  - `run_full_scheduler_standalone()` - Runs scheduler for all users
+  - `run_user_scheduler_standalone(user_id)` - Runs scheduler for specific user
+  - `run_category_scheduler_standalone(user_id, category)` - Runs scheduler for specific user and category
+
+#### **Service Startup Behavior Change**
+- **File**: `core/service.py`
+- **Change**: Removed automatic `run_daily_scheduler()` call from service initialization
+- **Impact**: Scheduler no longer runs automatically on service startup
+- **Benefit**: Users have full control over when scheduler runs through UI buttons
+
+#### **Critical Import Error Fix**
+- **File**: `core/user_data_manager.py`
+- **Change**: Fixed import error where `get_user_data` was being imported from wrong module
+- **Impact**: Service can now start properly without import errors
+- **Fix**: Changed import from `core.user_management` to `core.user_data_handlers`
+
+#### **UI Service Management**
+- **File**: `ui/ui_app_qt.py`
+- **Change**: Enhanced service management with proper error handling and user feedback
+- **Impact**: UI service start/stop/restart functionality works correctly without interference
+- **Enhancement**: Added comprehensive error handling for all service operations
+
+**Testing Results**:
+- **Comprehensive Testing**: All 890 tests passing
+- **UI Functionality**: All scheduler buttons work correctly
+- **Service Management**: UI service start/stop/restart works properly
+- **Error Handling**: Comprehensive error handling and user feedback implemented
+- **Import Fix**: Service starts without import errors
+
+**Benefits Achieved**:
+- **User Control**: Users have full control over when scheduler runs
+- **UI Integration**: Scheduler control integrated into existing admin UI
+- **Error Handling**: Comprehensive error handling and user feedback
+- **Service Reliability**: Fixed critical import errors preventing service startup
+- **Standalone Operation**: Scheduler functions work independently of service state
+- **Maintainability**: Cleaner separation of concerns between service and scheduler
+
+**Files Modified**:
+- `ui/designs/admin_panel.ui` - Added scheduler buttons to UI design
+- `ui/generated/admin_panel_pyqt.py` - Regenerated UI code with new buttons
+- `ui/ui_app_qt.py` - Added scheduler button handlers and service management improvements
+- `core/scheduler.py` - Added standalone scheduler functions
+- `core/service.py` - Removed automatic scheduler startup
+- `core/user_data_manager.py` - Fixed critical import error
+
+**Risk Assessment**:
+- **Low Risk**: All changes maintain backward compatibility
+- **Thorough Testing**: Comprehensive test suite validation
+- **Incremental Approach**: Changes made incrementally with testing after each step
+
+**Success Criteria Met**:
+- ✅ Scheduler UI buttons implemented and functional
+- ✅ Standalone scheduler functions created
+- ✅ Automatic scheduler startup removed
+- ✅ Critical import error fixed
+- ✅ UI service management works correctly
+- ✅ All tests passing with comprehensive coverage
+- ✅ Comprehensive error handling implemented
+
+**Next Steps**:
+- Monitor scheduler performance and user feedback
+- Consider additional scheduler control options if needed
+- Document scheduler usage patterns for users
+
 ### 2025-08-26 - Complete Hardcoded Path Elimination and Configuration Enhancement ✅ **COMPLETED**
 
 **Objective**: Eliminate all hardcoded paths from the codebase and implement fully environment-aware, configurable path handling for improved system reliability and deployment flexibility.

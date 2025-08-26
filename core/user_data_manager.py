@@ -894,7 +894,7 @@ def rebuild_user_index() -> bool:
 def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
     """Get user info using the new centralized data structure."""
     try:
-        from core.user_management import get_user_data
+        from core.user_data_handlers import get_user_data
         
         # Get all user data
         user_data = get_user_data(user_id, 'all')
