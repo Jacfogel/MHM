@@ -317,21 +317,21 @@ class TestTaskManagementHandlerCoverage:
         """Test completing a task without identifier."""
         handler = TaskManagementHandler()
         user_id = "test_user_complete_2"
-        
+
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
+
         parsed_command = ParsedCommand(
             intent="complete_task",
             entities={},
             confidence=0.9,
             original_message="complete task"
         )
-        
+
         response = handler.handle(user_id, parsed_command)
-        
+
         assert isinstance(response, InteractionResponse)
-        assert not response.completed  # Should ask for task identifier
-        assert "which task" in response.message.lower()
+        assert response.completed  # Should say no tasks to complete
+        assert "no active tasks" in response.message.lower()
     
     def test_handle_complete_task_not_found(self, test_data_dir):
         """Test completing a task that doesn't exist."""

@@ -181,7 +181,8 @@ def save_completed_tasks(user_id: str, tasks: List[Dict[str, Any]]) -> bool:
 def create_task(user_id: str, title: str, description: str = "", due_date: str = None, 
                 due_time: str = None, priority: str = "medium", 
                 reminder_periods: Optional[list] = None, tags: Optional[list] = None,
-                quick_reminders: Optional[list] = None) -> Optional[str]:
+                quick_reminders: Optional[list] = None, recurrence_pattern: str = None,
+                recurrence_interval: int = 1, repeat_after_completion: bool = True) -> Optional[str]:
     """Create a new task for a user."""
     try:
         if not user_id or not title:
@@ -215,6 +216,13 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
         # Add quick_reminders if provided
         if quick_reminders:
             task["quick_reminders"] = quick_reminders
+        
+        # Add recurring task fields if provided
+        if recurrence_pattern:
+            task["recurrence_pattern"] = recurrence_pattern
+            task["recurrence_interval"] = recurrence_interval
+            task["repeat_after_completion"] = repeat_after_completion
+            task["next_due_date"] = due_date  # Initial next due date is the original due date
         
         # Load existing tasks
         tasks = load_active_tasks(user_id)
@@ -255,7 +263,8 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
             if task.get('task_id') == task_id:
                 # Update allowed fields
                 allowed_fields = ['title', 'description', 'due_date', 'due_time', 
-                                'reminder_periods', 'priority', 'tags', 'quick_reminders']
+                                'reminder_periods', 'priority', 'tags', 'quick_reminders',
+                                'recurrence_pattern', 'recurrence_interval', 'repeat_after_completion', 'next_due_date']
                 for field, value in updates.items():
                     if field in allowed_fields:
                         task[field] = value
@@ -343,6 +352,12 @@ def complete_task(user_id: str, task_id: str, completion_data: Optional[Dict[str
             
             # Clean up task-specific reminders when task is completed
             cleanup_task_reminders(user_id, task_id)
+            
+            # Handle recurring tasks - create next instance if needed
+            if task_to_complete.get('recurrence_pattern'):
+                next_task_created = _create_next_recurring_task_instance(user_id, task_to_complete)
+                if next_task_created:
+                    logger.info(f"Created next recurring task instance for task {task_id}")
             
             return True
         else:
@@ -716,3 +731,115 @@ def get_user_task_stats(user_id: str) -> Dict[str, int]:
             'completed_count': 0,
             'total_count': 0
         } 
+
+def _create_next_recurring_task_instance(user_id: str, completed_task: Dict[str, Any]) -> bool:
+    """Create the next instance of a recurring task when the current one is completed."""
+    try:
+        if not user_id or not completed_task:
+            logger.error("User ID and completed task are required for creating next recurring task")
+            return False
+        
+        # Extract recurring task information
+        recurrence_pattern = completed_task.get('recurrence_pattern')
+        recurrence_interval = completed_task.get('recurrence_interval', 1)
+        repeat_after_completion = completed_task.get('repeat_after_completion', True)
+        
+        if not recurrence_pattern:
+            logger.debug("No recurrence pattern found, skipping next instance creation")
+            return False
+        
+        # Calculate the next due date based on completion date and recurrence pattern
+        completion_date_str = completed_task.get('completed_at', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        completion_date = datetime.strptime(completion_date_str.split()[0], '%Y-%m-%d')
+        
+        next_due_date = _calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)
+        
+        if not next_due_date:
+            logger.warning(f"Could not calculate next due date for recurring task {completed_task.get('task_id')}")
+            return False
+        
+        # Create the next task instance
+        next_task = {
+            "task_id": str(uuid.uuid4()),
+            "title": completed_task.get('title'),
+            "description": completed_task.get('description', ''),
+            "due_date": next_due_date.strftime('%Y-%m-%d'),
+            "due_time": completed_task.get('due_time'),
+            "completed": False,
+            "created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "completed_at": None,
+            "priority": completed_task.get('priority', 'medium'),
+            "recurrence_pattern": recurrence_pattern,
+            "recurrence_interval": recurrence_interval,
+            "repeat_after_completion": repeat_after_completion,
+            "next_due_date": next_due_date.strftime('%Y-%m-%d')
+        }
+        
+        # Copy over optional fields
+        if completed_task.get('reminder_periods'):
+            next_task["reminder_periods"] = completed_task["reminder_periods"]
+        if completed_task.get('tags'):
+            next_task["tags"] = completed_task["tags"]
+        if completed_task.get('quick_reminders'):
+            next_task["quick_reminders"] = completed_task["quick_reminders"]
+        
+        # Load existing tasks and add the new one
+        tasks = load_active_tasks(user_id)
+        tasks.append(next_task)
+        
+        # Save updated tasks
+        if save_active_tasks(user_id, tasks):
+            logger.info(f"Created next recurring task instance for task {completed_task.get('task_id')} with due date {next_due_date.strftime('%Y-%m-%d')}")
+            
+            # Schedule reminders for the new task if needed
+            if next_task.get('reminder_periods'):
+                schedule_task_reminders(user_id, next_task['task_id'], next_task['reminder_periods'])
+            
+            return True
+        else:
+            logger.error(f"Failed to save next recurring task instance for user {user_id}")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error creating next recurring task instance for user {user_id}: {e}")
+        return False
+
+def _calculate_next_due_date(completion_date: datetime, recurrence_pattern: str, 
+                           recurrence_interval: int, repeat_after_completion: bool) -> Optional[datetime]:
+    """Calculate the next due date for a recurring task."""
+    try:
+        if repeat_after_completion:
+            # Calculate from completion date
+            base_date = completion_date
+        else:
+            # Calculate from original due date (would need to be passed in)
+            # For now, use completion date as fallback
+            base_date = completion_date
+        
+        if recurrence_pattern == 'daily':
+            next_date = base_date + timedelta(days=recurrence_interval)
+        elif recurrence_pattern == 'weekly':
+            next_date = base_date + timedelta(weeks=recurrence_interval)
+        elif recurrence_pattern == 'monthly':
+            # Simple monthly calculation (add months)
+            year = base_date.year
+            month = base_date.month + recurrence_interval
+            while month > 12:
+                year += 1
+                month -= 12
+            try:
+                next_date = base_date.replace(year=year, month=month)
+            except ValueError:
+                # Handle edge case where day doesn't exist in target month
+                next_date = base_date.replace(year=year, month=month, day=1)
+        elif recurrence_pattern == 'yearly':
+            next_date = base_date.replace(year=base_date.year + recurrence_interval)
+        else:
+            logger.warning(f"Unknown recurrence pattern: {recurrence_pattern}")
+            return None
+        
+        return next_date
+        
+    except Exception as e:
+        logger.error(f"Error calculating next due date: {e}")
+        return None 

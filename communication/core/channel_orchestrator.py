@@ -61,6 +61,7 @@ class CommunicationManager:
         self._main_loop = None
         self._loop_thread = None
         self.scheduler_manager = None
+        self._last_task_reminders = {}  # Track last task reminder per user: {user_id: task_id}
         
         # Initialize extracted modules
         self.retry_manager = RetryManager()
@@ -1126,8 +1127,22 @@ class CommunicationManager:
         
         if success:
             logger.info(f"Task reminder sent successfully for user {user_id}, task {task_id}")
+            # Track the last task reminder for this user
+            self._last_task_reminders[user_id] = task_id
         else:
             logger.error(f"Failed to send task reminder for user {user_id}, task {task_id}")
+
+    def get_last_task_reminder(self, user_id: str) -> Optional[str]:
+        """
+        Get the task ID of the last task reminder sent to a user.
+        
+        Args:
+            user_id: The user's ID
+            
+        Returns:
+            The task ID of the last reminder, or None if no reminder was sent
+        """
+        return self._last_task_reminders.get(user_id)
 
     def _create_task_reminder_message(self, task: dict) -> str:
         """
@@ -1137,6 +1152,7 @@ class CommunicationManager:
         description = task.get('description', '')
         due_date = task.get('due_date', '')
         priority = task.get('priority', 'medium')
+        task_id = task.get('task_id', '')
         # Tasks now use tags instead of categories
         
         # Create priority emoji
@@ -1158,6 +1174,18 @@ class CommunicationManager:
             message += f"📅 **Due:** {due_date}\n"
         
         message += f"⚡ **Priority:** {priority.title()}\n\n"
-        message += "Use 'complete task' or 'list tasks' to manage your tasks."
+        
+        # Add task completion instructions with task identifier
+        if task_id:
+            # Use a short identifier (first 8 characters of task_id)
+            short_id = task_id[:8]
+            message += f"💡 **To complete this task:**\n"
+            message += f"• Reply: `complete task {short_id}`\n"
+            message += f"• Or: `complete task \"{title}\"`\n"
+            message += f"• Or: `list tasks` to see all your tasks"
+        else:
+            message += "💡 **To complete this task:**\n"
+            message += f"• Reply: `complete task \"{title}\"`\n"
+            message += f"• Or: `list tasks` to see all your tasks"
         
         return message

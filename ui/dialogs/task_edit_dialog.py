@@ -75,6 +75,9 @@ class TaskEditDialog(QDialog):
         
         # Enable reminder periods section by default since reminders are enabled
         self.ui.widget_reminder_periods.setEnabled(True)
+        
+        # Setup recurring task components
+        self.setup_recurring_task_components()
     
     def setup_due_time_components(self):
         """Setup the due time input components."""
@@ -99,6 +102,35 @@ class TaskEditDialog(QDialog):
         # Connect hour/minute changes to auto-sync
         self.ui.comboBox_due_time_hour.currentTextChanged.connect(self.on_hour_changed)
         self.ui.comboBox_due_time_minute.currentTextChanged.connect(self.on_minute_changed)
+    
+    def setup_recurring_task_components(self):
+        """Setup the recurring task input components."""
+        # The combo box is already populated in the UI file
+        # Set default to "None (One-time task)"
+        self.ui.comboBox_recurring_pattern.setCurrentIndex(0)
+        
+        # Set default interval to 1
+        self.ui.spinBox_recurring_interval.setValue(1)
+        
+        # Set default repeat after completion to True
+        self.ui.checkBox_repeat_after_completion.setChecked(True)
+        
+        # Connect pattern change to update interval label
+        self.ui.comboBox_recurring_pattern.currentTextChanged.connect(self.on_recurring_pattern_changed)
+    
+    def on_recurring_pattern_changed(self, pattern_text):
+        """Handle recurring pattern selection change."""
+        # Update interval label based on pattern
+        if "Daily" in pattern_text:
+            self.ui.label_recurring_interval.setText("Interval (days):")
+        elif "Weekly" in pattern_text:
+            self.ui.label_recurring_interval.setText("Interval (weeks):")
+        elif "Monthly" in pattern_text:
+            self.ui.label_recurring_interval.setText("Interval (months):")
+        elif "Yearly" in pattern_text:
+            self.ui.label_recurring_interval.setText("Interval (years):")
+        else:
+            self.ui.label_recurring_interval.setText("Interval:")
     
     def on_hour_changed(self, hour_text):
         """Handle hour selection change."""
@@ -208,6 +240,36 @@ class TaskEditDialog(QDialog):
                 self.ui.checkBox_reminder_3hour.setChecked(True)
             if '3-5day' in quick_reminders:
                 self.ui.checkBox_reminder_4hour.setChecked(True)
+        
+        # Load recurring task settings
+        self.load_recurring_task_data()
+    
+    def load_recurring_task_data(self):
+        """Load recurring task data into the form."""
+        if not self.task_data:
+            return
+        
+        # Load recurrence pattern
+        recurrence_pattern = self.task_data.get('recurrence_pattern')
+        if recurrence_pattern:
+            pattern_map = {
+                'daily': 1,
+                'weekly': 2,
+                'monthly': 3,
+                'yearly': 4
+            }
+            pattern_index = pattern_map.get(recurrence_pattern, 0)
+            self.ui.comboBox_recurring_pattern.setCurrentIndex(pattern_index)
+        else:
+            self.ui.comboBox_recurring_pattern.setCurrentIndex(0)  # None
+        
+        # Load recurrence interval
+        recurrence_interval = self.task_data.get('recurrence_interval', 1)
+        self.ui.spinBox_recurring_interval.setValue(recurrence_interval)
+        
+        # Load repeat after completion setting
+        repeat_after_completion = self.task_data.get('repeat_after_completion', True)
+        self.ui.checkBox_repeat_after_completion.setChecked(repeat_after_completion)
     
     def set_due_time_from_24h(self, time):
         """Set due time components from 24-hour time."""
@@ -453,6 +515,27 @@ class TaskEditDialog(QDialog):
         """Collect selected tags from the tag widget."""
         return self.tag_widget.get_selected_tags()
     
+    def collect_recurring_task_data(self):
+        """Collect recurring task settings from the form."""
+        pattern_index = self.ui.comboBox_recurring_pattern.currentIndex()
+        pattern_map = {
+            0: None,  # None (One-time task)
+            1: 'daily',
+            2: 'weekly', 
+            3: 'monthly',
+            4: 'yearly'
+        }
+        
+        recurrence_pattern = pattern_map.get(pattern_index)
+        recurrence_interval = self.ui.spinBox_recurring_interval.value()
+        repeat_after_completion = self.ui.checkBox_repeat_after_completion.isChecked()
+        
+        return {
+            'recurrence_pattern': recurrence_pattern,
+            'recurrence_interval': recurrence_interval,
+            'repeat_after_completion': repeat_after_completion
+        }
+    
     @handle_errors("saving task")
     def save_task(self):
         """Save the task data."""
@@ -489,6 +572,9 @@ class TaskEditDialog(QDialog):
                 quick_reminders = self.collect_quick_reminders()
                 # TODO: Convert quick reminders to actual reminder periods based on due date/time
             
+            # Collect recurring task settings
+            recurring_data = self.collect_recurring_task_data()
+            
             # Prepare task data
             task_data = {
                 'title': title,
@@ -500,6 +586,10 @@ class TaskEditDialog(QDialog):
                 'reminder_periods': reminder_periods,
                 'quick_reminders': quick_reminders
             }
+            
+            # Add recurring task fields if specified
+            if recurring_data['recurrence_pattern']:
+                task_data.update(recurring_data)
             
             if self.is_edit:
                 # Update existing task
@@ -520,7 +610,10 @@ class TaskEditDialog(QDialog):
                     priority=priority,
                     reminder_periods=reminder_periods,
                     tags=tags,
-                    quick_reminders=quick_reminders
+                    quick_reminders=quick_reminders,
+                    recurrence_pattern=recurring_data['recurrence_pattern'],
+                    recurrence_interval=recurring_data['recurrence_interval'],
+                    repeat_after_completion=recurring_data['repeat_after_completion']
                 )
                 if task_id:
                     QMessageBox.information(self, "Success", "Task created successfully!")

@@ -72,6 +72,9 @@ class TaskSettingsWidget(QWidget):
                 widget_list=self.period_widgets,
                 delete_callback=self.remove_period_row
             )
+            
+            # Load recurring task settings
+            self.load_recurring_task_settings()
         except Exception as e:
             logger.error(f"Error loading task data for user {self.user_id}: {e}")
     
@@ -192,9 +195,13 @@ class TaskSettingsWidget(QWidget):
         # Get tags from the tag widget
         tags = self.tag_widget.get_available_tags() if hasattr(self, 'tag_widget') else []
         
+        # Get recurring task settings
+        recurring_settings = self.get_recurring_task_settings()
+        
         return {
             'time_periods': time_periods,
-            'tags': tags
+            'tags': tags,
+            'recurring_settings': recurring_settings
         }
     
     def set_task_settings(self, settings):
@@ -214,6 +221,10 @@ class TaskSettingsWidget(QWidget):
         time_periods = settings.get('time_periods', {})
         for period_name, period_data in time_periods.items():
             self.add_new_period(period_name, period_data)
+        
+        # Set recurring task settings
+        recurring_settings = settings.get('recurring_settings', {})
+        self.set_recurring_task_settings(recurring_settings)
 
     # Removed set_statistics method; stats are now set in the dialog, not the widget.
 
@@ -244,5 +255,85 @@ class TaskSettingsWidget(QWidget):
     def undo_last_tag_delete(self):
         """Undo the last tag deletion (account creation mode only)."""
         return self.tag_widget.undo_last_tag_delete()
+
+    def get_recurring_task_settings(self):
+        """Get the current recurring task settings."""
+        pattern_index = self.ui.comboBox_recurring_pattern.currentIndex()
+        pattern_map = {
+            0: None,  # None (One-time tasks)
+            1: 'daily',
+            2: 'weekly', 
+            3: 'monthly',
+            4: 'yearly'
+        }
+        
+        return {
+            'default_recurrence_pattern': pattern_map.get(pattern_index),
+            'default_recurrence_interval': self.ui.spinBox_recurring_interval.value(),
+            'default_repeat_after_completion': self.ui.checkBox_repeat_after_completion.isChecked()
+        }
+    
+    def set_recurring_task_settings(self, settings):
+        """Set the recurring task settings."""
+        if not settings:
+            return
+        
+        # Set pattern
+        pattern = settings.get('default_recurrence_pattern')
+        pattern_map = {
+            None: 0,  # None (One-time tasks)
+            'daily': 1,
+            'weekly': 2,
+            'monthly': 3,
+            'yearly': 4
+        }
+        pattern_index = pattern_map.get(pattern, 0)
+        self.ui.comboBox_recurring_pattern.setCurrentIndex(pattern_index)
+        
+        # Set interval
+        interval = settings.get('default_recurrence_interval', 1)
+        self.ui.spinBox_recurring_interval.setValue(interval)
+        
+        # Set repeat after completion
+        repeat_after = settings.get('default_repeat_after_completion', True)
+        self.ui.checkBox_repeat_after_completion.setChecked(repeat_after)
+    
+    def load_recurring_task_settings(self):
+        """Load recurring task settings from user preferences."""
+        if not self.user_id:
+            return
+        
+        try:
+            user_data = get_user_data(self.user_id, 'preferences')
+            preferences = user_data.get('preferences', {})
+            task_settings = preferences.get('task_settings', {})
+            recurring_settings = task_settings.get('recurring_settings', {})
+            
+            self.set_recurring_task_settings(recurring_settings)
+        except Exception as e:
+            logger.error(f"Error loading recurring task settings for user {self.user_id}: {e}")
+    
+    def save_recurring_task_settings(self):
+        """Save recurring task settings to user preferences."""
+        if not self.user_id:
+            return
+        
+        try:
+            recurring_settings = self.get_recurring_task_settings()
+            
+            # Get current preferences
+            user_data = get_user_data(self.user_id, 'preferences')
+            preferences = user_data.get('preferences', {})
+            task_settings = preferences.get('task_settings', {})
+            
+            # Update recurring settings
+            task_settings['recurring_settings'] = recurring_settings
+            preferences['task_settings'] = task_settings
+            
+            # Save back to user data
+            update_user_preferences(self.user_id, preferences)
+            
+        except Exception as e:
+            logger.error(f"Error saving recurring task settings for user {self.user_id}: {e}")
 
  

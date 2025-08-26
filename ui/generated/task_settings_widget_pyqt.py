@@ -15,8 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGroupBox, QHBoxLayout, QPushButton,
-    QScrollArea, QSizePolicy, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QPushButton,
+    QScrollArea, QSizePolicy, QSpinBox, QVBoxLayout,
+    QWidget)
 
 class Ui_Form_task_settings(object):
     def setupUi(self, Form_task_settings):
@@ -82,6 +84,65 @@ class Ui_Form_task_settings(object):
 
         self.verticalLayout_Form_task_settings.addWidget(self.groupBox_task_reminder_time_periods)
 
+        self.groupBox_recurring_task_settings = QGroupBox(Form_task_settings)
+        self.groupBox_recurring_task_settings.setObjectName(u"groupBox_recurring_task_settings")
+        self.gridLayout_recurring_task_settings = QGridLayout(self.groupBox_recurring_task_settings)
+        self.gridLayout_recurring_task_settings.setSpacing(4)
+        self.gridLayout_recurring_task_settings.setObjectName(u"gridLayout_recurring_task_settings")
+        self.gridLayout_recurring_task_settings.setContentsMargins(4, 4, 4, 4)
+        self.label_recurring_pattern = QLabel(self.groupBox_recurring_task_settings)
+        self.label_recurring_pattern.setObjectName(u"label_recurring_pattern")
+
+        self.gridLayout_recurring_task_settings.addWidget(self.label_recurring_pattern, 0, 0, 1, 1)
+
+        self.comboBox_recurring_pattern = QComboBox(self.groupBox_recurring_task_settings)
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.setObjectName(u"comboBox_recurring_pattern")
+        sizePolicy1.setHeightForWidth(self.comboBox_recurring_pattern.sizePolicy().hasHeightForWidth())
+        self.comboBox_recurring_pattern.setSizePolicy(sizePolicy1)
+
+        self.gridLayout_recurring_task_settings.addWidget(self.comboBox_recurring_pattern, 0, 1, 1, 1)
+
+        self.label_recurring_interval = QLabel(self.groupBox_recurring_task_settings)
+        self.label_recurring_interval.setObjectName(u"label_recurring_interval")
+
+        self.gridLayout_recurring_task_settings.addWidget(self.label_recurring_interval, 1, 0, 1, 1)
+
+        self.spinBox_recurring_interval = QSpinBox(self.groupBox_recurring_task_settings)
+        self.spinBox_recurring_interval.setObjectName(u"spinBox_recurring_interval")
+        sizePolicy1.setHeightForWidth(self.spinBox_recurring_interval.sizePolicy().hasHeightForWidth())
+        self.spinBox_recurring_interval.setSizePolicy(sizePolicy1)
+        self.spinBox_recurring_interval.setMinimum(1)
+        self.spinBox_recurring_interval.setMaximum(365)
+        self.spinBox_recurring_interval.setValue(1)
+
+        self.gridLayout_recurring_task_settings.addWidget(self.spinBox_recurring_interval, 1, 1, 1, 1)
+
+        self.label_repeat_after_completion = QLabel(self.groupBox_recurring_task_settings)
+        self.label_repeat_after_completion.setObjectName(u"label_repeat_after_completion")
+
+        self.gridLayout_recurring_task_settings.addWidget(self.label_repeat_after_completion, 2, 0, 1, 1)
+
+        self.checkBox_repeat_after_completion = QCheckBox(self.groupBox_recurring_task_settings)
+        self.checkBox_repeat_after_completion.setObjectName(u"checkBox_repeat_after_completion")
+        self.checkBox_repeat_after_completion.setChecked(True)
+
+        self.gridLayout_recurring_task_settings.addWidget(self.checkBox_repeat_after_completion, 2, 1, 1, 1)
+
+        self.label_recurring_help = QLabel(self.groupBox_recurring_task_settings)
+        self.label_recurring_help.setObjectName(u"label_recurring_help")
+        self.label_recurring_help.setWordWrap(True)
+        self.label_recurring_help.setStyleSheet(u"color: gray; font-style: italic;")
+
+        self.gridLayout_recurring_task_settings.addWidget(self.label_recurring_help, 3, 0, 1, 2)
+
+
+        self.verticalLayout_Form_task_settings.addWidget(self.groupBox_recurring_task_settings)
+
         self.widget_tag_management_placeholder = QWidget(Form_task_settings)
         self.widget_tag_management_placeholder.setObjectName(u"widget_tag_management_placeholder")
         sizePolicy.setHeightForWidth(self.widget_tag_management_placeholder.sizePolicy().hasHeightForWidth())
@@ -104,5 +165,18 @@ class Ui_Form_task_settings(object):
         self.groupBox_task_reminder_time_periods.setTitle(QCoreApplication.translate("Form_task_settings", u"Reminder Time Periods", None))
         self.pushButton_task_reminder_add_new_period.setText(QCoreApplication.translate("Form_task_settings", u"Add New Period", None))
         self.pushButton_undo_last__task_reminder_time_period_delete.setText(QCoreApplication.translate("Form_task_settings", u"Undo Last Delete", None))
+        self.groupBox_recurring_task_settings.setTitle(QCoreApplication.translate("Form_task_settings", u"Recurring Task Settings", None))
+        self.label_recurring_pattern.setText(QCoreApplication.translate("Form_task_settings", u"Default Recurrence Pattern:", None))
+        self.comboBox_recurring_pattern.setItemText(0, QCoreApplication.translate("Form_task_settings", u"None (One-time tasks)", None))
+        self.comboBox_recurring_pattern.setItemText(1, QCoreApplication.translate("Form_task_settings", u"Daily", None))
+        self.comboBox_recurring_pattern.setItemText(2, QCoreApplication.translate("Form_task_settings", u"Weekly", None))
+        self.comboBox_recurring_pattern.setItemText(3, QCoreApplication.translate("Form_task_settings", u"Monthly", None))
+        self.comboBox_recurring_pattern.setItemText(4, QCoreApplication.translate("Form_task_settings", u"Yearly", None))
+
+        self.label_recurring_interval.setText(QCoreApplication.translate("Form_task_settings", u"Default Interval:", None))
+        self.spinBox_recurring_interval.setSuffix("")
+        self.label_repeat_after_completion.setText(QCoreApplication.translate("Form_task_settings", u"Repeat After Completion:", None))
+        self.checkBox_repeat_after_completion.setText(QCoreApplication.translate("Form_task_settings", u"Create next instance when task is completed", None))
+        self.label_recurring_help.setText(QCoreApplication.translate("Form_task_settings", u"These settings will be used as defaults when creating new recurring tasks. Individual tasks can override these settings.", None))
     # retranslateUi
 

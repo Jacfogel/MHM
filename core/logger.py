@@ -9,29 +9,71 @@ import json
 import gzip
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
-# Define logging paths directly to avoid circular imports
-LOGS_DIR = os.getenv('LOGS_DIR', 'logs')
-LOG_BACKUP_DIR = os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups'))
-LOG_ARCHIVE_DIR = os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive'))
 
-# Component-specific log files
-LOG_MAIN_FILE = os.getenv('LOG_MAIN_FILE', os.path.join(LOGS_DIR, 'app.log'))
-LOG_DISCORD_FILE = os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord.log'))
-LOG_AI_FILE = os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log'))
-LOG_USER_ACTIVITY_FILE = os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log'))
-LOG_ERRORS_FILE = os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log'))
-LOG_CHANNELS_FILE = os.getenv('LOG_CHANNELS_FILE', os.path.join(LOGS_DIR, 'channels.log'))
-LOG_COMMUNICATION_MANAGER_FILE = os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(LOGS_DIR, 'communication_manager.log'))
-LOG_EMAIL_FILE = os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_DIR, 'email.log'))
-LOG_UI_FILE = os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log'))
-LOG_FILE_OPS_FILE = os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log'))
-LOG_SCHEDULER_FILE = os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log'))
-
-# Legacy support - these will be imported from config when available
-# LOG_MAIN_FILE removed - using LOG_MAIN_FILE directly
+# LEGACY COMPATIBILITY: Direct log path definitions - will be imported from config when available
+# TODO: Remove after config.py logging configuration is fully implemented
+# REMOVAL PLAN:
+# 1. Move all log path definitions to core/config.py
+# 2. Import log paths from config instead of defining here
+# 3. Remove this section and update all references
+# 4. Update environment variable handling to use config
 LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
 LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'
+
+def _is_testing_environment():
+    """Check if we're running in a testing environment."""
+    return (os.getenv('MHM_TESTING') == '1' or 
+            os.getenv('PYTEST_CURRENT_TEST') is not None or
+            'pytest' in os.getenv('PYTHONPATH', '') or
+            any('test' in arg.lower() for arg in os.sys.argv if arg.startswith('-')))
+
+def _get_log_paths_for_environment():
+    """Get appropriate log paths based on the current environment."""
+    if _is_testing_environment():
+        # Use test-specific paths
+        base_dir = os.getenv('LOGS_DIR', 'tests/logs')
+        backup_dir = os.path.join(base_dir, 'backups')
+        archive_dir = os.path.join(base_dir, 'archive')
+        
+        return {
+            'base_dir': base_dir,
+            'backup_dir': backup_dir,
+            'archive_dir': archive_dir,
+            'main_file': os.path.join(base_dir, 'app.log'),
+            'discord_file': os.path.join(base_dir, 'discord.log'),
+            'ai_file': os.path.join(base_dir, 'ai.log'),
+            'user_activity_file': os.path.join(base_dir, 'user_activity.log'),
+            'errors_file': os.path.join(base_dir, 'errors.log'),
+            'channels_file': os.path.join(base_dir, 'channels.log'),
+            'communication_manager_file': os.path.join(base_dir, 'communication_manager.log'),
+            'email_file': os.path.join(base_dir, 'email.log'),
+            'ui_file': os.path.join(base_dir, 'ui.log'),
+            'file_ops_file': os.path.join(base_dir, 'file_ops.log'),
+            'scheduler_file': os.path.join(base_dir, 'scheduler.log'),
+        }
+    else:
+        # Use production paths - dynamically determined
+        base_dir = os.getenv('LOGS_DIR', 'logs')
+        backup_dir = os.getenv('LOG_BACKUP_DIR', os.path.join(base_dir, 'backups'))
+        archive_dir = os.getenv('LOG_ARCHIVE_DIR', os.path.join(base_dir, 'archive'))
+        
+        return {
+            'base_dir': base_dir,
+            'backup_dir': backup_dir,
+            'archive_dir': archive_dir,
+            'main_file': os.getenv('LOG_MAIN_FILE', os.path.join(base_dir, 'app.log')),
+            'discord_file': os.getenv('LOG_DISCORD_FILE', os.path.join(base_dir, 'discord.log')),
+            'ai_file': os.getenv('LOG_AI_FILE', os.path.join(base_dir, 'ai.log')),
+            'user_activity_file': os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(base_dir, 'user_activity.log')),
+            'errors_file': os.getenv('LOG_ERRORS_FILE', os.path.join(base_dir, 'errors.log')),
+            'channels_file': os.getenv('LOG_CHANNELS_FILE', os.path.join(base_dir, 'channels.log')),
+            'communication_manager_file': os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(base_dir, 'communication_manager.log')),
+            'email_file': os.getenv('LOG_EMAIL_FILE', os.path.join(base_dir, 'email.log')),
+            'ui_file': os.getenv('LOG_UI_FILE', os.path.join(base_dir, 'ui.log')),
+            'file_ops_file': os.getenv('LOG_FILE_OPS_FILE', os.path.join(base_dir, 'file_ops.log')),
+            'scheduler_file': os.getenv('LOG_SCHEDULER_FILE', os.path.join(base_dir, 'scheduler.log')),
+        }
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
 # This ensures test logs never go to app.log, even if logging setup is triggered early
@@ -85,20 +127,13 @@ class ComponentLogger:
             datefmt='%Y-%m-%d %H:%M:%S'
         )
         
-        # Determine backup directory (remap under tests/logs in verbose test mode)
-        backup_dir = LOG_BACKUP_DIR
-        if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-            tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
-            backup_dir = os.path.join(tests_logs_dir, 'backups')
-            try:
-                os.makedirs(backup_dir, exist_ok=True)
-            except Exception:
-                pass
-
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
+        
         # Create file handler with rotation to backup directory
         file_handler = BackupDirectoryRotatingFileHandler(
             log_file_path,
-            backup_dir=backup_dir,
+            backup_dir=log_paths['backup_dir'],
             when='midnight',
             interval=1,
             backupCount=7,  # Keep 7 days of logs
@@ -118,17 +153,17 @@ class ComponentLogger:
         try:
             errors_formatter = formatter
             # In test verbose mode, route errors to tests/logs as well to avoid writing to real logs
-            errors_log_path = LOG_ERRORS_FILE
+            errors_log_path = log_paths['errors_file']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                tests_logs_dir = log_paths['base_dir'] or os.path.join('tests', 'logs')
                 try:
                     os.makedirs(tests_logs_dir, exist_ok=True)
-                    errors_log_path = os.path.join(tests_logs_dir, os.path.basename(LOG_ERRORS_FILE))
+                    errors_log_path = os.path.join(tests_logs_dir, os.path.basename(log_paths['errors_file']))
                 except Exception:
                     pass
-            errors_backup_dir = LOG_BACKUP_DIR
+            errors_backup_dir = log_paths['backup_dir']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-                tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+                tests_logs_dir = log_paths['base_dir'] or os.path.join('tests', 'logs')
                 errors_backup_dir = os.path.join(tests_logs_dir, 'backups')
                 try:
                     os.makedirs(errors_backup_dir, exist_ok=True)
@@ -345,9 +380,10 @@ def get_log_level_from_env():
 
 def ensure_logs_directory():
     """Ensure the logs directory structure exists."""
-    os.makedirs(LOGS_DIR, exist_ok=True)
-    os.makedirs(LOG_BACKUP_DIR, exist_ok=True)
-    os.makedirs(LOG_ARCHIVE_DIR, exist_ok=True)
+    log_paths = _get_log_paths_for_environment()
+    os.makedirs(log_paths['base_dir'], exist_ok=True)
+    os.makedirs(log_paths['backup_dir'], exist_ok=True)
+    os.makedirs(log_paths['archive_dir'], exist_ok=True)
 
 
 def get_component_logger(component_name: str) -> ComponentLogger:
@@ -384,30 +420,24 @@ def get_component_logger(component_name: str) -> ComponentLogger:
         component_name = 'communication_manager'
 
     if component_name not in _component_loggers:
-        # Map component names to log files
-        log_file_map = {
-            'discord': LOG_DISCORD_FILE,
-            'ai': LOG_AI_FILE,
-            'user_activity': LOG_USER_ACTIVITY_FILE,
-            'errors': LOG_ERRORS_FILE,
-            'communication_manager': LOG_COMMUNICATION_MANAGER_FILE,
-            'email': LOG_EMAIL_FILE,
-            'ui': LOG_UI_FILE,
-            'file_ops': LOG_FILE_OPS_FILE,
-            'scheduler': LOG_SCHEDULER_FILE,
-            'main': LOG_MAIN_FILE
-        }
-        # If in verbose test mode, remap component file paths under tests/logs
-        if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
-            tests_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
-            for key, path in list(log_file_map.items()):
-                try:
-                    filename = os.path.basename(path)
-                    log_file_map[key] = os.path.join(tests_logs_dir, filename)
-                except Exception:
-                    pass
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
         
-        log_file = log_file_map.get(component_name, LOG_MAIN_FILE)
+        # Map component names to log file paths
+        log_file_map = {
+            'discord': log_paths['discord_file'],
+            'ai': log_paths['ai_file'],
+            'user_activity': log_paths['user_activity_file'],
+            'errors': log_paths['errors_file'],
+            'communication_manager': log_paths['communication_manager_file'],
+            'email': log_paths['email_file'],
+            'ui': log_paths['ui_file'],
+            'file_ops': log_paths['file_ops_file'],
+            'scheduler': log_paths['scheduler_file'],
+            'main': log_paths['main_file']
+        }
+        
+        log_file = log_file_map.get(component_name, log_paths['main_file'])
         # Create the component logger
         comp_logger = ComponentLogger(component_name, log_file)
         # For Discord, increase verbosity to DEBUG so we capture more detail in discord.log
@@ -418,7 +448,8 @@ def get_component_logger(component_name: str) -> ComponentLogger:
                 for handler in comp_logger.logger.handlers:
                     if isinstance(handler, (RotatingFileHandler, TimedRotatingFileHandler)):
                         base_filename = getattr(handler, 'baseFilename', '')
-                        if base_filename and os.path.basename(base_filename) == os.path.basename(LOG_DISCORD_FILE):
+                        log_paths = _get_log_paths_for_environment()
+                        if base_filename and os.path.basename(base_filename) == os.path.basename(log_paths['discord_file']):
                             handler.setLevel(logging.DEBUG)
             except Exception:
                 pass
@@ -437,9 +468,12 @@ def setup_logging():
     
     Automatically suppresses noisy third-party library logging.
     """
-    # Skip logging setup if running tests
-    if os.getenv('MHM_TESTING') == '1':
+    # Skip logging setup if running tests - tests handle their own logging
+    if _is_testing_environment():
         return
+    
+    # Get environment-specific log paths
+    log_paths = _get_log_paths_for_environment()
     
     # Ensure logs directory exists
     ensure_logs_directory()
@@ -459,8 +493,8 @@ def setup_logging():
 
     # Set up file handler with UTF-8 encoding (always DEBUG) for app.log
     file_handler = BackupDirectoryRotatingFileHandler(
-        LOG_MAIN_FILE,
-        LOG_BACKUP_DIR,
+        log_paths['main_file'],
+        log_paths['backup_dir'],
         maxBytes=LOG_MAX_BYTES,
         backupCount=LOG_BACKUP_COUNT,
         encoding='utf-8'
@@ -498,13 +532,16 @@ def setup_third_party_error_logging():
     to the errors.log file instead of app.log.
     """
     try:
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
+        
         # Create error formatter
         error_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         
         # Create error file handler
         error_handler = BackupDirectoryRotatingFileHandler(
-            LOG_ERRORS_FILE,
-            LOG_BACKUP_DIR,
+            log_paths['errors_file'],
+            log_paths['backup_dir'],
             maxBytes=LOG_MAX_BYTES,
             backupCount=LOG_BACKUP_COUNT,
             encoding='utf-8'
@@ -676,13 +713,16 @@ def get_log_file_info():
     try:
         import glob
         
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
+        
         # Get current log file
         current_log_size = 0
         current_log_info = None
-        if os.path.exists(LOG_MAIN_FILE):
-            current_log_size = os.path.getsize(LOG_MAIN_FILE)
+        if os.path.exists(log_paths['main_file']):
+            current_log_size = os.path.getsize(log_paths['main_file'])
             current_log_info = {
-                'name': os.path.basename(LOG_MAIN_FILE),
+                'name': os.path.basename(log_paths['main_file']),
                 'location': 'current',
                 'size_bytes': current_log_size,
                 'size_mb': round(current_log_size / (1024 * 1024), 2)
@@ -692,8 +732,8 @@ def get_log_file_info():
         backup_file_paths = []
         backup_file_info = []
         backup_total_size = 0
-        if os.path.exists(LOG_BACKUP_DIR):
-            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_MAIN_FILE)}*")
+        if os.path.exists(log_paths['backup_dir']):
+            backup_pattern = os.path.join(log_paths['backup_dir'], f"{os.path.basename(log_paths['main_file'])}*")
             backup_file_paths = glob.glob(backup_pattern)
             
             for backup_file in backup_file_paths:
@@ -721,7 +761,7 @@ def get_log_file_info():
             'total_size_mb': round(total_size / (1024 * 1024), 2),
             'current_log': current_log_info,
             'backup_files': backup_file_info,
-            'backup_directory': LOG_BACKUP_DIR,
+            'backup_directory': log_paths['backup_dir'],
             'total_files': total_files
         }
     except Exception as e:
@@ -750,8 +790,9 @@ def cleanup_old_logs(max_total_size_mb=50):
         # Get all backup log files sorted by modification time (oldest first)
         import glob
         backup_files = []
-        if os.path.exists(LOG_BACKUP_DIR):
-            backup_pattern = os.path.join(LOG_BACKUP_DIR, f"{os.path.basename(LOG_MAIN_FILE)}*")
+        log_paths = _get_log_paths_for_environment()
+        if os.path.exists(log_paths['backup_dir']):
+            backup_pattern = os.path.join(log_paths['backup_dir'], f"{os.path.basename(log_paths['main_file'])}*")
             backup_files = glob.glob(backup_pattern)
         
         log_files_with_time = []
@@ -802,10 +843,13 @@ def compress_old_logs():
         import glob
         compressed_count = 0
         
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
+        
         # Get all log files in logs directory and backup directory
         log_patterns = [
-            os.path.join(LOGS_DIR, "*.log.*"),  # Rotated log files
-            os.path.join(LOG_BACKUP_DIR, "*.log*")  # Backup log files
+            os.path.join(log_paths['base_dir'], "*.log.*"),  # Rotated log files
+            os.path.join(log_paths['backup_dir'], "*.log*")  # Backup log files
         ]
         
         cutoff_time = time.time() - (7 * 24 * 3600)  # 7 days ago
@@ -827,7 +871,7 @@ def compress_old_logs():
                             with open(log_file, 'rb') as f_in:
                                 # Create archive filename
                                 filename = os.path.basename(log_file)
-                                archive_file = os.path.join(LOG_ARCHIVE_DIR, filename + '.gz')
+                                archive_file = os.path.join(log_paths['archive_dir'], filename + '.gz')
                                 
                                 with gzip.open(archive_file, 'wb') as f_out:
                                     shutil.copyfileobj(f_in, f_out)
@@ -864,8 +908,9 @@ def cleanup_old_archives(max_days=30):
         import glob
         removed_count = 0
         
-        if os.path.exists(LOG_ARCHIVE_DIR):
-            archive_pattern = os.path.join(LOG_ARCHIVE_DIR, "*.gz")
+        log_paths = _get_log_paths_for_environment()
+        if os.path.exists(log_paths['archive_dir']):
+            archive_pattern = os.path.join(log_paths['archive_dir'], "*.gz")
             archive_files = glob.glob(archive_pattern)
             
             cutoff_time = time.time() - (max_days * 24 * 3600)
@@ -913,11 +958,14 @@ def force_restart_logging():
         # Clear any cached loggers
         logging.getLogger().handlers.clear()
         
+        # Get environment-specific log paths
+        log_paths = _get_log_paths_for_environment()
+        
         # Force setup new logging
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always DEBUG)
-        file_handler = BackupDirectoryRotatingFileHandler(LOG_MAIN_FILE, LOG_BACKUP_DIR, maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(log_paths['main_file'], log_paths['backup_dir'], maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)
 

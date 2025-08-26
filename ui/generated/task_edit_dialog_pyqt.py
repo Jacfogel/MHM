@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QComboB
     QGridLayout, QGroupBox, QHBoxLayout, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QPushButton,
     QRadioButton, QScrollArea, QSizePolicy, QSpacerItem,
-    QTextEdit, QVBoxLayout, QWidget)
+    QSpinBox, QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_Dialog_task_edit(object):
     def setupUi(self, Dialog_task_edit):
@@ -194,6 +194,63 @@ class Ui_Dialog_task_edit(object):
 
         self.verticalLayout_Dialog_task_edit.addWidget(self.widget_task_details)
 
+        self.groupBox_recurring_task = QGroupBox(Dialog_task_edit)
+        self.groupBox_recurring_task.setObjectName(u"groupBox_recurring_task")
+        self.gridLayout_recurring_task = QGridLayout(self.groupBox_recurring_task)
+        self.gridLayout_recurring_task.setSpacing(4)
+        self.gridLayout_recurring_task.setObjectName(u"gridLayout_recurring_task")
+        self.gridLayout_recurring_task.setContentsMargins(4, 4, 4, 4)
+        self.label_recurring_pattern = QLabel(self.groupBox_recurring_task)
+        self.label_recurring_pattern.setObjectName(u"label_recurring_pattern")
+
+        self.gridLayout_recurring_task.addWidget(self.label_recurring_pattern, 0, 0, 1, 1)
+
+        self.comboBox_recurring_pattern = QComboBox(self.groupBox_recurring_task)
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.addItem("")
+        self.comboBox_recurring_pattern.setObjectName(u"comboBox_recurring_pattern")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBox_recurring_pattern.sizePolicy().hasHeightForWidth())
+        self.comboBox_recurring_pattern.setSizePolicy(sizePolicy)
+
+        self.gridLayout_recurring_task.addWidget(self.comboBox_recurring_pattern, 0, 1, 1, 1)
+
+        self.label_recurring_interval = QLabel(self.groupBox_recurring_task)
+        self.label_recurring_interval.setObjectName(u"label_recurring_interval")
+
+        self.gridLayout_recurring_task.addWidget(self.label_recurring_interval, 1, 0, 1, 1)
+
+        self.spinBox_recurring_interval = QSpinBox(self.groupBox_recurring_task)
+        self.spinBox_recurring_interval.setObjectName(u"spinBox_recurring_interval")
+        sizePolicy.setHeightForWidth(self.spinBox_recurring_interval.sizePolicy().hasHeightForWidth())
+        self.spinBox_recurring_interval.setSizePolicy(sizePolicy)
+        self.spinBox_recurring_interval.setMinimum(1)
+        self.spinBox_recurring_interval.setMaximum(365)
+        self.spinBox_recurring_interval.setValue(1)
+
+        self.gridLayout_recurring_task.addWidget(self.spinBox_recurring_interval, 1, 1, 1, 1)
+
+        self.checkBox_repeat_after_completion = QCheckBox(self.groupBox_recurring_task)
+        self.checkBox_repeat_after_completion.setObjectName(u"checkBox_repeat_after_completion")
+        self.checkBox_repeat_after_completion.setChecked(True)
+
+        self.gridLayout_recurring_task.addWidget(self.checkBox_repeat_after_completion, 2, 0, 1, 2)
+
+        self.label_recurring_help = QLabel(self.groupBox_recurring_task)
+        self.label_recurring_help.setObjectName(u"label_recurring_help")
+        self.label_recurring_help.setWordWrap(True)
+        self.label_recurring_help.setStyleSheet(u"color: gray; font-size: 10px;")
+
+        self.gridLayout_recurring_task.addWidget(self.label_recurring_help, 3, 0, 1, 2)
+
+
+        self.verticalLayout_Dialog_task_edit.addWidget(self.groupBox_recurring_task)
+
         self.groupBox_task_reminders = QGroupBox(Dialog_task_edit)
         self.groupBox_task_reminders.setObjectName(u"groupBox_task_reminders")
         self.verticalLayout_groupBox_task_reminders = QVBoxLayout(self.groupBox_task_reminders)
@@ -310,6 +367,18 @@ class Ui_Dialog_task_edit(object):
         self.label_task_tags.setText(QCoreApplication.translate("Dialog_task_edit", u"Tags:", None))
         self.lineEdit_new_tag.setPlaceholderText(QCoreApplication.translate("Dialog_task_edit", u"Enter new tag", None))
         self.pushButton_add_tag.setText(QCoreApplication.translate("Dialog_task_edit", u"Add Tag", None))
+        self.groupBox_recurring_task.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Recurring Task Settings", None))
+        self.label_recurring_pattern.setText(QCoreApplication.translate("Dialog_task_edit", u"Recurrence Pattern:", None))
+        self.comboBox_recurring_pattern.setItemText(0, QCoreApplication.translate("Dialog_task_edit", u"None (One-time task)", None))
+        self.comboBox_recurring_pattern.setItemText(1, QCoreApplication.translate("Dialog_task_edit", u"Daily", None))
+        self.comboBox_recurring_pattern.setItemText(2, QCoreApplication.translate("Dialog_task_edit", u"Weekly", None))
+        self.comboBox_recurring_pattern.setItemText(3, QCoreApplication.translate("Dialog_task_edit", u"Monthly", None))
+        self.comboBox_recurring_pattern.setItemText(4, QCoreApplication.translate("Dialog_task_edit", u"Yearly", None))
+
+        self.label_recurring_interval.setText(QCoreApplication.translate("Dialog_task_edit", u"Interval:", None))
+        self.spinBox_recurring_interval.setSuffix("")
+        self.checkBox_repeat_after_completion.setText(QCoreApplication.translate("Dialog_task_edit", u"Create next instance when task is completed", None))
+        self.label_recurring_help.setText(QCoreApplication.translate("Dialog_task_edit", u"Leave as \"None\" for a one-time task. Set a pattern to make this task repeat automatically.", None))
         self.groupBox_task_reminders.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Task Reminder Settings", None))
         self.checkBox_enable_reminders.setText(QCoreApplication.translate("Dialog_task_edit", u"Use my default task reminder schedule", None))
         self.groupBox_quick_reminders.setTitle(QCoreApplication.translate("Dialog_task_edit", u"Quick Reminder Time Windows", None))

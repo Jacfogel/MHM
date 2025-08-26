@@ -115,18 +115,17 @@ class TestCommunicationManager:
     @pytest.mark.regression
     def test_get_active_channels(self, comm_manager, realistic_mock_channel):
         """Test getting active channels with realistic channel setup."""
-        # Add realistic mock channels
+                # Add realistic mock channels
         comm_manager._channels_dict = {
             'discord': realistic_mock_channel,
             'email': realistic_mock_channel,
-    
         }
         
         available = comm_manager.get_active_channels()
         assert 'discord' in available
         assert 'email' in available
 
-        assert len(available) == 3
+        assert len(available) == 2
     
     @pytest.mark.behavior
     @pytest.mark.communication

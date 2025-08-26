@@ -571,10 +571,10 @@ def patch_user_data_dirs():
          patch.object(core.config, "USER_INFO_DIR_PATH", users_dir):
         yield
 
-# --- CLEANUP FIXTURE: Remove test users from both data/users/ and tests/data/users/ after all tests ---
+# --- CLEANUP FIXTURE: Remove test users from tests/data/users/ after all tests (NEVER touches real user data) ---
 @pytest.fixture(scope="session", autouse=True)
 def cleanup_test_users_after_session():
-    """Remove test users from both data/users/ and tests/data/users/ after all tests."""
+    """Remove test users from tests/data/users/ after all tests. NEVER touches real user data."""
     yield  # Run all tests first
     
     # Clear all user caches to prevent state pollution between test runs
@@ -584,18 +584,16 @@ def cleanup_test_users_after_session():
     except Exception:
         pass  # Ignore errors during cleanup
     
-    for base_dir in ["data/users", "tests/data/users"]:
+    # Only clean up test directories, NEVER real user data
+    for base_dir in ["tests/data/users"]:  # Removed "data/users" - NEVER touch real user data
         abs_dir = os.path.abspath(base_dir)
         if os.path.exists(abs_dir):
             for item in os.listdir(abs_dir):
-                # Clean up test directories (test-*, test_*, testuser*) and UUID directories
-                # UUIDs are 32 hex characters in 8-4-4-4-12 format
-                import re
-                uuid_pattern = re.compile(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$')
+                # Clean up ONLY test directories (test-*, test_*, testuser*)
+                # NEVER clean up UUID directories - these are real users!
                 if (item.startswith("test-") or 
                     item.startswith("test_") or 
-                    item.startswith("testuser") or
-                    uuid_pattern.match(item)):
+                    item.startswith("testuser")):
                     item_path = os.path.join(abs_dir, item)
                     try:
                         if os.path.isdir(item_path):

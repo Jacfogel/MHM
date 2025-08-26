@@ -129,6 +129,9 @@ class TaskManagementDialog(QDialog):
                 logger.info(f"Task management enabled for user {self.user_id} - setting up default tags")
                 setup_default_task_tags(self.user_id)
             
+            # Save recurring task settings
+            self.task_widget.save_recurring_task_settings()
+            
             QMessageBox.information(self, "Task Settings Saved", 
                                    "Task settings saved successfully.")
             self.user_changed.emit()

@@ -96,6 +96,26 @@ class TaskManagementHandler(InteractionHandler):
         due_date = entities.get('due_date')
         priority = entities.get('priority', 'medium')
         tags = entities.get('tags', [])
+        recurrence_pattern = entities.get('recurrence_pattern')
+        recurrence_interval = entities.get('recurrence_interval', 1)
+        
+        # If no recurrence pattern specified, check user's default settings
+        if not recurrence_pattern:
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data = get_user_data(user_id, 'preferences')
+                preferences = user_data.get('preferences', {})
+                task_settings = preferences.get('task_settings', {})
+                recurring_settings = task_settings.get('recurring_settings', {})
+                
+                # Use default pattern if available
+                default_pattern = recurring_settings.get('default_recurrence_pattern')
+                if default_pattern:
+                    recurrence_pattern = default_pattern
+                    recurrence_interval = recurring_settings.get('default_recurrence_interval', 1)
+            except Exception as e:
+                # If there's an error loading preferences, continue without defaults
+                pass
         
         # Convert relative dates to proper dates
         if due_date:
@@ -106,6 +126,11 @@ class TaskManagementHandler(InteractionHandler):
         if priority not in valid_priorities:
             priority = 'medium'
         
+        # Validate recurrence pattern
+        valid_patterns = ['daily', 'weekly', 'monthly', 'yearly']
+        if recurrence_pattern and recurrence_pattern not in valid_patterns:
+            recurrence_pattern = None
+        
         # Create the task with enhanced properties
         task_data = {
             'title': title,
@@ -114,6 +139,23 @@ class TaskManagementHandler(InteractionHandler):
             'priority': priority,
             'tags': tags
         }
+        
+        # Add recurring task fields if specified
+        if recurrence_pattern:
+            task_data['recurrence_pattern'] = recurrence_pattern
+            task_data['recurrence_interval'] = recurrence_interval
+            
+            # Use default repeat_after_completion setting if available
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data = get_user_data(user_id, 'preferences')
+                preferences = user_data.get('preferences', {})
+                task_settings = preferences.get('task_settings', {})
+                recurring_settings = task_settings.get('recurring_settings', {})
+                task_data['repeat_after_completion'] = recurring_settings.get('default_repeat_after_completion', True)
+            except Exception as e:
+                # Default to True if there's an error loading preferences
+                task_data['repeat_after_completion'] = True
         
         task_id = create_task(user_id=user_id, **task_data)
         
@@ -125,6 +167,11 @@ class TaskManagementHandler(InteractionHandler):
                 response += f" (priority: {priority})"
             if tags:
                 response += f" (tags: {', '.join(tags)})"
+            if recurrence_pattern:
+                interval_text = f"every {recurrence_interval} {recurrence_pattern}"
+                if recurrence_interval == 1:
+                    interval_text = f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
+                response += f" (repeats: {interval_text})"
             
             # Ask about reminder periods
             response += "\n\nWould you like to set reminder periods for this task?"
@@ -259,6 +306,20 @@ class TaskManagementHandler(InteractionHandler):
             # Format due date with urgency indicator
             due_info = self._handle_list_tasks__format_due_date(task.get('due_date'))
             
+            # Add short task ID for easy completion
+            task_id = task.get('task_id', '')
+            short_id = f" [{task_id[:8]}]" if task_id else ""
+            
+            # Add recurring task indicator
+            recurrence_info = ""
+            if task.get('recurrence_pattern'):
+                pattern = task.get('recurrence_pattern')
+                interval = task.get('recurrence_interval', 1)
+                if interval == 1:
+                    recurrence_info = f" 🔄 {pattern[:-2]}"  # Remove 'ly' for singular
+                else:
+                    recurrence_info = f" 🔄 every {interval} {pattern}"
+            
             # Add tags if present
             tags = task.get('tags', [])
             tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
@@ -267,7 +328,7 @@ class TaskManagementHandler(InteractionHandler):
             description = task.get('description', '')
             desc_info = f" - {description[:50]}..." if description and len(description) > 50 else f" - {description}" if description else ""
             
-            task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}{tags_info}{desc_info}")
+            task_list.append(f"{i}. {priority_emoji} {task['title']}{short_id}{due_info}{recurrence_info}{tags_info}{desc_info}")
         
         return task_list
 
@@ -399,10 +460,59 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task completion"""
         task_identifier = entities.get('task_identifier')
         if not task_identifier:
-            return InteractionResponse(
-                "Which task would you like to complete? Please specify the task number or name.",
-                completed=False
-            )
+            # No specific task mentioned - check for last task reminder first
+            # Temporarily disabled due to import issues
+            # from communication.core.channel_orchestrator import CommunicationManager
+            # comm_manager = CommunicationManager()
+            # last_reminder_task_id = comm_manager.get_last_task_reminder(user_id)
+            
+            # if last_reminder_task_id:
+            #     # Try to complete the task from the last reminder
+            #     from tasks.task_management import get_task_by_id, complete_task
+            #     last_reminder_task = get_task_by_id(user_id, last_reminder_task_id)
+                
+            #     if last_reminder_task and not last_reminder_task.get('completed', False):
+            #         # Complete the task from the last reminder
+            #         if complete_task(user_id, last_reminder_task_id):
+            #             task_title = last_reminder_task.get('title', 'Unknown Task')
+            #             return InteractionResponse(f"✅ Completed: {task_title}", True)
+            #         else:
+            #             return InteractionResponse("❌ Failed to complete task. Please try again.", True)
+            
+            # If no last reminder or task already completed, suggest the most likely task
+            tasks = load_active_tasks(user_id)
+            if not tasks:
+                return InteractionResponse("You have no active tasks to complete! 🎉", True)
+            
+            # Find the most urgent task (overdue, then high priority, then due soon)
+            suggested_task = self._handle_complete_task__find_most_urgent_task(tasks)
+            
+            if suggested_task:
+                # Suggest the most urgent task
+                task_title = suggested_task.get('title', 'Unknown Task')
+                task_id = suggested_task.get('task_id', '')
+                short_id = task_id[:8] if task_id else ''
+                
+                response = f"💡 **Did you want to complete this task?**\n\n"
+                response += f"**{task_title}**\n"
+                
+                # Add task details
+                if suggested_task.get('due_date'):
+                    response += f"📅 Due: {suggested_task['due_date']}\n"
+                if suggested_task.get('priority'):
+                    response += f"⚡ Priority: {suggested_task['priority'].title()}\n"
+                
+                response += f"\n**To complete it:**\n"
+                response += f"• Reply: `complete task {short_id}`\n"
+                response += f"• Or: `complete task \"{task_title}\"`\n"
+                response += f"• Or: `list tasks` to see all your tasks"
+                
+                return InteractionResponse(response, completed=False)
+            else:
+                return InteractionResponse(
+                    "Which task would you like to complete? Please specify the task number or name, or use 'list tasks' to see all your tasks.",
+                    completed=False
+                )
         
         # Try to find the task
         tasks = load_active_tasks(user_id)
@@ -556,6 +666,13 @@ class TaskManagementHandler(InteractionHandler):
             if task.get('task_id') == identifier or task.get('id') == identifier:
                 return task
         
+        # Try as short task_id (first 8 characters)
+        if len(identifier) == 8:
+            for task in tasks:
+                task_id = task.get('task_id', '')
+                if task_id and task_id.startswith(identifier):
+                    return task
+        
         # Try as number
         try:
             task_num = int(identifier)
@@ -604,6 +721,53 @@ class TaskManagementHandler(InteractionHandler):
                         return task
         
         return None
+    
+    def _handle_complete_task__find_most_urgent_task(self, tasks: List[Dict]) -> Optional[Dict]:
+        """Find the most urgent task based on priority and due date"""
+        if not tasks:
+            return None
+        
+        from datetime import datetime
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        # Priority order: overdue > critical > high > medium > low
+        priority_order = {'critical': 5, 'high': 4, 'medium': 3, 'low': 2}
+        
+        most_urgent = None
+        highest_score = -1
+        
+        for task in tasks:
+            score = 0
+            
+            # Check if overdue (highest priority)
+            due_date = task.get('due_date')
+            if due_date and due_date < today:
+                score += 1000  # Overdue tasks get highest priority
+            
+            # Add priority score
+            priority = task.get('priority', 'medium')
+            score += priority_order.get(priority, 0)
+            
+            # Add due date proximity bonus (closer = higher score)
+            if due_date:
+                try:
+                    due_dt = datetime.strptime(due_date, '%Y-%m-%d')
+                    today_dt = datetime.strptime(today, '%Y-%m-%d')
+                    days_until_due = (due_dt - today_dt).days
+                    if days_until_due <= 0:  # Due today or overdue
+                        score += 50
+                    elif days_until_due <= 1:  # Due tomorrow
+                        score += 30
+                    elif days_until_due <= 3:  # Due this week
+                        score += 10
+                except ValueError:
+                    pass  # Invalid date format, ignore
+            
+            if score > highest_score:
+                highest_score = score
+                most_urgent = task
+        
+        return most_urgent
     
     def _handle_delete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""

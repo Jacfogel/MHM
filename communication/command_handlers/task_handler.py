@@ -64,6 +64,8 @@ class TaskManagementHandler(InteractionHandler):
         due_date = entities.get('due_date')
         priority = entities.get('priority', 'medium')
         tags = entities.get('tags', [])
+        recurrence_pattern = entities.get('recurrence_pattern')
+        recurrence_interval = entities.get('recurrence_interval', 1)
         
         # Convert relative dates to proper dates
         if due_date:
@@ -74,6 +76,11 @@ class TaskManagementHandler(InteractionHandler):
         if priority not in valid_priorities:
             priority = 'medium'
         
+        # Validate recurrence pattern
+        valid_patterns = ['daily', 'weekly', 'monthly', 'yearly']
+        if recurrence_pattern and recurrence_pattern not in valid_patterns:
+            recurrence_pattern = None
+        
         # Create the task with enhanced properties
         task_data = {
             'title': title,
@@ -82,6 +89,12 @@ class TaskManagementHandler(InteractionHandler):
             'priority': priority,
             'tags': tags
         }
+        
+        # Add recurring task fields if specified
+        if recurrence_pattern:
+            task_data['recurrence_pattern'] = recurrence_pattern
+            task_data['recurrence_interval'] = recurrence_interval
+            task_data['repeat_after_completion'] = True
         
         task_id = create_task(user_id=user_id, **task_data)
         
@@ -93,6 +106,11 @@ class TaskManagementHandler(InteractionHandler):
                 response += f" (priority: {priority})"
             if tags:
                 response += f" (tags: {', '.join(tags)})"
+            if recurrence_pattern:
+                interval_text = f"every {recurrence_interval} {recurrence_pattern}"
+                if recurrence_interval == 1:
+                    interval_text = f"every {recurrence_pattern[:-2]}"  # Remove 'ly' for singular
+                response += f" (repeats: {interval_text})"
             
             # Ask about reminder periods
             response += "\n\nWould you like to set reminder periods for this task?"
@@ -224,6 +242,16 @@ class TaskManagementHandler(InteractionHandler):
             # Format due date with urgency indicator
             due_info = self._handle_list_tasks__format_due_date(task.get('due_date'))
             
+            # Add recurring task indicator
+            recurrence_info = ""
+            if task.get('recurrence_pattern'):
+                pattern = task.get('recurrence_pattern')
+                interval = task.get('recurrence_interval', 1)
+                if interval == 1:
+                    recurrence_info = f" 🔄 {pattern[:-2]}"  # Remove 'ly' for singular
+                else:
+                    recurrence_info = f" 🔄 every {interval} {pattern}"
+            
             # Add tags if present
             tags = task.get('tags', [])
             tags_info = f" [tags: {', '.join(tags)}]" if tags else ""
@@ -232,7 +260,7 @@ class TaskManagementHandler(InteractionHandler):
             description = task.get('description', '')
             desc_info = f" - {description[:50]}..." if description and len(description) > 50 else f" - {description}" if description else ""
             
-            task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}{tags_info}{desc_info}")
+            task_list.append(f"{i}. {priority_emoji} {task['title']}{due_info}{recurrence_info}{tags_info}{desc_info}")
         
         return task_list
 

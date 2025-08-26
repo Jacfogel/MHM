@@ -104,8 +104,6 @@ class TestUserCreationScenarios:
         assert loaded_data['context']['preferred_name'] == 'Discord User'
         assert loaded_data['context']['gender_identity'] == ['they/them']
     
-    # Telegram support removed: legacy test removed
-    
     @pytest.mark.unit
     def test_user_with_custom_fields(self, test_data_dir, mock_config):
         """Test creating a user with extensive custom fields using enhanced test utilities."""
