@@ -101,11 +101,12 @@ class TestDynamicCheckinManager:
         question_text = dynamic_checkin_manager.build_next_question_with_response(
             'energy', 'mood', 2
         )
-        
+
         # Should contain both the response statement and the next question
         assert any(phrase in question_text.lower() for phrase in ['feeling down', 'rough', 'aren\'t great', 'tough'])
         assert 'energy level' in question_text.lower()
-        assert any(phrase in question_text for phrase in ['Next', 'Moving', 'Let\'s', 'Now for'])
+        # Check for newline separation between response and question
+        assert '\n\n' in question_text
         
         # Test without a previous answer (first question)
         question_text = dynamic_checkin_manager.build_next_question_with_response(
@@ -113,7 +114,7 @@ class TestDynamicCheckinManager:
         )
         # Should just be the question text
         assert 'How are you feeling today' in question_text
-        assert 'Next' not in question_text
+        assert '\n\n' not in question_text
     
     def test_ui_questions_format(self):
         """Test that questions are formatted correctly for UI."""

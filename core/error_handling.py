@@ -11,11 +11,9 @@ import traceback
 from typing import Optional, Dict, Any, Callable, List, Tuple
 from pathlib import Path
 from datetime import datetime
-from core.logger import get_component_logger
-
-# Use component loggers directly
-logger = get_component_logger('main')
-error_logger = get_component_logger('errors')
+# Import logger locally to avoid circular imports
+# logger = get_component_logger('main')
+# error_logger = get_component_logger('errors')
 
 # ============================================================================
 # CUSTOM EXCEPTIONS
@@ -142,6 +140,8 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
             directory = os.path.dirname(file_path)
             if directory and not os.path.exists(directory):
                 os.makedirs(directory, exist_ok=True)
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
                 logger.info(f"Created missing directory: {directory}")
             
             # Create default data based on file type
@@ -150,11 +150,15 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                 with open(file_path, 'w', encoding='utf-8') as f:
                     import json
                     json.dump(default_data, f, indent=4, ensure_ascii=False)
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
                 logger.info(f"Created missing file with default data: {file_path}")
                 return True
             
             return False
         except Exception as e:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
             logger.error(f"File recovery failed: {e}")
             return False
     
@@ -223,6 +227,8 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
             if os.path.exists(file_path):
                 import shutil
                 shutil.copy2(file_path, backup_path)
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
                 logger.warning(f"Created backup of corrupted file: {backup_path}")
             
             # Create new file with default data
@@ -231,11 +237,15 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 with open(file_path, 'w', encoding='utf-8') as f:
                     import json
                     json.dump(default_data, f, indent=4, ensure_ascii=False)
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
                 logger.info(f"Recreated corrupted file with default data: {file_path}")
                 return True
             
             return False
         except Exception as e:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
             logger.error(f"JSON recovery failed: {e}")
             return False
     
@@ -305,6 +315,8 @@ class ErrorHandler:
         error_key = f"{type(error).__name__}:{operation}"
         if self.error_count.get(error_key, 0) >= self.max_retries:
             try:
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
                 logger.error(f"Maximum retries exceeded for {error_key}")
             except Exception:
                 pass  # Don't let logger failures break error handling
@@ -316,17 +328,23 @@ class ErrorHandler:
         for strategy in self.recovery_strategies:
             if strategy.can_handle(error):
                 try:
+                    from core.logger import get_component_logger
+                    logger = get_component_logger('main')
                     logger.info(f"Attempting recovery with strategy: {strategy.name}")
                 except Exception:
                     pass  # Don't let logger failures break error handling
                 if strategy.recover(error, context):
                     try:
+                        from core.logger import get_component_logger
+                        logger = get_component_logger('main')
                         logger.info(f"Successfully recovered from error using {strategy.name}")
                     except Exception:
                         pass  # Don't let logger failures break error handling
                     return True
                 else:
                     try:
+                        from core.logger import get_component_logger
+                        logger = get_component_logger('main')
                         logger.warning(f"Recovery strategy {strategy.name} failed")
                     except Exception:
                         pass  # Don't let logger failures break error handling
@@ -349,6 +367,9 @@ class ErrorHandler:
             error_msg += f" (User: {context['user_id']})"
         
         try:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
+            error_logger = get_component_logger('errors')
             logger.error(error_msg, exc_info=True)
             # Use component logger for structured error logging
             error_logger.error("Error occurred", 
@@ -374,6 +395,8 @@ class ErrorHandler:
             user_msg = self._get_user_friendly_message(error, context)
         
         try:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
             logger.error(f"User Error: {user_msg}")
         except Exception as log_error:
             # If logging fails, we don't want to break the error handling
@@ -435,6 +458,8 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
                         return func(*args, **kwargs)
                     except Exception as e2:
                         try:
+                            from core.logger import get_component_logger
+                            logger = get_component_logger('main')
                             logger.error(f"Operation failed again after recovery: {e2}")
                         except Exception:
                             pass  # Don't let logger failures break error handling

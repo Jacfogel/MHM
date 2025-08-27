@@ -9,7 +9,6 @@ import json
 import gzip
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
-import core.config as config
 
 def _is_testing_environment():
     """Check if we're running in a testing environment."""
@@ -42,7 +41,8 @@ def _get_log_paths_for_environment():
             'scheduler_file': os.path.join(base_dir, 'scheduler.log'),
         }
     else:
-        # Use centralized paths from config
+        # Use centralized paths from config - import locally to avoid circular import
+        import core.config as config
         return {
             'base_dir': config.LOGS_DIR,
             'backup_dir': config.LOG_BACKUP_DIR,
@@ -479,6 +479,7 @@ def setup_logging():
     log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
     # Set up file handler with UTF-8 encoding (always DEBUG) for app.log
+    import core.config as config
     file_handler = BackupDirectoryRotatingFileHandler(
         log_paths['main_file'],
         log_paths['backup_dir'],
@@ -526,6 +527,7 @@ def setup_third_party_error_logging():
         error_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
         
         # Create error file handler
+        import core.config as config
         error_handler = BackupDirectoryRotatingFileHandler(
             log_paths['errors_file'],
             log_paths['backup_dir'],
@@ -952,6 +954,7 @@ def force_restart_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always DEBUG)
+        import core.config as config
         file_handler = BackupDirectoryRotatingFileHandler(
             log_paths['main_file'],
             log_paths['backup_dir'],

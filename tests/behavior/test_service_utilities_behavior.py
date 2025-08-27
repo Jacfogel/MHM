@@ -430,7 +430,7 @@ class TestServiceUtilitiesIntegration:
     def test_service_utilities_concurrent_access_safety(self, test_data_dir):
         """Test that service utilities handle concurrent access safely."""
         # Arrange - Create throttler
-        throttler = Throttler(0.1)  # 100ms interval
+        throttler = Throttler(1.0)  # 1 second interval
         
         # Act - Simulate concurrent access
         results = []
@@ -439,8 +439,15 @@ class TestServiceUtilitiesIntegration:
         
         # Assert - Should handle concurrent access safely
         assert results[0] is True, "First call should succeed"
-        # First few calls should succeed (no last_run set yet)
-        assert all(result is True for result in results[1:3]), "First few calls should succeed"
+        # After first call, rapid calls should be throttled (return False)
+        # The Throttler is working correctly - it sets last_run on first call
+        assert results[1:] == [False] * 4, "Rapid calls should be throttled"
+        
+        # Test with actual time delay to verify throttling works across seconds
+        import time
+        time.sleep(1.1)  # Wait longer than interval
+        delayed_result = throttler.should_run()
+        assert delayed_result is True, "Call after interval should succeed"
         
         # Test title case thread safety (should be stateless)
         test_text = "ai chatbot"

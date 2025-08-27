@@ -224,7 +224,9 @@ class TestMessageScheduling:
                         scheduler_manager.schedule_new_user(user_id)
                         
                         # Verify side effects: should have called scheduling methods
-                        assert mock_schedule.call_count >= 1  # At least one category scheduled
+                        # The method should call schedule_daily_message_job for each category and checkins
+                        # With our mock data, it should call it at least twice (motivational + checkin)
+                        assert mock_schedule.call_count >= 2, f"Expected at least 2 calls, got {mock_schedule.call_count}"
                         mock_task_schedule.assert_called_once_with(user_id)
     
     @pytest.mark.behavior
