@@ -23,12 +23,6 @@ from core.user_data_handlers import get_user_data
 # 1. Update all individual load/save function calls to use get_user_data/save_user_data
 # 2. Remove this import
 # 3. Update any individual save function calls to use save_user_data
-# USAGE TRACKING: Monitor for any remaining calls to individual load/save functions
-# TODO: Remove after all calls are updated to use get_user_data/save_user_data
-# REMOVAL PLAN:
-# 1. Update all individual load/save function calls to use get_user_data/save_user_data
-# 2. Remove this import
-# 3. Update any individual save function calls to use save_user_data
 
 logger = get_component_logger('tasks')
 task_logger = get_component_logger('main')
