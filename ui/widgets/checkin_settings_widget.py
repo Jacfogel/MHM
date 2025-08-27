@@ -129,32 +129,46 @@ class CheckinSettingsWidget(QWidget):
     
     def set_question_checkboxes(self, questions):
         """Set question checkboxes based on saved preferences."""
+        # Import the dynamic checkin manager
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        # Get all available questions from the dynamic manager
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        
+        # Map question keys to checkboxes
         question_mapping = {
             'mood': self.ui.checkBox_mood,
-            'energy_level': self.ui.checkBox_energy_level,
-            'hydrated': self.ui.checkBox_hydrated,
+            'energy': self.ui.checkBox_energy_level,
+            'hydration': self.ui.checkBox_hydrated,
             'brushed_teeth': self.ui.checkBox_brushed_teeth,
             'sleep_quality': self.ui.checkBox_sleep_quality,
             'stress_level': self.ui.checkBox_stress_level,
             'anxiety_level': self.ui.checkBox_anxiety_level,
             'sleep_hours': self.ui.checkBox_sleep_hours,
-            'medication': self.ui.checkBox_medication,
-            'breakfast': self.ui.checkBox_breakfast,
+            'medication_taken': self.ui.checkBox_medication,
+            'ate_breakfast': self.ui.checkBox_breakfast,
             'exercise': self.ui.checkBox_exercise,
             'social_interaction': self.ui.checkBox_social_interaction,
-            'reflection_notes': self.ui.checkBox_reflection_notes
+            'daily_reflection': self.ui.checkBox_reflection_notes
         }
         
         for question_key, checkbox in question_mapping.items():
-            question_data = questions.get(question_key, {})
-            enabled = question_data.get('enabled', self.get_default_question_state(question_key))
-            checkbox.setChecked(enabled)
+            if question_key in available_questions:
+                question_data = questions.get(question_key, {})
+                # Use the default enabled state from the dynamic manager if not set
+                default_enabled = available_questions[question_key].get('enabled', False)
+                enabled = question_data.get('enabled', default_enabled)
+                checkbox.setChecked(enabled)
     
     def get_default_question_state(self, question_key):
         """Get default enabled state for a question."""
-        # Default questions that are enabled by default
-        default_enabled = ['mood', 'energy_level', 'stress_level', 'sleep_quality']
-        return question_key in default_enabled
+        # Import the dynamic checkin manager
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        # Get the default enabled state from the dynamic manager
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        question_data = available_questions.get(question_key, {})
+        return question_data.get('enabled', False)
     
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
@@ -306,43 +320,36 @@ class CheckinSettingsWidget(QWidget):
         # Use the new reusable function to collect period data
         time_periods = collect_period_data_from_widgets(self.period_widgets, "checkin")
         
-        # Get questions from checkboxes
+        # Import the dynamic checkin manager
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        # Get questions from checkboxes using the correct question keys
         questions = {}
         question_mapping = {
             'mood': self.ui.checkBox_mood,
-            'energy_level': self.ui.checkBox_energy_level,
-            'hydrated': self.ui.checkBox_hydrated,
+            'energy': self.ui.checkBox_energy_level,
+            'hydration': self.ui.checkBox_hydrated,
             'brushed_teeth': self.ui.checkBox_brushed_teeth,
             'sleep_quality': self.ui.checkBox_sleep_quality,
             'stress_level': self.ui.checkBox_stress_level,
             'anxiety_level': self.ui.checkBox_anxiety_level,
             'sleep_hours': self.ui.checkBox_sleep_hours,
-            'medication': self.ui.checkBox_medication,
-            'breakfast': self.ui.checkBox_breakfast,
+            'medication_taken': self.ui.checkBox_medication,
+            'ate_breakfast': self.ui.checkBox_breakfast,
             'exercise': self.ui.checkBox_exercise,
             'social_interaction': self.ui.checkBox_social_interaction,
-            'reflection_notes': self.ui.checkBox_reflection_notes
+            'daily_reflection': self.ui.checkBox_reflection_notes
         }
-        question_labels = {
-            'mood': 'Mood (1-5 scale)',
-            'energy_level': 'Energy level (1-5 scale)',
-            'hydrated': 'Staying hydrated (yes/no)',
-            'brushed_teeth': 'Brushed teeth (yes/no)',
-            'sleep_quality': 'Sleep quality (1-5 scale)',
-            'stress_level': 'Stress level (1-5 scale)',
-            'anxiety_level': 'Anxiety level (1-5 scale)',
-            'sleep_hours': 'Hours of sleep (number)',
-            'medication': 'Took medication (yes/no)',
-            'breakfast': 'Had breakfast (yes/no)',
-            'exercise': 'Did exercise (yes/no)',
-            'social_interaction': 'Had social interaction (yes/no)',
-            'reflection_notes': 'Brief reflection/notes (text)'
-        }
+        
+        # Get available questions from dynamic manager for labels
+        available_questions = dynamic_checkin_manager.get_enabled_questions_for_ui()
+        
         for question_key, checkbox in question_mapping.items():
-            questions[question_key] = {
-                'enabled': checkbox.isChecked(),
-                'label': question_labels.get(question_key, question_key)
-            }
+            if question_key in available_questions:
+                questions[question_key] = {
+                    'enabled': checkbox.isChecked(),
+                    'label': available_questions[question_key].get('ui_display_name', question_key)
+                }
         
         return {
             'time_periods': time_periods,

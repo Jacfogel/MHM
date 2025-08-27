@@ -290,6 +290,40 @@ class ConversationManager:
     @handle_errors("getting question text", default_return="Please answer this question:")
     def _get_question_text(self, question_key: str, previous_data: dict) -> str:
         """Get appropriate question text based on question type and previous responses"""
+        # Import the dynamic checkin manager
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        # Get the question text from the dynamic manager
+        question_text = dynamic_checkin_manager.get_question_text(question_key)
+        
+        # If this is not the first question and we have previous data, 
+        # check if we should add a response statement
+        if previous_data and len(previous_data) > 0:
+            # Find the most recent question that was answered
+            # We'll use the last key in previous_data as a simple approach
+            recent_questions = list(previous_data.keys())
+            if recent_questions:
+                last_question = recent_questions[-1]
+                last_answer = previous_data[last_question]
+                
+                # Build the question with response statement
+                return dynamic_checkin_manager.build_next_question_with_response(
+                    question_key, last_question, last_answer
+                )
+        
+        return question_text
+
+    # LEGACY COMPATIBILITY: Hardcoded question system replaced by dynamic manager
+    # TODO: Remove after dynamic checkin system is fully tested and stable (2025-09-09)
+    # REMOVAL PLAN:
+    # 1. Ensure dynamic manager is working correctly in production
+    # 2. Monitor for any issues with question loading or responses
+    # 3. Remove hardcoded question_texts dictionary after 2 weeks of stable operation
+    # 4. Update any remaining references to use dynamic manager exclusively
+    def _get_question_text_legacy(self, question_key: str, previous_data: dict) -> str:
+        """LEGACY: Get appropriate question text based on question type and previous responses"""
+        logger.warning("LEGACY COMPATIBILITY: _get_question_text_legacy() called; use dynamic manager instead")
+        
         question_texts = {
             'mood': "How are you feeling today on a scale of 1 to 5? (1=terrible, 5=great)",
             'ate_breakfast': "Did you eat breakfast today? (yes/no)",
@@ -352,7 +386,30 @@ class ConversationManager:
 
     @handle_errors("validating response", default_return={'valid': False, 'value': None, 'message': "I didn't understand that response. Please try again."})
     def _validate_response(self, question_key: str, response: str) -> dict:
-        """Validate user response based on question type"""
+        """Validate user response based on question type using dynamic manager"""
+        # Import the dynamic checkin manager
+        from core.checkin_dynamic_manager import dynamic_checkin_manager
+        
+        # Use the dynamic manager to validate the response
+        is_valid, value, error_message = dynamic_checkin_manager.validate_answer(question_key, response)
+        
+        return {
+            'valid': is_valid,
+            'value': value,
+            'message': error_message
+        }
+
+    # LEGACY COMPATIBILITY: Hardcoded validation system replaced by dynamic manager
+    # TODO: Remove after dynamic checkin system is fully tested and stable (2025-09-09)
+    # REMOVAL PLAN:
+    # 1. Ensure dynamic manager validation is working correctly in production
+    # 2. Monitor for any validation issues or edge cases
+    # 3. Remove hardcoded validation logic after 2 weeks of stable operation
+    # 4. Update any remaining references to use dynamic manager exclusively
+    def _validate_response_legacy(self, question_key: str, response: str) -> dict:
+        """LEGACY: Validate user response based on question type"""
+        logger.warning("LEGACY COMPATIBILITY: _validate_response_legacy() called; use dynamic manager instead")
+        
         response = response.strip()
         
         # Yes/no questions
@@ -422,9 +479,9 @@ class ConversationManager:
         
         # Default case
         return {
-            'valid': True,
-            'value': response,
-            'message': None
+            'valid': False,
+            'value': None,
+            'message': "I didn't understand that response. Please try again."
         }
 
     @handle_errors("completing checkin", default_return=("Thanks for completing your check-in! There was an issue saving your responses, but I've recorded what I could.", True))

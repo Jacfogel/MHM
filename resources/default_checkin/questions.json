@@ -1,0 +1,180 @@
+{
+  "questions": {
+    "mood": {
+      "type": "scale_1_5",
+      "question_text": "How are you feeling today on a scale of 1 to 5? (1=terrible, 5=great)",
+      "ui_display_name": "Mood (1-5 scale)",
+      "enabled_by_default": true,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for mood."
+      }
+    },
+    "energy": {
+      "type": "scale_1_5",
+      "question_text": "How is your energy level today on a scale of 1 to 5? (1=exhausted, 5=very energetic)",
+      "ui_display_name": "Energy level (1-5 scale)",
+      "enabled_by_default": true,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for energy level."
+      }
+    },
+    "stress_level": {
+      "type": "scale_1_5",
+      "question_text": "How stressed are you feeling today on a scale of 1 to 5? (1=very relaxed, 5=very stressed)",
+      "ui_display_name": "Stress level (1-5 scale)",
+      "enabled_by_default": true,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for stress level."
+      }
+    },
+    "sleep_quality": {
+      "type": "scale_1_5",
+      "question_text": "How well did you sleep last night on a scale of 1 to 5? (1=terrible, 5=excellent)",
+      "ui_display_name": "Sleep quality (1-5 scale)",
+      "enabled_by_default": true,
+      "category": "sleep",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for sleep quality."
+      }
+    },
+    "sleep_hours": {
+      "type": "number",
+      "question_text": "How many hours did you sleep last night? (enter a number)",
+      "ui_display_name": "Hours of sleep (number)",
+      "enabled_by_default": false,
+      "category": "sleep",
+      "validation": {
+        "min": 0,
+        "max": 24,
+        "error_message": "Please enter a number between 0 and 24 for hours of sleep."
+      }
+    },
+    "anxiety_level": {
+      "type": "scale_1_5",
+      "question_text": "How anxious are you feeling today on a scale of 1 to 5? (1=very calm, 5=very anxious)",
+      "ui_display_name": "Anxiety level (1-5 scale)",
+      "enabled_by_default": false,
+      "category": "mood",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for anxiety level."
+      }
+    },
+    "focus_level": {
+      "type": "scale_1_5",
+      "question_text": "How focused do you feel today on a scale of 1 to 5? (1=very distracted, 5=very focused)",
+      "ui_display_name": "Focus level (1-5 scale)",
+      "enabled_by_default": false,
+      "category": "reflection",
+      "validation": {
+        "min": 1,
+        "max": 5,
+        "error_message": "Please enter a number between 1 and 5 for focus level."
+      }
+    },
+    "ate_breakfast": {
+      "type": "yes_no",
+      "question_text": "Did you eat breakfast today? (yes/no)",
+      "ui_display_name": "Did eat breakfast (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "brushed_teeth": {
+      "type": "yes_no",
+      "question_text": "Did you brush your teeth today? (yes/no)",
+      "ui_display_name": "Brushed teeth (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "medication_taken": {
+      "type": "yes_no",
+      "question_text": "Did you take your medication today? (yes/no)",
+      "ui_display_name": "Did take medication (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "exercise": {
+      "type": "yes_no",
+      "question_text": "Did you do any exercise today? (yes/no)",
+      "ui_display_name": "Did exercise (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "hydration": {
+      "type": "yes_no",
+      "question_text": "Are you staying hydrated today? (yes/no)",
+      "ui_display_name": "Staying hydrated (yes/no)",
+      "enabled_by_default": false,
+      "category": "health",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "social_interaction": {
+      "type": "yes_no",
+      "question_text": "Did you have any social interaction today? (yes/no)",
+      "ui_display_name": "Had social interaction (yes/no)",
+      "enabled_by_default": false,
+      "category": "social",
+      "validation": {
+        "error_message": "Please answer with yes/no, y/n, or similar."
+      }
+    },
+    "daily_reflection": {
+      "type": "optional_text",
+      "question_text": "Any brief thoughts or reflections about today? (optional - just press enter to skip)",
+      "ui_display_name": "Daily reflection notes (optional)",
+      "enabled_by_default": false,
+      "category": "reflection",
+      "validation": {
+        "error_message": "This is optional - you can just press enter to skip."
+      }
+    }
+  },
+  "categories": {
+    "mood": {
+      "name": "Mood & Energy",
+      "description": "Questions about emotional state and energy levels"
+    },
+    "health": {
+      "name": "Health & Wellness",
+      "description": "Questions about physical health and self-care"
+    },
+    "sleep": {
+      "name": "Sleep",
+      "description": "Questions about sleep quality and duration"
+    },
+    "social": {
+      "name": "Social",
+      "description": "Questions about social interactions and connections"
+    },
+    "reflection": {
+      "name": "Reflection",
+      "description": "Questions about focus, thoughts, and personal insights"
+    }
+  }
+}

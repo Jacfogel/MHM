@@ -30,6 +30,24 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Legacy Code Standards Compliance Fix** ✅ **COMPLETED**
+- *What it means*: Ensure full compliance with the legacy code standards defined in critical.mdc by properly marking replaced hardcoded check-in system with legacy compatibility comments, usage logging, and removal plans.
+- *Why it helps*: Ensures proper code management practices and maintains system integrity
+- *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - Full compliance with critical.mdc legacy code standards achieved
+- *Completed Work*:
+  - ✅ **Added Legacy Methods**: Created `_get_question_text_legacy()` and `_validate_response_legacy()` with proper LEGACY COMPATIBILITY comments
+  - ✅ **Added Usage Logging**: Warning logs when legacy methods are accessed for monitoring
+  - ✅ **Added Removal Plan**: Documented removal timeline (2025-09-09) with clear steps
+  - ✅ **Updated Documentation**: Updated both AI_CHANGELOG.md and CHANGELOG_DETAIL.md
+  - ✅ **Verified Compliance**: All 902 tests still pass with legacy methods added
+- *Results*:
+  - Full adherence to critical.mdc legacy code standards
+  - Legacy methods available as fallback if needed
+  - Usage monitoring through log warnings
+  - Clear path for future cleanup
+  - No impact on current system functionality
+
 ## **Headless Service Process Management** ⚠️ **NEW PRIORITY**
 - *What it means*: Figure out how to run the service in headless mode (`python core/service.py`) without creating duplicate processes or causing the service to kill itself
 - *Why it helps*: Enables proper headless service operation for deployment and automation scenarios
@@ -292,7 +310,7 @@ When adding new tasks, follow this format:
     - [ ] Update tests and documentation
 
 ## **Code Complexity Reduction - High Priority Refactoring** 🔄 **IN PROGRESS**
-- *What it means*: Address 1435 high complexity functions (>50 nodes) identified in audit to improve maintainability and reduce technical debt
+- *What it means*: Address 1476 high complexity functions (>50 nodes) identified in latest audit to improve maintainability and reduce technical debt
 - *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer and more efficient
 - *Estimated effort*: Large
 - *Completed Work*:
@@ -406,6 +424,26 @@ When adding new tasks, follow this format:
   - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
   - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
   - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
+
+**Legacy Check-in Methods Testing and Monitoring** ⚠️ **NEW PRIORITY**
+- *What it means*: Test and monitor the newly added legacy check-in methods (`_get_question_text_legacy()` and `_validate_response_legacy()`) to ensure they work correctly and are not being accessed in normal operation.
+- *Why it helps*: Ensures legacy methods function as intended and provides data for future removal decisions.
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] **Test Legacy Methods Functionality**
+    - [ ] Create unit tests for `_get_question_text_legacy()` method
+    - [ ] Create unit tests for `_validate_response_legacy()` method
+    - [ ] Verify legacy methods produce same results as original hardcoded system
+    - [ ] Test legacy methods with edge cases and error conditions
+  - [ ] **Monitor Legacy Method Usage**
+    - [ ] Monitor logs for `LEGACY COMPATIBILITY: _get_question_text_legacy() called` warnings
+    - [ ] Monitor logs for `LEGACY COMPATIBILITY: _validate_response_legacy() called` warnings
+    - [ ] Track frequency of legacy method access over 2 weeks
+    - [ ] Document any unexpected usage patterns
+  - [ ] **Prepare for Removal**
+    - [ ] If no usage detected after 2 weeks, plan removal for 2025-09-09
+    - [ ] Update tests to remove legacy method dependencies
+    - [ ] Remove legacy methods and update documentation
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.

@@ -1,0 +1,226 @@
+{
+  "responses": {
+    "mood": {
+      "1": [
+        "I'm sorry you're feeling terrible today. Remember that difficult days are temporary, and it's okay to take things one step at a time.",
+        "I hear that you're having a really tough day. Your feelings are valid, and I'm here to support you through this.",
+        "It sounds like today has been really challenging. Sometimes just getting through the day is a victory in itself.",
+        "I can see you're going through a difficult time. Remember that you don't have to face this alone."
+      ],
+      "2": [
+        "I understand you're feeling down today. Small steps forward are still progress, even when they don't feel like much.",
+        "It sounds like today has been rough. Remember that tomorrow is a new day with new possibilities.",
+        "I hear that things aren't great right now. Sometimes just acknowledging how we feel is the first step toward feeling better.",
+        "You're having a tough day, and that's okay. Every difficult moment you get through makes you stronger."
+      ],
+      "3": [
+        "You're doing okay today. Sometimes 'okay' is exactly what we need to be, and that's perfectly fine.",
+        "It sounds like you're managing through the day. Remember that stability is its own kind of progress.",
+        "You're holding steady today. Sometimes staying afloat is the most important thing we can do.",
+        "You're doing alright today. Every day you keep going is a day you're moving forward."
+      ],
+      "4": [
+        "That's great! It sounds like you're having a pretty good day. I'm glad to hear you're feeling well.",
+        "Wonderful! It's nice to hear you're feeling good today. Good days like this help build momentum.",
+        "Excellent! You're clearly in a positive space today. Enjoy this good energy while it lasts.",
+        "That's fantastic! You're clearly having a great day. These positive moments are worth celebrating."
+      ],
+      "5": [
+        "Amazing! You're absolutely thriving today. This kind of energy is wonderful to see!",
+        "Outstanding! You're clearly having an incredible day. This positive energy is contagious!",
+        "Fantastic! You're absolutely crushing it today. This level of positivity is inspiring!",
+        "Brilliant! You're clearly in an amazing place today. This kind of day is what we all hope for!"
+      ]
+    },
+    "energy": {
+      "1": [
+        "I can see you're feeling completely exhausted. Remember that rest is not a luxury - it's essential for your well-being.",
+        "You're clearly running on empty today. Sometimes the most important thing we can do is give ourselves permission to rest.",
+        "I hear that you're feeling drained. Remember that it's okay to take things slowly when your energy is low.",
+        "You're feeling completely wiped out today. Your body is telling you it needs care and rest."
+      ],
+      "2": [
+        "Your energy is quite low today. Remember that low energy doesn't mean you're not making progress.",
+        "I can see you're feeling pretty tired. Sometimes conserving energy is the smartest thing we can do.",
+        "You're running low on energy today. Remember that rest and self-care are productive activities.",
+        "Your energy levels are down today. It's okay to adjust your expectations and take things easier."
+      ],
+      "3": [
+        "You have moderate energy today. That's a solid foundation to work with.",
+        "Your energy is holding steady today. Sometimes consistency is more valuable than intensity.",
+        "You're managing with decent energy today. That's a good place to be.",
+        "Your energy levels are okay today. You're in a good position to handle what comes your way."
+      ],
+      "4": [
+        "Great! You have good energy today. This is a perfect time to tackle things that matter to you.",
+        "Excellent! Your energy is high and you're ready to take on the day.",
+        "Wonderful! You're feeling energetic today. This positive energy can help you accomplish great things.",
+        "Fantastic! Your energy levels are strong today. You're in a great position to make progress."
+      ],
+      "5": [
+        "Amazing! You're absolutely bursting with energy today. This kind of vitality is wonderful!",
+        "Incredible! You're feeling super energetic today. This high energy can help you achieve amazing things!",
+        "Outstanding! Your energy is through the roof today. This kind of enthusiasm is contagious!",
+        "Brilliant! You're absolutely charged up today. This kind of energy can move mountains!"
+      ]
+    },
+    "sleep_quality": {
+      "1": [
+        "I'm sorry you had such terrible sleep last night. Poor sleep can really affect how we feel during the day.",
+        "That sounds like a really rough night. Remember that one bad night doesn't define your sleep patterns.",
+        "I hear that sleep was really difficult last night. Sometimes just getting through the day after poor sleep is an accomplishment.",
+        "You had a terrible night's sleep. Remember to be gentle with yourself today - you're doing the best you can."
+      ],
+      "2": [
+        "Your sleep wasn't great last night. Remember that rest quality can vary, and tomorrow night might be better.",
+        "I can see you didn't sleep well. Sometimes just acknowledging poor sleep helps us be kinder to ourselves.",
+        "Your sleep was pretty rough last night. Remember that one night doesn't determine your overall sleep health.",
+        "You had a difficult night's sleep. It's okay to take things easier today when you're not well-rested."
+      ],
+      "3": [
+        "Your sleep was okay last night. Sometimes 'adequate' sleep is exactly what we need to get through the day.",
+        "You had decent sleep last night. That should give you a solid foundation for today.",
+        "Your sleep quality was moderate. You should have enough energy to handle what comes your way.",
+        "You slept reasonably well last night. That's a good baseline to work with today."
+      ],
+      "4": [
+        "Great! You had good sleep last night. That should give you plenty of energy for today.",
+        "Excellent! Your sleep quality was high last night. You're well-rested and ready to take on the day.",
+        "Wonderful! You slept really well last night. This kind of rest sets you up for a productive day.",
+        "Fantastic! Your sleep was excellent last night. You're in a great position to make the most of today."
+      ],
+      "5": [
+        "Amazing! You had absolutely perfect sleep last night. This kind of rest is the foundation for an incredible day!",
+        "Incredible! Your sleep quality was outstanding last night. You're well-rested and ready to conquer the world!",
+        "Outstanding! You had the best possible sleep last night. This kind of rest can power amazing achievements!",
+        "Brilliant! Your sleep was absolutely perfect last night. You're in the best possible position for a great day!"
+      ]
+    },
+    "stress_level": {
+      "1": [
+        "It's wonderful that you're feeling so relaxed today. This calm state is perfect for clarity and focus.",
+        "You're clearly in a very peaceful place today. This kind of tranquility is valuable and worth savoring.",
+        "Excellent! You're feeling very relaxed today. This calm energy can help you approach challenges with clarity.",
+        "That's fantastic! You're in a very serene state today. This kind of peace is the foundation for good decision-making."
+      ],
+      "2": [
+        "You're feeling quite relaxed today. This calm state is a great foundation for whatever comes your way.",
+        "It sounds like you're in a peaceful place today. This kind of tranquility is valuable.",
+        "You're feeling pretty calm today. This relaxed state can help you handle challenges effectively.",
+        "That's great! You're feeling relaxed today. This calm energy is perfect for making good decisions."
+      ],
+      "3": [
+        "Your stress levels are moderate today. You're managing well with a balanced approach.",
+        "You have a reasonable amount of stress today. You're handling it well.",
+        "Your stress is at a manageable level today. You're doing a good job keeping things in perspective.",
+        "You're experiencing moderate stress today. You're coping well with the challenges."
+      ],
+      "4": [
+        "You're feeling quite stressed today. Remember that stress is a normal response, and it's okay to take breaks.",
+        "I can see you're under significant stress today. Remember to be kind to yourself during difficult times.",
+        "You're experiencing high stress today. Remember that stress is temporary and you have tools to manage it.",
+        "Your stress levels are elevated today. Remember that it's okay to ask for help when you need it."
+      ],
+      "5": [
+        "I can see you're feeling extremely stressed today. Remember that this level of stress is temporary and you will get through this.",
+        "You're under tremendous stress right now. Remember that you don't have to face this alone - support is available.",
+        "I hear that you're feeling very overwhelmed today. Remember that stress is a signal that you need care and support.",
+        "You're experiencing intense stress today. Remember that this difficult moment will pass, and you're stronger than you know."
+      ]
+    },
+    "ate_breakfast": {
+      "true": [
+        "Great job eating breakfast today! Starting the day with nourishment sets you up for success.",
+        "Excellent! Breakfast is such an important foundation for a good day.",
+        "Wonderful! You're taking care of your body by fueling up this morning.",
+        "That's fantastic! Breakfast gives you the energy you need to tackle whatever comes your way."
+      ],
+      "false": [
+        "No worries about breakfast today. Sometimes our routines get disrupted, and that's okay.",
+        "That's alright - breakfast isn't always possible. You can still have a great day.",
+        "No problem about missing breakfast. You can always have a good meal later in the day.",
+        "That's fine - breakfast isn't always in the cards. Remember to fuel your body when you can."
+      ]
+    },
+    "brushed_teeth": {
+      "true": [
+        "Great job taking care of your dental hygiene today! Small acts of self-care add up.",
+        "Excellent! You're maintaining good oral health habits.",
+        "Wonderful! Taking care of your teeth is an important part of self-care.",
+        "That's fantastic! You're building healthy habits that will serve you well."
+      ],
+      "false": [
+        "No worries about brushing your teeth today. Sometimes our routines get disrupted.",
+        "That's okay - dental hygiene can be challenging to maintain consistently.",
+        "No problem - sometimes we miss these small self-care tasks. Tomorrow is a new opportunity.",
+        "That's fine - routines can be difficult to maintain. Remember that every small step counts."
+      ]
+    },
+    "exercise": {
+      "true": [
+        "Amazing! Getting some exercise today is fantastic for both your body and mind.",
+        "Excellent! Physical activity is such an important part of overall well-being.",
+        "Wonderful! You're taking care of your physical health today.",
+        "That's fantastic! Exercise is one of the best things you can do for yourself."
+      ],
+      "false": [
+        "No worries about exercise today. Sometimes rest days are just as important as active days.",
+        "That's okay - exercise isn't always possible or necessary every day.",
+        "No problem - sometimes our bodies need rest more than they need movement.",
+        "That's fine - exercise can be challenging to fit in. Remember that movement comes in many forms."
+      ]
+    },
+    "medication_taken": {
+      "true": [
+        "Great job taking your medication today! You're prioritizing your health and well-being.",
+        "Excellent! You're staying on top of your medication routine.",
+        "Wonderful! Taking medication as prescribed is an important part of self-care.",
+        "That's fantastic! You're being responsible about your health needs."
+      ],
+      "false": [
+        "No worries about missing medication today. Sometimes we forget, and that's human.",
+        "That's okay - medication routines can be challenging to maintain consistently.",
+        "No problem - sometimes we miss doses. Remember to take it when you can.",
+        "That's fine - medication adherence can be difficult. Tomorrow is a new opportunity."
+      ]
+    },
+    "hydration": {
+      "true": [
+        "Great job staying hydrated today! Water is essential for your body and mind to function well.",
+        "Excellent! You're taking care of your body's hydration needs.",
+        "Wonderful! Staying hydrated is such an important part of self-care.",
+        "That's fantastic! You're giving your body the water it needs to thrive."
+      ],
+      "false": [
+        "No worries about hydration today. Sometimes we forget to drink enough water.",
+        "That's okay - staying hydrated can be challenging to remember consistently.",
+        "No problem - hydration can slip our minds. Remember to drink water when you can.",
+        "That's fine - hydration habits take time to build. Every sip counts."
+      ]
+    },
+    "social_interaction": {
+      "true": [
+        "Great job having social interaction today! Connection with others is so important for well-being.",
+        "Excellent! You're maintaining important social connections.",
+        "Wonderful! Social interaction is such an important part of mental health.",
+        "That's fantastic! You're nurturing relationships that matter to you."
+      ],
+      "false": [
+        "No worries about social interaction today. Sometimes we need time alone, and that's perfectly okay.",
+        "That's okay - social energy can vary from day to day.",
+        "No problem - sometimes solitude is exactly what we need.",
+        "That's fine - social interaction isn't always necessary or possible. Quality over quantity."
+      ]
+    }
+  },
+  "transition_phrases": [
+    "Now, let's move on to the next question:",
+    "Next up:",
+    "Moving forward:",
+    "Here's the next question:",
+    "Let's continue with:",
+    "Next question:",
+    "Now for:",
+    "Let's check in on:"
+  ]
+}
