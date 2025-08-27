@@ -9,17 +9,7 @@ import json
 import gzip
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
-
-# LEGACY COMPATIBILITY: Direct log path definitions - will be imported from config when available
-# TODO: Remove after config.py logging configuration is fully implemented
-# REMOVAL PLAN:
-# 1. Move all log path definitions to core/config.py
-# 2. Import log paths from config instead of defining here
-# 3. Remove this section and update all references
-# 4. Update environment variable handling to use config
-LOG_MAX_BYTES = int(os.getenv('LOG_MAX_BYTES', '5242880'))  # 5MB default
-LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))
-LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'
+import core.config as config
 
 def _is_testing_environment():
     """Check if we're running in a testing environment."""
@@ -35,7 +25,7 @@ def _get_log_paths_for_environment():
         base_dir = os.getenv('LOGS_DIR', 'tests/logs')
         backup_dir = os.path.join(base_dir, 'backups')
         archive_dir = os.path.join(base_dir, 'archive')
-        
+
         return {
             'base_dir': base_dir,
             'backup_dir': backup_dir,
@@ -45,7 +35,6 @@ def _get_log_paths_for_environment():
             'ai_file': os.path.join(base_dir, 'ai.log'),
             'user_activity_file': os.path.join(base_dir, 'user_activity.log'),
             'errors_file': os.path.join(base_dir, 'errors.log'),
-            'channels_file': os.path.join(base_dir, 'channels.log'),
             'communication_manager_file': os.path.join(base_dir, 'communication_manager.log'),
             'email_file': os.path.join(base_dir, 'email.log'),
             'ui_file': os.path.join(base_dir, 'ui.log'),
@@ -53,26 +42,21 @@ def _get_log_paths_for_environment():
             'scheduler_file': os.path.join(base_dir, 'scheduler.log'),
         }
     else:
-        # Use production paths - dynamically determined
-        base_dir = os.getenv('LOGS_DIR', 'logs')
-        backup_dir = os.getenv('LOG_BACKUP_DIR', os.path.join(base_dir, 'backups'))
-        archive_dir = os.getenv('LOG_ARCHIVE_DIR', os.path.join(base_dir, 'archive'))
-        
+        # Use centralized paths from config
         return {
-            'base_dir': base_dir,
-            'backup_dir': backup_dir,
-            'archive_dir': archive_dir,
-            'main_file': os.getenv('LOG_MAIN_FILE', os.path.join(base_dir, 'app.log')),
-            'discord_file': os.getenv('LOG_DISCORD_FILE', os.path.join(base_dir, 'discord.log')),
-            'ai_file': os.getenv('LOG_AI_FILE', os.path.join(base_dir, 'ai.log')),
-            'user_activity_file': os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(base_dir, 'user_activity.log')),
-            'errors_file': os.getenv('LOG_ERRORS_FILE', os.path.join(base_dir, 'errors.log')),
-            'channels_file': os.getenv('LOG_CHANNELS_FILE', os.path.join(base_dir, 'channels.log')),
-            'communication_manager_file': os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(base_dir, 'communication_manager.log')),
-            'email_file': os.getenv('LOG_EMAIL_FILE', os.path.join(base_dir, 'email.log')),
-            'ui_file': os.getenv('LOG_UI_FILE', os.path.join(base_dir, 'ui.log')),
-            'file_ops_file': os.getenv('LOG_FILE_OPS_FILE', os.path.join(base_dir, 'file_ops.log')),
-            'scheduler_file': os.getenv('LOG_SCHEDULER_FILE', os.path.join(base_dir, 'scheduler.log')),
+            'base_dir': config.LOGS_DIR,
+            'backup_dir': config.LOG_BACKUP_DIR,
+            'archive_dir': config.LOG_ARCHIVE_DIR,
+            'main_file': config.LOG_MAIN_FILE,
+            'discord_file': config.LOG_DISCORD_FILE,
+            'ai_file': config.LOG_AI_FILE,
+            'user_activity_file': config.LOG_USER_ACTIVITY_FILE,
+            'errors_file': config.LOG_ERRORS_FILE,
+            'communication_manager_file': config.LOG_COMMUNICATION_MANAGER_FILE,
+            'email_file': config.LOG_EMAIL_FILE,
+            'ui_file': config.LOG_UI_FILE,
+            'file_ops_file': config.LOG_FILE_OPS_FILE,
+            'scheduler_file': config.LOG_SCHEDULER_FILE,
         }
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
@@ -498,8 +482,8 @@ def setup_logging():
     file_handler = BackupDirectoryRotatingFileHandler(
         log_paths['main_file'],
         log_paths['backup_dir'],
-        maxBytes=LOG_MAX_BYTES,
-        backupCount=LOG_BACKUP_COUNT,
+        maxBytes=config.LOG_MAX_BYTES,
+        backupCount=config.LOG_BACKUP_COUNT,
         encoding='utf-8'
     )
     file_handler.setFormatter(log_formatter)
@@ -545,8 +529,8 @@ def setup_third_party_error_logging():
         error_handler = BackupDirectoryRotatingFileHandler(
             log_paths['errors_file'],
             log_paths['backup_dir'],
-            maxBytes=LOG_MAX_BYTES,
-            backupCount=LOG_BACKUP_COUNT,
+            maxBytes=config.LOG_MAX_BYTES,
+            backupCount=config.LOG_BACKUP_COUNT,
             encoding='utf-8'
         )
         error_handler.setFormatter(error_formatter)
@@ -968,7 +952,13 @@ def force_restart_logging():
         log_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
 
         # Set up file handler with UTF-8 encoding (always DEBUG)
-        file_handler = BackupDirectoryRotatingFileHandler(log_paths['main_file'], log_paths['backup_dir'], maxBytes=LOG_MAX_BYTES, backupCount=LOG_BACKUP_COUNT, encoding='utf-8')
+        file_handler = BackupDirectoryRotatingFileHandler(
+            log_paths['main_file'],
+            log_paths['backup_dir'],
+            maxBytes=config.LOG_MAX_BYTES,
+            backupCount=config.LOG_BACKUP_COUNT,
+            encoding='utf-8'
+        )
         file_handler.setFormatter(log_formatter)
         file_handler.setLevel(logging.DEBUG)
 

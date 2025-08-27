@@ -13,8 +13,6 @@ from core.error_handling import (
     ConfigurationError, ValidationError, handle_configuration_error,
     handle_errors, error_handler
 )
-from core.logger import get_component_logger
-logger = get_component_logger('main')
 
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
@@ -130,6 +128,15 @@ LOG_DISCORD_FILE = _normalize_path(os.getenv('LOG_DISCORD_FILE', os.path.join(LO
 LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log')))  # AI interactions log
 LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log')))  # User activity log
 LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
+LOG_COMMUNICATION_MANAGER_FILE = _normalize_path(os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(LOGS_DIR, 'communication_manager.log')))  # Communication manager log
+LOG_EMAIL_FILE = _normalize_path(os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_DIR, 'email.log')))  # Email channel log
+LOG_UI_FILE = _normalize_path(os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log')))  # UI interactions log
+LOG_FILE_OPS_FILE = _normalize_path(os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log')))  # File operations log
+LOG_SCHEDULER_FILE = _normalize_path(os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log')))  # Scheduler log
+
+# Set up logger after path definitions to avoid circular imports
+from core.logger import get_component_logger
+logger = get_component_logger('main')
 
 # Communication Channel Configurations (non-blocking)
 
