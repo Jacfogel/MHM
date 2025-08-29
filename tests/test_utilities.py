@@ -898,6 +898,31 @@ class TestUserFactory:
             return False
     
     @staticmethod
+    def create_minimal_user_and_get_id(user_id: str, test_data_dir: str = None) -> tuple[bool, str]:
+        """
+        Create a minimal test user and return the actual UUID
+        
+        Args:
+            user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (if None, uses real user directory)
+            
+        Returns:
+            tuple[bool, str]: (success, actual_user_id) where actual_user_id is the UUID
+        """
+        try:
+            # If test_data_dir is provided, use direct file creation
+            if test_data_dir:
+                return TestUserFactory.create_minimal_user__with_test_dir_and_get_id(user_id, test_data_dir)
+            else:
+                # Use real user directory (for backward compatibility)
+                actual_user_id = TestUserFactory.create_minimal_user__impl_and_get_id(user_id)
+                return (actual_user_id is not None, actual_user_id)
+            
+        except Exception as e:
+            print(f"Error creating minimal user {user_id}: {e}")
+            return (False, None)
+    
+    @staticmethod
     def create_minimal_user__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create minimal user with test directory by directly saving files"""
         try:
@@ -948,6 +973,59 @@ class TestUserFactory:
         except Exception as e:
             print(f"Error creating minimal user with test dir {user_id}: {e}")
             return False
+    
+    @staticmethod
+    def create_minimal_user__with_test_dir_and_get_id(user_id: str, test_data_dir: str = None) -> tuple[bool, str]:
+        """Create minimal user with test directory and return the actual UUID"""
+        try:
+            # Create user data in the format expected by create_new_user
+            user_data = {
+                "internal_username": user_id,
+                "chat_id": "",
+                "phone": "",
+                "email": f"{user_id}@example.com",
+                "discord_user_id": "",
+                "timezone": "UTC",
+                "categories": ["motivational"],
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": False,
+                    "frequency": "daily",
+                    "reminder_time": "09:00"
+                },
+                "task_settings": {
+                    "enabled": False,
+                    "default_priority": "medium",
+                    "reminder_enabled": True
+                },
+                "preferred_name": f"Minimal User {user_id}",
+                "gender_identity": ["they/them"],
+                "date_of_birth": "",
+                "reminders_needed": [],
+                "custom_fields": {
+                    "health_conditions": [],
+                    "medications_treatments": [],
+                    "allergies_sensitivities": []
+                },
+                "interests": [],
+                "goals": [],
+                "loved_ones": [],
+                "activities_for_encouragement": [],
+                "notes_for_ai": []
+            }
+            
+            # Use helper function to create files
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            success = TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
+            return (success, actual_user_id)
+            
+        except Exception as e:
+            print(f"Error creating minimal user with test dir {user_id}: {e}")
+            return (False, None)
     
     @staticmethod
     def create_minimal_user__impl(user_id: str) -> bool:

@@ -80,6 +80,51 @@ os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')
 # Import core modules for testing (after logging isolation is set up)
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 
+# Global QMessageBox patch to prevent popup dialogs during testing
+def setup_qmessagebox_patches():
+    """Set up global QMessageBox patches to prevent popup dialogs during testing."""
+    try:
+        from PySide6.QtWidgets import QMessageBox
+        
+        # Create a mock QMessageBox that returns appropriate values
+        class MockQMessageBox:
+            @staticmethod
+            def information(*args, **kwargs):
+                return QMessageBox.StandardButton.Ok
+            
+            @staticmethod
+            def warning(*args, **kwargs):
+                return QMessageBox.StandardButton.Ok
+            
+            @staticmethod
+            def critical(*args, **kwargs):
+                return QMessageBox.StandardButton.Ok
+            
+            @staticmethod
+            def question(*args, **kwargs):
+                return QMessageBox.StandardButton.Yes
+            
+            @staticmethod
+            def about(*args, **kwargs):
+                return QMessageBox.StandardButton.Ok
+        
+        # Apply the patch globally
+        QMessageBox.information = MockQMessageBox.information
+        QMessageBox.warning = MockQMessageBox.warning
+        QMessageBox.critical = MockQMessageBox.critical
+        QMessageBox.question = MockQMessageBox.question
+        QMessageBox.about = MockQMessageBox.about
+        
+        print("Global QMessageBox patches applied to prevent popup dialogs")
+    except ImportError:
+        # PySide6 not available, skip QMessageBox patches
+        print("PySide6 not available, skipping QMessageBox patches")
+    except Exception as e:
+        print(f"Failed to apply QMessageBox patches: {e}")
+
+# Set up QMessageBox patches
+setup_qmessagebox_patches()
+
 # Set up dedicated testing logging
 def setup_test_logging():
     """Set up dedicated logging for tests with complete isolation from main app logging."""

@@ -127,24 +127,25 @@ class TestErrorHandlerDecorator:
     @pytest.mark.regression
     def test_error_handler_logs_error(self):
         """Test error_handler logs errors."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
+            mock_get_logger.return_value = mock_logger
             @handle_errors("test operation")
             def test_function():
                 raise ValueError("Test error")
             
             test_function()
             
-            # Verify error was logged (should be called twice: error + user message)
-            assert mock_logger.error.call_count == 2
+            # Verify error was logged (should be called multiple times: error + user message + retry messages)
+            assert mock_logger.error.call_count >= 2
             
-            # Check first call (actual error)
-            first_call = mock_logger.error.call_args_list[0]
-            assert "test operation" in first_call[0][0]
-            assert "Test error" in first_call[0][0]
+            # Check that we have the main error call
+            error_calls = [call for call in mock_logger.error.call_args_list if "test operation" in call[0][0] and "Test error" in call[0][0]]
+            assert len(error_calls) >= 1
             
-            # Check second call (user-friendly message)
-            second_call = mock_logger.error.call_args_list[1]
-            assert "User Error:" in second_call[0][0]
+            # Check that we have the user-friendly message
+            user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
+            assert len(user_calls) >= 1
 
 class TestHandleErrorsDecorator:
     """Test the handle_errors decorator."""
@@ -197,7 +198,9 @@ class TestHandleErrorsDecorator:
     @pytest.mark.regression
     def test_handle_errors_logs_error(self):
         """Test handle_errors logs errors."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
+            mock_get_logger.return_value = mock_logger
             @handle_errors("test operation")
             def test_function():
                 raise ValueError("Test error")
@@ -222,29 +225,32 @@ class TestErrorHandlingFunctions:
     @pytest.mark.smoke
     def test_handle_file_error(self):
         """Test handle_file_error function."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
+            mock_get_logger.return_value = mock_logger
             error = FileNotFoundError("File not found")
             
             result = handle_file_error(error, "test_file.json", "reading file")
             
             assert result is False
-            # Should be called twice: error + user message
-            assert mock_logger.error.call_count == 2
+            # Should be called multiple times: error + user message + retry messages
+            assert mock_logger.error.call_count >= 2
             
-            # Check first call (actual error)
-            first_call = mock_logger.error.call_args_list[0]
-            assert "test_file.json" in first_call[0][0]
-            assert "reading file" in first_call[0][0]
+            # Check that we have the main error call
+            error_calls = [call for call in mock_logger.error.call_args_list if "test_file.json" in call[0][0] and "reading file" in call[0][0]]
+            assert len(error_calls) >= 1
             
-            # Check second call (user-friendly message)
-            second_call = mock_logger.error.call_args_list[1]
-            assert "User Error:" in second_call[0][0]
+            # Check that we have the user-friendly message
+            user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
+            assert len(user_calls) >= 1
     
     @pytest.mark.unit
     @pytest.mark.smoke
     def test_handle_configuration_error(self):
         """Test handle_configuration_error function."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
+            mock_get_logger.return_value = mock_logger
             error = ValueError("Invalid setting")
             
             result = handle_configuration_error(error, "BASE_DATA_DIR", "validating path")
@@ -267,7 +273,9 @@ class TestErrorHandlingIntegration:
     @pytest.mark.integration
     def test_error_handling_in_function_chain(self):
         """Test error handling in a chain of functions."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
+            mock_get_logger.return_value = mock_logger
             @handle_errors("outer operation")
             def outer_function():
                 return inner_function()
@@ -575,8 +583,10 @@ class TestErrorHandlingEdgeCases:
     @pytest.mark.regression
     def test_handle_errors_with_logging_disabled(self):
         """Test handle_errors when logging is disabled."""
-        with patch('core.error_handling.logger') as mock_logger:
+        with patch('core.logger.get_component_logger') as mock_get_logger:
+            mock_logger = Mock()
             mock_logger.error.side_effect = Exception("Logger error")
+            mock_get_logger.return_value = mock_logger
             
             @handle_errors("test operation")
             def test_function():

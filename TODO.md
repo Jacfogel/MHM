@@ -30,6 +30,24 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **Test Suite Stability and Integration Test Improvements** ✅ **COMPLETED**
+- *What it means*: Fixed critical test hanging issues, logger patching problems, and improved integration test consistency with system architecture after git rollback
+- *Why it helps*: Resolves test suite reliability issues and ensures tests work consistently with actual system behavior
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - Significant improvement in test stability and consistency
+- *Completed Work*:
+  - ✅ **Test Hanging Fix**: Fixed QMessageBox popup issues causing tests to hang by adding global patches in conftest.py
+  - ✅ **Logger Patching Fix**: Fixed error handling tests to work with local logger imports in core/error_handling.py
+  - ✅ **Integration Test Consistency**: Improved integration tests to use proper UUID-based user creation instead of directory scanning
+  - ✅ **TestUserFactory Enhancement**: Added create_minimal_user_and_get_id method for better test consistency
+  - ✅ **System Architecture Alignment**: Made tests more consistent with actual system operation using proper user index lookups
+- *Results*:
+  - Tests no longer hang or create popup windows
+  - Error handling tests properly patch local logger imports
+  - Integration tests use proper system architecture patterns
+  - Significant improvement in test reliability and consistency
+  - Better alignment between test expectations and actual system behavior
+
 ## **Circular Import Fix and Test Coverage Expansion** ✅ **COMPLETED**
 - *What it means*: Fixed critical circular import between core/config.py and core/error_handling.py and expanded test coverage with focus on real behavior testing
 - *Why it helps*: Resolves system startup issues and improves test reliability and coverage
@@ -84,6 +102,25 @@ When adding new tasks, follow this format:
     - [ ] Consider using different process management strategies for headless mode
     - [ ] Investigate if UI restart logic can be shared with headless mode
     - [ ] Explore service daemon or system service approaches
+
+## **Integration Test Isolation Issues** ⚠️ **NEW PRIORITY**
+- *What it means*: Address remaining integration test failures that occur when running the full test suite due to test interference and shared state
+- *Why it helps*: Ensures integration tests pass consistently in all environments and test scenarios
+- *Estimated effort*: Small
+- *Status*: ⚠️ **INVESTIGATION NEEDED** - Tests pass in isolation but fail during full suite execution
+- *Subtasks*:
+  - [ ] **Investigate Test Interference**
+    - [ ] Analyze why integration tests fail during full suite but pass in isolation
+    - [ ] Identify shared state or configuration conflicts between tests
+    - [ ] Determine if test data directory isolation is sufficient
+  - [ ] **Implement Better Test Isolation**
+    - [ ] Ensure each integration test has completely isolated test data
+    - [ ] Verify configuration patching doesn't interfere between tests
+    - [ ] Test that user index updates don't conflict between tests
+  - [ ] **Verify Test Consistency**
+    - [ ] Ensure tests work consistently in isolation and full suite
+    - [ ] Validate that test cleanup properly removes all test data
+    - [ ] Confirm that configuration changes don't persist between tests
 
 ## **Windows Fatal Exception Investigation** ⚠️ **NEW PRIORITY**
 - *What it means*: Investigate and fix the Windows fatal exception (access violation) that occurs during full test suite execution

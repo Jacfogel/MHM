@@ -123,15 +123,23 @@ def test_account_management_functions():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.file_io
-def test_account_management_data_structures():
+def test_account_management_data_structures(test_data_dir, mock_config):
     """Test that account management can handle the expected data structures"""
     print("\n🔍 Testing Account Management Data Structures...")
     
     try:
         from core.user_data_handlers import get_user_data, save_user_data
+        from tests.test_utilities import TestUserFactory
         
-        # Use a safe test user
-        test_user = "test-user"
+        # Create a test user first
+        test_user_id = "test-user"
+        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
+        assert success, "Failed to create test user"
+        
+        # Get the actual UUID for the user
+        from core.user_management import get_user_id_by_identifier
+        test_user = get_user_id_by_identifier(test_user_id)
+        assert test_user is not None, "Should be able to get UUID for test user"
         
         results = {}
         

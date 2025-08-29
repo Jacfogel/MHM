@@ -111,7 +111,7 @@ class TestUserCreationScenarios:
         
         # Create test user using enhanced centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_user_with_custom_fields(user_id)
+        success = TestUserFactory.create_user_with_custom_fields(user_id, None, test_data_dir)
         assert success, f"Failed to create custom fields test user {user_id}"
         
         # Get the UUID for the user
@@ -134,7 +134,7 @@ class TestUserCreationScenarios:
         
         # Create test user using enhanced centralized utilities
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_user_with_schedules(user_id)
+        success = TestUserFactory.create_user_with_schedules(user_id, None, test_data_dir)
         assert success, f"Failed to create schedule test user {user_id}"
         
         # Get the UUID for the user

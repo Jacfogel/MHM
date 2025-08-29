@@ -39,21 +39,22 @@ class TestBackupManagerBehavior:
         os.makedirs(self.user_data_dir, exist_ok=True)
         
         # Create test user data
-        self.test_user_factory = TestUserFactory()
         self.test_data_factory = TestDataFactory()
-        
-        # Create a test user for backup testing
         self.test_user_id = "test-backup-user-123"
-        self.test_user_factory.create_basic_user(self.test_user_id, test_data_dir=test_data_dir)
         
         # Create test config files
         self._create_test_config_files()
         
-        # Initialize backup manager with test directory
-        with patch('core.config.get_backups_dir', return_value=self.backup_dir):
-            with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir):
-                with patch('core.config.BASE_DATA_DIR', test_data_dir):
-                    self.backup_manager = BackupManager()
+        # Create user in the test data directory
+        TestUserFactory.create_basic_user(self.test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
+        
+        # Apply configuration patches for backup manager
+        with patch('core.config.get_backups_dir', return_value=self.backup_dir), \
+             patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Initialize backup manager in the patched environment
+            self.backup_manager = BackupManager()
         
         # Store the original config values for restoration tests
         self.original_base_data_dir = core.config.BASE_DATA_DIR
@@ -104,13 +105,19 @@ class TestBackupManagerBehavior:
     
     def test_create_backup_with_user_data_real_behavior(self):
         """Test backup creation includes user data."""
-        # Create backup with user data
-        backup_path = self.backup_manager.create_backup(
-            backup_name="test_user_backup",
-            include_users=True,
-            include_config=False,
-            include_logs=False
-        )
+
+        
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create backup with user data
+            backup_path = self.backup_manager.create_backup(
+                backup_name="test_user_backup",
+                include_users=True,
+                include_config=False,
+                include_logs=False
+            )
         
         # Verify backup was created
         assert backup_path is not None
@@ -138,13 +145,17 @@ class TestBackupManagerBehavior:
     
     def test_create_backup_with_config_files_real_behavior(self):
         """Test backup creation includes configuration files."""
-        # Create backup with config files
-        backup_path = self.backup_manager.create_backup(
-            backup_name="test_config_backup",
-            include_users=False,
-            include_config=True,
-            include_logs=False
-        )
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create backup with config files
+            backup_path = self.backup_manager.create_backup(
+                backup_name="test_config_backup",
+                include_users=False,
+                include_config=True,
+                include_logs=False
+            )
         
         # Verify backup was created
         assert backup_path is not None
@@ -166,13 +177,17 @@ class TestBackupManagerBehavior:
     
     def test_create_backup_with_all_components_real_behavior(self):
         """Test backup creation with all components."""
-        # Create backup with all components
-        backup_path = self.backup_manager.create_backup(
-            backup_name="test_full_backup",
-            include_users=True,
-            include_config=True,
-            include_logs=True
-        )
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create backup with all components
+            backup_path = self.backup_manager.create_backup(
+                backup_name="test_full_backup",
+                include_users=True,
+                include_config=True,
+                include_logs=True
+            )
         
         # Verify backup was created
         assert backup_path is not None
@@ -244,8 +259,12 @@ class TestBackupManagerBehavior:
     
     def test_validate_backup_real_behavior(self):
         """Test backup validation with valid backup."""
-        # Create a valid backup
-        backup_path = self.backup_manager.create_backup("test_validation_backup")
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create a valid backup
+            backup_path = self.backup_manager.create_backup("test_validation_backup")
         
         # Validate the backup
         is_valid, errors = self.backup_manager.validate_backup(backup_path)
@@ -282,8 +301,12 @@ class TestBackupManagerBehavior:
     
     def test_backup_creation_and_validation_real_behavior(self):
         """Test backup creation and validation functionality."""
-        # Create backup
-        backup_path = self.backup_manager.create_backup("test_backup_validation")
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create backup
+            backup_path = self.backup_manager.create_backup("test_backup_validation")
         
         # Verify backup was created
         assert backup_path is not None
@@ -438,10 +461,14 @@ class TestBackupManagerBehavior:
         # Create multiple users with substantial data
         for i in range(5):
             user_id = f"large_user_{i}"
-            self.test_user_factory.create_full_featured_user(user_id, test_data_dir=self.test_data_dir)
+            TestUserFactory.create_full_featured_user(user_id, test_data_dir=self.test_data_dir)
         
-        # Create backup
-        backup_path = self.backup_manager.create_backup("large_data_backup")
+        # Apply patches for this test
+        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+            
+            # Create backup
+            backup_path = self.backup_manager.create_backup("large_data_backup")
         
         # Verify backup was created successfully
         assert backup_path is not None
