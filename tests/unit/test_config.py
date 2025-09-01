@@ -234,7 +234,11 @@ class TestConfigConstants:
     @pytest.mark.config
     def test_base_data_dir_default(self):
         """Test BASE_DATA_DIR default value."""
-        assert BASE_DATA_DIR == 'data'
+        if os.getenv('MHM_TESTING') == '1':
+            expected = os.path.abspath('tests/data')
+        else:
+            expected = 'data'
+        assert BASE_DATA_DIR == expected
     
     @pytest.mark.unit
     @pytest.mark.smoke
@@ -242,8 +246,16 @@ class TestConfigConstants:
     def test_user_info_dir_path_default(self):
         """Test USER_INFO_DIR_PATH default value."""
         # Handle both relative and absolute paths
-        expected_relative = os.path.join('data', 'users')
-        assert USER_INFO_DIR_PATH == expected_relative or USER_INFO_DIR_PATH.endswith('data\\users')
+        if os.getenv('MHM_TESTING') == '1':
+            base_dir = os.path.abspath('tests/data')
+        else:
+            base_dir = 'data'
+        expected_relative = os.path.join(base_dir, 'users')
+        normalized_path = USER_INFO_DIR_PATH.replace('\\', '/')
+        assert (
+            USER_INFO_DIR_PATH == expected_relative
+            or normalized_path.endswith(expected_relative.replace('\\', '/'))
+        )
     
     @pytest.mark.unit
     @pytest.mark.smoke
