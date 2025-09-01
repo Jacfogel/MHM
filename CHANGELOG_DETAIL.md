@@ -3823,5 +3823,38 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Better Maintainability**: Single source of truth for user data access
 
 
+## 2025-09-01 - Test Isolation and Configuration Fixes
+
+### Overview
+- Resolved widespread user data handler test failures caused by lingering loader registrations and missing category configuration.
+
+### Changes Made
+- **Safe Data Loader Registration**: Updated `test_register_data_loader_real_behavior` to register loaders with the proper signature and remove the custom loader after the test, preventing global state leakage.
+- **Stable Category Validation**: Set default `CATEGORIES` environment variable in `mock_config` to ensure preferences validation succeeds in isolated test environments.
+
+### Testing
+- Targeted unit, integration and behavior tests now pass.
+- UI tests skipped: missing `libGL.so.1` dependency.
+
+### Impact
+- Restores reliable `get_user_data` behavior across the suite.
+- Prevents future test pollution from temporary data loaders.
+
+
+## 2025-09-02 - Test Data Directory Stabilization
+
+### Overview
+- Fixed user data path mismatches that caused empty results and widespread test failures.
+
+### Changes Made
+- Updated `test_data_dir` fixture to use repository-scoped `tests/data` instead of system temporary directories.
+- Pointed `DEFAULT_MESSAGES_DIR_PATH` to project resources to ensure message templates load during tests.
+
+### Testing
+- `pytest tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_register_data_loader_real_behavior tests/unit/test_user_management.py::TestUserManagement::test_save_user_data_success tests/unit/test_user_management.py::TestUserManagement::test_update_user_preferences_success tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_create_basic_account -q`
+
+### Impact
+- Restores consistent user data access and resolves test isolation failures.
+
 
 
