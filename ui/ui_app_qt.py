@@ -355,7 +355,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_start_service.clicked.connect(self.start_service)
         self.ui.pushButton_stop_service.clicked.connect(self.stop_service)
         self.ui.pushButton_restart_service.clicked.connect(self.restart_service)
-        self.ui.pushButton_refresh_server_status.clicked.connect(self.update_service_status)
+
         self.ui.pushButton_run_scheduler.clicked.connect(self.run_full_scheduler)
         
         # User management
@@ -366,6 +366,7 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_communication_settings.clicked.connect(self.manage_communication_settings)
         self.ui.pushButton_personalization.clicked.connect(self.manage_personalization)
         self.ui.pushButton_category_management.clicked.connect(self.manage_categories)
+        self.ui.pushButton_user_analytics.clicked.connect(self.manage_user_analytics)
         self.ui.pushButton_checkin_settings.clicked.connect(self.manage_checkins)
         self.ui.pushButton_task_management.clicked.connect(self.manage_tasks)
         self.ui.pushButton_task_crud.clicked.connect(self.manage_task_crud)
@@ -838,6 +839,22 @@ class MHMManagerUI(QMainWindow):
         except Exception as e:
             logger.error(f"Error opening personalization dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open personalization settings: {str(e)}")
+    
+    @handle_errors("managing user analytics")
+    def manage_user_analytics(self):
+        """Open user analytics interface for selected user"""
+        if not self.current_user:
+            QMessageBox.warning(self, "No User Selected", "Please select a user first.")
+            return
+        logger.info(f"Admin Panel: Opening user analytics for user {self.current_user}")
+        try:
+            # For now, show a message that this feature is being developed
+            QMessageBox.information(self, "Feature in Development", 
+                f"User analytics for '{self.current_user}' is currently being developed.\n\n"
+                "This feature will provide insights into user engagement, message effectiveness, and usage patterns.")
+        except Exception as e:
+            logger.error(f"Error opening user analytics: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to open user analytics: {str(e)}")
     
     @handle_errors("editing user messages")
     def edit_user_messages(self):

@@ -23,6 +23,7 @@ import tempfile
 import shutil
 from datetime import datetime
 from unittest.mock import patch, MagicMock, mock_open
+import core
 from core.user_management import (
     register_data_loader,
     get_available_data_types,
@@ -132,7 +133,7 @@ class TestUserManagementCoverageExpansion:
                 json.dump({"user_id": user_id}, f)
         
         # Mock USER_INFO_DIR_PATH
-        with patch('core.config.USER_INFO_DIR_PATH', self.test_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.test_dir):
             # Act
             user_ids = get_all_user_ids()
             
@@ -145,7 +146,7 @@ class TestUserManagementCoverageExpansion:
     def test_get_all_user_ids_no_directory_real_behavior(self):
         """Test getting user IDs when directory doesn't exist."""
         # Arrange - Use non-existent directory
-        with patch('core.config.USER_INFO_DIR_PATH', "/non/existent/path"):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', "/non/existent/path"):
             # Act
             user_ids = get_all_user_ids()
             

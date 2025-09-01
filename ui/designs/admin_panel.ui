@@ -67,19 +67,12 @@
           </widget>
          </item>
          <item row="1" column="3">
-          <widget class="QPushButton" name="pushButton_refresh_server_status">
+          <widget class="QPushButton" name="pushButton_run_scheduler">
            <property name="text">
-            <string>Refresh</string>
+            <string>Run Full Scheduler</string>
            </property>
           </widget>
          </item>
-                   <item row="2" column="0">
-           <widget class="QPushButton" name="pushButton_run_scheduler">
-            <property name="text">
-             <string>Run Full Scheduler</string>
-            </property>
-           </widget>
-          </item>
          <item row="0" column="0" colspan="4">
           <widget class="QLabel" name="label_service_status">
            <property name="text">
@@ -140,52 +133,59 @@
               <enum>Qt::LayoutDirection::LeftToRight</enum>
              </property>
                            <property name="text">
-               <string>Communication Settings</string>
-              </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QPushButton" name="pushButton_personalization">
-             <property name="text">
-              <string>Personalization</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QPushButton" name="pushButton_category_management">
-             <property name="text">
-              <string>Category Management</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QPushButton" name="pushButton_checkin_settings">
-             <property name="text">
-              <string>Check-in Settings</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QPushButton" name="pushButton_task_management">
-             <property name="text">
-              <string>Task Management</string>
-             </property>
-            </widget>
-           </item>
-                       <item row="1" column="2">
-             <widget class="QPushButton" name="pushButton_task_crud">
+                <string>Communication Settings</string>
+               </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="pushButton_personalization">
               <property name="text">
-               <string>Task CRUD</string>
+               <string>Personalization</string>
               </property>
              </widget>
             </item>
-            <item row="2" column="0" colspan="3">
-             <widget class="QPushButton" name="pushButton_run_user_scheduler">
+            <item row="0" column="2">
+             <widget class="QPushButton" name="pushButton_category_management">
               <property name="text">
-               <string>Run User Scheduler</string>
+               <string>Category Management</string>
               </property>
              </widget>
             </item>
+            <item row="0" column="3">
+             <widget class="QPushButton" name="pushButton_user_analytics">
+              <property name="text">
+               <string>User Analytics</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QPushButton" name="pushButton_checkin_settings">
+              <property name="text">
+               <string>Check-in Settings</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QPushButton" name="pushButton_task_management">
+              <property name="text">
+               <string>Task Management</string>
+              </property>
+             </widget>
+            </item>
+                        <item row="1" column="2">
+              <widget class="QPushButton" name="pushButton_task_crud">
+               <property name="text">
+                <string>Task CRUD</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <widget class="QPushButton" name="pushButton_run_user_scheduler">
+               <property name="text">
+                <string>Run User Scheduler</string>
+               </property>
+              </widget>
+             </item>
           </layout>
          </item>
         </layout>
@@ -238,7 +238,7 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0" colspan="3">
+             <item row="1" column="3">
               <widget class="QPushButton" name="pushButton_run_category_scheduler">
                <property name="text">
                 <string>Run Category Scheduler</string>

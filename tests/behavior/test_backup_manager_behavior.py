@@ -49,9 +49,9 @@ class TestBackupManagerBehavior:
         TestUserFactory.create_basic_user(self.test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
         
         # Apply configuration patches for backup manager
-        with patch('core.config.get_backups_dir', return_value=self.backup_dir), \
-             patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'get_backups_dir', return_value=self.backup_dir), \
+             patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Initialize backup manager in the patched environment
             self.backup_manager = BackupManager()
@@ -108,8 +108,8 @@ class TestBackupManagerBehavior:
 
         
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create backup with user data
             backup_path = self.backup_manager.create_backup(
@@ -146,8 +146,8 @@ class TestBackupManagerBehavior:
     def test_create_backup_with_config_files_real_behavior(self):
         """Test backup creation includes configuration files."""
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create backup with config files
             backup_path = self.backup_manager.create_backup(
@@ -178,8 +178,8 @@ class TestBackupManagerBehavior:
     def test_create_backup_with_all_components_real_behavior(self):
         """Test backup creation with all components."""
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create backup with all components
             backup_path = self.backup_manager.create_backup(
@@ -260,8 +260,8 @@ class TestBackupManagerBehavior:
     def test_validate_backup_real_behavior(self):
         """Test backup validation with valid backup."""
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create a valid backup
             backup_path = self.backup_manager.create_backup("test_validation_backup")
@@ -302,8 +302,8 @@ class TestBackupManagerBehavior:
     def test_backup_creation_and_validation_real_behavior(self):
         """Test backup creation and validation functionality."""
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create backup
             backup_path = self.backup_manager.create_backup("test_backup_validation")
@@ -352,8 +352,8 @@ class TestBackupManagerBehavior:
             f.write("MODIFIED_ENV_VAR=modified_value\n")
         
         # Restore backup with config
-        with patch('core.config.BASE_DATA_DIR', self.test_data_dir):
-            with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir):
+        with patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
+            with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir):
                 success = self.backup_manager.restore_backup(
                     backup_path, 
                     restore_users=True, 
@@ -464,8 +464,8 @@ class TestBackupManagerBehavior:
             TestUserFactory.create_full_featured_user(user_id, test_data_dir=self.test_data_dir)
         
         # Apply patches for this test
-        with patch('core.config.USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch('core.config.BASE_DATA_DIR', self.test_data_dir):
+        with patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
+             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
             
             # Create backup
             backup_path = self.backup_manager.create_backup("large_data_backup")
@@ -487,7 +487,7 @@ class TestBackupManagerBehavior:
     def test_backup_manager_error_handling_real_behavior(self):
         """Test backup manager error handling."""
         # Test with invalid backup directory
-        with patch('core.config.get_backups_dir', return_value="/invalid/path/that/cannot/be/created"):
+        with patch.object(core.config, 'get_backups_dir', return_value="/invalid/path/that/cannot/be/created"):
             backup_manager = BackupManager()
             
             # Try to create backup

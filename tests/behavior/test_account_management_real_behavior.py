@@ -321,12 +321,11 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     print("\n🔍 Testing Schedule Period Management (Real Behavior)...")
     
     # Setup test environment and create test users
-    from unittest.mock import patch
-    with patch('core.config.BASE_DATA_DIR', test_data_dir):
-        create_test_user_data("test-user-basic", test_data_dir, "basic")
-        create_test_user_data("test-user-full", test_data_dir, "full")
+    # Note: Using mock_config fixture instead of direct patching to avoid conflicts
+    create_test_user_data("test-user-basic", test_data_dir, "basic")
+    create_test_user_data("test-user-full", test_data_dir, "full")
     
-        try:
+    try:
             from core.user_data_handlers import save_user_data, get_user_data
             
             # Test adding new schedule period
@@ -388,9 +387,9 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             
             print("  ✅ Remove schedule period: Success")
             
-        except Exception as e:
-            print(f"  ❌ Schedule period management: Error - {e}")
-            raise
+    except Exception as e:
+        print(f"  ❌ Schedule period management: Error - {e}")
+        raise
 
 # TEMPORARILY DISABLED: This test has syntax errors that need to be fixed
 # @pytest.mark.behavior
@@ -403,13 +402,11 @@ def test_integration_scenarios_real_behavior(test_data_dir):
     print("\n🔍 Testing Integration Scenarios (Real Behavior)...")
     
     # Setup test environment and create test users
-    from unittest.mock import patch
-    with patch('core.config.BASE_DATA_DIR', test_data_dir), \
-         patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-        create_test_user_data("test-user-basic", test_data_dir, "basic")
-        create_test_user_data("test-user-full", test_data_dir, "full")
+    # Note: Using mock_config fixture instead of direct patching to avoid conflicts
+    create_test_user_data("test-user-basic", test_data_dir, "basic")
+    create_test_user_data("test-user-full", test_data_dir, "full")
 
-        try:
+    try:
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_management import get_user_id_by_identifier
 
@@ -551,21 +548,20 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             
             print("    ✅ Category add/remove scenario: Success")
             
-        except Exception as e:
-            print(f"  ❌ Integration scenarios: Error - {e}")
-            raise
+    except Exception as e:
+        print(f"  ❌ Integration scenarios: Error - {e}")
+        raise
 
 @pytest.mark.behavior
 @pytest.mark.user_management
 @pytest.mark.file_io
 @pytest.mark.regression
-def test_data_consistency_real_behavior(test_data_dir):
+def test_data_consistency_real_behavior(test_data_dir, mock_config):
     """Test data consistency across multiple operations"""
     print("\n🔍 Testing Data Consistency (Real Behavior)...")
     
     # Setup test environment and create test users
-    import core.config
-    core.config.BASE_DATA_DIR = test_data_dir
+    # mock_config fixture already sets up the correct paths
     
     # Create user index
     user_index = {
@@ -654,8 +650,7 @@ def main():
     test_dir, test_data_dir, test_test_data_dir = setup_test_environment(test_data_dir)
     
     # Override data paths for testing
-    import core.config
-    core.config.DATA_DIR = test_data_dir
+    # Note: mock_config fixture already handles this properly
     
     # Create test users
     create_test_user_data("test-user-basic", test_data_dir, "basic")

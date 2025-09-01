@@ -307,24 +307,28 @@ def test_data_dir():
     shutil.rmtree(temp_dir, ignore_errors=True)
     test_logger.info(f"Cleaned up test data directory: {temp_dir}")
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="function", autouse=True)
 def mock_config(test_data_dir):
     """Mock configuration for testing with proper test data directory."""
     test_logger.debug(f"Setting up mock config with test data dir: {test_data_dir}")
-    # Patch the configuration to use the test data directory
-    with patch('core.config.BASE_DATA_DIR', test_data_dir), \
-         patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')), \
-         patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
+    import core.config
+    
+    # Always patch to ensure consistent test environment
+    # This ensures that even if patch_user_data_dirs is not active, we have a consistent config
+    with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+         patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')), \
+         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(test_data_dir, 'resources', 'default_messages')):
         yield
 
 @pytest.fixture(scope="function")
-def mock_user_data(test_data_dir, mock_config, request):
+def mock_user_data(mock_config, request):
     """Create mock user data for testing with unique user ID for each test."""
     import uuid
+    import core.config
     
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"
-    user_dir = os.path.join(test_data_dir, "users", user_id)
+    user_dir = os.path.join(core.config.USER_INFO_DIR_PATH, user_id)
     os.makedirs(user_dir, exist_ok=True)
     
     test_logger.debug(f"Creating mock user data for user: {user_id}")
@@ -602,19 +606,20 @@ def update_user_index_for_test(test_data_dir):
     return _update_index
 
 # --- GLOBAL PATCH: Force all user data to tests/data/users/ for all tests ---
-@pytest.fixture(autouse=True, scope="session")
-def patch_user_data_dirs():
-    """Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use tests/data/users/ for all tests."""
-    from unittest.mock import patch
-    import core.config
-    test_data_dir = os.path.abspath("tests/data")
-    users_dir = os.path.join(test_data_dir, "users")
-    os.makedirs(users_dir, exist_ok=True)
-    
-    # Patch the module attributes directly
-    with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
-         patch.object(core.config, "USER_INFO_DIR_PATH", users_dir):
-        yield
+# DISABLED: This fixture was causing test isolation issues
+# @pytest.fixture(autouse=True, scope="session")
+# def patch_user_data_dirs():
+#     """Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use tests/data/users/ for all tests."""
+#     from unittest.mock import patch
+#     import core.config
+#     test_data_dir = os.path.abspath("tests/data")
+#     users_dir = os.path.join(test_data_dir, "users")
+#     os.makedirs(users_dir, exist_ok=True)
+#     
+#     # Patch the module attributes directly
+#     with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
+#          patch.object(core.config, "USER_INFO_DIR_PATH", users_dir):
+#         yield
 
 # --- CLEANUP FIXTURE: Remove test users from tests/data/users/ after all tests (NEVER touches real user data) ---
 @pytest.fixture(scope="session", autouse=True)

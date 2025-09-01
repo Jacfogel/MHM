@@ -47,7 +47,7 @@ class TestScheduleManagement:
 
     @pytest.mark.unit
     @pytest.mark.schedules
-    def test_schedule_period_lifecycle(self, mock_user_data):
+    def test_schedule_period_lifecycle(self, mock_user_data, mock_config):
         """Add, edit, deactivate, and delete a schedule period."""
         user_id = mock_user_data["user_id"]
         category = "motivational"

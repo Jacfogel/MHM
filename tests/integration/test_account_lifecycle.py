@@ -35,28 +35,12 @@ class TestAccountLifecycle:
         return {}
     
     @pytest.fixture(autouse=True)
-    def setup_test_environment(self, mock_config):
+    def setup_test_environment(self, test_data_dir, mock_config):
         """Set up isolated test environment for each test."""
-        # Create our own isolated test data directory
-        import tempfile
-        import os
-        import shutil
-        
-        self.test_dir = tempfile.mkdtemp(prefix="mhm_integration_test_")
-        self.test_data_dir = os.path.join(self.test_dir, "data")
-        
-        # Create directory structure
-        os.makedirs(self.test_data_dir, exist_ok=True)
-        os.makedirs(os.path.join(self.test_data_dir, "users"), exist_ok=True)
-        
-        # Override data paths for testing
-        import core.config
-        core.config.BASE_DATA_DIR = self.test_data_dir
+        # Use the test_data_dir from the mock_config fixture
+        self.test_data_dir = test_data_dir
         
         yield
-        
-        # Cleanup
-        shutil.rmtree(self.test_dir, ignore_errors=True)
     
     @pytest.mark.integration
     @pytest.mark.user_management

@@ -662,8 +662,7 @@ if __name__ == "__main__":
     
     try:
         # Override data paths for testing
-        import core.config
-        core.config.DATA_DIR = test_data_dir
+        # Note: mock_config fixture already handles this properly
         
         # Demonstrate user creation
         print("Creating test users...")

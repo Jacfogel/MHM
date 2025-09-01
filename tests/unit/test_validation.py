@@ -9,6 +9,7 @@ import tempfile
 import shutil
 from unittest.mock import patch, MagicMock
 from datetime import datetime
+import core
 
 # Import the validation functions we're testing
 from core.user_data_validation import (
@@ -201,7 +202,7 @@ class TestUserUpdateValidation:
             }
             
             # Mock get_user_file_path to simulate existing account file
-            with patch('core.config.get_user_file_path') as mock_file_path:
+            with patch.object(core.config, 'get_user_file_path') as mock_file_path:
                 mock_file_path.return_value = os.path.join(test_data_dir, "users", user_id, "account.json")
                 
                 is_valid, errors = validate_user_update(user_id, 'account', updates)
@@ -728,7 +729,7 @@ class TestNewUserDataValidation:
         os.makedirs(user_data_dir, exist_ok=True)
         
         # Mock get_user_data_dir to return the test directory path
-        with patch('core.config.get_user_data_dir') as mock_get_user_data_dir:
+        with patch.object(core.config, 'get_user_data_dir') as mock_get_user_data_dir:
             mock_get_user_data_dir.return_value = user_data_dir
             
             is_valid, errors = validate_new_user_data(user_id, data_updates)
@@ -1085,7 +1086,7 @@ class TestValidationIntegration:
         os.makedirs(user_data_dir, exist_ok=True)
         
         # Mock get_user_data_dir to return the test directory path
-        with patch('core.config.get_user_data_dir') as mock_get_user_data_dir:
+        with patch.object(core.config, 'get_user_data_dir') as mock_get_user_data_dir:
             mock_get_user_data_dir.return_value = user_data_dir
             
             data_updates = {

@@ -141,7 +141,7 @@ def test_generated_files_exist():
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.slow
-def test_user_data_access():
+def test_user_data_access(test_data_dir, mock_config, mock_user_data):
     """Test that we can access user data for testing - READ ONLY"""
     print("\n🔍 Testing User Data Access (Read-Only)...")
     
@@ -153,28 +153,8 @@ def test_user_data_access():
         user_ids = get_all_user_ids()
         print(f"  ✅ Found {len(user_ids)} users total")
         
-        # Only test with tests/data users (test users)
-        test_users = []
-        test_data_users = []
-        
-        for user_id in user_ids:
-            if user_id.startswith('test-'):
-                test_users.append(user_id)
-            elif os.path.exists(f"tests/data/users/{user_id}"):
-                test_data_users.append(user_id)
-        
-        print(f"  ✅ Found {len(test_users)} test users: {test_users}")
-        print(f"  ✅ Found {len(test_data_users)} test data users: {test_data_users}")
-        
-        # Test with a safe test user
-        if test_users:
-            test_user = test_users[0]  # Use first test user
-        elif test_data_users:
-            test_user = test_data_users[0]  # Use first test data user
-        else:
-            print("  ⚠️ No safe test users found")
-            assert False, "No safe test users available"
-        
+        # Use the mock user data that was created by the fixture
+        test_user = mock_user_data['user_id']
         print(f"  🔍 Testing with user: {test_user}")
         
         # Test account data (read-only)
@@ -182,6 +162,7 @@ def test_user_data_access():
             account_data = get_user_data(test_user, 'account')
             print(f"  ✅ Account data accessible for {test_user}")
             assert account_data is not None, f"Account data should be accessible for {test_user}"
+            assert 'account' in account_data, f"Account data should contain 'account' key for {test_user}"
         except Exception as e:
             print(f"  ❌ Account data failed for {test_user}: {e}")
             assert False, f"Account data failed for {test_user}: {e}"
@@ -191,6 +172,7 @@ def test_user_data_access():
             prefs_data = get_user_data(test_user, 'preferences')
             print(f"  ✅ Preferences data accessible for {test_user}")
             assert prefs_data is not None, f"Preferences data should be accessible for {test_user}"
+            assert 'preferences' in prefs_data, f"Preferences data should contain 'preferences' key for {test_user}"
         except Exception as e:
             print(f"  ❌ Preferences data failed for {test_user}: {e}")
             assert False, f"Preferences data failed for {test_user}: {e}"
@@ -200,6 +182,7 @@ def test_user_data_access():
             context_data = get_user_data(test_user, 'context')
             print(f"  ✅ Context data accessible for {test_user}")
             assert context_data is not None, f"Context data should be accessible for {test_user}"
+            assert 'context' in context_data, f"Context data should contain 'context' key for {test_user}"
         except Exception as e:
             print(f"  ❌ Context data failed for {test_user}: {e}")
             assert False, f"Context data failed for {test_user}: {e}"

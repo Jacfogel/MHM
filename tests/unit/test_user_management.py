@@ -111,7 +111,7 @@ class TestUserManagement:
     @pytest.mark.unit
     @pytest.mark.user_management
     @pytest.mark.critical
-    def test_hybrid_get_user_data_success(self, mock_user_data, mock_config):
+    def test_hybrid_get_user_data_success(self, mock_user_data):
         """Test loading user data successfully using new hybrid API."""
         user_id = mock_user_data['user_id']
         

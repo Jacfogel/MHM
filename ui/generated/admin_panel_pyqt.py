@@ -72,15 +72,10 @@ class Ui_ui_app_mainwindow(object):
 
         self.gridLayout.addWidget(self.pushButton_restart_service, 1, 2, 1, 1)
 
-        self.pushButton_refresh_server_status = QPushButton(self.groupBox_server_management)
-        self.pushButton_refresh_server_status.setObjectName(u"pushButton_refresh_server_status")
-
-        self.gridLayout.addWidget(self.pushButton_refresh_server_status, 1, 3, 1, 1)
-
         self.pushButton_run_scheduler = QPushButton(self.groupBox_server_management)
         self.pushButton_run_scheduler.setObjectName(u"pushButton_run_scheduler")
 
-        self.gridLayout.addWidget(self.pushButton_run_scheduler, 2, 0, 1, 1)
+        self.gridLayout.addWidget(self.pushButton_run_scheduler, 1, 3, 1, 1)
 
         self.label_service_status = QLabel(self.groupBox_server_management)
         self.label_service_status.setObjectName(u"label_service_status")
@@ -137,6 +132,11 @@ class Ui_ui_app_mainwindow(object):
 
         self.gridLayout_2.addWidget(self.pushButton_category_management, 0, 2, 1, 1)
 
+        self.pushButton_user_analytics = QPushButton(self.groupBox_user_management)
+        self.pushButton_user_analytics.setObjectName(u"pushButton_user_analytics")
+
+        self.gridLayout_2.addWidget(self.pushButton_user_analytics, 0, 3, 1, 1)
+
         self.pushButton_checkin_settings = QPushButton(self.groupBox_user_management)
         self.pushButton_checkin_settings.setObjectName(u"pushButton_checkin_settings")
 
@@ -155,7 +155,7 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_run_user_scheduler = QPushButton(self.groupBox_user_management)
         self.pushButton_run_user_scheduler.setObjectName(u"pushButton_run_user_scheduler")
 
-        self.gridLayout_2.addWidget(self.pushButton_run_user_scheduler, 2, 0, 1, 3)
+        self.gridLayout_2.addWidget(self.pushButton_run_user_scheduler, 1, 3, 1, 1)
 
 
         self.gridLayout_3.addLayout(self.gridLayout_2, 2, 0, 2, 4)
@@ -200,7 +200,7 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_run_category_scheduler = QPushButton(self.groupBox_category_actions)
         self.pushButton_run_category_scheduler.setObjectName(u"pushButton_run_category_scheduler")
 
-        self.gridLayout_4.addWidget(self.pushButton_run_category_scheduler, 2, 0, 1, 3)
+        self.gridLayout_4.addWidget(self.pushButton_run_category_scheduler, 1, 3, 1, 1)
 
 
         self.verticalLayout_5.addLayout(self.gridLayout_4)
@@ -257,7 +257,6 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_start_service.setText(QCoreApplication.translate("ui_app_mainwindow", u"Start Service", None))
         self.pushButton_stop_service.setText(QCoreApplication.translate("ui_app_mainwindow", u"Stop Service", None))
         self.pushButton_restart_service.setText(QCoreApplication.translate("ui_app_mainwindow", u"Restart", None))
-        self.pushButton_refresh_server_status.setText(QCoreApplication.translate("ui_app_mainwindow", u"Refresh", None))
         self.pushButton_run_scheduler.setText(QCoreApplication.translate("ui_app_mainwindow", u"Run Full Scheduler", None))
         self.label_service_status.setText(QCoreApplication.translate("ui_app_mainwindow", u"Service Status:", None))
         self.pushButton_create_new_user.setText(QCoreApplication.translate("ui_app_mainwindow", u"Create New User", None))
@@ -266,6 +265,7 @@ class Ui_ui_app_mainwindow(object):
         self.pushButton_communication_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Communication Settings", None))
         self.pushButton_personalization.setText(QCoreApplication.translate("ui_app_mainwindow", u"Personalization", None))
         self.pushButton_category_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Category Management", None))
+        self.pushButton_user_analytics.setText(QCoreApplication.translate("ui_app_mainwindow", u"User Analytics", None))
         self.pushButton_checkin_settings.setText(QCoreApplication.translate("ui_app_mainwindow", u"Check-in Settings", None))
         self.pushButton_task_management.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task Management", None))
         self.pushButton_task_crud.setText(QCoreApplication.translate("ui_app_mainwindow", u"Task CRUD", None))

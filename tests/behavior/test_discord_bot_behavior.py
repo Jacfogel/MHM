@@ -14,6 +14,7 @@ from unittest.mock import patch, MagicMock, AsyncMock, call
 import queue
 import discord
 from discord.ext import commands
+import core
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
@@ -165,7 +166,7 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization actually creates bot instance with valid token"""
         bot = DiscordBot()
         
-        with patch('core.config.DISCORD_BOT_TOKEN', 'valid_token'):
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
             with patch.object(bot, '_check_dns_resolution', return_value=True):
                 with patch.object(bot, '_check_network_connectivity', return_value=True):
                     # Use asyncio.run for async testing
@@ -182,7 +183,7 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization fails gracefully without token"""
         bot = DiscordBot()
         
-        with patch('core.config.DISCORD_BOT_TOKEN', None):
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
             with patch.object(bot, '_check_dns_resolution', return_value=False):
                 with patch.object(bot, '_check_network_connectivity', return_value=False):
                     result = asyncio.run(bot.initialize())
@@ -197,7 +198,7 @@ class TestDiscordBotBehavior:
         """Test that Discord bot initialization handles DNS failures gracefully"""
         bot = DiscordBot()
         
-        with patch('core.config.DISCORD_BOT_TOKEN', 'valid_token'):
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
             with patch.object(bot, '_check_dns_resolution', return_value=False):
                 with patch.object(bot, '_check_network_connectivity', return_value=False):
                     with patch('discord.ext.commands.Bot') as mock_bot_class:
@@ -633,7 +634,7 @@ class TestDiscordBotIntegration:
         bot = DiscordBot()
         
         # Test that errors don't crash the system
-        with patch('core.config.DISCORD_BOT_TOKEN', None):
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
             result = asyncio.run(bot.initialize())
             
             assert isinstance(result, bool), "Should return boolean result"
@@ -692,12 +693,12 @@ class TestDiscordBotIntegration:
         bot = DiscordBot()
         
         # Test error recovery
-        with patch('core.config.DISCORD_BOT_TOKEN', None):
+        with patch.object(core.config, 'DISCORD_BOT_TOKEN', None):
             result = asyncio.run(bot.initialize())
             assert isinstance(result, bool), "Should return boolean result"
             
             # Test recovery
-            with patch('core.config.DISCORD_BOT_TOKEN', 'valid_token'):
+            with patch.object(core.config, 'DISCORD_BOT_TOKEN', 'valid_token'):
                 with patch.object(bot, '_check_dns_resolution', return_value=True):
                     with patch.object(bot, '_check_network_connectivity', return_value=True):
                         result = asyncio.run(bot.manual_reconnect())

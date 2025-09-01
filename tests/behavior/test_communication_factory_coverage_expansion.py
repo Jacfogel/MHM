@@ -9,6 +9,7 @@ import json
 import os
 from unittest.mock import patch, Mock, MagicMock, mock_open
 from datetime import datetime, timedelta
+import core
 
 from communication.core.factory import ChannelFactory
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
@@ -77,8 +78,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 with patch('importlib.import_module') as mock_import:
                     mock_channels.return_value = ['test_channel']
                     mock_mapping.return_value = {'test_channel': 'tests.test_utilities.TestUserFactory'}
@@ -147,8 +148,8 @@ class TestCommunicationFactoryCoverageExpansion:
             async def health_check(self):
                 return True
         
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 with patch('importlib.import_module') as mock_import:
                     mock_channels.return_value = ['test_channel']
                     mock_mapping.return_value = {'test_channel': 'tests.test_utilities.TestUserFactory'}
@@ -174,8 +175,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 mock_channels.return_value = []
                 mock_mapping.return_value = {}
                 
@@ -191,8 +192,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 with patch('importlib.import_module') as mock_import:
                     mock_channels.return_value = ['channel1', 'channel2']
                     mock_mapping.return_value = {
@@ -281,7 +282,7 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('core.config.get_available_channels', side_effect=Exception("Config error")):
+        with patch.object(core.config, 'get_available_channels', side_effect=Exception("Config error")):
             # Act
             channels = ChannelFactory.get_registered_channels()
             
@@ -294,8 +295,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._initialized = False
         ChannelFactory._channel_registry.clear()
         
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 with patch('importlib.import_module') as mock_import:
                     mock_channels.return_value = ['persistent_channel']
                     mock_mapping.return_value = {'persistent_channel': 'tests.test_utilities.TestUserFactory'}
@@ -338,8 +339,8 @@ class TestCommunicationFactoryCoverageExpansion:
         ChannelFactory._channel_registry.clear()
         
         # Test with real config functions (mocked)
-        with patch('core.config.get_available_channels') as mock_channels:
-            with patch('core.config.get_channel_class_mapping') as mock_mapping:
+        with patch.object(core.config, 'get_available_channels') as mock_channels:
+            with patch.object(core.config, 'get_channel_class_mapping') as mock_mapping:
                 mock_channels.return_value = ['config_channel']
                 mock_mapping.return_value = {'config_channel': 'tests.test_utilities.TestUserFactory'}
                 
