@@ -3823,5 +3823,22 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Better Maintainability**: Single source of truth for user data access
 
 
+## 2025-09-01 - Test Isolation and Configuration Fixes
+
+### Overview
+- Resolved widespread user data handler test failures caused by lingering loader registrations and missing category configuration.
+
+### Changes Made
+- **Safe Data Loader Registration**: Updated `test_register_data_loader_real_behavior` to register loaders with the proper signature and remove the custom loader after the test, preventing global state leakage.
+- **Stable Category Validation**: Set default `CATEGORIES` environment variable in `mock_config` to ensure preferences validation succeeds in isolated test environments.
+
+### Testing
+- Targeted unit, integration and behavior tests now pass.
+- UI tests skipped: missing `libGL.so.1` dependency.
+
+### Impact
+- Restores reliable `get_user_data` behavior across the suite.
+- Prevents future test pollution from temporary data loaders.
+
 
 
