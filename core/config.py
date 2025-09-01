@@ -43,7 +43,14 @@ def _normalize_path(value: str) -> str:
     return os.path.normpath(cleaned)
 
 # Base data directory (preserve env value formatting to satisfy tests)
-BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
+# During tests, redirect to TEST_DATA_DIR (defaults to tests/data) for
+# complete isolation from real user data. This ensures all test
+# artifacts are created under the project tree instead of system temp
+# directories.
+if os.getenv('MHM_TESTING') == '1':
+    BASE_DATA_DIR = os.getenv('TEST_DATA_DIR', 'tests/data')
+else:
+    BASE_DATA_DIR = os.getenv('BASE_DATA_DIR', 'data')
 
 # Paths - Updated for better organization
 # LOG_FILE_PATH environment variable removed - using LOG_MAIN_FILE directly
