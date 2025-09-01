@@ -315,9 +315,12 @@ def mock_config(test_data_dir):
     
     # Always patch to ensure consistent test environment
     # This ensures that even if patch_user_data_dirs is not active, we have a consistent config
+    default_categories = '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
+
     with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
          patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')), \
-         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(test_data_dir, 'resources', 'default_messages')):
+         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(test_data_dir, 'resources', 'default_messages')), \
+         patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False):
         yield
 
 @pytest.fixture(scope="function")
