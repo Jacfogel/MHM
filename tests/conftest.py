@@ -11,6 +11,7 @@ This file provides:
 
 import pytest
 import os
+os.environ["QT_QPA_PLATFORM"] = "offscreen"
 import tempfile
 import shutil
 import json
