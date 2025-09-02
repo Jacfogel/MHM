@@ -77,6 +77,15 @@ os.environ['LOG_UI_FILE'] = str(tests_logs_dir / 'ui.log')
 os.environ['LOG_FILE_OPS_FILE'] = str(tests_logs_dir / 'file_ops.log')
 os.environ['LOG_SCHEDULER_FILE'] = str(tests_logs_dir / 'scheduler.log')
 
+# Ensure all user data for tests is stored under tests/data to avoid
+# accidental writes to system directories like /tmp or the real data
+# directory. The environment variable must be set before importing
+# core.config so that BASE_DATA_DIR resolves correctly.
+tests_data_dir = (Path(__file__).parent / 'data').resolve()
+tests_data_dir.mkdir(exist_ok=True)
+(tests_data_dir / 'users').mkdir(parents=True, exist_ok=True)
+os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir))
+
 # Import core modules for testing (after logging isolation is set up)
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 

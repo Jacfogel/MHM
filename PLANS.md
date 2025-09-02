@@ -322,7 +322,7 @@
 **Effort**: Medium  
 **Dependencies**: None  
 
-**Objective**: Improve clarity and separation of purposes for bot modules.
+**Objective**: Improve clarity and separation of purposes for communication modules.
 
 **Target Modules**:
 - `communication/core/channel_orchestrator.py`
@@ -330,6 +330,7 @@
 - `communication/message_processing/command_parser.py`
 - `communication/command_handlers/interaction_handlers.py`
 - `communication/message_processing/interaction_manager.py`
+- `communication/command_handlers/` (command parsing & dispatch)
 
 **Investigation Plan**:
 - [ ] Analyze current module purposes and responsibilities
@@ -1196,6 +1197,7 @@ MHM/
 │   ├── widgets/            # Reusable widget components
 │   └── ui_app_qt.py        # Main admin interface (PySide6)
 ├── communication/          # Communication channel implementations
+├── ai/                     # AI conversation modules
 ├── tasks/                  # Task management system
 ├── user/                   # User context and preferences
 ├── data/                   # User data storage

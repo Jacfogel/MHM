@@ -127,7 +127,7 @@ discord_logger = ComponentLogger('discord', LOG_DISCORD_FILE, level=logging.DEBU
 
 ### 2. BaseChannel pattern (standardized)
 - Subclasses do not set their own loggers.
-- `bot/base_channel.py` assigns `self.logger = get_component_logger(self.config.name)`.
+- `communication/communication_channels/base/base_channel.py` assigns `self.logger = get_component_logger(self.config.name)`.
 - Channel classes should ensure `config.name` matches the component (`discord`, `email`, `telegram`).
 
 ### 3. Test isolation behavior

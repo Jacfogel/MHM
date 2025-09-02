@@ -59,7 +59,7 @@
 - `communication/core/channel_orchestrator.py` - Communication coordination
 
 ### **Data Flow Patterns**
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/communication module
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/CommunicationManager
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **Configuration**: `.env` → `core/config.py` → Application
 

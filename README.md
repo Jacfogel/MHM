@@ -84,9 +84,9 @@ If LM Studio is installed with a compatible model, MHM can provide local AI chat
 MHM/
 ├── ai/          # AI assistant components
 ├── ai_tools/    # AI collaboration tools and audit scripts
-├── communication/ # Messaging and communication channels
+├── communication/ # Messaging channels and orchestration
 ├── core/        # Backend service (refactored into focused modules)
-├── custom_data/ # User data with backups and user index
+├── ai/          # Local AI chat integration
 ├── data/        # User data (gitignored)
 ├── resources/   # Application resources and presets
 │   └── default_messages/

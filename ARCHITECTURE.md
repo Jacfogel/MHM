@@ -18,7 +18,7 @@
 6. **Testing?** → `tests/` directory
 
 ### **Data Flow Patterns**
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/communication module
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/CommunicationManager
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **Configuration**: `.env` → `core/config.py` → Application
 - **UI**: `.ui` files → `ui/generated/` → `ui/dialogs/` → `ui_app_qt.py`
@@ -35,9 +35,9 @@
 ## Directory Structure & Key Modules
 
 - **ai_tools/**: AI collaboration tools, audit scripts, and documentation management
-- **communication/**: Messaging and communication channels (Discord, Email, etc.)
+- **communication/**: Messaging channels and orchestration (Discord, Email, etc.)
 - **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
-- **custom_data/**: User data storage with backups and user index
+- **ai/**: Local AI integration modules
 - **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
 - **resources/default_messages/**: Default motivational, health, and other message templates
 - **resources/**: Application resources and presets
