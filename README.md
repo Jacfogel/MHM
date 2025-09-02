@@ -56,7 +56,7 @@ See **HOW_TO_RUN.md** for more details.
 - **DOCUMENTATION_GUIDE.md** - Documentation organization and standards
 
 ### Documentation Categories
-- **🤖 AI-Focused**: `AI_RULES.md` and `.cursor/rules/` - For AI assistants
+- **🤖 AI-Focused**: `AI_SESSION_STARTER.md` and `.cursor/rules/` - For AI assistants
 - **👤 User-Focused**: Development guides and references - For human developers
 - **🔧 Configuration**: `requirements.txt`, `.env` - For both
 
@@ -82,8 +82,9 @@ If LM Studio is installed with a compatible model, MHM can provide local AI chat
 ## Project Structure
 ```
 MHM/
+├── ai/          # AI assistant components
 ├── ai_tools/    # AI collaboration tools and audit scripts
-├── bot/         # Communication handlers
+├── communication/ # Messaging and communication channels
 ├── core/        # Backend service (refactored into focused modules)
 ├── custom_data/ # User data with backups and user index
 ├── data/        # User data (gitignored)
@@ -92,7 +93,7 @@ MHM/
 ├── scripts/     # Utilities and tools
 ├── styles/      # QSS theme files
 ├── tasks/       # Task/reminder framework
-├── tests/logs/   # Test execution logs
+├── tests/logs/  # Test execution logs
 ├── tests/       # Testing framework
 ├── ui/          # Admin panel (PySide6/Qt)
 ├── user/        # User preferences

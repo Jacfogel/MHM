@@ -12,13 +12,13 @@
 ### **Key Modules Decision Tree**
 1. **User data access?** → `core/user_data_handlers.py`, `core/user_data_validation.py`
 2. **UI components?** → `ui/dialogs/`, `ui/widgets/`
-3. **Communication?** → `bot/` directory
+3. **Communication?** → `communication/` directory
 4. **Scheduling?** → `core/scheduler.py`, `core/schedule_management.py`
 5. **Configuration?** → `core/config.py`
 6. **Testing?** → `tests/` directory
 
 ### **Data Flow Patterns**
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/Bot
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/communication module
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **Configuration**: `.env` → `core/config.py` → Application
 - **UI**: `.ui` files → `ui/generated/` → `ui/dialogs/` → `ui_app_qt.py`
@@ -28,14 +28,14 @@
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface
 - `core/user_data_handlers.py` - Unified user data access
-- `bot/communication_manager.py` - Communication coordination
+- `communication/core/channel_orchestrator.py` - Communication coordination
 
 ---
 
 ## Directory Structure & Key Modules
 
 - **ai_tools/**: AI collaboration tools, audit scripts, and documentation management
-- **bot/**: Messaging and communication bots (Discord, Email, Telegram, etc.)
+- **communication/**: Messaging and communication channels (Discord, Email, etc.)
 - **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
 - **custom_data/**: User data storage with backups and user index
 - **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
@@ -104,7 +104,7 @@
 - **user/user_preferences.py**: (Planned) Class-based interface for managing user preferences.
 - **ui/ui_app_qt.py**: Main PySide6/Qt UI application, user selection, and admin panel.
 - **ui/dialogs/**: Dialog implementations for account creation, user management, etc.
-- **bot/**: Messaging bots for different platforms, using user data for personalized interactions.
+- **communication/**: Messaging system for different platforms, using user data for personalized interactions.
 - **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery. Includes intelligent task reminder scheduling with random task selection and timing.
 - **core/checkin_analytics.py**: Analytics and insights on user check-in data.
 

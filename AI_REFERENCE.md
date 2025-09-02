@@ -56,10 +56,10 @@
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface
 - `core/user_data_handlers.py` - Unified user data access
-- `bot/communication_manager.py` - Communication coordination
+- `communication/core/channel_orchestrator.py` - Communication coordination
 
 ### **Data Flow Patterns**
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/Bot
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/communication module
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **Configuration**: `.env` → `core/config.py` → Application
 

@@ -56,7 +56,7 @@ Personal mental health assistant that helps manage executive functioning deficit
 - `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
 - `core/user_data_handlers.py`, `core/user_data_validation.py` - User data management
-- `bot/` - Communication channel implementations
+- `communication/` - Communication channel implementations
 - `data/users/` - User data
 
 ## 📊 **CURRENT SYSTEM STATUS**
