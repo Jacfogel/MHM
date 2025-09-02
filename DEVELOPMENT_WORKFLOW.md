@@ -219,4 +219,72 @@ deactivate
 4. **Celebrate progress** - every small improvement counts
 5. **Be patient** - learning takes time, and that's okay
 
-Remember: You're building something important for your mental health. It's worth taking the time to do it right, and it's okay to ask for help along the way. 
+Remember: You're building something important for your mental health. It's worth taking the time to do it right, and it's okay to ask for help along the way.
+
+## 🔄 Git Workflow (PowerShell-Safe)
+
+### **Critical: Avoid Git Paging Issues**
+Git commands like `git log`, `git show`, and `git diff` can open in a pager that hangs the terminal. **Always use these PowerShell-safe alternatives:**
+
+#### **❌ Commands That Hang (Avoid These)**
+```powershell
+git log                    # Hangs - opens pager
+git show <commit>          # Hangs - opens pager  
+git diff <commit>          # Hangs - opens pager
+```
+
+#### **✅ PowerShell-Safe Alternatives**
+```powershell
+# View commit history
+git log --oneline -5 | Out-String
+
+# View specific commit changes
+git show --name-only <commit> | Out-String
+
+# View file differences
+git diff --name-only <commit1>..<commit2> | Out-String
+
+# View status
+git status --porcelain | Out-String
+```
+
+### **Standard Git Workflow**
+```powershell
+# 1. Check status (safe)
+git status --porcelain | Out-String
+
+# 2. Add changes
+git add .
+
+# 3. Commit changes
+git commit -m "Descriptive commit message"
+
+# 4. Pull remote updates (safe)
+git fetch origin
+git diff --name-only HEAD..origin/main | Out-String
+
+# 5. Merge/pull (if needed)
+git pull origin main
+
+# 6. Push changes
+git push origin main
+```
+
+### **Handling Merge Conflicts**
+```powershell
+# If merge conflicts occur:
+git status --porcelain | Out-String
+
+# Resolve conflicts in files, then:
+git add .
+git commit -m "Resolve merge conflicts"
+git push origin main
+```
+
+### **Why This Matters**
+- **Terminal Hanging**: Git pager commands freeze PowerShell and require manual cancellation
+- **Productivity**: Safe commands complete immediately and show results
+- **Consistency**: Same workflow works every time without surprises
+- **Team Collaboration**: Reliable Git operations for smooth development
+
+**Remember**: Always use `| Out-String` with Git commands that might produce long output to avoid paging issues. 

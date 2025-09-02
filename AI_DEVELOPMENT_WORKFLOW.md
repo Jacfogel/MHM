@@ -64,6 +64,32 @@ pip install -r requirements.txt      # Install deps
 - **Guide don't solve**: Explain why, not just how
 - **Encourage**: Acknowledge progress
 
+## 🔄 Git Workflow (AI Collaborators)
+
+### **CRITICAL: PowerShell-Safe Git Commands**
+**NEVER use these commands - they hang the terminal:**
+- `git log` (use `git log --oneline -5 | Out-String`)
+- `git show` (use `git show --name-only <commit> | Out-String`)
+- `git diff` (use `git diff --name-only <commit1>..<commit2> | Out-String`)
+
+### **Safe Git Operations**
+```powershell
+# Check status
+git status --porcelain | Out-String
+
+# View history
+git log --oneline -5 | Out-String
+
+# Check remote changes
+git fetch origin
+git diff --name-only HEAD..origin/main | Out-String
+
+# Standard workflow
+git add . && git commit -m "message" && git push origin main
+```
+
+**Why This Matters**: Git pager commands freeze PowerShell and require manual cancellation, breaking the development flow.
+
 ---
 
-**Remember**: Small changes, frequent testing, clear communication.
+**Remember**: Small changes, frequent testing, clear communication. **ALWAYS use PowerShell-safe Git commands.**
