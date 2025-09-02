@@ -104,7 +104,7 @@
 - **user/user_preferences.py**: (Planned) Class-based interface for managing user preferences.
 - **ui/ui_app_qt.py**: Main PySide6/Qt UI application, user selection, and admin panel.
 - **ui/dialogs/**: Dialog implementations for account creation, user management, etc.
-- **communication/**: Messaging channels for different platforms, using user data for personalized interactions.
+- **communication/**: Messaging system for different platforms, using user data for personalized interactions.
 - **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery. Includes intelligent task reminder scheduling with random task selection and timing.
 - **core/checkin_analytics.py**: Analytics and insights on user check-in data.
 

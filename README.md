@@ -82,6 +82,7 @@ If LM Studio is installed with a compatible model, MHM can provide local AI chat
 ## Project Structure
 ```
 MHM/
+├── ai/          # AI assistant components
 ├── ai_tools/    # AI collaboration tools and audit scripts
 ├── communication/ # Messaging channels and orchestration
 ├── core/        # Backend service (refactored into focused modules)
@@ -92,7 +93,7 @@ MHM/
 ├── scripts/     # Utilities and tools
 ├── styles/      # QSS theme files
 ├── tasks/       # Task/reminder framework
-├── tests/logs/   # Test execution logs
+├── tests/logs/  # Test execution logs
 ├── tests/       # Testing framework
 ├── ui/          # Admin panel (PySide6/Qt)
 ├── user/        # User preferences
