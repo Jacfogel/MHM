@@ -308,13 +308,9 @@ def isolate_logging():
 
 @pytest.fixture(scope="session")
 def test_data_dir():
-    """Create a temporary test data directory for all tests."""
-    temp_dir = tempfile.mkdtemp(prefix="mhm_test_")
-    test_logger.info(f"Created test data directory: {temp_dir}")
-    yield temp_dir
-    # Cleanup after all tests
-    shutil.rmtree(temp_dir, ignore_errors=True)
-    test_logger.info(f"Cleaned up test data directory: {temp_dir}")
+    """Provide the repository-scoped test data directory for all tests."""
+    test_logger.info(f"Using test data directory: {tests_data_dir}")
+    return str(tests_data_dir)
 
 @pytest.fixture(scope="function", autouse=True)
 def mock_config(test_data_dir):
@@ -328,9 +324,28 @@ def mock_config(test_data_dir):
 
     with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
          patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')), \
-         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(test_data_dir, 'resources', 'default_messages')), \
-         patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False):
+r         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(project_root, 'resources', 'default_messages')), \
+        patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False):
         yield
+
+
+@pytest.fixture(scope="function", autouse=True)
+def ensure_mock_config_applied(mock_config, test_data_dir):
+    """Verify mock_config fixture is active for every test."""
+    import os
+    import core.config
+
+    assert os.path.samefile(core.config.BASE_DATA_DIR, test_data_dir)
+    yield
+
+
+@pytest.fixture(scope="function", autouse=True)
+def clear_user_caches_between_tests():
+    """Ensure user data caches don't leak between tests."""
+    from core.user_management import clear_user_caches
+    clear_user_caches()
+    yield
+    clear_user_caches()
 
 @pytest.fixture(scope="function")
 def mock_user_data(mock_config, request):
