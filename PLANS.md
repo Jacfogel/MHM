@@ -322,14 +322,15 @@
 **Effort**: Medium  
 **Dependencies**: None  
 
-**Objective**: Improve clarity and separation of purposes for bot modules.
+**Objective**: Improve clarity and separation of purposes for communication modules.
 
 **Target Modules**:
-- `bot/communication_manager.py`
-- `bot/conversation_manager.py`
-- `bot/enhanced_command_parser.py`
-- `bot/interaction_handlers.py`
-- `bot/interaction_manager.py`
+- `communication/core/channel_orchestrator.py`
+- `communication/message_processing/conversation_flow_manager.py`
+- `communication/message_processing/command_parser.py`
+- `communication/command_handlers/interaction_handlers.py`
+- `communication/message_processing/interaction_manager.py`
+- `communication/command_handlers/` (command parsing & dispatch)
 
 **Investigation Plan**:
 - [ ] Analyze current module purposes and responsibilities
@@ -386,7 +387,7 @@ def validate_and_accept(self):
 - [x] Refactor `ui/dialogs/account_creator_dialog.py` (12 helper functions)
 - [x] Refactor `core/user_data_handlers.py` (6 helper functions)
 - [x] Refactor `core/file_operations.py` (6 helper functions)
-- [x] Refactor `bot/interaction_handlers.py` (6 helper functions)
+- [x] Refactor `communication/command_handlers/interaction_handlers.py` (6 helper functions)
 - [x] Refactor `tests/test_utilities.py` (8 helper functions)
 
 **Phase 2B: Extended Refactoring** ✅ **COMPLETED**
@@ -511,12 +512,12 @@ def validate_and_accept(self):
 - **Improved Maintainability**: Adding new channels only requires updating config.py mapping
 
 **Files Modified**:
-- `core/config.py`: Added `get_available_channels()` and `get_channel_class_mapping()` functions
-- `bot/channel_factory.py`: Updated to use config-based auto-registration
-- `core/service.py`: Removed channel registry import and registration
-- `ui/ui_app_qt.py`: Removed channel registry import and registration
-- `tests/ui/test_dialogs.py`: Removed channel registry import and registration
-- `bot/channel_registry.py`: **DELETED** - No longer needed
+ - `core/config.py`: Added `get_available_channels()` and `get_channel_class_mapping()` functions
+ - `communication/core/factory.py`: Updated to use config-based auto-registration
+ - `core/service.py`: Removed channel registry import and registration
+ - `ui/ui_app_qt.py`: Removed channel registry import and registration
+ - `tests/ui/test_dialogs.py`: Removed channel registry import and registration
+ - `communication/core/channel_registry.py`: **DELETED** - No longer needed
 
 **Benefits Realized**:
 - **Reduced Complexity**: Eliminated redundant registration system
@@ -662,7 +663,7 @@ def validate_and_accept(self):
   - [x] Updated `tests/integration/test_account_management.py` and `tests/ui/test_dialogs.py`
   - [x] Removed incompatible `main()` functions from test files
 - [x] **Fixed AsyncIO Deprecation Warnings** ✅ **COMPLETED**
-  - [x] Updated `bot/ai_chatbot.py`, `bot/email_bot.py`, `bot/communication_manager.py`
+  - [x] Updated `ai/chatbot.py`, `communication/communication_channels/email/bot.py`, `communication/core/channel_orchestrator.py`
   - [x] Replaced `asyncio.get_event_loop()` with `asyncio.get_running_loop()` with fallback
 - [x] **Enhanced Account Validation** ✅ **COMPLETED**
   - [x] Added strict validation for empty `internal_username` fields
@@ -1141,13 +1142,13 @@ Note: Telegram integration has been removed from scope.
 **Timeline**: Complete by 2025-08-15
 
 ### 6. Discord Bot Legacy Methods ⚠️ **LOW PRIORITY**
-**Location**: `bot/discord_bot.py`
+**Location**: `communication/communication_channels/discord/bot.py`
 **Issue**: Legacy methods for backward compatibility
 **Legacy Code Found**: Lines 518-564: Legacy start/stop methods
 **Timeline**: Complete by 2025-08-15
 
 ### 7. Communication Manager Legacy Wrappers ⚠️ **HIGH PRIORITY**
-**Location**: `bot/communication_manager.py`
+**Location**: `communication/core/channel_orchestrator.py`
 **Issue**: LegacyChannelWrapper and legacy channel access
 **Legacy Code Found**:
 - `LegacyChannelWrapper` class (Lines 1064-1216): Complete legacy wrapper
@@ -1195,7 +1196,8 @@ MHM/
 │   ├── dialogs/            # Dialog implementations
 │   ├── widgets/            # Reusable widget components
 │   └── ui_app_qt.py        # Main admin interface (PySide6)
-├── bot/                    # Communication channel implementations
+├── communication/          # Communication channel implementations
+├── ai/                     # AI conversation modules
 ├── tasks/                  # Task management system
 ├── user/                   # User context and preferences
 ├── data/                   # User data storage

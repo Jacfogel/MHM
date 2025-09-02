@@ -324,7 +324,7 @@ def mock_config(test_data_dir):
 
     with patch.object(core.config, "BASE_DATA_DIR", test_data_dir), \
          patch.object(core.config, "USER_INFO_DIR_PATH", os.path.join(test_data_dir, 'users')), \
-         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(project_root, 'resources', 'default_messages')), \
+r         patch.object(core.config, "DEFAULT_MESSAGES_DIR_PATH", os.path.join(project_root, 'resources', 'default_messages')), \
         patch.dict(os.environ, {"CATEGORIES": default_categories}, clear=False):
         yield
 

@@ -48,8 +48,8 @@
   5. `ui/dialogs/task_completion_dialog.py` (29% → 70%)
 - **Results**: Created comprehensive test suite with 30 behavior tests covering all User Profile Dialog functionality
 
-### **3. Communication Manager (24% → 61%) ✅ COMPLETED**
-**File**: `bot/communication_manager.py` (319 lines uncovered)
+### **3. Channel Orchestrator (24% → 61%) ✅ COMPLETED**
+**File**: `communication/core/channel_orchestrator.py` (319 lines uncovered)
 - **Why Critical**: Core communication infrastructure
 - **Current Status**: 61% coverage (excellent)
 - **Target**: 60% coverage ✅ ACHIEVED
@@ -77,7 +77,7 @@
 - **Results**: Created comprehensive behavior test suite with 37 tests covering scheduler lifecycle, message scheduling, task reminders, time management, and error handling
 
 ### **5. Interaction Handlers (32% → 49%) ✅ COMPLETED**
-**File**: `bot/interaction_handlers.py` (591 lines uncovered)
+**File**: `communication/command_handlers/interaction_handlers.py` (591 lines uncovered)
 - **Why Critical**: Handles all user interactions
 - **Current Status**: 49% coverage (+17% improvement)
 - **Target**: 60% coverage (nearly achieved)
@@ -129,8 +129,8 @@
   - [x] Test widget integration and performance
 - **Results**: Created comprehensive test suite with 41 behavior tests covering all widget functionality, real behavior testing, and proper UI mocking
 
-### **3. Enhanced Command Parser (40% → 70%)**
-**File**: `bot/enhanced_command_parser.py` (155 lines uncovered)
+### **3. Command Parser (40% → 70%)**
+**File**: `communication/message_processing/command_parser.py` (155 lines uncovered)
 - **Why Important**: Natural language processing
 - **Current Status**: 40% coverage
 - **Target**: 70% coverage
@@ -143,7 +143,7 @@
   - [ ] Test edge cases and boundary conditions
 
 ### **4. Email Bot (37% → 60%)**
-**File**: `bot/email_bot.py` (72 lines uncovered)
+**File**: `communication/communication_channels/email/bot.py` (72 lines uncovered)
 - **Why Important**: Email communication channel
 - **Current Status**: 37% coverage
 - **Target**: 60% coverage
