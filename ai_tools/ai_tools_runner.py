@@ -247,6 +247,45 @@ class AIToolsRunner:
             print(status_info)
         return True
     
+    def run_documentation_sync(self):
+        """Run documentation synchronization checks"""
+        print("Running documentation synchronization checks...")
+        result = self.run_script('documentation_sync_checker', '--check')
+        if result['success']:
+            print(result['output'])
+            print("\n✅ Documentation sync check completed!")
+            print("Check LEGACY_REFERENCE_REPORT.md for detailed findings")
+        return result['success']
+    
+    def run_coverage_regeneration(self):
+        """Regenerate test coverage metrics"""
+        print("Regenerating test coverage metrics...")
+        result = self.run_script('regenerate_coverage_metrics', '--update-plan')
+        if result['success']:
+            print(result['output'])
+            print("\n✅ Coverage metrics regenerated and plan updated!")
+        return result['success']
+    
+    def run_legacy_cleanup(self):
+        """Run legacy reference cleanup"""
+        print("Running legacy reference cleanup...")
+        result = self.run_script('legacy_reference_cleanup', '--scan')
+        if result['success']:
+            print(result['output'])
+            print("\n✅ Legacy reference scan completed!")
+            print("Check LEGACY_REFERENCE_REPORT.md for findings")
+        return True
+    
+    def generate_directory_trees(self):
+        """Generate directory trees for documentation"""
+        print("Generating directory trees...")
+        result = self.run_script('documentation_sync_checker', '--generate-trees')
+        if result['success']:
+            print(result['output'])
+            print("\n✅ Directory tree generated!")
+            print("Check DIRECTORY_TREE.md for project structure")
+        return result['success']
+    
     # ===== HELPER METHODS =====
     
     def check_trigger_requirements(self, task_type: str) -> bool:
@@ -688,6 +727,12 @@ SIMPLE COMMANDS (for users):
   config    - Check configuration consistency
   help      - Show this help message
 
+DOCUMENTATION SYNCHRONIZATION TOOLS:
+  doc-sync  - Check documentation synchronization and path drift
+  coverage  - Regenerate test coverage metrics
+  legacy    - Scan and clean up legacy references
+  trees     - Generate directory trees for documentation
+
 ADVANCED COMMANDS (for AI collaborators):
   workflow <task_type>     - Run workflow with audit-first protocol
   quick-audit              - Run comprehensive audit
@@ -698,6 +743,10 @@ ADVANCED COMMANDS (for AI collaborators):
 Examples:
   python ai_tools_runner.py audit
   python ai_tools_runner.py docs
+  python ai_tools_runner.py doc-sync
+  python ai_tools_runner.py coverage --update-plan
+  python ai_tools_runner.py legacy --scan
+  python ai_tools_runner.py trees
   python ai_tools_runner.py workflow documentation
   python ai_tools_runner.py version-sync docs
   python ai_tools_runner.py status
@@ -713,6 +762,8 @@ Output Files:
   ai_tools/audit_summary.txt - Concise summary for AI consumption
   ai_tools/critical_issues.txt - Priority issues requiring attention
   ai_tools/ai_audit_detailed_results.json - Detailed audit results (for reference)
+  DIRECTORY_TREE.md - Auto-generated project directory structure
+  LEGACY_REFERENCE_REPORT.md - Report of legacy references found
 
 Note: These tools are optimized for AI collaboration and provide concise,
 actionable information to improve development workflow.
@@ -749,6 +800,14 @@ def main():
         success = runner.run_version_sync(scope)
     elif command == 'status':
         success = runner.run_status()
+    elif command == 'doc-sync':
+        success = runner.run_documentation_sync()
+    elif command == 'coverage':
+        success = runner.run_coverage_regeneration()
+    elif command == 'legacy':
+        success = runner.run_legacy_cleanup()
+    elif command == 'trees':
+        success = runner.generate_directory_trees()
     elif command == 'help':
         runner.show_help()
         success = True

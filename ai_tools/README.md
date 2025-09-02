@@ -80,6 +80,41 @@ python ai_tools/version_sync.py status core
 **When to use**: When unsure which tool to use or how to understand results
 **Command**: `python ai_tools/tool_guide.py guide`
 
+## 🔗 **Documentation Synchronization Tools**
+
+### `documentation_sync_checker.py` ⭐ **NEW**
+**Purpose**: Check documentation synchronization and identify path drift between code and docs
+**When to use**: Before/after documentation changes, to maintain consistency between paired docs
+**Command**: `python ai_tools/documentation_sync_checker.py --check`
+**Output**: Identifies sync issues, path drift, and paired documentation inconsistencies
+
+### `regenerate_coverage_metrics.py` ⭐ **NEW**
+**Purpose**: Regenerate test coverage metrics and update TEST_COVERAGE_EXPANSION_PLAN.md
+**When to use**: After test runs, to keep coverage plan current and actionable
+**Command**: `python ai_tools/regenerate_coverage_metrics.py --update-plan`
+**Output**: Updates coverage plan with current metrics and generates detailed reports
+
+### `legacy_reference_cleanup.py` ⭐ **NEW**
+**Purpose**: Scan and clean up legacy references to deprecated code paths
+**When to use**: After refactoring, to identify outdated references and clean up legacy code
+**Command**: `python ai_tools/legacy_reference_cleanup.py --scan`
+**Output**: Report of legacy references found and cleanup recommendations
+
+### **Documentation Synchronization Commands**
+```bash
+# Check documentation sync and path drift
+python ai_tools/ai_tools_runner.py doc-sync
+
+# Generate directory trees for documentation
+python ai_tools/ai_tools_runner.py trees
+
+# Scan for legacy references
+python ai_tools/ai_tools_runner.py legacy
+
+# Regenerate coverage metrics
+python ai_tools/ai_tools_runner.py coverage
+```
+
 ## ⚙️ Configuration
 
 ### `config.py`
