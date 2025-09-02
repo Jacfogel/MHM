@@ -210,6 +210,7 @@ def test_dialog_instantiation():
             app = QApplication(sys.argv)
         
         # Set up test environment
+        original_mhm_testing = os.environ.get('MHM_TESTING')
         os.environ['MHM_TESTING'] = '1'
         original_categories = os.environ.get('CATEGORIES')
         os.environ['CATEGORIES'] = '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
@@ -274,12 +275,14 @@ def test_dialog_instantiation():
         assert False, f"Dialog instantiation testing failed: {e}"
     finally:
         # Clean up environment variables
-        if 'MHM_TESTING' in os.environ:
-            del os.environ['MHM_TESTING']
+        if original_mhm_testing is not None:
+            os.environ['MHM_TESTING'] = original_mhm_testing
+        else:
+            os.environ.pop('MHM_TESTING', None)
         if original_categories is not None:
             os.environ['CATEGORIES'] = original_categories
-        elif 'CATEGORIES' in os.environ:
-            del os.environ['CATEGORIES']
+        else:
+            os.environ.pop('CATEGORIES', None)
 
 # Note: This file contains pytest test functions that should be run with pytest
 # The main() function has been removed as it's not compatible with pytest

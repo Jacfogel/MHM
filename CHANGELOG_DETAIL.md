@@ -10,6 +10,80 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+
+## 2025-09-02 - Test Data Directory Stabilization
+
+### Overview
+- Fixed user data path mismatches that caused empty results and widespread test failures.
+
+### Changes Made
+- Updated `test_data_dir` fixture to use repository-scoped `tests/data` instead of system temporary directories.
+- Pointed `DEFAULT_MESSAGES_DIR_PATH` to project resources to ensure message templates load during tests.
+
+### Testing
+- `pytest tests/behavior/test_user_management_coverage_expansion.py::TestUserManagementCoverageExpansion::test_register_data_loader_real_behavior tests/unit/test_user_management.py::TestUserManagement::test_save_user_data_success tests/unit/test_user_management.py::TestUserManagement::test_update_user_preferences_success tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_create_basic_account -q`
+
+### Impact
+- Restores consistent user data access and resolves test isolation failures.
+
+## 2025-09-02 - User Cache Reset for Test Isolation
+
+### Overview
+- Cleared residual state between tests to prevent cross-test cache and environment interference.
+
+### Changes Made
+- Added `clear_user_caches_between_tests` fixture to purge caches before and after each test.
+- Restored `MHM_TESTING` and `CATEGORIES` environment variables in dialog tests to avoid polluting subsequent tests.
+
+### Testing
+- `pytest tests/unit/test_user_management.py::TestUserManagement::test_save_user_data_success tests/unit/test_user_management.py::TestUserManagement::test_hybrid_get_user_data_success tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_create_basic_account tests/unit/test_config.py::TestConfigConstants::test_user_info_dir_path_default -q`
+- `pytest tests/integration/test_user_creation.py::TestUserCreationScenarios::test_basic_email_user_creation tests/integration/test_account_lifecycle.py::TestAccountLifecycle::test_complete_account_lifecycle tests/ui/test_dialogs.py::test_user_data_access -q`
+- `pytest tests/integration/test_account_management.py::test_account_management_data_structures tests/unit/test_user_management.py::TestUserManagementEdgeCases::test_get_user_data_single_type -q`
+- `pytest tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_user_profile_dialog_integration -q` (ImportError: libGL.so.1)
+
+### Impact
+- Eliminates user data cache leakage and reinstates reliable default configuration across the test suite.
+
+
+## 2025-09-02 - Targeted User Data Logging and Qt Dependency Setup
+
+### Overview
+- Added detailed logging around `get_user_data` calls and enforced test configuration to aid diagnosis of empty user data.
+- Added OpenGL-related Python dependencies to prepare for Qt UI tests.
+
+### Changes Made
+- Augmented `core/user_data_handlers.get_user_data` with file path and loader result logging.
+- Added `ensure_mock_config_applied` fixture in `tests/conftest.py` to guarantee `mock_config` usage.
+- Added `PyOpenGL` packages to `requirements.txt`.
+
+### Testing
+- `pip install -r requirements.txt`
+- `pytest tests/unit/test_user_management.py::TestUserManagement::test_save_user_data_success -q` (fails: 'account' missing)
+- `pytest tests/ui/test_account_creation_ui.py::TestAccountManagementRealBehavior::test_user_profile_dialog_integration -q` (ImportError: libGL.so.1)
+
+### Impact
+- Provides granular visibility into user data loading paths and results.
+- Ensures every test runs against patched configuration.
+- Lays groundwork for resolving Qt OpenGL dependency issues in headless environments.
+
+
+## 2025-09-01 - Test Isolation and Configuration Fixes
+
+### Overview
+- Resolved widespread user data handler test failures caused by lingering loader registrations and missing category configuration.
+
+### Changes Made
+- **Safe Data Loader Registration**: Updated `test_register_data_loader_real_behavior` to register loaders with the proper signature and remove the custom loader after the test, preventing global state leakage.
+- **Stable Category Validation**: Set default `CATEGORIES` environment variable in `mock_config` to ensure preferences validation succeeds in isolated test environments.
+
+### Testing
+- Targeted unit, integration and behavior tests now pass.
+- UI tests skipped: missing `libGL.so.1` dependency.
+
+### Impact
+- Restores reliable `get_user_data` behavior across the suite.
+- Prevents future test pollution from temporary data loaders.
+
 ### 2025-09-01 - Admin Panel UI Layout Improvements ✅ **COMPLETED**
 
 **Objective**: Redesign the admin panel UI for consistent, professional appearance with uniform button layouts across all management sections.
@@ -3821,24 +3895,4 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Consistent API**: All code now uses `get_user_data()` and `save_user_data()` directly
 - **Reduced Complexity**: Eliminated redundant function layers
 - **Better Maintainability**: Single source of truth for user data access
-
-
-## 2025-09-01 - Test Isolation and Configuration Fixes
-
-### Overview
-- Resolved widespread user data handler test failures caused by lingering loader registrations and missing category configuration.
-
-### Changes Made
-- **Safe Data Loader Registration**: Updated `test_register_data_loader_real_behavior` to register loaders with the proper signature and remove the custom loader after the test, preventing global state leakage.
-- **Stable Category Validation**: Set default `CATEGORIES` environment variable in `mock_config` to ensure preferences validation succeeds in isolated test environments.
-
-### Testing
-- Targeted unit, integration and behavior tests now pass.
-- UI tests skipped: missing `libGL.so.1` dependency.
-
-### Impact
-- Restores reliable `get_user_data` behavior across the suite.
-- Prevents future test pollution from temporary data loaders.
-
-
 
