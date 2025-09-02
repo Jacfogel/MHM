@@ -72,28 +72,31 @@ class TestUserManagementCoverageExpansion:
     def test_register_data_loader_real_behavior(self):
         """Test data loader registration with real behavior."""
         # Arrange
-        def test_loader(user_id):
+        def test_loader(user_id, auto_create=True):
             return {"test": "data"}
-        
-        # Act
-        register_data_loader(
-            "test_type",
-            test_loader,
-            "test_file",
-            ["field1", "field2"],
-            ["created_at"],
-            "Test data type"
-        )
-        
-        # Assert
-        assert "test_type" in USER_DATA_LOADERS, "Should register new data type"
-        loader_info = USER_DATA_LOADERS["test_type"]
-        assert loader_info["loader"] == test_loader, "Should store loader function"
-        assert loader_info["file_type"] == "test_file", "Should store file type"
-        assert loader_info["default_fields"] == ["field1", "field2"], "Should store default fields"
-        assert loader_info["metadata_fields"] == ["created_at"], "Should store metadata fields"
-        assert loader_info["description"] == "Test data type", "Should store description"
-    
+
+        # Act/Assert within cleanup to avoid leaking custom loader
+        try:
+            register_data_loader(
+                "test_type",
+                test_loader,
+                "test_file",
+                ["field1", "field2"],
+                ["created_at"],
+                "Test data type",
+            )
+
+            # Assert
+            assert "test_type" in USER_DATA_LOADERS, "Should register new data type"
+            loader_info = USER_DATA_LOADERS["test_type"]
+            assert loader_info["loader"] == test_loader, "Should store loader function"
+            assert loader_info["file_type"] == "test_file", "Should store file type"
+            assert loader_info["default_fields"] == ["field1", "field2"], "Should store default fields"
+            assert loader_info["metadata_fields"] == ["created_at"], "Should store metadata fields"
+            assert loader_info["description"] == "Test data type", "Should store description"
+        finally:
+            USER_DATA_LOADERS.pop("test_type", None)
+
     def test_get_available_data_types_real_behavior(self):
         """Test getting available data types."""
         # Act

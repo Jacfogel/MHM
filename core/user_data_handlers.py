@@ -108,7 +108,31 @@ def get_user_data(
             logger.warning(f"No loader registered for data type: {data_type}")
             continue
 
+        file_path = get_user_file_path(user_id, loader_info['file_type'])
+        loader_name = getattr(loader_info['loader'], "__name__", repr(loader_info['loader']))
+        logger.debug(
+            "Loading %s for user %s from %s via %s (auto_create=%s)",
+            data_type,
+            user_id,
+            file_path,
+            loader_name,
+            auto_create,
+        )
         data = loader_info['loader'](user_id, auto_create=auto_create)
+        if not data:
+            logger.warning(
+                "No data returned for %s (user=%s, path=%s, loader=%s)",
+                data_type,
+                user_id,
+                file_path,
+                loader_name,
+            )
+        elif isinstance(data, dict):
+            logger.debug(
+                "Loaded %s keys: %s",
+                data_type,
+                list(data.keys()),
+            )
 
         # Field extraction logic
         if fields is not None:
