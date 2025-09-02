@@ -341,6 +341,24 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
 
 
 @pytest.fixture(scope="function", autouse=True)
+def redirect_tempdir(test_data_dir, monkeypatch):
+    """Ensure all temporary files are created inside the test data directory."""
+    import tempfile
+    temp_root = os.path.join(test_data_dir, "tmp")
+    os.makedirs(temp_root, exist_ok=True)
+    test_logger.debug(f"Redirecting temporary files to: {temp_root}")
+    monkeypatch.setenv("TMPDIR", temp_root)
+    monkeypatch.setenv("TEMP", temp_root)
+    monkeypatch.setenv("TMP", temp_root)
+    original = tempfile.tempdir
+    tempfile.tempdir = temp_root
+    try:
+        yield
+    finally:
+        tempfile.tempdir = original
+
+
+@pytest.fixture(scope="function", autouse=True)
 def clear_user_caches_between_tests():
     """Ensure user data caches don't leak between tests."""
     from core.user_management import clear_user_caches
