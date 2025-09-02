@@ -389,7 +389,7 @@ When running tests with coverage, reports are generated in:
 - **Terminal Report**: Shows missing lines in terminal output
 
 ### **Coverage Targets**
-- **Core Modules**: `core/`, `bot/`, `tasks/`, `user/`
+- **Core Modules**: `core/`, `communication/`, `ai/`, `tasks/`, `user/`
 - **Target Coverage**: 80%+ for critical modules
 - **Current Coverage**: 29% of codebase (9 out of 31+ modules)
 

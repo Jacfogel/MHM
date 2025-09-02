@@ -8,7 +8,7 @@
 ### **Key Modules**
 - **User data**: `core/user_data_handlers.py`, `core/user_data_validation.py`
 - **UI**: `ui/dialogs/`, `ui/widgets/`
-- **Communication**: `bot/` directory
+- **Communication**: `communication/` directory
 - **Scheduling**: `core/scheduler.py`
 - **Configuration**: `core/config.py`
 
@@ -17,9 +17,10 @@
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface
 - `core/user_data_handlers.py` - Unified user data access
+- `communication/core/channel_orchestrator.py` - Communication coordination
 
 ## 🏗️ Data Flow
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/Bot
+- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/CommunicationManager
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **UI**: `.ui` files → `ui/generated/` → `ui/dialogs/` → `ui_app_qt.py`
 
