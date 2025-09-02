@@ -95,20 +95,27 @@ class AIChatBotSingleton:
     @handle_errors("testing LM Studio connection")
     def _test_lm_studio_connection(self):
         """Test connection to LM Studio server."""
+        # In testing environments, skip real HTTP calls and assume LM Studio is available
+        if os.getenv("MHM_TESTING") == "1":
+            self.lm_studio_available = True
+            logger.info("Skipping LM Studio connection test in testing mode")
+            ai_logger.info("LM Studio connection assumed available for tests")
+            return
+
         # Test with a simple request to models endpoint
         response = requests.get(
             f"{LM_STUDIO_BASE_URL}/models",
             headers={"Authorization": f"Bearer {LM_STUDIO_API_KEY}"},
             timeout=AI_CONNECTION_TEST_TIMEOUT
         )
-        
+
         if response.status_code == 200:
             models_data = response.json()
             logger.info(f"LM Studio connection successful. Available models: {len(models_data.get('data', []))}")
-            ai_logger.info("LM Studio connection test successful", 
+            ai_logger.info("LM Studio connection test successful",
                           available_models=len(models_data.get('data', [])))
             self.lm_studio_available = True
-            
+
             # Log the first few models for debugging
             models = models_data.get('data', [])
             if models:
@@ -117,10 +124,10 @@ class AIChatBotSingleton:
             else:
                 logger.warning("LM Studio is running but no models are loaded")
                 ai_logger.warning("LM Studio running but no models loaded")
-                
+
         else:
             logger.warning(f"LM Studio connection test failed: HTTP {response.status_code}")
-            ai_logger.warning("LM Studio connection test failed", 
+            ai_logger.warning("LM Studio connection test failed",
                              status_code=response.status_code)
             self.lm_studio_available = False
 

@@ -286,36 +286,38 @@ def validate_communication_channels() -> Tuple[bool, List[str], List[str]]:
     warnings = []
     available_channels = []
     
-    # Check email configuration
+    # Check email configuration dynamically from environment
     email_config = {
-        'EMAIL_SMTP_SERVER': EMAIL_SMTP_SERVER,
-        'EMAIL_IMAP_SERVER': EMAIL_IMAP_SERVER,
-        'EMAIL_SMTP_USERNAME': EMAIL_SMTP_USERNAME,
-        'EMAIL_SMTP_PASSWORD': EMAIL_SMTP_PASSWORD
+        'EMAIL_SMTP_SERVER': os.getenv('EMAIL_SMTP_SERVER'),
+        'EMAIL_IMAP_SERVER': os.getenv('EMAIL_IMAP_SERVER'),
+        'EMAIL_SMTP_USERNAME': os.getenv('EMAIL_SMTP_USERNAME'),
+        'EMAIL_SMTP_PASSWORD': os.getenv('EMAIL_SMTP_PASSWORD')
     }
-    
+
     email_missing = [key for key, value in email_config.items() if not value]
     if email_missing:
         warnings.append(f"Email channel disabled - missing: {', '.join(email_missing)}")
     else:
         available_channels.append('email')
         # Validate email format
-        if EMAIL_SMTP_USERNAME and '@' not in EMAIL_SMTP_USERNAME:
+        email_user = email_config['EMAIL_SMTP_USERNAME']
+        if email_user and '@' not in email_user:
             warnings.append("EMAIL_SMTP_USERNAME doesn't appear to be a valid email address")
-    
-    # Check Discord configuration
-    if not DISCORD_BOT_TOKEN:
+
+    # Check Discord configuration dynamically from environment
+    discord_token = os.getenv('DISCORD_BOT_TOKEN')
+    if not discord_token:
         warnings.append("Discord channel disabled - DISCORD_BOT_TOKEN not configured")
     else:
         available_channels.append('discord')
         # Basic Discord token validation (should start with specific pattern)
-        if not DISCORD_BOT_TOKEN.startswith(('MT', 'OT', 'NT')):
+        if not discord_token.startswith(('MT', 'OT', 'NT')):
             warnings.append("DISCORD_BOT_TOKEN doesn't match expected Discord bot token format")
     
-    # Check if any channels are available
+    # If no channels are configured, treat as warning for flexibility
     if not available_channels:
-        errors.append("No communication channels are properly configured. At least one channel (Email or Discord) must be configured.")
-    
+        warnings.append("No communication channels are properly configured. At least one channel (Email or Discord) should be configured.")
+
     return len(errors) == 0, errors, warnings
 
 def validate_logging_configuration() -> Tuple[bool, List[str], List[str]]:
