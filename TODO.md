@@ -861,10 +861,9 @@ When adding new tasks, follow this format:
   - ✅ **Enhanced Test Cleanup** - Improved UUID-based user directory cleanup and aggressive directory cleanup
   - ✅ **Fixed Scripts Directory Discovery** - Renamed all test_*.py files in scripts/ to script_test_*.py to prevent pytest discovery
   - ✅ **Improved Test User Management** - Fixed test to use proper user directory structure instead of manual directory creation
-  - ✅ **Reduced Failing Tests** - From 3 failing tests to 2 failing tests (significant improvement)
+  - ✅ **Standardized Test Data Path** - Ensured tests write under `tests/data` instead of system temp directories
 - *Remaining Issues*:
-  - ⚠️ **2 Persistent Test Failures** - `test_update_user_preferences_success` and `test_user_lifecycle` still fail in full suite but pass individually
-  - ⚠️ **Test Isolation Complexity** - Complex interaction between multiple tests creating users and modifying global state
+  - ⚠️ **Full-suite Verification Pending** - Need to confirm no residual isolation failures remain
 - *Next Steps*:
   - [ ] Investigate remaining test isolation issues with mock_user_data fixture
   - [ ] Consider making failing tests more robust to handle state pollution
