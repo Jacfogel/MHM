@@ -330,7 +330,7 @@ When adding new tasks, follow this format:
     - [x] Updated `tests/integration/test_account_management.py` and `tests/ui/test_dialogs.py`
     - [x] Removed incompatible `main()` functions from test files
   - [x] **Fixed AsyncIO Deprecation Warnings** ✅ **COMPLETED**
-    - [x] Updated `bot/ai_chatbot.py`, `bot/email_bot.py`, `bot/communication_manager.py`
+    - [x] Updated `ai/chatbot.py`, `communication/communication_channels/email/bot.py`, `communication/core/channel_orchestrator.py`
     - [x] Replaced `asyncio.get_event_loop()` with `asyncio.get_running_loop()` with fallback
   - [x] **Enhanced Account Validation** ✅ **COMPLETED**
     - [x] Added strict validation for empty `internal_username` fields
@@ -584,7 +584,7 @@ When adding new tasks, follow this format:
   - [ ] Extend schema validation to schedules save paths not yet using helpers (confirm all call-sites)
   - [ ] Add unit tests for `validate_*_dict` helpers with edge-case payloads (extras, nulls, invalid times/days)
   - [ ] Add behavior tests for end-to-end save/load normalization
-  - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `bot/`)
+  - [ ] Add read-path normalization invocation to remaining reads that feed business logic (sweep `core/` and `communication/`)
 
 **Discord Task Edit Follow-ups and Suggestion Relevance**
 - *What it means*: Ensure edit-task prompts are actionable, suppress irrelevant suggestions, and add coverage for common follow-ups
