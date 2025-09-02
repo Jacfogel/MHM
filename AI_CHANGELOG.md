@@ -30,6 +30,18 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-02 - Test Suite Reliability Investigation and User Data System Issues - CRITICAL DISCOVERY ⚠️ **IN PROGRESS**
+- **Test Suite Status**: 40 tests failing, 1101 tests passing - investigating widespread user data access failures
+- **CRITICAL DISCOVERY**: Test execution method significantly affects failure count
+  - `python run_tests.py`: Only 2 failures (message duplication + path handling issues)
+  - `python -m pytest tests/`: 40 failures (including 38 additional user data system failures)
+- **Root Cause Identified**: Environment variable differences between test runners
+  - `run_tests.py` sets `DISABLE_LOG_ROTATION=1` which prevents user data system failures
+  - Direct pytest execution exposes 38 additional failures related to user data access
+- **Current Focus**: Investigating how `DISABLE_LOG_ROTATION` environment variable affects test fixture behavior
+- **Impact**: Full test suite cannot pass until user data system issues are resolved
+- **Next Steps**: Debug environment variable impact, assess fix legitimacy, consider standardizing test environment
+
 ### 2025-09-01 - Git Workflow Documentation and PowerShell-Safe Commands ✅ **COMPLETED**
 - **Git Paging Issue Resolution**: Documented PowerShell-safe Git commands to prevent terminal hanging
 - **Development Workflow Updates**: Added comprehensive Git workflow section to DEVELOPMENT_WORKFLOW.md

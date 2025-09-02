@@ -10,6 +10,46 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+## 2025-09-02 - Test Suite Reliability Investigation and User Data System Issues - CRITICAL DISCOVERY
+
+### Overview
+- Investigating widespread test failures related to user data system to restore full test suite reliability
+- **CRITICAL DISCOVERY**: Test execution method significantly affects failure count
+- 40 tests currently failing with user data access issues, 1101 tests passing
+
+### Critical Discovery Details
+- **`python run_tests.py`**: Only 2 failures (message duplication + path handling issues)
+- **`python -m pytest tests/`**: 40 failures (including 38 additional user data system failures)
+- **Root Cause**: Environment variable differences between test runners
+  - `run_tests.py` sets `os.environ['DISABLE_LOG_ROTATION'] = '1'` which prevents user data system failures
+  - Direct pytest execution exposes 38 additional failures related to user data access
+
+### Current Status
+- **Test Suite Results**: 40 failed, 1101 passed, 1 skipped
+- **Primary Issue**: `get_user_data()` function returning empty dictionaries `{}` instead of expected user data
+- **Error Pattern**: `KeyError: 'account'` and `KeyError: 'preferences'` across multiple test categories
+- **Affected Test Areas**: User management, account lifecycle, integration tests, UI tests
+
+### Root Cause Investigation
+- **Environment Variable Impact**: `DISABLE_LOG_ROTATION=1` setting prevents user data system failures
+- **Test Fixture Behavior**: Environment variable difference suggests log rotation or environment-dependent behavior affecting test fixtures
+- **System Behavior**: Test execution method significantly affects system behavior and failure count
+
+### Next Steps
+1. **Investigate Environment Variable Impact**: Understand how `DISABLE_LOG_ROTATION` affects test fixture behavior
+2. **Debug User Data Access**: Determine why this setting prevents user data access failures
+3. **Assess Fix Legitimacy**: Determine if this is a legitimate fix or masking underlying system issues
+4. **Standardize Test Environment**: Consider standardizing test environment variables across all test execution methods
+
+### Impact
+- Full test suite cannot pass until user data system issues are resolved
+- Critical discovery suggests test execution method significantly affects system behavior
+- Need to understand if environment variable is legitimate fix or masking underlying issues
+
+### Files Affected
+- Test fixtures and configuration in `tests/conftest.py`
+- User data handling in `core/user_data_handlers.py`
+- Test execution scripts in `run_tests.py`
 
 ## 2025-09-02 - Test Data Directory Stabilization
 

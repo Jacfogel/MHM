@@ -30,6 +30,30 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+## **User Data System Testing Issues Investigation** ⚠️ **IN PROGRESS**
+- *What it means*: Investigate and resolve widespread test failures related to `get_user_data` function returning empty dictionaries instead of expected user data
+- *Why it helps*: Resolves 40 failing tests that prevent full test suite from passing, improving system reliability and test coverage
+- *Estimated effort*: Medium
+- *Status*: ⚠️ **IN PROGRESS** - Root cause identified: environment variable differences between test runners
+- *Current Issues*:
+  - **40 tests failing** with `KeyError: 'account'` and `KeyError: 'preferences'` when running pytest directly
+  - **Only 2 tests failing** when using `python run_tests.py` (which sets `DISABLE_LOG_ROTATION=1`)
+  - `get_user_data()` function returning empty dictionaries `{}` instead of expected data
+  - Tests expect data structure with keys like 'account', 'preferences', 'context' but getting empty results
+  - Affects user management, account lifecycle, integration tests, and UI tests
+- *Root Cause Discovery*:
+  - `run_tests.py` sets `os.environ['DISABLE_LOG_ROTATION'] = '1'` which prevents user data system failures
+  - Direct pytest execution (`python -m pytest tests/`) exposes 38 additional failures
+  - Environment variable difference suggests log rotation or environment-dependent behavior affecting test fixtures
+- *Next Steps*:
+  - Investigate how `DISABLE_LOG_ROTATION` environment variable affects test fixture behavior
+  - Debug why this setting prevents user data access failures
+  - Determine if this is a legitimate fix or masking underlying system issues
+  - Consider standardizing test environment variables across all test execution methods
+- *Blockers*: None identified yet
+- *Dependencies*: None
+- *Notes*: Critical discovery - test execution method significantly affects failure count
+
 ## **Admin Panel UI Layout Improvements** ✅ **COMPLETED**
 - *What it means*: Redesigned admin panel UI for consistent, professional 4-button layouts across all sections
 - *Why it helps*: Provides uniform, professional appearance and better user experience
