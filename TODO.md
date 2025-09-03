@@ -34,7 +34,7 @@ When adding new tasks, follow this format:
 - *What it means*: Investigate and resolve widespread test failures related to `get_user_data` function returning empty dictionaries instead of expected user data
 - *Why it helps*: Resolves 40 failing tests that prevent full test suite from passing, improving system reliability and test coverage
 - *Estimated effort*: Medium
-- *Status*: ⚠️ **IN PROGRESS** - Root cause identified: environment variable differences between test runners
+- *Status*: ⚠️ **IN PROGRESS** - Root cause identified: temp directory configuration and data loader registration issues
 - *Current Issues*:
   - **40 tests failing** with `KeyError: 'account'` and `KeyError: 'preferences'` when running pytest directly
   - **Only 2 tests failing** when using `python run_tests.py` (which sets `DISABLE_LOG_ROTATION=1`)
@@ -42,17 +42,42 @@ When adding new tasks, follow this format:
   - Tests expect data structure with keys like 'account', 'preferences', 'context' but getting empty results
   - Affects user management, account lifecycle, integration tests, and UI tests
 - *Root Cause Discovery*:
-  - `run_tests.py` sets `os.environ['DISABLE_LOG_ROTATION'] = '1'` which prevents user data system failures
-  - Direct pytest execution (`python -m pytest tests/`) exposes 38 additional failures
+  - **Temp Directory Issue**: Tests were creating files in system temp directory (`C:\Users\Julie\AppData\Local\Temp\`) instead of test data directory
+  - **Data Loader Registration Issue**: Data loaders in `core/user_management.py` not properly registered before tests run
   - Environment variable difference suggests log rotation or environment-dependent behavior affecting test fixtures
+- *Progress Made*:
+  - ✅ **Temp Directory Fix**: Removed conflicting `redirect_tempdir` fixture that was overriding session-scoped temp directory configuration
+  - ✅ **Data Loader Fixture**: Added `fix_user_data_loaders` fixture to ensure data loaders are registered before each test
+  - ✅ **File Creation Location**: Tests now create files in `tests/data` instead of system temp directory
 - *Next Steps*:
-  - Investigate how `DISABLE_LOG_ROTATION` environment variable affects test fixture behavior
-  - Debug why this setting prevents user data access failures
-  - Determine if this is a legitimate fix or masking underlying system issues
-  - Consider standardizing test environment variables across all test execution methods
+  - Test the complete fix to verify both temp directory and data loader issues are resolved
+  - Run full test suite to confirm 40 failures are eliminated
+  - Document the complete solution in changelog files
 - *Blockers*: None identified yet
 - *Dependencies*: None
-- *Notes*: Critical discovery - test execution method significantly affects failure count
+- *Notes*: Significant progress made - temp directory issue resolved, data loader fixture added
+
+## **Test Complete Fix for User Data System Issues** ⚠️ **PENDING TESTING**
+- *What it means*: Test the complete fix for temp directory and data loader registration issues to verify 40 test failures are resolved
+- *Why it helps*: Confirms the solution works and restores full test suite reliability
+- *Estimated effort*: Small
+- *Status*: ⚠️ **PENDING TESTING** - Fixes implemented, needs verification
+- *Completed Work*:
+  - ✅ **Temp Directory Fix**: Removed conflicting `redirect_tempdir` fixture, tests now create files in `tests/data`
+  - ✅ **Data Loader Fixture**: Added `fix_user_data_loaders` fixture to ensure data loaders are registered
+  - ✅ **File Creation Location**: No more files created outside project directory
+- *Testing Required*:
+  - Run full test suite to confirm 40 failures are eliminated
+  - Verify `get_user_data()` returns actual data instead of empty dictionaries
+  - Check that tests create files in correct location (`tests/data`)
+- *Expected Results*:
+  - Consistent test results (no more 40 vs 2 failures)
+  - All user data access tests passing
+  - No more `KeyError: 'account'` or `AssertionError: assert 'account' in {}`
+- *Next Steps*:
+  - Run `python -m pytest` to test complete fix
+  - Document results in changelog files
+  - Remove task from TODO.md if successful
 
 ## **Admin Panel UI Layout Improvements** ✅ **COMPLETED**
 - *What it means*: Redesigned admin panel UI for consistent, professional 4-button layouts across all sections

@@ -340,22 +340,8 @@ def ensure_mock_config_applied(mock_config, test_data_dir):
     yield
 
 
-@pytest.fixture(scope="function", autouse=True)
-def redirect_tempdir(test_data_dir, monkeypatch):
-    """Ensure all temporary files are created inside the test data directory."""
-    import tempfile
-    temp_root = os.path.join(test_data_dir, "tmp")
-    os.makedirs(temp_root, exist_ok=True)
-    test_logger.debug(f"Redirecting temporary files to: {temp_root}")
-    monkeypatch.setenv("TMPDIR", temp_root)
-    monkeypatch.setenv("TEMP", temp_root)
-    monkeypatch.setenv("TMP", temp_root)
-    original = tempfile.tempdir
-    tempfile.tempdir = temp_root
-    try:
-        yield
-    finally:
-        tempfile.tempdir = original
+# REMOVED: redirect_tempdir fixture - conflicts with force_test_data_directory
+# The session-scoped force_test_data_directory fixture handles temp directory redirection globally
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -365,6 +351,20 @@ def clear_user_caches_between_tests():
     clear_user_caches()
     yield
     clear_user_caches()
+
+@pytest.fixture(scope="function", autouse=True)
+def fix_user_data_loaders():
+    """CRITICAL: Fix the user data loader registration issue that causes get_user_data to return empty dicts."""
+    import core.user_management
+    
+    # Force registration of data loaders if they're not already registered
+    if core.user_management.USER_DATA_LOADERS['account']['loader'] is None:
+        core.user_management.register_data_loader('account', core.user_management._get_user_data__load_account, 'account')
+        core.user_management.register_data_loader('preferences', core.user_management._get_user_data__load_preferences, 'preferences')
+        core.user_management.register_data_loader('context', core.user_management._get_user_data__load_context, 'user_context')
+        core.user_management.register_data_loader('schedules', core.user_management._get_user_data__load_schedules, 'schedules')
+    
+    yield
 
 @pytest.fixture(scope="function")
 def mock_user_data(mock_config, request):
