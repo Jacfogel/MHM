@@ -2053,8 +2053,12 @@ class TestDataManager:
             test_dir: Path to the test directory to clean up
         """
         try:
+            if not test_dir:
+                return
+            # Prefer letting the per-test factory and session cleanup handle removal.
+            # As a fallback, remove with ignore_errors to avoid intermittent failures on Windows.
             if os.path.exists(test_dir):
-                shutil.rmtree(test_dir)
+                shutil.rmtree(test_dir, ignore_errors=True)
         except Exception as e:
             print(f"Warning: Could not clean up test directory {test_dir}: {e}")
 

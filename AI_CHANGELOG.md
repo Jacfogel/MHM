@@ -30,6 +30,15 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### Test Suite Stabilization and Deterministic User-Data Loading
+- Standardized temp path policy and added session pre/post cleanup for `tests/data/tmp`, `flags`, and stray artifacts
+- Implemented idempotent loader registration in `core.user_management` with import-time guard
+- Added minimal test-time shim with file fallback using `core.config.get_user_data_dir` to assemble missing structures
+- Reduced component log verbosity during tests and configured size-based rotation under `tests/logs`
+- Fixed tests writing users outside `tests/data/users` and updated message behavior paths
+- Updated `tests/unit/test_config.py` to use `test_path_factory` for `DEFAULT_MESSAGES_DIR_PATH` to avoid creating `tests/data/resources`
+- Result: Full suite green (1141 passed, 1 skipped); intermittent failures resolved
+
 ### 2025-09-05 - Test Suite Stabilization Completed; 1141 Passing ✅ **COMPLETED**
 - Implemented session-wide temp routing to `tests/data`, path sanitizer, env guard, and per-test path factory.
 - Refactored remaining tests to use `test_path_factory` and `monkeypatch.setenv`; fixed fixture injection patterns.

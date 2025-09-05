@@ -63,7 +63,10 @@ class TestUserManagementCoverageExpansion:
         """Clean up test environment."""
         if os.path.exists(self.test_dir):
             import shutil
-            shutil.rmtree(self.test_dir)
+            try:
+                shutil.rmtree(self.test_dir)
+            except Exception:
+                pass
     
     def test_register_data_loader_real_behavior(self):
         """Test data loader registration with real behavior."""
@@ -697,7 +700,10 @@ class TestUserManagementIntegration:
         """Clean up test environment."""
         if os.path.exists(self.test_dir):
             import shutil
-            shutil.rmtree(self.test_dir)
+            try:
+                shutil.rmtree(self.test_dir)
+            except Exception:
+                pass
     
     def test_user_data_lifecycle_real_behavior(self):
         """Test complete user data lifecycle."""

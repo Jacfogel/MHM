@@ -28,7 +28,47 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
+### Test Data Cleanup Standards (Optional but Recommended)
+- Pre-run (session start):
+  - Remove `tests/data/pytest-of-Julie` if present
+  - Clear all children of `tests/data/tmp`
+  - Remove stray `tests/data/config` directory
+  - Remove root files `tests/data/.env` and `tests/data/requirements.txt`
+  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
+- Post-run (session end):
+  - Clear all children of `tests/data/tmp`
+  - Clear all children of `tests/data/flags`
+  - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
+  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
+- Users directory policy:
+  - All test users must reside under `tests/data/users/<id>`
+  - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
+  - Post-run: ensure `tests/data/users` has no lingering test users
+
+
 ## High Priority
+
+## **Intermittent Full-Suite Instability** ⚠️ **NEW**
+- *What it means*: Full test suite occasionally fails with empty user-data dicts (e.g., missing `'account'`, `'preferences'`, `'schedules'`). Subsets generally pass; failures reappear on some full runs.
+- *Why it helps*: Ensuring deterministic behavior in CI and local full runs prevents regressions from slipping through.
+- *Observed symptoms*:
+  - 38 failures clustered in user management, account lifecycle, schedules, and UI dialog tests
+  - Patterns: `assert 'account' in {}`, `KeyError: 'preferences'`, schedule reads missing periods
+- *Stabilization steps already taken*:
+  - Deterministic loader registration in `core/user_management.py` with idempotent `register_default_loaders()` and guarded import
+  - Test-time shim to assemble structured dicts; fallback to read JSONs via `core.config.get_user_data_dir(user_id)`
+  - Standardized temp dirs via session fixture; path guardrails to prevent writing outside `tests/data`
+  - Normalized env var handling with `monkeypatch.setenv`; snapshot and restore
+  - Component log rotation isolated to `tests/logs` and capped; removed Unicode from terminal hooks
+  - Refactored tests to create users under `tests/data/users/<id>`; added guard against stray user dirs
+  - Updated `tests/unit/test_config.py` to use `test_path_factory` and stop creating `tests/data/resources`
+- *Next steps*:
+  - [ ] Add unit tests for loader registration order/idempotency (`unit-tests-registration`)
+  - [ ] Add session-start self-check: assert loaders for `account`, `preferences`, `context`, `schedules`; fail fast with diagnostics
+  - [ ] Instrument `core.user_data_handlers.get_user_data` with debug logs gated by `MHM_TESTING` for types requested/returned
+  - [ ] Verify all call-sites avoid reassignment of `USER_DATA_LOADERS`; only mutate entries
+  - [ ] After green runs, remove early import shim (`remove-early-shims`) and re-verify stability
+  - [ ] Re-run full suite twice in a clean workspace after purging `tests/data/tmp` and `tests/data/users`
 
 ## **User Data System Testing Issues Investigation** ✅ **COMPLETED**
 - *What it means*: Investigate and resolve widespread test failures related to `get_user_data` function returning empty dictionaries instead of expected user data

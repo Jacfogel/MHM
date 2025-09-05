@@ -13,7 +13,6 @@ This module tests the uncovered areas of CommunicationManager to expand coverage
 
 import pytest
 import os
-import tempfile
 import shutil
 import asyncio
 import time
@@ -36,11 +35,9 @@ class TestCommunicationManagerCoverageExpansion:
     """Comprehensive tests for CommunicationManager uncovered functionality."""
     
     @pytest.fixture
-    def test_data_dir(self):
-        """Create a temporary directory for testing."""
-        temp_dir = tempfile.mkdtemp()
-        yield temp_dir
-        shutil.rmtree(temp_dir)
+    def test_data_dir(self, test_path_factory):
+        """Provide per-test directory under tests/data/tmp."""
+        return test_path_factory
     
     @pytest.fixture
     def comm_manager(self):

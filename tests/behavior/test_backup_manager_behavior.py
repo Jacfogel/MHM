@@ -86,9 +86,9 @@ class TestBackupManagerBehavior:
         """Clean up test files and directories."""
         try:
             if os.path.exists(self.backup_dir):
-                shutil.rmtree(self.backup_dir)
+                shutil.rmtree(self.backup_dir, ignore_errors=True)
             if os.path.exists(self.user_data_dir):
-                shutil.rmtree(self.user_data_dir)
+                shutil.rmtree(self.user_data_dir, ignore_errors=True)
         except Exception:
             pass
     
@@ -428,8 +428,10 @@ class TestBackupManagerBehavior:
         """Test safe operation with backup and rollback."""
         # Define a test operation
         def test_operation():
-            # Create a test file
-            test_file = os.path.join(self.test_data_dir, "operation_test.txt")
+            # Create a test file under tmp to avoid leaving artifacts at tests/data root
+            tmp_dir = os.path.join(self.test_data_dir, "tmp")
+            os.makedirs(tmp_dir, exist_ok=True)
+            test_file = os.path.join(tmp_dir, "operation_test.txt")
             with open(test_file, 'w') as f:
                 f.write("operation completed")
             return True
@@ -440,9 +442,13 @@ class TestBackupManagerBehavior:
         # Verify operation succeeded
         assert success is True
         
-        # Verify test file was created
-        test_file = os.path.join(self.test_data_dir, "operation_test.txt")
+        # Verify test file was created under tmp and then clean it up
+        test_file = os.path.join(self.test_data_dir, "tmp", "operation_test.txt")
         assert os.path.exists(test_file)
+        try:
+            os.remove(test_file)
+        except Exception:
+            pass
     
     def test_perform_safe_operation_with_failure_real_behavior(self):
         """Test safe operation with failure and rollback."""

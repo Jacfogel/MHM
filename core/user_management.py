@@ -65,10 +65,16 @@ USER_DATA_LOADERS = {
     }
 }
 
-def register_data_loader(data_type: str, loader_func, file_type: str, 
-                        default_fields: List[str] = None, 
-                        metadata_fields: List[str] = None,
-                        description: str = ""):
+def register_data_loader(
+    data_type: str,
+    loader_func,
+    file_type: str,
+    default_fields: List[str] = None,
+    metadata_fields: List[str] = None,
+    description: str = "",
+    *,
+    force: bool = False,
+):
     """
     Register a new data loader for the centralized system.
     
@@ -80,6 +86,14 @@ def register_data_loader(data_type: str, loader_func, file_type: str,
         metadata_fields: Fields that contain metadata
         description: Human-readable description
     """
+    # Idempotent behavior: if an entry exists with a non-None loader and not forcing, do not overwrite
+    existing = USER_DATA_LOADERS.get(data_type)
+    if existing is not None and existing.get('loader') is not None and not force:
+        logger.debug(
+            f"register_data_loader no-op for '{data_type}' (loader already set and force=False)"
+        )
+        return False
+
     USER_DATA_LOADERS[data_type] = {
         'loader': loader_func,
         'file_type': file_type,
@@ -88,6 +102,37 @@ def register_data_loader(data_type: str, loader_func, file_type: str,
         'description': description
     }
     logger.info(f"Registered data loader for type: {data_type}")
+    return True
+
+
+# Once-only guard for default loader registration
+_DEFAULT_LOADERS_REGISTERED = False
+
+
+def register_default_loaders() -> None:
+    """Ensure required loaders are registered (idempotent).
+
+    Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
+    loader entries for: account, preferences, context, schedules.
+    """
+    # Local imports of loader functions are already in this module
+    required = [
+        ('account', _get_user_data__load_account, 'account'),
+        ('preferences', _get_user_data__load_preferences, 'preferences'),
+        ('context', _get_user_data__load_context, 'user_context'),
+        ('schedules', _get_user_data__load_schedules, 'schedules'),
+    ]
+    for key, func, ftype in required:
+        entry = USER_DATA_LOADERS.get(key)
+        if entry is None or entry.get('loader') is None:
+            register_data_loader(key, func, ftype)
+
+
+def _ensure_default_loaders_once() -> None:
+    global _DEFAULT_LOADERS_REGISTERED
+    if not _DEFAULT_LOADERS_REGISTERED:
+        register_default_loaders()
+        _DEFAULT_LOADERS_REGISTERED = True
 
 def get_available_data_types() -> List[str]:
     """Get list of available data types."""
@@ -1027,10 +1072,7 @@ def ensure_all_categories_have_schedules(user_id: str) -> bool:
 
 # Register all data loaders in the centralized registry
 # This happens after all functions are defined
-register_data_loader('account', _get_user_data__load_account, 'account')
-register_data_loader('preferences', _get_user_data__load_preferences, 'preferences')
-register_data_loader('context', _get_user_data__load_context, 'user_context')
-register_data_loader('schedules', _get_user_data__load_schedules, 'schedules')
+_ensure_default_loaders_once()
 
 logger.info(f"Registered {len(USER_DATA_LOADERS)} data loaders in centralized registry")
 

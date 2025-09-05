@@ -394,13 +394,19 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             # In verbose test mode, continue and create real component loggers that write under tests/logs
         else:
             # Default for tests: no-op logger for clean test output
+            class _DummyLogger:
+                def __init__(self, name: str):
+                    self.name = name
             class DummyComponentLogger:
+                def __init__(self, name: str):
+                    self.component_name = name
+                    self.logger = _DummyLogger(f"mhm.{name}")
                 def debug(self, message: str, **kwargs): pass
                 def info(self, message: str, **kwargs): pass
                 def warning(self, message: str, **kwargs): pass
                 def error(self, message: str, **kwargs): pass
                 def critical(self, message: str, **kwargs): pass
-            return DummyComponentLogger()
+            return DummyComponentLogger(component_name)
     
     # Enforce canonical component names (channels -> communication_manager was migrated)
     if component_name == 'channels':

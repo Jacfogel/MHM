@@ -32,14 +32,16 @@ class TestConfigValidation:
     @pytest.mark.unit
     @pytest.mark.critical
     @pytest.mark.config
-    def test_validate_core_paths_success(self, test_data_dir):
+    def test_validate_core_paths_success(self, test_data_dir, test_path_factory):
         """Test successful core path validation."""
+        temp_root = test_path_factory
+        defaults_dir = os.path.join(temp_root, 'resources', 'default_messages')
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     # Check initial state - directories might not exist yet
                     users_dir = os.path.join(test_data_dir, 'users')
-                    messages_dir = os.path.join(test_data_dir, 'resources', 'default_messages')
+                    messages_dir = defaults_dir
                     
                     is_valid, errors, warnings = validate_core_paths()
                     
@@ -180,11 +182,13 @@ class TestConfigValidation:
     @pytest.mark.integration
     @pytest.mark.critical
     @pytest.mark.config
-    def test_validate_all_configuration_success(self, test_data_dir):
+    def test_validate_all_configuration_success(self, test_data_dir, test_path_factory):
         """Test comprehensive configuration validation."""
+        temp_root = test_path_factory
+        defaults_dir = os.path.join(temp_root, 'resources', 'default_messages')
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     with patch.dict(os.environ, {
                         'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
                         'LM_STUDIO_API_KEY': 'test_key'
@@ -199,11 +203,13 @@ class TestConfigValidation:
     @pytest.mark.integration
     @pytest.mark.critical
     @pytest.mark.config
-    def test_validate_and_raise_if_invalid_success(self, test_data_dir):
+    def test_validate_and_raise_if_invalid_success(self, test_data_dir, test_path_factory):
         """Test successful validation with no exceptions."""
+        temp_root = test_path_factory
+        defaults_dir = os.path.join(temp_root, 'resources', 'default_messages')
         with patch('core.config.BASE_DATA_DIR', test_data_dir):
             with patch('core.config.USER_INFO_DIR_PATH', os.path.join(test_data_dir, 'users')):
-                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', os.path.join(test_data_dir, 'resources', 'default_messages')):
+                with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', defaults_dir):
                     with patch.dict(os.environ, {
                         'LM_STUDIO_BASE_URL': 'http://localhost:1234/v1',
                         'LM_STUDIO_API_KEY': 'test_key'

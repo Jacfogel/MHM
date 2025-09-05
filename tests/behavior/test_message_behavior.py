@@ -148,8 +148,8 @@ class TestMessageCRUD:
             "time_periods": ["morning"]
         }
         
-        # Create user directory structure
-        user_dir = os.path.join(test_data_dir, user_id)
+        # Create user directory structure under tests/data/users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
 
@@ -190,8 +190,8 @@ class TestMessageCRUD:
             "time_periods": ["evening"]
         }
         
-        # Create user directory structure and initial message file
-        user_dir = os.path.join(test_data_dir, user_id)
+        # Create user directory structure and initial message file under tests/data/users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         
@@ -299,8 +299,8 @@ class TestMessageCRUD:
         category = "motivational"
         message_id = "test-msg-1"
         
-        # Create user directory structure and initial message file
-        user_dir = os.path.join(test_data_dir, user_id)
+        # Create user directory structure and initial message file under users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         
@@ -400,8 +400,8 @@ class TestSentMessages:
         user_id = "test-user-last10"
         category = "motivational"
         
-        # Create user directory structure and sent messages file
-        user_dir = os.path.join(test_data_dir, user_id)
+        # Create user directory structure and sent messages file under tests/data/users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         
@@ -573,8 +573,8 @@ class TestIntegration:
         user_id = "test-user-lifecycle"  # Use unique user ID to avoid conflicts
         category = "motivational"
         
-        # Create user directory structure
-        user_dir = os.path.join(test_data_dir, user_id)
+        # Create user directory structure under tests/data/users
+        user_dir = os.path.join(test_data_dir, 'users', user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         

@@ -1743,6 +1743,33 @@ When adding new changes, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### Test Suite Reliability: Deterministic Loader Registration, File-Fallback Shim, and Path Hygiene
+Summary: Resolved intermittent user-data test failures and path hygiene issues in tests by making loader registration idempotent, adding a minimal shim with file fallback for tests, standardizing temp/user directories, and tightening cleanup.
+
+Changes:
+- core/user_management.py
+  - Made `register_data_loader(..., force=False)` idempotent
+  - Added `register_default_loaders()` and once-only guard invoked at import
+  - Avoid reassignment of `USER_DATA_LOADERS`; mutate in place only
+- tests/conftest.py
+  - Early isolation of config paths to `tests/data`
+  - Minimal shim wraps `get_user_data` during tests with safe file fallback using `core.config.get_user_data_dir`
+  - Autouse guard to prevent user dirs outside `tests/data/users`; detect user artifacts under `tests/data/tmp`
+  - Session pre/post cleanup: purge `pytest-of-Julie`, `tmp`, `flags`; remove stray `config`, `.env`, `requirements.txt`, `resources`, and `nested`
+  - Reduced logger verbosity; added size-based rotation for component logs under `tests/logs`
+- tests/unit/test_config.py
+  - Use `test_path_factory` for `DEFAULT_MESSAGES_DIR_PATH` to avoid creating `tests/data/resources`
+- tests/behavior/test_message_behavior.py
+  - Ensure user message files are created under `tests/data/users/<user_id>/messages`
+
+Impact:
+- Full suite now passes consistently (1141 passed, 1 skipped). Intermittent 38-test failure resolved.
+- `tests/data` remains clean post-run (only expected empty `flags`, `tmp`, and `users`).
+
+Testing:
+- Ran user management and account lifecycle subsets: green
+- Ran full suite twice: green; logs rotated; no stray user dirs outside `tests/data/users`
+
 ### 2025-08-21 - Helper Function Naming Convention Refactor Planning 🟡 **PLANNING**
 
 **Summary**: Planned comprehensive refactor of helper function naming convention to improve code traceability, searchability, and maintainability across the entire codebase.

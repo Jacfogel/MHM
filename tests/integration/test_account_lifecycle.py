@@ -8,7 +8,6 @@ Focuses on real behavior testing and side effect verification
 import pytest
 import os
 import json
-import tempfile
 import shutil
 from pathlib import Path
 
