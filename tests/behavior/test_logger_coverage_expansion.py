@@ -15,8 +15,6 @@ Focuses on expanding coverage from 55% to 70% by testing:
 
 import pytest
 import os
-import tempfile
-import shutil
 import time
 import json
 import gzip
@@ -24,6 +22,7 @@ import logging
 from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock, mock_open
 from pathlib import Path
+import shutil
 
 # Import logger components
 from core.logger import (
@@ -47,9 +46,10 @@ from core.logger import (
 class TestLoggerCoverageExpansion:
     """Test Core Logger coverage expansion with real behavior verification."""
     
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_path_factory):
         """Set up test environment."""
-        self.test_dir = tempfile.mkdtemp()
+        self.test_dir = test_path_factory
         self.log_file = os.path.join(self.test_dir, 'test.log')
         self.backup_dir = os.path.join(self.test_dir, 'backups')
         os.makedirs(self.backup_dir, exist_ok=True)
@@ -665,9 +665,10 @@ class TestLoggerCoverageExpansion:
 class TestLoggerIntegration:
     """Test integration behavior of Core Logger."""
     
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_path_factory):
         """Set up test environment."""
-        self.test_dir = tempfile.mkdtemp()
+        self.test_dir = test_path_factory
         self.log_file = os.path.join(self.test_dir, 'test.log')
         self.backup_dir = os.path.join(self.test_dir, 'backups')
         os.makedirs(self.backup_dir, exist_ok=True)

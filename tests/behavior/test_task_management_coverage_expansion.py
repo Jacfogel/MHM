@@ -17,8 +17,6 @@ Coverage Areas:
 
 import pytest
 import os
-import tempfile
-import shutil
 import json
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 from datetime import datetime, timedelta
@@ -53,11 +51,9 @@ class TestTaskManagementCoverageExpansion:
     """Comprehensive test coverage expansion for task management."""
     
     @pytest.fixture
-    def temp_dir(self):
-        """Create a temporary directory for testing."""
-        temp_dir = tempfile.mkdtemp()
-        yield temp_dir
-        shutil.rmtree(temp_dir)
+    def temp_dir(self, test_path_factory):
+        """Provide a per-test directory under tests/data/tmp."""
+        return test_path_factory
     
     @pytest.fixture
     def user_id(self):

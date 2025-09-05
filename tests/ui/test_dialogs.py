@@ -195,7 +195,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
 @pytest.mark.critical
 @pytest.mark.regression
 @pytest.mark.slow
-def test_dialog_instantiation():
+def test_dialog_instantiation(monkeypatch):
     """Test that dialogs can be instantiated (without showing them)"""
     print("\n🔍 Testing Dialog Instantiation...")
     
@@ -210,10 +210,8 @@ def test_dialog_instantiation():
             app = QApplication(sys.argv)
         
         # Set up test environment
-        original_mhm_testing = os.environ.get('MHM_TESTING')
-        os.environ['MHM_TESTING'] = '1'
-        original_categories = os.environ.get('CATEGORIES')
-        os.environ['CATEGORIES'] = '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]'
+        monkeypatch.setenv('MHM_TESTING', '1')
+        monkeypatch.setenv('CATEGORIES', '["motivational", "health", "quotes_to_ponder", "word_of_the_day", "fun_facts"]')
         
         # Import and set up communication manager for testing
         from communication.core.channel_orchestrator import CommunicationManager
@@ -274,15 +272,7 @@ def test_dialog_instantiation():
         print(f"  ❌ Dialog instantiation testing failed: {e}")
         assert False, f"Dialog instantiation testing failed: {e}"
     finally:
-        # Clean up environment variables
-        if original_mhm_testing is not None:
-            os.environ['MHM_TESTING'] = original_mhm_testing
-        else:
-            os.environ.pop('MHM_TESTING', None)
-        if original_categories is not None:
-            os.environ['CATEGORIES'] = original_categories
-        else:
-            os.environ.pop('CATEGORIES', None)
+        pass
 
 # Note: This file contains pytest test functions that should be run with pytest
 # The main() function has been removed as it's not compatible with pytest

@@ -17,8 +17,6 @@ This module tests:
 
 import pytest
 import os
-import tempfile
-import shutil
 import json
 import time
 from unittest.mock import Mock, patch, MagicMock
@@ -42,11 +40,9 @@ class TestMHMService:
     """Test cases for the MHMService class."""
     
     @pytest.fixture
-    def temp_dir(self):
-        """Create a temporary directory for testing."""
-        temp_dir = tempfile.mkdtemp()
-        yield temp_dir
-        shutil.rmtree(temp_dir)
+    def temp_dir(self, test_path_factory):
+        """Provide a per-test directory under tests/data/tmp."""
+        return test_path_factory
     
     @pytest.fixture
     def service(self):
@@ -54,11 +50,9 @@ class TestMHMService:
         return MHMService()
     
     @pytest.fixture
-    def temp_base_dir(self):
-        """Create a temporary base directory for file-based communication tests."""
-        temp_dir = tempfile.mkdtemp()
-        yield temp_dir
-        shutil.rmtree(temp_dir)
+    def temp_base_dir(self, test_path_factory):
+        """Provide a per-test base directory under tests/data/tmp for file-based communication tests."""
+        return test_path_factory
     
     @pytest.mark.service
     def test_service_initialization(self, service):

@@ -20,9 +20,9 @@ class TestRecurringTasks:
     """Test recurring tasks functionality."""
     
     @pytest.fixture
-    def temp_user_dir(self):
-        """Create a temporary user directory for testing."""
-        temp_dir = tempfile.mkdtemp()
+    def temp_user_dir(self, test_path_factory):
+        """Provide a per-test user directory under tests/data/tmp."""
+        temp_dir = test_path_factory
         user_id = "test_user_recurring"
         user_dir = os.path.join(temp_dir, user_id)
         os.makedirs(user_dir)
@@ -41,9 +41,6 @@ class TestRecurringTasks:
             f.write('{"completed_tasks": []}')
         
         yield user_id, temp_dir
-        
-        # Cleanup
-        shutil.rmtree(temp_dir)
     
     @patch('tasks.task_management.get_user_data_dir')
     def test_create_recurring_task(self, mock_get_user_data_dir, temp_user_dir):

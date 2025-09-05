@@ -19,8 +19,6 @@ import pytest
 import os
 import json
 import time
-import tempfile
-import shutil
 from datetime import datetime
 from unittest.mock import patch, MagicMock, mock_open
 import core
@@ -47,26 +45,24 @@ from tests.test_utilities import TestUserFactory, TestDataFactory
 class TestUserManagementCoverageExpansion:
     """Test Core User Management coverage expansion with real behavior verification."""
     
-    def setup_method(self):
-        """Set up test environment."""
-        self.test_dir = tempfile.mkdtemp()
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_path_factory, monkeypatch):
+        """Set up test environment with per-test directory and path patches."""
+        self.test_dir = test_path_factory
         self.test_user_id = "test_user_123"
         self.test_user_dir = os.path.join(self.test_dir, "data", "users", self.test_user_id)
         os.makedirs(self.test_user_dir, exist_ok=True)
-        
-        # Mock the user data directory
-        with patch('core.user_management.get_user_file_path') as mock_get_path:
-            def mock_path(user_id, file_type):
-                return os.path.join(self.test_user_dir, f"{file_type}.json")
-            mock_get_path.side_effect = mock_path
-        
-        # Mock ensure_user_directory
-        with patch('core.user_management.ensure_user_directory'):
-            pass
+
+        # Patch file path resolution and directory ensure
+        def mock_path(user_id, file_type):
+            return os.path.join(self.test_user_dir, f"{file_type}.json")
+        monkeypatch.setattr('core.user_management.get_user_file_path', mock_path, raising=False)
+        monkeypatch.setattr('core.user_management.ensure_user_directory', lambda uid: True, raising=False)
     
     def teardown_method(self):
         """Clean up test environment."""
         if os.path.exists(self.test_dir):
+            import shutil
             shutil.rmtree(self.test_dir)
     
     def test_register_data_loader_real_behavior(self):
@@ -209,6 +205,7 @@ class TestUserManagementCoverageExpansion:
         """Test loading account data without auto-creation."""
         # Arrange - User directory doesn't exist
         if os.path.exists(self.test_user_dir):
+            import shutil
             shutil.rmtree(self.test_user_dir)
         
         # Act
@@ -688,9 +685,10 @@ class TestUserManagementCoverageExpansion:
 class TestUserManagementIntegration:
     """Test integration behavior of Core User Management."""
     
-    def setup_method(self):
+    @pytest.fixture(autouse=True)
+    def _setup(self, test_path_factory):
         """Set up test environment."""
-        self.test_dir = tempfile.mkdtemp()
+        self.test_dir = test_path_factory
         self.test_user_id = "integration_test_user"
         self.test_user_dir = os.path.join(self.test_dir, "data", "users", self.test_user_id)
         os.makedirs(self.test_user_dir, exist_ok=True)
@@ -698,6 +696,7 @@ class TestUserManagementIntegration:
     def teardown_method(self):
         """Clean up test environment."""
         if os.path.exists(self.test_dir):
+            import shutil
             shutil.rmtree(self.test_dir)
     
     def test_user_data_lifecycle_real_behavior(self):

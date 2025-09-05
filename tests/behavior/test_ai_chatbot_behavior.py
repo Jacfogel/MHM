@@ -42,14 +42,15 @@ class TestAIChatBotBehavior:
     @pytest.mark.critical
     def test_prompt_manager_creates_actual_file(self, test_data_dir):
         """Test that prompt manager actually creates and manages prompt files."""
-        # Create a temporary prompt file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as f:
+        # Create a prompt file under the per-test directory
+        import uuid
+        prompt_file = os.path.join(test_data_dir, f"prompt_{uuid.uuid4().hex}.txt")
+        with open(prompt_file, 'w') as f:
             f.write("Custom test prompt content")
-            temp_prompt_path = f.name
-        
+
         try:
             # Mock the AI_SYSTEM_PROMPT_PATH to use our temp file
-            with patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', temp_prompt_path):
+            with patch('ai.prompt_manager.AI_SYSTEM_PROMPT_PATH', prompt_file):
                 with patch('ai.prompt_manager.AI_USE_CUSTOM_PROMPT', True):
                     from ai.prompt_manager import PromptManager
                     manager = PromptManager()
@@ -64,8 +65,8 @@ class TestAIChatBotBehavior:
                     
         finally:
             # Cleanup
-            if os.path.exists(temp_prompt_path):
-                os.unlink(temp_prompt_path)
+            if os.path.exists(prompt_file):
+                os.unlink(prompt_file)
     
     @pytest.mark.ai
     @pytest.mark.critical

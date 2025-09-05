@@ -10,6 +10,31 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+## 2025-09-05 - Test Suite Stabilization Completed; 1141 Passing
+
+### Overview
+- Stabilized test infrastructure and refactored remaining tests to shared fixtures and factories.
+- Achieved consistent, passing full-suite run: 1141 passed, 1 skipped.
+
+### Key Changes
+- Added/enforced session-wide temp routing to `tests/data`; validated by path sanitizer.
+- Introduced env guard fixture; normalized tests to use `monkeypatch.setenv`.
+- Added per-test `test_path_factory` for isolated directories.
+- Ensured user data loaders are registered early at session start; reinforced per-test.
+- Fixed incorrect fixture injection patterns in behavior tests (moved to autouse/request getter).
+
+### Impact
+- Eliminated intermittent path/env-related failures; behavior and UI subsets consistently green.
+- All remaining instability resolved; suite is green end-to-end.
+
+### Testing
+- Full run via `python run_tests.py`: 1141 passed, 1 skipped, 4 warnings.
+- Verified behavior and UI subsets independently: green.
+
+### Follow-ups
+- Monitor Discord deprecation warnings; plan cleanup.
+- Keep standards enforced for new tests (fixtures, env, paths).
+
 ## 2025-09-03 - Test Suite Reliability Fixes Implemented - Temp Directory and Data Loader Issues Resolved
 
 ### Overview

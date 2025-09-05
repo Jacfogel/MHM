@@ -89,6 +89,10 @@ os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir
 
 # Import core modules for testing (after logging isolation is set up)
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
+# Force core config paths to tests/data early so all modules see test isolation
+import core.config as _core_config
+_core_config.BASE_DATA_DIR = str(tests_data_dir)
+_core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
 
 # Global QMessageBox patch to prevent popup dialogs during testing
 def setup_qmessagebox_patches():
@@ -352,19 +356,111 @@ def clear_user_caches_between_tests():
     yield
     clear_user_caches()
 
+@pytest.fixture(scope="session", autouse=True)
+def register_user_data_loaders_session():
+    """Ensure core user data loaders are present without overwriting metadata."""
+    import core.user_management as um
+    # Set only missing loaders to avoid clobbering metadata
+    for key, func, ftype in [
+        ('account', um._get_user_data__load_account, 'account'),
+        ('preferences', um._get_user_data__load_preferences, 'preferences'),
+        ('context', um._get_user_data__load_context, 'user_context'),
+        ('schedules', um._get_user_data__load_schedules, 'schedules'),
+    ]:
+        try:
+            entry = um.USER_DATA_LOADERS.get(key)
+            if entry and entry.get('loader') is None:
+                um.register_data_loader(key, func, ftype)
+        except Exception:
+            # As a fallback, if the dict is missing, register minimally
+            um.register_data_loader(key, func, ftype)
+    yield
+
 @pytest.fixture(scope="function", autouse=True)
 def fix_user_data_loaders():
-    """CRITICAL: Fix the user data loader registration issue that causes get_user_data to return empty dicts."""
-    import core.user_management
-    
-    # Force registration of data loaders if they're not already registered
-    if core.user_management.USER_DATA_LOADERS['account']['loader'] is None:
-        core.user_management.register_data_loader('account', core.user_management._get_user_data__load_account, 'account')
-        core.user_management.register_data_loader('preferences', core.user_management._get_user_data__load_preferences, 'preferences')
-        core.user_management.register_data_loader('context', core.user_management._get_user_data__load_context, 'user_context')
-        core.user_management.register_data_loader('schedules', core.user_management._get_user_data__load_schedules, 'schedules')
-    
+    """Ensure loaders stay correctly registered for each test without overwriting metadata."""
+    import core.user_management as um
+    for key, func, ftype in [
+        ('account', um._get_user_data__load_account, 'account'),
+        ('preferences', um._get_user_data__load_preferences, 'preferences'),
+        ('context', um._get_user_data__load_context, 'user_context'),
+        ('schedules', um._get_user_data__load_schedules, 'schedules'),
+    ]:
+        entry = um.USER_DATA_LOADERS.get(key)
+        if entry and entry.get('loader') is None:
+            um.register_data_loader(key, func, ftype)
     yield
+
+@pytest.fixture(scope="function", autouse=True)
+def env_guard_and_restore(monkeypatch):
+    """Snapshot and restore critical environment variables to prevent test leakage.
+
+    Restores after each test to ensure environment stability across the suite.
+    """
+    critical_keys = [
+        'MHM_TESTING', 'CATEGORIES', 'LOGS_DIR', 'LOG_BACKUP_DIR', 'LOG_ARCHIVE_DIR',
+        'LOG_MAIN_FILE', 'LOG_DISCORD_FILE', 'LOG_AI_FILE', 'LOG_USER_ACTIVITY_FILE',
+        'LOG_ERRORS_FILE', 'LOG_COMMUNICATION_MANAGER_FILE', 'LOG_EMAIL_FILE',
+        'LOG_UI_FILE', 'LOG_FILE_OPS_FILE', 'LOG_SCHEDULER_FILE',
+        'BASE_DATA_DIR', 'USER_INFO_DIR_PATH', 'TEMP', 'TMP', 'TMPDIR'
+    ]
+    snapshot = {k: os.environ.get(k) for k in critical_keys}
+    try:
+        yield
+    finally:
+        for k, v in snapshot.items():
+            if v is None:
+                if k in os.environ:
+                    monkeypatch.delenv(k, raising=False)
+            else:
+                monkeypatch.setenv(k, v)
+
+@pytest.fixture(scope="function")
+def test_path_factory(test_data_dir):
+    """Provide a per-test directory under tests/data/tmp/<uuid> for ad-hoc temp usage.
+
+    Prefer this over raw tempfile.mkdtemp/TemporaryDirectory to keep paths within the repo.
+    """
+    import uuid
+    base_tmp = os.path.join(test_data_dir, 'tmp')
+    os.makedirs(base_tmp, exist_ok=True)
+    path = os.path.join(base_tmp, uuid.uuid4().hex)
+    os.makedirs(path, exist_ok=True)
+    return path
+
+@pytest.fixture(scope="function", autouse=True)
+def path_sanitizer():
+    """Guardrail: ensure temp resolution stays within tests/data and detect escapes.
+
+    Fails fast if the active temp directory is outside tests/data.
+    """
+    import tempfile
+    # Always enforce repository-scoped tests/data as the allowed root
+    allowed_root = os.path.abspath(str(tests_data_dir))
+    # Validate Python's temp resolution points to tests/data
+    current_tmp = os.path.abspath(tempfile.gettempdir())
+    if not current_tmp.startswith(allowed_root):
+        raise AssertionError(
+            f"Temp directory escaped repo: {current_tmp} (expected under {allowed_root})."
+        )
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def force_test_data_directory():
+    """Route all system temp usage into tests/data for the entire session."""
+    import tempfile
+    root = str(tests_data_dir)
+    # Set common env vars so any native/library lookups resolve under tests/data
+    os.environ["TMPDIR"] = root
+    os.environ["TEMP"] = root
+    os.environ["TMP"] = root
+    # Patch Python's temp resolution
+    original_tempdir = tempfile.tempdir
+    tempfile.tempdir = root
+    try:
+        yield
+    finally:
+        tempfile.tempdir = original_tempdir
 
 @pytest.fixture(scope="function")
 def mock_user_data(mock_config, request):
@@ -486,6 +582,13 @@ def mock_user_data(mock_config, request):
     
     with open(os.path.join(user_dir, "chat_interactions.json"), "w") as f:
         json.dump(chat_data, f, indent=2)
+    
+    # Ensure user is discoverable via identifier lookups
+    try:
+        from core.user_data_manager import update_user_index
+        update_user_index(user_id)
+    except Exception:
+        pass
     
     test_logger.debug(f"Created complete mock user data files in: {user_dir}")
     

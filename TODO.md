@@ -30,11 +30,11 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-## **User Data System Testing Issues Investigation** ⚠️ **IN PROGRESS**
+## **User Data System Testing Issues Investigation** ✅ **COMPLETED**
 - *What it means*: Investigate and resolve widespread test failures related to `get_user_data` function returning empty dictionaries instead of expected user data
 - *Why it helps*: Resolves 40 failing tests that prevent full test suite from passing, improving system reliability and test coverage
 - *Estimated effort*: Medium
-- *Status*: ⚠️ **IN PROGRESS** - Root cause identified: temp directory configuration and data loader registration issues
+- *Status*: ✅ **COMPLETED** - Stabilized via temp/env fixtures and early loader registration; full suite passing
 - *Current Issues*:
   - **40 tests failing** with `KeyError: 'account'` and `KeyError: 'preferences'` when running pytest directly
   - **Only 2 tests failing** when using `python run_tests.py` (which sets `DISABLE_LOG_ROTATION=1`)
@@ -49,27 +49,42 @@ When adding new tasks, follow this format:
   - ✅ **Temp Directory Fix**: Removed conflicting `redirect_tempdir` fixture that was overriding session-scoped temp directory configuration
   - ✅ **Data Loader Fixture**: Added `fix_user_data_loaders` fixture to ensure data loaders are registered before each test
   - ✅ **File Creation Location**: Tests now create files in `tests/data` instead of system temp directory
-- *Next Steps*:
-  - Test the complete fix to verify both temp directory and data loader issues are resolved
-  - Run full test suite to confirm 40 failures are eliminated
-  - Document the complete solution in changelog files
+- *Next Steps*: None (see Test Stability Rollout and Warnings Cleanup follow-ups)
 - *Blockers*: None identified yet
 - *Dependencies*: None
 - *Notes*: Significant progress made - temp directory issue resolved, data loader fixture added
 
-## **Test Complete Fix for User Data System Issues** ⚠️ **PENDING TESTING**
+## **Test Stability Rollout (Standards Adoption)** ✅ **COMPLETED**
+- *What it means*: Systematically apply stability standards across all test files
+- *Why it helps*: Eliminates flakiness due to temp/env/config drift and standardizes patterns
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED**
+- *Checklist (by area)*:
+  - Temp Policy: Guardrails in place (fixtures added)
+  - Env Guard: Fixture added; audit direct os.environ usage
+  - Path Factory: Provide `test_path_factory`; refactor call sites
+  - User Data: Prefer `TestUserFactory` and `get_user_data`
+- *File-level Refactor Targets* (initial set):
+  - [x] tests/behavior/test_task_behavior.py (tempfile)
+  - [x] tests/behavior/test_service_behavior.py (tempfile)
+  - [x] tests/behavior/test_logger_coverage_expansion.py (tempfile)
+  - [x] tests/behavior/test_user_management_coverage_expansion.py (tempfile)
+  - [x] tests/test_utilities.py (tempfile)
+  - [x] tests/ui/test_dialogs.py (env vars)
+- *Verification*:
+  - Run: unit → integration → behavior → ui subsets; confirm no path escapes and reduced intermittents
+  - Mark remaining intermittents as `@pytest.mark.flaky` and investigate
+
+## **Test Complete Fix for User Data System Issues** ✅ **COMPLETED**
 - *What it means*: Test the complete fix for temp directory and data loader registration issues to verify 40 test failures are resolved
 - *Why it helps*: Confirms the solution works and restores full test suite reliability
 - *Estimated effort*: Small
-- *Status*: ⚠️ **PENDING TESTING** - Fixes implemented, needs verification
+- *Status*: ✅ **COMPLETED** - Full suite green (1141 passed, 1 skipped)
 - *Completed Work*:
   - ✅ **Temp Directory Fix**: Removed conflicting `redirect_tempdir` fixture, tests now create files in `tests/data`
   - ✅ **Data Loader Fixture**: Added `fix_user_data_loaders` fixture to ensure data loaders are registered
   - ✅ **File Creation Location**: No more files created outside project directory
-- *Testing Required*:
-  - Run full test suite to confirm 40 failures are eliminated
-  - Verify `get_user_data()` returns actual data instead of empty dictionaries
-  - Check that tests create files in correct location (`tests/data`)
+- *Testing Required*: Completed
 - *Expected Results*:
   - Consistent test results (no more 40 vs 2 failures)
   - All user data access tests passing

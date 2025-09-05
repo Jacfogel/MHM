@@ -58,6 +58,58 @@ tests/
 
 ## 🛠️ **Test Utilities and Infrastructure**
 
+### **Testing Standards (Stability & Isolation)**
+
+To keep tests deterministic and isolated, follow these standards:
+
+- **Single Temp Directory Policy**
+  - All temp files/dirs must live under `tests/data`.
+  - Enforced by session-scoped `force_test_data_directory` and validated per-test by `path_sanitizer`.
+  - Avoid raw `tempfile.mkdtemp/TemporaryDirectory`; use `test_path_factory` for per-test paths (`tests/data/tmp/<uuid>`).
+
+- **Environment Variables**
+  - Do not assign with `os.environ[...] = ...` directly in tests.
+  - Use `monkeypatch.setenv()` when a test must set an env var.
+  - `env_guard_and_restore` snapshots and restores critical env vars after each test to prevent leakage.
+
+- **Global Config**
+  - Do not directly assign to `core.config.*` in tests.
+  - Use shared fixtures (`mock_config`, `ensure_mock_config_applied`).
+
+- **User Data Access**
+  - Prefer `TestUserFactory` and centralized `get_user_data()` over custom scaffolding.
+  - `fix_user_data_loaders` ensures loaders are registered before each test.
+
+### **Key Fixtures for Stability**
+
+- `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`.
+- `env_guard_and_restore` (function, autouse): snapshots/restores critical env vars.
+- `path_sanitizer` (function, autouse): asserts temp directory stays within `tests/data`.
+- `test_path_factory` (function): creates a per-test directory under `tests/data/tmp/<uuid>`.
+- `fix_user_data_loaders` (function, autouse): ensures centralized loaders are registered.
+
+### **Refactor Plan (Step-by-Step, Trackable)**
+
+1) Establish Guardrails (Done)
+   - Add fixtures: `force_test_data_directory`, `env_guard_and_restore`, `path_sanitizer`, `test_path_factory`.
+
+2) Replace Ad-hoc Temp Usage (In Progress)
+   - Search: `tempfile.mkdtemp|TemporaryDirectory|NamedTemporaryFile` under `tests/`.
+   - Refactor to `test_path_factory` where applicable.
+   - Track progress by file in TODO.md (checklist per file).
+
+3) Normalize Env Usage (In Progress)
+   - Search for direct `os.environ[...]` mutation in tests.
+   - Replace with `monkeypatch.setenv()`.
+
+4) Standardize User Data Creation (In Progress)
+   - Replace custom scaffolding with `TestUserFactory` + `get_user_data()`.
+
+5) Verification & Monitoring (Ongoing)
+   - Run targeted suites (user management, account lifecycle, UI) to confirm stability.
+   - Tag remaining intermittents with `@pytest.mark.flaky` and prioritize fixes.
+   - Keep progress updated in TODO.md.
+
 ### **Centralized Test Utilities**
 The testing framework provides comprehensive utilities in `tests/test_utilities.py`:
 

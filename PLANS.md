@@ -2,36 +2,35 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
-### 2025-09-02 - Test Suite Reliability and User Data System Investigation - CRITICAL DISCOVERY
+### 2025-09-05 - Test Suite Stabilization (Temp/Env/Fixtures) — COMPLETED
 
-**Status**: 🔄 **IN PROGRESS**  
+**Status**: ✅ **COMPLETED**  
 **Priority**: High  
 **Effort**: Medium  
 **Dependencies**: None  
 
-**Objective**: Investigate and resolve widespread test failures related to user data system to restore full test suite reliability.
+**Objective**: Eliminate intermittent failures by standardizing temp dirs, env handling, and user data loader registration across the suite.
 
-**Background**: After recent git updates and test configuration changes, 40 tests are failing with user data access issues. The `get_user_data()` function is returning empty dictionaries instead of expected user data, causing widespread test failures across user management, account lifecycle, integration, and UI tests.
+**Background**: Failures varied depending on execution path. Root issues were conflicting temp dir fixtures, direct env mutations, and loader timing.
 
-**CRITICAL DISCOVERY**: Test execution method significantly affects failure count:
-- **`python run_tests.py`**: Only 2 failures (message duplication + path handling issues)
-- **`python -m pytest tests/`**: 40 failures (including 38 additional user data system failures)
+**Stabilization Actions**:
+- Session-wide temp routing to `tests/data` with path sanitizer
+- Env guard fixture and `monkeypatch.setenv` adoption
+- Per-test `test_path_factory` for isolated directories
+- Session-time user data loader registration; per-test reinforcement
+- Fixture injection fixes (request.getfixturevalue / autouse)
 
-**Root Cause Identified**: Environment variable differences between test runners:
-- `run_tests.py` sets `os.environ['DISABLE_LOG_ROTATION'] = '1'` which prevents user data system failures
-- Direct pytest execution exposes 38 additional failures related to user data access
-- Environment variable difference suggests log rotation or environment-dependent behavior affecting test fixtures
+**Result**: Full suite green (1141 passed, 1 skipped). Behavior/UI subsets stable.
 
-**Current Status**: 
-- **40 tests failing** with `KeyError: 'account'` and `KeyError: 'preferences'` when running pytest directly
-- **1101 tests passing** - core functionality working
-- **2 tests failing** consistently across both test runners (our original fixes needed)
+---
 
-**Next Steps**:
-1. **Investigate Environment Variable Impact**: Understand how `DISABLE_LOG_ROTATION` affects test fixture behavior
-2. **Debug User Data Access**: Determine why this setting prevents user data access failures
-3. **Assess Fix Legitimacy**: Determine if this is a legitimate fix or masking underlying system issues
-4. **Standardize Test Environment**: Consider standardizing test environment variables across all test execution methods
+### 2025-09-02 - Test Suite Reliability and User Data System Investigation - CRITICAL DISCOVERY
+
+**Status**: ✅ **RESOLVED**  
+**Note**: Superseded by 2025-09-05 stabilization.
+
+**Resolution Summary**:
+- Standardized temp/env via fixtures and registered loaders; suite now passes fully.
 
 **Impact**: Full test suite cannot pass until user data system issues are resolved. Critical discovery suggests test execution method significantly affects system behavior.
 

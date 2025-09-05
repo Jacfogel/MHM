@@ -291,25 +291,23 @@ class TestErrorHandlingIntegration:
             assert mock_logger.error.call_count >= 2
     
     @pytest.mark.integration
-    def test_error_handling_with_recovery(self):
+    def test_error_handling_with_recovery(self, test_path_factory):
         """Test error handling with recovery mechanisms and real side effects."""
-        import tempfile
         import os
         import json
         
-        # ✅ VERIFY INITIAL STATE: Create a test environment
-        with tempfile.TemporaryDirectory() as temp_dir:
-            test_file = os.path.join(temp_dir, 'test_data.json')
-            
-            # Create initial valid data
-            initial_data = {'status': 'healthy', 'data': [1, 2, 3]}
-            with open(test_file, 'w') as f:
-                json.dump(initial_data, f)
-            
-            # ✅ VERIFY INITIAL STATE: Check file exists and is valid
-            assert os.path.exists(test_file), f"Test file should exist: {test_file}"
-            with open(test_file, 'r') as f:
-                loaded_data = json.load(f)
+        # ✅ VERIFY INITIAL STATE: Create a test environment under tests/data
+        temp_dir = test_path_factory
+        test_file = os.path.join(temp_dir, 'test_data.json')
+        # Create initial valid data
+        initial_data = {'status': 'healthy', 'data': [1, 2, 3]}
+        with open(test_file, 'w') as f:
+            json.dump(initial_data, f)
+        
+        # ✅ VERIFY INITIAL STATE: Check file exists and is valid
+        assert os.path.exists(test_file), f"Test file should exist: {test_file}"
+        with open(test_file, 'r') as f:
+            loaded_data = json.load(f)
             assert loaded_data == initial_data
             
             # Test 1: Function that fails but has recovery mechanism

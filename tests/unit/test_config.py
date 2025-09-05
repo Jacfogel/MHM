@@ -252,8 +252,10 @@ class TestConfigConstants:
             base_dir = 'data'
         expected_relative = os.path.join(base_dir, 'users')
         normalized_path = USER_INFO_DIR_PATH.replace('\\', '/')
+        # Accept default relative ('data/users') or absolute tests path under MHM_TESTING
+        acceptable_suffix = 'data/users'
         assert (
-            USER_INFO_DIR_PATH == expected_relative
+            normalized_path == acceptable_suffix
             or normalized_path.endswith(expected_relative.replace('\\', '/'))
         )
     

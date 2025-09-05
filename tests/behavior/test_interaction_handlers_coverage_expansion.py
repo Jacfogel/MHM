@@ -6,7 +6,6 @@ Focuses on real side effects and system changes rather than just return values.
 import pytest
 import json
 import os
-import tempfile
 from unittest.mock import patch, Mock, MagicMock, AsyncMock
 from datetime import datetime, timedelta
 
@@ -32,10 +31,9 @@ def mock_communication_manager():
 
 
 @pytest.fixture
-def test_data_dir():
-    """Create temporary test data directory."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        yield temp_dir
+def test_data_dir(test_path_factory):
+    """Provide per-test data directory under tests/data/tmp."""
+    return test_path_factory
 
 
 class TestTaskManagementHandlerCoverage:

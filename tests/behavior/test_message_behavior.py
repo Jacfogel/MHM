@@ -152,6 +152,11 @@ class TestMessageCRUD:
         user_dir = os.path.join(test_data_dir, user_id)
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
+
+        # Ensure a clean slate for the category file
+        message_file = os.path.join(messages_dir, f"{category}.json")
+        if os.path.exists(message_file):
+            os.remove(message_file)
         
         # Mock get_user_data_dir to return our test directory
         with patch('core.message_management.get_user_data_dir', return_value=user_dir):
@@ -161,7 +166,6 @@ class TestMessageCRUD:
             assert result is None
             
             # Verify the message file was created and contains the message
-            message_file = os.path.join(messages_dir, f"{category}.json")
             assert os.path.exists(message_file)
             
             with open(message_file, 'r', encoding='utf-8') as f:

@@ -2003,7 +2003,13 @@ class TestDataManager:
             tuple: (test_dir, test_data_dir, test_test_data_dir)
         """
         # Create temporary test directory
-        test_dir = tempfile.mkdtemp(prefix="mhm_test_")
+        # Use per-test path under tests/data instead of system temp
+        from tests.conftest import tests_data_dir  # reuse base
+        import uuid, os
+        base_tmp = os.path.join(tests_data_dir, 'tmp')
+        os.makedirs(base_tmp, exist_ok=True)
+        test_dir = os.path.join(base_tmp, f"mhm_test_{uuid.uuid4().hex}")
+        os.makedirs(test_dir, exist_ok=True)
         test_data_dir = os.path.join(test_dir, "data")
         test_test_data_dir = os.path.join(test_dir, "tests", "data")
         
