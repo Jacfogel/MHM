@@ -82,6 +82,43 @@ def get_user_data(
 ) -> Dict[str, Any]:
     """Migrated implementation of get_user_data."""
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
+    # Ensure default loaders are registered (idempotent). Under certain import
+    # orders in the test environment, callers may invoke this function before
+    # core.user_management's import-time registration runs. This guard safely
+    # fills any missing loader entries without overwriting existing ones.
+    try:
+        from core.user_management import register_default_loaders
+        # Only invoke if any loader is missing to avoid unnecessary work
+        if any((not info.get('loader')) for info in USER_DATA_LOADERS.values()):
+            register_default_loaders()
+    except Exception:
+        # If registration cannot be ensured, continue; downstream logic will
+        # gracefully warn about missing loaders and return an empty result.
+        pass
+
+    # TEST-GATED DIAGNOSTICS: capture loader registry state for debugging
+    try:
+        if os.getenv('MHM_TESTING') == '1':
+            loader_state = {k: bool(v.get('loader')) for k, v in USER_DATA_LOADERS.items()}
+            missing = [k for k, v in USER_DATA_LOADERS.items() if not v.get('loader')]
+            logger.debug(f"[TEST] USER_DATA_LOADERS state: {loader_state}")
+            if missing:
+                logger.warning(f"[TEST] Missing loaders detected: {missing}")
+            # Ensure capture even if component log routing changes – write to dedicated test log
+            try:
+                debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
+                os.makedirs(debug_log_dir, exist_ok=True)
+                debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
+                with open(debug_log_path, 'a', encoding='utf-8') as _f:
+                    _f.write(
+                        f"get_user_data: user_id={user_id}, types={data_types}, state={loader_state}, missing={missing}\n"
+                    )
+            except Exception:
+                # Best-effort diagnostics only
+                pass
+    except Exception:
+        # Never let diagnostics interfere with normal operation
+        pass
     
     if not user_id:
         logger.error("get_user_data called with None user_id")
@@ -95,6 +132,11 @@ def get_user_data(
 
     # Validate data types
     available_types = get_available_data_types()
+    try:
+        if os.getenv('MHM_TESTING') == '1':
+            logger.warning(f"[TEST] get_user_data request types={data_types}; available={available_types}")
+    except Exception:
+        pass
     invalid_types = [dt for dt in data_types if dt not in available_types]
     if invalid_types:
         logger.error(f"Invalid data types requested: {invalid_types}. Valid types: {available_types}")
@@ -110,16 +152,54 @@ def get_user_data(
 
         file_path = get_user_file_path(user_id, loader_info['file_type'])
         loader_name = getattr(loader_info['loader'], "__name__", repr(loader_info['loader']))
-        logger.debug(
-            f"Loading {data_type} for user {user_id} from {file_path} via {loader_name} (auto_create={auto_create})"
-        )
+        try:
+            if os.getenv('MHM_TESTING') == '1':
+                logger.warning(
+                    f"[TEST] Loading {data_type} for {user_id} path={file_path} via={loader_name} auto_create={auto_create}"
+                )
+                # Mirror detailed load attempt to dedicated test log
+                try:
+                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
+                    os.makedirs(debug_log_dir, exist_ok=True)
+                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
+                    _exists = os.path.exists(file_path)
+                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
+                        _f.write(
+                            f"load_attempt: user_id={user_id}, type={data_type}, path={file_path}, exists={_exists}, loader={loader_name}\n"
+                        )
+                except Exception:
+                    pass
+        except Exception:
+            pass
         data = loader_info['loader'](user_id, auto_create=auto_create)
         if not data:
             logger.warning(
                 f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
             )
+            try:
+                if os.getenv('MHM_TESTING') == '1':
+                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
+                    os.makedirs(debug_log_dir, exist_ok=True)
+                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
+                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
+                        _f.write(
+                            f"load_result: user_id={user_id}, type={data_type}, returned=none\n"
+                        )
+            except Exception:
+                pass
         elif isinstance(data, dict):
             logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
+            try:
+                if os.getenv('MHM_TESTING') == '1':
+                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
+                    os.makedirs(debug_log_dir, exist_ok=True)
+                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
+                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
+                        _f.write(
+                            f"load_result: user_id={user_id}, type={data_type}, returned_keys={list(data.keys())}\n"
+                        )
+            except Exception:
+                pass
 
         # Field extraction logic
         if fields is not None:

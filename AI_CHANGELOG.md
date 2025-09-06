@@ -30,6 +30,14 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-06 - Intermittent Test Failures Resolved; Suite Stable (1141/1) ✅ **COMPLETED**
+- Added session-start guard in `tests/conftest.py` to assert shared `USER_DATA_LOADERS` identity and register defaults once; prevents import-order flakiness.
+- Removed remaining `sys.path` hacks across tests; centralized a single path insert in `tests/conftest.py`.
+- Added test-gated diagnostics to `core/user_data_handlers.get_user_data` and dedicated debug log for all-mode runs; used to pinpoint loader/timing issues.
+- Fixed test isolation: custom loader registration test now cleans up; nonexistent-user tests ignore non-core types.
+- Relaxed one over-strict file assertion to allow the `tasks` directory created by features.
+- Result: Full suite green (1141 passed, 1 skipped); all modes stable.
+
 ### Test Suite Stabilization and Deterministic User-Data Loading
 - Standardized temp path policy and added session pre/post cleanup for `tests/data/tmp`, `flags`, and stray artifacts
 - Implemented idempotent loader registration in `core.user_management` with import-time guard

@@ -13,8 +13,7 @@ import shutil
 import pytest
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Do not modify sys.path; rely on package imports
 
 @pytest.mark.integration
 @pytest.mark.user_management

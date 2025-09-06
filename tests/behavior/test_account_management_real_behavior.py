@@ -15,8 +15,7 @@ from pathlib import Path
 from datetime import datetime
 import pytest
 
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Do not modify sys.path; rely on package imports
 
 def setup_test_environment(test_data_dir):
     """Create isolated test environment with temporary directories"""

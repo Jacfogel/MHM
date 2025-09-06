@@ -37,7 +37,6 @@ from core.user_management import (
     _save_user_data__save_schedules,
     update_user_schedules,
     create_default_schedule_periods,
-    USER_DATA_LOADERS
 )
 from tests.test_utilities import TestUserFactory, TestDataFactory
 
@@ -86,15 +85,20 @@ class TestUserManagementCoverageExpansion:
             )
 
             # Assert
-            assert "test_type" in USER_DATA_LOADERS, "Should register new data type"
-            loader_info = USER_DATA_LOADERS["test_type"]
+            import core.user_management as um
+            assert "test_type" in um.USER_DATA_LOADERS, "Should register new data type"
+            loader_info = um.USER_DATA_LOADERS["test_type"]
             assert loader_info["loader"] == test_loader, "Should store loader function"
             assert loader_info["file_type"] == "test_file", "Should store file type"
             assert loader_info["default_fields"] == ["field1", "field2"], "Should store default fields"
             assert loader_info["metadata_fields"] == ["created_at"], "Should store metadata fields"
             assert loader_info["description"] == "Test data type", "Should store description"
         finally:
-            USER_DATA_LOADERS.pop("test_type", None)
+            try:
+                import core.user_management as um
+                um.USER_DATA_LOADERS.pop("test_type", None)
+            except Exception:
+                pass
 
     def test_get_available_data_types_real_behavior(self):
         """Test getting available data types."""

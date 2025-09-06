@@ -2,6 +2,27 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
+### 2025-09-06 - Intermittent Test Failures (Import Order/Loader Registry) — COMPLETED
+
+**Status**: ✅ **COMPLETED**  
+**Priority**: Critical  
+**Effort**: Medium  
+**Dependencies**: Test fixtures; core user data handlers
+
+**Objective**: Eliminate cross-suite intermittents in “all” runs caused by split `USER_DATA_LOADERS` dicts and late registration.
+
+**Actions**:
+- Add session-start guard fixture in `tests/conftest.py` to assert shared loader dict identity and register defaults once.
+- Remove remaining `sys.path` hacks; centralize a single path insert in `tests/conftest.py`.
+- Improve test isolation: cleanup custom loader registration test; filter non-core types in nonexistent-user assertions.
+- Allow known feature dir `tasks` in lifecycle test expectations.
+
+**Result**: Suite stable across all modes (1141 passed, 1 skipped).
+
+**Follow-ups**:
+- Monitor for new tests reintroducing path/env inconsistencies.
+- Optionally gate/remove test-only diagnostics after a burn-in period.
+
 ### 2025-09-05 - Test Suite Stabilization (Temp/Env/Fixtures) — COMPLETED
 
 **Status**: ✅ **COMPLETED**  

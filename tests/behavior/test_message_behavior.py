@@ -19,8 +19,7 @@ import tempfile
 import shutil
 
 # Add the project root to the path
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Do not modify sys.path; rely on package imports
 
 from core.message_management import (
     get_message_categories,

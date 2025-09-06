@@ -17,10 +17,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-import sys
-sys.path.insert(0, str(project_root))
+# Do not modify sys.path; rely on package imports
 
 from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 from core.logger import get_component_logger

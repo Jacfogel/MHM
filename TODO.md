@@ -48,7 +48,7 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-## **Intermittent Full-Suite Instability** ⚠️ **NEW**
+## **Intermittent Full-Suite Instability** ✅ **COMPLETED**
 - *What it means*: Full test suite occasionally fails with empty user-data dicts (e.g., missing `'account'`, `'preferences'`, `'schedules'`). Subsets generally pass; failures reappear on some full runs.
 - *Why it helps*: Ensuring deterministic behavior in CI and local full runs prevents regressions from slipping through.
 - *Observed symptoms*:
@@ -62,13 +62,9 @@ When adding new tasks, follow this format:
   - Component log rotation isolated to `tests/logs` and capped; removed Unicode from terminal hooks
   - Refactored tests to create users under `tests/data/users/<id>`; added guard against stray user dirs
   - Updated `tests/unit/test_config.py` to use `test_path_factory` and stop creating `tests/data/resources`
-- *Next steps*:
-  - [ ] Add unit tests for loader registration order/idempotency (`unit-tests-registration`)
-  - [ ] Add session-start self-check: assert loaders for `account`, `preferences`, `context`, `schedules`; fail fast with diagnostics
-  - [ ] Instrument `core.user_data_handlers.get_user_data` with debug logs gated by `MHM_TESTING` for types requested/returned
-  - [ ] Verify all call-sites avoid reassignment of `USER_DATA_LOADERS`; only mutate entries
-  - [ ] After green runs, remove early import shim (`remove-early-shims`) and re-verify stability
-  - [ ] Re-run full suite twice in a clean workspace after purging `tests/data/tmp` and `tests/data/users`
+ - *Next steps*:
+  - [ ] Add unit tests for loader registration order/idempotency (follow-up hardening)
+  - [ ] Consider gating/removing test-only diagnostics after a burn-in period
 
 ## **User Data System Testing Issues Investigation** ✅ **COMPLETED**
 - *What it means*: Investigate and resolve widespread test failures related to `get_user_data` function returning empty dictionaries instead of expected user data

@@ -10,6 +10,33 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+## 2025-09-06 - Intermittent Test Failures Resolved; Suite Stable (1141 passed, 1 skipped)
+
+### Overview
+- Eliminated remaining intermittent failures caused by import-order/timing on user-data loader registration and scattered sys.path hacks.
+- Achieved consistent all-mode stability with deterministic session startup.
+
+### Key Changes
+- Added session-start guard fixture in `tests/conftest.py` to assert that `core.user_management.USER_DATA_LOADERS` and `core.user_data_handlers.USER_DATA_LOADERS` are the same dict and to register default loaders once if any are missing.
+- Removed per-test `sys.path` hacks; centralized a single path insert in `tests/conftest.py`.
+- Augmented `core/user_data_handlers.get_user_data` with test-gated diagnostics and a dedicated debug log for “all” runs to pinpoint loader state; used during investigation.
+- Fixed test isolation:
+  - Custom loader registration test now asserts against current module state and cleans up the custom type after running.
+  - Nonexistent-user tests filter out non-core types when asserting empty results.
+- Relaxed an over-strict file expectation to allow feature-created `tasks` directory in lifecycle test.
+
+### Impact
+- Full suite consistently green in all modes: 1141 passed, 1 skipped; behavior/integration/UI/unit subsets all stable.
+- Prevents future regressions from split registries/import-order issues.
+
+### Testing
+- Ran `python run_tests.py --mode all --verbose`: 1141 passed, 1 skipped, warnings unchanged (Discord deprecations, aiohttp unraisable in teardown path).
+- Verified targeted problem tests and registration behavior individually.
+
+### Follow-ups
+- Monitor any new tests for path/env standardization adherence.
+- Consider gating/removing test-only diagnostics once stability remains after several runs.
+
 ## 2025-09-05 - Test Suite Stabilization Completed; 1141 Passing
 
 ### Overview

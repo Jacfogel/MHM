@@ -24,8 +24,7 @@ import sys
 import signal
 from pathlib import Path
 
-# Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Do not modify sys.path; rely on package imports
 
 # Import the actual functions from service
 from core.service import (

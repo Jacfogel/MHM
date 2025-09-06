@@ -14,8 +14,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-# Add parent directory to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Do not modify sys.path; rely on package imports
 
 from core.user_management import create_new_user
 from core.user_data_handlers import save_user_data

@@ -12,10 +12,7 @@ from pathlib import Path
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-import sys
-sys.path.insert(0, str(project_root))
+# Do not modify sys.path; rely on package imports
 
 from core.checkin_analytics import CheckinAnalytics
 

@@ -11,9 +11,7 @@ import json
 import shutil
 from pathlib import Path
 
-# Add parent directory to path
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Removed path hacks; rely on proper package imports
 
 class TestAccountLifecycle:
     """Test complete account lifecycle workflows with real behavior verification."""
@@ -294,11 +292,13 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user using centralized save then resolve actual UUID
         self.save_user_data_simple(user_id, account_data, preferences_data, schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
+        from core.config import get_user_data_dir
+        user_dir = get_user_data_dir(actual_user_id)
         
         # Create feature-specific files
         os.makedirs(os.path.join(user_dir, "tasks"), exist_ok=True)
@@ -309,16 +309,16 @@ class TestAccountLifecycle:
             json.dump({"checkins": []}, f, indent=2)
         
         # Act - Disable tasks
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         if "account" in loaded_data and "features" in loaded_data["account"]:
             loaded_data["account"]["features"]["task_management"] = "disabled"
         if "preferences" in loaded_data and "task_settings" in loaded_data["preferences"]:
             del loaded_data["preferences"]["task_settings"]
         
-        self.save_user_data_simple(user_id, loaded_data.get("account"), loaded_data.get("preferences"))
+        self.save_user_data_simple(actual_user_id, loaded_data.get("account"), loaded_data.get("preferences"))
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert updated_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled"
         assert "task_settings" not in updated_data["preferences"], "Task settings should be removed"
         assert updated_data["account"]["features"]["automated_messages"] == "enabled", "Messages should still be enabled"
@@ -369,28 +369,30 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID and user dir
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
+        from core.config import get_user_data_dir
+        user_dir = get_user_data_dir(actual_user_id)
         
         # Create check-ins file
         with open(os.path.join(user_dir, "checkins.json"), "w") as f:
             json.dump({"checkins": []}, f, indent=2)
         
         # Act - Re-enable tasks
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["account"]["features"]["task_management"] = "enabled"
         loaded_data["preferences"]["task_settings"] = {
             "enabled": True,
             "reminder_frequency": "daily"
         }
         
-        self.save_user_data_simple(user_id, loaded_data["account"])
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, loaded_data["account"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Create tasks directory and file
         os.makedirs(os.path.join(user_dir, "tasks"), exist_ok=True)
@@ -398,7 +400,7 @@ class TestAccountLifecycle:
             json.dump({"tasks": []}, f, indent=2)
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert updated_data["account"]["features"]["task_management"] == "enabled", "Tasks should be re-enabled"
         assert "task_settings" in updated_data["preferences"], "Task settings should be restored"
         assert updated_data["account"]["features"]["automated_messages"] == "enabled", "Messages should be enabled"
@@ -445,27 +447,27 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
         
         # Update user index
-        update_user_index_for_test(user_id)
+        update_user_index_for_test(actual_user_id)
         
         # Act - Add new category
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["preferences"]["categories"].append("health")
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Update user index after category addition
-        update_user_index_for_test(user_id)
+        update_user_index_for_test(actual_user_id)
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert "health" in updated_data["preferences"]["categories"], "Health category should be added"
         
         # Verify user index reflects the change
@@ -475,21 +477,21 @@ class TestAccountLifecycle:
         user_index = load_json_data(index_file) or {}
         
         # Check detailed mapping in new structure
-        if "users" in user_index and user_id in user_index["users"]:
-            index_entry = user_index["users"][user_id]
+        if "users" in user_index and actual_user_id in user_index["users"]:
+            index_entry = user_index["users"][actual_user_id]
             enabled_features = index_entry.get("enabled_features", [])
             assert "health" in enabled_features, "Health category should be in user index enabled_features"
         
         # Test removing category
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["preferences"]["categories"].remove("health")
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Update user index after category removal
-        update_user_index_for_test(user_id)
+        update_user_index_for_test(actual_user_id)
         
         # Verify category was removed
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
     
     @pytest.mark.integration
@@ -528,22 +530,22 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
         
         # Act - Remove category
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         if "health" in loaded_data["preferences"]["categories"]:
             loaded_data["preferences"]["categories"].remove("health")
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert "health" not in updated_data["preferences"]["categories"], "Health category should be removed"
         assert len(updated_data["preferences"]["categories"]) == 1, "Should have 1 category"
         assert "motivational" in updated_data["preferences"]["categories"], "Motivational should remain"
@@ -584,26 +586,26 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
         
         # Act - Add new period
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["schedules"]["motivational"]["periods"]["evening"] = {
             "active": True,
             "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
             "start_time": "18:00",
             "end_time": "21:00"
         }
-        self.save_user_data_simple(user_id, schedules_data=loaded_data["schedules"])
+        self.save_user_data_simple(actual_user_id, schedules_data=loaded_data["schedules"])
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert len(updated_data["schedules"]["motivational"]["periods"]) == 2, "Should have 2 periods"
         
         assert "evening" in updated_data["schedules"]["motivational"]["periods"], "Evening period should exist"
@@ -647,25 +649,25 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
         
         # Act - Modify period
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         morning_period = loaded_data["schedules"]["motivational"]["periods"]["morning"]
         morning_period["start_time"] = "08:00"
         morning_period["end_time"] = "11:00"
         morning_period["days"] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
         
-        self.save_user_data_simple(user_id, schedules_data=loaded_data["schedules"])
+        self.save_user_data_simple(actual_user_id, schedules_data=loaded_data["schedules"])
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         updated_morning = updated_data["schedules"]["motivational"]["periods"]["morning"]
         assert updated_morning["start_time"] == "08:00", "Start time should be updated"
         assert updated_morning["end_time"] == "11:00", "End time should be updated"
@@ -714,21 +716,21 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
         
         # Act - Remove period
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         del loaded_data["schedules"]["motivational"]["periods"]["evening"]
-        self.save_user_data_simple(user_id, schedules_data=loaded_data["schedules"])
+        self.save_user_data_simple(actual_user_id, schedules_data=loaded_data["schedules"])
         
         # Assert - Verify actual changes
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert len(updated_data["schedules"]["motivational"]["periods"]) == 1, "Should have 1 period"
         
         assert "evening" not in updated_data["schedules"]["motivational"]["periods"], "Evening period should be removed"
@@ -766,26 +768,27 @@ class TestAccountLifecycle:
             }
         }
         
-        # Create user directory first
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
-        os.makedirs(user_dir, exist_ok=True)
-        
+        # Create user then resolve actual UUID and user dir
         self.save_user_data_simple(user_id, account_data)
         self.save_user_data_simple(user_id, preferences_data=preferences_data)
         self.save_user_data_simple(user_id, schedules_data=schedules_data)
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None
+        from core.config import get_user_data_dir
+        user_dir = get_user_data_dir(actual_user_id)
         
         # Verify creation
-        user_dir = os.path.join(self.test_data_dir, "users", user_id)
         assert os.path.exists(user_dir), "User directory should be created"
         
         # 2. Enable features
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["account"]["enabled_features"].extend(["tasks", "checkins"])
         loaded_data["preferences"]["task_settings"] = {"enabled": True, "reminder_frequency": "daily"}
         loaded_data["preferences"]["checkin_settings"] = {"enabled": True, "questions": ["How are you feeling?"]}
         
-        self.save_user_data_simple(user_id, loaded_data["account"])
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, loaded_data["account"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Create feature files
         os.makedirs(os.path.join(user_dir, "tasks"), exist_ok=True)
@@ -796,20 +799,20 @@ class TestAccountLifecycle:
             json.dump({"checkins": []}, f, indent=2)
         
         # Verify features enabled
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert len(updated_data["account"]["enabled_features"]) == 3, "Should have 3 features enabled"
         
         # 3. Disable features
-        loaded_data = get_user_data(user_id)
+        loaded_data = get_user_data(actual_user_id)
         loaded_data["account"]["enabled_features"].remove("tasks")
         if "task_settings" in loaded_data["preferences"]:
             del loaded_data["preferences"]["task_settings"]
         
-        self.save_user_data_simple(user_id, loaded_data["account"])
-        self.save_user_data_simple(user_id, preferences_data=loaded_data["preferences"])
+        self.save_user_data_simple(actual_user_id, loaded_data["account"])
+        self.save_user_data_simple(actual_user_id, preferences_data=loaded_data["preferences"])
         
         # Verify features disabled
-        updated_data = get_user_data(user_id)
+        updated_data = get_user_data(actual_user_id)
         assert "tasks" not in updated_data["account"]["enabled_features"], "Tasks should be disabled"
         assert len(updated_data["account"]["enabled_features"]) == 2, "Should have 2 features enabled"
         
@@ -838,7 +841,7 @@ class TestAccountLifecycle:
         
         # Verify data loading fails
         try:
-            get_user_data(user_id)
+            get_user_data(actual_user_id)
             assert False, "Should not be able to load deleted user data"
         except:
             pass  # Expected behavior 

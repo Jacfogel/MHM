@@ -25,9 +25,10 @@ from datetime import datetime
 # as some unit tests assert the library defaults. Session fixtures below
 # patch core.config attributes to isolate user data under tests/data/users.
 
-# Add the project root to the Python path
+# Ensure project root is on sys.path ONCE for all tests
 project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 # CRITICAL: Set up logging isolation BEFORE importing any core modules
 def setup_logging_isolation():
@@ -94,6 +95,47 @@ from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 import core.config as _core_config
 _core_config.BASE_DATA_DIR = str(tests_data_dir)
 _core_config.USER_INFO_DIR_PATH = str(tests_data_dir / 'users')
+
+# Session-start guard: ensure loader registry identity and completeness
+@pytest.fixture(scope="session", autouse=True)
+def verify_user_data_loader_registry():
+    import importlib
+    import core.user_management as um
+    import core.user_data_handlers as udh
+
+    # Align module state early to avoid split registries from import order
+    um = importlib.reload(um)
+    udh = importlib.reload(udh)
+
+    # Identity check: both should reference the same registry object
+    if um.USER_DATA_LOADERS is not udh.USER_DATA_LOADERS:
+        raise AssertionError(
+            "USER_DATA_LOADERS mismatch: core.user_management and core.user_data_handlers hold different dict objects."
+        )
+
+    # Completeness check: attempt registration once if any missing
+    def _missing_keys():
+        return [k for k, v in um.USER_DATA_LOADERS.items() if not v.get('loader')]
+
+    missing = _missing_keys()
+    if missing:
+        try:
+            if hasattr(um, 'register_default_loaders'):
+                um.register_default_loaders()
+            elif hasattr(udh, 'register_default_loaders'):
+                udh.register_default_loaders()
+        except Exception as e:
+            raise AssertionError(f"Failed to register default loaders: {e}")
+
+        # Re-evaluate after registration attempt
+        missing_after = _missing_keys()
+        if missing_after:
+            raise AssertionError(
+                f"Missing user data loaders after registration attempt: {missing_after}"
+            )
+
+    # All good; continue tests
+    yield
 
 # Apply user-data shim immediately so tests cannot capture pre-patch references
 def _apply_get_user_data_shim_early():

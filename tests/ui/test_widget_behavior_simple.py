@@ -14,10 +14,7 @@ from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import Qt
 from PySide6.QtTest import QTest
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-import sys
-sys.path.insert(0, str(project_root))
+# Do not modify sys.path; rely on package imports
 
 # Create QApplication instance for testing
 @pytest.fixture(scope="session")
