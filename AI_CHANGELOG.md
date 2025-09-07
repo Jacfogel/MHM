@@ -30,6 +30,12 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-07 - Test Suite Stabilization and Runner Defaults ✅ **COMPLETED**
+- Added non-destructive `materialize_user_minimal_via_public_apis` helper and applied across lifecycle/behavior tests for order independence.
+- Refactored lifecycle tests to use public update_* APIs and re-read after updates; fixed feature toggles by merging existing `account.features`.
+- Updated `run_tests.py` to force UTF-8, default `ENABLE_TEST_DATA_SHIM=1`, and apply `--randomly-seed=12345` unless overridden; now one-command green runs.
+- Result: Full suite green (1145 passed, 1 skipped) with randomized order.
+
 ### 2025-09-06 - Intermittent Test Failures Resolved; Suite Stable (1141/1) ✅ **COMPLETED**
 - Added session-start guard in `tests/conftest.py` to assert shared `USER_DATA_LOADERS` identity and register defaults once; prevents import-order flakiness.
 - Removed remaining `sys.path` hacks across tests; centralized a single path insert in `tests/conftest.py`.

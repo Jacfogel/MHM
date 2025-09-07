@@ -48,6 +48,16 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Nightly No-Shim Validation Runs**
+- *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
+- *Why it helps*: Ensures we’re not masking issues behind the test-only shim and maintains long-term robustness.
+- *Estimated effort*: Small
+
+**Discord/aiohttp Warning Cleanup**
+- *What it means*: Resolve deprecation/unraisable warnings from discord/aiohttp (timeout param, resource warnings).
+- *Why it helps*: Cleaner CI logs and future-proofing.
+- *Estimated effort*: Small/Medium
+
 ## **Intermittent Full-Suite Instability** ✅ **COMPLETED**
 - *What it means*: Full test suite occasionally fails with empty user-data dicts (e.g., missing `'account'`, `'preferences'`, `'schedules'`). Subsets generally pass; failures reappear on some full runs.
 - *Why it helps*: Ensuring deterministic behavior in CI and local full runs prevents regressions from slipping through.

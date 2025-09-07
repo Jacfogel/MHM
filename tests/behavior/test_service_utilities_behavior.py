@@ -58,7 +58,7 @@ class TestServiceUtilitiesBehavior:
     @pytest.mark.regression
     def test_throttler_should_run_respects_interval(self, test_data_dir):
         """Test that Throttler should_run respects the time interval."""
-        throttler = Throttler(1)  # 1 second interval for more reliable testing
+        throttler = Throttler(1.0)  # use longer interval to assert immediate throttle
 
         # First call should set last_run and return True
         assert throttler.should_run() is True
@@ -67,11 +67,11 @@ class TestServiceUtilitiesBehavior:
         # Second call should return False (within interval)
         assert throttler.should_run() is False, "Should return False when within interval"
 
-        # Wait for interval to pass
-        time.sleep(1.1)  # Wait longer than interval
-        
-        # After waiting, should_run should return True and update last_run
-        assert throttler.should_run() is True, "Should return True after interval passes"
+        # Wait for interval to pass without sleeping the whole test
+        from tests.conftest import wait_until
+        assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=2.0)
+
+        # Do not immediately invoke should_run again; the assertion above already performed the True call
         assert throttler.last_run is not None, "last_run should be updated after interval"
     
     @pytest.mark.behavior
@@ -330,10 +330,7 @@ class TestServiceUtilitiesBehavior:
         throttler = Throttler(0.01)  # 10ms interval for faster testing
         
         # Act - Test multiple rapid calls
-        results = []
-        for i in range(10):
-            results.append(throttler.should_run())
-            time.sleep(0.005)  # 5ms between calls for faster testing
+        results = [throttler.should_run() for _ in range(10)]
         
         # Assert - Should throttle appropriately
         assert results[0] is True, "First call should succeed"
@@ -350,16 +347,16 @@ class TestServiceUtilitiesBehavior:
         
         # Act - Multiple operations
         first_result = throttler.should_run()
-        time.sleep(0.005)  # Small delay
         second_result = throttler.should_run()
         
         # Assert - State should be maintained correctly
         assert first_result is True, "First call should succeed"
         assert second_result is True, "Second call should succeed (no last_run set yet)"
         
-        # Wait for interval to pass and set last_run
-        time.sleep(0.015)  # Wait longer than interval
-        third_result = throttler.should_run()
+        # Wait for interval to pass without arbitrary sleep
+        from tests.conftest import wait_until
+        assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=1.0)
+        third_result = True
         assert third_result is True, "Third call should succeed (after interval)"
         # Note: last_run timing might vary, focus on core functionality
         
@@ -444,9 +441,9 @@ class TestServiceUtilitiesIntegration:
         assert results[1:] == [False] * 4, "Rapid calls should be throttled"
         
         # Test with actual time delay to verify throttling works across seconds
-        import time
-        time.sleep(1.1)  # Wait longer than interval
-        delayed_result = throttler.should_run()
+        from tests.conftest import wait_until
+        assert wait_until(lambda: throttler.should_run() is True, timeout_seconds=2.0)
+        delayed_result = True
         assert delayed_result is True, "Call after interval should succeed"
         
         # Test title case thread safety (should be stateless)

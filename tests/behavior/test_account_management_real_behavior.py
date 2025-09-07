@@ -17,11 +17,14 @@ import pytest
 
 # Do not modify sys.path; rely on package imports
 
+pytestmark = pytest.mark.debug
+
 def setup_test_environment(test_data_dir):
     """Create isolated test environment with temporary directories"""
     from tests.test_utilities import TestDataManager
     
-    print("🔧 Setting up test environment...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Setting up test environment...")
     return TestDataManager.setup_test_environment()
 
 def create_test_user_data(user_id, test_data_dir, base_state="basic"):
@@ -83,24 +86,29 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
 @pytest.mark.file_io
 def test_user_data_loading_real_behavior(test_data_dir, mock_config):
     """Test actual user data loading with file verification"""
-    print("\n🔍 Testing User Data Loading (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing User Data Loading (Real Behavior)...")
     
     # Setup test environment and create test users (with mock_config already applied)
     create_test_user_data("test-user-basic", test_data_dir, "basic")
     create_test_user_data("test-user-full", test_data_dir, "full")
-    print(f"  Test users created. Checking if files exist...")
-    print(f"  Basic user account file: {os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json')}")
-    print(f"  File exists: {os.path.exists(os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json'))}")
+    import logging
+    _logger = logging.getLogger("mhm_tests")
+    _logger.debug("Test users created. Checking if files exist...")
+    _logger.debug(f"  Basic user account file: {os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json')}")
+    _logger.debug(f"  File exists: {os.path.exists(os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json'))}")
     
     try:
         from core.user_data_handlers import get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user
+        # Get the UUID for the basic user (rebuild and fallback to factory if needed)
         basic_user_id = get_user_id_by_identifier("test-user-basic")
         assert basic_user_id is not None, "Should be able to get UUID for basic user"
         
-        # Test loading basic user
+        # Materialize and load basic user
+        from tests.conftest import materialize_user_minimal_via_public_apis
+        materialize_user_minimal_via_public_apis(basic_user_id)
         basic_data = get_user_data(basic_user_id, "all")
 
         # Verify actual data structure
@@ -114,13 +122,14 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         assert basic_data["account"]["features"]["task_management"] == "disabled", "Basic user should have tasks disabled"
         assert "motivational" in basic_data["preferences"]["categories"], "Basic user should have motivational category"
         
-        print("  ✅ Basic user data loading: Success")
+        logging.getLogger("mhm_tests").debug("Basic user data loading: Success")
         
         # Get the UUID for the full user
         full_user_id = get_user_id_by_identifier("test-user-full")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Test loading full user
+        # Materialize and load full user
+        materialize_user_minimal_via_public_apis(full_user_id)
         full_data = get_user_data(full_user_id, "all")
         
         # Verify actual data structure
@@ -134,10 +143,10 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         assert "motivational" in full_data["schedules"], "Full user should have motivational schedules"
         assert "health" in full_data["schedules"], "Full user should have health schedules"
         
-        print("  ✅ Full user data loading: Success")
+        logging.getLogger("mhm_tests").debug("Full user data loading: Success")
         
     except Exception as e:
-        print(f"  ❌ User data loading: Error - {e}")
+        logging.getLogger("mhm_tests").error(f"User data loading: Error - {e}")
         raise
 
 @pytest.mark.behavior
@@ -146,7 +155,8 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
 @pytest.mark.file_io
 def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     """Test actual feature enablement with file creation/deletion"""
-    print("\n🔍 Testing Feature Enablement (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Feature Enablement (Real Behavior)...")
     
     # Setup test environment and create test users (with mock_config already applied)
     create_test_user_data("test-user-basic", test_data_dir, "basic")
@@ -186,7 +196,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")
         assert os.path.exists(checkins_file), "checkins.json should be created"
         
-        print("  ✅ Enable check-ins: Success")
+        logging.getLogger("mhm_tests").debug("Enable check-ins: Success")
         
         # Get the UUID for the full user
         full_user_id = get_user_id_by_identifier("test-user-full")
@@ -208,10 +218,10 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         assert updated_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled"
         assert "task_settings" not in updated_data["preferences"], "Task settings should be removed"
         
-        print("  ✅ Disable tasks: Success")
+        logging.getLogger("mhm_tests").debug("Disable tasks: Success")
         
     except Exception as e:
-        print(f"  ❌ Feature enablement: Error - {e}")
+        logging.getLogger("mhm_tests").error(f"Feature enablement: Error - {e}")
         raise
 
 @pytest.mark.behavior
@@ -220,7 +230,8 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 @pytest.mark.regression
 def test_category_management_real_behavior(test_data_dir, mock_config):
     """Test actual category management with file persistence"""
-    print("\n🔍 Testing Category Management (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Category Management (Real Behavior)...")
     
     # Setup test environment and create test users (with mock_config already applied)
     create_test_user_data("test-user-basic", test_data_dir, "basic")
@@ -253,62 +264,62 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
         })
         
         if result.get('account') and result.get('preferences'):
-            print("✅ User data saved successfully")
+            logging.getLogger("mhm_tests").debug("User data saved successfully")
             
             # Test adding a new category
-            print("📝 Testing category addition...")
+            logging.getLogger("mhm_tests").debug("Testing category addition...")
             loaded_data = get_user_data(user_id)
             if 'fun_facts' not in loaded_data['preferences']['categories']:
                 loaded_data['preferences']['categories'].append('fun_facts')
                 save_result = save_user_data(user_id, {'preferences': loaded_data['preferences']})
                 if save_result.get('preferences'):
-                    print("✅ Category 'fun_facts' added successfully")
+                    logging.getLogger("mhm_tests").debug("Category 'fun_facts' added successfully")
                 else:
-                    print("❌ Failed to add category")
+                    logging.getLogger("mhm_tests").error("Failed to add category")
                     assert False, "Failed to add category"
             else:
-                print("⚠️ Category 'fun_facts' already exists")
+                logging.getLogger("mhm_tests").warning("Category 'fun_facts' already exists")
             
             # Test removing a category
-            print("🗑️ Testing category removal...")
+            logging.getLogger("mhm_tests").debug("Testing category removal...")
             loaded_data = get_user_data(user_id)
             if 'health' in loaded_data['preferences']['categories']:
                 loaded_data['preferences']['categories'].remove('health')
                 save_result = save_user_data(user_id, {'preferences': loaded_data['preferences']})
                 if save_result.get('preferences'):
-                    print("✅ Category 'health' removed successfully")
+                    logging.getLogger("mhm_tests").debug("Category 'health' removed successfully")
                 else:
-                    print("❌ Failed to remove category")
+                    logging.getLogger("mhm_tests").error("Failed to remove category")
                     assert False, "Failed to remove category"
             else:
-                print("⚠️ Category 'health' not found to remove")
+                logging.getLogger("mhm_tests").warning("Category 'health' not found to remove")
             
             # Test message file creation for categories
-            print("📄 Testing message file creation...")
+            logging.getLogger("mhm_tests").debug("Testing message file creation...")
             try:
                 # Create message files for enabled categories
                 for category in loaded_data['preferences']['categories']:
                     create_message_file_from_defaults(user_id, category)
                     message_file = os.path.join(user_dir, "messages", f"{category}.json")
                     if os.path.exists(message_file):
-                        print(f"✅ Message file created for category: {category}")
+                        logging.getLogger("mhm_tests").debug(f"Message file created for category: {category}")
                     else:
-                        print(f"❌ Failed to create message file for category: {category}")
+                        logging.getLogger("mhm_tests").error(f"Failed to create message file for category: {category}")
                         assert False, f"Failed to create message file for category: {category}"
             except Exception as e:
-                print(f"❌ Error creating message files: {e}")
+                logging.getLogger("mhm_tests").error(f"Error creating message files: {e}")
                 raise
             
             # Verify final state
             final_data = get_user_data(user_id)
-            print(f"📊 Final categories: {final_data['preferences']['categories']}")
+            logging.getLogger("mhm_tests").debug(f"Final categories: {final_data['preferences']['categories']}")
             
         else:
-            print("❌ Failed to save user data")
+            logging.getLogger("mhm_tests").error("Failed to save user data")
             assert False, "Failed to save user data"
             
     except Exception as e:
-        print(f"❌ Error in category management test: {e}")
+        logging.getLogger("mhm_tests").error(f"Error in category management test: {e}")
         raise
 
 @pytest.mark.behavior
@@ -317,7 +328,8 @@ def test_category_management_real_behavior(test_data_dir, mock_config):
 @pytest.mark.regression
 def test_schedule_period_management_real_behavior(test_data_dir):
     """Test actual schedule period management with file persistence"""
-    print("\n🔍 Testing Schedule Period Management (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Schedule Period Management (Real Behavior)...")
     
     # Setup test environment and create test users
     # Note: Using mock_config fixture instead of direct patching to avoid conflicts
@@ -352,7 +364,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             assert evening_period is not None, "Evening period should exist"
             assert evening_period["start_time"] == "18:00", "Evening period should have correct start time"
             
-            print("  ✅ Add schedule period: Success")
+            logging.getLogger("mhm_tests").debug("Add schedule period: Success")
             
             # Test modifying existing period
             basic_data = get_user_data("test-user-basic", "all")
@@ -370,7 +382,7 @@ def test_schedule_period_management_real_behavior(test_data_dir):
                     assert updated_morning["start_time"] == "08:00", "Morning period should have updated start time"
                     assert updated_morning["end_time"] == "11:00", "Morning period should have updated end time"
             
-            print("  ✅ Modify schedule period: Success")
+            logging.getLogger("mhm_tests").debug("Modify schedule period: Success")
             
             # Test removing schedule period
             basic_data = get_user_data("test-user-basic", "all")
@@ -384,10 +396,10 @@ def test_schedule_period_management_real_behavior(test_data_dir):
                 evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
                 assert evening_period is None, "Evening period should be removed"
             
-            print("  ✅ Remove schedule period: Success")
+            logging.getLogger("mhm_tests").debug("Remove schedule period: Success")
             
     except Exception as e:
-        print(f"  ❌ Schedule period management: Error - {e}")
+        logging.getLogger("mhm_tests").error(f"Schedule period management: Error - {e}")
         raise
 
 # TEMPORARILY DISABLED: This test has syntax errors that need to be fixed
@@ -398,7 +410,8 @@ def test_schedule_period_management_real_behavior(test_data_dir):
 # @pytest.mark.slow
 def test_integration_scenarios_real_behavior(test_data_dir):
     """Test complex integration scenarios with multiple operations"""
-    print("\n🔍 Testing Integration Scenarios (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Integration Scenarios (Real Behavior)...")
     
     # Setup test environment and create test users
     # Note: Using mock_config fixture instead of direct patching to avoid conflicts
@@ -414,7 +427,7 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             assert basic_user_id is not None, "Should be able to get UUID for basic user"
 
             # Scenario 1: User opts into check-ins for the first time
-            print("  Testing: User opts into check-ins for the first time")
+            logging.getLogger("mhm_tests").debug("Testing: User opts into check-ins for the first time")
 
             basic_data = get_user_data(basic_user_id, "all")
             
@@ -466,10 +479,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             checkins_file = os.path.join(test_data_dir, "users", basic_user_id, "checkins.json")
             assert os.path.exists(checkins_file), "checkins.json should be created"
             
-            print("    ✅ Check-in opt-in scenario: Success")
+            logging.getLogger("mhm_tests").debug("Check-in opt-in scenario: Success")
             
             # Scenario 2: User disables task management and re-enables it
-            print("  Testing: User disables task management and re-enables it")
+            logging.getLogger("mhm_tests").debug("Testing: User disables task management and re-enables it")
             
             # Get the UUID for the full user
             full_user_id = get_user_id_by_identifier("test-user-full")
@@ -521,10 +534,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             tasks_dir = os.path.join(test_data_dir, "users", full_user_id, "tasks")
             assert os.path.exists(tasks_dir), "Tasks directory should exist"
             
-            print("    ✅ Task disable/re-enable scenario: Success")
+            logging.getLogger("mhm_tests").debug("Task disable/re-enable scenario: Success")
         
             # Scenario 3: User adds new message category and then removes it
-            print("  Testing: User adds new message category and then removes it")
+            logging.getLogger("mhm_tests").debug("Testing: User adds new message category and then removes it")
             
             basic_data = get_user_data(basic_user_id, "all")
             
@@ -545,10 +558,10 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             final_data = get_user_data(basic_user_id, "all")
             assert "quotes" not in final_data["preferences"]["categories"], "Quotes category should be removed"
             
-            print("    ✅ Category add/remove scenario: Success")
+            logging.getLogger("mhm_tests").debug("Category add/remove scenario: Success")
             
     except Exception as e:
-        print(f"  ❌ Integration scenarios: Error - {e}")
+        logging.getLogger("mhm_tests").error(f"Integration scenarios: Error - {e}")
         raise
 
 @pytest.mark.behavior
@@ -557,7 +570,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 @pytest.mark.regression
 def test_data_consistency_real_behavior(test_data_dir, mock_config):
     """Test data consistency across multiple operations"""
-    print("\n🔍 Testing Data Consistency (Real Behavior)...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Data Consistency (Real Behavior)...")
     
     # Setup test environment and create test users
     # mock_config fixture already sets up the correct paths
@@ -605,13 +619,13 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         with open(user_index_file, "r") as f:
             user_index = json.load(f)
         
-        print(f"  User index content: {user_index}")
+        logging.getLogger("mhm_tests").debug(f"User index content: {user_index}")
         assert "test-user-basic" in user_index, "User should still be in index"
         # User index now maps internal_username to UUID, not to object with 'active' field
         # Check that the user exists in the index (UUID should be a string)
         assert isinstance(user_index["test-user-basic"], str), "User index should map to UUID string"
         
-        print("  ✅ User index consistency: Success")
+        logging.getLogger("mhm_tests").debug("User index consistency: Success")
         
         # Test that account.json and preferences.json stay in sync
         basic_data = get_user_data("test-user-basic", "all")

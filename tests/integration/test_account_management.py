@@ -7,6 +7,8 @@ READ-ONLY - Does not modify any real user data
 
 import sys
 import os
+import pytest
+pytestmark = pytest.mark.debug
 import time
 import tempfile
 import shutil
@@ -22,7 +24,8 @@ from pathlib import Path
 @pytest.mark.file_io
 def test_account_management_imports():
     """Test that all account management modules can be imported without errors"""
-    print("🔍 Testing Account Management Imports...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Account Management Imports...")
     
     modules_to_test = [
         ("Account Creator Dialog", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
@@ -35,17 +38,17 @@ def test_account_management_imports():
         try:
             module = __import__(module_path, fromlist=[function_name])
             function = getattr(module, function_name)
-            print(f"  ✅ {module_name}: Import successful")
+            logging.getLogger("mhm_tests").debug(f"Import successful: {module_name}")
             # Assert that the function exists and is callable
             assert callable(function), f"{module_name}: Function is not callable"
         except ImportError as e:
-            print(f"  ❌ {module_name}: Import failed - {e}")
+            logging.getLogger("mhm_tests").error(f"Import failed: {module_name} - {e}")
             assert False, f"{module_name}: Import failed - {e}"
         except AttributeError as e:
-            print(f"  ❌ {module_name}: Function not found - {e}")
+            logging.getLogger("mhm_tests").error(f"Function not found: {module_name} - {e}")
             assert False, f"{module_name}: Function not found - {e}"
         except Exception as e:
-            print(f"  ❌ {module_name}: Unexpected error - {e}")
+            logging.getLogger("mhm_tests").error(f"Unexpected error importing {module_name}: {e}")
             assert False, f"{module_name}: Unexpected error - {e}"
 
 @pytest.mark.integration
@@ -55,7 +58,8 @@ def test_account_management_imports():
 @pytest.mark.file_io
 def test_account_management_functions():
     """Test that all account management functions can be called (with safe test data)"""
-    print("\n🔍 Testing Account Management Functions...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Account Management Functions...")
     
     try:
         from core.user_data_handlers import (
@@ -71,50 +75,50 @@ def test_account_management_functions():
         # Test get_user_data for account management
         try:
             account_data = get_user_data(test_user, 'account')
-            print(f"  ✅ get_user_data (account): Function call successful")
+            logging.getLogger("mhm_tests").debug("get_user_data (account): success")
             assert account_data is not None, "get_user_data should return data"
         except Exception as e:
-            print(f"  ❌ get_user_data (account): Function call failed - {e}")
+            logging.getLogger("mhm_tests").error(f"get_user_data (account) failed: {e}")
             assert False, f"get_user_data (account) failed: {e}"
         
         # Test get_user_data for preferences
         try:
             prefs_data = get_user_data(test_user, 'preferences')
-            print(f"  ✅ get_user_data (preferences): Function call successful")
+            logging.getLogger("mhm_tests").debug("get_user_data (preferences): success")
             assert prefs_data is not None, "get_user_data should return data"
         except Exception as e:
-            print(f"  ❌ get_user_data (preferences): Function call failed - {e}")
+            logging.getLogger("mhm_tests").error(f"get_user_data (preferences) failed: {e}")
             assert False, f"get_user_data (preferences) failed: {e}"
         
         # Test get_user_data for context
         try:
             context_data = get_user_data(test_user, 'context')
-            print(f"  ✅ get_user_data (context): Function call successful")
+            logging.getLogger("mhm_tests").debug("get_user_data (context): success")
             assert context_data is not None, "get_user_data should return data"
         except Exception as e:
-            print(f"  ❌ get_user_data (context): Function call failed - {e}")
+            logging.getLogger("mhm_tests").error(f"get_user_data (context) failed: {e}")
             assert False, f"get_user_data (context) failed: {e}"
         
         # Test UserDataManager instantiation
         try:
             data_manager = UserDataManager()
-            print(f"  ✅ UserDataManager: Instantiation successful")
+            logging.getLogger("mhm_tests").debug("UserDataManager: instantiation successful")
             assert data_manager is not None, "UserDataManager should be instantiated"
         except Exception as e:
-            print(f"  ❌ UserDataManager: Instantiation failed - {e}")
+            logging.getLogger("mhm_tests").error(f"UserDataManager instantiation failed: {e}")
             assert False, f"UserDataManager instantiation failed: {e}"
         
         # Test UserContext instantiation
         try:
             user_context = UserContext()
-            print(f"  ✅ UserContext: Instantiation successful")
+            logging.getLogger("mhm_tests").debug("UserContext: instantiation successful")
             assert user_context is not None, "UserContext should be instantiated"
         except Exception as e:
-            print(f"  ❌ UserContext: Instantiation failed - {e}")
+            logging.getLogger("mhm_tests").error(f"UserContext instantiation failed: {e}")
             assert False, f"UserContext instantiation failed: {e}"
         
     except Exception as e:
-        print(f"  ❌ Account management function testing failed: {e}")
+        logging.getLogger("mhm_tests").error(f"Account management function testing failed: {e}")
         assert False, f"Account management function testing failed: {e}"
 
 @pytest.mark.integration
@@ -124,7 +128,8 @@ def test_account_management_functions():
 @pytest.mark.file_io
 def test_account_management_data_structures(test_data_dir, mock_config):
     """Test that account management can handle the expected data structures"""
-    print("\n🔍 Testing Account Management Data Structures...")
+    import logging
+    logging.getLogger("mhm_tests").debug("Testing Account Management Data Structures...")
     
     try:
         from core.user_data_handlers import get_user_data, save_user_data
@@ -144,6 +149,8 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         
         # Test account data structure
         try:
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            materialize_user_minimal_via_public_apis(test_user)
             account_data = get_user_data(test_user, 'account')
             if account_data and 'account' in account_data:
                 account = account_data['account']
@@ -151,16 +158,16 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                 missing_fields = [field for field in required_fields if field not in account]
                 
                 if not missing_fields:
-                    print(f"  ✅ Account data structure: All required fields present")
+                    logging.getLogger("mhm_tests").debug("Account data structure: all required fields present")
                     assert True, "Account structure is valid"
                 else:
-                    print(f"  ⚠️ Account data structure: Missing fields - {missing_fields}")
+                    logging.getLogger("mhm_tests").warning(f"Account data structure: missing fields - {missing_fields}")
                     assert False, f"Account structure missing fields: {missing_fields}"
             else:
-                print(f"  ❌ Account data structure: No account data found")
+                logging.getLogger("mhm_tests").error("Account data structure: no account data found")
                 assert False, "No account data found"
         except Exception as e:
-            print(f"  ❌ Account data structure: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Account data structure: error - {e}")
             assert False, f"Account data structure error: {e}"
         
         # Test preferences data structure
@@ -172,16 +179,16 @@ def test_account_management_data_structures(test_data_dir, mock_config):
                 missing_fields = [field for field in required_fields if field not in prefs]
                 
                 if not missing_fields:
-                    print(f"  ✅ Preferences data structure: All required fields present")
+                    logging.getLogger("mhm_tests").debug("Preferences data structure: all required fields present")
                     assert True, "Preferences structure is valid"
                 else:
-                    print(f"  ⚠️ Preferences data structure: Missing fields - {missing_fields}")
+                    logging.getLogger("mhm_tests").warning(f"Preferences data structure: missing fields - {missing_fields}")
                     assert False, f"Preferences structure missing fields: {missing_fields}"
             else:
-                print(f"  ❌ Preferences data structure: No preferences data found")
+                logging.getLogger("mhm_tests").error("Preferences data structure: no preferences data found")
                 assert False, "No preferences data found"
         except Exception as e:
-            print(f"  ❌ Preferences data structure: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Preferences data structure: error - {e}")
             assert False, f"Preferences data structure error: {e}"
         
         # Test context data structure
@@ -189,14 +196,14 @@ def test_account_management_data_structures(test_data_dir, mock_config):
             context_data = get_user_data(test_user, 'context')
             if context_data and 'context' in context_data:
                 context = context_data['context']
-                print(f"  ✅ Context data structure: Data present")
+                logging.getLogger("mhm_tests").debug("Context data structure: data present")
                 assert True, "Context structure is valid"
             else:
-                print(f"  ⚠️ Context data structure: No context data found (may be optional)")
+                logging.getLogger("mhm_tests").warning("Context data structure: no context data found (optional)")
                 # Context is optional, so this is not a failure
                 assert True, "Context data is optional"
         except Exception as e:
-            print(f"  ❌ Context data structure: Error - {e}")
+            logging.getLogger("mhm_tests").error(f"Context data structure: error - {e}")
             assert False, f"Context data structure error: {e}"
         
     except Exception as e:
@@ -328,6 +335,8 @@ def test_account_management_safe_operations():
         
         # Test reading temporary user data
         try:
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            materialize_user_minimal_via_public_apis(temp_user_id)
             account_data = get_user_data(temp_user_id, 'account')
             prefs_data = get_user_data(temp_user_id, 'preferences')
             

@@ -239,16 +239,24 @@ class TestScheduleManagementBehavior:
             }
         }
         
-        # Act - Populate cache, then modify data
-        with patch('core.schedule_management.get_user_data', return_value=initial_schedule):
-            # First call populates cache
-            periods1 = get_schedule_time_periods(user_id, category)
-            
-            # Clear cache to simulate invalidation
-            clear_schedule_periods_cache(user_id, category)
-            
-            # Second call should use fresh data
-            periods2 = get_schedule_time_periods(user_id, category)
+        # Materialize Morning period and then exercise cache
+        set_schedule_periods(user_id, category, {
+            "Morning": {
+                "start_time": "08:00",
+                "end_time": "12:00",
+                "active": True,
+                "days": ["Monday"]
+            }
+        })
+
+        # First call populates cache
+        periods1 = get_schedule_time_periods(user_id, category)
+
+        # Clear cache to simulate invalidation
+        clear_schedule_periods_cache(user_id, category)
+
+        # Second call should use fresh data
+        periods2 = get_schedule_time_periods(user_id, category)
         
         # Assert - Verify cache invalidation
         assert "Morning" in periods1, "Initial periods should contain Morning"

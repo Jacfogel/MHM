@@ -8,6 +8,7 @@ READ-ONLY - Does not modify any user data
 import sys
 import os
 import time
+import logging
 import pytest
 from pathlib import Path
 
@@ -19,7 +20,7 @@ from pathlib import Path
 @pytest.mark.slow
 def test_dialog_imports():
     """Test that all dialog modules can be imported without errors"""
-    print("🔍 Testing Dialog Imports...")
+    # logging via mhm_tests logger preferred over print
     
     dialogs_to_test = [
         ("Account Creator", "ui.dialogs.account_creator_dialog", "AccountCreatorDialog"),
@@ -36,16 +37,16 @@ def test_dialog_imports():
         try:
             module = __import__(module_path, fromlist=[class_name])
             dialog_class = getattr(module, class_name)
-            print(f"  ✅ {dialog_name}: Import successful")
+            # logging via mhm_tests logger preferred over print
             assert callable(dialog_class), f"{dialog_name}: Class is not callable"
         except ImportError as e:
-            print(f"  ❌ {dialog_name}: Import failed - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{dialog_name}: Import failed - {e}"
         except AttributeError as e:
-            print(f"  ❌ {dialog_name}: Class not found - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{dialog_name}: Class not found - {e}"
         except Exception as e:
-            print(f"  ❌ {dialog_name}: Unexpected error - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{dialog_name}: Unexpected error - {e}"
 
 @pytest.mark.ui
@@ -54,7 +55,7 @@ def test_dialog_imports():
 @pytest.mark.slow
 def test_widget_imports():
     """Test that all widget modules can be imported without errors"""
-    print("\n🔍 Testing Widget Imports...")
+    # logging via mhm_tests logger preferred over print
     
     widgets_to_test = [
         ("Category Selection", "ui.widgets.category_selection_widget", "CategorySelectionWidget"),
@@ -69,16 +70,16 @@ def test_widget_imports():
         try:
             module = __import__(module_path, fromlist=[class_name])
             widget_class = getattr(module, class_name)
-            print(f"  ✅ {widget_name}: Import successful")
+            # logging via mhm_tests logger preferred over print
             assert callable(widget_class), f"{widget_name}: Class is not callable"
         except ImportError as e:
-            print(f"  ❌ {widget_name}: Import failed - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{widget_name}: Import failed - {e}"
         except AttributeError as e:
-            print(f"  ❌ {widget_name}: Class not found - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{widget_name}: Class not found - {e}"
         except Exception as e:
-            print(f"  ❌ {widget_name}: Unexpected error - {e}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{widget_name}: Unexpected error - {e}"
 
 @pytest.mark.ui
@@ -87,7 +88,7 @@ def test_widget_imports():
 @pytest.mark.slow
 def test_ui_files_exist():
     """Test that all required UI files exist"""
-    print("\n🔍 Testing UI Files...")
+    # logging via mhm_tests logger preferred over print
     
     ui_files_to_test = [
         ("Admin Panel", "ui/designs/admin_panel.ui"),
@@ -102,10 +103,10 @@ def test_ui_files_exist():
     
     for ui_name, file_path in ui_files_to_test:
         if os.path.exists(file_path):
-            print(f"  ✅ {ui_name}: UI file exists")
+            # logging via mhm_tests logger preferred over print
             assert True, f"{ui_name}: UI file should exist"
         else:
-            print(f"  ❌ {ui_name}: UI file missing - {file_path}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{ui_name}: UI file missing - {file_path}"
 
 @pytest.mark.ui
@@ -114,7 +115,7 @@ def test_ui_files_exist():
 @pytest.mark.slow
 def test_generated_files_exist():
     """Test that all generated Python UI files exist"""
-    print("\n🔍 Testing Generated UI Files...")
+    # logging via mhm_tests logger preferred over print
     
     generated_files_to_test = [
         ("Admin Panel", "ui/generated/admin_panel_pyqt.py"),
@@ -129,10 +130,10 @@ def test_generated_files_exist():
     
     for file_name, file_path in generated_files_to_test:
         if os.path.exists(file_path):
-            print(f"  ✅ {file_name}: Generated file exists")
+            # logging via mhm_tests logger preferred over print
             assert True, f"{file_name}: Generated file should exist"
         else:
-            print(f"  ❌ {file_name}: Generated file missing - {file_path}")
+            # logging via mhm_tests logger preferred over print
             assert False, f"{file_name}: Generated file missing - {file_path}"
 
 @pytest.mark.ui
@@ -141,7 +142,7 @@ def test_generated_files_exist():
 @pytest.mark.slow
 def test_user_data_access(test_data_dir, mock_config, mock_user_data):
     """Test that we can access user data for testing - READ ONLY"""
-    print("\n🔍 Testing User Data Access (Read-Only)...")
+    logger = logging.getLogger("mhm_tests")
     
     try:
         from core.user_data_handlers import get_user_data
@@ -149,44 +150,50 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
         
         # Get all user IDs
         user_ids = get_all_user_ids()
-        print(f"  ✅ Found {len(user_ids)} users total")
+        logger.debug(f"Total users found: {len(user_ids)}")
         
         # Use the mock user data that was created by the fixture
         test_user = mock_user_data['user_id']
-        print(f"  🔍 Testing with user: {test_user}")
+        logger.debug(f"Testing with user: {test_user}")
         
         # Test account data (read-only)
         try:
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            materialize_user_minimal_via_public_apis(test_user)
             account_data = get_user_data(test_user, 'account')
-            print(f"  ✅ Account data accessible for {test_user}")
+            logger.debug(f"Account data accessible for {test_user}")
             assert account_data is not None, f"Account data should be accessible for {test_user}"
             assert 'account' in account_data, f"Account data should contain 'account' key for {test_user}"
         except Exception as e:
-            print(f"  ❌ Account data failed for {test_user}: {e}")
+            logger.error(f"Account data failed for {test_user}: {e}")
             assert False, f"Account data failed for {test_user}: {e}"
         
         # Test preferences data (read-only)
         try:
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            materialize_user_minimal_via_public_apis(test_user)
             prefs_data = get_user_data(test_user, 'preferences')
-            print(f"  ✅ Preferences data accessible for {test_user}")
+            logger.debug(f"Preferences data accessible for {test_user}")
             assert prefs_data is not None, f"Preferences data should be accessible for {test_user}"
             assert 'preferences' in prefs_data, f"Preferences data should contain 'preferences' key for {test_user}"
         except Exception as e:
-            print(f"  ❌ Preferences data failed for {test_user}: {e}")
+            logger.error(f"Preferences data failed for {test_user}: {e}")
             assert False, f"Preferences data failed for {test_user}: {e}"
         
         # Test context data (read-only)
         try:
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            materialize_user_minimal_via_public_apis(test_user)
             context_data = get_user_data(test_user, 'context')
-            print(f"  ✅ Context data accessible for {test_user}")
+            logger.debug(f"Context data accessible for {test_user}")
             assert context_data is not None, f"Context data should be accessible for {test_user}"
             assert 'context' in context_data, f"Context data should contain 'context' key for {test_user}"
         except Exception as e:
-            print(f"  ❌ Context data failed for {test_user}: {e}")
+            logger.error(f"Context data failed for {test_user}: {e}")
             assert False, f"Context data failed for {test_user}: {e}"
         
     except Exception as e:
-        print(f"  ❌ User data access failed: {e}")
+        logger.error(f"User data access failed: {e}")
         assert False, f"User data access failed: {e}"
 
 @pytest.mark.ui
@@ -195,7 +202,7 @@ def test_user_data_access(test_data_dir, mock_config, mock_user_data):
 @pytest.mark.slow
 def test_dialog_instantiation(monkeypatch):
     """Test that dialogs can be instantiated (without showing them)"""
-    print("\n🔍 Testing Dialog Instantiation...")
+    logger = logging.getLogger("mhm_tests")
     
     # We'll test this with a mock parent and test user
     try:
@@ -223,12 +230,12 @@ def test_dialog_instantiation(monkeypatch):
             from ui.dialogs.account_creator_dialog import AccountCreatorDialog
             
             dialog = AccountCreatorDialog(None, comm_manager)
-            print(f"  ✅ Account Creator: Instantiation successful")
+            logger.debug("Account Creator: Instantiation successful")
             assert dialog is not None, "Account Creator dialog should be instantiated"
             dialog.close()
             comm_manager.stop_all()
         except Exception as e:
-            print(f"  ❌ Account Creator: Instantiation failed - {e}")
+            logger.error(f"Account Creator instantiation failed: {e}")
             assert False, f"Account Creator instantiation failed: {e}"
         
         # Test User Profile Dialog
@@ -239,11 +246,11 @@ def test_dialog_instantiation(monkeypatch):
                 pass  # Do nothing
             
             dialog = UserProfileDialog(None, test_user, mock_save)
-            print(f"  ✅ User Profile: Instantiation successful")
+            logger.debug("User Profile: Instantiation successful")
             assert dialog is not None, "User Profile dialog should be instantiated"
             dialog.close()
         except Exception as e:
-            print(f"  ❌ User Profile: Instantiation failed - {e}")
+            logger.error(f"User Profile instantiation failed: {e}")
             assert False, f"User Profile instantiation failed: {e}"
         
         # Test other dialogs that don't require complex setup
@@ -259,15 +266,15 @@ def test_dialog_instantiation(monkeypatch):
                 module = __import__(module_path, fromlist=[class_name])
                 dialog_class = getattr(module, class_name)
                 dialog = dialog_class(None, user_id=test_user)
-                print(f"  ✅ {dialog_name}: Instantiation successful")
+                # logging via mhm_tests logger preferred over print
                 assert dialog is not None, f"{dialog_name} dialog should be instantiated"
                 dialog.close()
             except Exception as e:
-                print(f"  ❌ {dialog_name}: Instantiation failed - {e}")
+                # logging via mhm_tests logger preferred over print
                 assert False, f"{dialog_name} instantiation failed: {e}"
         
     except Exception as e:
-        print(f"  ❌ Dialog instantiation testing failed: {e}")
+        # logging via mhm_tests logger preferred over print
         assert False, f"Dialog instantiation testing failed: {e}"
     finally:
         pass

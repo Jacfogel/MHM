@@ -16,8 +16,10 @@ def test_repo_static_logging_check_passes():
 
     result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
     if result.returncode != 0:
-        print(result.stdout)
-        print(result.stderr)
+        import logging
+        _logger = logging.getLogger("mhm_tests")
+        _logger.error(result.stdout)
+        _logger.error(result.stderr)
     assert result.returncode == 0, "Static logging check failed"
 
 

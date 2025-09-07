@@ -137,8 +137,39 @@ def verify_user_data_loader_registry():
     # All good; continue tests
     yield
 
+# Ensure import order and perform a single default loader registration at session start
+@pytest.fixture(scope="session", autouse=True)
+def initialize_loader_import_order():
+    """Import core.user_management before core.user_data_handlers and register loaders once.
+
+    This ensures both modules share the same USER_DATA_LOADERS dict and that required
+    loaders are present without relying on the data shim.
+    """
+    import importlib
+    import core.user_management as um
+    um = importlib.reload(um)
+    try:
+        import core.user_data_handlers as udh
+        udh = importlib.reload(udh)
+    except Exception:
+        udh = None
+
+    # Single registration pass if available
+    try:
+        if hasattr(um, 'register_default_loaders'):
+            um.register_default_loaders()
+        elif udh is not None and hasattr(udh, 'register_default_loaders'):
+            udh.register_default_loaders()
+    except Exception:
+        # Do not fail session start; verify_user_data_loader_registry will enforce later
+        pass
+    yield
+
 # Apply user-data shim immediately so tests cannot capture pre-patch references
 def _apply_get_user_data_shim_early():
+    # Gate with env flag to allow disabling after burn-in
+    if os.getenv("ENABLE_TEST_DATA_SHIM", "1") != "1":
+        return
     try:
         import core.user_management as um
     except Exception:
@@ -217,6 +248,14 @@ def _apply_get_user_data_shim_early():
         setattr(udh, 'get_user_data', wrapped_get_user_data)
 
 _apply_get_user_data_shim_early()
+
+# Allow tests to opt-out of the data shim via marker: @pytest.mark.no_data_shim
+@pytest.fixture(scope="function", autouse=True)
+def toggle_data_shim_per_marker(request, monkeypatch):
+    marker = request.node.get_closest_marker('no_data_shim')
+    if marker is not None:
+        monkeypatch.setenv('ENABLE_TEST_DATA_SHIM', '0')
+    yield
 
 # Global QMessageBox patch to prevent popup dialogs during testing
 def setup_qmessagebox_patches():
@@ -601,6 +640,85 @@ def isolate_logging():
     
     test_logger.info("Logging isolation deactivated - main app logging restored")
 
+# Test helper: wait until a predicate returns True within a timeout
+def wait_until(predicate, timeout_seconds: float = 1.0, poll_seconds: float = 0.005):
+    """Poll predicate() until it returns True or timeout elapses.
+
+    Returns True if predicate succeeds within timeout, otherwise False.
+    """
+    import time as _time
+    deadline = _time.perf_counter() + timeout_seconds
+    while _time.perf_counter() < deadline:
+        try:
+            if predicate():
+                return True
+        except Exception:
+            # Ignore transient errors while waiting
+            pass
+        _time.sleep(poll_seconds)
+    return False
+
+# Test helper: materialize minimal user structures via public APIs
+def materialize_user_minimal_via_public_apis(user_id: str) -> dict:
+    """Ensure minimal structures exist without overwriting existing data.
+
+    - Merges into existing account (preserves internal_username and enabled features)
+    - Adds missing preferences keys (keeps existing categories/channel)
+    - Adds a default motivational/morning period if schedules missing
+    """
+    from core.user_data_handlers import (
+        get_user_data,
+        update_user_account,
+        update_user_preferences,
+        update_user_schedules,
+    )
+
+    # Load current state
+    current_all = get_user_data(user_id, 'all') or {}
+    current_account = current_all.get('account') or {}
+    current_prefs = current_all.get('preferences') or {}
+    current_schedules = current_all.get('schedules') or {}
+
+    # Account: preserve existing values; set sensible defaults where missing
+    merged_features = dict(current_account.get('features') or {})
+    if 'automated_messages' not in merged_features:
+        merged_features['automated_messages'] = 'enabled'
+    if 'task_management' not in merged_features:
+        merged_features['task_management'] = 'disabled'
+    if 'checkins' not in merged_features:
+        merged_features['checkins'] = 'disabled'
+
+    account_updates = {
+        'user_id': current_account.get('user_id') or user_id,
+        'internal_username': current_account.get('internal_username') or user_id,
+        'account_status': current_account.get('account_status') or 'active',
+        'features': merged_features,
+    }
+    update_user_account(user_id, account_updates)
+
+    # Preferences: add missing keys only
+    prefs_updates = {}
+    if not current_prefs.get('categories'):
+        prefs_updates['categories'] = ['motivational']
+    if not current_prefs.get('channel'):
+        prefs_updates['channel'] = {"type": "discord", "contact": "test#1234"}
+    if prefs_updates:
+        update_user_preferences(user_id, prefs_updates)
+
+    # Schedules: ensure motivational.morning exists; merge into existing
+    schedules_updates = current_schedules if isinstance(current_schedules, dict) else {}
+    schedules_updates.setdefault('motivational', {}).setdefault('periods', {}).setdefault('morning', {
+        'active': True,
+        'days': ['monday','tuesday','wednesday','thursday','friday'],
+        'start_time': '09:00',
+        'end_time': '12:00',
+    })
+    update_user_schedules(user_id, schedules_updates)
+
+    # Ensure context exists
+    get_user_data(user_id, 'context')
+    return get_user_data(user_id, 'all')
+
 @pytest.fixture(scope="session")
 def test_data_dir():
     """Provide the repository-scoped test data directory for all tests."""
@@ -879,6 +997,57 @@ def test_path_factory(test_data_dir):
     path = os.path.join(base_tmp, uuid.uuid4().hex)
     os.makedirs(path, exist_ok=True)
     return path
+
+@pytest.fixture(scope="function")
+def ensure_user_materialized(test_data_dir):
+    """Return a helper to ensure account/preferences/context files exist for a user.
+
+    If the user directory is missing, uses TestUserFactory to create a basic user.
+    If present but missing files, writes minimal JSON structures to materialize them.
+    """
+    from pathlib import Path as _Path
+    import json as _json
+    import os as _os
+
+    def _helper(user_id: str):
+        users_dir = _Path(test_data_dir) / 'users'
+        user_dir = users_dir / user_id
+        if not user_dir.exists():
+            try:
+                from tests.test_utilities import TestUserFactory
+                TestUserFactory.create_basic_user(user_id, test_data_dir=str(test_data_dir))
+            except Exception:
+                user_dir.mkdir(parents=True, exist_ok=True)
+        # Materialize minimal files if missing
+        acct_path = user_dir / 'account.json'
+        prefs_path = user_dir / 'preferences.json'
+        ctx_path = user_dir / 'user_context.json'
+        if not acct_path.exists():
+            _json.dump({
+                "user_id": user_id,
+                "internal_username": user_id,
+                "account_status": "active",
+                "features": {
+                    "automated_messages": "disabled",
+                    "task_management": "disabled",
+                    "checkins": "disabled"
+                }
+            }, open(acct_path, 'w', encoding='utf-8'), indent=2)
+        if not prefs_path.exists():
+            _json.dump({
+                "channel": {"type": "email"},
+                "checkin_settings": {"enabled": False},
+                "task_settings": {"enabled": False}
+            }, open(prefs_path, 'w', encoding='utf-8'), indent=2)
+        if not ctx_path.exists():
+            _json.dump({
+                "preferred_name": user_id,
+                "pronouns": [],
+                "custom_fields": {}
+            }, open(ctx_path, 'w', encoding='utf-8'), indent=2)
+        return str(user_dir)
+
+    return _helper
 
 @pytest.fixture(scope="function", autouse=True)
 def path_sanitizer():

@@ -2,6 +2,23 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
+### 2025-09-07 - Test Standardization Burn-in — NEW
+
+**Status**: 🔄 **ACTIVE**  
+**Priority**: High  
+**Effort**: Small  
+
+**Objective**: Maintain stability by validating order independence and removing test-only aids over time.
+
+**Actions**:
+- [ ] Nightly run with `ENABLE_TEST_DATA_SHIM=0` and randomized order; track regressions.
+- [ ] Sweep and resolve Discord/aiohttp deprecations and unraisable warnings to keep CI clean.
+- [ ] After 2 weeks green, gate or remove remaining test-only diagnostics.
+
+**Success Criteria**:
+- No failures under no-shim randomized runs for 2 consecutive weeks.
+- CI warning count reduced to external-only or zero.
+
 ### 2025-09-06 - Intermittent Test Failures (Import Order/Loader Registry) — COMPLETED
 
 **Status**: ✅ **COMPLETED**  

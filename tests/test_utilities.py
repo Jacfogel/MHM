@@ -48,7 +48,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__with_test_dir(user_id, enable_checkins, enable_tasks, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating basic user {user_id}: {e}")
+            logger.error(f"Error creating basic user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -290,7 +290,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating basic user with test dir {user_id}: {e}")
+            logger.error(f"Error creating basic user with test dir {user_id}: {e}")
             return False
     
 
@@ -315,7 +315,7 @@ class TestUserFactory:
             return TestUserFactory.create_discord_user__with_test_dir(user_id, discord_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating discord user {user_id}: {e}")
+            logger.error(f"Error creating discord user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -370,7 +370,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating discord user with test dir {user_id}: {e}")
+            logger.error(f"Error creating discord user with test dir {user_id}: {e}")
             return False
     
 
@@ -398,7 +398,7 @@ class TestUserFactory:
                 return TestUserFactory.create_full_featured_user__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating full featured user {user_id}: {e}")
+            logger.error(f"Error creating full featured user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -452,7 +452,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating full featured user with test dir {user_id}: {e}")
+            logger.error(f"Error creating full featured user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -511,7 +511,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating full featured user {user_id}: {e}")
+            logger.error(f"Error creating full featured user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -536,7 +536,7 @@ class TestUserFactory:
                 return TestUserFactory.create_email_user__impl(user_id, email)
             
         except Exception as e:
-            print(f"Error creating email user {user_id}: {e}")
+            logger.error(f"Error creating email user {user_id}: {e}")
             return None
     
     @staticmethod
@@ -591,7 +591,7 @@ class TestUserFactory:
             return TestUserFactory.verify_email_user_creation__with_test_dir(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating email user with test dir {user_id}: {e}")
+            logger.error(f"Error creating email user with test dir {user_id}: {e}")
             return None
     
     @staticmethod
@@ -648,7 +648,7 @@ class TestUserFactory:
             return actual_user_id
             
         except Exception as e:
-            print(f"Error creating email user {user_id}: {e}")
+            logger.error(f"Error creating email user {user_id}: {e}")
             return None
     
     @staticmethod
@@ -683,7 +683,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_custom_fields__impl(user_id, custom_fields)
             
         except Exception as e:
-            print(f"Error creating custom fields test user {user_id}: {e}")
+            logger.error(f"Error creating custom fields test user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -747,7 +747,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating custom fields test user {user_id}: {e}")
+            logger.error(f"Error creating custom fields test user {user_id}: {e}")
             return False
     
 
@@ -784,7 +784,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_schedules__impl(user_id, schedule_config)
             
         except Exception as e:
-            print(f"Error creating schedules test user {user_id}: {e}")
+            logger.error(f"Error creating schedules test user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -869,7 +869,7 @@ class TestUserFactory:
             
             return schedule_success
         except Exception as e:
-            print(f"Error creating scheduled test user {user_id}: {e}")
+            logger.error(f"Error creating scheduled test user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -893,7 +893,7 @@ class TestUserFactory:
                 return TestUserFactory.create_minimal_user__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating minimal user {user_id}: {e}")
+            logger.error(f"Error creating minimal user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -918,7 +918,7 @@ class TestUserFactory:
                 return (actual_user_id is not None, actual_user_id)
             
         except Exception as e:
-            print(f"Error creating minimal user {user_id}: {e}")
+            logger.error(f"Error creating minimal user {user_id}: {e}")
             return (False, None)
     
     @staticmethod
@@ -970,7 +970,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating minimal user with test dir {user_id}: {e}")
+            logger.error(f"Error creating minimal user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1023,7 +1023,7 @@ class TestUserFactory:
             return (success, actual_user_id)
             
         except Exception as e:
-            print(f"Error creating minimal user with test dir {user_id}: {e}")
+            logger.error(f"Error creating minimal user with test dir {user_id}: {e}")
             return (False, None)
     
     @staticmethod
@@ -1080,7 +1080,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating minimal user {user_id}: {e}")
+            logger.error(f"Error creating minimal user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1104,7 +1104,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_complex_checkins__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating complex checkins user {user_id}: {e}")
+            logger.error(f"Error creating complex checkins user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1156,7 +1156,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating complex checkins user with test dir {user_id}: {e}")
+            logger.error(f"Error creating complex checkins user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1214,7 +1214,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating complex checkins user {user_id}: {e}")
+            logger.error(f"Error creating complex checkins user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1238,7 +1238,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_health_focus__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating health focus user {user_id}: {e}")
+            logger.error(f"Error creating health focus user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1290,7 +1290,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating health focus user with test dir {user_id}: {e}")
+            logger.error(f"Error creating health focus user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1348,7 +1348,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating health focus user {user_id}: {e}")
+            logger.error(f"Error creating health focus user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1372,7 +1372,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_task_focus__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating task focus user {user_id}: {e}")
+            logger.error(f"Error creating task focus user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1424,7 +1424,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating task focus user with test dir {user_id}: {e}")
+            logger.error(f"Error creating task focus user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1482,7 +1482,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating task focus user {user_id}: {e}")
+            logger.error(f"Error creating task focus user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1506,7 +1506,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_disabilities__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating disability user {user_id}: {e}")
+            logger.error(f"Error creating disability user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1557,7 +1557,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating disability user with test dir {user_id}: {e}")
+            logger.error(f"Error creating disability user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1614,7 +1614,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating disability user {user_id}: {e}")
+            logger.error(f"Error creating disability user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1638,7 +1638,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_limited_data__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating limited data user {user_id}: {e}")
+            logger.error(f"Error creating limited data user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1689,7 +1689,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating limited data user with test dir {user_id}: {e}")
+            logger.error(f"Error creating limited data user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1746,7 +1746,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating limited data user {user_id}: {e}")
+            logger.error(f"Error creating limited data user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1770,7 +1770,7 @@ class TestUserFactory:
                 return TestUserFactory.create_user_with_inconsistent_data__impl(user_id)
             
         except Exception as e:
-            print(f"Error creating inconsistent data user {user_id}: {e}")
+            logger.error(f"Error creating inconsistent data user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1821,7 +1821,7 @@ class TestUserFactory:
             return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
             
         except Exception as e:
-            print(f"Error creating inconsistent data user with test dir {user_id}: {e}")
+            logger.error(f"Error creating inconsistent data user with test dir {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1878,7 +1878,7 @@ class TestUserFactory:
                 return False
             
         except Exception as e:
-            print(f"Error creating inconsistent data user {user_id}: {e}")
+            logger.error(f"Error creating inconsistent data user {user_id}: {e}")
             return False
     
     @staticmethod
@@ -1927,7 +1927,7 @@ class TestUserFactory:
             return {}
             
         except Exception as e:
-            print(f"Error getting test user data for {user_id}: {e}")
+            logger.error(f"Error getting test user data for {user_id}: {e}")
             return {}
     
     @staticmethod
@@ -1944,7 +1944,7 @@ class TestUserFactory:
             return None
             
         except Exception as e:
-            print(f"Error getting test user ID for {internal_username}: {e}")
+            logger.error(f"Error getting test user ID for {internal_username}: {e}")
             return None
     
     @staticmethod
@@ -1965,7 +1965,7 @@ class TestUserFactory:
             if found_user_id:
                 return True
             else:
-                print(f"Warning: User {user_id} was created but not found by get_user_id_by_identifier")
+                logger.warning(f"User {user_id} was created but not found by get_user_id_by_identifier")
                 return actual_user_id is not None
 
     @staticmethod
@@ -1986,7 +1986,7 @@ class TestUserFactory:
             if found_user_id:
                 return actual_user_id
             else:
-                print(f"Warning: Email user {user_id} was created but not found by get_user_id_by_identifier")
+                logger.warning(f"Email user {user_id} was created but not found by get_user_id_by_identifier")
                 return actual_user_id if actual_user_id else None
 
 
@@ -2059,7 +2059,7 @@ class TestDataManager:
             if os.path.exists(test_dir):
                 shutil.rmtree(test_dir, ignore_errors=True)
         except Exception as e:
-            print(f"Warning: Could not clean up test directory {test_dir}: {e}")
+            logger.warning(f"Could not clean up test directory {test_dir}: {e}")
 
 
 class TestUserDataFactory:
@@ -2238,11 +2238,11 @@ def create_test_user(user_id: str, user_type: str = "basic", test_data_dir: str 
             return TestUserFactory.create_user_with_schedules(user_id, schedule_config, test_data_dir)
         
         else:
-            print(f"Unknown user type: {user_type}")
+            logger.error(f"Unknown user type: {user_type}")
             return False
             
     except Exception as e:
-        print(f"Error creating test user {user_id} of type {user_type}: {e}")
+        logger.error(f"Error creating test user {user_id} of type {user_type}: {e}")
         return False
 
 
@@ -2316,7 +2316,7 @@ class TestDataFactory:
             return True
             
         except Exception as e:
-            print(f"Error creating corrupted user data for {user_id}: {e}")
+            logger.error(f"Error creating corrupted user data for {user_id}: {e}")
             return False
     
     @staticmethod

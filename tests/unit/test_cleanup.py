@@ -290,23 +290,27 @@ def main():
     
     if args.cleanup_users:
         success = cleanup_manager.cleanup_test_users(args.users)
-        print(f"User cleanup: {'SUCCESS' if success else 'FAILED'}")
+        import logging
+        logging.getLogger("mhm_tests").info(f"User cleanup: {'SUCCESS' if success else 'FAILED'}")
         
     if args.reset_env:
         success = cleanup_manager.reset_test_environment()
-        print(f"Environment reset: {'SUCCESS' if success else 'FAILED'}")
+        import logging
+        logging.getLogger("mhm_tests").info(f"Environment reset: {'SUCCESS' if success else 'FAILED'}")
         
     if args.validate:
         results = cleanup_manager.validate_test_data_integrity()
-        print(f"Data integrity: {'VALID' if results['valid'] else 'INVALID'}")
+        import logging
+        _logger = logging.getLogger("mhm_tests")
+        _logger.info(f"Data integrity: {'VALID' if results['valid'] else 'INVALID'}")
         if results['issues']:
-            print("Issues found:")
+            _logger.warning("Issues found:")
             for issue in results['issues']:
-                print(f"  - {issue}")
+                _logger.warning(f"  - {issue}")
         if results['test_users']:
-            print(f"Test users: {results['test_users']}")
+            _logger.info(f"Test users: {results['test_users']}")
         if results['orphaned_files']:
-            print(f"Orphaned files: {results['orphaned_files']}")
+            _logger.info(f"Orphaned files: {results['orphaned_files']}")
     
     if not any([args.cleanup_users, args.reset_env, args.validate]):
         parser.print_help()

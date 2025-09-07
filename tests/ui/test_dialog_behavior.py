@@ -25,10 +25,7 @@ from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QDialog
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtTest import QTest
 
-# Add project root to path
-project_root = Path(__file__).parent.parent
-import sys
-sys.path.insert(0, str(project_root))
+# Project imports rely on pytest and conftest path setup
 
 from core.user_data_handlers import save_user_data, get_user_data
 from core.file_operations import create_user_files, get_user_file_path

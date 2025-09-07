@@ -5,6 +5,7 @@ Demonstrates how to use the centralized test utilities to eliminate redundancy
 """
 
 import os
+import pytest
 import json
 import pytest
 from tests.test_utilities import (
@@ -12,6 +13,8 @@ from tests.test_utilities import (
     create_test_user, setup_test_data_environment, cleanup_test_data_environment
 )
 
+
+pytestmark = pytest.mark.debug
 
 class TestUtilitiesDemo:
     """Demonstration of centralized test utilities usage"""

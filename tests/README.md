@@ -98,12 +98,20 @@ To keep tests deterministic and isolated, follow these standards:
    - Refactor to `test_path_factory` where applicable.
    - Track progress by file in TODO.md (checklist per file).
 
-3) Normalize Env Usage (In Progress)
-   - Search for direct `os.environ[...]` mutation in tests.
-   - Replace with `monkeypatch.setenv()`.
+3) Normalize Env Usage (Enforced)
+   - Direct `os.environ[...]` mutation in tests is disallowed.
+   - Use `monkeypatch.setenv()` for per-test env changes.
+   - Policy test `tests/unit/test_no_direct_env_mutation_policy.py` scans for violations.
 
-4) Standardize User Data Creation (In Progress)
-   - Replace custom scaffolding with `TestUserFactory` + `get_user_data()`.
+4) Standardize User Data Creation (Enforced)
+   - Require `TestUserFactory` for creating users (no ad-hoc user dirs).
+   - For read-only tests assuming files exist, use `ensure_user_materialized` helper.
+   - Prefer `get_user_data()` over direct file reads in tests.
+   
+5) Shim Controls (Stability)
+   - Global shim defaults to enabled; disable via `ENABLE_TEST_DATA_SHIM=0`.
+   - Per-test opt-out: `@pytest.mark.no_data_shim`.
+   - Long-term goal: keep tests green with shim disabled.
 
 5) Verification & Monitoring (Ongoing)
    - Run targeted suites (user management, account lifecycle, UI) to confirm stability.
@@ -301,6 +309,17 @@ python run_tests.py --coverage
 ```bash
 python run_tests.py --parallel
 ```
+
+### **Order Independence**
+```bash
+# Install plugin once (in CI or locally)
+pip install pytest-randomly
+
+# Run with randomized order to enforce determinism
+python -m pytest --randomly-seed=auto
+```
+The suite should remain green under randomized order. Import-order guards and one-time
+loader registration in `tests/conftest.py` support this.
 
 ## 📋 **Test Commands**
 

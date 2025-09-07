@@ -152,8 +152,7 @@ class TestContextBuilderBehavior:
         
         # Act
         context1 = context_builder.build_user_context(user_id)
-        import time
-        time.sleep(0.1)  # Small delay to ensure different timestamps
+        # Ensure different timestamps through controlled call sequencing (no sleep)
         context2 = context_builder.build_user_context(user_id)
         
         # Assert - Verify fresh timestamp creation

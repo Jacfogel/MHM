@@ -300,15 +300,19 @@ class TestLoggerIntegrationBehavior:
         shutil.rmtree(log_dir, ignore_errors=True)
     
     @pytest.mark.behavior
-    def test_logger_full_workflow_real_behavior(self, temp_log_dir):
+    def test_logger_full_workflow_real_behavior(self, temp_log_dir, monkeypatch):
         """REAL BEHAVIOR TEST: Test complete logger workflow."""
         # ✅ VERIFY REAL BEHAVIOR: Complete logging workflow
+        monkeypatch.setenv('TEST_VERBOSE_LOGS', '1')
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log")}):
             # Setup logging
             setup_logging()
             
             # Get logger
             logger = get_logger("test_module")
+
+            # Ensure DEBUG level for this test explicitly
+            logger.setLevel(logging.DEBUG)
             
             # Test different log levels
             logger.debug("Debug message")

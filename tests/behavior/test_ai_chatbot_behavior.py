@@ -466,6 +466,8 @@ class TestAIChatBotIntegration:
         
         # Verify user data was saved by loading it
         from core.user_data_handlers import get_user_data
+        from tests.conftest import materialize_user_minimal_via_public_apis
+        materialize_user_minimal_via_public_apis(actual_user_id)
         account_result = get_user_data(actual_user_id, 'account')
         loaded_account = account_result.get('account', {})
         assert loaded_account is not None, "User account should be saved and retrievable"

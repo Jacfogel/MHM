@@ -52,7 +52,7 @@ def print_test_mode_info():
     print("\n" + "="*60)
     print("MHM TEST RUNNER - Available Modes")
     print("="*60)
-    print("📋 Test Modes:")
+    print("Test Modes:")
     print("  all         - Run ALL tests (default)")
     print("  fast        - Unit tests only (excluding slow tests)")
     print("  unit        - Unit tests only")
@@ -60,12 +60,12 @@ def print_test_mode_info():
     print("  behavior    - Behavior tests (excluding slow tests)")
     print("  ui          - UI tests (excluding slow tests)")
     print("  slow        - Slow tests only")
-    print("\n🔧 Options:")
+    print("\nOptions:")
     print("  --verbose   - Verbose output")
     print("  --parallel  - Run tests in parallel")
     print("  --coverage  - Run with coverage reporting")
     print("  --durations-all - Show timing for all tests")
-    print("\n💡 Examples:")
+    print("\nExamples:")
     print("  python run_tests.py                    # Run all tests")
     print("  python run_tests.py --mode fast        # Quick unit tests only")
     print("  python run_tests.py --mode all --verbose # All tests with verbose output")
@@ -125,6 +125,11 @@ def main():
         print_test_mode_info()
         return 0
     
+    # Enforce safe defaults for Windows console
+    os.environ.setdefault('PYTHONUTF8', '1')
+    # Ensure test data shim is enabled by default for CI/local runs unless explicitly disabled
+    os.environ.setdefault('ENABLE_TEST_DATA_SHIM', '1')
+
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
     
@@ -139,6 +144,12 @@ def main():
     # Set test environment variables
     os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during tests
     
+    # Add deterministic order unless user already provided a seed via env or PYTEST_ADDOPTS
+    addopts = os.environ.get('PYTEST_ADDOPTS', '')
+    has_seed = "--randomly-seed" in addopts or any(arg.startswith('--randomly-seed') for arg in sys.argv)
+    if not has_seed:
+        cmd.extend(["--randomly-seed=12345"])  # default stable seed for order independence verification
+
     # Add coverage if requested
     if args.coverage:
         cmd.extend(["--cov=core", "--cov=bot", "--cov=tasks", "--cov-report=html:tests/htmlcov", "--cov-report=term"])
@@ -186,7 +197,7 @@ def main():
         description = "All Tests (Unit, Integration, Behavior, UI)"
     
     # Print clear information about what we're running
-    print(f"\n🚀 MHM Test Runner")
+    print(f"\nMHM Test Runner")
     print(f"Mode: {args.mode}")
     print(f"Description: {description}")
     if args.parallel:

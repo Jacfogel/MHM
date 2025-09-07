@@ -22,9 +22,7 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass
 import threading
 
-# Add the project root to the path
-import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Project imports rely on pytest and conftest path setup
 
 from communication.core.channel_orchestrator import CommunicationManager, BotInitializationError, MessageSendError
 from communication.core.retry_manager import QueuedMessage

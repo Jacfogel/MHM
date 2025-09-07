@@ -892,7 +892,6 @@ class TestUserManagementIntegration:
                                     for i in range(10):
                                         _get_user_data__load_account(self.test_user_id)
                                         _save_user_data__save_account(self.test_user_id, test_account)
-                                        time.sleep(0.001)  # Small delay
                                     
                                     results.append(True)
             except Exception as e:

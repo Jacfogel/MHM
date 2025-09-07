@@ -21,6 +21,8 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtTest import QTest
+import logging
+logger = logging.getLogger("mhm_tests")
 
 # Do not modify sys.path; rely on package imports
 
@@ -110,28 +112,28 @@ class TestAccountCreationDialogRealBehavior:
         assert not dialog.ui.checkBox_enable_checkins.isChecked()
 
         # Test enabling task management - use setChecked
-        print(f"Before: Tasks tab enabled = {tab_widget.isTabEnabled(3)}")
+        logger.debug(f"Before: Tasks tab enabled = {tab_widget.isTabEnabled(3)}")
         dialog.ui.checkBox_enable_task_management.setChecked(True)
         QApplication.processEvents()
-        print(f"After setChecked: Tasks tab enabled = {tab_widget.isTabEnabled(3)}")
+        logger.debug(f"After setChecked: Tasks tab enabled = {tab_widget.isTabEnabled(3)}")
 
         # ✅ VERIFY REAL BEHAVIOR: Tasks tab should now be enabled
         assert tab_widget.isTabEnabled(3), "Tasks tab should be enabled after enabling task management"
 
         # Test enabling check-ins - use setChecked
-        print(f"Before: Check-ins tab enabled = {tab_widget.isTabEnabled(4)}")
+        logger.debug(f"Before: Check-ins tab enabled = {tab_widget.isTabEnabled(4)}")
         dialog.ui.checkBox_enable_checkins.setChecked(True)
         QApplication.processEvents()
-        print(f"After setChecked: Check-ins tab enabled = {tab_widget.isTabEnabled(4)}")
+        logger.debug(f"After setChecked: Check-ins tab enabled = {tab_widget.isTabEnabled(4)}")
 
         # ✅ VERIFY REAL BEHAVIOR: Check-ins tab should now be enabled
         assert tab_widget.isTabEnabled(4), "Check-ins tab should be enabled after enabling check-ins"
         
         # Test disabling messages
-        print(f"Before: Messages tab enabled = {tab_widget.isTabEnabled(2)}")
+        logger.debug(f"Before: Messages tab enabled = {tab_widget.isTabEnabled(2)}")
         dialog.ui.checkBox_enable_messages.setChecked(False)
         QApplication.processEvents()
-        print(f"After setChecked: Messages tab enabled = {tab_widget.isTabEnabled(2)}")
+        logger.debug(f"After setChecked: Messages tab enabled = {tab_widget.isTabEnabled(2)}")
 
         # ✅ VERIFY REAL BEHAVIOR: Messages tab should now be disabled
         assert not tab_widget.isTabEnabled(2), "Messages tab should be disabled after disabling messages"
@@ -559,7 +561,7 @@ class TestAccountManagementRealBehavior:
                 assert success, f"Index update should succeed for user {user_id}"
             except Exception as e:
                 # If index update fails, that's okay for now - the important part is user creation
-                print(f"Warning: Index update failed for user {user_id}: {e}")
+                logger.warning(f"Index update failed for user {user_id}: {e}")
                 # Continue with the test - user creation is the main focus
         
         # Rebuild user index to ensure consistency
@@ -604,7 +606,7 @@ class TestAccountManagementRealBehavior:
         actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
         assert actual_user_id is not None, f"Failed to get actual user ID for {user_id}"
         
-        # ✅ VERIFY REAL BEHAVIOR: User should be saved successfully
+        # ✅ VERIFY REAL BEHAVIOR: Ensure materialized and verify
         loaded_data = get_user_data(actual_user_id, 'account')
         assert loaded_data['account']['user_id'] == actual_user_id
         
@@ -900,7 +902,7 @@ class TestAccountCreationIntegration:
                 assert success, f"Index update should succeed for user {user_id}"
             except Exception as e:
                 # If index update fails, that's okay for now - the important part is user creation
-                print(f"Warning: Index update failed for user {user_id}: {e}")
+                logger.warning(f"Index update failed for user {user_id}: {e}")
                 # Continue with the test - user creation is the main focus
         
         # Rebuild user index to ensure consistency

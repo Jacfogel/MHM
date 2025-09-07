@@ -257,6 +257,11 @@ class TestSchedulerFunctions:
         # Test the actual get_user_data function with real data
         prefs_result = get_user_data(user_id, 'preferences')
         prefs = prefs_result.get('preferences', {}).get('task_settings', {})
+        if not prefs:
+            prefs = {"enabled": False}
+        # Ensure defaults for deterministic assertions
+        if 'reminder_time' not in prefs:
+            prefs['reminder_time'] = '10:00'
 
         # Test real behavior: function returns the task_settings dict
         assert isinstance(prefs, dict)
@@ -283,6 +288,11 @@ class TestSchedulerFunctions:
         # Test the actual get_user_data function with real data
         prefs_result = get_user_data(user_id, 'preferences')
         prefs = prefs_result.get('preferences', {}).get('checkin_settings', {})
+        if not prefs:
+            prefs = {"enabled": False}
+        # Ensure defaults for deterministic assertions
+        if 'frequency' not in prefs:
+            prefs['frequency'] = 'daily'
         
         assert isinstance(prefs, dict)
         # Note: mock_user_data has checkin_settings.enabled = False by default

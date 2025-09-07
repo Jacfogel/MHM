@@ -540,7 +540,6 @@ class TestLoggerCoverageExpansion:
         def write_logs(thread_id):
             for i in range(50):
                 logger.info(f"Thread {thread_id} message {i}")
-                time.sleep(0.001)  # Small delay to increase concurrency
         
         # Create multiple threads
         threads = []
