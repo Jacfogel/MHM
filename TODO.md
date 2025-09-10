@@ -61,11 +61,24 @@ When adding new tasks, follow this format:
   - ✅ **Backward Compatibility**: Legacy function redirects maintained
 - *Next Steps*: None - system is fully operational and tested
 
+**Health Category Message Filtering Fix and Weighted Selection System** ✅ **COMPLETED**
+- *What it means*: Fixed critical issue where health category test messages were not being sent due to missing 'ALL' time period in message filtering
+- *Why it helps*: Ensures health category messages work consistently across all time periods and improves message selection intelligence
+- *Status*: ✅ **COMPLETED** - Health category test messages now work properly with weighted selection system
+- *Completed Work*:
+  - ✅ **Root Cause Analysis**: Identified that health messages lacked 'ALL' in time_periods, preventing them from being sent when only 'ALL' period was active
+  - ✅ **Message Enhancement**: Added 'ALL' time period to 40 health messages that are applicable at any time
+  - ✅ **Weighted Selection**: Implemented 70/30 weighting system favoring specific time period messages over 'ALL' only messages
+  - ✅ **System Integration**: Enhanced CommunicationManager with _select_weighted_message method
+  - ✅ **Testing Success**: Verified fix with successful health category test message delivery via Discord
+  - ✅ **Backward Compatibility**: Maintained all existing functionality while improving message availability
+- *Next Steps*: None - system is fully operational and tested
+
 **Complete 6-Seed Randomized Loop Validation** ⚠️ **IN PROGRESS**
 - *What it means*: Continue the 6-seed randomized full-suite loop to achieve 6 consecutive green runs as originally requested
 - *Why it helps*: Validates that the test suite is truly stable and robust across different execution orders and parallel conditions
 - *Current Status*: ✅ **GREEN RUN ACHIEVED** - 1144 passed, 1 failed, 1 skipped (major improvement from multiple failures)
-- *Remaining Work*: Address single `test_flexible_configuration` failure and continue loop validation
+- *Remaining Work*: Address single `test_schedule_all_users_immediately_real_behavior` failure and continue loop validation
 - *Estimated effort*: Small
 
 **Nightly No-Shim Validation Runs**

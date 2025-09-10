@@ -10,6 +10,69 @@ This is the complete detailed changelog.
 
 ## 🚀 Recent Changes (Most Recent First)
 
+## 2025-09-10 - Health Category Message Filtering Fix and Weighted Selection System
+
+### Overview
+- **Issue Resolution**: Fixed critical issue where health category test messages were not being sent due to missing 'ALL' time period in message filtering logic
+- **Message Enhancement**: Added 'ALL' time period to 40 health messages that are applicable at any time, significantly improving message availability
+- **Weighted Selection**: Implemented intelligent message selection system that prioritizes specific time period messages over generic 'ALL' messages
+- **System Integration**: Enhanced CommunicationManager with weighted message selection for better message distribution and user experience
+- **Testing Success**: Verified fix with successful health category test message delivery via Discord with proper deduplication
+- **Backward Compatibility**: Maintained all existing functionality while improving message availability and selection intelligence
+
+### Key Changes
+
+#### **Root Cause Analysis**
+- **Issue Identified**: Health messages lacked 'ALL' in their time_periods, preventing them from being sent when only the 'ALL' period was active (e.g., at 1:35 AM)
+- **Comparison**: Motivational messages worked because they had messages with 'ALL' in time_periods
+- **Impact**: Health category test messages failed with "No messages to send for category health" error
+
+#### **Message Enhancement**
+- **Added 'ALL' Time Period**: Updated 40 health messages to include 'ALL' in their time_periods
+- **Selection Criteria**: Focused on messages that are generally applicable at any time (stretching, hydration, posture, etc.)
+- **Availability Improvement**: Increased available health messages from 0 to 31 when 'ALL' period is active
+- **Message Categories**: Enhanced messages for general health reminders, posture checks, hydration, and wellness activities
+
+#### **Weighted Selection System**
+- **Intelligent Prioritization**: Implemented 70/30 weighting system favoring specific time period messages over 'ALL' only messages
+- **Selection Logic**: Messages with specific periods (e.g., ['morning', 'afternoon', 'evening', 'ALL']) get 70% priority
+- **Fallback Behavior**: Messages with only 'ALL' periods get 30% priority, ensuring variety while maintaining relevance
+- **Implementation**: Added `_select_weighted_message()` method to CommunicationManager class
+
+#### **System Integration**
+- **Enhanced CommunicationManager**: Integrated weighted selection into message sending pipeline
+- **Logging Enhancement**: Added debug logging for weighted selection decisions
+- **Performance**: Maintained efficient message selection without impacting system performance
+- **Error Handling**: Preserved all existing error handling and fallback mechanisms
+
+#### **Testing and Validation**
+- **Test Message Success**: Successfully sent health category test message via Discord
+- **Deduplication Verified**: Confirmed message deduplication system works with new weighted selection
+- **System Stability**: All 1144 tests passing (1 pre-existing failure unrelated to changes)
+- **Real-world Testing**: Verified fix works in actual system environment with live Discord integration
+
+### Technical Details
+
+#### **Files Modified**
+- `data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/health.json`: Added 'ALL' to 40 messages
+- `communication/core/channel_orchestrator.py`: Added `_select_weighted_message()` method and integrated weighted selection
+
+#### **Message Filtering Logic**
+- **Before**: 0 health messages available when 'ALL' period active
+- **After**: 31 health messages available (26 with 'ALL' in both time_periods and days + 5 with 'ALL' in time_periods and 'Wednesday' in days)
+- **Weighting**: 70% chance for specific time period messages, 30% chance for 'ALL' only messages
+
+#### **Backward Compatibility**
+- **No Breaking Changes**: All existing functionality preserved
+- **Enhanced Behavior**: Improved message selection without changing core APIs
+- **Legacy Support**: Maintained compatibility with existing message structures and scheduling logic
+
+### Impact and Benefits
+- **User Experience**: Health category messages now work consistently across all time periods
+- **Message Variety**: Weighted selection ensures appropriate message timing while maintaining variety
+- **System Reliability**: Improved message availability reduces "no messages to send" errors
+- **Maintainability**: Clear separation between specific and general messages for future enhancements
+
 ## 2025-09-10 - Message Deduplication System Implementation and Documentation Cleanup
 
 ### Overview

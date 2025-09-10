@@ -1031,8 +1031,8 @@ class CommunicationManager:
                 available_messages = all_messages
                 logger.info(f"Using fallback: selecting from all {len(available_messages)} time-period messages")
             
-            # Select a random message from the available (deduplicated) messages
-            message_to_send = random.choice(available_messages)
+            # Select a message using weighted selection (prioritizes specific time periods over 'ALL')
+            message_to_send = self._select_weighted_message(available_messages, matching_periods)
             logger.debug(f"Selected message for user {user_id}, category {category} from {len(available_messages)} available messages")
             
             # IMPROVED: Better success/failure tracking
@@ -1221,3 +1221,53 @@ class CommunicationManager:
             message += f"• Or: `list tasks` to see all your tasks"
         
         return message
+
+    def _select_weighted_message(self, available_messages, matching_periods):
+        """
+        Select a message using a weighting system that prioritizes
+        messages with specific time periods over 'ALL' time periods.
+        
+        Args:
+            available_messages: List of available messages
+            matching_periods: List of current matching time periods
+            
+        Returns:
+            Selected message
+        """
+        import random
+        
+        if not available_messages:
+            return None
+        
+        # Separate messages into two groups:
+        # 1. Messages with specific time periods (higher priority)
+        # 2. Messages with only 'ALL' time periods (lower priority)
+        
+        specific_period_messages = []
+        all_period_messages = []
+        
+        for msg in available_messages:
+            time_periods = msg.get('time_periods', [])
+            # Check if message has any specific time periods (not just 'ALL')
+            has_specific_periods = any(period != 'ALL' for period in time_periods)
+            
+            if has_specific_periods:
+                specific_period_messages.append(msg)
+            else:
+                all_period_messages.append(msg)
+        
+        # Weighted selection: 70% chance for specific periods, 30% chance for 'ALL' periods
+        if specific_period_messages and random.random() < 0.7:
+            # Select from specific period messages
+            selected_message = random.choice(specific_period_messages)
+            logger.debug(f"Selected message with specific time periods (weighted selection)")
+        elif all_period_messages:
+            # Select from 'ALL' period messages
+            selected_message = random.choice(all_period_messages)
+            logger.debug(f"Selected message with 'ALL' time periods (weighted selection)")
+        else:
+            # Fallback to any available message
+            selected_message = random.choice(available_messages)
+            logger.debug(f"Selected message (fallback selection)")
+        
+        return selected_message

@@ -30,6 +30,14 @@ When adding new changes to this brief changelog, follow this format:
 ------------------------------------------------------------------------------------------
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-10 - Health Category Message Filtering Fix and Weighted Selection System ✅ **COMPLETED**
+- **Issue Resolution**: Fixed health category test messages not being sent due to missing 'ALL' time period in message filtering
+- **Message Enhancement**: Added 'ALL' time period to 40 health messages that are applicable at any time, increasing available messages from 0 to 31
+- **Weighted Selection**: Implemented intelligent message selection system that prioritizes specific time period messages (70%) over 'ALL' only messages (30%)
+- **System Integration**: Enhanced CommunicationManager with _select_weighted_message method for better message distribution
+- **Testing Success**: Verified fix with successful health category test message delivery via Discord
+- **Backward Compatibility**: Maintained all existing functionality while improving message availability and selection intelligence
+
 ### 2025-09-10 - Message Deduplication System Implementation and Documentation Cleanup ✅ **COMPLETED**
 - **System Implementation**: Successfully implemented comprehensive message deduplication system with chronological storage and file archiving
 - **Data Migration**: Migrated 1,473 messages across 3 users to new chronological structure with time_period tracking
