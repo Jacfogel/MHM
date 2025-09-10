@@ -557,7 +557,9 @@ class UserDataManager:
             # 1. Update all get_user_id_by_* functions to use new multi-identifier structure
             # 2. Update tests to use new structure
             # 3. Remove simple mapping after 2 months of monitoring
-            index_data[internal_username] = user_id
+            # Only update simple mapping if it doesn't exist or points to the same user
+            if internal_username not in index_data or index_data[internal_username] == user_id:
+                index_data[internal_username] = user_id
             
             # Add new multi-identifier mappings
             if email:

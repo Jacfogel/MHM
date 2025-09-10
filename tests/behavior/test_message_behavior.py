@@ -149,8 +149,9 @@ class TestMessageCRUD:
         
         # Create user directory structure under tests/data/users
         user_dir = os.path.join(test_data_dir, 'users', user_id)
+        os.makedirs(user_dir, exist_ok=True)
+        # Don't create messages directory - let add_message create it
         messages_dir = os.path.join(user_dir, 'messages')
-        os.makedirs(messages_dir, exist_ok=True)
 
         # Ensure a clean slate for the category file
         message_file = os.path.join(messages_dir, f"{category}.json")
@@ -160,11 +161,19 @@ class TestMessageCRUD:
         # Mock get_user_data_dir to return our test directory
         with patch('core.message_management.get_user_data_dir', return_value=user_dir):
             result = add_message(user_id, category, message_data)
-            
+
             # Functions return None on success
             assert result is None
-            
+
             # Verify the message file was created and contains the message
+            # Add some debugging for parallel execution issues
+            if not os.path.exists(message_file):
+                # Check if the directory exists
+                if not os.path.exists(messages_dir):
+                    raise AssertionError(f"Messages directory was not created: {messages_dir}")
+                # Check if any files were created
+                files_in_dir = os.listdir(messages_dir) if os.path.exists(messages_dir) else []
+                raise AssertionError(f"Message file was not created: {message_file}. Files in directory: {files_in_dir}")
             assert os.path.exists(message_file)
             
             with open(message_file, 'r', encoding='utf-8') as f:
@@ -569,7 +578,8 @@ class TestIntegration:
     @pytest.mark.file_io
     def test_full_message_lifecycle(self, test_data_dir):
         """Test complete message lifecycle (add, edit, delete)."""
-        user_id = "test-user-lifecycle"  # Use unique user ID to avoid conflicts
+        import uuid
+        user_id = f"test-user-lifecycle-{str(uuid.uuid4())[:8]}"  # Use unique user ID to avoid conflicts
         category = "motivational"
         
         # Create user directory structure under tests/data/users
@@ -601,8 +611,16 @@ class TestIntegration:
             # 1. Add message
             result1 = add_message(user_id, category, new_message)
             assert result1 is None
-            
+
             # Verify message was added
+            # Add some debugging for parallel execution issues
+            if not os.path.exists(message_file):
+                # Check if the directory exists
+                if not os.path.exists(messages_dir):
+                    raise AssertionError(f"Messages directory was not created: {messages_dir}")
+                # Check if any files were created
+                files_in_dir = os.listdir(messages_dir) if os.path.exists(messages_dir) else []
+                raise AssertionError(f"Message file was not created: {message_file}. Files in directory: {files_in_dir}")
             assert os.path.exists(message_file)
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
@@ -614,7 +632,8 @@ class TestIntegration:
             result2 = edit_message(user_id, category, message_id, updated_message)
             assert result2 is None
             
-            # Verify message was updated
+            # Verify message was updated - ensure file exists and is readable
+            assert os.path.exists(message_file), f"Message file should exist after edit: {message_file}"
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 1
@@ -625,7 +644,8 @@ class TestIntegration:
             result3 = delete_message(user_id, category, message_id)
             assert result3 is None
             
-            # Verify message was deleted
+            # Verify message was deleted - ensure file still exists but is empty
+            assert os.path.exists(message_file), f"Message file should exist after delete: {message_file}"
             with open(message_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 assert len(data['messages']) == 0 

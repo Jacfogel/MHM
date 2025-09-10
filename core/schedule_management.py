@@ -42,7 +42,13 @@ def get_schedule_time_periods(user_id, category):
     
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
-    user_info = {'schedules': schedules_result.get('schedules', {})}
+    # Support both shapes: either a wrapper {'schedules': {...}} or the schedules dict itself
+    schedules_data = (
+        schedules_result.get('schedules', {})
+        if isinstance(schedules_result, dict) and 'schedules' in schedules_result
+        else (schedules_result if isinstance(schedules_result, dict) else {})
+    )
+    user_info = {'schedules': schedules_data}
 
     if not user_info:
         logger.error(f"User {user_id} not found.")
@@ -129,6 +135,11 @@ def set_schedule_period_active(user_id, category, period_name, active=True):
     Returns:
         bool: True if the period was found and updated, False otherwise
     """
+    # Clear cache to avoid stale reads in randomized/parallel test order
+    try:
+        clear_schedule_periods_cache(user_id, category)
+    except Exception:
+        pass
     # Get current periods for this category
     current_periods = get_schedule_time_periods(user_id, category)
     
@@ -159,9 +170,19 @@ def is_schedule_period_active(user_id, category, period_name):
     Returns:
         bool: True if the period is active, False otherwise (defaults to True if field is missing)
     """
+    # Clear cache to ensure we read latest state
+    try:
+        clear_schedule_periods_cache(user_id, category)
+    except Exception:
+        pass
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
-    user_info = {'schedules': schedules_result.get('schedules', {})}
+    schedules_data = (
+        schedules_result.get('schedules', {})
+        if isinstance(schedules_result, dict) and 'schedules' in schedules_result
+        else (schedules_result if isinstance(schedules_result, dict) else {})
+    )
+    user_info = {'schedules': schedules_data}
     if not user_info:
         return False
     schedules = user_info.get('schedules', {})
@@ -217,6 +238,11 @@ def get_current_time_periods_with_validation(user_id, category):
 
 @handle_errors("adding schedule period")
 def add_schedule_period(category, period_name, start_time, end_time, scheduler_manager=None):
+    # Clear cache to avoid stale reads under randomized/parallel tests
+    try:
+        clear_schedule_periods_cache(UserContext().get_user_id(), category)
+    except Exception:
+        pass
     user_id = UserContext().get_user_id()
     internal_username = UserContext().get_internal_username()
     logger.debug(f"Retrieved user_id: {user_id}, internal_username: {internal_username}")
@@ -441,7 +467,11 @@ def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""
     # Get user schedules
     schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
-    schedules_data = schedules_result.get('schedules', {})
+    schedules_data = (
+        schedules_result.get('schedules', {})
+        if isinstance(schedules_result, dict) and 'schedules' in schedules_result
+        else (schedules_result if isinstance(schedules_result, dict) else {})
+    )
     
     logger.info(f"set_schedule_periods: Setting periods for user {user_id}, category {category}")
     logger.info(f"set_schedule_periods: Current schedules data: {schedules_data}")

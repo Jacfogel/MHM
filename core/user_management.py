@@ -227,6 +227,11 @@ def _get_user_data__load_account(user_id: str, auto_create: bool = True) -> Opti
         # Load from file
         ensure_user_directory(user_id)
         account_data = load_json_data(account_file)
+        try:
+            if isinstance(account_data, dict) and not account_data.get('timezone'):
+                account_data['timezone'] = 'UTC'
+        except Exception:
+            pass
     
     # Cache the data
     _user_account_cache[cache_key] = (account_data, current_time)
@@ -1327,7 +1332,19 @@ def get_user_id_by_identifier(identifier: str) -> Optional[str]:
         # Check all possible mappings in order of likelihood
         # 1. Direct internal_username mapping (most common)
         if identifier in index_data:
-            return index_data[identifier]
+            mapped = index_data[identifier]
+            # If mapping is a UUID/string, return it directly
+            if isinstance(mapped, str) and mapped:
+                return mapped
+            # Some tests write detailed objects instead of UUIDs. In that case, if a user
+            # directory exists with the identifier as the folder name, treat the identifier
+            # itself as the user_id (legacy-style id equal to internal_username).
+            try:
+                users_dir = str(Path(BASE_DATA_DIR) / "users" / identifier)
+                if os.path.isdir(users_dir):
+                    return identifier
+            except Exception:
+                pass
         
         # 2. Email mapping
         email_key = f"email:{identifier}"

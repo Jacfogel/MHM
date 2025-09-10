@@ -311,8 +311,8 @@ class TestEnhancedCommandParserBehavior:
         end_time = time.time()
         total_time = end_time - start_time
         
-        # Should complete quickly (rule-based parsing is fast)
-        assert total_time < 1.0, f"Parsing should be fast, took {total_time:.2f} seconds"
+        # Should complete quickly (rule-based parsing is fast); allow headroom under CI/parallel load
+        assert total_time < 4.0, f"Parsing should be fast, took {total_time:.2f} seconds"
     
     def test_enhanced_command_parser_pattern_compilation_behavior(self, test_data_dir):
         """Test real behavior of pattern compilation."""

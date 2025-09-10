@@ -179,11 +179,15 @@ def _apply_get_user_data_shim_early():
     except Exception:
         udh = None
 
+    # Prefer core.user_management.get_user_data if present; otherwise fall back to
+    # core.user_data_handlers.get_user_data so the shim always applies.
     original_get_user_data = getattr(um, 'get_user_data', None)
+    if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
+        original_get_user_data = getattr(udh, 'get_user_data', None)
     if original_get_user_data is None:
         return
 
-    def _load_single_type(user_id: str, key: str):
+    def _load_single_type(user_id: str, key: str, *, auto_create: bool):
         try:
             entry = um.USER_DATA_LOADERS.get(key)
             loader = entry.get('loader') if entry else None
@@ -206,11 +210,16 @@ def _apply_get_user_data_shim_early():
                     loader = func
             if loader is None:
                 return None
-            return loader(user_id, True)
+            return loader(user_id, auto_create)
         except Exception:
             return None
 
     def wrapped_get_user_data(user_id: str, data_type: str = 'all', *args, **kwargs):
+        auto_create = True
+        try:
+            auto_create = bool(kwargs.get('auto_create', True))
+        except Exception:
+            auto_create = True
         result = original_get_user_data(user_id, data_type, *args, **kwargs)
         try:
             if data_type == 'all':
@@ -218,7 +227,7 @@ def _apply_get_user_data_shim_early():
                     result = {} if result is None else {"value": result}
                 for key in ('account', 'preferences', 'context', 'schedules'):
                     if key not in result or not result.get(key):
-                        loaded = _load_single_type(user_id, key)
+                        loaded = _load_single_type(user_id, key, auto_create=auto_create)
                         if loaded is not None:
                             result[key] = loaded
                 return result
@@ -228,7 +237,7 @@ def _apply_get_user_data_shim_early():
                     result = {}
                 for key in data_type:
                     if key not in result or not result.get(key):
-                        loaded = _load_single_type(user_id, key)
+                        loaded = _load_single_type(user_id, key, auto_create=auto_create)
                         if loaded is not None:
                             result[key] = loaded
                 return result
@@ -236,16 +245,23 @@ def _apply_get_user_data_shim_early():
                 key = data_type
                 if isinstance(result, dict) and result.get(key):
                     return result
-                loaded = _load_single_type(user_id, key)
+                loaded = _load_single_type(user_id, key, auto_create=auto_create)
                 if loaded is not None:
                     return {key: loaded}
                 return result
         except Exception:
             return result
 
-    setattr(um, 'get_user_data', wrapped_get_user_data)
-    if udh is not None and hasattr(udh, 'get_user_data'):
-        setattr(udh, 'get_user_data', wrapped_get_user_data)
+    # Patch both modules so call sites using either path receive the shim
+    try:
+        setattr(um, 'get_user_data', wrapped_get_user_data)
+    except Exception:
+        pass
+    try:
+        if udh is not None and hasattr(udh, 'get_user_data'):
+            setattr(udh, 'get_user_data', wrapped_get_user_data)
+    except Exception:
+        pass
 
 _apply_get_user_data_shim_early()
 
@@ -816,12 +832,15 @@ def shim_get_user_data_to_invoke_loaders():
     except Exception:
         udh = None
 
+    # Prefer core.user_management.get_user_data; fall back to handlers if missing
     original_get_user_data = getattr(um, 'get_user_data', None)
+    if original_get_user_data is None and udh is not None and hasattr(udh, 'get_user_data'):
+        original_get_user_data = getattr(udh, 'get_user_data', None)
     if original_get_user_data is None:
         yield
         return
 
-    def _load_single_type(user_id: str, key: str):
+    def _load_single_type(user_id: str, key: str, *, auto_create: bool):
         try:
             entry = um.USER_DATA_LOADERS.get(key)
             loader = None
@@ -847,8 +866,8 @@ def shim_get_user_data_to_invoke_loaders():
                     loader = func
             if loader is None:
                 return None
-            # Loaders accept (user_id, auto_create=True)
-            return loader(user_id, True)
+            # Loaders accept (user_id, auto_create)
+            return loader(user_id, auto_create)
         except Exception:
             return None
 
@@ -884,6 +903,11 @@ def shim_get_user_data_to_invoke_loaders():
             return None
 
     def wrapped_get_user_data(user_id: str, data_type: str = 'all', *args, **kwargs):
+        auto_create = True
+        try:
+            auto_create = bool(kwargs.get('auto_create', True))
+        except Exception:
+            auto_create = True
         result = original_get_user_data(user_id, data_type, *args, **kwargs)
         try:
             # If asking for all, ensure a dict with expected keys
@@ -891,19 +915,29 @@ def shim_get_user_data_to_invoke_loaders():
                 if not isinstance(result, dict):
                     test_logger.debug(f"shim_get_user_data: Coercing non-dict 'all' result for {user_id} -> assembling structure")
                     result = {} if result is None else {"value": result}
-                for key in ('account', 'preferences', 'context', 'schedules'):
-                    if key not in result or not result.get(key):
-                        test_logger.debug(f"shim_get_user_data: '{key}' missing/empty for {user_id}; invoking loader")
-                        loaded = _load_single_type(user_id, key)
-                        if loaded is not None:
-                            result[key] = loaded
-                        else:
-                            # Fallback: direct file read
-                            fb = _fallback_read_from_files(user_id, key)
-                            if fb is not None:
-                                result[key] = fb
+                # Respect auto_create and only assemble when user dir exists
+                should_assemble = auto_create
+                if should_assemble:
+                    try:
+                        from core.config import get_user_data_dir as _get_user_data_dir
+                        if not os.path.exists(_get_user_data_dir(user_id)):
+                            should_assemble = False
+                    except Exception:
+                        should_assemble = False
+                if should_assemble:
+                    for key in ('account', 'preferences', 'context', 'schedules'):
+                        if key not in result or not result.get(key):
+                            test_logger.debug(f"shim_get_user_data: '{key}' missing/empty for {user_id}; invoking loader")
+                            loaded = _load_single_type(user_id, key, auto_create=auto_create)
+                            if loaded is not None:
+                                result[key] = loaded
                             else:
-                                test_logger.warning(f"shim_get_user_data: loader and file fallback could not provide '{key}' for {user_id}")
+                                # Fallback: direct file read
+                                fb = _fallback_read_from_files(user_id, key)
+                                if fb is not None:
+                                    result[key] = fb
+                                else:
+                                    test_logger.warning(f"shim_get_user_data: loader and file fallback could not provide '{key}' for {user_id}")
                 return result
 
             # Specific type request: ensure structure present
@@ -912,14 +946,23 @@ def shim_get_user_data_to_invoke_loaders():
                 # If result already a dict containing the key with a value, return as-is
                 if isinstance(result, dict) and result.get(key):
                     return result
-                # Otherwise, attempt to load and return {key: value}
-                test_logger.debug(f"shim_get_user_data: '{key}' request returned empty for {user_id}; invoking loader")
-                loaded = _load_single_type(user_id, key)
-                if loaded is not None:
-                    return {key: loaded}
-                fb = _fallback_read_from_files(user_id, key)
-                if fb is not None:
-                    return {key: fb}
+                # Otherwise, attempt to load and return {key: value} if allowed
+                should_assemble = auto_create
+                if should_assemble:
+                    try:
+                        from core.config import get_user_data_dir as _get_user_data_dir
+                        if not os.path.exists(_get_user_data_dir(user_id)):
+                            should_assemble = False
+                    except Exception:
+                        should_assemble = False
+                if should_assemble:
+                    test_logger.debug(f"shim_get_user_data: '{key}' request returned empty for {user_id}; invoking loader")
+                    loaded = _load_single_type(user_id, key, auto_create=auto_create)
+                    if loaded is not None:
+                        return {key: loaded}
+                    fb = _fallback_read_from_files(user_id, key)
+                    if fb is not None:
+                        return {key: fb}
                 return result
         except Exception:
             test_logger.exception("shim_get_user_data: unexpected error while assembling result")
@@ -928,6 +971,7 @@ def shim_get_user_data_to_invoke_loaders():
         return result
 
     # Patch in place for the duration of the test
+    # Patch both modules so all call sites are covered
     setattr(um, 'get_user_data', wrapped_get_user_data)
     original_handlers_get = None
     if udh is not None and hasattr(udh, 'get_user_data'):
@@ -937,9 +981,15 @@ def shim_get_user_data_to_invoke_loaders():
         yield
     finally:
         # Restore originals at end of session
-        setattr(um, 'get_user_data', original_get_user_data)
+        try:
+            setattr(um, 'get_user_data', original_get_user_data)
+        except Exception:
+            pass
         if udh is not None and original_handlers_get is not None:
-            setattr(udh, 'get_user_data', original_handlers_get)
+            try:
+                setattr(udh, 'get_user_data', original_handlers_get)
+            except Exception:
+                pass
 
 
 @pytest.fixture(scope="session", autouse=True)

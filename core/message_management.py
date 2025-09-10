@@ -109,6 +109,8 @@ def add_message(user_id, category, message_data, index=None):
 
     # Use new user-specific message file structure
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    # Ensure the messages directory exists
+    user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(file_path)
@@ -208,6 +210,8 @@ def update_message(user_id, category, message_id, new_message_data):
         return
 
     file_path = determine_file_path('messages', f'{category}/{user_id}')
+    # Ensure the directory exists
+    Path(file_path).parent.mkdir(parents=True, exist_ok=True)
     data = load_json_data(file_path)
     
     if data is None or 'messages' not in data:
@@ -242,6 +246,8 @@ def delete_message(user_id, category, message_id):
 
     # Use new user-specific message file structure
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+    # Ensure the messages directory exists
+    user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
     
     data = load_json_data(file_path)
@@ -255,6 +261,9 @@ def delete_message(user_id, category, message_id):
         raise ValidationError("Message ID not found.")
     
     data['messages'].remove(message_to_delete)
+    # If no messages remain, keep an empty file (tests expect file to exist post-delete)
+    if not data.get('messages'):
+        data = {'messages': []}
     save_json_data(data, file_path)
     
     # Update user index
@@ -385,6 +394,8 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
         # Create user message file with proper format
         # Note: messages directory should be created by create_user_files() during account creation
         user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+        # Ensure the messages directory exists
+        user_messages_dir.mkdir(parents=True, exist_ok=True)
         category_message_file = user_messages_dir / f"{category}.json"
         message_data = {"messages": formatted_messages}
         try:

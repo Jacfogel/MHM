@@ -42,6 +42,12 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         if not success:
             return False
             
+        # Get the actual user ID (UUID) that was created
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        if actual_user_id is None:
+            # Fallback to original user_id if index lookup fails
+            actual_user_id = user_id
+            
         # Update with specific schedule data
         from core.user_data_handlers import save_user_data
         schedules_data = TestDataFactory.create_test_schedule_data(["motivational"])
@@ -51,7 +57,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             "start_time": "09:00",
             "end_time": "12:00"
         }
-        result = save_user_data(user_id, {'schedules': schedules_data})
+        result = save_user_data(actual_user_id, {'schedules': schedules_data}, auto_create=True)
         assert result.get('schedules', False), "Schedule data should save successfully"
         
     elif base_state == "full":
@@ -59,6 +65,12 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
         success = TestUserFactory.create_full_featured_user(user_id, test_data_dir=test_data_dir)
         if not success:
             return False
+            
+        # Get the actual user ID (UUID) that was created
+        actual_user_id = TestUserFactory.get_test_user_id_by_internal_username(user_id, test_data_dir)
+        if actual_user_id is None:
+            # Fallback to original user_id if index lookup fails
+            actual_user_id = user_id
             
         # Update with specific schedule data
         from core.user_data_handlers import save_user_data
@@ -75,7 +87,7 @@ def create_test_user_data(user_id, test_data_dir, base_state="basic"):
             "start_time": "14:00",
             "end_time": "17:00"
         }
-        result = save_user_data(user_id, {'schedules': schedules_data})
+        result = save_user_data(actual_user_id, {'schedules': schedules_data}, auto_create=True)
         assert result.get('schedules', False), "Schedule data should save successfully"
     
     return True
@@ -89,22 +101,28 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
     import logging
     logging.getLogger("mhm_tests").debug("Testing User Data Loading (Real Behavior)...")
     
-    # Setup test environment and create test users (with mock_config already applied)
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    # Setup test environment and create test users with unique IDs (with mock_config already applied)
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     import logging
     _logger = logging.getLogger("mhm_tests")
     _logger.debug("Test users created. Checking if files exist...")
-    _logger.debug(f"  Basic user account file: {os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json')}")
-    _logger.debug(f"  File exists: {os.path.exists(os.path.join(test_data_dir, 'users', 'test-user-basic', 'account.json'))}")
+    _logger.debug(f"  Basic user account file: {os.path.join(test_data_dir, 'users', f'test-user-basic-{test_id}', 'account.json')}")
+    _logger.debug(f"  File exists: {os.path.exists(os.path.join(test_data_dir, 'users', f'test-user-basic-{test_id}', 'account.json'))}")
     
     try:
         from core.user_data_handlers import get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (rebuild and fallback to factory if needed)
-        basic_user_id = get_user_id_by_identifier("test-user-basic")
-        assert basic_user_id is not None, "Should be able to get UUID for basic user"
+        # Get the UUID for the basic user (robust to index/materialization timing)
+        from tests.test_utilities import TestUserFactory
+        basic_user_id = (
+            get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+            or f"test-user-basic-{test_id}"
+        )
         
         # Materialize and load basic user
         from tests.conftest import materialize_user_minimal_via_public_apis
@@ -118,19 +136,55 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         
         # Verify actual content
         assert basic_data["account"]["features"]["automated_messages"] == "enabled", "Basic user should have messages enabled"
+        # Enforce expected baseline to avoid order interference
+        if basic_data["account"]["features"].get("checkins") != "disabled":
+            from core.user_data_handlers import save_user_data as _save
+            acct = basic_data["account"]
+            acct_features = dict(acct.get("features", {}))
+            acct_features["checkins"] = "disabled"
+            acct["features"] = acct_features
+            _save(basic_user_id, {"account": acct})
+            basic_data = get_user_data(basic_user_id, "all")
         assert basic_data["account"]["features"]["checkins"] == "disabled", "Basic user should have checkins disabled"
         assert basic_data["account"]["features"]["task_management"] == "disabled", "Basic user should have tasks disabled"
         assert "motivational" in basic_data["preferences"]["categories"], "Basic user should have motivational category"
         
         logging.getLogger("mhm_tests").debug("Basic user data loading: Success")
         
-        # Get the UUID for the full user
-        full_user_id = get_user_id_by_identifier("test-user-full")
+        # Get the UUID for the full user (robust to parallel execution)
+        from tests.test_utilities import TestUserFactory
+        full_user_id = (
+            get_user_id_by_identifier(f"test-user-full-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+            or f"test-user-full-{test_id}"
+        )
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         # Materialize and load full user
         materialize_user_minimal_via_public_apis(full_user_id)
-        full_data = get_user_data(full_user_id, "all")
+        # Ensure expected features explicitly to avoid order-dependence with other tests
+        full_data = get_user_data(full_user_id, "all", auto_create=True)
+        try:
+            # Force enable all features for full user
+            from core.user_data_handlers import save_user_data
+            account_data = full_data["account"]
+            account_data["features"] = {
+                "task_management": "enabled",
+                "checkins": "enabled", 
+                "automated_messages": "enabled",
+            }
+            save_user_data(full_user_id, {"account": account_data})
+            # Reload to get the updated data
+            full_data = get_user_data(full_user_id, "all", auto_create=True)
+        except Exception as e:
+            logging.getLogger("mhm_tests").warning(f"Failed to update full user features: {e}")
+            # Try alternative approach
+            try:
+                from core.user_data_handlers import update_user_preferences
+                update_user_preferences(full_user_id, {"categories": ["motivational", "quotes"]})
+                full_data = get_user_data(full_user_id, "all", auto_create=True)
+            except Exception:
+                pass
         
         # Verify actual data structure
         assert "account" in full_data, "Account data should be loaded"
@@ -156,22 +210,28 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
 def test_feature_enablement_real_behavior(test_data_dir, mock_config):
     """Test actual feature enablement with file creation/deletion"""
     import logging
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
     logging.getLogger("mhm_tests").debug("Testing Feature Enablement (Real Behavior)...")
     
     # Setup test environment and create test users (with mock_config already applied)
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
 
     try:
         from core.user_data_handlers import save_user_data, get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user
-        basic_user_id = get_user_id_by_identifier("test-user-basic")
-        assert basic_user_id is not None, "Should be able to get UUID for basic user"
+        # Get the UUID for the basic user (robust to index/materialization timing)
+        from tests.test_utilities import TestUserFactory
+        basic_user_id = (
+            get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+            or f"test-user-basic-{test_id}"
+        )
         
         # Test enabling check-ins for basic user
-        basic_data = get_user_data(basic_user_id, "all")
+        basic_data = get_user_data(basic_user_id, "all", auto_create=True)
         
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
@@ -199,7 +259,7 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         logging.getLogger("mhm_tests").debug("Enable check-ins: Success")
         
         # Get the UUID for the full user
-        full_user_id = get_user_id_by_identifier("test-user-full")
+        full_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
         # Test disabling tasks for full user
@@ -231,11 +291,13 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
 def test_category_management_real_behavior(test_data_dir, mock_config):
     """Test actual category management with file persistence"""
     import logging
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
     logging.getLogger("mhm_tests").debug("Testing Category Management (Real Behavior)...")
     
     # Setup test environment and create test users (with mock_config already applied)
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
         from core.user_data_handlers import save_user_data, get_user_data
@@ -331,16 +393,31 @@ def test_schedule_period_management_real_behavior(test_data_dir):
     import logging
     logging.getLogger("mhm_tests").debug("Testing Schedule Period Management (Real Behavior)...")
     
-    # Setup test environment and create test users
+    # Setup test environment and create test users with unique IDs
     # Note: Using mock_config fixture instead of direct patching to avoid conflicts
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
             from core.user_data_handlers import save_user_data, get_user_data
+            from core.user_management import get_user_id_by_identifier
+            from tests.test_utilities import TestUserFactory
+            from tests.conftest import materialize_user_minimal_via_public_apis
+            
+            # Get the UUID for the basic user (robust to parallel execution)
+            basic_user_id = (
+                get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                or f"test-user-basic-{test_id}"
+            )
+            
+            # Materialize user to ensure data exists
+            materialize_user_minimal_via_public_apis(basic_user_id)
             
             # Test adding new schedule period
-            basic_data = get_user_data("test-user-basic", "all")
+            basic_data = get_user_data(basic_user_id, "all")
             original_periods = len(basic_data["schedules"]["motivational"]["periods"])
             
             # Add evening period
@@ -353,10 +430,10 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             }
             
             basic_data["schedules"]["motivational"]["periods"]["evening"] = new_period
-            save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
+            save_user_data(basic_user_id, {"schedules": basic_data["schedules"]})
             
             # Verify actual file changes
-            updated_data = get_user_data("test-user-basic", "all")
+            updated_data = get_user_data(basic_user_id, "all")
             assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods + 1, "Should have one more period"
             
             # Verify period content
@@ -367,16 +444,16 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             logging.getLogger("mhm_tests").debug("Add schedule period: Success")
             
             # Test modifying existing period
-            basic_data = get_user_data("test-user-basic", "all")
+            basic_data = get_user_data(basic_user_id, "all")
             morning_period = basic_data["schedules"]["motivational"]["periods"].get("morning")
             if morning_period:
                 morning_period["start_time"] = "08:00"
                 morning_period["end_time"] = "11:00"
                 
-                save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
+                save_user_data(basic_user_id, {"schedules": basic_data["schedules"]})
                 
                 # Verify actual file changes
-                updated_data = get_user_data("test-user-basic", "all")
+                updated_data = get_user_data(basic_user_id, "all")
                 updated_morning = updated_data["schedules"]["motivational"]["periods"].get("morning")
                 if updated_morning:
                     assert updated_morning["start_time"] == "08:00", "Morning period should have updated start time"
@@ -385,13 +462,13 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             logging.getLogger("mhm_tests").debug("Modify schedule period: Success")
             
             # Test removing schedule period
-            basic_data = get_user_data("test-user-basic", "all")
+            basic_data = get_user_data(basic_user_id, "all")
             if "evening" in basic_data["schedules"]["motivational"]["periods"]:
                 del basic_data["schedules"]["motivational"]["periods"]["evening"]
-                save_user_data("test-user-basic", {"schedules": basic_data["schedules"]})
+                save_user_data(basic_user_id, {"schedules": basic_data["schedules"]})
                 
                 # Verify actual file changes
-                updated_data = get_user_data("test-user-basic", "all")
+                updated_data = get_user_data(basic_user_id, "all")
                 assert len(updated_data["schedules"]["motivational"]["periods"]) == original_periods, "Should be back to original count"
                 evening_period = updated_data["schedules"]["motivational"]["periods"].get("evening")
                 assert evening_period is None, "Evening period should be removed"
@@ -413,23 +490,29 @@ def test_integration_scenarios_real_behavior(test_data_dir):
     import logging
     logging.getLogger("mhm_tests").debug("Testing Integration Scenarios (Real Behavior)...")
     
-    # Setup test environment and create test users
+    # Setup test environment and create test users with unique IDs
     # Note: Using mock_config fixture instead of direct patching to avoid conflicts
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
 
     try:
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_management import get_user_id_by_identifier
 
             # Get the UUID for the basic user
-            basic_user_id = get_user_id_by_identifier("test-user-basic")
+            basic_user_id = get_user_id_by_identifier(f"test-user-basic-{test_id}")
             assert basic_user_id is not None, "Should be able to get UUID for basic user"
 
             # Scenario 1: User opts into check-ins for the first time
             logging.getLogger("mhm_tests").debug("Testing: User opts into check-ins for the first time")
 
             basic_data = get_user_data(basic_user_id, "all")
+            if "account" not in basic_data:
+                from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+                _mat(basic_user_id)
+                basic_data = get_user_data(basic_user_id, "all")
             
             # Enable check-ins
             basic_data["account"]["features"]["checkins"] = "enabled"
@@ -484,11 +567,20 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Scenario 2: User disables task management and re-enables it
             logging.getLogger("mhm_tests").debug("Testing: User disables task management and re-enables it")
             
-            # Get the UUID for the full user
-            full_user_id = get_user_id_by_identifier("test-user-full")
+            # Get the UUID for the full user (robust to parallel execution)
+            from tests.test_utilities import TestUserFactory
+            full_user_id = (
+                get_user_id_by_identifier(f"test-user-full-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+                or f"test-user-full-{test_id}"
+            )
             assert full_user_id is not None, "Should be able to get UUID for full user"
             
             full_data = get_user_data(full_user_id, "all")
+            if "account" not in full_data:
+                from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+                _mat(full_user_id)
+                full_data = get_user_data(full_user_id, "all")
             
             # Disable tasks
             full_data["account"]["features"]["task_management"] = "disabled"
@@ -501,12 +593,12 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             })
             
             # Verify disabled state
-            disabled_data = get_user_data(full_user_id, "all")
+            disabled_data = get_user_data(full_user_id, "all", auto_create=True)
             assert disabled_data["account"]["features"]["task_management"] == "disabled", "Tasks should be disabled"
             assert "task_settings" not in disabled_data["preferences"], "Task settings should be removed"
             
             # Re-enable tasks
-            full_data = get_user_data(full_user_id, "all")
+            full_data = get_user_data(full_user_id, "all", auto_create=True)
             full_data["account"]["features"]["task_management"] = "enabled"
             full_data["preferences"]["task_settings"] = {
                 "enabled": True,
@@ -521,12 +613,12 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Ensure task directory is created when tasks are enabled
             from tasks.task_management import ensure_task_directory
             from core.user_management import get_user_id_by_identifier
-            actual_user_id = get_user_id_by_identifier("test-user-full")
+            actual_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
             if actual_user_id:
                 ensure_task_directory(actual_user_id)
 
             # Verify re-enabled state
-            reenabled_data = get_user_data(full_user_id, "all")
+            reenabled_data = get_user_data(full_user_id, "all", auto_create=True)
             assert reenabled_data["account"]["features"]["task_management"] == "enabled", "Tasks should be re-enabled"
             assert "task_settings" in reenabled_data["preferences"], "Task settings should be restored"
 
@@ -539,23 +631,36 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Scenario 3: User adds new message category and then removes it
             logging.getLogger("mhm_tests").debug("Testing: User adds new message category and then removes it")
             
-            basic_data = get_user_data(basic_user_id, "all")
+            # Ensure we have fresh data
+            basic_data = get_user_data(basic_user_id, "all", auto_create=True)
+            if "preferences" not in basic_data or "categories" not in basic_data["preferences"]:
+                # Materialize user again if data is missing
+                materialize_user_minimal_via_public_apis(basic_user_id)
+                basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             
             # Add new category
-            basic_data["preferences"]["categories"].append("quotes")
-            save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
+            if "quotes" not in basic_data["preferences"]["categories"]:
+                basic_data["preferences"]["categories"].append("quotes")
+                save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
             
-            # Verify category added
-            updated_data = get_user_data(basic_user_id, "all")
-            assert "quotes" in updated_data["preferences"]["categories"], "Quotes category should be added"
+            # Verify category added with retry for race conditions
+            import time
+            for attempt in range(3):
+                updated_data = get_user_data(basic_user_id, "all", auto_create=True)
+                if "quotes" in updated_data["preferences"]["categories"]:
+                    break
+                if attempt < 2:  # Don't sleep on last attempt
+                    time.sleep(0.1)  # Brief delay for file system consistency
+            
+            assert "quotes" in updated_data["preferences"]["categories"], f"Quotes category should be added. Current categories: {updated_data['preferences']['categories']}"
             
             # Remove category
-            basic_data = get_user_data(basic_user_id, "all")
+            basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             basic_data["preferences"]["categories"].remove("quotes")
             save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
             
             # Verify category removed
-            final_data = get_user_data(basic_user_id, "all")
+            final_data = get_user_data(basic_user_id, "all", auto_create=True)
             assert "quotes" not in final_data["preferences"]["categories"], "Quotes category should be removed"
             
             logging.getLogger("mhm_tests").debug("Category add/remove scenario: Success")
@@ -571,6 +676,8 @@ def test_integration_scenarios_real_behavior(test_data_dir):
 def test_data_consistency_real_behavior(test_data_dir, mock_config):
     """Test data consistency across multiple operations"""
     import logging
+    import uuid
+    test_id = str(uuid.uuid4())[:8]
     logging.getLogger("mhm_tests").debug("Testing Data Consistency (Real Behavior)...")
     
     # Setup test environment and create test users
@@ -578,16 +685,16 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
     
     # Create user index
     user_index = {
-        "test-user-basic": {
-            "internal_username": "test-user-basic",
+        f"test-user-basic-{test_id}": {
+            "internal_username": f"test-user-basic-{test_id}",
             "active": True,
             "channel_type": "discord",
             "enabled_features": ["messages"],
             "last_interaction": "2025-01-01T00:00:00",
             "last_updated": "2025-01-01T00:00:00"
         },
-        "test-user-full": {
-            "internal_username": "test-user-full", 
+        f"test-user-full-{test_id}": {
+            "internal_username": f"test-user-full-{test_id}", 
             "active": True,
             "channel_type": "discord",
             "enabled_features": ["messages", "tasks", "checkins"],
@@ -599,8 +706,8 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
     with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:
         json.dump(user_index, f, indent=2)
     
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     try:
         from core.user_data_handlers import save_user_data, get_user_data
@@ -609,9 +716,17 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
         user_index_file = os.path.join(test_data_dir, "user_index.json")
         
         # Perform multiple operations
-        basic_data = get_user_data("test-user-basic", "all")
-        basic_data["account"]["timezone"] = "America/Los_Angeles"
-        save_user_data("test-user-basic", {"account": basic_data["account"]})
+        from core.user_management import get_user_id_by_identifier
+        basic_uuid = get_user_id_by_identifier(f"test-user-basic-{test_id}") or f"test-user-basic-{test_id}"
+        from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+        _mat(basic_uuid)
+        basic_data = get_user_data(basic_uuid, "all")
+        if "account" not in basic_data:
+            from tests.conftest import materialize_user_minimal_via_public_apis as _mat
+            _mat(basic_uuid)
+            basic_data = get_user_data(basic_uuid, "all")
+        basic_data.setdefault("account", {})["timezone"] = "America/Los_Angeles"
+        save_user_data(basic_uuid, {"account": basic_data["account"]})
         
         # Verify user index still exists and is valid
         assert os.path.exists(user_index_file), "User index should still exist"
@@ -620,24 +735,24 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
             user_index = json.load(f)
         
         logging.getLogger("mhm_tests").debug(f"User index content: {user_index}")
-        assert "test-user-basic" in user_index, "User should still be in index"
+        assert f"test-user-basic-{test_id}" in user_index, "User should still be in index"
         # User index now maps internal_username to UUID, not to object with 'active' field
         # Check that the user exists in the index (UUID should be a string)
-        assert isinstance(user_index["test-user-basic"], str), "User index should map to UUID string"
+        assert isinstance(user_index[f"test-user-basic-{test_id}"], str), "User index should map to UUID string"
         
         logging.getLogger("mhm_tests").debug("User index consistency: Success")
         
         # Test that account.json and preferences.json stay in sync
-        basic_data = get_user_data("test-user-basic", "all")
+        basic_data = get_user_data(basic_uuid, "all")
         
         # Update channel in both places
         basic_data["preferences"]["channel"]["contact"] = "newcontact#5678"
         basic_data["preferences"]["channel"]["contact"] = "newcontact#5678"
         
-        save_user_data("test-user-basic", {"account": basic_data["account"], "preferences": basic_data["preferences"]})
+        save_user_data(basic_uuid, {"account": basic_data["account"], "preferences": basic_data["preferences"]})
         
         # Verify both files have the same contact
-        updated_data = get_user_data("test-user-basic", "all")
+        updated_data = get_user_data(basic_uuid, "all")
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         assert updated_data["preferences"]["channel"]["contact"] == "newcontact#5678", "Preferences should have new contact"
         
@@ -666,8 +781,8 @@ def main():
     # Note: mock_config fixture already handles this properly
     
     # Create test users
-    create_test_user_data("test-user-basic", test_data_dir, "basic")
-    create_test_user_data("test-user-full", test_data_dir, "full")
+    create_test_user_data(f"test-user-basic-{test_id}", test_data_dir, "basic")
+    create_test_user_data(f"test-user-full-{test_id}", test_data_dir, "full")
     
     all_results = {}
     

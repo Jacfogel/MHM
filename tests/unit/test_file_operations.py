@@ -298,39 +298,43 @@ class TestFileOperations:
         """Test file access verification with permission error."""
         # Try to access a protected file - use cross-platform approach
         import tempfile
-        temp_dir = tempfile.gettempdir()
-        protected_file = os.path.join(temp_dir, 'mhm_test_protected_file_12345.txt')
-        protected_dir = temp_dir
+        import uuid
+        
+        # Create a unique test directory to avoid interference from other tests
+        test_dir = os.path.join(tempfile.gettempdir(), f'mhm_test_protected_{uuid.uuid4().hex[:8]}')
+        protected_file = os.path.join(test_dir, 'mhm_test_protected_file_12345.txt')
+        protected_dir = test_dir
+        
+        # Create the test directory
+        os.makedirs(protected_dir, exist_ok=True)
         
         # ✅ VERIFY INITIAL STATE: Check current state of protected location
-        if os.path.exists(protected_dir):
-            # If /root exists, check if we can access it (we shouldn't be able to)
-            try:
-                # Try to list contents of /root to see if we have read access
-                root_contents_before = os.listdir(protected_dir)
-            except PermissionError:
-                # This is expected - we shouldn't have read access to /root
-                root_contents_before = None
-            except OSError:
-                # Other OS errors are also expected
-                root_contents_before = None
-        else:
+        try:
+            root_contents_before = os.listdir(protected_dir)
+        except (PermissionError, OSError):
+            # This is expected - we shouldn't have read access to protected directories
             root_contents_before = None
         
         result = verify_file_access([protected_file])
         assert result is None
         
         # ✅ VERIFY REAL BEHAVIOR: Check that no files were created during verification
-        if os.path.exists(protected_dir):
-            try:
-                root_contents_after = os.listdir(protected_dir)
-                # The contents should be the same (no new files created)
-                if root_contents_before is not None:
-                    assert set(root_contents_after) == set(root_contents_before), \
-                        "No new files should be created in protected directory during verification"
-            except (PermissionError, OSError):
-                # Still can't access /root, which is expected
-                pass
+        try:
+            root_contents_after = os.listdir(protected_dir)
+            # The contents should be the same (no new files created)
+            if root_contents_before is not None:
+                assert set(root_contents_after) == set(root_contents_before), \
+                    "No new files should be created in protected directory during verification"
+        except (PermissionError, OSError):
+            # Still can't access protected directory, which is expected
+            pass
+        
+        # Clean up test directory
+        try:
+            import shutil
+            shutil.rmtree(protected_dir, ignore_errors=True)
+        except:
+            pass
         
         # ✅ VERIFY REAL BEHAVIOR: Check that the protected file still doesn't exist (or is inaccessible)
         if os.path.exists(protected_file):

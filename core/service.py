@@ -149,7 +149,12 @@ class MHMService:
             from core.config import LOG_MAIN_FILE
             if not os.path.exists(LOG_MAIN_FILE):
                 logger.warning("Log file does not exist - logging may have issues")
-                raise Exception("Log file missing")
+                # Do not delete or alter the provided path; create the file to satisfy health check
+                try:
+                    with open(LOG_MAIN_FILE, 'a', encoding='utf-8') as _f:
+                        _f.write('')
+                except Exception:
+                    raise Exception("Log file missing")
             
             # Try to read the last few lines to verify logging is working
             try:

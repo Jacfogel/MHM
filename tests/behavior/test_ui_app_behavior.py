@@ -374,6 +374,13 @@ class TestUIAppIntegration:
     
     def test_ui_app_integration_with_service_manager(self, test_data_dir):
         """Test integration between UI app and service manager."""
+        # Ensure a QApplication exists for widget creation
+        try:
+            from PySide6.QtWidgets import QApplication
+            if not QApplication.instance():
+                _app = QApplication([])
+        except Exception:
+            pass
         # Arrange - Mock service manager
         mock_service_manager = MagicMock()
         mock_service_manager.is_service_running.return_value = (True, {'pid': 12345})

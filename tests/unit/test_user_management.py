@@ -587,10 +587,13 @@ class TestUserManagementEdgeCases:
         all_expected_items = expected_files + expected_dirs
         # Allow for additional feature directories created by the system (e.g., tasks)
         allowed_extra_dirs = {'tasks'}
+        # Allow temporary files that might be created during operations
+        allowed_temp_files = {'chat_interactions.json.tmp'}
         unexpected_items = [
             f for f in user_dir_contents
             if f not in all_expected_items
             and f not in allowed_extra_dirs
+            and f not in allowed_temp_files
             and not f.startswith('.')
             and not f.endswith('.json')
         ]
