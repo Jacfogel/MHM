@@ -189,7 +189,7 @@ class TestMessageScheduling:
         with open(schedules_file, 'w') as f:
             json.dump(schedules_data, f)
         
-        with patch('core.scheduler.get_all_user_ids') as mock_get_users:
+        with patch('core.user_management.get_all_user_ids') as mock_get_users:
             mock_get_users.return_value = [user_id]
             
             # Test real behavior: function should schedule messages for the user
