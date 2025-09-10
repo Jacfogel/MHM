@@ -96,7 +96,7 @@ class TestUserContextManagerBehavior:
         with patch('user.context_manager.get_user_data') as mock_get_user_data, \
              patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('user.context_manager.get_last_10_messages') as mock_get_messages:
+             patch('user.context_manager.get_recent_messages') as mock_get_messages:
             
             # Setup mock returns
             mock_get_user_data.side_effect = lambda user_id, data_type: {
@@ -542,7 +542,7 @@ class TestUserContextManagerBehavior:
         with patch('user.context_manager.get_user_data') as mock_get_user_data, \
              patch('user.context_manager.get_recent_checkins') as mock_get_checkins, \
              patch('user.context_manager.get_recent_chat_interactions') as mock_get_interactions, \
-             patch('user.context_manager.get_last_10_messages') as mock_get_messages:
+             patch('user.context_manager.get_recent_messages') as mock_get_messages:
             
             mock_get_user_data.side_effect = lambda user_id, data_type: {
                 'preferences': {'preferences': {}},

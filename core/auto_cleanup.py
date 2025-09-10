@@ -169,10 +169,51 @@ def auto_cleanup_if_needed(root_path='.', interval_days=DEFAULT_CLEANUP_INTERVAL
     
     success = perform_cleanup(root_path)
     if success:
+        # Also archive old messages during monthly cleanup
+        try:
+            archive_old_messages_for_all_users()
+        except Exception as e:
+            logger.warning(f"Message archiving failed during cleanup (non-critical): {e}")
+        
         update_cleanup_timestamp()
         return True
     else:
         logger.error("Cleanup failed")
+        return False
+
+@handle_errors("archiving old messages for all users", default_return=False)
+def archive_old_messages_for_all_users():
+    """
+    Archive old messages for all users during monthly cleanup.
+    This runs alongside the cache cleanup to maintain message file sizes.
+    """
+    try:
+        from core.user_data_handlers import get_all_user_ids
+        from core.message_management import archive_old_messages
+        
+        user_ids = get_all_user_ids()
+        if not user_ids:
+            logger.debug("No users found for message archiving")
+            return True
+        
+        logger.info(f"Starting message archiving for {len(user_ids)} users")
+        
+        archived_count = 0
+        for user_id in user_ids:
+            try:
+                if archive_old_messages(user_id, days_to_keep=365):
+                    archived_count += 1
+                    logger.debug(f"Successfully archived messages for user {user_id}")
+                else:
+                    logger.debug(f"No messages to archive for user {user_id}")
+            except Exception as e:
+                logger.warning(f"Failed to archive messages for user {user_id}: {e}")
+        
+        logger.info(f"Message archiving completed: {archived_count}/{len(user_ids)} users processed")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error during message archiving: {e}")
         return False
 
 @handle_errors("getting cleanup status", default_return={"error": "Failed to get status"})

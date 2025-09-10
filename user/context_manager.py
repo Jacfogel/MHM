@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Any
 from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_checkins, get_recent_chat_interactions
-from core.message_management import get_last_10_messages
+from core.message_management import get_recent_messages
 from core.error_handling import handle_errors
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
@@ -144,7 +144,7 @@ class UserContextManager:
         
         for category in categories:
             try:
-                category_messages = get_last_10_messages(user_id, category)
+                category_messages = get_recent_messages(user_id, category=category, limit=10)
                 total_recent_messages += len(category_messages)
                 
                 if category_messages:

@@ -413,13 +413,17 @@ class TestSentMessages:
         messages_dir = os.path.join(user_dir, 'messages')
         os.makedirs(messages_dir, exist_ok=True)
         
-        # Create sent messages file with test data
+        # Create sent messages file with test data (new chronological structure)
         sent_messages_file = os.path.join(messages_dir, 'sent_messages.json')
         test_sent_messages = {
-            category: [
-                {"message_id": "msg1", "timestamp": "2025-01-01 10:00:00"},
-                {"message_id": "msg2", "timestamp": "2025-01-01 11:00:00"},
-                {"message_id": "msg3", "timestamp": "2025-01-01 12:00:00"}
+            "metadata": {
+                "version": "2.0",
+                "total_messages": 3
+            },
+            "messages": [
+                {"message_id": "msg1", "message": "Test message 1", "category": category, "timestamp": "2025-01-01 10:00:00", "delivery_status": "sent"},
+                {"message_id": "msg2", "message": "Test message 2", "category": category, "timestamp": "2025-01-01 11:00:00", "delivery_status": "sent"},
+                {"message_id": "msg3", "message": "Test message 3", "category": category, "timestamp": "2025-01-01 12:00:00", "delivery_status": "sent"}
             ]
         }
         with open(sent_messages_file, 'w', encoding='utf-8') as f:

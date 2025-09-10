@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from core.logger import get_logger, get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
@@ -17,7 +17,7 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, ValidationError,
     handle_file_error, handle_errors
 )
-from typing import List
+from typing import List, Dict, Any, Optional
 
 # Use component logger for message management
 logger = get_component_logger('message')
@@ -275,74 +275,275 @@ def delete_message(user_id, category, message_id):
     
     logger.info(f"Deleted message with ID {message_id} in category {category} for user {user_id}.")
 
-@handle_errors("getting last 10 messages", default_return=[])
-def get_last_10_messages(user_id, category):
+def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int = 10, days_back: Optional[int] = None) -> List[Dict[str, Any]]:
     """
-    Get the last 10 messages for a user and category, sorted by timestamp descending.
+    Get recent messages with flexible filtering.
+    
+    This function replaces get_last_10_messages() with enhanced functionality
+    that supports both category-specific and cross-category queries.
     
     Args:
         user_id: The user ID
-        category: The message category
+        category: Optional category filter (None = all categories)
+        limit: Maximum number of messages to return
+        days_back: Only include messages from last N days
         
     Returns:
-        List[dict]: List of the last 10 sent messages for the category
+        List[dict]: List of recent messages, sorted by timestamp descending
     """
     if user_id is None:
-        logger.error("get_last_10_messages called with None user_id")
+        logger.error("get_recent_messages called with None user_id")
         return []
     
-    file_path = determine_file_path('sent_messages', user_id)
-    data = load_json_data(file_path)
-    if data is None:
-        logger.warning(f"No sent messages found for user {user_id} in category {category}.")
+    try:
+        file_path = determine_file_path('sent_messages', user_id)
+        data = load_json_data(file_path)
+        
+        if not data:
+            logger.debug(f"No sent messages found for user {user_id}")
+            return []
+        
+        # Use new chronological structure
+        messages = data['messages']
+        
+        if not messages:
+            logger.debug(f"No messages found for user {user_id}")
+            return []
+        
+        # Apply filters
+        filtered_messages = messages
+        
+        # Filter by category if specified
+        if category:
+            filtered_messages = [msg for msg in filtered_messages if msg.get('category') == category]
+        
+        # Filter by days_back if specified
+        if days_back:
+            cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
+            filtered_messages = [
+                msg for msg in filtered_messages 
+                if _parse_timestamp(msg.get('timestamp', '')) >= cutoff_date
+            ]
+        
+        # Sort by timestamp descending (newest first)
+        filtered_messages.sort(key=lambda msg: _parse_timestamp(msg.get('timestamp', '')), reverse=True)
+        
+        # Apply limit
+        result = filtered_messages[:limit]
+        
+        logger.debug(f"Retrieved {len(result)} recent messages for user {user_id}, category={category}, limit={limit}, days_back={days_back}")
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error getting recent messages for user {user_id}: {e}")
         return []
-    messages = []
-    if category in data:
-        messages = data[category]
-    if not messages:
-        logger.info(f"No messages found in category {category} for user {user_id}.")
-        return []
-    # Sort by timestamp descending
-    sorted_data = sorted(messages, key=get_timestamp_for_sorting, reverse=True)
-    last_10_messages = sorted_data[:10]
-    logger.debug(f"Retrieved last 10 messages for user {user_id} in category {category}.")
-    return last_10_messages
 
-@handle_errors("storing sent message")
-def store_sent_message(user_id, category, message_id, message):
+def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: str = None) -> bool:
     """
-    Store a sent message for a user and category, with per-category grouping and cleanup.
+    Store sent message in chronological order.
+    
+    This function maintains the chronological structure by inserting new messages
+    in the correct position based on timestamp.
     
     Args:
         user_id: The user ID
         category: The message category
-        message_id: The ID of the sent message
-        message: The message content that was sent
+        message_id: The message ID
+        message: The message content
+        delivery_status: Delivery status (default: "sent")
+        time_period: The time period when the message was sent (e.g., "morning", "evening")
+        
+    Returns:
+        bool: True if message stored successfully
     """
-    file_path = determine_file_path('sent_messages', user_id)
-    sent_messages = load_json_data(file_path) or {}
-    # Add the new message under the correct category
-    sent_messages.setdefault(category, []).append({
-        "message_id": message_id,
-        "message": message,
-        "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    })
-    # Clean up messages older than 1 year
-    from datetime import timedelta
-    one_year_ago = datetime.now() - timedelta(days=365)
-    cutoff_date = one_year_ago.strftime('%Y-%m-%d %H:%M:%S')
-    for cat in sent_messages:
-        if isinstance(sent_messages[cat], list):
-            original_count = len(sent_messages[cat])
-            sent_messages[cat] = [
-                msg for msg in sent_messages[cat]
-                if msg.get('timestamp', '0000-00-00 00:00:00') > cutoff_date
-            ]
-            cleaned_count = len(sent_messages[cat])
-            if original_count > cleaned_count:
-                logger.info(f"Cleaned up {original_count - cleaned_count} old messages from {cat} category for user {user_id}")
-    save_json_data(sent_messages, file_path)
-    logger.debug(f"Stored sent message for user {user_id}, category {category}.") 
+    if user_id is None:
+        logger.error("store_sent_message called with None user_id")
+        return False
+    
+    try:
+        file_path = determine_file_path('sent_messages', user_id)
+        data = load_json_data(file_path) or {}
+        
+        # Create new message entry (without redundant user_id field)
+        new_message = {
+            "message_id": message_id,
+            "message": message,
+            "category": category,
+            "timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "delivery_status": delivery_status
+        }
+        
+        # Add time_period if provided
+        if time_period:
+            new_message["time_period"] = time_period
+        
+        # Insert message in chronological order (newest first)
+        messages = data.get('messages', [])
+        
+        # Find insertion point
+        insert_index = 0
+        new_timestamp = _parse_timestamp(new_message['timestamp'])
+        
+        for i, existing_msg in enumerate(messages):
+            existing_timestamp = _parse_timestamp(existing_msg.get('timestamp', ''))
+            if new_timestamp > existing_timestamp:
+                insert_index = i
+                break
+            insert_index = i + 1
+        
+        # Insert message
+        messages.insert(insert_index, new_message)
+        data['messages'] = messages
+        
+        # Update metadata
+        if 'metadata' not in data:
+            data['metadata'] = {}
+        
+        data['metadata']['total_messages'] = len(messages)
+        data['metadata']['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Save updated data
+        save_json_data(data, file_path)
+        
+        logger.debug(f"Stored sent message for user {user_id}, category {category}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error storing sent message for user {user_id}: {e}")
+        return False
+
+def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
+    """
+    Archive messages older than specified days.
+    
+    This function implements file rotation by moving old messages to archive files,
+    keeping the active sent_messages.json file manageable in size.
+    
+    Args:
+        user_id: The user ID
+        days_to_keep: Number of days to keep in active file
+        
+    Returns:
+        bool: True if archiving successful
+    """
+    if user_id is None:
+        logger.error("archive_old_messages called with None user_id")
+        return False
+    
+    try:
+        file_path = determine_file_path('sent_messages', user_id)
+        data = load_json_data(file_path)
+        
+        if not data or 'messages' not in data:
+            logger.debug(f"No messages to archive for user {user_id}")
+            return True
+        
+        # Calculate cutoff date
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_to_keep)
+        
+        # Separate old and new messages
+        messages = data['messages']
+        active_messages = []
+        archived_messages = []
+        
+        for message in messages:
+            message_timestamp = _parse_timestamp(message.get('timestamp', ''))
+            if message_timestamp >= cutoff_date:
+                active_messages.append(message)
+            else:
+                archived_messages.append(message)
+        
+        if not archived_messages:
+            logger.debug(f"No messages to archive for user {user_id}")
+            return True
+        
+        # Create archive file
+        archive_dir = Path(file_path).parent / "archives"
+        archive_dir.mkdir(exist_ok=True)
+        
+        archive_filename = f"sent_messages_archive_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        archive_path = archive_dir / archive_filename
+        
+        # Save archived messages
+        archive_data = {
+            "metadata": {
+                "version": "2.0",
+                "archived_date": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "original_file": str(file_path),
+                "total_messages": len(archived_messages),
+                "date_range": {
+                    "oldest": min(msg.get('timestamp', '') for msg in archived_messages),
+                    "newest": max(msg.get('timestamp', '') for msg in archived_messages)
+                }
+            },
+            "messages": archived_messages
+        }
+        
+        save_json_data(archive_data, archive_path)
+        
+        # Update active file
+        data['messages'] = active_messages
+        data['metadata']['total_messages'] = len(active_messages)
+        data['metadata']['last_archived'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        data['metadata']['archived_count'] = len(archived_messages)
+        
+        save_json_data(data, file_path)
+        
+        logger.info(f"Archived {len(archived_messages)} old messages for user {user_id} to {archive_path}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error archiving old messages for user {user_id}: {e}")
+        return False
+
+def _parse_timestamp(timestamp_str: str) -> datetime:
+    """
+    Parse timestamp string to datetime object.
+    
+    Handles multiple timestamp formats for backward compatibility.
+    
+    Args:
+        timestamp_str: Timestamp string to parse
+        
+    Returns:
+        datetime: Parsed datetime object
+    """
+    if not timestamp_str:
+        return datetime.min.replace(tzinfo=timezone.utc)
+    
+    # Try different timestamp formats
+    formats = [
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%dT%H:%M:%SZ',
+        '%Y-%m-%dT%H:%M:%S.%fZ'
+    ]
+    
+    for fmt in formats:
+        try:
+            dt = datetime.strptime(timestamp_str, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt
+        except ValueError:
+            continue
+    
+    # If no format matches, return min timestamp
+    return datetime.min.replace(tzinfo=timezone.utc)
+
+# LEGACY COMPATIBILITY: get_last_10_messages function - now redirects to get_recent_messages
+def get_last_10_messages(user_id: str, category: str) -> List[Dict[str, Any]]:
+    """
+    LEGACY COMPATIBILITY: Redirects to get_recent_messages for backward compatibility.
+    
+    TODO: Remove after all callers are updated to use get_recent_messages
+    REMOVAL PLAN:
+    1. Update all callers to use get_recent_messages
+    2. Remove this function
+    3. Monitor for any remaining references
+    """
+    logger.warning(f"LEGACY COMPATIBILITY: get_last_10_messages called for user {user_id}, category {category}. Please update to use get_recent_messages.")
+    return get_recent_messages(user_id, category=category, limit=10) 
 
 @handle_errors("creating message file from defaults")
 def create_message_file_from_defaults(user_id: str, category: str) -> bool:

@@ -961,7 +961,10 @@ class CommunicationManager:
             success = self.send_message_sync(messaging_service, recipient, message_to_send, 
                                            user_id=user_id, category=category)
             if success:
-                store_sent_message(user_id, category, message_id, message_to_send)
+                # Get current time period for storage
+                matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
+                current_time_period = matching_periods[0] if matching_periods else None
+                store_sent_message(user_id, category, message_id, message_to_send, time_period=current_time_period)
                 logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category}")
             else:
                 logger.error(f"Failed to send AI-generated message for user {user_id}")
@@ -970,7 +973,7 @@ class CommunicationManager:
             logger.error(f"Error sending AI-generated message for user {user_id}: {e}")
 
     def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
-        """Send a pre-defined message from the user's message library"""
+        """Send a pre-defined message from the user's message library with deduplication"""
         try:
             matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
             # Remove 'ALL' from matching_periods if there are other periods
@@ -997,17 +1000,40 @@ class CommunicationManager:
                 logger.error(f"No messages found for category {category} and user {user_id}.")
                 return
 
-            messages_to_send = [
+            # Get all available messages for the current time period
+            all_messages = [
                 msg for msg in data['messages']
                 if any(day in msg['days'] for day in get_current_day_names())
                 and any(period in msg['time_periods'] for period in matching_periods)
             ]
             
-            if not messages_to_send:
+            if not all_messages:
                 logger.info(f"No messages to send for category {category} and user {user_id} at this time.")
                 return
 
-            message_to_send = random.choice(messages_to_send)
+            # ENHANCED: Apply deduplication logic to time-period-filtered messages
+            from core.message_management import get_recent_messages
+            
+            # Get recent messages to check for duplicates
+            recent_messages = get_recent_messages(user_id, category=category, limit=50, days_back=60)
+            recent_content = {msg.get('message', '').strip().lower() for msg in recent_messages if msg.get('message')}
+            
+            # Filter out recent duplicates from time-period-filtered messages
+            available_messages = []
+            for msg in all_messages:
+                message_content = msg.get('message', '').strip()
+                if message_content and message_content.lower() not in recent_content:
+                    available_messages.append(msg)
+            
+            if not available_messages:
+                logger.info(f"No messages available after deduplication for user {user_id}, category {category}. All time-period messages were sent recently.")
+                # Fallback: if all time-period messages are recent, select from all time-period messages
+                available_messages = all_messages
+                logger.info(f"Using fallback: selecting from all {len(available_messages)} time-period messages")
+            
+            # Select a random message from the available (deduplicated) messages
+            message_to_send = random.choice(available_messages)
+            logger.debug(f"Selected message for user {user_id}, category {category} from {len(available_messages)} available messages")
             
             # IMPROVED: Better success/failure tracking
             try:
@@ -1015,11 +1041,17 @@ class CommunicationManager:
                                                user_id=user_id, category=category)
                 
                 if success:
-                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
+                    from core.message_management import store_sent_message
+                    # Get the current time period for storage
+                    current_time_period = matching_periods[0] if matching_periods else None
+                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
+                    logger.info(f"Successfully sent deduplicated message for user {user_id}, category {category}")
                 else:
                     logger.warning(f"Message send returned False but may have still been delivered for user {user_id}, category {category}")
                     # Still store it since the message might have gone through
-                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'])
+                    from core.message_management import store_sent_message
+                    current_time_period = matching_periods[0] if matching_periods else None
+                    store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
                     
             except Exception as send_error:
                 logger.error(f"Exception during message send for user {user_id}, category {category}: {send_error}")
