@@ -2,6 +2,65 @@
 
 ## 🗓️ Recent Plans (Most Recent First)
 
+### 2025-09-10 - Test Coverage Expansion Phase 3 (Future) ⚠️ **PLANNED**
+
+**Status**: ⚠️ **PLANNED**  
+**Priority**: Medium  
+**Effort**: Medium  
+**Dependencies**: Test Coverage Expansion Phase 2 (completed)
+
+**Objective**: Continue test coverage expansion with focus on simpler, more reliable test approaches and address high complexity functions identified in audit.
+
+**Background**: Phase 2 of test coverage expansion has been completed successfully with meaningful improvements to Core Service and Core Message Management. The focus on test quality over quantity has proven successful, with all 1,228 tests passing consistently. The comprehensive audit identified 1,779 high complexity functions that need attention for better maintainability.
+
+**Implementation Plan**:
+
+#### **Step 3.1: Future Test Coverage with Simpler Approaches** ⚠️ **PLANNED**
+- [ ] **Core User Data Manager Coverage**
+  - [ ] Develop simpler test approach to avoid hanging issues
+  - [ ] Focus on basic functionality testing without complex mocking
+  - [ ] Test user data loading and saving operations
+  - [ ] Test data validation and normalization
+  - [ ] Test error handling for data operations
+- [ ] **Core File Operations Coverage**
+  - [ ] Develop simpler test approach to avoid function behavior issues
+  - [ ] Focus on basic file I/O operations testing
+  - [ ] Test file creation and deletion operations
+  - [ ] Test file reading and writing operations
+  - [ ] Test file validation and error handling
+
+#### **Step 3.2: Code Complexity Reduction** ⚠️ **PLANNED**
+- [ ] **High Complexity Function Refactoring**
+  - [ ] Prioritize refactoring of 1,779 high complexity functions (>50 nodes)
+  - [ ] Focus on core system functions first (scheduler, communication, user management)
+  - [ ] Extract helper functions to reduce complexity
+  - [ ] Break down large methods into smaller, focused functions
+  - [ ] Reduce conditional nesting and improve readability
+- [ ] **Helper Function Naming Convention**
+  - [ ] Apply `_main_function__helper_name` pattern consistently
+  - [ ] Improve traceability and searchability across the project
+  - [ ] Ensure clear ownership and better debugging capabilities
+
+#### **Step 3.3: Test Quality Standards** ⚠️ **PLANNED**
+- [ ] **Test Strategy Documentation**
+  - [ ] Document successful test approaches vs. problematic ones
+  - [ ] Create guidelines for avoiding complex mocking that causes hanging
+  - [ ] Establish patterns for reliable test implementation
+  - [ ] Share lessons learned about test stability over coverage numbers
+- [ ] **Test Maintenance**
+  - [ ] Regular review of test suite health
+  - [ ] Monitor for test hanging or function behavior issues
+  - [ ] Maintain focus on working tests over complex coverage
+
+**Success Criteria**:
+- [ ] Core User Data Manager and Core File Operations tests implemented with simpler approaches
+- [ ] Significant reduction in high complexity functions through refactoring
+- [ ] All tests continue to pass consistently (1,228+ tests)
+- [ ] Test suite remains stable and reliable
+- [ ] Clear documentation of successful test patterns
+
+**Estimated Timeline**: 2-3 weeks for Phase 3 implementation
+
 ### 2025-09-10 - Message Deduplication Advanced Features (Future) ⚠️ **PLANNED**
 
 **Status**: ⚠️ **PLANNED**  

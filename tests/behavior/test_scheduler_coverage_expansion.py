@@ -976,3 +976,323 @@ class TestErrorHandling:
                     # Verify side effects: should have retried the maximum number of times
                     assert mock_get_time.call_count == 10  # Max retries
                     assert mock_conflict.call_count == 10
+
+class TestSchedulerLoopCoverage:
+    """Test scheduler loop functionality and error handling."""
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager):
+        """Test that scheduler loop properly schedules daily jobs for all users."""
+        user_id = 'test-scheduler-user'
+        
+        with patch('core.scheduler.get_all_user_ids') as mock_get_users, \
+             patch('core.scheduler.get_user_data') as mock_get_data, \
+             patch('core.scheduler.schedule.every') as mock_schedule, \
+             patch('core.scheduler.schedule.run_pending') as mock_run_pending, \
+             patch('core.scheduler.schedule.jobs', []):
+            
+            # Mock user data
+            mock_get_users.return_value = [user_id]
+            mock_get_data.return_value = {
+                'preferences': {
+                    'categories': ['motivation', 'health']
+                }
+            }
+            
+            # Mock schedule chain
+            mock_schedule.return_value.day.at.return_value.do.return_value = None
+            
+            # Test real behavior: scheduler loop should schedule jobs for all users
+            scheduler_manager.run_daily_scheduler()
+            
+            # Give thread time to start and complete
+            time.sleep(0.2)
+            
+            # Verify side effects: should have called get_all_user_ids and get_user_data
+            mock_get_users.assert_called()
+            mock_get_data.assert_called_with(user_id, 'preferences')
+            
+            # Stop scheduler
+            scheduler_manager.stop_scheduler()
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
+        """Test scheduler loop error handling when scheduling fails."""
+        with patch('core.scheduler.get_all_user_ids') as mock_get_users, \
+             patch('core.scheduler.get_user_data') as mock_get_data:
+            
+            # Mock error during scheduling
+            mock_get_users.side_effect = Exception("Database connection failed")
+            
+            # Test real behavior: scheduler should handle errors gracefully
+            # The error is caught by the error handler, so we test that it doesn't crash
+            try:
+                scheduler_manager.run_daily_scheduler()
+                time.sleep(0.1)  # Give thread time to start and fail
+                scheduler_manager.stop_scheduler()
+            except Exception:
+                # This is expected - the error handler should catch and re-raise
+                pass
+            
+            # Verify side effects: scheduler should have attempted to start
+            mock_get_users.assert_called()
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager):
+        """Test scheduler loop properly responds to stop events."""
+        with patch('core.scheduler.get_all_user_ids') as mock_get_users, \
+             patch('core.scheduler.schedule.run_pending') as mock_run_pending, \
+             patch('core.scheduler.schedule.jobs', []):
+            
+            mock_get_users.return_value = []
+            
+            # Start scheduler
+            scheduler_manager.run_daily_scheduler()
+            time.sleep(0.1)
+            
+            # Test real behavior: stop event should terminate loop
+            scheduler_manager.stop_scheduler()
+            
+            # Give thread time to stop
+            time.sleep(0.1)
+            
+            # Verify side effects: scheduler should have stopped
+            assert not scheduler_manager.running
+
+class TestCheckinSchedulingCoverage:
+    """Test check-in scheduling functionality."""
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_checkin_at_exact_time_real_behavior(self, scheduler_manager):
+        """Test scheduling check-in at exact time with real behavior."""
+        user_id = 'test-checkin-user'
+        period_name = "morning"
+        
+        with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods, \
+             patch('core.scheduler.schedule.every') as mock_schedule, \
+             patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer, \
+             patch('core.scheduler.datetime') as mock_datetime:
+            
+            # Mock time periods
+            mock_get_periods.return_value = {
+                period_name: {
+                    'start_time': '08:00',
+                    'active': True
+                }
+            }
+            
+            # Mock current time
+            mock_now = datetime(2025, 9, 10, 10, 0, 0)  # 10 AM
+            mock_datetime.now.return_value = mock_now
+            mock_datetime.combine.return_value = datetime(2025, 9, 10, 8, 0, 0)  # 8 AM
+            mock_datetime.min.time.return_value.replace.return_value = datetime.min.time()
+            
+            # Mock schedule chain
+            mock_schedule.return_value.day.at.return_value.do.return_value = None
+            
+            # Test real behavior: should schedule check-in for tomorrow
+            scheduler_manager.schedule_checkin_at_exact_time(user_id, period_name)
+            
+            # Verify side effects: should have scheduled for tomorrow
+            mock_schedule.return_value.day.at.assert_called_once_with('08:00')
+            mock_wake_timer.assert_called_once()
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_checkin_missing_period_real_behavior(self, scheduler_manager):
+        """Test check-in scheduling with missing time period."""
+        user_id = 'test-checkin-user'
+        period_name = "nonexistent"
+        
+        with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods:
+            # Mock missing period
+            mock_get_periods.return_value = {}
+            
+            # Test real behavior: should handle missing period gracefully
+            scheduler_manager.schedule_checkin_at_exact_time(user_id, period_name)
+            
+            # Verify side effects: should not crash, just log error
+            # No assertions needed - function should complete without error
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_checkin_missing_start_time_real_behavior(self, scheduler_manager):
+        """Test check-in scheduling with missing start time."""
+        user_id = 'test-checkin-user'
+        period_name = "morning"
+        
+        with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods:
+            # Mock period without start time
+            mock_get_periods.return_value = {
+                period_name: {
+                    'active': True
+                    # Missing start_time
+                }
+            }
+            
+            # Test real behavior: should handle missing start time gracefully
+            scheduler_manager.schedule_checkin_at_exact_time(user_id, period_name)
+            
+            # Verify side effects: should not crash, just log error
+            # No assertions needed - function should complete without error
+
+class TestTaskReminderSchedulingCoverage:
+    """Test task reminder scheduling functionality."""
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_all_task_reminders_with_tasks_real_behavior(self, scheduler_manager):
+        """Test scheduling task reminders when tasks exist."""
+        user_id = 'test-task-user'
+        
+        with patch('core.schedule_management.get_schedule_time_periods') as mock_get_periods, \
+             patch('tasks.task_management.load_active_tasks') as mock_load_tasks, \
+             patch('tasks.task_management.are_tasks_enabled') as mock_tasks_enabled, \
+             patch.object(scheduler_manager, 'select_task_for_reminder') as mock_select_task, \
+             patch.object(scheduler_manager, 'get_random_time_within_task_period') as mock_random_time, \
+             patch.object(scheduler_manager, 'schedule_task_reminder_at_time') as mock_schedule_task:
+            
+            # Mock tasks enabled
+            mock_tasks_enabled.return_value = True
+            
+            # Mock task periods
+            mock_get_periods.return_value = {
+                'morning': {
+                    'start_time': '08:00',
+                    'end_time': '10:00',
+                    'active': True
+                }
+            }
+            
+            # Mock active tasks
+            mock_load_tasks.return_value = [
+                {'task_id': 'task1', 'completed': False, 'title': 'Test Task 1'},
+                {'task_id': 'task2', 'completed': False, 'title': 'Test Task 2'}
+            ]
+            
+            # Mock task selection and time generation
+            mock_select_task.return_value = {'task_id': 'task1', 'title': 'Test Task 1'}
+            mock_random_time.return_value = '09:00'
+            mock_schedule_task.return_value = True
+            
+            # Test real behavior: should schedule task reminders
+            scheduler_manager.schedule_all_task_reminders(user_id)
+            
+            # Verify side effects: should have scheduled task reminders
+            mock_tasks_enabled.assert_called_with(user_id)
+            mock_get_periods.assert_called_with(user_id, 'tasks')
+            mock_load_tasks.assert_called_with(user_id)
+            mock_select_task.assert_called()
+            mock_random_time.assert_called()
+            mock_schedule_task.assert_called()
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_all_task_reminders_no_tasks_real_behavior(self, scheduler_manager):
+        """Test scheduling task reminders when no tasks exist."""
+        user_id = 'test-task-user'
+        
+        with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods, \
+             patch('tasks.task_management.load_active_tasks') as mock_load_tasks:
+            
+            # Mock task periods
+            mock_get_periods.return_value = {
+                'morning': {
+                    'start_time': '08:00',
+                    'end_time': '10:00',
+                    'active': True
+                }
+            }
+            
+            # Mock no active tasks
+            mock_load_tasks.return_value = []
+            
+            # Test real behavior: should handle no tasks gracefully
+            scheduler_manager.schedule_all_task_reminders(user_id)
+            
+            # Verify side effects: should not crash, just return early
+            # No assertions needed - function should complete without error
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_schedule_all_task_reminders_missing_times_real_behavior(self, scheduler_manager):
+        """Test scheduling task reminders with missing start/end times."""
+        user_id = 'test-task-user'
+        
+        with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods, \
+             patch('tasks.task_management.load_active_tasks') as mock_load_tasks, \
+             patch.object(scheduler_manager, 'select_task_for_reminder') as mock_select_task:
+            
+            # Mock task periods with missing times
+            mock_get_periods.return_value = {
+                'morning': {
+                    'active': True
+                    # Missing start_time and end_time
+                }
+            }
+            
+            # Mock active tasks
+            mock_load_tasks.return_value = [
+                {'task_id': 'task1', 'completed': False, 'title': 'Test Task 1'}
+            ]
+            
+            mock_select_task.return_value = {'task_id': 'task1', 'title': 'Test Task 1'}
+            
+            # Test real behavior: should handle missing times gracefully
+            scheduler_manager.schedule_all_task_reminders(user_id)
+            
+            # Verify side effects: should not crash, just skip period
+            # No assertions needed - function should complete without error
+
+class TestWakeTimerCoverage:
+    """Test wake timer functionality."""
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_set_wake_timer_success_real_behavior(self, scheduler_manager):
+        """Test successful wake timer setting."""
+        user_id = 'test-wake-user'
+        schedule_time = datetime(2025, 9, 10, 8, 0, 0)
+        category = "motivation"
+        period = "morning"
+        
+        with patch('core.scheduler.subprocess.Popen') as mock_popen, \
+             patch('core.scheduler.os.path.exists') as mock_exists:
+            
+            # Mock successful subprocess creation
+            mock_process = Mock()
+            mock_process.poll.return_value = None  # Process still running
+            mock_popen.return_value = mock_process
+            mock_exists.return_value = True
+            
+            # Test real behavior: should set wake timer successfully
+            scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
+            
+            # Verify side effects: should have created subprocess
+            mock_popen.assert_called_once()
+    
+    @pytest.mark.behavior
+    @pytest.mark.schedules
+    def test_set_wake_timer_process_failure_real_behavior(self, scheduler_manager):
+        """Test wake timer setting when process fails."""
+        user_id = 'test-wake-user'
+        schedule_time = datetime(2025, 9, 10, 8, 0, 0)
+        category = "motivation"
+        period = "morning"
+        
+        with patch('core.scheduler.subprocess.Popen') as mock_popen, \
+             patch('core.scheduler.os.path.exists') as mock_exists:
+            
+            # Mock subprocess failure
+            mock_popen.side_effect = Exception("Process creation failed")
+            mock_exists.return_value = True
+            
+            # Test real behavior: should handle process failure gracefully
+            scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
+            
+            # Verify side effects: should have attempted to create subprocess
+            mock_popen.assert_called_once()

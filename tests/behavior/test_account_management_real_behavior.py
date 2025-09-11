@@ -641,12 +641,14 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Add new category
             if "quotes" not in basic_data["preferences"]["categories"]:
                 basic_data["preferences"]["categories"].append("quotes")
-                save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
+                save_result = save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
+                logging.getLogger("mhm_tests").debug(f"Save result: {save_result}")
             
             # Verify category added with retry for race conditions
             import time
             for attempt in range(3):
                 updated_data = get_user_data(basic_user_id, "all", auto_create=True)
+                logging.getLogger("mhm_tests").debug(f"Attempt {attempt + 1}: Categories: {updated_data['preferences']['categories']}")
                 if "quotes" in updated_data["preferences"]["categories"]:
                     break
                 if attempt < 2:  # Don't sleep on last attempt

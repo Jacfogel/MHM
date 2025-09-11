@@ -78,8 +78,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_get_user_preferences_nonexistent_user(self, mock_config):
         """Test getting preferences for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get None for truly nonexistent users
-        prefs_result = get_user_data('nonexistent-user', 'preferences', auto_create=False)
+        prefs_result = get_user_data(unique_user_id, 'preferences', auto_create=False)
         assert prefs_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
@@ -104,8 +106,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_get_user_context_nonexistent_user(self, mock_config):
         """Test getting context for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get None for truly nonexistent users
-        context_result = get_user_data('nonexistent-user', 'context', auto_create=False)
+        context_result = get_user_data(unique_user_id, 'context', auto_create=False)
         assert context_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
@@ -136,8 +140,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_hybrid_get_user_data_nonexistent_user(self, mock_config):
         """Test loading non-existent user data using new hybrid API."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get empty dict for truly nonexistent users
-        user_data = get_user_data('nonexistent-user', 'all', auto_create=False)
+        user_data = get_user_data(unique_user_id, 'all', auto_create=False)
         # Ignore any custom test-only types that may be registered by other tests
         filtered = {k: v for k, v in user_data.items() if k in {'account', 'preferences', 'context', 'schedules'}}
         assert filtered == {}  # Should be empty for core types
@@ -262,8 +268,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_chat_id(self, mock_config):
         """Test getting user account for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get None for truly nonexistent users
-        user_data_result = get_user_data('nonexistent-user', 'account', auto_create=False)
+        user_data_result = get_user_data(unique_user_id, 'account', auto_create=False)
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
@@ -281,8 +289,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_discord_id(self, mock_config):
         """Test getting user account for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get None for truly nonexistent users
-        user_data_result = get_user_data('nonexistent-user', 'account', auto_create=False)
+        user_data_result = get_user_data(unique_user_id, 'account', auto_create=False)
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
     
     @pytest.mark.unit
@@ -328,8 +338,10 @@ class TestUserManagement:
     @pytest.mark.regression
     def test_get_user_data_account_nonexistent_email(self, mock_config):
         """Test getting user account for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False to ensure we get None for truly nonexistent users
-        user_data_result = get_user_data('nonexistent-user', 'account', auto_create=False)
+        user_data_result = get_user_data(unique_user_id, 'account', auto_create=False)
         assert user_data_result == {}  # Should return empty dict when no data exists and auto_create=False
 
 class TestUserManagementEdgeCases:
@@ -366,12 +378,14 @@ class TestUserManagementEdgeCases:
     @pytest.mark.regression
     def test_update_user_preferences_nonexistent_user(self, mock_config):
         """Test updating preferences for non-existent user."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # With auto_create=False, this should return False since user directory doesn't exist
-        result = update_user_preferences('nonexistent-user', {'test': 'data'}, auto_create=False)
+        result = update_user_preferences(unique_user_id, {'test': 'data'}, auto_create=False)
         assert result is False
         
         # Verify the user was NOT created
-        user_data = get_user_data('nonexistent-user', 'preferences', auto_create=False)
+        user_data = get_user_data(unique_user_id, 'preferences', auto_create=False)
         assert user_data == {}  # Should return empty dict when user doesn't exist
     
     @pytest.mark.integration
@@ -519,7 +533,9 @@ class TestUserManagementEdgeCases:
         
         # Step 6: Test data validation and error handling
         # ✅ VERIFY REAL BEHAVIOR: Check invalid user ID handling
-        invalid_result = get_user_data('nonexistent-user', 'all', auto_create=False)
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
+        invalid_result = get_user_data(unique_user_id, 'all', auto_create=False)
         assert invalid_result == {}
         
         # ✅ VERIFY REAL BEHAVIOR: Check existing user data is unaffected
@@ -661,11 +677,17 @@ class TestUserManagementEdgeCases:
     @pytest.mark.regression
     def test_get_user_data_nonexistent_user(self, mock_config):
         """Test getting data for nonexistent user using hybrid API."""
+        # Use unique user ID to avoid test interference
+        unique_user_id = f'nonexistent-user-{id(self)}'
         # Test with auto_create=False
-        user_data = get_user_data('nonexistent-user', 'all', auto_create=False)
+        user_data = get_user_data(unique_user_id, 'all', auto_create=False)
         filtered = {k: v for k, v in user_data.items() if k in {'account', 'preferences', 'context', 'schedules'}}
         assert filtered == {}  # Should return empty dict for core types
         
-        # Test with auto_create=True (should also return empty dict for truly nonexistent users)
-        user_data = get_user_data('nonexistent-user', 'all', auto_create=True)
+        # Test with auto_create=True using a different user ID to avoid interference
+        # Note: auto_create=True may create default data structures, so we use a unique ID
+        unique_user_id_2 = f'nonexistent-user-2-{id(self)}'
+        user_data = get_user_data(unique_user_id_2, 'all', auto_create=True)
+        # For truly nonexistent users, even with auto_create=True, we expect empty dict
+        # because the user directory doesn't exist
         assert user_data == {}  # Should return empty dict 
