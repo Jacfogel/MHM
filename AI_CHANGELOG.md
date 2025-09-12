@@ -29,6 +29,15 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-12 - Commands Help + Report Length Safeguard ✅ COMPLETED
+- Added concise in-bot command list (help + new `commands` intent) sourced from central registry
+- Excluded report-style intents (analytics/profile/schedule/messages/status) from AI enhancement to avoid truncation
+- Full suite green: 1405 passed, 1 skipped
+
+### 2025-09-12 - Analytics Scale Normalization (Mood/Energy) ✅ PARTIAL
+- Mood displays updated to 1–5 in analytics overview/trends/history; energy adjusted to 1–5 in history
+- Follow-up: sweep legacy handlers for any remaining `/10` occurrences (tracked in TODO.md)
+
 Note: Trimmed to the most recent entries for context. Older items are archived in CHANGELOG_DETAIL.md.
 
 ### 2025-09-11 - Critical Test Issues Resolution ✅. **COMPLETED**
@@ -72,4 +81,3 @@ Note: Trimmed to the most recent entries for context. Older items are archived i
 
 ### 2025-09-03 - Reliability Fixes – Temp Directory and Loader Issues ✅. **COMPLETED**
 - Removed `redirect_tempdir`; added `fix_user_data_loaders` fixture; localized file creation
-

@@ -48,6 +48,27 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Normalize Mood/Energy Display Scales** - Sweep legacy handlers for /10 remnants
+- *What it means*: Ensure mood and energy are consistently displayed on a 1–5 scale everywhere (analytics already fixed); update any legacy/duplicate paths still using 1–10.
+- *Why it helps*: Consistent UX and correct scale representation across commands and summaries
+- *Estimated effort*: Small/Medium
+- Subtasks:
+  - [ ] Sweep `communication/command_handlers/interaction_handlers.py` for mood/energy `/10` and change to `/5`
+  - [ ] Sweep `communication/command_handlers/checkin_handler.py` for mood/energy `/10` and change to `/5`
+  - [ ] Verify check‑in history and status lines show `/5`
+  - [ ] Add tests: analytics overview/trends/history show `/5`; check‑in status shows `/5`
+
+**Quantitative Check-in Analytics Expansion** - Include all opted‑in quantitative questions
+- *What it means*: Users can enable multiple preset check‑in questions; analytics should aggregate all quantitative ones (mood, stress, energy, sleep quality, anxiety, etc.) based on what the user has opted into.
+- *Why it helps*: Richer insights that reflect the user’s selected tracking fields
+- *Estimated effort*: Medium
+- Subtasks:
+  - [ ] Inventory quantitative check‑in fields in `conversation_flow_manager.py`
+  - [ ] Design aggregation outputs (per-field averages, distributions, trends)
+  - [ ] Implement analytics pull that respects per‑user enabled questions
+  - [ ] Add behavior tests for each enabled field with sample data
+  - [ ] Update `/analytics` and subcommands to surface these summaries
+
 **Message Deduplication System Testing and Validation** ✅ **COMPLETED**
 - *What it means*: Verify the completed message deduplication system works correctly and all tests pass
 - *Why it helps*: Ensures the deduplication system prevents duplicate messages and maintains data integrity

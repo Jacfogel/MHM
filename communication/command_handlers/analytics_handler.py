@@ -63,7 +63,7 @@ class AnalyticsHandler(InteractionHandler):
             mood_summary = ""
             if 'error' not in mood_data:
                 avg_mood = mood_data.get('average_mood', 0)
-                mood_summary = f"Average mood: {avg_mood}/10"
+                mood_summary = f"Average mood: {avg_mood}/5"
             
             # Get habit analysis
             habit_data = analytics.get_habit_analysis(user_id, days)
@@ -109,8 +109,8 @@ class AnalyticsHandler(InteractionHandler):
                 return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some check-ins first!", True)
             
             response = f"**😊 Mood Trends (Last {days} days):**\n\n"
-            response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/10\n"
-            response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/10\n"
+            response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/5\n"
+            response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
             response += f"📉 **Trend:** {mood_data.get('trend', 'Stable')}\n\n"
             
             # Show mood distribution
@@ -263,7 +263,7 @@ class AnalyticsHandler(InteractionHandler):
                 energy = checkin.get('energy', 'N/A')
                 
                 response += f"**{i+1}.** {timestamp}\n"
-                response += f"   😊 Mood: {mood}/10 | ⚡ Energy: {energy}/10\n"
+                response += f"   😊 Mood: {mood}/5 | ⚡ Energy: {energy}/10\n"
                 
                 # Add some key responses if available
                 responses = checkin.get('responses', {})
@@ -309,8 +309,8 @@ class AnalyticsHandler(InteractionHandler):
             # Mood Analysis
             if 'error' not in mood_data:
                 response += f"**😊 Mood Trends:**\n"
-                response += f"• Average: {mood_data.get('average_mood', 0):.1f}/10\n"
-                response += f"• Range: {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/10\n"
+                response += f"• Average: {mood_data.get('average_mood', 0):.1f}/5\n"
+                response += f"• Range: {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
                 response += f"• Trend: {mood_data.get('trend', 'Stable')}\n\n"
             else:
                 response += f"**😊 Mood Data:** Not enough mood data for analysis\n\n"

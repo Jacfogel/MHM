@@ -52,6 +52,22 @@ pip freeze > requirements.txt
 - `ui/ui_app_qt.py` - Admin interface (PySide6/Qt)
 - `core/config.py` - Configuration settings
 
+## Discord Commands
+
+- Slash commands (type in Discord):
+  - `/tasks` → show your tasks
+  - `/profile` → show your profile
+  - `/schedule` → show your schedules
+  - `/messages` → show your messages
+  - `/analytics` → show wellness analytics
+  - `/status` → show system/user status
+  - `/checkin` → start a check-in flow
+  - `/cancel` → cancel the current flow
+
+- Classic commands (if enabled):
+  - `!tasks`, `!profile`, `!schedule`, `!messages`, `!analytics`, `!status`
+  - Map to the same actions as the slash versions
+
 ### User Data
 - `data/users/` - User profiles and preferences
 - `data/users/{user_id}/messages/` - Per-user custom messages by category

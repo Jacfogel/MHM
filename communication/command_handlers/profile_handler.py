@@ -131,6 +131,9 @@ class ProfileHandler(InteractionHandler):
             response += f"✅ Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}\n"
             response += f"📋 Tasks: {'Enabled' if tasks_enabled else 'Disabled'}\n"
         
+        # Create plain-text message via formatter (clean, readable)
+        response = self._format_profile_text(account_data, context_data, preferences_data)
+
         # Create rich data for Discord embeds
         rich_data = {
             'type': 'profile',
@@ -197,6 +200,19 @@ class ProfileHandler(InteractionHandler):
                     'inline': False
                 })
         
+        # Normalize feature field values for embeds (avoid odd glyphs)
+        try:
+            features = account_data.get('features', {}) if account_data else {}
+            _chk = features.get('checkins') == 'enabled'
+            _tsk = features.get('task_management') == 'enabled'
+            for _f in rich_data.get('fields', []):
+                if _f.get('name') == 'Check-ins':
+                    _f['value'] = 'Enabled' if _chk else 'Disabled'
+                elif _f.get('name') == 'Tasks':
+                    _f['value'] = 'Enabled' if _tsk else 'Disabled'
+        except Exception:
+            pass
+
         return InteractionResponse(
             response, 
             True,
@@ -356,6 +372,84 @@ class ProfileHandler(InteractionHandler):
         response += f"📅 Check-ins this month: {len(recent_checkins)}"
         
         return InteractionResponse(response, True)
+
+    def _format_profile_text(self, account_data: Dict[str, Any], context_data: Dict[str, Any], preferences_data: Dict[str, Any]) -> str:
+        """Create a clean, readable profile string for channels like Discord."""
+        lines: List[str] = ["**Your Profile:**"]
+
+        # Basic info
+        name = (context_data or {}).get('preferred_name', 'Not set')
+        gender_identity = (context_data or {}).get('gender_identity', [])
+        date_of_birth = (context_data or {}).get('date_of_birth', 'Not set')
+        lines.append(f"- Name: {name}")
+        if isinstance(gender_identity, list):
+            gender_str = ', '.join(gender_identity) if gender_identity else 'Not set'
+        else:
+            gender_str = gender_identity or 'Not set'
+        lines.append(f"- Gender Identity: {gender_str}")
+        if date_of_birth and date_of_birth != 'Not set':
+            lines.append(f"- Date of Birth: {date_of_birth}")
+
+        # Account info
+        if account_data:
+            email = account_data.get('email', 'Not set')
+            status = account_data.get('account_status', 'Unknown')
+            lines.append(f"- Email: {email}")
+            lines.append(f"- Status: {status}")
+
+        # Health & Medical Information
+        custom_fields = (context_data or {}).get('custom_fields', {}) or {}
+        health_conditions = custom_fields.get('health_conditions', []) or []
+        medications = custom_fields.get('medications_treatments', []) or []
+        allergies = custom_fields.get('allergies_sensitivities', []) or []
+        if health_conditions:
+            lines.append(f"- Health Conditions: {', '.join(health_conditions)}")
+        if medications:
+            lines.append(f"- Medications/Treatments: {', '.join(medications)}")
+        if allergies:
+            lines.append(f"- Allergies/Sensitivities: {', '.join(allergies)}")
+
+        # Interests & Goals
+        interests = (context_data or {}).get('interests', []) or []
+        goals = (context_data or {}).get('goals', []) or []
+        if interests:
+            lines.append(f"- Interests: {', '.join(interests)}")
+        if goals:
+            lines.append(f"- Goals: {', '.join(goals)}")
+
+        # Loved Ones/Support Network (show up to 3)
+        loved_ones = (context_data or {}).get('loved_ones', []) or []
+        if loved_ones:
+            lines.append("- Support Network:")
+            for person in loved_ones[:3]:
+                pname = person.get('name', 'Unknown')
+                ptype = person.get('type') or person.get('role') or ''
+                rels = person.get('relationships') or []
+                rel_str = f" ({', '.join(rels)})" if rels else ''
+                type_str = f" [{ptype}]" if ptype else ''
+                lines.append(f"  • {pname}{type_str}{rel_str}")
+            if len(loved_ones) > 3:
+                lines.append(f"  ... and {len(loved_ones) - 3} more")
+
+        # Notes for AI (preview)
+        notes = (context_data or {}).get('notes_for_ai', []) or []
+        if notes and isinstance(notes, list) and notes[0]:
+            preview = notes[0]
+            if isinstance(preview, str):
+                short = preview[:100] + ('...' if len(preview) > 100 else '')
+                lines.append(f"- Notes for AI: {short}")
+
+        # Account features
+        if account_data:
+            features = account_data.get('features', {}) or {}
+            checkins_enabled = features.get('checkins') == 'enabled'
+            tasks_enabled = features.get('task_management') == 'enabled'
+            lines.append("")
+            lines.append("**Account Features:**")
+            lines.append(f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}")
+            lines.append(f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}")
+
+        return "\n".join(lines)
     
     def get_help(self) -> str:
         return "Help with profile management - view and update your information"

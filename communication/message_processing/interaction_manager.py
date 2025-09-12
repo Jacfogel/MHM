@@ -200,7 +200,13 @@ class InteractionManager:
         """Handle a structured command using interaction handlers"""
         parsed_command = parsing_result.parsed_command
         intent = parsed_command.intent
-        
+
+        # Built-in intents that don't use a specific handler
+        if intent in ['help']:
+            return self._get_help_response(user_id, parsed_command.original_message)
+        if intent in ['commands']:
+            return self._get_commands_response()
+
         # Get the appropriate handler
         handler = get_interaction_handler(intent)
         if not handler:
@@ -260,9 +266,21 @@ class InteractionManager:
             if not self.enable_ai_enhancement:
                 return response
             
-            # Don't enhance task responses, help responses, command lists, or check-in system messages
-            # These responses are already well-formatted and should not be altered or truncated
-            if parsed_command.intent in ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats', 'list_tasks', 'create_task', 'complete_task', 'delete_task', 'update_task', 'task_stats', 'start_checkin', 'checkin_status']:
+            # Don't enhance well-structured or report-style responses (avoid length limits/truncation)
+            # Includes help/commands, task ops, check-ins, profile/schedule/analytics/status/messages, and stats
+            excluded_intents = {
+                'help', 'commands', 'examples',
+                'checkin_history', 'start_checkin', 'checkin_status',
+                'completion_rate', 'task_weekly_stats', 'task_stats',
+                'list_tasks', 'create_task', 'complete_task', 'delete_task', 'update_task',
+                'show_profile', 'profile_stats',
+                'show_schedule', 'schedule_status',
+                'show_analytics', 'analytics',
+                'messages', 'show_messages',
+                'status'
+            }
+            intent = parsed_command.intent or ''
+            if intent in excluded_intents or any(k in intent for k in ['profile', 'schedule', 'analytics', 'messages']):
                 return response
             
             # Create a context prompt for AI enhancement
@@ -273,7 +291,6 @@ Current response: {response.message}
 Please enhance this response to be more personal and contextual for the user, 
 while keeping the core information intact. Make it warm and encouraging.
 Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
-Keep the response under 200 words.
 """
             
             enhanced_text = self.ai_chatbot.generate_response(
@@ -294,7 +311,7 @@ Keep the response under 200 words.
                 has_system_content = any(indicator in enhanced_text for indicator in system_indicators)
                 
                 if not has_system_content:
-                    # Limit response length to prevent truncation (match AI chatbot limit)
+                    # Apply length guard only for AI chat-like enhancements; report-style are excluded above
                     if len(enhanced_text) > AI_MAX_RESPONSE_LENGTH:
                         enhanced_text = enhanced_text[:AI_MAX_RESPONSE_LENGTH-3] + "..."
                     response.message = enhanced_text.strip()
@@ -334,12 +351,41 @@ Keep the response under 200 words.
             "• Habit analysis: 'Habit analysis'\n\n"
             "Try one of these or ask for 'help' to learn more!"
         )
+
+        # Append concise command list for quick discovery
+        try:
+            defs = self.get_command_definitions()
+            names = [f"/{d['name']}" for d in defs]
+            if names:
+                help_text += "\n\nQuick commands: " + ", ".join(names)
+        except Exception:
+            pass
         
         return InteractionResponse(
             help_text,
             True,
             suggestions=suggestions
         )
+
+    def _get_commands_response(self) -> InteractionResponse:
+        """Return a concise, channel-agnostic commands list for quick discovery."""
+        defs = self.get_command_definitions()
+        # Order with flows and common actions first
+        preferred = [
+            'checkin', 'tasks', 'profile', 'schedule', 'messages', 'analytics', 'status', 'help', 'cancel'
+        ]
+        sorted_defs = sorted(defs, key=lambda d: preferred.index(d['name']) if d['name'] in preferred else 999)
+
+        lines: List[str] = ["**Available Commands**"]
+        lines.append("Slash commands (type in Discord):")
+        for d in sorted_defs:
+            slash = f"/{d['name']}"
+            lines.append(f"- {slash} — {d['description']}")
+        lines.append("")
+        lines.append("Classic commands (if enabled): !tasks, !profile, !schedule, !messages, !analytics, !status")
+
+        text = "\n".join(lines)
+        return InteractionResponse(text, True)
     
     def get_available_commands(self, user_id: str) -> Dict[str, Any]:
         """Get list of available commands for the user"""
