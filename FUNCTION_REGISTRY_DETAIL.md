@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-08-25 04:53:30
+> **Last Updated**: 2025-09-11 20:36:11
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
@@ -11,18 +11,18 @@
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 94.7% ⚠️ NEEDS ATTENTION**
-- **Files Scanned**: 113
-- **Functions Found**: 1900
-- **Methods Found**: 1539
-- **Classes Found**: 219
-- **Total Items**: 3439
-- **Functions Documented**: 1786
-- **Methods Documented**: 1471
-- **Classes Documented**: 177
-- **Total Documented**: 3257
-- **Template-Generated**: 31
-- **Last Updated**: 2025-08-25
+### **Function Documentation Coverage: 94.9% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 139
+- **Functions Found**: 2552
+- **Methods Found**: 2097
+- **Classes Found**: 261
+- **Total Items**: 4649
+- **Functions Documented**: 2389
+- **Methods Documented**: 2021
+- **Classes Documented**: 215
+- **Total Documented**: 4410
+- **Template-Generated**: 57
+- **Last Updated**: 2025-09-11
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -36,22 +36,22 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (365)
+### **Core System Functions** (391)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (0)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (354)
+### **User Interface Functions** (366)
 UI dialogs, widgets, and user interaction functions.
 
 ### **User Management Functions** (39)
 User context, preferences, and data management functions.
 
-### **Task Management Functions** (19)
+### **Task Management Functions** (21)
 Task management and scheduling functions.
 
-### **Test Functions** (1119)
+### **Test Functions** (1731)
 Test functions and testing utilities.
 
 ## 📁 **Module Organization**
@@ -60,6 +60,8 @@ Test functions and testing utilities.
 
 #### `core/auto_cleanup.py`
 **Functions:**
+- ✅ `archive_old_messages_for_all_users()` - Archive old messages for all users during monthly cleanup.
+This runs alongside the cache cleanup to maintain message file sizes.
 - ✅ `auto_cleanup_if_needed(root_path, interval_days)` - Main function to check if cleanup is needed and perform it if so.
 Returns True if cleanup was performed, False if not needed.
 - ✅ `calculate_cache_size(pycache_dirs, pyc_files)` - Calculate total size of cache files.
@@ -222,6 +224,37 @@ This class provides analytics and insights from check-in data.
   - ✅ `CheckinAnalytics.get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
   - ✅ `CheckinAnalytics.get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
   - ✅ `CheckinAnalytics.get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
+
+#### `core/checkin_dynamic_manager.py`
+**Functions:**
+- ✅ `__init__(self)` - Initialize the dynamic check-in manager.
+- ✅ `_load_data(self)` - Load questions and responses data from JSON files.
+- ✅ `build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+- ✅ `get_all_questions(self)` - Get all question definitions.
+- ✅ `get_categories(self)` - Get all question categories.
+- ✅ `get_enabled_questions_for_ui(self)` - Get questions formatted for UI display with enabled_by_default status.
+- ✅ `get_question_definition(self, question_key)` - Get the definition for a specific question.
+- ✅ `get_question_text(self, question_key)` - Get the question text for a specific question.
+- ✅ `get_question_type(self, question_key)` - Get the type of a specific question.
+- ✅ `get_question_validation(self, question_key)` - Get validation rules for a specific question.
+- ✅ `get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
+- ✅ `get_transition_phrase(self)` - Get a random transition phrase.
+- ✅ `validate_answer(self, question_key, answer)` - Validate an answer for a specific question.
+**Classes:**
+- ✅ `DynamicCheckinManager` - Manages dynamic check-in questions and responses loaded from JSON files.
+  - ✅ `DynamicCheckinManager.__init__(self)` - Initialize the dynamic check-in manager.
+  - ✅ `DynamicCheckinManager._load_data(self)` - Load questions and responses data from JSON files.
+  - ✅ `DynamicCheckinManager.build_next_question_with_response(self, question_key, previous_question_key, previous_answer)` - Build the next question text with a response statement from the previous answer.
+  - ✅ `DynamicCheckinManager.get_all_questions(self)` - Get all question definitions.
+  - ✅ `DynamicCheckinManager.get_categories(self)` - Get all question categories.
+  - ✅ `DynamicCheckinManager.get_enabled_questions_for_ui(self)` - Get questions formatted for UI display with enabled_by_default status.
+  - ✅ `DynamicCheckinManager.get_question_definition(self, question_key)` - Get the definition for a specific question.
+  - ✅ `DynamicCheckinManager.get_question_text(self, question_key)` - Get the question text for a specific question.
+  - ✅ `DynamicCheckinManager.get_question_type(self, question_key)` - Get the type of a specific question.
+  - ✅ `DynamicCheckinManager.get_question_validation(self, question_key)` - Get validation rules for a specific question.
+  - ✅ `DynamicCheckinManager.get_response_statement(self, question_key, answer_value)` - Get a random response statement for a question answer.
+  - ✅ `DynamicCheckinManager.get_transition_phrase(self)` - Get a random transition phrase.
+  - ✅ `DynamicCheckinManager.validate_answer(self, question_key, answer)` - Validate an answer for a specific question.
 
 #### `core/config.py`
 **Functions:**
@@ -554,6 +587,10 @@ Raises:
 - ✅ `__init__(self, filename, backup_dir, maxBytes, backupCount, encoding, delay, when, interval)` - Initialize the object
 - ✅ `__init__(self)` - Initialize the object
 - ✅ `__init__(self, excluded_prefixes)` - Initialize the object
+- ✅ `__init__(self, name)` - Initialize the object
+- ✅ `__init__(self, name)` - Initialize the object
+- ✅ `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
+- ✅ `_is_testing_environment()` - Check if we're running in a testing environment.
 - ✅ `_log(self, level, message)` - Internal logging method with structured data support.
 - ✅ `cleanup_old_archives(max_days)` - Remove archived log files older than specified days.
 
@@ -666,6 +703,7 @@ Each component gets its own log file with appropriate rotation and formatting.
   - ✅ `ComponentLogger.info(self, message)` - Log info message with optional structured data.
   - ✅ `ComponentLogger.warning(self, message)` - Log warning message with optional structured data.
 - ❌ `DummyComponentLogger` - No description
+  - ✅ `DummyComponentLogger.__init__(self, name)` - Initialize the object
   - ❌ `DummyComponentLogger.critical(self, message)` - No description
   - ❌ `DummyComponentLogger.debug(self, message)` - No description
   - ❌ `DummyComponentLogger.error(self, message)` - No description
@@ -682,9 +720,20 @@ Example use: prevent Discord-related logs from going to app.log.
 - Logs a summary every hour with total count
   - ✅ `HeartbeatWarningFilter.__init__(self)` - Initialize the object
   - ❌ `HeartbeatWarningFilter.filter(self, record)` - No description
+- ❌ `_DummyLogger` - No description
+  - ✅ `_DummyLogger.__init__(self, name)` - Initialize the object
 
 #### `core/message_management.py`
 **Functions:**
+- ✅ `_parse_timestamp(timestamp_str)` - Parse timestamp string to datetime object.
+
+Handles multiple timestamp formats for backward compatibility.
+
+Args:
+    timestamp_str: Timestamp string to parse
+    
+Returns:
+    datetime: Parsed datetime object
 - ✅ `add_message(user_id, category, message_data, index)` - Add a new message to a user's category.
 
 Args:
@@ -692,6 +741,17 @@ Args:
     category: The message category
     message_data: Dictionary containing message data
     index: Optional position to insert the message (None for append)
+- ✅ `archive_old_messages(user_id, days_to_keep)` - Archive messages older than specified days.
+
+This function implements file rotation by moving old messages to archive files,
+keeping the active sent_messages.json file manageable in size.
+
+Args:
+    user_id: The user ID
+    days_to_keep: Number of days to keep in active file
+    
+Returns:
+    bool: True if archiving successful
 - ✅ `create_message_file_from_defaults(user_id, category)` - Create a user's message file for a specific category from default messages.
 This is the actual worker function that creates the file.
 
@@ -734,19 +794,31 @@ Returns:
         - files_checked: int - Number of categories checked
         - files_created: int - Number of new files created
         - files_existing: int - Number of files that already existed
-- ✅ `get_last_10_messages(user_id, category)` - Get the last 10 messages for a user and category, sorted by timestamp descending.
+- ✅ `get_last_10_messages(user_id, category)` - LEGACY COMPATIBILITY: Redirects to get_recent_messages for backward compatibility.
 
-Args:
-    user_id: The user ID
-    category: The message category
-    
-Returns:
-    List[dict]: List of the last 10 sent messages for the category
+TODO: Remove after all callers are updated to use get_recent_messages
+REMOVAL PLAN:
+1. Update all callers to use get_recent_messages
+2. Remove this function
+3. Monitor for any remaining references
 - ✅ `get_message_categories()` - Retrieves message categories from the environment variable CATEGORIES.
 Allows for either a comma-separated string or a JSON array.
 
 Returns:
     List[str]: List of message categories
+- ✅ `get_recent_messages(user_id, category, limit, days_back)` - Get recent messages with flexible filtering.
+
+This function replaces get_last_10_messages() with enhanced functionality
+that supports both category-specific and cross-category queries.
+
+Args:
+    user_id: The user ID
+    category: Optional category filter (None = all categories)
+    limit: Maximum number of messages to return
+    days_back: Only include messages from last N days
+    
+Returns:
+    List[dict]: List of recent messages, sorted by timestamp descending
 - ✅ `get_timestamp_for_sorting(item)` - Convert timestamp to float for consistent sorting.
 
 Args:
@@ -755,13 +827,21 @@ Args:
 Returns:
     float: Timestamp as float for sorting, or 0.0 for invalid items
 - ✅ `load_default_messages(category)` - Load default messages for a specific category.
-- ✅ `store_sent_message(user_id, category, message_id, message)` - Store a sent message for a user and category, with per-category grouping and cleanup.
+- ✅ `store_sent_message(user_id, category, message_id, message, delivery_status, time_period)` - Store sent message in chronological order.
+
+This function maintains the chronological structure by inserting new messages
+in the correct position based on timestamp.
 
 Args:
     user_id: The user ID
     category: The message category
-    message_id: The ID of the sent message
-    message: The message content that was sent
+    message_id: The message ID
+    message: The message content
+    delivery_status: Delivery status (default: "sent")
+    time_period: The time period when the message was sent (e.g., "morning", "evening")
+    
+Returns:
+    bool: True if message stored successfully
 - ✅ `update_message(user_id, category, message_id, new_message_data)` - Update a message by its message_id.
 
 Args:
@@ -904,7 +984,13 @@ Returns:
 - ✅ `process_category_schedule(user_id, category)` - Process schedule for a specific user and category.
 - ✅ `process_user_schedules(user_id)` - Process schedules for a specific user.
 - ✅ `reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
+- ✅ `run_category_scheduler_standalone(user_id, category)` - Standalone function to run scheduler for a specific user and category.
+This can be called from the admin UI without needing a scheduler instance.
 - ✅ `run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
+- ✅ `run_full_scheduler_standalone()` - Standalone function to run the full scheduler for all users.
+This can be called from the admin UI without needing a scheduler instance.
+- ✅ `run_user_scheduler_standalone(user_id)` - Standalone function to run scheduler for a specific user.
+This can be called from the admin UI without needing a scheduler instance.
 - ✅ `schedule_all_task_reminders(user_id)` - Standalone function to schedule all task reminders for a user.
 This can be called from the admin UI without needing a scheduler instance.
 - ✅ `schedule_all_task_reminders(self, user_id)` - Schedule reminders for all active tasks for a user.
@@ -1111,7 +1197,14 @@ Sets up signal handlers for graceful shutdown.
 
 Args:
     interval: Time interval in seconds between allowed operations
-- ✅ `create_reschedule_request(user_id, category)` - Create a reschedule request flag file for the service to pick up
+- ✅ `create_reschedule_request(user_id, category)` - Create a reschedule request file that the service will pick up.
+
+Args:
+    user_id: The user ID
+    category: The category to reschedule
+    
+Returns:
+    bool: True if request was created successfully
 - ✅ `is_service_running()` - Check if the MHM service is currently running
 - ✅ `load_and_localize_datetime(datetime_str, timezone_str)` - Load and localize a datetime string to a specific timezone.
 
@@ -1469,6 +1562,7 @@ Returns:
 
 #### `core/user_management.py`
 **Functions:**
+- ❌ `_ensure_default_loaders_once()` - No description
 - ✅ `_get_user_data__load_account(user_id, auto_create)` - Load user account data from account.json.
 - ✅ `_get_user_data__load_context(user_id, auto_create)` - Load user context data from user_context.json.
 - ✅ `_get_user_data__load_preferences(user_id, auto_create)` - Load user preferences data from preferences.json.
@@ -1520,6 +1614,10 @@ Args:
     default_fields: Commonly accessed fields
     metadata_fields: Fields that contain metadata
     description: Human-readable description
+- ✅ `register_default_loaders()` - Ensure required loaders are registered (idempotent).
+
+Mutates the shared USER_DATA_LOADERS in-place, setting any missing/None
+loader entries for: account, preferences, context, schedules.
 - ✅ `remove_personalization_item(user_id, field, item)` - Remove an item from a list field in personalization data using centralized system.
 - ✅ `update_channel_preferences(user_id, updates, auto_create)` - Update channel preferences without triggering category schedule creation.
 - ✅ `update_personalization_field(user_id, field, value)` - Update a specific field in personalization data using centralized system.
@@ -1543,11 +1641,13 @@ Args:
 
 #### `tasks/task_management.py`
 **Functions:**
+- ✅ `_calculate_next_due_date(completion_date, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Calculate the next due date for a recurring task.
+- ✅ `_create_next_recurring_task_instance(user_id, completed_task)` - Create the next instance of a recurring task when the current one is completed.
 - ✅ `add_user_task_tag(user_id, tag)` - Add a new tag to the user's task settings.
 - ✅ `are_tasks_enabled(user_id)` - Check if task management is enabled for a user.
 - ✅ `cleanup_task_reminders(user_id, task_id)` - Clean up all reminders for a specific task.
 - ✅ `complete_task(user_id, task_id, completion_data)` - Mark a task as completed.
-- ✅ `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders)` - Create a new task for a user.
+- ✅ `create_task(user_id, title, description, due_date, due_time, priority, reminder_periods, tags, quick_reminders, recurrence_pattern, recurrence_interval, repeat_after_completion)` - Create a new task for a user.
 - ✅ `delete_task(user_id, task_id)` - Delete a task (permanently remove it).
 - ✅ `ensure_task_directory(user_id)` - Ensure the task directory structure exists for a user.
 - ✅ `get_task_by_id(user_id, task_id)` - Get a specific task by ID.
@@ -1573,12 +1673,12 @@ Args:
 - ✅ `create_test_user_data(user_id, test_data_dir, base_state)` - Create test user data with specific base state using centralized utilities
 - ✅ `main()` - Run all real behavior tests
 - ✅ `setup_test_environment(test_data_dir)` - Create isolated test environment with temporary directories
-- ✅ `test_category_management_real_behavior(test_data_dir)` - Test actual category management with file persistence
-- ✅ `test_data_consistency_real_behavior(test_data_dir)` - Test data consistency across multiple operations
-- ✅ `test_feature_enablement_real_behavior(test_data_dir)` - Test actual feature enablement with file creation/deletion
+- ✅ `test_category_management_real_behavior(test_data_dir, mock_config)` - Test actual category management with file persistence
+- ✅ `test_data_consistency_real_behavior(test_data_dir, mock_config)` - Test data consistency across multiple operations
+- ✅ `test_feature_enablement_real_behavior(test_data_dir, mock_config)` - Test actual feature enablement with file creation/deletion
 - ✅ `test_integration_scenarios_real_behavior(test_data_dir)` - Test complex integration scenarios with multiple operations
 - ✅ `test_schedule_period_management_real_behavior(test_data_dir)` - Test actual schedule period management with file persistence
-- ✅ `test_user_data_loading_real_behavior(test_data_dir)` - Test actual user data loading with file verification
+- ✅ `test_user_data_loading_real_behavior(test_data_dir, mock_config)` - Test actual user data loading with file verification
 
 #### `tests/behavior/test_ai_chatbot_behavior.py`
 **Functions:**
@@ -1632,6 +1732,161 @@ Args:
   - ✅ `TestAIChatBotIntegration.test_ai_chatbot_concurrent_access_safety(self, test_data_dir)` - Test that AI chatbot handles concurrent access safely.
   - ✅ `TestAIChatBotIntegration.test_ai_chatbot_error_recovery_with_real_files(self, test_data_dir)` - Test AI chatbot error recovery with real file operations.
   - ✅ `TestAIChatBotIntegration.test_ai_chatbot_with_real_user_data(self, test_data_dir, mock_config)` - Test AI chatbot with real user data files.
+
+#### `tests/behavior/test_ai_context_builder_behavior.py`
+**Functions:**
+- ❌ `build_context()` - No description
+- ✅ `test_build_user_context_creates_fresh_timestamp(self, test_data_dir)` - Test that build_user_context creates fresh timestamp for each call.
+- ✅ `test_build_user_context_creates_structured_context_data(self, test_data_dir)` - Test that build_user_context creates actual structured context data.
+- ✅ `test_build_user_context_handles_concurrent_access(self, test_data_dir)` - Test that build_user_context handles concurrent access safely.
+- ✅ `test_build_user_context_handles_corrupted_user_data(self, test_data_dir)` - Test that build_user_context handles corrupted user data gracefully.
+- ✅ `test_build_user_context_handles_empty_files(self, test_data_dir)` - Test that build_user_context handles empty user files gracefully.
+- ✅ `test_build_user_context_handles_empty_user_data(self, test_data_dir)` - Test that build_user_context handles empty user data gracefully.
+- ✅ `test_build_user_context_handles_error_conditions(self, test_data_dir)` - Test that build_user_context handles error conditions gracefully.
+- ✅ `test_build_user_context_handles_large_user_data(self, test_data_dir)` - Test that build_user_context handles large user data efficiently.
+- ✅ `test_build_user_context_handles_long_user_id(self, test_data_dir)` - Test that build_user_context handles long user IDs correctly.
+- ✅ `test_build_user_context_handles_missing_files(self, test_data_dir)` - Test that build_user_context handles missing user files gracefully.
+- ✅ `test_build_user_context_handles_missing_user_data_gracefully(self, test_data_dir)` - Test that build_user_context handles missing user data gracefully.
+- ✅ `test_build_user_context_handles_rapid_calls(self, test_data_dir)` - Test that build_user_context handles rapid successive calls.
+- ✅ `test_build_user_context_handles_special_characters_in_user_id(self, test_data_dir)` - Test that build_user_context handles special characters in user IDs.
+- ✅ `test_build_user_context_handles_unicode_user_id(self, test_data_dir)` - Test that build_user_context handles unicode characters in user IDs.
+- ✅ `test_build_user_context_includes_conversation_history(self, test_data_dir)` - Test that build_user_context includes actual conversation history.
+- ✅ `test_build_user_context_includes_current_time(self, test_data_dir)` - Test that build_user_context includes current time information.
+- ✅ `test_build_user_context_includes_recent_checkins(self, test_data_dir)` - Test that build_user_context includes recent checkins information.
+- ✅ `test_build_user_context_includes_user_data_from_files(self, test_data_dir)` - Test that build_user_context actually reads and includes user data from files.
+- ✅ `test_build_user_context_without_conversation_history(self, test_data_dir)` - Test that build_user_context can exclude conversation history.
+- ✅ `test_context_builder_initialization_creates_components(self, test_data_dir)` - Test that context builder initialization creates required components.
+**Classes:**
+- ✅ `TestContextBuilderBehavior` - Test real behavior of context builder functionality.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_creates_fresh_timestamp(self, test_data_dir)` - Test that build_user_context creates fresh timestamp for each call.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_creates_structured_context_data(self, test_data_dir)` - Test that build_user_context creates actual structured context data.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_concurrent_access(self, test_data_dir)` - Test that build_user_context handles concurrent access safely.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_corrupted_user_data(self, test_data_dir)` - Test that build_user_context handles corrupted user data gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_empty_files(self, test_data_dir)` - Test that build_user_context handles empty user files gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_empty_user_data(self, test_data_dir)` - Test that build_user_context handles empty user data gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_error_conditions(self, test_data_dir)` - Test that build_user_context handles error conditions gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_large_user_data(self, test_data_dir)` - Test that build_user_context handles large user data efficiently.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_long_user_id(self, test_data_dir)` - Test that build_user_context handles long user IDs correctly.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_missing_files(self, test_data_dir)` - Test that build_user_context handles missing user files gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_missing_user_data_gracefully(self, test_data_dir)` - Test that build_user_context handles missing user data gracefully.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_rapid_calls(self, test_data_dir)` - Test that build_user_context handles rapid successive calls.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_special_characters_in_user_id(self, test_data_dir)` - Test that build_user_context handles special characters in user IDs.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_handles_unicode_user_id(self, test_data_dir)` - Test that build_user_context handles unicode characters in user IDs.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_includes_conversation_history(self, test_data_dir)` - Test that build_user_context includes actual conversation history.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_includes_current_time(self, test_data_dir)` - Test that build_user_context includes current time information.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_includes_recent_checkins(self, test_data_dir)` - Test that build_user_context includes recent checkins information.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_includes_user_data_from_files(self, test_data_dir)` - Test that build_user_context actually reads and includes user data from files.
+  - ✅ `TestContextBuilderBehavior.test_build_user_context_without_conversation_history(self, test_data_dir)` - Test that build_user_context can exclude conversation history.
+  - ✅ `TestContextBuilderBehavior.test_context_builder_initialization_creates_components(self, test_data_dir)` - Test that context builder initialization creates required components.
+
+#### `tests/behavior/test_ai_context_builder_coverage_expansion.py`
+**Functions:**
+- ✅ `test_analyze_context_error_handling(self, test_data_dir)` - Test analyze_context error handling.
+- ✅ `test_analyze_context_with_checkin_data(self, test_data_dir)` - Test analyze_context with actual checkin data.
+- ✅ `test_analyze_context_with_empty_checkins(self, test_data_dir)` - Test analyze_context with empty recent checkins.
+- ✅ `test_analyze_context_with_missing_data(self, test_data_dir)` - Test analyze_context with missing data fields.
+- ✅ `test_calculate_wellness_score_all_factors(self, test_data_dir)` - Test _calculate_wellness_score with all factors present.
+- ✅ `test_calculate_wellness_score_no_factors(self, test_data_dir)` - Test _calculate_wellness_score with no factors present.
+- ✅ `test_create_checkin_context(self, test_data_dir)` - Test create_checkin_context method.
+- ✅ `test_create_checkin_context_error_handling(self, test_data_dir)` - Test create_checkin_context error handling.
+- ✅ `test_create_context_prompt_error_handling(self, test_data_dir)` - Test create_context_prompt error handling.
+- ✅ `test_create_context_prompt_with_analysis(self, test_data_dir)` - Test create_context_prompt with pre-computed analysis.
+- ✅ `test_create_context_prompt_with_profile(self, test_data_dir)` - Test create_context_prompt with user profile data.
+- ✅ `test_create_context_prompt_with_user_context(self, test_data_dir)` - Test create_context_prompt with user context data.
+- ✅ `test_create_task_context(self, test_data_dir)` - Test create_task_context method.
+- ✅ `test_create_task_context_error_handling(self, test_data_dir)` - Test create_task_context error handling.
+- ✅ `test_determine_trend_declining(self, test_data_dir)` - Test _determine_trend with declining values.
+- ✅ `test_determine_trend_improving(self, test_data_dir)` - Test _determine_trend with improving values.
+- ✅ `test_determine_trend_insufficient_data(self, test_data_dir)` - Test _determine_trend with insufficient data.
+- ✅ `test_determine_trend_stable(self, test_data_dir)` - Test _determine_trend with stable values.
+- ✅ `test_generate_insights_dental_hygiene(self, test_data_dir)` - Test _generate_insights with dental hygiene patterns.
+- ✅ `test_generate_insights_energy_patterns(self, test_data_dir)` - Test _generate_insights with energy patterns.
+- ✅ `test_generate_insights_excellent_breakfast(self, test_data_dir)` - Test _generate_insights with excellent breakfast rate.
+- ✅ `test_generate_insights_low_mood(self, test_data_dir)` - Test _generate_insights with low mood.
+- ✅ `test_generate_insights_poor_breakfast(self, test_data_dir)` - Test _generate_insights with poor breakfast rate.
+- ✅ `test_generate_insights_positive_mood(self, test_data_dir)` - Test _generate_insights with positive mood.
+- ✅ `test_get_context_builder_singleton(self, test_data_dir)` - Test get_context_builder singleton behavior.
+**Classes:**
+- ✅ `TestContextBuilderCoverageExpansion` - Test coverage expansion for ContextBuilder module.
+  - ✅ `TestContextBuilderCoverageExpansion.test_analyze_context_error_handling(self, test_data_dir)` - Test analyze_context error handling.
+  - ✅ `TestContextBuilderCoverageExpansion.test_analyze_context_with_checkin_data(self, test_data_dir)` - Test analyze_context with actual checkin data.
+  - ✅ `TestContextBuilderCoverageExpansion.test_analyze_context_with_empty_checkins(self, test_data_dir)` - Test analyze_context with empty recent checkins.
+  - ✅ `TestContextBuilderCoverageExpansion.test_analyze_context_with_missing_data(self, test_data_dir)` - Test analyze_context with missing data fields.
+  - ✅ `TestContextBuilderCoverageExpansion.test_calculate_wellness_score_all_factors(self, test_data_dir)` - Test _calculate_wellness_score with all factors present.
+  - ✅ `TestContextBuilderCoverageExpansion.test_calculate_wellness_score_no_factors(self, test_data_dir)` - Test _calculate_wellness_score with no factors present.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_checkin_context(self, test_data_dir)` - Test create_checkin_context method.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_checkin_context_error_handling(self, test_data_dir)` - Test create_checkin_context error handling.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_context_prompt_error_handling(self, test_data_dir)` - Test create_context_prompt error handling.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_context_prompt_with_analysis(self, test_data_dir)` - Test create_context_prompt with pre-computed analysis.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_context_prompt_with_profile(self, test_data_dir)` - Test create_context_prompt with user profile data.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_context_prompt_with_user_context(self, test_data_dir)` - Test create_context_prompt with user context data.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_task_context(self, test_data_dir)` - Test create_task_context method.
+  - ✅ `TestContextBuilderCoverageExpansion.test_create_task_context_error_handling(self, test_data_dir)` - Test create_task_context error handling.
+  - ✅ `TestContextBuilderCoverageExpansion.test_determine_trend_declining(self, test_data_dir)` - Test _determine_trend with declining values.
+  - ✅ `TestContextBuilderCoverageExpansion.test_determine_trend_improving(self, test_data_dir)` - Test _determine_trend with improving values.
+  - ✅ `TestContextBuilderCoverageExpansion.test_determine_trend_insufficient_data(self, test_data_dir)` - Test _determine_trend with insufficient data.
+  - ✅ `TestContextBuilderCoverageExpansion.test_determine_trend_stable(self, test_data_dir)` - Test _determine_trend with stable values.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_dental_hygiene(self, test_data_dir)` - Test _generate_insights with dental hygiene patterns.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_energy_patterns(self, test_data_dir)` - Test _generate_insights with energy patterns.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_excellent_breakfast(self, test_data_dir)` - Test _generate_insights with excellent breakfast rate.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_low_mood(self, test_data_dir)` - Test _generate_insights with low mood.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_poor_breakfast(self, test_data_dir)` - Test _generate_insights with poor breakfast rate.
+  - ✅ `TestContextBuilderCoverageExpansion.test_generate_insights_positive_mood(self, test_data_dir)` - Test _generate_insights with positive mood.
+  - ✅ `TestContextBuilderCoverageExpansion.test_get_context_builder_singleton(self, test_data_dir)` - Test get_context_builder singleton behavior.
+
+#### `tests/behavior/test_ai_conversation_history_behavior.py`
+**Functions:**
+- ❌ `add_message()` - No description
+- ✅ `test_add_message_appends_to_existing_session(self, test_data_dir)` - Test that add_message appends to existing session.
+- ✅ `test_add_message_includes_timestamp(self, test_data_dir)` - Test that add_message includes timestamp in message data.
+- ✅ `test_add_message_persists_to_session(self, test_data_dir)` - Test that add_message actually persists messages to session.
+- ✅ `test_add_message_validates_content(self, test_data_dir)` - Test that add_message validates content parameter.
+- ✅ `test_add_message_validates_role(self, test_data_dir)` - Test that add_message validates role parameter.
+- ✅ `test_clear_history_removes_session_data(self, test_data_dir)` - Test that clear_history removes actual session data.
+- ✅ `test_conversation_history_handles_concurrent_access(self, test_data_dir)` - Test that conversation history handles concurrent access safely.
+- ✅ `test_conversation_history_handles_large_messages(self, test_data_dir)` - Test that conversation history handles large message content.
+- ✅ `test_conversation_history_handles_rapid_access(self, test_data_dir)` - Test that conversation history handles rapid successive access.
+- ✅ `test_conversation_history_handles_special_characters(self, test_data_dir)` - Test that conversation history handles special characters in messages.
+- ✅ `test_conversation_history_handles_unicode_messages(self, test_data_dir)` - Test that conversation history handles unicode messages.
+- ✅ `test_conversation_history_initialization_creates_components(self, test_data_dir)` - Test that conversation history initialization creates required components.
+- ✅ `test_delete_session_removes_specific_session(self, test_data_dir)` - Test that delete_session removes a specific session.
+- ✅ `test_end_session_terminates_active_session(self, test_data_dir)` - Test that end_session terminates the active session.
+- ✅ `test_get_conversation_summary_handles_empty_history(self, test_data_dir)` - Test that get_conversation_summary handles empty conversation history.
+- ✅ `test_get_conversation_summary_returns_actual_summary(self, test_data_dir)` - Test that get_conversation_summary returns actual conversation summary.
+- ✅ `test_get_history_returns_all_sessions(self, test_data_dir)` - Test that get_history returns all sessions for a user.
+- ✅ `test_get_recent_messages_handles_empty_history(self, test_data_dir)` - Test that get_recent_messages handles empty conversation history.
+- ✅ `test_get_recent_messages_handles_negative_limit(self, test_data_dir)` - Test that get_recent_messages handles negative limit.
+- ✅ `test_get_recent_messages_handles_zero_limit(self, test_data_dir)` - Test that get_recent_messages handles zero count gracefully.
+- ✅ `test_get_recent_messages_respects_limit(self, test_data_dir)` - Test that get_recent_messages respects the count limit.
+- ✅ `test_get_recent_messages_returns_actual_data(self, test_data_dir)` - Test that get_recent_messages returns actual session data.
+- ✅ `test_get_statistics_returns_actual_data(self, test_data_dir)` - Test that get_statistics returns actual conversation statistics.
+- ✅ `test_start_session_creates_actual_session(self, test_data_dir)` - Test that start_session creates actual session data.
+**Classes:**
+- ✅ `TestConversationHistoryBehavior` - Test real behavior of conversation history functionality.
+  - ✅ `TestConversationHistoryBehavior.test_add_message_appends_to_existing_session(self, test_data_dir)` - Test that add_message appends to existing session.
+  - ✅ `TestConversationHistoryBehavior.test_add_message_includes_timestamp(self, test_data_dir)` - Test that add_message includes timestamp in message data.
+  - ✅ `TestConversationHistoryBehavior.test_add_message_persists_to_session(self, test_data_dir)` - Test that add_message actually persists messages to session.
+  - ✅ `TestConversationHistoryBehavior.test_add_message_validates_content(self, test_data_dir)` - Test that add_message validates content parameter.
+  - ✅ `TestConversationHistoryBehavior.test_add_message_validates_role(self, test_data_dir)` - Test that add_message validates role parameter.
+  - ✅ `TestConversationHistoryBehavior.test_clear_history_removes_session_data(self, test_data_dir)` - Test that clear_history removes actual session data.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_handles_concurrent_access(self, test_data_dir)` - Test that conversation history handles concurrent access safely.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_handles_large_messages(self, test_data_dir)` - Test that conversation history handles large message content.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_handles_rapid_access(self, test_data_dir)` - Test that conversation history handles rapid successive access.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_handles_special_characters(self, test_data_dir)` - Test that conversation history handles special characters in messages.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_handles_unicode_messages(self, test_data_dir)` - Test that conversation history handles unicode messages.
+  - ✅ `TestConversationHistoryBehavior.test_conversation_history_initialization_creates_components(self, test_data_dir)` - Test that conversation history initialization creates required components.
+  - ✅ `TestConversationHistoryBehavior.test_delete_session_removes_specific_session(self, test_data_dir)` - Test that delete_session removes a specific session.
+  - ✅ `TestConversationHistoryBehavior.test_end_session_terminates_active_session(self, test_data_dir)` - Test that end_session terminates the active session.
+  - ✅ `TestConversationHistoryBehavior.test_get_conversation_summary_handles_empty_history(self, test_data_dir)` - Test that get_conversation_summary handles empty conversation history.
+  - ✅ `TestConversationHistoryBehavior.test_get_conversation_summary_returns_actual_summary(self, test_data_dir)` - Test that get_conversation_summary returns actual conversation summary.
+  - ✅ `TestConversationHistoryBehavior.test_get_history_returns_all_sessions(self, test_data_dir)` - Test that get_history returns all sessions for a user.
+  - ✅ `TestConversationHistoryBehavior.test_get_recent_messages_handles_empty_history(self, test_data_dir)` - Test that get_recent_messages handles empty conversation history.
+  - ✅ `TestConversationHistoryBehavior.test_get_recent_messages_handles_negative_limit(self, test_data_dir)` - Test that get_recent_messages handles negative limit.
+  - ✅ `TestConversationHistoryBehavior.test_get_recent_messages_handles_zero_limit(self, test_data_dir)` - Test that get_recent_messages handles zero count gracefully.
+  - ✅ `TestConversationHistoryBehavior.test_get_recent_messages_respects_limit(self, test_data_dir)` - Test that get_recent_messages respects the count limit.
+  - ✅ `TestConversationHistoryBehavior.test_get_recent_messages_returns_actual_data(self, test_data_dir)` - Test that get_recent_messages returns actual session data.
+  - ✅ `TestConversationHistoryBehavior.test_get_statistics_returns_actual_data(self, test_data_dir)` - Test that get_statistics returns actual conversation statistics.
+  - ✅ `TestConversationHistoryBehavior.test_start_session_creates_actual_session(self, test_data_dir)` - Test that start_session creates actual session data.
 
 #### `tests/behavior/test_auto_cleanup_behavior.py`
 **Functions:**
@@ -1813,12 +2068,113 @@ Args:
   - ✅ `TestCheckinAnalyticsWellnessScoreBehavior.test_wellness_score_no_data_real_behavior(self, analytics)` - REAL BEHAVIOR TEST: Test wellness score with no check-in data.
   - ✅ `TestCheckinAnalyticsWellnessScoreBehavior.test_wellness_score_with_data_real_behavior(self, analytics, mock_checkins_for_wellness)` - REAL BEHAVIOR TEST: Test wellness score calculation with valid data.
 
+#### `tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py`
+**Functions:**
+- ✅ `setup_method(self)` - Set up test fixtures
+- ✅ `test_error_handling_in_parsing(self)` - Test error handling in parsing methods
+- ✅ `test_extract_intent_from_ai_response_case_insensitive(self)` - Test _extract_intent_from_ai_response with case insensitive matching
+- ✅ `test_extract_intent_from_ai_response_complete_task(self)` - Test _extract_intent_from_ai_response with complete task
+- ✅ `test_extract_intent_from_ai_response_create_task(self)` - Test _extract_intent_from_ai_response with create task
+- ✅ `test_extract_intent_from_ai_response_list_tasks(self)` - Test _extract_intent_from_ai_response with list tasks
+- ✅ `test_extract_intent_from_ai_response_no_match(self)` - Test _extract_intent_from_ai_response with no matching patterns
+- ✅ `test_extract_intent_from_ai_response_start_checkin(self)` - Test _extract_intent_from_ai_response with start checkin
+- ✅ `test_extract_task_entities_basic(self)` - Test _extract_task_entities with basic input
+- ✅ `test_extract_task_entities_complex(self)` - Test _extract_task_entities with complex input
+- ✅ `test_extract_task_entities_no_match(self)` - Test _extract_task_entities with no matching patterns
+- ✅ `test_extract_task_entities_with_due_date(self)` - Test _extract_task_entities with due date
+- ✅ `test_extract_task_entities_with_priority(self)` - Test _extract_task_entities with priority keywords
+- ✅ `test_extract_task_name_from_context_basic(self)` - Test _extract_task_name_from_context with basic input
+- ✅ `test_extract_task_name_from_context_complex(self)` - Test _extract_task_name_from_context with complex input
+- ✅ `test_extract_task_name_from_context_no_match(self)` - Test _extract_task_name_from_context with no matching patterns
+- ✅ `test_extract_update_entities_complex(self)` - Test _extract_update_entities with multiple entities
+- ✅ `test_extract_update_entities_due_date(self)` - Test _extract_update_entities with due date
+- ✅ `test_extract_update_entities_due_short(self)` - Test _extract_update_entities with short due format
+- ✅ `test_extract_update_entities_no_match(self)` - Test _extract_update_entities with no matching patterns
+- ✅ `test_extract_update_entities_priority(self)` - Test _extract_update_entities with priority
+- ✅ `test_get_enhanced_command_parser_singleton(self)` - Test get_enhanced_command_parser returns singleton
+- ✅ `test_get_suggestions_analytics_keywords(self)` - Test get_suggestions with analytics-related keywords
+- ✅ `test_get_suggestions_checkin_keywords(self)` - Test get_suggestions with check-in related keywords
+- ✅ `test_get_suggestions_empty_input(self)` - Test get_suggestions with empty input
+- ✅ `test_get_suggestions_profile_keywords(self)` - Test get_suggestions with profile-related keywords
+- ✅ `test_get_suggestions_schedule_keywords(self)` - Test get_suggestions with schedule-related keywords
+- ✅ `test_get_suggestions_task_keywords(self)` - Test get_suggestions with task-related keywords
+- ✅ `test_get_suggestions_unknown_keywords(self)` - Test get_suggestions with unknown keywords
+- ✅ `test_parse_command_function(self)` - Test the parse_command convenience function
+- ✅ `test_parse_command_function_empty(self)` - Test the parse_command convenience function with empty input
+- ✅ `test_parse_command_function_none(self)` - Test the parse_command convenience function with None input
+- ✅ `test_parser_ai_response_processing(self)` - Test parser AI response processing
+- ✅ `test_parser_entity_extraction_integration(self)` - Test parser entity extraction integration
+- ✅ `test_parser_initialization(self)` - Test EnhancedCommandParser initialization
+- ✅ `test_parser_initialization_components(self)` - Test parser initialization components
+- ✅ `test_parser_integration_with_real_inputs(self)` - Test parser integration with real input patterns
+- ✅ `test_parser_method_signatures(self)` - Test parser method signatures
+- ✅ `test_parser_parse_method(self)` - Test the parser's parse method
+- ✅ `test_parser_parse_method_empty(self)` - Test the parser's parse method with empty input
+- ✅ `test_parser_parse_method_none(self)` - Test the parser's parse method with None input
+- ✅ `test_parser_parse_method_whitespace(self)` - Test the parser's parse method with whitespace-only input
+- ✅ `test_parser_robustness(self)` - Test parser robustness with various inputs
+- ✅ `test_parser_suggestions_integration(self)` - Test parser suggestions integration
+- ✅ `test_parser_with_mock_ai_chatbot(self)` - Test parser with mocked AI chatbot
+- ✅ `test_parser_with_mock_interaction_handlers(self)` - Test parser with mocked interaction handlers
+- ✅ `test_parsing_result_initialization(self)` - Test ParsingResult initialization
+- ✅ `test_pattern_matching_edge_cases(self)` - Test pattern matching with edge cases
+**Classes:**
+- ✅ `TestCommandParserCoverageExpansionPhase3Simple` - Test coverage expansion for command_parser.py - Phase 3 Simple
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.setup_method(self)` - Set up test fixtures
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_error_handling_in_parsing(self)` - Test error handling in parsing methods
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_case_insensitive(self)` - Test _extract_intent_from_ai_response with case insensitive matching
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_complete_task(self)` - Test _extract_intent_from_ai_response with complete task
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_create_task(self)` - Test _extract_intent_from_ai_response with create task
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_list_tasks(self)` - Test _extract_intent_from_ai_response with list tasks
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_no_match(self)` - Test _extract_intent_from_ai_response with no matching patterns
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_intent_from_ai_response_start_checkin(self)` - Test _extract_intent_from_ai_response with start checkin
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_entities_basic(self)` - Test _extract_task_entities with basic input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_entities_complex(self)` - Test _extract_task_entities with complex input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_entities_no_match(self)` - Test _extract_task_entities with no matching patterns
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_entities_with_due_date(self)` - Test _extract_task_entities with due date
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_entities_with_priority(self)` - Test _extract_task_entities with priority keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_name_from_context_basic(self)` - Test _extract_task_name_from_context with basic input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_name_from_context_complex(self)` - Test _extract_task_name_from_context with complex input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_task_name_from_context_no_match(self)` - Test _extract_task_name_from_context with no matching patterns
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_update_entities_complex(self)` - Test _extract_update_entities with multiple entities
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_update_entities_due_date(self)` - Test _extract_update_entities with due date
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_update_entities_due_short(self)` - Test _extract_update_entities with short due format
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_update_entities_no_match(self)` - Test _extract_update_entities with no matching patterns
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_extract_update_entities_priority(self)` - Test _extract_update_entities with priority
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_enhanced_command_parser_singleton(self)` - Test get_enhanced_command_parser returns singleton
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_analytics_keywords(self)` - Test get_suggestions with analytics-related keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_checkin_keywords(self)` - Test get_suggestions with check-in related keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_empty_input(self)` - Test get_suggestions with empty input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_profile_keywords(self)` - Test get_suggestions with profile-related keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_schedule_keywords(self)` - Test get_suggestions with schedule-related keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_task_keywords(self)` - Test get_suggestions with task-related keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_get_suggestions_unknown_keywords(self)` - Test get_suggestions with unknown keywords
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parse_command_function(self)` - Test the parse_command convenience function
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parse_command_function_empty(self)` - Test the parse_command convenience function with empty input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parse_command_function_none(self)` - Test the parse_command convenience function with None input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_ai_response_processing(self)` - Test parser AI response processing
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_entity_extraction_integration(self)` - Test parser entity extraction integration
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_initialization(self)` - Test EnhancedCommandParser initialization
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_initialization_components(self)` - Test parser initialization components
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_integration_with_real_inputs(self)` - Test parser integration with real input patterns
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_method_signatures(self)` - Test parser method signatures
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_parse_method(self)` - Test the parser's parse method
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_parse_method_empty(self)` - Test the parser's parse method with empty input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_parse_method_none(self)` - Test the parser's parse method with None input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_parse_method_whitespace(self)` - Test the parser's parse method with whitespace-only input
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_robustness(self)` - Test parser robustness with various inputs
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_suggestions_integration(self)` - Test parser suggestions integration
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_with_mock_ai_chatbot(self)` - Test parser with mocked AI chatbot
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parser_with_mock_interaction_handlers(self)` - Test parser with mocked interaction handlers
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_parsing_result_initialization(self)` - Test ParsingResult initialization
+  - ✅ `TestCommandParserCoverageExpansionPhase3Simple.test_pattern_matching_edge_cases(self)` - Test pattern matching with edge cases
+
 #### `tests/behavior/test_communication_behavior.py`
 **Functions:**
 - ✅ `comm_manager(self)` - Create a CommunicationManager instance for testing.
 - ✅ `mock_channel_config(self)` - Create a mock channel configuration.
 - ✅ `realistic_mock_channel(self)` - Create a realistic mock channel with proper async methods.
-- ✅ `temp_dir(self)` - Create a temporary directory for testing.
+- ✅ `temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
 - ✅ `test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
 - ✅ `test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
 - ✅ `test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
@@ -1831,7 +2187,7 @@ Args:
   - ✅ `TestCommunicationManager.comm_manager(self)` - Create a CommunicationManager instance for testing.
   - ✅ `TestCommunicationManager.mock_channel_config(self)` - Create a mock channel configuration.
   - ✅ `TestCommunicationManager.realistic_mock_channel(self)` - Create a realistic mock channel with proper async methods.
-  - ✅ `TestCommunicationManager.temp_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestCommunicationManager.temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
   - ✅ `TestCommunicationManager.test_communication_manager_initialization(self, comm_manager)` - Test CommunicationManager initialization.
   - ✅ `TestCommunicationManager.test_communication_manager_singleton(self, comm_manager)` - Test that CommunicationManager follows singleton pattern.
   - ✅ `TestCommunicationManager.test_get_active_channels(self, comm_manager, realistic_mock_channel)` - Test getting active channels with realistic channel setup.
@@ -1839,6 +2195,117 @@ Args:
   - ✅ `TestCommunicationManager.test_send_message_sync_channel_not_found(self, comm_manager)` - Test synchronous message sending when channel doesn't exist.
   - ✅ `TestCommunicationManager.test_send_message_sync_channel_not_ready(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending when channel is not ready.
   - ✅ `TestCommunicationManager.test_send_message_sync_with_realistic_channel(self, comm_manager, realistic_mock_channel)` - Test synchronous message sending with realistic channel behavior.
+
+#### `tests/behavior/test_communication_command_parser_behavior.py`
+**Functions:**
+- ✅ `test_command_parser_initialization_creates_components(self, test_data_dir)` - Test that command parser initialization creates required components.
+**Classes:**
+- ✅ `TestCommandParserBehavior` - Test real behavior of command parser functionality.
+  - ✅ `TestCommandParserBehavior.test_command_parser_initialization_creates_components(self, test_data_dir)` - Test that command parser initialization creates required components.
+
+#### `tests/behavior/test_communication_factory_coverage_expansion.py`
+**Functions:**
+- ✅ `__init__(self, config)` - Initialize the object
+- ✅ `__init__(self, config)` - Initialize the object
+- ❌ `channel_type(self)` - No description
+- ❌ `channel_type(self)` - No description
+- ✅ `test_create_channel_successful_creation(self, test_data_dir)` - Test create_channel with successful channel creation.
+- ✅ `test_create_channel_unknown_type(self, test_data_dir)` - Test create_channel with unknown channel type.
+- ✅ `test_factory_config_integration(self, test_data_dir)` - Test factory integration with configuration system.
+- ✅ `test_factory_dynamic_import_handling(self, test_data_dir)` - Test factory handling of dynamic imports.
+- ✅ `test_factory_error_handling_create_channel(self, test_data_dir)` - Test factory error handling during channel creation.
+- ✅ `test_factory_error_handling_get_channels(self, test_data_dir)` - Test factory error handling during get_registered_channels.
+- ✅ `test_factory_error_handling_initialization(self, test_data_dir)` - Test factory error handling during initialization.
+- ✅ `test_factory_logging_behavior(self, test_data_dir)` - Test factory logging behavior.
+- ✅ `test_factory_registry_persistence(self, test_data_dir)` - Test that registry persists between calls.
+- ✅ `test_factory_singleton_behavior(self, test_data_dir)` - Test factory singleton-like behavior.
+- ✅ `test_get_registered_channels_empty_registry(self, test_data_dir)` - Test get_registered_channels with empty registry.
+- ✅ `test_get_registered_channels_with_channels(self, test_data_dir)` - Test get_registered_channels with registered channels.
+- ✅ `test_initialize_registry_already_initialized(self, test_data_dir)` - Test _initialize_registry when already initialized.
+- ✅ `test_initialize_registry_successful_registration(self, test_data_dir)` - Test _initialize_registry with successful channel registration.
+- ✅ `test_initialize_registry_with_attribute_error(self, test_data_dir)` - Test _initialize_registry with attribute error.
+- ✅ `test_initialize_registry_with_import_error(self, test_data_dir)` - Test _initialize_registry with import error.
+**Classes:**
+- ❌ `ErrorChannel` - No description
+  - ✅ `ErrorChannel.__init__(self, config)` - Initialize the object
+  - ❌ `ErrorChannel.channel_type(self)` - No description
+- ❌ `MockChannel` - No description
+  - ✅ `MockChannel.__init__(self, config)` - Initialize the object
+  - ❌ `MockChannel.channel_type(self)` - No description
+- ✅ `TestCommunicationFactoryCoverageExpansion` - Test coverage expansion for Communication Factory module.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_create_channel_successful_creation(self, test_data_dir)` - Test create_channel with successful channel creation.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_create_channel_unknown_type(self, test_data_dir)` - Test create_channel with unknown channel type.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_config_integration(self, test_data_dir)` - Test factory integration with configuration system.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_dynamic_import_handling(self, test_data_dir)` - Test factory handling of dynamic imports.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_error_handling_create_channel(self, test_data_dir)` - Test factory error handling during channel creation.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_error_handling_get_channels(self, test_data_dir)` - Test factory error handling during get_registered_channels.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_error_handling_initialization(self, test_data_dir)` - Test factory error handling during initialization.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_logging_behavior(self, test_data_dir)` - Test factory logging behavior.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_registry_persistence(self, test_data_dir)` - Test that registry persists between calls.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_factory_singleton_behavior(self, test_data_dir)` - Test factory singleton-like behavior.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_get_registered_channels_empty_registry(self, test_data_dir)` - Test get_registered_channels with empty registry.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_get_registered_channels_with_channels(self, test_data_dir)` - Test get_registered_channels with registered channels.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_initialize_registry_already_initialized(self, test_data_dir)` - Test _initialize_registry when already initialized.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_initialize_registry_successful_registration(self, test_data_dir)` - Test _initialize_registry with successful channel registration.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_initialize_registry_with_attribute_error(self, test_data_dir)` - Test _initialize_registry with attribute error.
+  - ✅ `TestCommunicationFactoryCoverageExpansion.test_initialize_registry_with_import_error(self, test_data_dir)` - Test _initialize_registry with import error.
+
+#### `tests/behavior/test_communication_interaction_manager_behavior.py`
+**Functions:**
+- ✅ `test_interaction_manager_initialization_creates_components(self, test_data_dir)` - Test that interaction manager initialization creates required components.
+- ✅ `test_process_message_creates_interaction_record(self, test_data_dir)` - Test that process_message creates actual interaction record.
+- ✅ `test_process_message_handles_ai_chat(self, test_data_dir)` - Test that process_message handles AI chat correctly.
+- ✅ `test_process_message_handles_checkin_commands(self, test_data_dir)` - Test that process_message handles checkin-related commands.
+- ✅ `test_process_message_handles_command_parsing(self, test_data_dir)` - Test that process_message handles command parsing correctly.
+- ✅ `test_process_message_handles_concurrent_access(self, test_data_dir)` - Test that process_message handles concurrent access safely.
+- ✅ `test_process_message_handles_conversation_context(self, test_data_dir)` - Test that process_message maintains conversation context.
+- ✅ `test_process_message_handles_conversation_flow(self, test_data_dir)` - Test that process_message handles conversation flow correctly.
+- ✅ `test_process_message_handles_empty_message(self, test_data_dir)` - Test that process_message handles empty messages.
+- ✅ `test_process_message_handles_error_conditions(self, test_data_dir)` - Test that process_message handles error conditions gracefully.
+- ✅ `test_process_message_handles_feature_flags(self, test_data_dir)` - Test that process_message respects feature flags.
+- ✅ `test_process_message_handles_help_commands(self, test_data_dir)` - Test that process_message handles help commands.
+- ✅ `test_process_message_handles_long_messages(self, test_data_dir)` - Test that process_message handles long messages correctly.
+- ✅ `test_process_message_handles_mixed_content(self, test_data_dir)` - Test that process_message handles mixed content types.
+- ✅ `test_process_message_handles_profile_commands(self, test_data_dir)` - Test that process_message handles profile-related commands.
+- ✅ `test_process_message_handles_rate_limiting(self, test_data_dir)` - Test that process_message handles rate limiting correctly.
+- ✅ `test_process_message_handles_schedule_commands(self, test_data_dir)` - Test that process_message handles schedule-related commands.
+- ✅ `test_process_message_handles_special_characters(self, test_data_dir)` - Test that process_message handles special characters correctly.
+- ✅ `test_process_message_handles_task_commands(self, test_data_dir)` - Test that process_message handles task-related commands.
+- ✅ `test_process_message_handles_unicode_characters(self, test_data_dir)` - Test that process_message handles unicode characters correctly.
+- ✅ `test_process_message_handles_unknown_commands(self, test_data_dir)` - Test that process_message handles unknown commands gracefully.
+- ✅ `test_process_message_handles_user_preferences(self, test_data_dir)` - Test that process_message respects user preferences.
+- ✅ `test_process_message_handles_whitespace_only_message(self, test_data_dir)` - Test that process_message handles whitespace-only messages.
+- ✅ `test_process_message_includes_interaction_type(self, test_data_dir)` - Test that process_message includes interaction type in result.
+- ✅ `test_process_message_includes_timestamp(self, test_data_dir)` - Test that process_message includes timestamp in result.
+- ✅ `test_process_message_includes_user_context(self, test_data_dir)` - Test that process_message includes user context in processing.
+**Classes:**
+- ✅ `TestInteractionManagerBehavior` - Test real behavior of interaction manager functionality.
+  - ✅ `TestInteractionManagerBehavior.test_interaction_manager_initialization_creates_components(self, test_data_dir)` - Test that interaction manager initialization creates required components.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_creates_interaction_record(self, test_data_dir)` - Test that process_message creates actual interaction record.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_ai_chat(self, test_data_dir)` - Test that process_message handles AI chat correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_checkin_commands(self, test_data_dir)` - Test that process_message handles checkin-related commands.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_command_parsing(self, test_data_dir)` - Test that process_message handles command parsing correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_concurrent_access(self, test_data_dir)` - Test that process_message handles concurrent access safely.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_conversation_context(self, test_data_dir)` - Test that process_message maintains conversation context.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_conversation_flow(self, test_data_dir)` - Test that process_message handles conversation flow correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_empty_message(self, test_data_dir)` - Test that process_message handles empty messages.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_error_conditions(self, test_data_dir)` - Test that process_message handles error conditions gracefully.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_feature_flags(self, test_data_dir)` - Test that process_message respects feature flags.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_help_commands(self, test_data_dir)` - Test that process_message handles help commands.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_long_messages(self, test_data_dir)` - Test that process_message handles long messages correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_mixed_content(self, test_data_dir)` - Test that process_message handles mixed content types.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_profile_commands(self, test_data_dir)` - Test that process_message handles profile-related commands.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_rate_limiting(self, test_data_dir)` - Test that process_message handles rate limiting correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_schedule_commands(self, test_data_dir)` - Test that process_message handles schedule-related commands.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_special_characters(self, test_data_dir)` - Test that process_message handles special characters correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_task_commands(self, test_data_dir)` - Test that process_message handles task-related commands.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_unicode_characters(self, test_data_dir)` - Test that process_message handles unicode characters correctly.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_unknown_commands(self, test_data_dir)` - Test that process_message handles unknown commands gracefully.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_user_preferences(self, test_data_dir)` - Test that process_message respects user preferences.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_handles_whitespace_only_message(self, test_data_dir)` - Test that process_message handles whitespace-only messages.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_includes_interaction_type(self, test_data_dir)` - Test that process_message includes interaction type in result.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_includes_timestamp(self, test_data_dir)` - Test that process_message includes timestamp in result.
+  - ✅ `TestInteractionManagerBehavior.test_process_message_includes_user_context(self, test_data_dir)` - Test that process_message includes user context in processing.
 
 #### `tests/behavior/test_communication_manager_coverage_expansion.py`
 **Functions:**
@@ -1855,7 +2322,7 @@ Args:
 - ✅ `test_channel_restart_attempt_real_behavior(self, comm_manager, realistic_mock_channel, mock_channel_config)` - Test channel restart attempt functionality.
 - ✅ `test_channel_restart_monitoring_real_behavior(self, comm_manager, realistic_mock_channel)` - Test channel restart monitoring functionality.
 - ✅ `test_create_task_reminder_message_real_behavior(self, comm_manager)` - Test creating task reminder message functionality.
-- ✅ `test_data_dir(self)` - Create a temporary directory for testing.
+- ✅ `test_data_dir(self, test_path_factory)` - Provide per-test directory under tests/data/tmp.
 - ✅ `test_default_channel_configs_real_behavior(self, comm_manager)` - Test default channel configuration generation.
 - ✅ `test_discord_connectivity_status_real_behavior(self, comm_manager, realistic_mock_channel)` - Test Discord connectivity status functionality.
 - ✅ `test_event_loop_setup_real_behavior(self, comm_manager)` - Test event loop setup functionality.
@@ -1899,7 +2366,7 @@ Args:
   - ✅ `TestCommunicationManagerCoverageExpansion.test_channel_restart_attempt_real_behavior(self, comm_manager, realistic_mock_channel, mock_channel_config)` - Test channel restart attempt functionality.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_channel_restart_monitoring_real_behavior(self, comm_manager, realistic_mock_channel)` - Test channel restart monitoring functionality.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_create_task_reminder_message_real_behavior(self, comm_manager)` - Test creating task reminder message functionality.
-  - ✅ `TestCommunicationManagerCoverageExpansion.test_data_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestCommunicationManagerCoverageExpansion.test_data_dir(self, test_path_factory)` - Provide per-test directory under tests/data/tmp.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_default_channel_configs_real_behavior(self, comm_manager)` - Test default channel configuration generation.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_discord_connectivity_status_real_behavior(self, comm_manager, realistic_mock_channel)` - Test Discord connectivity status functionality.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_event_loop_setup_real_behavior(self, comm_manager)` - Test event loop setup functionality.
@@ -1928,6 +2395,81 @@ Args:
   - ✅ `TestCommunicationManagerCoverageExpansion.test_sync_channel_initialization_real_behavior(self, comm_manager, realistic_mock_channel, mock_channel_config)` - Test synchronous channel initialization functionality.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_sync_shutdown_real_behavior(self, comm_manager, realistic_mock_channel)` - Test synchronous shutdown functionality.
   - ✅ `TestCommunicationManagerCoverageExpansion.test_sync_startup_real_behavior(self, comm_manager, realistic_mock_channel, mock_channel_config)` - Test synchronous startup functionality.
+
+#### `tests/behavior/test_config_coverage_expansion_phase3_simple.py`
+**Functions:**
+- ✅ `test_config_validation_error_initialization(self, tmp_path)` - Test ConfigValidationError initialization
+- ✅ `test_config_validation_error_with_none_values(self, tmp_path)` - Test ConfigValidationError with None values
+- ✅ `test_configuration_constants_exist(self, tmp_path)` - Test that all expected configuration constants exist
+- ✅ `test_configuration_error_handling(self, tmp_path)` - Test configuration error handling
+- ✅ `test_configuration_validation_integration(self, tmp_path)` - Test configuration validation integration
+- ✅ `test_directory_creation_functions(self, tmp_path)` - Test directory creation functions
+- ✅ `test_ensure_user_directory_failure(self, tmp_path)` - Test ensure_user_directory function with failure
+- ✅ `test_ensure_user_directory_success(self, tmp_path)` - Test ensure_user_directory function with success
+- ✅ `test_environment_variable_loading(self, tmp_path)` - Test environment variable loading and parsing
+- ✅ `test_get_available_channels(self, tmp_path)` - Test get_available_channels function
+- ✅ `test_get_backups_dir_production_mode(self, tmp_path)` - Test get_backups_dir function in production mode
+- ✅ `test_get_backups_dir_testing_mode(self, tmp_path)` - Test get_backups_dir function in testing mode
+- ✅ `test_get_channel_class_mapping(self, tmp_path)` - Test get_channel_class_mapping function
+- ✅ `test_get_user_data_dir(self, tmp_path)` - Test get_user_data_dir function
+- ✅ `test_get_user_file_path(self, tmp_path)` - Test get_user_file_path function
+- ✅ `test_normalize_path_edge_cases(self, tmp_path)` - Test path normalization with edge cases
+- ✅ `test_normalize_path_function(self, tmp_path)` - Test _normalize_path function
+- ✅ `test_path_handling_functions(self, tmp_path)` - Test path handling functions
+- ✅ `test_print_configuration_report(self, tmp_path, capsys)` - Test print_configuration_report function
+- ✅ `test_print_configuration_report_no_channels(self, tmp_path, capsys)` - Test print_configuration_report function with no available channels
+- ✅ `test_validate_ai_configuration_invalid_url(self, tmp_path)` - Test validate_ai_configuration with invalid URL
+- ✅ `test_validate_ai_configuration_missing_url(self, tmp_path)` - Test validate_ai_configuration with missing LM Studio URL
+- ✅ `test_validate_ai_configuration_valid_config(self, tmp_path)` - Test validate_ai_configuration with valid configuration
+- ✅ `test_validate_all_configuration_integration(self, tmp_path)` - Test validate_all_configuration function integration
+- ✅ `test_validate_and_raise_if_invalid(self, tmp_path)` - Test validate_and_raise_if_invalid function
+- ✅ `test_validate_communication_channels(self, tmp_path)` - Test validate_communication_channels function
+- ✅ `test_validate_core_paths_success(self, tmp_path)` - Test validate_core_paths function with successful validation
+- ✅ `test_validate_discord_config(self, tmp_path)` - Test validate_discord_config function
+- ✅ `test_validate_email_config(self, tmp_path)` - Test validate_email_config function
+- ✅ `test_validate_environment_variables(self, tmp_path)` - Test validate_environment_variables function
+- ✅ `test_validate_file_organization_settings(self, tmp_path)` - Test validate_file_organization_settings function
+- ✅ `test_validate_logging_configuration(self, tmp_path)` - Test validate_logging_configuration function
+- ✅ `test_validate_minimum_config(self, tmp_path)` - Test validate_minimum_config function
+- ✅ `test_validate_scheduler_configuration(self, tmp_path)` - Test validate_scheduler_configuration function
+- ✅ `test_validation_functions_return_correct_types(self, tmp_path)` - Test that all validation functions return correct types
+**Classes:**
+- ✅ `TestConfigCoverageExpansionPhase3Simple` - Test coverage expansion for core/config.py - Phase 3 Simple
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_config_validation_error_initialization(self, tmp_path)` - Test ConfigValidationError initialization
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_config_validation_error_with_none_values(self, tmp_path)` - Test ConfigValidationError with None values
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_configuration_constants_exist(self, tmp_path)` - Test that all expected configuration constants exist
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_configuration_error_handling(self, tmp_path)` - Test configuration error handling
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_configuration_validation_integration(self, tmp_path)` - Test configuration validation integration
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_directory_creation_functions(self, tmp_path)` - Test directory creation functions
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_ensure_user_directory_failure(self, tmp_path)` - Test ensure_user_directory function with failure
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_ensure_user_directory_success(self, tmp_path)` - Test ensure_user_directory function with success
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_environment_variable_loading(self, tmp_path)` - Test environment variable loading and parsing
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_available_channels(self, tmp_path)` - Test get_available_channels function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_backups_dir_production_mode(self, tmp_path)` - Test get_backups_dir function in production mode
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_backups_dir_testing_mode(self, tmp_path)` - Test get_backups_dir function in testing mode
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_channel_class_mapping(self, tmp_path)` - Test get_channel_class_mapping function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_user_data_dir(self, tmp_path)` - Test get_user_data_dir function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_get_user_file_path(self, tmp_path)` - Test get_user_file_path function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_normalize_path_edge_cases(self, tmp_path)` - Test path normalization with edge cases
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_normalize_path_function(self, tmp_path)` - Test _normalize_path function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_path_handling_functions(self, tmp_path)` - Test path handling functions
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_print_configuration_report(self, tmp_path, capsys)` - Test print_configuration_report function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_print_configuration_report_no_channels(self, tmp_path, capsys)` - Test print_configuration_report function with no available channels
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_ai_configuration_invalid_url(self, tmp_path)` - Test validate_ai_configuration with invalid URL
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_ai_configuration_missing_url(self, tmp_path)` - Test validate_ai_configuration with missing LM Studio URL
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_ai_configuration_valid_config(self, tmp_path)` - Test validate_ai_configuration with valid configuration
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_all_configuration_integration(self, tmp_path)` - Test validate_all_configuration function integration
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_and_raise_if_invalid(self, tmp_path)` - Test validate_and_raise_if_invalid function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_communication_channels(self, tmp_path)` - Test validate_communication_channels function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_core_paths_success(self, tmp_path)` - Test validate_core_paths function with successful validation
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_discord_config(self, tmp_path)` - Test validate_discord_config function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_email_config(self, tmp_path)` - Test validate_email_config function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_environment_variables(self, tmp_path)` - Test validate_environment_variables function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_file_organization_settings(self, tmp_path)` - Test validate_file_organization_settings function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_logging_configuration(self, tmp_path)` - Test validate_logging_configuration function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_minimum_config(self, tmp_path)` - Test validate_minimum_config function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validate_scheduler_configuration(self, tmp_path)` - Test validate_scheduler_configuration function
+  - ✅ `TestConfigCoverageExpansionPhase3Simple.test_validation_functions_return_correct_types(self, tmp_path)` - Test that all validation functions return correct types
 
 #### `tests/behavior/test_conversation_behavior.py`
 **Functions:**
@@ -1974,6 +2516,104 @@ Args:
   - ✅ `TestConversationManagerIntegration.test_conversation_manager_concurrent_access_safety(self, test_data_dir)` - Test ConversationManager safety under concurrent access.
   - ✅ `TestConversationManagerIntegration.test_conversation_manager_error_recovery_with_real_files(self, test_data_dir)` - Test ConversationManager error recovery with corrupted real files.
   - ✅ `TestConversationManagerIntegration.test_conversation_manager_with_real_user_data(self, test_data_dir)` - Test ConversationManager with real user data files.
+
+#### `tests/behavior/test_core_message_management_coverage_expansion.py`
+**Functions:**
+- ✅ `test_get_message_categories_from_env_real_behavior(self)` - Test getting message categories from environment variable.
+- ✅ `test_get_message_categories_from_json_real_behavior(self)` - Test getting message categories from JSON format.
+- ✅ `test_get_message_categories_no_env_real_behavior(self)` - Test getting message categories when no environment variable.
+- ✅ `test_get_timestamp_for_sorting_invalid_item_real_behavior(self)` - Test getting timestamp for sorting with invalid item type.
+- ✅ `test_get_timestamp_for_sorting_real_behavior(self)` - Test getting timestamp for sorting.
+- ✅ `test_get_timestamp_for_sorting_string_real_behavior(self)` - Test getting timestamp for sorting with string timestamp.
+- ✅ `test_load_default_messages_file_not_found_real_behavior(self)` - Test loading default messages when file doesn't exist.
+- ✅ `test_load_default_messages_real_behavior(self)` - Test loading default messages for a category.
+- ✅ `test_parse_timestamp_real_behavior(self)` - Test parsing timestamp strings.
+**Classes:**
+- ✅ `TestCoreMessageManagementCoverageExpansion` - Test class for Core Message Management coverage expansion.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_message_categories_from_env_real_behavior(self)` - Test getting message categories from environment variable.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_message_categories_from_json_real_behavior(self)` - Test getting message categories from JSON format.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_message_categories_no_env_real_behavior(self)` - Test getting message categories when no environment variable.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_timestamp_for_sorting_invalid_item_real_behavior(self)` - Test getting timestamp for sorting with invalid item type.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_timestamp_for_sorting_real_behavior(self)` - Test getting timestamp for sorting.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_get_timestamp_for_sorting_string_real_behavior(self)` - Test getting timestamp for sorting with string timestamp.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_load_default_messages_file_not_found_real_behavior(self)` - Test loading default messages when file doesn't exist.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_load_default_messages_real_behavior(self)` - Test loading default messages for a category.
+  - ✅ `TestCoreMessageManagementCoverageExpansion.test_parse_timestamp_real_behavior(self)` - Test parsing timestamp strings.
+
+#### `tests/behavior/test_core_service_coverage_expansion.py`
+**Functions:**
+- ✅ `mock_communication_manager(self)` - Mock communication manager.
+- ✅ `mock_config(self)` - Mock configuration to avoid real config dependencies.
+- ✅ `mock_scheduler_manager(self)` - Mock scheduler manager.
+- ✅ `service(self)` - Create a fresh MHMService instance for each test.
+- ✅ `test_check_and_fix_logging_failure_real_behavior(self, service)` - Test logging check and fix failure.
+- ✅ `test_check_and_fix_logging_success_real_behavior(self, service)` - Test successful logging check and fix.
+- ✅ `test_get_scheduler_manager_real_behavior(self)` - Test getting scheduler manager.
+- ✅ `test_initialize_paths_real_behavior(self, service)` - Test path initialization with real behavior verification.
+- ✅ `test_initialize_paths_with_empty_categories_real_behavior(self, service)` - Test path initialization with empty categories list.
+- ✅ `test_initialize_paths_with_invalid_categories_real_behavior(self, service)` - Test path initialization with invalid categories data.
+- ✅ `test_initialize_paths_with_none_user_id_real_behavior(self, service)` - Test path initialization with None user ID handling.
+- ✅ `test_initialize_paths_with_path_generation_error_real_behavior(self, service)` - Test path initialization with path generation error.
+- ✅ `test_main_function_real_behavior(self)` - Test main function behavior.
+- ✅ `test_main_function_with_service_failure_real_behavior(self)` - Test main function with service failure.
+- ✅ `test_service_atexit_handler_real_behavior(self, service)` - Test service atexit handler behavior.
+- ✅ `test_service_atexit_handler_with_manager_stop_failure_real_behavior(self, service)` - Test service atexit handler with manager stop failure.
+- ✅ `test_service_atexit_handler_with_none_managers_real_behavior(self, service)` - Test service atexit handler with None managers.
+- ✅ `test_service_cleanup_reschedule_requests_real_behavior(self, service)` - Test service cleanup reschedule requests.
+- ✅ `test_service_cleanup_test_message_requests_real_behavior(self, service)` - Test service cleanup test message requests.
+- ✅ `test_service_initialization_error_real_behavior(self)` - Test InitializationError exception.
+- ✅ `test_service_initialization_real_behavior(self, service)` - Test service initialization with real behavior verification.
+- ✅ `test_service_retry_mechanism_real_behavior(self, service, mock_config)` - Test service retry mechanism for startup failures.
+- ✅ `test_service_signal_handlers_real_behavior(self, service)` - Test service signal handlers setup.
+- ✅ `test_service_startup_time_tracking_real_behavior(self, service)` - Test service startup time tracking.
+- ✅ `test_signal_handler_real_behavior(self, service)` - Test signal handler behavior.
+- ✅ `test_start_service_communication_manager_failure_real_behavior(self, service, mock_config)` - Test service startup with communication manager failure.
+- ✅ `test_start_service_configuration_failure_real_behavior(self, service)` - Test service startup with configuration failure.
+- ✅ `test_start_service_path_initialization_failure_real_behavior(self, service, mock_config)` - Test service startup with path initialization failure.
+- ✅ `test_start_service_scheduler_manager_failure_real_behavior(self, service, mock_config, mock_communication_manager)` - Test service startup with scheduler manager failure.
+- ✅ `test_start_service_success_real_behavior(self, service, mock_config, mock_communication_manager, mock_scheduler_manager)` - Test successful service startup.
+- ✅ `test_stop_service_real_behavior(self, service, mock_communication_manager, mock_scheduler_manager)` - Test service shutdown.
+- ✅ `test_stop_service_with_manager_stop_failure_real_behavior(self, service, mock_communication_manager, mock_scheduler_manager)` - Test service shutdown with manager stop failure.
+- ✅ `test_stop_service_with_none_managers_real_behavior(self, service)` - Test service shutdown with None managers.
+- ✅ `test_validate_configuration_failure_real_behavior(self, service)` - Test configuration validation failure.
+- ✅ `test_validate_configuration_success_real_behavior(self, service, mock_config)` - Test successful configuration validation.
+**Classes:**
+- ✅ `TestCoreServiceCoverageExpansion` - Test class for expanding Core Service test coverage.
+  - ✅ `TestCoreServiceCoverageExpansion.mock_communication_manager(self)` - Mock communication manager.
+  - ✅ `TestCoreServiceCoverageExpansion.mock_config(self)` - Mock configuration to avoid real config dependencies.
+  - ✅ `TestCoreServiceCoverageExpansion.mock_scheduler_manager(self)` - Mock scheduler manager.
+  - ✅ `TestCoreServiceCoverageExpansion.service(self)` - Create a fresh MHMService instance for each test.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_failure_real_behavior(self, service)` - Test logging check and fix failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_success_real_behavior(self, service)` - Test successful logging check and fix.
+  - ✅ `TestCoreServiceCoverageExpansion.test_get_scheduler_manager_real_behavior(self)` - Test getting scheduler manager.
+  - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_real_behavior(self, service)` - Test path initialization with real behavior verification.
+  - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_with_empty_categories_real_behavior(self, service)` - Test path initialization with empty categories list.
+  - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_with_invalid_categories_real_behavior(self, service)` - Test path initialization with invalid categories data.
+  - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_with_none_user_id_real_behavior(self, service)` - Test path initialization with None user ID handling.
+  - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_with_path_generation_error_real_behavior(self, service)` - Test path initialization with path generation error.
+  - ✅ `TestCoreServiceCoverageExpansion.test_main_function_real_behavior(self)` - Test main function behavior.
+  - ✅ `TestCoreServiceCoverageExpansion.test_main_function_with_service_failure_real_behavior(self)` - Test main function with service failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_atexit_handler_real_behavior(self, service)` - Test service atexit handler behavior.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_atexit_handler_with_manager_stop_failure_real_behavior(self, service)` - Test service atexit handler with manager stop failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_atexit_handler_with_none_managers_real_behavior(self, service)` - Test service atexit handler with None managers.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_cleanup_reschedule_requests_real_behavior(self, service)` - Test service cleanup reschedule requests.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_cleanup_test_message_requests_real_behavior(self, service)` - Test service cleanup test message requests.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_initialization_error_real_behavior(self)` - Test InitializationError exception.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_initialization_real_behavior(self, service)` - Test service initialization with real behavior verification.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_retry_mechanism_real_behavior(self, service, mock_config)` - Test service retry mechanism for startup failures.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_signal_handlers_real_behavior(self, service)` - Test service signal handlers setup.
+  - ✅ `TestCoreServiceCoverageExpansion.test_service_startup_time_tracking_real_behavior(self, service)` - Test service startup time tracking.
+  - ✅ `TestCoreServiceCoverageExpansion.test_signal_handler_real_behavior(self, service)` - Test signal handler behavior.
+  - ✅ `TestCoreServiceCoverageExpansion.test_start_service_communication_manager_failure_real_behavior(self, service, mock_config)` - Test service startup with communication manager failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_start_service_configuration_failure_real_behavior(self, service)` - Test service startup with configuration failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_start_service_path_initialization_failure_real_behavior(self, service, mock_config)` - Test service startup with path initialization failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_start_service_scheduler_manager_failure_real_behavior(self, service, mock_config, mock_communication_manager)` - Test service startup with scheduler manager failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_start_service_success_real_behavior(self, service, mock_config, mock_communication_manager, mock_scheduler_manager)` - Test successful service startup.
+  - ✅ `TestCoreServiceCoverageExpansion.test_stop_service_real_behavior(self, service, mock_communication_manager, mock_scheduler_manager)` - Test service shutdown.
+  - ✅ `TestCoreServiceCoverageExpansion.test_stop_service_with_manager_stop_failure_real_behavior(self, service, mock_communication_manager, mock_scheduler_manager)` - Test service shutdown with manager stop failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_stop_service_with_none_managers_real_behavior(self, service)` - Test service shutdown with None managers.
+  - ✅ `TestCoreServiceCoverageExpansion.test_validate_configuration_failure_real_behavior(self, service)` - Test configuration validation failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_validate_configuration_success_real_behavior(self, service, mock_config)` - Test successful configuration validation.
 
 #### `tests/behavior/test_discord_bot_behavior.py`
 **Functions:**
@@ -2067,6 +2707,299 @@ Args:
   - ✅ `TestDiscordBotIntegration.test_discord_message_to_interaction_manager_complete_task_prompt(self, test_data_dir)` - End-to-end-ish: ensure plain 'complete task' routes to InteractionManager and returns a helpful prompt, not a generic error.
   - ✅ `TestDiscordBotIntegration.test_user_setup(self, test_data_dir)` - Set up test user data for integration tests
 
+#### `tests/behavior/test_dynamic_checkin_behavior.py`
+**Functions:**
+- ✅ `test_build_next_question_with_response(self)` - Test building questions with response statements.
+- ✅ `test_complete_question_flow_variety(self)` - Test that complete question flows provide variety.
+- ✅ `test_conversation_manager_uses_dynamic_questions(self)` - Test that the conversation manager uses the dynamic question system.
+- ✅ `test_dynamic_checkin_manager_initialization(self)` - Test that the dynamic check-in manager initializes correctly.
+- ✅ `test_question_definitions(self)` - Test that question definitions are loaded correctly.
+- ✅ `test_question_text_uses_dynamic_manager(self)` - Test that question text is retrieved from the dynamic manager.
+- ✅ `test_response_statements(self)` - Test that response statements are loaded and varied.
+- ✅ `test_response_variety(self)` - Test that we get varied responses for the same answer.
+- ✅ `test_transition_phrase_variety(self)` - Test that transition phrases provide variety.
+- ✅ `test_ui_questions_format(self)` - Test that questions are formatted correctly for UI.
+- ✅ `test_validation(self)` - Test that validation works correctly for different question types.
+- ✅ `test_validation_uses_dynamic_manager(self)` - Test that validation uses the dynamic manager.
+**Classes:**
+- ✅ `TestDynamicCheckinIntegration` - Test integration with the conversation flow manager.
+  - ✅ `TestDynamicCheckinIntegration.test_conversation_manager_uses_dynamic_questions(self)` - Test that the conversation manager uses the dynamic question system.
+  - ✅ `TestDynamicCheckinIntegration.test_question_text_uses_dynamic_manager(self)` - Test that question text is retrieved from the dynamic manager.
+  - ✅ `TestDynamicCheckinIntegration.test_validation_uses_dynamic_manager(self)` - Test that validation uses the dynamic manager.
+- ✅ `TestDynamicCheckinManager` - Test the dynamic check-in manager functionality.
+  - ✅ `TestDynamicCheckinManager.test_build_next_question_with_response(self)` - Test building questions with response statements.
+  - ✅ `TestDynamicCheckinManager.test_dynamic_checkin_manager_initialization(self)` - Test that the dynamic check-in manager initializes correctly.
+  - ✅ `TestDynamicCheckinManager.test_question_definitions(self)` - Test that question definitions are loaded correctly.
+  - ✅ `TestDynamicCheckinManager.test_response_statements(self)` - Test that response statements are loaded and varied.
+  - ✅ `TestDynamicCheckinManager.test_ui_questions_format(self)` - Test that questions are formatted correctly for UI.
+  - ✅ `TestDynamicCheckinManager.test_validation(self)` - Test that validation works correctly for different question types.
+- ✅ `TestDynamicCheckinVariety` - Test that the system provides variety in responses.
+  - ✅ `TestDynamicCheckinVariety.test_complete_question_flow_variety(self)` - Test that complete question flows provide variety.
+  - ✅ `TestDynamicCheckinVariety.test_response_variety(self)` - Test that we get varied responses for the same answer.
+  - ✅ `TestDynamicCheckinVariety.test_transition_phrase_variety(self)` - Test that transition phrases provide variety.
+
+#### `tests/behavior/test_email_bot_behavior.py`
+**Functions:**
+- ❌ `send_email(recipient, message)` - No description
+- ✅ `setup_method(self)` - Set up test environment.
+- ✅ `setup_method(self)` - Set up test environment.
+- ✅ `test_email_bot_data_integrity(self, test_data_dir)` - Test that email bot maintains data integrity.
+- ✅ `test_email_bot_error_handling_preserves_system_stability(self, test_data_dir)` - Test that email bot error handling preserves system stability.
+- ✅ `test_email_bot_initialization_creates_proper_structure(self, test_data_dir)` - Test that EmailBot initialization creates proper internal structure.
+- ✅ `test_email_bot_initialization_with_custom_config(self, test_data_dir)` - Test that EmailBot initialization with custom config works properly.
+- ✅ `test_email_bot_legacy_is_initialized_method_behavior(self, test_data_dir)` - Test legacy is_initialized method behavior.
+- ✅ `test_email_bot_legacy_start_method_behavior(self, test_data_dir)` - Test legacy start method behavior.
+- ✅ `test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir)` - Test legacy start method failure behavior.
+- ✅ `test_email_bot_legacy_stop_method_behavior(self, test_data_dir)` - Test legacy stop method behavior.
+- ✅ `test_email_bot_performance_under_load(self, test_data_dir)` - Test that email bot performs well under load.
+**Classes:**
+- ✅ `TestEmailBotBehavior` - Test real behavior of Email Bot.
+  - ✅ `TestEmailBotBehavior.setup_method(self)` - Set up test environment.
+  - ✅ `TestEmailBotBehavior.test_email_bot_data_integrity(self, test_data_dir)` - Test that email bot maintains data integrity.
+  - ✅ `TestEmailBotBehavior.test_email_bot_error_handling_preserves_system_stability(self, test_data_dir)` - Test that email bot error handling preserves system stability.
+  - ✅ `TestEmailBotBehavior.test_email_bot_initialization_creates_proper_structure(self, test_data_dir)` - Test that EmailBot initialization creates proper internal structure.
+  - ✅ `TestEmailBotBehavior.test_email_bot_initialization_with_custom_config(self, test_data_dir)` - Test that EmailBot initialization with custom config works properly.
+  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_is_initialized_method_behavior(self, test_data_dir)` - Test legacy is_initialized method behavior.
+  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_start_method_behavior(self, test_data_dir)` - Test legacy start method behavior.
+  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir)` - Test legacy start method failure behavior.
+  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_stop_method_behavior(self, test_data_dir)` - Test legacy stop method behavior.
+  - ✅ `TestEmailBotBehavior.test_email_bot_performance_under_load(self, test_data_dir)` - Test that email bot performs well under load.
+- ✅ `TestEmailBotIntegration` - Test integration behavior of Email Bot.
+  - ✅ `TestEmailBotIntegration.setup_method(self)` - Set up test environment.
+
+#### `tests/behavior/test_enhanced_command_parser_behavior.py`
+**Functions:**
+- ❌ `parse_command(command)` - No description
+- ✅ `setup_method(self)` - Set up test environment.
+- ✅ `setup_method(self)` - Set up test environment.
+- ✅ `test_enhanced_command_parser_ai_enhanced_parsing_behavior(self, test_data_dir)` - Test real behavior of AI-enhanced parsing.
+- ✅ `test_enhanced_command_parser_case_insensitivity_behavior(self, test_data_dir)` - Test real behavior of case insensitive matching.
+- ✅ `test_enhanced_command_parser_checkin_patterns_behavior(self, test_data_dir)` - Test real behavior of checkin pattern matching.
+- ✅ `test_enhanced_command_parser_confidence_calculation_behavior(self, test_data_dir)` - Test real behavior of confidence calculation.
+- ✅ `test_enhanced_command_parser_consistency_behavior(self, test_data_dir)` - Test consistency of parsing behavior across multiple calls.
+- ✅ `test_enhanced_command_parser_empty_message_behavior(self, test_data_dir)` - Test parser behavior with empty messages.
+- ✅ `test_enhanced_command_parser_end_to_end_behavior(self, test_data_dir)` - Test end-to-end behavior of command parsing workflow.
+- ✅ `test_enhanced_command_parser_entity_extraction_behavior(self, test_data_dir)` - Test real behavior of entity extraction.
+- ✅ `test_enhanced_command_parser_error_handling_behavior(self, test_data_dir)` - Test real behavior of error handling.
+- ✅ `test_enhanced_command_parser_fallback_behavior(self, test_data_dir)` - Test real behavior of fallback parsing.
+- ✅ `test_enhanced_command_parser_help_patterns_behavior(self, test_data_dir)` - Test real behavior of help pattern matching.
+- ✅ `test_enhanced_command_parser_initialization_behavior(self, test_data_dir)` - Test that parser initializes with all required components.
+- ✅ `test_enhanced_command_parser_memory_behavior(self, test_data_dir)` - Test memory usage behavior of parser.
+- ✅ `test_enhanced_command_parser_pattern_compilation_behavior(self, test_data_dir)` - Test real behavior of pattern compilation.
+- ✅ `test_enhanced_command_parser_performance_behavior(self, test_data_dir)` - Test real behavior of parsing performance.
+- ✅ `test_enhanced_command_parser_task_completion_patterns_behavior(self, test_data_dir)` - Test real behavior of task completion pattern matching.
+- ✅ `test_enhanced_command_parser_task_creation_patterns_behavior(self, test_data_dir)` - Test real behavior of task creation pattern matching.
+- ✅ `test_enhanced_command_parser_task_listing_patterns_behavior(self, test_data_dir)` - Test real behavior of task listing pattern matching.
+- ✅ `test_enhanced_command_parser_thread_safety_behavior(self, test_data_dir)` - Test thread safety behavior of parser.
+- ✅ `test_enhanced_command_parser_unknown_patterns_behavior(self, test_data_dir)` - Test real behavior with unknown patterns.
+- ✅ `test_enhanced_command_parser_with_real_ai_chatbot_behavior(self, test_data_dir)` - Test parser behavior with real AI chatbot.
+- ✅ `test_enhanced_command_parser_with_real_handlers_behavior(self, test_data_dir)` - Test parser behavior with real interaction handlers.
+**Classes:**
+- ✅ `TestEnhancedCommandParserBehavior` - Test real behavior of Enhanced Command Parser.
+  - ✅ `TestEnhancedCommandParserBehavior.setup_method(self)` - Set up test environment.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_ai_enhanced_parsing_behavior(self, test_data_dir)` - Test real behavior of AI-enhanced parsing.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_case_insensitivity_behavior(self, test_data_dir)` - Test real behavior of case insensitive matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_checkin_patterns_behavior(self, test_data_dir)` - Test real behavior of checkin pattern matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_confidence_calculation_behavior(self, test_data_dir)` - Test real behavior of confidence calculation.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_empty_message_behavior(self, test_data_dir)` - Test parser behavior with empty messages.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_entity_extraction_behavior(self, test_data_dir)` - Test real behavior of entity extraction.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_error_handling_behavior(self, test_data_dir)` - Test real behavior of error handling.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_fallback_behavior(self, test_data_dir)` - Test real behavior of fallback parsing.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_help_patterns_behavior(self, test_data_dir)` - Test real behavior of help pattern matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_initialization_behavior(self, test_data_dir)` - Test that parser initializes with all required components.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_pattern_compilation_behavior(self, test_data_dir)` - Test real behavior of pattern compilation.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_performance_behavior(self, test_data_dir)` - Test real behavior of parsing performance.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_task_completion_patterns_behavior(self, test_data_dir)` - Test real behavior of task completion pattern matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_task_creation_patterns_behavior(self, test_data_dir)` - Test real behavior of task creation pattern matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_task_listing_patterns_behavior(self, test_data_dir)` - Test real behavior of task listing pattern matching.
+  - ✅ `TestEnhancedCommandParserBehavior.test_enhanced_command_parser_unknown_patterns_behavior(self, test_data_dir)` - Test real behavior with unknown patterns.
+- ✅ `TestEnhancedCommandParserIntegration` - Test integration behavior of Enhanced Command Parser.
+  - ✅ `TestEnhancedCommandParserIntegration.setup_method(self)` - Set up test environment.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_consistency_behavior(self, test_data_dir)` - Test consistency of parsing behavior across multiple calls.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_end_to_end_behavior(self, test_data_dir)` - Test end-to-end behavior of command parsing workflow.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_memory_behavior(self, test_data_dir)` - Test memory usage behavior of parser.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_thread_safety_behavior(self, test_data_dir)` - Test thread safety behavior of parser.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_with_real_ai_chatbot_behavior(self, test_data_dir)` - Test parser behavior with real AI chatbot.
+  - ✅ `TestEnhancedCommandParserIntegration.test_enhanced_command_parser_with_real_handlers_behavior(self, test_data_dir)` - Test parser behavior with real interaction handlers.
+
+#### `tests/behavior/test_error_handling_coverage_expansion_phase3_final.py`
+**Functions:**
+- ❌ `inner_function()` - No description
+- ❌ `outer_function()` - No description
+- ✅ `test_configuration_error_initialization(self, tmp_path)` - Test ConfigurationError initialization
+- ✅ `test_data_error_initialization(self, tmp_path)` - Test DataError initialization
+- ✅ `test_error_handler_global_instance(self, tmp_path)` - Test the global error_handler instance
+- ✅ `test_error_handler_global_instance_functionality(self, tmp_path)` - Test the global error_handler instance functionality
+- ✅ `test_error_handler_initialization(self, tmp_path)` - Test ErrorHandler initialization
+- ✅ `test_error_handler_retry_limits(self, tmp_path)` - Test error handler retry limits
+- ✅ `test_error_handler_with_attribute_error(self, tmp_path)` - Test error handler with AttributeError
+- ✅ `test_error_handler_with_bytes_warning(self, tmp_path)` - Test error handler with BytesWarning
+- ✅ `test_error_handler_with_complex_context(self, tmp_path)` - Test error handler with complex context
+- ✅ `test_error_handler_with_configuration_error(self, tmp_path)` - Test error handler with ConfigurationError
+- ✅ `test_error_handler_with_connection_error(self, tmp_path)` - Test error handler with ConnectionError
+- ✅ `test_error_handler_with_context(self, tmp_path)` - Test error handler with additional context
+- ✅ `test_error_handler_with_custom_operation(self, tmp_path)` - Test error handler with custom operation name
+- ✅ `test_error_handler_with_data_error(self, tmp_path)` - Test error handler with DataError
+- ✅ `test_error_handler_with_default_operation(self, tmp_path)` - Test error handler with default operation name
+- ✅ `test_error_handler_with_deprecation_warning(self, tmp_path)` - Test error handler with DeprecationWarning
+- ✅ `test_error_handler_with_empty_context(self, tmp_path)` - Test error handler with empty context
+- ✅ `test_error_handler_with_file_operation_error(self, tmp_path)` - Test error handler with FileOperationError
+- ✅ `test_error_handler_with_future_warning(self, tmp_path)` - Test error handler with FutureWarning
+- ✅ `test_error_handler_with_generic_exception(self, tmp_path)` - Test error handler with generic Exception
+- ✅ `test_error_handler_with_import_error(self, tmp_path)` - Test error handler with ImportError
+- ✅ `test_error_handler_with_import_warning(self, tmp_path)` - Test error handler with ImportWarning
+- ✅ `test_error_handler_with_index_error(self, tmp_path)` - Test error handler with IndexError
+- ✅ `test_error_handler_with_io_error(self, tmp_path)` - Test error handler with IOError
+- ✅ `test_error_handler_with_key_error(self, tmp_path)` - Test error handler with KeyError
+- ✅ `test_error_handler_with_long_operation_name(self, tmp_path)` - Test error handler with long operation name
+- ✅ `test_error_handler_with_mhm_error(self, tmp_path)` - Test error handler with MHMError
+- ✅ `test_error_handler_with_module_not_found_error(self, tmp_path)` - Test error handler with ModuleNotFoundError
+- ✅ `test_error_handler_with_multiple_strategies(self, tmp_path)` - Test error handler with multiple recovery strategies
+- ✅ `test_error_handler_with_no_context(self, tmp_path)` - Test error handler with no context
+- ✅ `test_error_handler_with_none_context_and_error(self, tmp_path)` - Test error handler with None context and error
+- ✅ `test_error_handler_with_none_error(self, tmp_path)` - Test error handler with None error
+- ✅ `test_error_handler_with_os_error(self, tmp_path)` - Test error handler with OSError
+- ✅ `test_error_handler_with_pending_deprecation_warning(self, tmp_path)` - Test error handler with PendingDeprecationWarning
+- ✅ `test_error_handler_with_permission_error(self, tmp_path)` - Test error handler with PermissionError
+- ✅ `test_error_handler_with_recovery_strategy(self, tmp_path)` - Test error handler with recovery strategy
+- ✅ `test_error_handler_with_resource_warning(self, tmp_path)` - Test error handler with ResourceWarning
+- ✅ `test_error_handler_with_runtime_error(self, tmp_path)` - Test error handler with RuntimeError
+- ✅ `test_error_handler_with_runtime_warning(self, tmp_path)` - Test error handler with RuntimeWarning
+- ✅ `test_error_handler_with_special_characters_in_context(self, tmp_path)` - Test error handler with special characters in context
+- ✅ `test_error_handler_with_syntax_warning(self, tmp_path)` - Test error handler with SyntaxWarning
+- ✅ `test_error_handler_with_timeout_error(self, tmp_path)` - Test error handler with TimeoutError
+- ✅ `test_error_handler_with_type_error(self, tmp_path)` - Test error handler with TypeError
+- ✅ `test_error_handler_with_unicode_decode_error(self, tmp_path)` - Test error handler with UnicodeDecodeError
+- ✅ `test_error_handler_with_unicode_encode_error(self, tmp_path)` - Test error handler with UnicodeEncodeError
+- ✅ `test_error_handler_with_unicode_error(self, tmp_path)` - Test error handler with UnicodeError
+- ✅ `test_error_handler_with_unicode_translate_error(self, tmp_path)` - Test error handler with UnicodeTranslateError
+- ✅ `test_error_handler_with_unicode_warning(self, tmp_path)` - Test error handler with UnicodeWarning
+- ✅ `test_error_handler_with_unrecoverable_error(self, tmp_path)` - Test error handler with unrecoverable error
+- ✅ `test_error_handler_with_user_friendly_false(self, tmp_path)` - Test error handler with user_friendly=False
+- ✅ `test_error_handler_with_user_friendly_true(self, tmp_path)` - Test error handler with user_friendly=True
+- ✅ `test_error_handler_with_user_warning(self, tmp_path)` - Test error handler with UserWarning
+- ✅ `test_error_handler_with_warning(self, tmp_path)` - Test error handler with Warning
+- ✅ `test_error_recovery_strategy_base_class(self, tmp_path)` - Test ErrorRecoveryStrategy base class
+- ✅ `test_file_not_found_recovery_strategy(self, tmp_path)` - Test FileNotFoundRecovery strategy
+- ✅ `test_file_not_found_recovery_strategy_with_empty_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy with empty file_path in context
+- ✅ `test_file_not_found_recovery_strategy_with_invalid_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy with invalid file_path in context
+- ✅ `test_file_not_found_recovery_strategy_without_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy without file_path in context
+- ✅ `test_file_operation_error_initialization(self, tmp_path)` - Test FileOperationError initialization
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function(arg1, arg2, kwarg1, kwarg2)` - Test Function
+- ✅ `test_function(arg1, arg2)` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_function()` - Test Function
+- ✅ `test_handle_errors_decorator_custom_return(self, tmp_path)` - Test handle_errors decorator with custom return value
+- ✅ `test_handle_errors_decorator_double_failure(self, tmp_path)` - Test handle_errors decorator with double failure after recovery
+- ✅ `test_handle_errors_decorator_exception(self, tmp_path)` - Test handle_errors decorator with exception
+- ✅ `test_handle_errors_decorator_nested_exceptions(self, tmp_path)` - Test handle_errors decorator with nested exceptions
+- ✅ `test_handle_errors_decorator_operation_name(self, tmp_path)` - Test handle_errors decorator with custom operation name
+- ✅ `test_handle_errors_decorator_recovery_failure(self, tmp_path)` - Test handle_errors decorator with failed recovery
+- ✅ `test_handle_errors_decorator_recovery_success(self, tmp_path)` - Test handle_errors decorator with successful recovery
+- ✅ `test_handle_errors_decorator_specific_exception(self, tmp_path)` - Test handle_errors decorator with specific exception handling
+- ✅ `test_handle_errors_decorator_success(self, tmp_path)` - Test handle_errors decorator with successful function
+- ✅ `test_handle_errors_decorator_user_friendly_false(self, tmp_path)` - Test handle_errors decorator with user_friendly=False
+- ✅ `test_handle_errors_decorator_with_all_parameters(self, tmp_path)` - Test handle_errors decorator with all parameters
+- ✅ `test_handle_errors_decorator_with_args_kwargs(self, tmp_path)` - Test handle_errors decorator with function arguments
+- ✅ `test_handle_errors_decorator_with_complex_context(self, tmp_path)` - Test handle_errors decorator with complex context
+- ✅ `test_handle_errors_decorator_with_context(self, tmp_path)` - Test handle_errors decorator with context
+- ✅ `test_handle_errors_decorator_with_exception_in_args(self, tmp_path)` - Test handle_errors decorator with exception in function arguments
+- ✅ `test_handle_errors_decorator_with_operation_and_context(self, tmp_path)` - Test handle_errors decorator with both operation and context
+- ✅ `test_json_decode_recovery_strategy(self, tmp_path)` - Test JSONDecodeRecovery strategy
+- ✅ `test_json_decode_recovery_strategy_recover(self, tmp_path)` - Test JSONDecodeRecovery strategy recover method
+- ✅ `test_mhm_error_initialization(self, tmp_path)` - Test MHMError initialization
+**Classes:**
+- ✅ `TestErrorHandlingCoverageExpansionPhase3Final` - Test coverage expansion for core/error_handling.py - Phase 3 Final
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_configuration_error_initialization(self, tmp_path)` - Test ConfigurationError initialization
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_data_error_initialization(self, tmp_path)` - Test DataError initialization
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_global_instance(self, tmp_path)` - Test the global error_handler instance
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_global_instance_functionality(self, tmp_path)` - Test the global error_handler instance functionality
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_initialization(self, tmp_path)` - Test ErrorHandler initialization
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_retry_limits(self, tmp_path)` - Test error handler retry limits
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_attribute_error(self, tmp_path)` - Test error handler with AttributeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_bytes_warning(self, tmp_path)` - Test error handler with BytesWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_complex_context(self, tmp_path)` - Test error handler with complex context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_configuration_error(self, tmp_path)` - Test error handler with ConfigurationError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_connection_error(self, tmp_path)` - Test error handler with ConnectionError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_context(self, tmp_path)` - Test error handler with additional context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_custom_operation(self, tmp_path)` - Test error handler with custom operation name
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_data_error(self, tmp_path)` - Test error handler with DataError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_default_operation(self, tmp_path)` - Test error handler with default operation name
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_deprecation_warning(self, tmp_path)` - Test error handler with DeprecationWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_empty_context(self, tmp_path)` - Test error handler with empty context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_file_operation_error(self, tmp_path)` - Test error handler with FileOperationError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_future_warning(self, tmp_path)` - Test error handler with FutureWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_generic_exception(self, tmp_path)` - Test error handler with generic Exception
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_import_error(self, tmp_path)` - Test error handler with ImportError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_import_warning(self, tmp_path)` - Test error handler with ImportWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_index_error(self, tmp_path)` - Test error handler with IndexError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_io_error(self, tmp_path)` - Test error handler with IOError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_key_error(self, tmp_path)` - Test error handler with KeyError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_long_operation_name(self, tmp_path)` - Test error handler with long operation name
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_mhm_error(self, tmp_path)` - Test error handler with MHMError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_module_not_found_error(self, tmp_path)` - Test error handler with ModuleNotFoundError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_multiple_strategies(self, tmp_path)` - Test error handler with multiple recovery strategies
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_no_context(self, tmp_path)` - Test error handler with no context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_none_context_and_error(self, tmp_path)` - Test error handler with None context and error
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_none_error(self, tmp_path)` - Test error handler with None error
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_os_error(self, tmp_path)` - Test error handler with OSError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_pending_deprecation_warning(self, tmp_path)` - Test error handler with PendingDeprecationWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_permission_error(self, tmp_path)` - Test error handler with PermissionError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_recovery_strategy(self, tmp_path)` - Test error handler with recovery strategy
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_resource_warning(self, tmp_path)` - Test error handler with ResourceWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_runtime_error(self, tmp_path)` - Test error handler with RuntimeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_runtime_warning(self, tmp_path)` - Test error handler with RuntimeWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_special_characters_in_context(self, tmp_path)` - Test error handler with special characters in context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_syntax_warning(self, tmp_path)` - Test error handler with SyntaxWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_timeout_error(self, tmp_path)` - Test error handler with TimeoutError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_type_error(self, tmp_path)` - Test error handler with TypeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unicode_decode_error(self, tmp_path)` - Test error handler with UnicodeDecodeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unicode_encode_error(self, tmp_path)` - Test error handler with UnicodeEncodeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unicode_error(self, tmp_path)` - Test error handler with UnicodeError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unicode_translate_error(self, tmp_path)` - Test error handler with UnicodeTranslateError
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unicode_warning(self, tmp_path)` - Test error handler with UnicodeWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_unrecoverable_error(self, tmp_path)` - Test error handler with unrecoverable error
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_user_friendly_false(self, tmp_path)` - Test error handler with user_friendly=False
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_user_friendly_true(self, tmp_path)` - Test error handler with user_friendly=True
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_user_warning(self, tmp_path)` - Test error handler with UserWarning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_handler_with_warning(self, tmp_path)` - Test error handler with Warning
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_error_recovery_strategy_base_class(self, tmp_path)` - Test ErrorRecoveryStrategy base class
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_file_not_found_recovery_strategy(self, tmp_path)` - Test FileNotFoundRecovery strategy
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_file_not_found_recovery_strategy_with_empty_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy with empty file_path in context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_file_not_found_recovery_strategy_with_invalid_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy with invalid file_path in context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_file_not_found_recovery_strategy_without_file_path(self, tmp_path)` - Test FileNotFoundRecovery strategy without file_path in context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_file_operation_error_initialization(self, tmp_path)` - Test FileOperationError initialization
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_custom_return(self, tmp_path)` - Test handle_errors decorator with custom return value
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_double_failure(self, tmp_path)` - Test handle_errors decorator with double failure after recovery
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_exception(self, tmp_path)` - Test handle_errors decorator with exception
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_nested_exceptions(self, tmp_path)` - Test handle_errors decorator with nested exceptions
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_operation_name(self, tmp_path)` - Test handle_errors decorator with custom operation name
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_recovery_failure(self, tmp_path)` - Test handle_errors decorator with failed recovery
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_recovery_success(self, tmp_path)` - Test handle_errors decorator with successful recovery
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_specific_exception(self, tmp_path)` - Test handle_errors decorator with specific exception handling
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_success(self, tmp_path)` - Test handle_errors decorator with successful function
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_user_friendly_false(self, tmp_path)` - Test handle_errors decorator with user_friendly=False
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_all_parameters(self, tmp_path)` - Test handle_errors decorator with all parameters
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_args_kwargs(self, tmp_path)` - Test handle_errors decorator with function arguments
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_complex_context(self, tmp_path)` - Test handle_errors decorator with complex context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_context(self, tmp_path)` - Test handle_errors decorator with context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_exception_in_args(self, tmp_path)` - Test handle_errors decorator with exception in function arguments
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_handle_errors_decorator_with_operation_and_context(self, tmp_path)` - Test handle_errors decorator with both operation and context
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_json_decode_recovery_strategy(self, tmp_path)` - Test JSONDecodeRecovery strategy
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_json_decode_recovery_strategy_recover(self, tmp_path)` - Test JSONDecodeRecovery strategy recover method
+  - ✅ `TestErrorHandlingCoverageExpansionPhase3Final.test_mhm_error_initialization(self, tmp_path)` - Test MHMError initialization
+
 #### `tests/behavior/test_interaction_handlers_behavior.py`
 **Functions:**
 - ✅ `_create_test_user(self, user_id, enable_checkins, test_data_dir)` - Create a test user with proper account setup.
@@ -2113,38 +3046,58 @@ Args:
 #### `tests/behavior/test_interaction_handlers_coverage_expansion.py`
 **Functions:**
 - ✅ `mock_communication_manager()` - Mock communication manager for testing.
-- ✅ `test_data_dir()` - Create temporary test data directory.
+- ✅ `test_data_dir(test_path_factory)` - Provide per-test data directory under tests/data/tmp.
 - ✅ `test_get_examples(self)` - Test getting example commands.
 - ✅ `test_get_help(self)` - Test getting help text.
+- ✅ `test_handle_checkin_response_with_invalid_response(self, test_data_dir)` - Test checkin response handling with invalid response format.
 - ✅ `test_handle_checkin_status(self, test_data_dir)` - Test checking check-in status.
 - ✅ `test_handle_commands(self, test_data_dir)` - Test showing commands.
 - ✅ `test_handle_complete_task_no_identifier(self, test_data_dir)` - Test completing a task without identifier.
 - ✅ `test_handle_complete_task_not_found(self, test_data_dir)` - Test completing a task that doesn't exist.
+- ✅ `test_handle_complete_task_suggestion_logic(self, test_data_dir)` - Test task completion suggestion logic when no specific task is mentioned.
 - ✅ `test_handle_complete_task_with_identifier(self, test_data_dir)` - Test completing a task with identifier.
+- ✅ `test_handle_complete_task_with_no_tasks(self, test_data_dir)` - Test task completion when user has no tasks.
 - ✅ `test_handle_continue_checkin(self, test_data_dir)` - Test continuing check-in process.
 - ✅ `test_handle_create_task_invalid_priority(self, test_data_dir)` - Test task creation with invalid priority.
 - ✅ `test_handle_create_task_with_all_properties(self, test_data_dir)` - Test task creation with all properties.
+- ✅ `test_handle_create_task_with_invalid_priority(self, test_data_dir)` - Test task creation with invalid priority (should default to medium).
+- ✅ `test_handle_create_task_with_invalid_recurrence_pattern(self, test_data_dir)` - Test task creation with invalid recurrence pattern (should be ignored).
+- ✅ `test_handle_create_task_with_recurrence_settings(self, test_data_dir)` - Test task creation with recurrence settings from user preferences.
 - ✅ `test_handle_create_task_with_title_only(self, test_data_dir)` - Test task creation with only title.
 - ✅ `test_handle_delete_task_no_identifier(self, test_data_dir)` - Test deleting a task without identifier.
 - ✅ `test_handle_delete_task_with_identifier(self, test_data_dir)` - Test deleting a task with identifier.
+- ✅ `test_handle_delete_task_with_invalid_task_id(self, test_data_dir)` - Test task deletion with invalid task ID.
+- ✅ `test_handle_edit_task_with_invalid_task_id(self, test_data_dir)` - Test task editing with invalid task ID.
 - ✅ `test_handle_examples(self, test_data_dir)` - Test showing examples.
 - ✅ `test_handle_help(self, test_data_dir)` - Test showing help.
+- ✅ `test_handle_help_with_invalid_handler(self, test_data_dir)` - Test help display for invalid handler.
+- ✅ `test_handle_help_with_specific_handler(self, test_data_dir)` - Test help display for specific handler.
 - ✅ `test_handle_list_tasks_due_soon_filter(self, test_data_dir)` - Test listing tasks with due_soon filter.
 - ✅ `test_handle_list_tasks_no_tasks(self, test_data_dir)` - Test listing tasks when user has no tasks.
 - ✅ `test_handle_list_tasks_overdue_filter(self, test_data_dir)` - Test listing tasks with overdue filter.
 - ✅ `test_handle_list_tasks_with_filters(self, test_data_dir)` - Test listing tasks with various filters.
+- ✅ `test_handle_list_tasks_with_priority_filter(self, test_data_dir)` - Test task listing with priority filter.
+- ✅ `test_handle_list_tasks_with_tag_filter(self, test_data_dir)` - Test task listing with tag filter.
 - ✅ `test_handle_list_tasks_with_tasks(self, test_data_dir)` - Test listing tasks when user has tasks.
 - ✅ `test_handle_mood_trends(self, test_data_dir)` - Test showing mood trends.
 - ✅ `test_handle_profile_stats(self, test_data_dir)` - Test showing profile statistics.
 - ✅ `test_handle_show_analytics(self, test_data_dir)` - Test showing analytics.
+- ✅ `test_handle_show_analytics_with_no_data(self, test_data_dir)` - Test analytics display when user has no data.
+- ✅ `test_handle_show_analytics_with_specific_metric(self, test_data_dir)` - Test analytics display with specific metric request.
 - ✅ `test_handle_show_profile(self, test_data_dir)` - Test showing user profile.
+- ✅ `test_handle_show_profile_with_missing_data(self, test_data_dir)` - Test profile display when user data is missing.
 - ✅ `test_handle_show_schedule(self, test_data_dir)` - Test showing user schedule.
+- ✅ `test_handle_show_schedule_with_no_schedules(self, test_data_dir)` - Test schedule display when user has no schedules.
 - ✅ `test_handle_start_checkin_new_user(self, test_data_dir)` - Test starting check-in for new user.
+- ✅ `test_handle_start_checkin_with_disabled_checkins(self, test_data_dir)` - Test starting checkin when checkins are disabled for user.
+- ✅ `test_handle_start_checkin_with_no_questions(self, test_data_dir)` - Test starting checkin when no questions are available.
 - ✅ `test_handle_task_stats_no_data(self, test_data_dir)` - Test task statistics with no data.
 - ✅ `test_handle_task_stats_with_analytics(self, test_data_dir)` - Test task statistics with analytics.
 - ✅ `test_handle_unknown_intent(self, test_data_dir)` - Test handling unknown intent.
 - ✅ `test_handle_update_profile(self, test_data_dir)` - Test updating user profile.
+- ✅ `test_handle_update_profile_with_invalid_data(self, test_data_dir)` - Test profile update with invalid data.
 - ✅ `test_handle_update_schedule(self, test_data_dir)` - Test updating user schedule.
+- ✅ `test_handle_update_schedule_with_invalid_period(self, test_data_dir)` - Test schedule update with invalid time period.
 - ✅ `test_handle_update_task_no_updates(self, test_data_dir)` - Test updating a task without specifying updates.
 - ✅ `test_handle_update_task_with_updates(self, test_data_dir)` - Test updating a task with specific updates.
 - ✅ `test_handler_with_missing_user_data(self, test_data_dir)` - Test handlers with missing user data.
@@ -2155,27 +3108,53 @@ Args:
 - ✅ `test_parse_relative_date_tomorrow(self)` - Test relative date parsing for 'tomorrow'.
 - ✅ `test_task_management_handler_error_handling(self, test_data_dir)` - Test error handling in task management.
 **Classes:**
+- ✅ `TestAnalyticsHandlerAdvancedCoverage` - Test advanced analytics handler functionality for coverage expansion.
+  - ✅ `TestAnalyticsHandlerAdvancedCoverage.test_handle_show_analytics_with_no_data(self, test_data_dir)` - Test analytics display when user has no data.
+  - ✅ `TestAnalyticsHandlerAdvancedCoverage.test_handle_show_analytics_with_specific_metric(self, test_data_dir)` - Test analytics display with specific metric request.
 - ✅ `TestAnalyticsHandlerCoverage` - Test AnalyticsHandler comprehensive coverage.
   - ✅ `TestAnalyticsHandlerCoverage.test_handle_mood_trends(self, test_data_dir)` - Test showing mood trends.
   - ✅ `TestAnalyticsHandlerCoverage.test_handle_show_analytics(self, test_data_dir)` - Test showing analytics.
+- ✅ `TestCheckinHandlerAdvancedCoverage` - Test advanced checkin handler functionality for coverage expansion.
+  - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_checkin_response_with_invalid_response(self, test_data_dir)` - Test checkin response handling with invalid response format.
+  - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_start_checkin_with_disabled_checkins(self, test_data_dir)` - Test starting checkin when checkins are disabled for user.
+  - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_start_checkin_with_no_questions(self, test_data_dir)` - Test starting checkin when no questions are available.
 - ✅ `TestCheckinHandlerCoverage` - Test CheckinHandler comprehensive coverage.
   - ✅ `TestCheckinHandlerCoverage.test_handle_checkin_status(self, test_data_dir)` - Test checking check-in status.
   - ✅ `TestCheckinHandlerCoverage.test_handle_continue_checkin(self, test_data_dir)` - Test continuing check-in process.
   - ✅ `TestCheckinHandlerCoverage.test_handle_start_checkin_new_user(self, test_data_dir)` - Test starting check-in for new user.
 - ✅ `TestErrorHandling` - Test error handling in interaction handlers.
-  - ✅ `TestErrorHandling.test_handler_with_missing_user_data(self, test_data_dir)` - Test handlers with missing user data.
   - ✅ `TestErrorHandling.test_task_management_handler_error_handling(self, test_data_dir)` - Test error handling in task management.
+- ✅ `TestHelpHandlerAdvancedCoverage` - Test advanced help handler functionality for coverage expansion.
+  - ✅ `TestHelpHandlerAdvancedCoverage.test_handle_help_with_invalid_handler(self, test_data_dir)` - Test help display for invalid handler.
+  - ✅ `TestHelpHandlerAdvancedCoverage.test_handle_help_with_specific_handler(self, test_data_dir)` - Test help display for specific handler.
+  - ✅ `TestHelpHandlerAdvancedCoverage.test_handler_with_missing_user_data(self, test_data_dir)` - Test handlers with missing user data.
 - ✅ `TestHelpHandlerCoverage` - Test HelpHandler comprehensive coverage.
   - ✅ `TestHelpHandlerCoverage.test_handle_commands(self, test_data_dir)` - Test showing commands.
   - ✅ `TestHelpHandlerCoverage.test_handle_examples(self, test_data_dir)` - Test showing examples.
   - ✅ `TestHelpHandlerCoverage.test_handle_help(self, test_data_dir)` - Test showing help.
+- ✅ `TestProfileHandlerAdvancedCoverage` - Test advanced profile handler functionality for coverage expansion.
+  - ✅ `TestProfileHandlerAdvancedCoverage.test_handle_show_profile_with_missing_data(self, test_data_dir)` - Test profile display when user data is missing.
+  - ✅ `TestProfileHandlerAdvancedCoverage.test_handle_update_profile_with_invalid_data(self, test_data_dir)` - Test profile update with invalid data.
 - ✅ `TestProfileHandlerCoverage` - Test ProfileHandler comprehensive coverage.
   - ✅ `TestProfileHandlerCoverage.test_handle_profile_stats(self, test_data_dir)` - Test showing profile statistics.
   - ✅ `TestProfileHandlerCoverage.test_handle_show_profile(self, test_data_dir)` - Test showing user profile.
   - ✅ `TestProfileHandlerCoverage.test_handle_update_profile(self, test_data_dir)` - Test updating user profile.
+- ✅ `TestScheduleManagementHandlerAdvancedCoverage` - Test advanced schedule management functionality for coverage expansion.
+  - ✅ `TestScheduleManagementHandlerAdvancedCoverage.test_handle_show_schedule_with_no_schedules(self, test_data_dir)` - Test schedule display when user has no schedules.
+  - ✅ `TestScheduleManagementHandlerAdvancedCoverage.test_handle_update_schedule_with_invalid_period(self, test_data_dir)` - Test schedule update with invalid time period.
 - ✅ `TestScheduleManagementHandlerCoverage` - Test ScheduleManagementHandler comprehensive coverage.
   - ✅ `TestScheduleManagementHandlerCoverage.test_handle_show_schedule(self, test_data_dir)` - Test showing user schedule.
   - ✅ `TestScheduleManagementHandlerCoverage.test_handle_update_schedule(self, test_data_dir)` - Test updating user schedule.
+- ✅ `TestTaskManagementAdvancedCoverage` - Test advanced task management functionality for coverage expansion.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_complete_task_suggestion_logic(self, test_data_dir)` - Test task completion suggestion logic when no specific task is mentioned.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_complete_task_with_no_tasks(self, test_data_dir)` - Test task completion when user has no tasks.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_create_task_with_invalid_priority(self, test_data_dir)` - Test task creation with invalid priority (should default to medium).
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_create_task_with_invalid_recurrence_pattern(self, test_data_dir)` - Test task creation with invalid recurrence pattern (should be ignored).
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_create_task_with_recurrence_settings(self, test_data_dir)` - Test task creation with recurrence settings from user preferences.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_delete_task_with_invalid_task_id(self, test_data_dir)` - Test task deletion with invalid task ID.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_edit_task_with_invalid_task_id(self, test_data_dir)` - Test task editing with invalid task ID.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_list_tasks_with_priority_filter(self, test_data_dir)` - Test task listing with priority filter.
+  - ✅ `TestTaskManagementAdvancedCoverage.test_handle_list_tasks_with_tag_filter(self, test_data_dir)` - Test task listing with tag filter.
 - ✅ `TestTaskManagementHandlerCoverage` - Test TaskManagementHandler comprehensive coverage.
   - ✅ `TestTaskManagementHandlerCoverage.test_get_examples(self)` - Test getting example commands.
   - ✅ `TestTaskManagementHandlerCoverage.test_get_help(self)` - Test getting help text.
@@ -2219,7 +3198,7 @@ Args:
 - ✅ `test_get_logger_creation_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test logger can be created successfully.
 - ✅ `test_get_logger_same_name_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test getting same logger returns same instance.
 - ✅ `test_logger_environment_integration_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test logger integration with environment variables.
-- ✅ `test_logger_full_workflow_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test complete logger workflow.
+- ✅ `test_logger_full_workflow_real_behavior(self, temp_log_dir, monkeypatch)` - REAL BEHAVIOR TEST: Test complete logger workflow.
 - ✅ `test_set_console_log_level_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test setting console log level.
 - ✅ `test_set_verbose_mode_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test setting verbose mode explicitly.
 - ✅ `test_setup_logging_idempotent_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test setup_logging is idempotent.
@@ -2239,7 +3218,7 @@ Args:
 - ✅ `TestLoggerIntegrationBehavior` - Test logger integration with real behavior verification.
   - ✅ `TestLoggerIntegrationBehavior.temp_log_dir(self, test_data_dir)` - Create temporary log directory for testing.
   - ✅ `TestLoggerIntegrationBehavior.test_logger_environment_integration_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test logger integration with environment variables.
-  - ✅ `TestLoggerIntegrationBehavior.test_logger_full_workflow_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test complete logger workflow.
+  - ✅ `TestLoggerIntegrationBehavior.test_logger_full_workflow_real_behavior(self, temp_log_dir, monkeypatch)` - REAL BEHAVIOR TEST: Test complete logger workflow.
 - ✅ `TestLoggerNoiseSuppressionBehavior` - Test noise suppression functionality with real behavior verification.
   - ✅ `TestLoggerNoiseSuppressionBehavior.test_disable_module_logging_real_behavior(self)` - REAL BEHAVIOR TEST: Test disabling specific module logging.
   - ✅ `TestLoggerNoiseSuppressionBehavior.test_suppress_noisy_logging_real_behavior(self)` - REAL BEHAVIOR TEST: Test suppression of noisy third-party logging.
@@ -2252,6 +3231,136 @@ Args:
   - ✅ `TestLoggerVerbosityBehavior.test_set_console_log_level_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test setting console log level.
   - ✅ `TestLoggerVerbosityBehavior.test_set_verbose_mode_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test setting verbose mode explicitly.
   - ✅ `TestLoggerVerbosityBehavior.test_verbose_mode_toggle_real_behavior(self, temp_log_dir)` - REAL BEHAVIOR TEST: Test verbose mode toggle functionality.
+
+#### `tests/behavior/test_logger_coverage_expansion.py`
+**Functions:**
+- ✅ `_setup(self, test_path_factory)` - Set up test environment.
+- ✅ `_setup(self, test_path_factory)` - Set up test environment.
+- ❌ `create_record(level, message)` - No description
+- ❌ `log_messages(thread_id)` - No description
+- ❌ `log_messages(thread_id)` - No description
+- ❌ `log_messages(thread_id)` - No description
+- ✅ `teardown_method(self)` - Clean up test environment.
+- ✅ `teardown_method(self)` - Clean up test environment.
+- ✅ `test_backup_directory_rotating_file_handler_initialization_real_behavior(self)` - Test backup directory rotating file handler initialization.
+- ✅ `test_backup_directory_rotating_file_handler_rollover_disabled_real_behavior(self)` - Test rollover when disabled.
+- ✅ `test_backup_directory_rotating_file_handler_rollover_real_behavior(self)` - Test log file rollover with real behavior.
+- ✅ `test_cleanup_old_archives_real_behavior(self)` - Test cleanup of old archives with real behavior.
+- ✅ `test_cleanup_old_logs_real_behavior(self)` - Test cleanup of old log files with real behavior.
+- ✅ `test_component_logger_custom_level_real_behavior(self)` - Test component logger with custom log level.
+- ✅ `test_component_logger_initialization_real_behavior(self)` - Test that component logger initializes with proper structure.
+- ✅ `test_component_logger_logging_methods_real_behavior(self)` - Test all logging methods with real behavior.
+- ✅ `test_component_logger_structured_data_real_behavior(self)` - Test logging with structured data.
+- ✅ `test_compress_old_logs_no_files_real_behavior(self)` - Test compression when no files exist.
+- ✅ `test_compress_old_logs_real_behavior(self)` - Test compression of old log files with real behavior.
+- ✅ `test_get_component_logger_real_behavior(self)` - Test get_component_logger function with real behavior.
+- ✅ `test_get_log_file_info_real_behavior(self)` - Test get_log_file_info function with real behavior.
+- ✅ `test_get_logger_real_behavior(self)` - Test get_logger function with real behavior.
+- ✅ `test_get_verbose_mode_real_behavior(self)` - Test get_verbose_mode function with real behavior.
+- ✅ `test_heartbeat_warning_filter_real_behavior(self)` - Test heartbeat warning filter with real behavior.
+- ✅ `test_heartbeat_warning_filter_summary_logging_real_behavior(self)` - Test heartbeat warning filter summary logging.
+- ✅ `test_logger_backup_directory_creation_real_behavior(self)` - Test backup directory creation with real behavior.
+- ✅ `test_logger_concurrent_access_safety(self)` - Test that logger handles concurrent access safely.
+- ✅ `test_logger_concurrent_file_access(self)` - Test concurrent file access behavior.
+- ✅ `test_logger_encoding_handling_real_behavior(self)` - Test logger encoding handling with real behavior.
+- ✅ `test_logger_error_handling_real_behavior(self)` - Test logger error handling with real behavior.
+- ✅ `test_logger_error_recovery_with_real_operations(self)` - Test error recovery when working with real operations.
+- ✅ `test_logger_file_rotation_edge_cases(self)` - Test logger file rotation edge cases.
+- ✅ `test_logger_formatter_real_behavior(self)` - Test logger formatter with real behavior.
+- ✅ `test_logger_integration_with_multiple_components(self)` - Test logger integration with multiple components.
+- ✅ `test_logger_level_filtering_real_behavior(self)` - Test logger level filtering with real behavior.
+- ✅ `test_logger_memory_behavior(self)` - Test memory usage behavior of logger.
+- ✅ `test_logger_memory_behavior(self)` - Test memory usage behavior of logger.
+- ✅ `test_logger_performance_under_load(self)` - Test logger performance under load.
+- ✅ `test_logger_thread_safety_behavior(self)` - Test thread safety behavior of logger.
+- ✅ `test_logger_thread_safety_behavior(self)` - Test thread safety behavior of logger.
+- ✅ `test_set_verbose_mode_real_behavior(self)` - Test set_verbose_mode function with real behavior.
+- ✅ `test_setup_logging_real_behavior(self)` - Test setup_logging function with real behavior.
+- ✅ `test_suppress_noisy_logging_real_behavior(self)` - Test suppress_noisy_logging function with real behavior.
+- ✅ `test_toggle_verbose_logging_real_behavior(self)` - Test toggle_verbose_logging function with real behavior.
+- ❌ `write_logs(thread_id)` - No description
+**Classes:**
+- ✅ `TestLoggerCoverageExpansion` - Test Core Logger coverage expansion with real behavior verification.
+  - ✅ `TestLoggerCoverageExpansion._setup(self, test_path_factory)` - Set up test environment.
+  - ✅ `TestLoggerCoverageExpansion.teardown_method(self)` - Clean up test environment.
+  - ✅ `TestLoggerCoverageExpansion.test_backup_directory_rotating_file_handler_initialization_real_behavior(self)` - Test backup directory rotating file handler initialization.
+  - ✅ `TestLoggerCoverageExpansion.test_backup_directory_rotating_file_handler_rollover_disabled_real_behavior(self)` - Test rollover when disabled.
+  - ✅ `TestLoggerCoverageExpansion.test_backup_directory_rotating_file_handler_rollover_real_behavior(self)` - Test log file rollover with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_cleanup_old_archives_real_behavior(self)` - Test cleanup of old archives with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_cleanup_old_logs_real_behavior(self)` - Test cleanup of old log files with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_component_logger_custom_level_real_behavior(self)` - Test component logger with custom log level.
+  - ✅ `TestLoggerCoverageExpansion.test_component_logger_initialization_real_behavior(self)` - Test that component logger initializes with proper structure.
+  - ✅ `TestLoggerCoverageExpansion.test_component_logger_logging_methods_real_behavior(self)` - Test all logging methods with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_component_logger_structured_data_real_behavior(self)` - Test logging with structured data.
+  - ✅ `TestLoggerCoverageExpansion.test_compress_old_logs_no_files_real_behavior(self)` - Test compression when no files exist.
+  - ✅ `TestLoggerCoverageExpansion.test_compress_old_logs_real_behavior(self)` - Test compression of old log files with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_get_component_logger_real_behavior(self)` - Test get_component_logger function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_get_log_file_info_real_behavior(self)` - Test get_log_file_info function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_get_logger_real_behavior(self)` - Test get_logger function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_get_verbose_mode_real_behavior(self)` - Test get_verbose_mode function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_heartbeat_warning_filter_real_behavior(self)` - Test heartbeat warning filter with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_heartbeat_warning_filter_summary_logging_real_behavior(self)` - Test heartbeat warning filter summary logging.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_backup_directory_creation_real_behavior(self)` - Test backup directory creation with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_concurrent_file_access(self)` - Test concurrent file access behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_encoding_handling_real_behavior(self)` - Test logger encoding handling with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_error_handling_real_behavior(self)` - Test logger error handling with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_file_rotation_edge_cases(self)` - Test logger file rotation edge cases.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_formatter_real_behavior(self)` - Test logger formatter with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_level_filtering_real_behavior(self)` - Test logger level filtering with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_memory_behavior(self)` - Test memory usage behavior of logger.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_performance_under_load(self)` - Test logger performance under load.
+  - ✅ `TestLoggerCoverageExpansion.test_logger_thread_safety_behavior(self)` - Test thread safety behavior of logger.
+  - ✅ `TestLoggerCoverageExpansion.test_set_verbose_mode_real_behavior(self)` - Test set_verbose_mode function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_setup_logging_real_behavior(self)` - Test setup_logging function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_suppress_noisy_logging_real_behavior(self)` - Test suppress_noisy_logging function with real behavior.
+  - ✅ `TestLoggerCoverageExpansion.test_toggle_verbose_logging_real_behavior(self)` - Test toggle_verbose_logging function with real behavior.
+- ✅ `TestLoggerIntegration` - Test integration behavior of Core Logger.
+  - ✅ `TestLoggerIntegration._setup(self, test_path_factory)` - Set up test environment.
+  - ✅ `TestLoggerIntegration.teardown_method(self)` - Clean up test environment.
+  - ✅ `TestLoggerIntegration.test_logger_concurrent_access_safety(self)` - Test that logger handles concurrent access safely.
+  - ✅ `TestLoggerIntegration.test_logger_error_recovery_with_real_operations(self)` - Test error recovery when working with real operations.
+  - ✅ `TestLoggerIntegration.test_logger_integration_with_multiple_components(self)` - Test logger integration with multiple components.
+  - ✅ `TestLoggerIntegration.test_logger_memory_behavior(self)` - Test memory usage behavior of logger.
+  - ✅ `TestLoggerIntegration.test_logger_thread_safety_behavior(self)` - Test thread safety behavior of logger.
+
+#### `tests/behavior/test_logger_coverage_expansion_phase3_simple.py`
+**Functions:**
+- ✅ `test_backup_directory_rotating_file_handler_initialization_simple(self, tmp_path)` - Test BackupDirectoryRotatingFileHandler initialization with simple parameters
+- ✅ `test_backup_directory_rotating_file_handler_rollover_simple(self, tmp_path)` - Test BackupDirectoryRotatingFileHandler rollover with simple conditions
+- ✅ `test_cleanup_old_archives_simple(self, tmp_path)` - Test cleanup_old_archives with simple conditions
+- ✅ `test_cleanup_old_logs_simple(self, tmp_path)` - Test cleanup_old_logs with simple conditions
+- ✅ `test_component_logger_channels_alias_simple(self, tmp_path)` - Test that 'channels' component name is aliased to 'communication_manager'
+- ✅ `test_component_logger_error_handling_during_creation_simple(self, tmp_path)` - Test ComponentLogger error handling during creation
+- ✅ `test_component_logger_unknown_component_fallback_simple(self, tmp_path)` - Test that unknown component names fall back to main log file
+- ✅ `test_compress_old_logs_simple(self, tmp_path)` - Test compress_old_logs with simple conditions
+- ✅ `test_environment_detection_functions_simple(self, tmp_path)` - Test environment detection functions
+- ✅ `test_get_log_file_info_function(self, tmp_path)` - Test get_log_file_info function with proper mocking
+- ✅ `test_get_log_file_info_with_nonexistent_files(self, tmp_path)` - Test get_log_file_info with nonexistent files
+- ✅ `test_heartbeat_warning_filter_simple(self, tmp_path)` - Test HeartbeatWarningFilter basic functionality
+- ✅ `test_logger_integration_with_multiple_components_simple(self, tmp_path)` - Test logger integration with multiple components
+- ✅ `test_logger_performance_under_high_load_simple(self, tmp_path)` - Test logger performance under high load conditions
+- ✅ `test_setup_logging_environment_detection_simple(self, tmp_path)` - Test setup_logging with different environment configurations
+- ✅ `test_suppress_noisy_logging_simple(self, tmp_path)` - Test suppress_noisy_logging function
+- ✅ `test_verbose_mode_functions_simple(self, tmp_path)` - Test verbose mode setting and getting functions
+**Classes:**
+- ✅ `TestLoggerCoverageExpansionPhase3Simple` - Simple test suite to expand logger coverage from 68% to 75%+
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_backup_directory_rotating_file_handler_initialization_simple(self, tmp_path)` - Test BackupDirectoryRotatingFileHandler initialization with simple parameters
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_backup_directory_rotating_file_handler_rollover_simple(self, tmp_path)` - Test BackupDirectoryRotatingFileHandler rollover with simple conditions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_cleanup_old_archives_simple(self, tmp_path)` - Test cleanup_old_archives with simple conditions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_cleanup_old_logs_simple(self, tmp_path)` - Test cleanup_old_logs with simple conditions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_component_logger_channels_alias_simple(self, tmp_path)` - Test that 'channels' component name is aliased to 'communication_manager'
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_component_logger_error_handling_during_creation_simple(self, tmp_path)` - Test ComponentLogger error handling during creation
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_component_logger_unknown_component_fallback_simple(self, tmp_path)` - Test that unknown component names fall back to main log file
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_compress_old_logs_simple(self, tmp_path)` - Test compress_old_logs with simple conditions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_environment_detection_functions_simple(self, tmp_path)` - Test environment detection functions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_get_log_file_info_function(self, tmp_path)` - Test get_log_file_info function with proper mocking
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_get_log_file_info_with_nonexistent_files(self, tmp_path)` - Test get_log_file_info with nonexistent files
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_heartbeat_warning_filter_simple(self, tmp_path)` - Test HeartbeatWarningFilter basic functionality
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_logger_integration_with_multiple_components_simple(self, tmp_path)` - Test logger integration with multiple components
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_logger_performance_under_high_load_simple(self, tmp_path)` - Test logger performance under high load conditions
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_setup_logging_environment_detection_simple(self, tmp_path)` - Test setup_logging with different environment configurations
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_suppress_noisy_logging_simple(self, tmp_path)` - Test suppress_noisy_logging function
+  - ✅ `TestLoggerCoverageExpansionPhase3Simple.test_verbose_mode_functions_simple(self, tmp_path)` - Test verbose mode setting and getting functions
 
 #### `tests/behavior/test_message_behavior.py`
 **Functions:**
@@ -2482,10 +3591,16 @@ Args:
 - ✅ `test_process_category_schedule_real_behavior(self)` - Test processing schedule for a specific category.
 - ✅ `test_process_user_schedules_real_behavior(self)` - Test processing schedules for a specific user.
 - ✅ `test_run_daily_scheduler_thread_creation_real_behavior(self, scheduler_manager)` - Test that run_daily_scheduler creates a thread and starts it.
+- ✅ `test_schedule_all_task_reminders_missing_times_real_behavior(self, scheduler_manager)` - Test scheduling task reminders with missing start/end times.
+- ✅ `test_schedule_all_task_reminders_no_tasks_real_behavior(self, scheduler_manager)` - Test scheduling task reminders when no tasks exist.
 - ✅ `test_schedule_all_task_reminders_real_behavior(self, scheduler_manager)` - Test scheduling all task reminders for a user.
 - ✅ `test_schedule_all_task_reminders_standalone_real_behavior(self)` - Test standalone schedule_all_task_reminders function.
 - ✅ `test_schedule_all_task_reminders_tasks_disabled(self, scheduler_manager)` - Test scheduling task reminders when tasks are disabled.
+- ✅ `test_schedule_all_task_reminders_with_tasks_real_behavior(self, scheduler_manager)` - Test scheduling task reminders when tasks exist.
 - ✅ `test_schedule_all_users_immediately_real_behavior(self, scheduler_manager, test_data_dir)` - Test scheduling all users immediately with real behavior verification.
+- ✅ `test_schedule_checkin_at_exact_time_real_behavior(self, scheduler_manager)` - Test scheduling check-in at exact time with real behavior.
+- ✅ `test_schedule_checkin_missing_period_real_behavior(self, scheduler_manager)` - Test check-in scheduling with missing time period.
+- ✅ `test_schedule_checkin_missing_start_time_real_behavior(self, scheduler_manager)` - Test check-in scheduling with missing start time.
 - ✅ `test_schedule_daily_message_job_no_periods(self, scheduler_manager)` - Test scheduling daily messages when no periods are available.
 - ✅ `test_schedule_daily_message_job_real_behavior(self, scheduler_manager)` - Test scheduling daily messages for a specific user and category.
 - ✅ `test_schedule_message_for_period_max_retries_exceeded(self, scheduler_manager)` - Test scheduling with max retries exceeded.
@@ -2494,13 +3609,22 @@ Args:
 - ✅ `test_schedule_new_user_real_behavior(self, scheduler_manager, test_data_dir)` - Test scheduling a newly created user.
 - ✅ `test_schedule_task_reminder_at_time_completed_task(self, scheduler_manager)` - Test scheduling task reminder for a completed task.
 - ✅ `test_schedule_task_reminder_at_time_real_behavior(self, scheduler_manager)` - Test scheduling a task reminder at a specific time.
+- ✅ `test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager)` - Test that scheduler loop properly schedules daily jobs for all users.
+- ✅ `test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop error handling when scheduling fails.
+- ✅ `test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop properly responds to stop events.
 - ✅ `test_scheduler_manager_initialization_real_behavior(self, mock_communication_manager)` - Test SchedulerManager initialization with real behavior verification.
 - ✅ `test_scheduler_manager_no_communication_manager(self)` - Test scheduler manager with no communication manager.
 - ✅ `test_set_wake_timer_failure_handling(self, scheduler_manager)` - Test wake timer failure handling.
+- ✅ `test_set_wake_timer_process_failure_real_behavior(self, scheduler_manager)` - Test wake timer setting when process fails.
 - ✅ `test_set_wake_timer_real_behavior(self, scheduler_manager)` - Test setting wake timer for scheduled messages.
+- ✅ `test_set_wake_timer_success_real_behavior(self, scheduler_manager)` - Test successful wake timer setting.
 - ✅ `test_stop_scheduler_no_thread_graceful_handling(self, scheduler_manager)` - Test stopping scheduler when no thread is running.
 - ✅ `test_stop_scheduler_thread_cleanup_real_behavior(self, scheduler_manager)` - Test that stop_scheduler properly cleans up the thread.
 **Classes:**
+- ✅ `TestCheckinSchedulingCoverage` - Test check-in scheduling functionality.
+  - ✅ `TestCheckinSchedulingCoverage.test_schedule_checkin_at_exact_time_real_behavior(self, scheduler_manager)` - Test scheduling check-in at exact time with real behavior.
+  - ✅ `TestCheckinSchedulingCoverage.test_schedule_checkin_missing_period_real_behavior(self, scheduler_manager)` - Test check-in scheduling with missing time period.
+  - ✅ `TestCheckinSchedulingCoverage.test_schedule_checkin_missing_start_time_real_behavior(self, scheduler_manager)` - Test check-in scheduling with missing start time.
 - ✅ `TestCleanupOperations` - Test cleanup operations.
   - ✅ `TestCleanupOperations.test_cleanup_old_tasks_real_behavior(self, scheduler_manager)` - Test cleaning up old scheduled tasks.
   - ✅ `TestCleanupOperations.test_cleanup_task_reminders_real_behavior(self, scheduler_manager)` - Test cleaning up task reminders.
@@ -2522,6 +3646,10 @@ Args:
   - ✅ `TestMessageScheduling.test_schedule_message_for_period_real_behavior(self, scheduler_manager)` - Test scheduling a message for a specific period.
   - ✅ `TestMessageScheduling.test_schedule_message_for_period_time_conflict_retry(self, scheduler_manager)` - Test scheduling with time conflicts and retry logic.
   - ✅ `TestMessageScheduling.test_schedule_new_user_real_behavior(self, scheduler_manager, test_data_dir)` - Test scheduling a newly created user.
+- ✅ `TestSchedulerLoopCoverage` - Test scheduler loop functionality and error handling.
+  - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager)` - Test that scheduler loop properly schedules daily jobs for all users.
+  - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop error handling when scheduling fails.
+  - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop properly responds to stop events.
 - ✅ `TestSchedulerManagerLifecycle` - Test SchedulerManager lifecycle and threading.
   - ✅ `TestSchedulerManagerLifecycle.test_run_daily_scheduler_thread_creation_real_behavior(self, scheduler_manager)` - Test that run_daily_scheduler creates a thread and starts it.
   - ✅ `TestSchedulerManagerLifecycle.test_scheduler_manager_initialization_real_behavior(self, mock_communication_manager)` - Test SchedulerManager initialization with real behavior verification.
@@ -2539,11 +3667,18 @@ Args:
   - ✅ `TestTaskReminderScheduling.test_schedule_all_task_reminders_tasks_disabled(self, scheduler_manager)` - Test scheduling task reminders when tasks are disabled.
   - ✅ `TestTaskReminderScheduling.test_schedule_task_reminder_at_time_completed_task(self, scheduler_manager)` - Test scheduling task reminder for a completed task.
   - ✅ `TestTaskReminderScheduling.test_schedule_task_reminder_at_time_real_behavior(self, scheduler_manager)` - Test scheduling a task reminder at a specific time.
+- ✅ `TestTaskReminderSchedulingCoverage` - Test task reminder scheduling functionality.
+  - ✅ `TestTaskReminderSchedulingCoverage.test_schedule_all_task_reminders_missing_times_real_behavior(self, scheduler_manager)` - Test scheduling task reminders with missing start/end times.
+  - ✅ `TestTaskReminderSchedulingCoverage.test_schedule_all_task_reminders_no_tasks_real_behavior(self, scheduler_manager)` - Test scheduling task reminders when no tasks exist.
+  - ✅ `TestTaskReminderSchedulingCoverage.test_schedule_all_task_reminders_with_tasks_real_behavior(self, scheduler_manager)` - Test scheduling task reminders when tasks exist.
 - ✅ `TestTimeManagement` - Test time management and conflict detection.
   - ✅ `TestTimeManagement.test_get_random_time_within_period_future_scheduling(self, scheduler_manager)` - Test getting random time for future scheduling.
   - ✅ `TestTimeManagement.test_get_random_time_within_period_invalid_period(self, scheduler_manager)` - Test getting random time with invalid period.
   - ✅ `TestTimeManagement.test_is_time_conflict_no_conflict_different_user(self, scheduler_manager)` - Test time conflict detection with different user.
   - ✅ `TestTimeManagement.test_is_time_conflict_with_conflict_real_behavior(self, scheduler_manager)` - Test time conflict detection when conflicts exist.
+- ✅ `TestWakeTimerCoverage` - Test wake timer functionality.
+  - ✅ `TestWakeTimerCoverage.test_set_wake_timer_process_failure_real_behavior(self, scheduler_manager)` - Test wake timer setting when process fails.
+  - ✅ `TestWakeTimerCoverage.test_set_wake_timer_success_real_behavior(self, scheduler_manager)` - Test successful wake timer setting.
 - ✅ `TestWakeTimerFunctionality` - Test wake timer functionality (Windows scheduled tasks).
   - ✅ `TestWakeTimerFunctionality.test_set_wake_timer_failure_handling(self, scheduler_manager)` - Test wake timer failure handling.
   - ✅ `TestWakeTimerFunctionality.test_set_wake_timer_real_behavior(self, scheduler_manager)` - Test setting wake timer for scheduled messages.
@@ -2587,8 +3722,8 @@ Args:
 Updates the service running status and startup time to simulate
 real service startup behavior for testing.
 - ✅ `service(self)` - Create an MHMService instance for testing.
-- ✅ `temp_base_dir(self)` - Create a temporary base directory for file-based communication tests.
-- ✅ `temp_dir(self)` - Create a temporary directory for testing.
+- ✅ `temp_base_dir(self, test_path_factory)` - Provide a per-test base directory under tests/data/tmp for file-based communication tests.
+- ✅ `temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
 - ✅ `test_check_and_fix_logging_real_behavior(self, temp_dir, service)` - REAL BEHAVIOR TEST: Test logging health check with real file operations.
 - ✅ `test_check_reschedule_requests_real_behavior(self, temp_base_dir, service)` - REAL BEHAVIOR TEST: Test processing of reschedule request files with real file operations.
 - ✅ `test_check_test_message_requests_real_behavior(self, temp_base_dir, service)` - REAL BEHAVIOR TEST: Test processing of test message request files with real file operations.
@@ -2618,8 +3753,8 @@ real service startup behavior for testing.
 **Classes:**
 - ✅ `TestMHMService` - Test cases for the MHMService class.
   - ✅ `TestMHMService.service(self)` - Create an MHMService instance for testing.
-  - ✅ `TestMHMService.temp_base_dir(self)` - Create a temporary base directory for file-based communication tests.
-  - ✅ `TestMHMService.temp_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestMHMService.temp_base_dir(self, test_path_factory)` - Provide a per-test base directory under tests/data/tmp for file-based communication tests.
+  - ✅ `TestMHMService.temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
   - ✅ `TestMHMService.test_check_and_fix_logging_real_behavior(self, temp_dir, service)` - REAL BEHAVIOR TEST: Test logging health check with real file operations.
   - ✅ `TestMHMService.test_check_reschedule_requests_real_behavior(self, temp_base_dir, service)` - REAL BEHAVIOR TEST: Test processing of reschedule request files with real file operations.
   - ✅ `TestMHMService.test_check_test_message_requests_real_behavior(self, temp_base_dir, service)` - REAL BEHAVIOR TEST: Test processing of test message request files with real file operations.
@@ -2703,7 +3838,7 @@ real service startup behavior for testing.
 
 #### `tests/behavior/test_task_behavior.py`
 **Functions:**
-- ✅ `temp_dir(self)` - Create a temporary directory for testing.
+- ✅ `temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
 - ✅ `test_are_tasks_enabled(self, mock_get_user_data)` - Test checking if tasks are enabled with mock user data.
 - ✅ `test_complete_task(self, mock_get_user_dir, temp_dir)` - Test task completion with file and side effect verification.
 - ✅ `test_create_task(self, mock_get_user_dir, temp_dir)` - Test task creation with file verification.
@@ -2718,7 +3853,7 @@ real service startup behavior for testing.
 - ✅ `user_id(self)` - Create a test user ID.
 **Classes:**
 - ✅ `TestTaskManagement` - Test cases for task management functions.
-  - ✅ `TestTaskManagement.temp_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestTaskManagement.temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
   - ✅ `TestTaskManagement.test_are_tasks_enabled(self, mock_get_user_data)` - Test checking if tasks are enabled with mock user data.
   - ✅ `TestTaskManagement.test_complete_task(self, mock_get_user_dir, temp_dir)` - Test task completion with file and side effect verification.
   - ✅ `TestTaskManagement.test_create_task(self, mock_get_user_dir, temp_dir)` - Test task creation with file verification.
@@ -2735,7 +3870,7 @@ real service startup behavior for testing.
 #### `tests/behavior/test_task_management_coverage_expansion.py`
 **Functions:**
 - ✅ `mock_user_data_dir(self, temp_dir)` - Mock user data directory.
-- ✅ `temp_dir(self)` - Create a temporary directory for testing.
+- ✅ `temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
 - ✅ `test_add_user_task_tag_empty_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding empty task tag.
 - ✅ `test_add_user_task_tag_empty_user_id_real_behavior(self, mock_user_data_dir)` - Test adding task tag with empty user ID.
 - ✅ `test_add_user_task_tag_existing_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding an existing task tag.
@@ -2793,7 +3928,7 @@ real service startup behavior for testing.
 **Classes:**
 - ✅ `TestTaskManagementCoverageExpansion` - Comprehensive test coverage expansion for task management.
   - ✅ `TestTaskManagementCoverageExpansion.mock_user_data_dir(self, temp_dir)` - Mock user data directory.
-  - ✅ `TestTaskManagementCoverageExpansion.temp_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestTaskManagementCoverageExpansion.temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
   - ✅ `TestTaskManagementCoverageExpansion.test_add_user_task_tag_empty_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding empty task tag.
   - ✅ `TestTaskManagementCoverageExpansion.test_add_user_task_tag_empty_user_id_real_behavior(self, mock_user_data_dir)` - Test adding task tag with empty user ID.
   - ✅ `TestTaskManagementCoverageExpansion.test_add_user_task_tag_existing_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding an existing task tag.
@@ -2951,6 +4086,114 @@ real service startup behavior for testing.
   - ✅ `TestUserContextManagerIntegration.test_user_context_manager_error_recovery_with_real_files(self, test_data_dir)` - Test UserContextManager error recovery with corrupted real files.
   - ✅ `TestUserContextManagerIntegration.test_user_context_manager_with_real_user_data(self, test_data_dir)` - Test UserContextManager with real user data files.
 
+#### `tests/behavior/test_user_management_coverage_expansion.py`
+**Functions:**
+- ✅ `_setup(self, test_path_factory, monkeypatch)` - Set up test environment with per-test directory and path patches.
+- ✅ `_setup(self, test_path_factory)` - Set up test environment.
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ❌ `mock_path(user_id, file_type)` - No description
+- ✅ `teardown_method(self)` - Clean up test environment.
+- ✅ `teardown_method(self)` - Clean up test environment.
+- ✅ `test_cache_management_real_behavior(self)` - Test cache management behavior.
+- ✅ `test_cache_timeout_real_behavior(self)` - Test cache timeout behavior.
+- ✅ `test_create_default_schedule_periods_checkin_real_behavior(self)` - Test creating default schedule periods for checkin category.
+- ✅ `test_create_default_schedule_periods_no_category_real_behavior(self)` - Test creating default schedule periods without category.
+- ✅ `test_create_default_schedule_periods_other_category_real_behavior(self)` - Test creating default schedule periods for other categories.
+- ✅ `test_create_default_schedule_periods_tasks_real_behavior(self)` - Test creating default schedule periods for tasks category.
+- ✅ `test_data_validation_real_behavior(self)` - Test data validation behavior.
+- ✅ `test_error_handling_load_account_real_behavior(self)` - Test error handling in account loading.
+- ✅ `test_error_handling_save_account_real_behavior(self)` - Test error handling in account saving.
+- ✅ `test_file_persistence_real_behavior(self)` - Test file persistence behavior.
+- ✅ `test_get_all_user_ids_no_directory_real_behavior(self)` - Test getting user IDs when directory doesn't exist.
+- ✅ `test_get_all_user_ids_real_behavior(self)` - Test getting all user IDs with real behavior.
+- ✅ `test_get_available_data_types_real_behavior(self)` - Test getting available data types.
+- ✅ `test_get_data_type_info_real_behavior(self)` - Test getting data type information.
+- ✅ `test_load_account_data_auto_create_real_behavior(self)` - Test auto-creating account data when file doesn't exist.
+- ✅ `test_load_account_data_no_auto_create_real_behavior(self)` - Test loading account data without auto-creation.
+- ✅ `test_load_account_data_real_behavior(self)` - Test loading account data with real behavior.
+- ✅ `test_load_context_data_auto_create_real_behavior(self)` - Test auto-creating context data when file doesn't exist.
+- ✅ `test_load_context_data_real_behavior(self)` - Test loading context data with real behavior.
+- ✅ `test_load_preferences_data_auto_create_real_behavior(self)` - Test auto-creating preferences data when file doesn't exist.
+- ✅ `test_load_preferences_data_real_behavior(self)` - Test loading preferences data with real behavior.
+- ✅ `test_load_schedules_data_auto_create_real_behavior(self)` - Test auto-creating schedules data when file doesn't exist.
+- ✅ `test_load_schedules_data_real_behavior(self)` - Test loading schedules data with real behavior.
+- ✅ `test_loader(user_id, auto_create)` - Test Loader
+- ✅ `test_register_data_loader_real_behavior(self)` - Test data loader registration with real behavior.
+- ✅ `test_save_account_data_invalid_user_id_real_behavior(self)` - Test saving account data with invalid user ID.
+- ✅ `test_save_account_data_real_behavior(self)` - Test saving account data with real behavior.
+- ✅ `test_save_context_data_real_behavior(self)` - Test saving context data with real behavior.
+- ✅ `test_save_preferences_data_real_behavior(self)` - Test saving preferences data with real behavior.
+- ✅ `test_save_schedules_data_invalid_user_id_real_behavior(self)` - Test saving schedules data with invalid user ID.
+- ✅ `test_save_schedules_data_real_behavior(self)` - Test saving schedules data with real behavior.
+- ✅ `test_update_user_schedules_invalid_user_id_real_behavior(self)` - Test updating schedules with invalid user ID.
+- ✅ `test_update_user_schedules_real_behavior(self)` - Test updating user schedules with real behavior.
+- ✅ `test_user_data_concurrent_access_real_behavior(self)` - Test user data concurrent access behavior.
+- ✅ `test_user_data_consistency_real_behavior(self)` - Test user data consistency across operations.
+- ✅ `test_user_data_error_recovery_real_behavior(self)` - Test user data error recovery.
+- ✅ `test_user_data_lifecycle_real_behavior(self)` - Test complete user data lifecycle.
+- ✅ `test_user_data_performance_real_behavior(self)` - Test user data performance under load.
+- ❌ `user_operation(thread_id)` - No description
+**Classes:**
+- ✅ `TestUserManagementCoverageExpansion` - Test Core User Management coverage expansion with real behavior verification.
+  - ✅ `TestUserManagementCoverageExpansion._setup(self, test_path_factory, monkeypatch)` - Set up test environment with per-test directory and path patches.
+  - ✅ `TestUserManagementCoverageExpansion.teardown_method(self)` - Clean up test environment.
+  - ✅ `TestUserManagementCoverageExpansion.test_cache_management_real_behavior(self)` - Test cache management behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_cache_timeout_real_behavior(self)` - Test cache timeout behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_create_default_schedule_periods_checkin_real_behavior(self)` - Test creating default schedule periods for checkin category.
+  - ✅ `TestUserManagementCoverageExpansion.test_create_default_schedule_periods_no_category_real_behavior(self)` - Test creating default schedule periods without category.
+  - ✅ `TestUserManagementCoverageExpansion.test_create_default_schedule_periods_other_category_real_behavior(self)` - Test creating default schedule periods for other categories.
+  - ✅ `TestUserManagementCoverageExpansion.test_create_default_schedule_periods_tasks_real_behavior(self)` - Test creating default schedule periods for tasks category.
+  - ✅ `TestUserManagementCoverageExpansion.test_data_validation_real_behavior(self)` - Test data validation behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_error_handling_load_account_real_behavior(self)` - Test error handling in account loading.
+  - ✅ `TestUserManagementCoverageExpansion.test_error_handling_save_account_real_behavior(self)` - Test error handling in account saving.
+  - ✅ `TestUserManagementCoverageExpansion.test_file_persistence_real_behavior(self)` - Test file persistence behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_get_all_user_ids_no_directory_real_behavior(self)` - Test getting user IDs when directory doesn't exist.
+  - ✅ `TestUserManagementCoverageExpansion.test_get_all_user_ids_real_behavior(self)` - Test getting all user IDs with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_get_available_data_types_real_behavior(self)` - Test getting available data types.
+  - ✅ `TestUserManagementCoverageExpansion.test_get_data_type_info_real_behavior(self)` - Test getting data type information.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_account_data_auto_create_real_behavior(self)` - Test auto-creating account data when file doesn't exist.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_account_data_no_auto_create_real_behavior(self)` - Test loading account data without auto-creation.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_account_data_real_behavior(self)` - Test loading account data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_context_data_auto_create_real_behavior(self)` - Test auto-creating context data when file doesn't exist.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_context_data_real_behavior(self)` - Test loading context data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_preferences_data_auto_create_real_behavior(self)` - Test auto-creating preferences data when file doesn't exist.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_preferences_data_real_behavior(self)` - Test loading preferences data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_schedules_data_auto_create_real_behavior(self)` - Test auto-creating schedules data when file doesn't exist.
+  - ✅ `TestUserManagementCoverageExpansion.test_load_schedules_data_real_behavior(self)` - Test loading schedules data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_register_data_loader_real_behavior(self)` - Test data loader registration with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_account_data_invalid_user_id_real_behavior(self)` - Test saving account data with invalid user ID.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_account_data_real_behavior(self)` - Test saving account data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_context_data_real_behavior(self)` - Test saving context data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_preferences_data_real_behavior(self)` - Test saving preferences data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_schedules_data_invalid_user_id_real_behavior(self)` - Test saving schedules data with invalid user ID.
+  - ✅ `TestUserManagementCoverageExpansion.test_save_schedules_data_real_behavior(self)` - Test saving schedules data with real behavior.
+  - ✅ `TestUserManagementCoverageExpansion.test_update_user_schedules_invalid_user_id_real_behavior(self)` - Test updating schedules with invalid user ID.
+  - ✅ `TestUserManagementCoverageExpansion.test_update_user_schedules_real_behavior(self)` - Test updating user schedules with real behavior.
+- ✅ `TestUserManagementIntegration` - Test integration behavior of Core User Management.
+  - ✅ `TestUserManagementIntegration._setup(self, test_path_factory)` - Set up test environment.
+  - ✅ `TestUserManagementIntegration.teardown_method(self)` - Clean up test environment.
+  - ✅ `TestUserManagementIntegration.test_user_data_concurrent_access_real_behavior(self)` - Test user data concurrent access behavior.
+  - ✅ `TestUserManagementIntegration.test_user_data_consistency_real_behavior(self)` - Test user data consistency across operations.
+  - ✅ `TestUserManagementIntegration.test_user_data_error_recovery_real_behavior(self)` - Test user data error recovery.
+  - ✅ `TestUserManagementIntegration.test_user_data_lifecycle_real_behavior(self)` - Test complete user data lifecycle.
+  - ✅ `TestUserManagementIntegration.test_user_data_performance_real_behavior(self)` - Test user data performance under load.
+
 #### `tests/behavior/test_utilities_demo.py`
 **Functions:**
 - ✅ `test_basic_user_creation(self, test_data_dir)` - Demonstrate creating a basic test user
@@ -2995,13 +4238,53 @@ real service startup behavior for testing.
 
 #### `tests/conftest.py`
 **Functions:**
+- ❌ `_apply_get_user_data_shim_early()` - No description
+- ✅ `_fallback_read_from_files(user_id, key)` - Read requested type directly from user JSON files as a last resort.
+- ❌ `_helper(user_id)` - No description
+- ❌ `_load_single_type(user_id, key)` - No description
+- ❌ `_load_single_type(user_id, key)` - No description
+- ❌ `_missing_keys()` - No description
 - ✅ `_prune_old_files(target_dir, patterns, older_than_days)` - Remove files in target_dir matching any pattern older than N days.
 
 Returns the number of files removed.
 - ❌ `_update_index(user_id)` - No description
-- ✅ `cleanup_test_users_after_session()` - Remove test users from both data/users/ and tests/data/users/ after all tests.
+- ❌ `about()` - No description
+- ✅ `cap_component_log_sizes_on_start()` - Cap oversized component logs at session start by rotating or truncating.
+
+If a log file exceeds ~2MB, attempt to rename it to an .old timestamped file.
+If rename fails (e.g., due to file locks), fall back to truncating contents.
+- ✅ `cleanup_communication_manager()` - Clean up CommunicationManager singleton after all tests complete.
+- ✅ `cleanup_test_users_after_session()` - Remove test users from tests/data/users/ after all tests. NEVER touches real user data.
+- ✅ `cleanup_tmp_at_session_end()` - Clear tests/data/tmp contents at session end to keep the workspace tidy.
+- ✅ `clear_user_caches_between_tests()` - Ensure user data caches don't leak between tests.
 - ✅ `clear_user_caches_between_tests()` - Clear user caches between tests to prevent state pollution.
+- ❌ `critical()` - No description
+- ✅ `enforce_user_dir_locations()` - Ensure tests only create user dirs under tests/data/users.
+
+- Fails if a top-level tests/data/test-user* directory appears.
+- Fails if any test-user* directory is created under tests/data/tmp.
+Cleans stray dirs to keep workspace tidy before failing.
+- ✅ `ensure_mock_config_applied(mock_config, test_data_dir)` - Verify mock_config fixture is active for every test.
+- ✅ `ensure_user_materialized(test_data_dir)` - Return a helper to ensure account/preferences/context files exist for a user.
+
+If the user directory is missing, uses TestUserFactory to create a basic user.
+If present but missing files, writes minimal JSON structures to materialize them.
+- ✅ `env_guard_and_restore(monkeypatch)` - Snapshot and restore critical environment variables to prevent test leakage.
+
+Restores after each test to ensure environment stability across the suite.
+- ✅ `fix_user_data_loaders()` - Ensure loaders stay correctly registered for each test without overwriting metadata.
+- ✅ `force_test_data_directory()` - Route all system temp usage into tests/data for the entire session.
+- ❌ `information()` - No description
+- ✅ `initialize_loader_import_order()` - Import core.user_management before core.user_data_handlers and register loaders once.
+
+This ensures both modules share the same USER_DATA_LOADERS dict and that required
+loaders are present without relying on the data shim.
 - ✅ `isolate_logging()` - Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log.
+- ✅ `materialize_user_minimal_via_public_apis(user_id)` - Ensure minimal structures exist without overwriting existing data.
+
+- Merges into existing account (preserves internal_username and enabled features)
+- Adds missing preferences keys (keeps existing categories/channel)
+- Adds a default motivational/morning period if schedules missing
 - ✅ `mock_ai_response()` - Mock AI response for testing.
 - ✅ `mock_communication_data()` - Mock communication data for testing.
 - ✅ `mock_config(test_data_dir)` - Mock configuration for testing with proper test data directory.
@@ -3010,9 +4293,11 @@ Returns the number of files removed.
 - ✅ `mock_schedule_data()` - Mock schedule data for testing.
 - ✅ `mock_service_data()` - Mock service data for testing.
 - ✅ `mock_task_data()` - Mock task data for testing.
-- ✅ `mock_user_data(test_data_dir, mock_config, request)` - Create mock user data for testing with unique user ID for each test.
+- ✅ `mock_user_data(mock_config, request)` - Create mock user data for testing with unique user ID for each test.
 - ✅ `mock_user_data_with_messages(test_data_dir, mock_config, request)` - Create mock user data for testing with automated_messages enabled and categories.
-- ✅ `patch_user_data_dirs()` - Patch BASE_DATA_DIR and USER_INFO_DIR_PATH to use tests/data/users/ for all tests.
+- ✅ `path_sanitizer()` - Guardrail: ensure temp resolution stays within tests/data and detect escapes.
+
+Fails fast if the active temp directory is outside tests/data.
 - ✅ `prune_test_artifacts_before_and_after_session()` - Prune old logs (tests/logs) and backups (tests/data/backups) before and after the session.
 
 Defaults: logs older than 14 days, test backups older than 7 days.
@@ -3022,46 +4307,86 @@ Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
 - ✅ `pytest_runtest_logreport(report)` - Log individual test results.
 - ✅ `pytest_sessionfinish(session, exitstatus)` - Log test session finish.
 - ✅ `pytest_sessionstart(session)` - Log test session start.
+- ❌ `question()` - No description
+- ✅ `register_user_data_loaders_session()` - Ensure core user data loaders are present without overwriting metadata.
+- ✅ `setup_component_log_rotation()` - Replace component logger handlers with size-rotating handlers under tests/logs.
+
+Keeps per-component logs bounded without relying on app's rotation, which can
+conflict with Windows file locking. Logs rotate at ~1MB with up to 5 backups.
 - ✅ `setup_logging_isolation()` - Set up logging isolation before any core modules are imported.
+- ✅ `setup_qmessagebox_patches()` - Set up global QMessageBox patches to prevent popup dialogs during testing.
 - ✅ `setup_test_logging()` - Set up dedicated logging for tests with complete isolation from main app logging.
+- ✅ `shim_get_user_data_to_invoke_loaders()` - Shim core.user_management.get_user_data to ensure structured dicts.
+
+If a test calls get_user_data with 'all' or a specific type and the result is
+empty/missing, invoke the registered loaders in USER_DATA_LOADERS to assemble
+the expected structure. This preserves production behavior when everything is
+wired correctly, but guards against import-order timing in tests.
 - ✅ `temp_file()` - Create a temporary file for testing.
-- ✅ `test_data_dir()` - Create a temporary test data directory for all tests.
+- ✅ `test_data_dir()` - Provide the repository-scoped test data directory for all tests.
+- ✅ `test_path_factory(test_data_dir)` - Provide a per-test directory under tests/data/tmp/<uuid> for ad-hoc temp usage.
+
+Prefer this over raw tempfile.mkdtemp/TemporaryDirectory to keep paths within the repo.
+- ❌ `toggle_data_shim_per_marker(request, monkeypatch)` - No description
 - ✅ `update_user_index_for_test(test_data_dir)` - Helper fixture to update user index for test users.
+- ✅ `verify_required_loaders_present()` - Fail fast if required user-data loaders are missing at session start.
+- ❌ `verify_user_data_loader_registry()` - No description
+- ✅ `wait_until(predicate, timeout_seconds, poll_seconds)` - Poll predicate() until it returns True or timeout elapses.
+
+Returns True if predicate succeeds within timeout, otherwise False.
+- ❌ `warning()` - No description
+- ❌ `wrapped_get_user_data(user_id, data_type)` - No description
+- ❌ `wrapped_get_user_data(user_id, data_type)` - No description
+**Classes:**
+- ❌ `MockQMessageBox` - No description
+  - ❌ `MockQMessageBox.about()` - No description
+  - ❌ `MockQMessageBox.critical()` - No description
+  - ❌ `MockQMessageBox.information()` - No description
+  - ❌ `MockQMessageBox.question()` - No description
+  - ❌ `MockQMessageBox.warning()` - No description
+
+#### `tests/debug_file_paths.py`
+**Functions:**
+- ✅ `test_debug_file_paths(mock_user_data)` - Debug test to check if the issue is with file paths.
 
 #### `tests/integration/test_account_lifecycle.py`
 **Functions:**
+- ❌ `_ensure_minimal_structure(self, uid)` - No description
+- ✅ `_materialize_and_verify(self, uid)` - Ensure minimal structures exist without overwriting existing data; return full user data.
 - ✅ `save_user_data_simple(self, user_id, account_data, preferences_data, schedules_data)` - Helper function to save user data in the correct format.
-- ✅ `setup_test_environment(self)` - Set up isolated test environment for each test.
-- ✅ `test_add_message_category(self, test_data_dir, mock_config, update_user_index_for_test)` - Test adding a new message category to user preferences.
-- ✅ `test_add_schedule_period(self, test_data_dir, mock_config)` - Test adding a new schedule period to user schedules.
-- ✅ `test_complete_account_lifecycle(self, test_data_dir, mock_config)` - Test complete account lifecycle: create, modify, disable, re-enable, delete.
-- ✅ `test_create_basic_account(self, test_data_dir, mock_config)` - Test creating a basic account with only messages enabled.
-- ✅ `test_create_full_account(self, test_data_dir, mock_config)` - Test creating a full account with all features enabled.
-- ✅ `test_disable_tasks_for_full_user(self, test_data_dir, mock_config)` - Test disabling tasks for a user who has all features enabled.
-- ✅ `test_enable_checkins_for_basic_user(self, test_data_dir, mock_config)` - Test enabling check-ins for a user who only has messages enabled.
-- ✅ `test_modify_schedule_period(self, test_data_dir, mock_config)` - Test modifying an existing schedule period.
-- ✅ `test_reenable_tasks_for_user(self, test_data_dir, mock_config)` - Test re-enabling tasks for a user who previously had them disabled.
-- ✅ `test_remove_message_category(self, test_data_dir, mock_config)` - Test removing a message category from user preferences.
-- ✅ `test_remove_schedule_period(self, test_data_dir, mock_config)` - Test removing a schedule period from user schedules.
+- ✅ `setup_test_environment(self, test_data_dir, mock_config)` - Set up isolated test environment for each test.
+- ✅ `test_add_message_category(self, update_user_index_for_test)` - Test adding a new message category to user preferences.
+- ✅ `test_add_schedule_period(self)` - Test adding a new schedule period to user schedules.
+- ✅ `test_complete_account_lifecycle(self)` - Test complete account lifecycle: create, modify, disable, re-enable, delete.
+- ✅ `test_create_basic_account(self)` - Test creating a basic account with only messages enabled.
+- ✅ `test_create_full_account(self)` - Test creating a full account with all features enabled.
+- ✅ `test_disable_tasks_for_full_user(self)` - Test disabling tasks for a user who has all features enabled.
+- ✅ `test_enable_checkins_for_basic_user(self)` - Test enabling check-ins for a user who only has messages enabled.
+- ✅ `test_modify_schedule_period(self)` - Test modifying an existing schedule period.
+- ✅ `test_reenable_tasks_for_user(self)` - Test re-enabling tasks for a user who previously had them disabled.
+- ✅ `test_remove_message_category(self)` - Test removing a message category from user preferences.
+- ✅ `test_remove_schedule_period(self)` - Test removing a schedule period from user schedules.
 **Classes:**
 - ✅ `TestAccountLifecycle` - Test complete account lifecycle workflows with real behavior verification.
+  - ❌ `TestAccountLifecycle._ensure_minimal_structure(self, uid)` - No description
+  - ✅ `TestAccountLifecycle._materialize_and_verify(self, uid)` - Ensure minimal structures exist without overwriting existing data; return full user data.
   - ✅ `TestAccountLifecycle.save_user_data_simple(self, user_id, account_data, preferences_data, schedules_data)` - Helper function to save user data in the correct format.
-  - ✅ `TestAccountLifecycle.setup_test_environment(self)` - Set up isolated test environment for each test.
-  - ✅ `TestAccountLifecycle.test_add_message_category(self, test_data_dir, mock_config, update_user_index_for_test)` - Test adding a new message category to user preferences.
-  - ✅ `TestAccountLifecycle.test_add_schedule_period(self, test_data_dir, mock_config)` - Test adding a new schedule period to user schedules.
-  - ✅ `TestAccountLifecycle.test_complete_account_lifecycle(self, test_data_dir, mock_config)` - Test complete account lifecycle: create, modify, disable, re-enable, delete.
-  - ✅ `TestAccountLifecycle.test_create_basic_account(self, test_data_dir, mock_config)` - Test creating a basic account with only messages enabled.
-  - ✅ `TestAccountLifecycle.test_create_full_account(self, test_data_dir, mock_config)` - Test creating a full account with all features enabled.
-  - ✅ `TestAccountLifecycle.test_disable_tasks_for_full_user(self, test_data_dir, mock_config)` - Test disabling tasks for a user who has all features enabled.
-  - ✅ `TestAccountLifecycle.test_enable_checkins_for_basic_user(self, test_data_dir, mock_config)` - Test enabling check-ins for a user who only has messages enabled.
-  - ✅ `TestAccountLifecycle.test_modify_schedule_period(self, test_data_dir, mock_config)` - Test modifying an existing schedule period.
-  - ✅ `TestAccountLifecycle.test_reenable_tasks_for_user(self, test_data_dir, mock_config)` - Test re-enabling tasks for a user who previously had them disabled.
-  - ✅ `TestAccountLifecycle.test_remove_message_category(self, test_data_dir, mock_config)` - Test removing a message category from user preferences.
-  - ✅ `TestAccountLifecycle.test_remove_schedule_period(self, test_data_dir, mock_config)` - Test removing a schedule period from user schedules.
+  - ✅ `TestAccountLifecycle.setup_test_environment(self, test_data_dir, mock_config)` - Set up isolated test environment for each test.
+  - ✅ `TestAccountLifecycle.test_add_message_category(self, update_user_index_for_test)` - Test adding a new message category to user preferences.
+  - ✅ `TestAccountLifecycle.test_add_schedule_period(self)` - Test adding a new schedule period to user schedules.
+  - ✅ `TestAccountLifecycle.test_complete_account_lifecycle(self)` - Test complete account lifecycle: create, modify, disable, re-enable, delete.
+  - ✅ `TestAccountLifecycle.test_create_basic_account(self)` - Test creating a basic account with only messages enabled.
+  - ✅ `TestAccountLifecycle.test_create_full_account(self)` - Test creating a full account with all features enabled.
+  - ✅ `TestAccountLifecycle.test_disable_tasks_for_full_user(self)` - Test disabling tasks for a user who has all features enabled.
+  - ✅ `TestAccountLifecycle.test_enable_checkins_for_basic_user(self)` - Test enabling check-ins for a user who only has messages enabled.
+  - ✅ `TestAccountLifecycle.test_modify_schedule_period(self)` - Test modifying an existing schedule period.
+  - ✅ `TestAccountLifecycle.test_reenable_tasks_for_user(self)` - Test re-enabling tasks for a user who previously had them disabled.
+  - ✅ `TestAccountLifecycle.test_remove_message_category(self)` - Test removing a message category from user preferences.
+  - ✅ `TestAccountLifecycle.test_remove_schedule_period(self)` - Test removing a schedule period from user schedules.
 
 #### `tests/integration/test_account_management.py`
 **Functions:**
-- ✅ `test_account_management_data_structures()` - Test that account management can handle the expected data structures
+- ✅ `test_account_management_data_structures(test_data_dir, mock_config)` - Test that account management can handle the expected data structures
 - ✅ `test_account_management_functions()` - Test that all account management functions can be called (with safe test data)
 - ✅ `test_account_management_imports()` - Test that all account management modules can be imported without errors
 - ✅ `test_account_management_integration()` - Test that account management integrates properly with other systems
@@ -3199,6 +4524,15 @@ Returns:
     bool: True if user was created successfully, False otherwise
 - ✅ `create_minimal_user__impl(user_id)` - Internal implementation of minimal user creation
 - ✅ `create_minimal_user__with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
+- ✅ `create_minimal_user__with_test_dir_and_get_id(user_id, test_data_dir)` - Create minimal user with test directory and return the actual UUID
+- ✅ `create_minimal_user_and_get_id(user_id, test_data_dir)` - Create a minimal test user and return the actual UUID
+
+Args:
+    user_id: Unique identifier for the test user
+    test_data_dir: Test data directory to use (if None, uses real user directory)
+    
+Returns:
+    tuple[bool, str]: (success, actual_user_id) where actual_user_id is the UUID
 - ✅ `create_preferences_data(user_id)` - Create standard preferences data structure with optional overrides
 
 Args:
@@ -3486,6 +4820,15 @@ Returns:
     bool: True if user was created successfully, False otherwise
   - ✅ `TestUserFactory.create_minimal_user__impl(user_id)` - Internal implementation of minimal user creation
   - ✅ `TestUserFactory.create_minimal_user__with_test_dir(user_id, test_data_dir)` - Create minimal user with test directory by directly saving files
+  - ✅ `TestUserFactory.create_minimal_user__with_test_dir_and_get_id(user_id, test_data_dir)` - Create minimal user with test directory and return the actual UUID
+  - ✅ `TestUserFactory.create_minimal_user_and_get_id(user_id, test_data_dir)` - Create a minimal test user and return the actual UUID
+
+Args:
+    user_id: Unique identifier for the test user
+    test_data_dir: Test data directory to use (if None, uses real user directory)
+    
+Returns:
+    tuple[bool, str]: (success, actual_user_id) where actual_user_id is the UUID
   - ✅ `TestUserFactory.create_user_with_complex_checkins(user_id, test_data_dir)` - Create a test user with complex check-in configurations
 
 Args:
@@ -3616,6 +4959,37 @@ Returns:
   - ✅ `TestAccountManagementRealBehavior.test_user_index_integration_real_behavior(self, test_data_dir, mock_config)` - REAL BEHAVIOR TEST: Test user index integration with real file operations.
   - ✅ `TestAccountManagementRealBehavior.test_user_profile_dialog_integration(self, qapp, test_data_dir, mock_config)` - REAL BEHAVIOR TEST: Test user profile dialog integration with real user data.
 
+#### `tests/ui/test_channel_management_dialog_coverage_expansion.py`
+**Functions:**
+- ✅ `mock_user_data(self)` - Mock user data for testing.
+- ✅ `test_get_selected_channel(self, mock_user_data)` - Test get_selected_channel method.
+- ✅ `test_save_channel_settings_exception_handling(self, mock_user_data)` - Test exception handling during save.
+- ✅ `test_save_channel_settings_multiple_validation_errors(self, mock_user_data)` - Test multiple validation errors.
+- ✅ `test_save_channel_settings_removes_old_settings(self, mock_user_data)` - Test that old settings are properly removed.
+- ✅ `test_save_channel_settings_success_discord(self, mock_user_data)` - Test successful save with Discord channel.
+- ✅ `test_save_channel_settings_success_email(self, mock_user_data)` - Test successful save with email channel.
+- ✅ `test_save_channel_settings_validation_error_discord_required(self, mock_user_data)` - Test validation error when Discord ID is required but not provided.
+- ✅ `test_save_channel_settings_validation_error_email_required(self, mock_user_data)` - Test validation error when email is required but not provided.
+- ✅ `test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
+- ✅ `test_save_channel_settings_validation_error_invalid_phone(self, mock_user_data)` - Test validation error for invalid phone format.
+- ✅ `test_save_channel_settings_without_user(self)` - Test save_channel_settings when no user ID is set.
+- ✅ `test_set_selected_channel(self, mock_user_data)` - Test set_selected_channel method.
+**Classes:**
+- ✅ `TestChannelManagementDialogCoverageExpansion` - Test coverage expansion for ChannelManagementDialog.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.mock_user_data(self)` - Mock user data for testing.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_get_selected_channel(self, mock_user_data)` - Test get_selected_channel method.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_exception_handling(self, mock_user_data)` - Test exception handling during save.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_multiple_validation_errors(self, mock_user_data)` - Test multiple validation errors.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_removes_old_settings(self, mock_user_data)` - Test that old settings are properly removed.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_success_discord(self, mock_user_data)` - Test successful save with Discord channel.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_success_email(self, mock_user_data)` - Test successful save with email channel.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_discord_required(self, mock_user_data)` - Test validation error when Discord ID is required but not provided.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_email_required(self, mock_user_data)` - Test validation error when email is required but not provided.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_phone(self, mock_user_data)` - Test validation error for invalid phone format.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_without_user(self)` - Test save_channel_settings when no user ID is set.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_set_selected_channel(self, mock_user_data)` - Test set_selected_channel method.
+
 #### `tests/ui/test_dialog_behavior.py`
 **Functions:**
 - ✅ `dialog(self, qapp, test_data_dir)` - Create user profile dialog for testing.
@@ -3738,10 +5112,10 @@ Returns:
 **Functions:**
 - ❌ `mock_save(data)` - No description
 - ✅ `test_dialog_imports()` - Test that all dialog modules can be imported without errors
-- ✅ `test_dialog_instantiation()` - Test that dialogs can be instantiated (without showing them)
+- ✅ `test_dialog_instantiation(monkeypatch)` - Test that dialogs can be instantiated (without showing them)
 - ✅ `test_generated_files_exist()` - Test that all generated Python UI files exist
 - ✅ `test_ui_files_exist()` - Test that all required UI files exist
-- ✅ `test_user_data_access()` - Test that we can access user data for testing - READ ONLY
+- ✅ `test_user_data_access(test_data_dir, mock_config, mock_user_data)` - Test that we can access user data for testing - READ ONLY
 - ✅ `test_widget_imports()` - Test that all widget modules can be imported without errors
 
 #### `tests/ui/test_ui_widgets_coverage_expansion.py`
@@ -3753,7 +5127,7 @@ Returns:
 - ❌ `on_delete_requested(widget_instance)` - No description
 - ❌ `on_tags_changed()` - No description
 - ❌ `on_values_changed()` - No description
-- ✅ `temp_dir(self)` - Create a temporary directory for testing.
+- ✅ `temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
 - ✅ `test_dynamic_list_container_add_blank_row_real_behavior(self, app)` - Test adding a blank row.
 - ✅ `test_dynamic_list_container_duplicate_detection_real_behavior(self, app)` - Test duplicate value detection.
 - ✅ `test_dynamic_list_container_error_handling_real_behavior(self, app)` - Test error handling in DynamicListContainer.
@@ -3802,7 +5176,7 @@ Returns:
   - ✅ `TestUIWidgetsCoverageExpansion.cleanup_widgets(self)` - Ensure widgets are properly cleaned up after each test.
   - ✅ `TestUIWidgetsCoverageExpansion.mock_message_boxes(self)` - Mock all QMessageBox dialogs to prevent real UI dialogs during testing.
   - ✅ `TestUIWidgetsCoverageExpansion.mock_user_data_dir(self, temp_dir)` - Mock user data directory.
-  - ✅ `TestUIWidgetsCoverageExpansion.temp_dir(self)` - Create a temporary directory for testing.
+  - ✅ `TestUIWidgetsCoverageExpansion.temp_dir(self, test_path_factory)` - Provide a per-test directory under tests/data/tmp.
   - ✅ `TestUIWidgetsCoverageExpansion.test_dynamic_list_container_add_blank_row_real_behavior(self, app)` - Test adding a blank row.
   - ✅ `TestUIWidgetsCoverageExpansion.test_dynamic_list_container_duplicate_detection_real_behavior(self, app)` - Test duplicate value detection.
   - ✅ `TestUIWidgetsCoverageExpansion.test_dynamic_list_container_error_handling_real_behavior(self, app)` - Test error handling in DynamicListContainer.
@@ -4057,13 +5431,13 @@ Returns:
 - ✅ `test_user_info_dir_path_default(self)` - Test USER_INFO_DIR_PATH default value.
 - ✅ `test_validate_ai_configuration_missing_url(self)` - Test AI configuration validation with missing URL.
 - ✅ `test_validate_ai_configuration_success(self)` - Test successful AI configuration validation.
-- ✅ `test_validate_all_configuration_success(self, test_data_dir)` - Test comprehensive configuration validation.
+- ✅ `test_validate_all_configuration_success(self, test_data_dir, test_path_factory)` - Test comprehensive configuration validation.
 - ✅ `test_validate_and_raise_if_invalid_failure(self)` - Test validation failure raises ConfigurationError.
-- ✅ `test_validate_and_raise_if_invalid_success(self, test_data_dir)` - Test successful validation with no exceptions.
+- ✅ `test_validate_and_raise_if_invalid_success(self, test_data_dir, test_path_factory)` - Test successful validation with no exceptions.
 - ✅ `test_validate_communication_channels_no_tokens(self)` - Test communication channels validation with no tokens.
 - ✅ `test_validate_communication_channels_success(self)` - Test successful communication channels validation.
 - ✅ `test_validate_core_paths_missing_directory(self)` - Test core path validation with missing directory.
-- ✅ `test_validate_core_paths_success(self, test_data_dir)` - Test successful core path validation.
+- ✅ `test_validate_core_paths_success(self, test_data_dir, test_path_factory)` - Test successful core path validation.
 - ✅ `test_validate_environment_variables_success(self)` - Test successful environment variables validation.
 - ✅ `test_validate_file_organization_settings_success(self)` - Test successful file organization settings validation.
 - ✅ `test_validate_logging_configuration_success(self)` - Test successful logging configuration validation.
@@ -4077,13 +5451,13 @@ Returns:
 - ✅ `TestConfigValidation` - Test configuration validation functions.
   - ✅ `TestConfigValidation.test_validate_ai_configuration_missing_url(self)` - Test AI configuration validation with missing URL.
   - ✅ `TestConfigValidation.test_validate_ai_configuration_success(self)` - Test successful AI configuration validation.
-  - ✅ `TestConfigValidation.test_validate_all_configuration_success(self, test_data_dir)` - Test comprehensive configuration validation.
+  - ✅ `TestConfigValidation.test_validate_all_configuration_success(self, test_data_dir, test_path_factory)` - Test comprehensive configuration validation.
   - ✅ `TestConfigValidation.test_validate_and_raise_if_invalid_failure(self)` - Test validation failure raises ConfigurationError.
-  - ✅ `TestConfigValidation.test_validate_and_raise_if_invalid_success(self, test_data_dir)` - Test successful validation with no exceptions.
+  - ✅ `TestConfigValidation.test_validate_and_raise_if_invalid_success(self, test_data_dir, test_path_factory)` - Test successful validation with no exceptions.
   - ✅ `TestConfigValidation.test_validate_communication_channels_no_tokens(self)` - Test communication channels validation with no tokens.
   - ✅ `TestConfigValidation.test_validate_communication_channels_success(self)` - Test successful communication channels validation.
   - ✅ `TestConfigValidation.test_validate_core_paths_missing_directory(self)` - Test core path validation with missing directory.
-  - ✅ `TestConfigValidation.test_validate_core_paths_success(self, test_data_dir)` - Test successful core path validation.
+  - ✅ `TestConfigValidation.test_validate_core_paths_success(self, test_data_dir, test_path_factory)` - Test successful core path validation.
   - ✅ `TestConfigValidation.test_validate_environment_variables_success(self)` - Test successful environment variables validation.
   - ✅ `TestConfigValidation.test_validate_file_organization_settings_success(self)` - Test successful file organization settings validation.
   - ✅ `TestConfigValidation.test_validate_logging_configuration_success(self)` - Test successful logging configuration validation.
@@ -4110,7 +5484,7 @@ Returns:
 - ✅ `test_error_handler_with_args_kwargs(self)` - Test error_handler with function arguments.
 - ✅ `test_error_handling_different_exception_types(self)` - Test error handling with different exception types and side effects.
 - ✅ `test_error_handling_in_function_chain(self)` - Test error handling in a chain of functions.
-- ✅ `test_error_handling_with_recovery(self)` - Test error handling with recovery mechanisms and real side effects.
+- ✅ `test_error_handling_with_recovery(self, test_path_factory)` - Test error handling with recovery mechanisms and real side effects.
 - ✅ `test_file_operation_error(self)` - Test FileOperationError exception.
 - ✅ `test_function()` - Test Function.
 - ✅ `test_function()` - Test Function
@@ -4162,7 +5536,7 @@ Returns:
 - ✅ `TestErrorHandlingIntegration` - Test error handling integration scenarios.
   - ✅ `TestErrorHandlingIntegration.test_error_handling_different_exception_types(self)` - Test error handling with different exception types and side effects.
   - ✅ `TestErrorHandlingIntegration.test_error_handling_in_function_chain(self)` - Test error handling in a chain of functions.
-  - ✅ `TestErrorHandlingIntegration.test_error_handling_with_recovery(self)` - Test error handling with recovery mechanisms and real side effects.
+  - ✅ `TestErrorHandlingIntegration.test_error_handling_with_recovery(self, test_path_factory)` - Test error handling with recovery mechanisms and real side effects.
 - ✅ `TestHandleErrorsDecorator` - Test the handle_errors decorator.
   - ✅ `TestHandleErrorsDecorator.test_handle_errors_custom_return(self)` - Test handle_errors with custom return value.
   - ✅ `TestHandleErrorsDecorator.test_handle_errors_exception(self)` - Test handle_errors with exception.
@@ -4226,6 +5600,62 @@ Returns:
 - ✅ `test_component_logger_propagate_and_handlers(tmp_path, monkeypatch)` - Test Component Logger Propagate And Handlers
 - ✅ `test_errors_routed_to_tests_logs_in_verbose_mode(tmp_path, monkeypatch)` - Test Errors Routed To Tests Logs In Verbose Mode
 
+#### `tests/unit/test_no_direct_env_mutation_policy.py`
+**Functions:**
+- ✅ `test_no_direct_os_environ_mutations_in_tests()` - Policy: tests must use monkeypatch.setenv; no direct os.environ mutations.
+
+Scans test files for forbidden patterns. Allows exceptions in tests/conftest.py.
+
+#### `tests/unit/test_no_prints_policy.py`
+**Functions:**
+- ✅ `test_no_print_calls_in_tests_except_debug_marked()` - Policy: tests should not use print(); prefer logging or assertions.
+
+Allowed: files containing '@pytest.mark.debug' marker.
+
+#### `tests/unit/test_recurring_tasks.py`
+**Functions:**
+- ✅ `temp_user_dir(self, test_path_factory)` - Provide a per-test user directory under tests/data/tmp.
+- ✅ `test_calculate_next_due_date_daily(self)` - Test calculating next due date for daily recurrence.
+- ✅ `test_calculate_next_due_date_invalid_pattern(self)` - Test calculating next due date with invalid pattern.
+- ✅ `test_calculate_next_due_date_monthly(self)` - Test calculating next due date for monthly recurrence.
+- ✅ `test_calculate_next_due_date_weekly(self)` - Test calculating next due date for weekly recurrence.
+- ✅ `test_calculate_next_due_date_yearly(self)` - Test calculating next due date for yearly recurrence.
+- ✅ `test_complete_recurring_task_creates_next_instance(self, mock_get_user_data_dir, temp_user_dir)` - Test that completing a recurring task creates the next instance.
+- ✅ `test_create_recurring_task(self, mock_get_user_data_dir, temp_user_dir)` - Test creating a recurring task.
+- ✅ `test_non_recurring_task_completion(self, mock_get_user_data_dir, temp_user_dir)` - Test that completing a non-recurring task doesn't create a new instance.
+**Classes:**
+- ✅ `TestRecurringTasks` - Test recurring tasks functionality.
+  - ✅ `TestRecurringTasks.temp_user_dir(self, test_path_factory)` - Provide a per-test user directory under tests/data/tmp.
+  - ✅ `TestRecurringTasks.test_calculate_next_due_date_daily(self)` - Test calculating next due date for daily recurrence.
+  - ✅ `TestRecurringTasks.test_calculate_next_due_date_invalid_pattern(self)` - Test calculating next due date with invalid pattern.
+  - ✅ `TestRecurringTasks.test_calculate_next_due_date_monthly(self)` - Test calculating next due date for monthly recurrence.
+  - ✅ `TestRecurringTasks.test_calculate_next_due_date_weekly(self)` - Test calculating next due date for weekly recurrence.
+  - ✅ `TestRecurringTasks.test_calculate_next_due_date_yearly(self)` - Test calculating next due date for yearly recurrence.
+  - ✅ `TestRecurringTasks.test_complete_recurring_task_creates_next_instance(self, mock_get_user_data_dir, temp_user_dir)` - Test that completing a recurring task creates the next instance.
+  - ✅ `TestRecurringTasks.test_create_recurring_task(self, mock_get_user_data_dir, temp_user_dir)` - Test creating a recurring task.
+  - ✅ `TestRecurringTasks.test_non_recurring_task_completion(self, mock_get_user_data_dir, temp_user_dir)` - Test that completing a non-recurring task doesn't create a new instance.
+
+#### `tests/unit/test_schedule_management.py`
+**Functions:**
+- ✅ `test_schedule_period_lifecycle(self, mock_user_data, mock_config)` - Add, edit, deactivate, and delete a schedule period.
+- ✅ `test_time_conversion_helpers(self)` - Verify 12h/24h conversion helpers.
+- ✅ `test_validate_and_format_time(self)` - Ensure various time formats are normalized to HH:MM.
+**Classes:**
+- ✅ `TestPeriodValidation` - Tests for time validation and conversion helpers.
+  - ✅ `TestPeriodValidation.test_time_conversion_helpers(self)` - Verify 12h/24h conversion helpers.
+  - ✅ `TestPeriodValidation.test_validate_and_format_time(self)` - Ensure various time formats are normalized to HH:MM.
+- ✅ `TestScheduleManagement` - Tests for schedule period lifecycle operations.
+  - ✅ `TestScheduleManagement.test_schedule_period_lifecycle(self, mock_user_data, mock_config)` - Add, edit, deactivate, and delete a schedule period.
+
+#### `tests/unit/test_user_data_loader_idempotency.py`
+**Functions:**
+- ✅ `test_loader_registry_identity_and_idempotency()` - Test Loader Registry Identity And Idempotency
+
+#### `tests/unit/test_user_data_loader_order_insensitivity.py`
+**Functions:**
+- ❌ `_reload_in_order(first_module, second_module)` - No description
+- ✅ `test_loader_registry_shared_and_complete_regardless_of_import_order()` - Test Loader Registry Shared And Complete Regardless Of Import Order
+
 #### `tests/unit/test_user_management.py`
 **Functions:**
 - ✅ `test_create_user_files_success(self, test_data_dir, mock_config)` - Test creating user files successfully.
@@ -4247,7 +5677,7 @@ Returns:
 - ✅ `test_get_user_preferences_nonexistent_user(self, mock_config)` - Test getting preferences for non-existent user.
 - ✅ `test_get_user_preferences_success(self, mock_user_data, mock_config)` - Test getting user preferences successfully.
 - ✅ `test_hybrid_get_user_data_nonexistent_user(self, mock_config)` - Test loading non-existent user data using new hybrid API.
-- ✅ `test_hybrid_get_user_data_success(self, mock_user_data, mock_config)` - Test loading user data successfully using new hybrid API.
+- ✅ `test_hybrid_get_user_data_success(self, mock_user_data)` - Test loading user data successfully using new hybrid API.
 - ✅ `test_save_user_data_success(self, test_data_dir, mock_config)` - Test saving user data successfully using centralized utilities.
 - ✅ `test_save_user_preferences_invalid_user_id(self)` - Test saving preferences with invalid user ID.
 - ✅ `test_update_user_preferences_nonexistent_user(self, mock_config)` - Test updating preferences for non-existent user.
@@ -4269,7 +5699,7 @@ Returns:
   - ✅ `TestUserManagement.test_get_user_preferences_nonexistent_user(self, mock_config)` - Test getting preferences for non-existent user.
   - ✅ `TestUserManagement.test_get_user_preferences_success(self, mock_user_data, mock_config)` - Test getting user preferences successfully.
   - ✅ `TestUserManagement.test_hybrid_get_user_data_nonexistent_user(self, mock_config)` - Test loading non-existent user data using new hybrid API.
-  - ✅ `TestUserManagement.test_hybrid_get_user_data_success(self, mock_user_data, mock_config)` - Test loading user data successfully using new hybrid API.
+  - ✅ `TestUserManagement.test_hybrid_get_user_data_success(self, mock_user_data)` - Test loading user data successfully using new hybrid API.
   - ✅ `TestUserManagement.test_save_user_data_success(self, test_data_dir, mock_config)` - Test saving user data successfully using centralized utilities.
   - ✅ `TestUserManagement.test_update_user_preferences_success(self, mock_user_data, mock_config)` - Test updating user preferences successfully.
 - ✅ `TestUserManagementEdgeCases` - Test edge cases and error conditions.
@@ -4667,20 +6097,24 @@ Args:
 - ✅ `__init__(self, parent, user_id, task_data)` - Initialize the task edit dialog.
 - ✅ `add_reminder_period(self)` - Add a new reminder period.
 - ✅ `collect_quick_reminders(self)` - Collect quick reminder options.
+- ✅ `collect_recurring_task_data(self)` - Collect recurring task settings from the form.
 - ✅ `collect_reminder_periods(self)` - Collect reminder period data from the UI.
 - ✅ `collect_selected_tags(self)` - Collect selected tags from the tag widget.
 - ✅ `delete_reminder_period(self, index)` - Delete a reminder period.
 - ✅ `get_due_time_as_24h(self)` - Get due time as 24-hour format string.
+- ✅ `load_recurring_task_data(self)` - Load recurring task data into the form.
 - ✅ `load_task_data(self)` - Load existing task data into the form.
 - ✅ `on_hour_changed(self, hour_text)` - Handle hour selection change.
 - ✅ `on_minute_changed(self, minute_text)` - Handle minute selection change.
 - ✅ `on_no_due_date_toggled(self, checked)` - Handle No Due Date checkbox toggle.
+- ✅ `on_recurring_pattern_changed(self, pattern_text)` - Handle recurring pattern selection change.
 - ✅ `render_reminder_period_row(self, index, period)` - Render a single reminder period row.
 - ✅ `render_reminder_periods(self)` - Render the reminder periods in the UI.
 - ✅ `save_task(self)` - Save the task data.
 - ✅ `set_due_time_from_24h(self, time)` - Set due time components from 24-hour time.
 - ✅ `setup_connections(self)` - Setup signal connections.
 - ✅ `setup_due_time_components(self)` - Setup the due time input components.
+- ✅ `setup_recurring_task_components(self)` - Setup the recurring task input components.
 - ✅ `setup_ui(self)` - Setup the UI components.
 - ✅ `validate_form(self)` - Validate the form data.
 **Classes:**
@@ -4688,20 +6122,24 @@ Args:
   - ✅ `TaskEditDialog.__init__(self, parent, user_id, task_data)` - Initialize the task edit dialog.
   - ✅ `TaskEditDialog.add_reminder_period(self)` - Add a new reminder period.
   - ✅ `TaskEditDialog.collect_quick_reminders(self)` - Collect quick reminder options.
+  - ✅ `TaskEditDialog.collect_recurring_task_data(self)` - Collect recurring task settings from the form.
   - ✅ `TaskEditDialog.collect_reminder_periods(self)` - Collect reminder period data from the UI.
   - ✅ `TaskEditDialog.collect_selected_tags(self)` - Collect selected tags from the tag widget.
   - ✅ `TaskEditDialog.delete_reminder_period(self, index)` - Delete a reminder period.
   - ✅ `TaskEditDialog.get_due_time_as_24h(self)` - Get due time as 24-hour format string.
+  - ✅ `TaskEditDialog.load_recurring_task_data(self)` - Load recurring task data into the form.
   - ✅ `TaskEditDialog.load_task_data(self)` - Load existing task data into the form.
   - ✅ `TaskEditDialog.on_hour_changed(self, hour_text)` - Handle hour selection change.
   - ✅ `TaskEditDialog.on_minute_changed(self, minute_text)` - Handle minute selection change.
   - ✅ `TaskEditDialog.on_no_due_date_toggled(self, checked)` - Handle No Due Date checkbox toggle.
+  - ✅ `TaskEditDialog.on_recurring_pattern_changed(self, pattern_text)` - Handle recurring pattern selection change.
   - ✅ `TaskEditDialog.render_reminder_period_row(self, index, period)` - Render a single reminder period row.
   - ✅ `TaskEditDialog.render_reminder_periods(self)` - Render the reminder periods in the UI.
   - ✅ `TaskEditDialog.save_task(self)` - Save the task data.
   - ✅ `TaskEditDialog.set_due_time_from_24h(self, time)` - Set due time components from 24-hour time.
   - ✅ `TaskEditDialog.setup_connections(self)` - Setup signal connections.
   - ✅ `TaskEditDialog.setup_due_time_components(self)` - Setup the due time input components.
+  - ✅ `TaskEditDialog.setup_recurring_task_components(self)` - Setup the recurring task input components.
   - ✅ `TaskEditDialog.setup_ui(self)` - Setup the UI components.
   - ✅ `TaskEditDialog.validate_form(self)` - Validate the form data.
 
@@ -5054,6 +6492,7 @@ Args:
 - ❌ `manage_personalization(self)` - No description
 - ❌ `manage_task_crud(self)` - No description
 - ❌ `manage_tasks(self)` - No description
+- ✅ `manage_user_analytics(self)` - Open user analytics interface for selected user
 - ✅ `on_category_selected(self, category)` - Handle category selection
 - ❌ `on_save(data)` - No description
 - ✅ `on_schedule_save()` - Callback when schedule is saved.
@@ -5063,6 +6502,9 @@ Args:
 - ✅ `refresh_user_list(self)` - Refresh the user list in the combo box using user index
 - ✅ `restart_service(self)` - Restart the MHM backend service
 - ✅ `restart_service(self)` - Restart the MHM service
+- ✅ `run_category_scheduler(self)` - Run scheduler for the selected user and category
+- ✅ `run_full_scheduler(self)` - Run the full scheduler for all users
+- ✅ `run_user_scheduler(self)` - Run scheduler for the selected user
 - ✅ `send_actual_test_message(self, category)` - Send a test message via the running service
 - ✅ `send_test_message(self)` - Send a test message to the selected user
 - ✅ `show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
@@ -5102,12 +6544,16 @@ Args:
   - ❌ `MHMManagerUI.manage_personalization(self)` - No description
   - ❌ `MHMManagerUI.manage_task_crud(self)` - No description
   - ❌ `MHMManagerUI.manage_tasks(self)` - No description
+  - ✅ `MHMManagerUI.manage_user_analytics(self)` - Open user analytics interface for selected user
   - ✅ `MHMManagerUI.on_category_selected(self, category)` - Handle category selection
   - ✅ `MHMManagerUI.on_user_selected(self, user_display)` - Handle user selection from combo box
   - ✅ `MHMManagerUI.open_message_editor(self, parent_dialog, category)` - Open the message editing window for a specific category
   - ✅ `MHMManagerUI.open_schedule_editor(self, parent_dialog, category)` - Open the schedule editing window for a specific category
   - ✅ `MHMManagerUI.refresh_user_list(self)` - Refresh the user list in the combo box using user index
   - ✅ `MHMManagerUI.restart_service(self)` - Restart the MHM service
+  - ✅ `MHMManagerUI.run_category_scheduler(self)` - Run scheduler for the selected user and category
+  - ✅ `MHMManagerUI.run_full_scheduler(self)` - Run the full scheduler for all users
+  - ✅ `MHMManagerUI.run_user_scheduler(self)` - Run scheduler for the selected user
   - ✅ `MHMManagerUI.send_actual_test_message(self, category)` - Send a test message via the running service
   - ✅ `MHMManagerUI.send_test_message(self)` - Send a test message to the selected user
   - ✅ `MHMManagerUI.show_configuration_help(self, parent_window)` - Show help for fixing configuration issues.
@@ -5385,11 +6831,15 @@ Args:
 - ✅ `add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
 - ✅ `find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
 - ✅ `get_available_tags(self)` - Get the current list of available tags from the tag widget.
+- ✅ `get_recurring_task_settings(self)` - Get the current recurring task settings.
 - ✅ `get_statistics(self)` - Get real task statistics for the user.
 - ✅ `get_task_settings(self)` - Get the current task settings.
 - ❌ `load_existing_data(self)` - No description
+- ✅ `load_recurring_task_settings(self)` - Load recurring task settings from user preferences.
 - ✅ `refresh_tags(self)` - Refresh the tags in the tag widget.
 - ✅ `remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
+- ✅ `save_recurring_task_settings(self)` - Save recurring task settings to user preferences.
+- ✅ `set_recurring_task_settings(self, settings)` - Set the recurring task settings.
 - ✅ `set_task_settings(self, settings)` - Set the task settings.
 - ✅ `setup_connections(self)` - Setup signal connections.
 - ✅ `showEvent(self, event)` - Handle widget show event.
@@ -5408,11 +6858,15 @@ Args:
   - ✅ `TaskSettingsWidget.add_new_period(self, checked, period_name, period_data)` - Add a new time period using the PeriodRowWidget.
   - ✅ `TaskSettingsWidget.find_lowest_available_period_number(self)` - Find the lowest available integer (2+) that's not currently used in period names.
   - ✅ `TaskSettingsWidget.get_available_tags(self)` - Get the current list of available tags from the tag widget.
+  - ✅ `TaskSettingsWidget.get_recurring_task_settings(self)` - Get the current recurring task settings.
   - ✅ `TaskSettingsWidget.get_statistics(self)` - Get real task statistics for the user.
   - ✅ `TaskSettingsWidget.get_task_settings(self)` - Get the current task settings.
   - ❌ `TaskSettingsWidget.load_existing_data(self)` - No description
+  - ✅ `TaskSettingsWidget.load_recurring_task_settings(self)` - Load recurring task settings from user preferences.
   - ✅ `TaskSettingsWidget.refresh_tags(self)` - Refresh the tags in the tag widget.
   - ✅ `TaskSettingsWidget.remove_period_row(self, row_widget)` - Remove a period row and store it for undo.
+  - ✅ `TaskSettingsWidget.save_recurring_task_settings(self)` - Save recurring task settings to user preferences.
+  - ✅ `TaskSettingsWidget.set_recurring_task_settings(self, settings)` - Set the recurring task settings.
   - ✅ `TaskSettingsWidget.set_task_settings(self, settings)` - Set the task settings.
   - ✅ `TaskSettingsWidget.setup_connections(self)` - Setup signal connections.
   - ✅ `TaskSettingsWidget.showEvent(self, event)` - Handle widget show event.

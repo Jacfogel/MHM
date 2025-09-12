@@ -343,7 +343,7 @@ class TestServiceUtilitiesBehavior:
     def test_service_utilities_data_integrity(self, test_data_dir):
         """Test that service utilities maintain data integrity."""
         # Arrange - Test throttler state persistence
-        throttler = Throttler(0.01)  # 10ms interval for faster testing
+        throttler = Throttler(1.0)  # 1 second interval to ensure proper throttling
         
         # Act - Multiple operations
         first_result = throttler.should_run()
@@ -351,7 +351,7 @@ class TestServiceUtilitiesBehavior:
         
         # Assert - State should be maintained correctly
         assert first_result is True, "First call should succeed"
-        assert second_result is True, "Second call should succeed (no last_run set yet)"
+        assert second_result is False, "Second call should be throttled (last_run was set on first call)"
         
         # Wait for interval to pass without arbitrary sleep
         from tests.conftest import wait_until

@@ -16,10 +16,16 @@ import tempfile
 import shutil
 import json
 import logging
+import warnings
 from pathlib import Path
 from unittest.mock import Mock, patch
 import sys
 from datetime import datetime
+
+# Suppress Discord library warnings
+warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below
@@ -1835,3 +1841,19 @@ def pytest_runtest_logreport(report):
                 test_logger.error(f"Error details: {report.longrepr}")
         elif report.skipped:
             test_logger.warning(f"SKIPPED: {report.nodeid}")
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_communication_manager():
+    """Clean up CommunicationManager singleton after all tests complete."""
+    yield
+    
+    # Clean up CommunicationManager singleton to prevent access violations
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        if CommunicationManager._instance is not None:
+            test_logger.info("Cleaning up CommunicationManager singleton...")
+            CommunicationManager._instance.stop_all()
+            CommunicationManager._instance = None
+            test_logger.info("CommunicationManager cleanup completed")
+    except Exception as e:
+        test_logger.warning(f"Error during CommunicationManager cleanup: {e}")

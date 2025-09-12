@@ -638,32 +638,33 @@ def test_integration_scenarios_real_behavior(test_data_dir):
                 materialize_user_minimal_via_public_apis(basic_user_id)
                 basic_data = get_user_data(basic_user_id, "all", auto_create=True)
             
-            # Add new category
-            if "quotes" not in basic_data["preferences"]["categories"]:
-                basic_data["preferences"]["categories"].append("quotes")
+            # Add new category (use a valid category from the allowed list)
+            test_category = "quotes_to_ponder"
+            if test_category not in basic_data["preferences"]["categories"]:
+                basic_data["preferences"]["categories"].append(test_category)
                 save_result = save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
                 logging.getLogger("mhm_tests").debug(f"Save result: {save_result}")
-            
+
             # Verify category added with retry for race conditions
             import time
             for attempt in range(3):
                 updated_data = get_user_data(basic_user_id, "all", auto_create=True)
                 logging.getLogger("mhm_tests").debug(f"Attempt {attempt + 1}: Categories: {updated_data['preferences']['categories']}")
-                if "quotes" in updated_data["preferences"]["categories"]:
+                if test_category in updated_data["preferences"]["categories"]:
                     break
                 if attempt < 2:  # Don't sleep on last attempt
                     time.sleep(0.1)  # Brief delay for file system consistency
-            
-            assert "quotes" in updated_data["preferences"]["categories"], f"Quotes category should be added. Current categories: {updated_data['preferences']['categories']}"
-            
+
+            assert test_category in updated_data["preferences"]["categories"], f"{test_category} category should be added. Current categories: {updated_data['preferences']['categories']}"
+
             # Remove category
             basic_data = get_user_data(basic_user_id, "all", auto_create=True)
-            basic_data["preferences"]["categories"].remove("quotes")
+            basic_data["preferences"]["categories"].remove(test_category)
             save_user_data(basic_user_id, {"preferences": basic_data["preferences"]})
-            
+
             # Verify category removed
             final_data = get_user_data(basic_user_id, "all", auto_create=True)
-            assert "quotes" not in final_data["preferences"]["categories"], "Quotes category should be removed"
+            assert test_category not in final_data["preferences"]["categories"], f"{test_category} category should be removed"
             
             logging.getLogger("mhm_tests").debug("Category add/remove scenario: Success")
             
