@@ -93,3 +93,8 @@ git add . && git commit -m "message" && git push origin main
 ---
 
 **Remember**: Small changes, frequent testing, clear communication. **ALWAYS use PowerShell-safe Git commands.**
+
+---
+
+## What's In The Full Doc
+- See `DEVELOPMENT_WORKFLOW.md` for comprehensive guidance: Safety First, Virtual Environment Best Practices, Development Process, Testing Strategy, Emergency Procedures, Common Tasks, and PowerShell‑safe Git workflow.

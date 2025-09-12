@@ -72,3 +72,8 @@
 ---
 
 **Remember**: Keep AI documentation concise, pattern-focused, always cross-referenced.
+
+---
+
+## What's In The Full Doc
+- See `DOCUMENTATION_GUIDE.md` for the full document map: quick reference, documentation summary table, maintenance guidelines, standards, and coding/naming conventions, plus links to all human‑facing and AI‑facing documents.

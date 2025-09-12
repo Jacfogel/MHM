@@ -79,3 +79,8 @@
 ---
 
 **Remember**: Run audits for accuracy, fix incrementally, maintain user trust. 
+
+---
+
+## What's In The Full Doc
+- For deeper explanations and the full troubleshooting playbook, see `DOCUMENTATION_GUIDE.md`, `ARCHITECTURE.md`, and `DEVELOPMENT_WORKFLOW.md`. This AI quick reference mirrors those docs at a high level for fast, context‑aware assistance.

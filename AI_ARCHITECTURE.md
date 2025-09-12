@@ -44,3 +44,26 @@
 ---
 
 **Remember**: Follow established patterns, use unified data access, maintain separation of concerns.
+
+---
+
+## What's In The Full Doc
+- See `ARCHITECTURE.md` for complete details: Directory Structure, User Data Model, Key Modules & Responsibilities, Data Handling Patterns, and UI architecture conventions.
+
+## User Data Model (Concise)
+- Per‑user directory `data/users/{user_id}` with `account.json`, flat `preferences.json`, `schedules.json`, `user_context.json`, and per‑user `messages/` (plus optional `tasks/`).
+- Combined view: higher‑level helpers assemble `{ 'preferences': {...}, 'schedules': {...}, 'user_context': {...}, ... }` for features.
+- Access exclusively via `core/user_data_handlers.get_user_data(...)` and corresponding save helpers; avoid direct file I/O in features.
+
+## Directory Overview (Concise)
+- `core/`: core logic, config, scheduling, data management
+- `communication/`: channels and orchestration
+- `ui/`: PySide6 admin tools (users don’t need to open UI)
+- `resources/default_messages/`: message templates
+- `data/users/`: per‑user runtime data
+- `ai_tools/`: audits and documentation helpers
+
+## Data Handling Patterns (Concise)
+- Read/modify/write the full preferences dict; don’t partially overwrite files.
+- Create message files only for opted‑in categories; store per‑user under `messages/`.
+- Use `core/config.py` for paths and options; never hardcode paths.
