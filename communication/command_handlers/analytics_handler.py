@@ -15,7 +15,7 @@ class AnalyticsHandler(InteractionHandler):
     """Handler for analytics and insights interactions"""
     
     def can_handle(self, intent: str) -> bool:
-        return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'checkin_analysis', 'completion_rate', 'task_analytics', 'task_stats']
+        return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'checkin_analysis', 'completion_rate', 'task_analytics', 'task_stats', 'quant_summary']
     
     @handle_errors("handling analytics interaction", default_return=InteractionResponse("I'm having trouble with analytics right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
@@ -42,6 +42,8 @@ class AnalyticsHandler(InteractionHandler):
             return self._handle_task_analytics(user_id, entities)
         elif intent == 'task_stats':
             return self._handle_task_stats(user_id, entities)
+        elif intent == 'quant_summary':
+            return self._handle_quant_summary(user_id, entities)
         else:
             return InteractionResponse(f"I don't understand that analytics command. Try: {', '.join(self.get_examples())}", True)
     
@@ -132,6 +134,37 @@ class AnalyticsHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error showing mood trends for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your mood trends right now. Please try again.", True)
+
+    def _handle_quant_summary(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Show per-field quantitative summaries for opted-in fields."""
+        days = entities.get('days', 30)
+        try:
+            from core.checkin_analytics import CheckinAnalytics
+            from core.user_data_handlers import get_user_data
+            analytics = CheckinAnalytics()
+
+            enabled_fields = None
+            try:
+                prefs = get_user_data(user_id, 'preferences') or {}
+                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
+                if isinstance(checkin_settings, dict):
+                    ef = checkin_settings.get('enabled_fields')
+                    if isinstance(ef, list):
+                        enabled_fields = [str(x) for x in ef]
+            except Exception:
+                enabled_fields = None
+
+            summaries = analytics.get_quantitative_summaries(user_id, days, enabled_fields)
+            if 'error' in summaries:
+                return InteractionResponse("You don't have enough check-in data to compute summaries yet.", True)
+
+            response = f"**Per-field Quantitative Summaries (Last {days} days):**\n\n"
+            for field, stats in summaries.items():
+                response += f"• {field.title()}: avg {stats['average']} (min {stats['min']}, max {stats['max']}) over {int(stats['count'])} days\n"
+            return InteractionResponse(response, True)
+        except Exception as e:
+            logger.error(f"Error computing quantitative summaries for user {user_id}: {e}")
+            return InteractionResponse("I'm having trouble computing your quantitative summaries right now. Please try again.", True)
     
     def _handle_habit_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show habit analysis"""
@@ -538,7 +571,8 @@ class AnalyticsHandler(InteractionHandler):
             "checkin analysis",
             "completion rate",
             "task analytics",
-            "task stats"
+            "task stats",
+            "quant summary"
         ]
 
     def _truncate_response(self, response: str, max_length: int = 1900) -> str:

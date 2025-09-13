@@ -33,12 +33,12 @@ Guidelines:
 - Fixed remaining multi-arg logger calls (converted to f-strings) and added static check to enforce no more than one positional arg to any `*.logger.*` call
 - Extended static logger check to forbid `logging.getLogger(__name__)` in app code (allowed in `core/logger.py`, `tests/`, `scripts/`, `ai_tools/`)
 - Updated `core/schemas.py` to use `get_component_logger('main')` for consistency
-- Profile/help sanity: commands output links to `DISCORD.md`; profile display verified as formatted text
+- Profile/help sanity: profile display verified as formatted text; general help points users to in-app 'commands' instead of docs
 
 ### 2025-09-13 - Scale Normalization + Discord Docs ?. **COMPLETED**
 - Normalized all mood/energy displays to 1–5 across command handlers (status, history, mood trends)
 - Added targeted behavior tests asserting “/5” rendering for status, history, and trends
-- Introduced `DISCORD.md` with consolidated Discord command reference; linked from in-app commands output
+- Introduced `DISCORD.md` with consolidated Discord command reference (developer/admin doc); in-app commands do not reference docs directly
 - Cleaned `QUICK_REFERENCE.md` to point to `DISCORD.md` instead of duplicating commands
 
 ### 2025-09-12 - Commands Help + Report Length Safeguard ✅ COMPLETED

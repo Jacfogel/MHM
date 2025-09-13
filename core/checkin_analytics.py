@@ -242,6 +242,59 @@ class CheckinAnalytics:
                     continue
         
         return formatted_history
+
+    @handle_errors("computing quantitative summaries", default_return={"error": "Analysis failed"})
+    def get_quantitative_summaries(self, user_id: str, days: int = 30, enabled_fields: Optional[List[str]] = None) -> Dict[str, Dict[str, float]]:
+        """Compute per-field averages and ranges for opted-in quantitative fields.
+
+        Parameters:
+            user_id: target user
+            days: number of recent check-ins to analyze
+            enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
+
+        Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
+        Only includes fields that appear in the data and are in enabled_fields if provided.
+        """
+        checkins = get_recent_checkins(user_id, limit=days)
+        if not checkins:
+            return {"error": "No check-in data"}
+
+        # Candidate fields available directly on checkin dicts
+        candidate_fields = [
+            'mood', 'energy', 'stress', 'sleep_quality', 'anxiety'
+        ]
+
+        if enabled_fields is not None:
+            fields = [f for f in candidate_fields if f in enabled_fields]
+        else:
+            fields = candidate_fields
+
+        summaries: Dict[str, Dict[str, float]] = {}
+        for field in fields:
+            values: List[float] = []
+            for c in checkins:
+                if field in c:
+                    try:
+                        v = float(c[field])
+                        values.append(v)
+                    except Exception:
+                        continue
+                # Also support responses dict with numeric answers
+                elif isinstance(c.get('responses'), dict) and field in c['responses']:
+                    try:
+                        v_raw = c['responses'][field]
+                        v = float(v_raw)
+                        values.append(v)
+                    except Exception:
+                        continue
+            if values:
+                summaries[field] = {
+                    'average': round(statistics.mean(values), 2),
+                    'min': min(values),
+                    'max': max(values),
+                    'count': len(values),
+                }
+        return summaries if summaries else {"error": "No quantitative fields present"}
     
     @handle_errors("calculating completion rate", default_return={"error": "Calculation failed"})
     def get_completion_rate(self, user_id: str, days: int = 30) -> Dict:

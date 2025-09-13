@@ -109,6 +109,8 @@ When adding new tasks, follow this format:
   - [ ] Implement analytics pull that respects per‑user enabled questions
   - [ ] Add behavior tests for each enabled field with sample data
   - [ ] Update `/analytics` and subcommands to surface these summaries
+  - [ ] Integrate per-field summaries into "show analytics" response
+  - [ ] Add behavior tests validating per-field section in analytics overview
 
 **High Complexity Function Refactoring - Phase 2** ⚠️ **NEW PRIORITY**
 - *What it means*: Continue refactoring high complexity functions identified in audit (1839 functions >50 nodes)
@@ -230,7 +232,7 @@ When adding new tasks, follow this format:
     - [ ] Ensure all profile information is displayed (not truncated)
   - [ ] **Document All Discord Commands**
     - [ ] Audit all available Discord commands (slash commands, ! commands, natural language)
-    - [ ] Keep comprehensive list in `DISCORD.md` with examples
+    - [ ] Keep comprehensive list in `DISCORD.md` with examples (developer/admin only)
     - [ ] Ensure help system surfaces core commands and examples
     - [ ] Test all commands to ensure they work properly
 
@@ -377,6 +379,7 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests for classic dynamic commands (skip `help`, ensure mapping works)
   - [ ] Verify unknown `/` and `!` prefixes fall back to parser and contextual chat
   - [ ] Document command list in QUICK_REFERENCE.md
+  - [ ] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
 
 **Throttler Bug Fix**
 - *What it means*: Fix Service Utilities Throttler first-call behavior
@@ -532,6 +535,15 @@ When adding new tasks, follow this format:
   - [ ] End-to-end tests for `/checkin` flow via Discord and via plain text
   - [ ] End-to-end tests for `/status`, `/profile`, `/tasks` via Discord slash commands
   - [ ] Windows path tests: default messages load and directory creation using normalized separators
+
+**CI Guard for Logging Enforcement**
+- *What it means*: Wire the static logging check into CI to enforce ComponentLogger rules automatically.
+- *Why it helps*: Prevents regressions of forbidden logging patterns.
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Add CI job step to run `scripts/static_checks/check_channel_loggers.py`
+  - [ ] Ensure job runs before test steps and fails the pipeline on violations
+  - [ ] Document the check in `LOGGING_GUIDE.md` (contributor notes)
 
 **Scripts Directory Cleanup** - Clean up the `scripts/` directory
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to `ai_tools/`

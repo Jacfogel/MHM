@@ -664,6 +664,14 @@ class TestProfileHandlerCoverage:
         assert isinstance(response, InteractionResponse)
         assert "profile" in response.message.lower()
 
+    def test_profile_get_help_is_text(self):
+        """ProfileHandler.get_help should return a helpful text string."""
+        handler = ProfileHandler()
+        help_text = handler.get_help()
+        assert isinstance(help_text, str)
+        assert len(help_text) > 10
+        assert "profile" in help_text.lower()
+
     def test_show_profile_not_raw_json(self, test_data_dir):
         """Profile display should be formatted text, not raw JSON."""
         handler = ProfileHandler()
@@ -804,6 +812,41 @@ class TestAnalyticsHandlerCoverage:
         assert isinstance(response, InteractionResponse)
         assert "mood" in response.message.lower()
 
+    def test_quantitative_summary_respects_enabled_fields(self, test_data_dir, monkeypatch):
+        """Quant summary should include only enabled numeric fields present in data."""
+        handler = AnalyticsHandler()
+        user_id = "test_user_analytics_quant"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        # Patch checkins data to have several fields
+        from core import checkin_analytics as ca
+        monkeypatch.setattr(ca, "get_recent_checkins", lambda uid, limit=30: [
+            {"timestamp": "2025-01-10 09:00:00", "mood": 4, "energy": 2, "stress": 3},
+            {"timestamp": "2025-01-11 09:00:00", "mood": 5, "energy": 4, "stress": 2},
+        ])
+
+        # Enable only mood and energy
+        from core import user_data_handlers as udh
+        def _mock_get_user_data(uid, section):
+            if section == 'preferences':
+                return {"preferences": {"checkin_settings": {"enabled_fields": ["mood", "energy"]}}}
+            return {}
+        monkeypatch.setattr(udh, "get_user_data", _mock_get_user_data)
+
+        parsed_command = ParsedCommand(
+            intent="quant_summary",
+            entities={},
+            confidence=0.9,
+            original_message="quant summary"
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert isinstance(response, InteractionResponse)
+        msg = response.message
+        assert "Mood" in msg and "Energy" in msg
+        assert "Stress" not in msg
+
     def test_mood_trends_displays_scale_out_of_5(self, test_data_dir, monkeypatch):
         """Ensure mood trends render averages/ranges on a /5 scale."""
         handler = AnalyticsHandler()
@@ -912,8 +955,8 @@ class TestHelpHandlerCoverage:
         response = handler.handle(user_id, parsed_command)
 
         assert isinstance(response, InteractionResponse)
-        assert "DISCORD.md" in response.message, "Commands output should link to DISCORD.md for full list"
-        assert "command" in response.message.lower()
+        assert "available commands" in response.message.lower()
+        assert "help" in response.message.lower() or "example" in response.message.lower()
     
     def test_handle_examples(self, test_data_dir):
         """Test showing examples."""

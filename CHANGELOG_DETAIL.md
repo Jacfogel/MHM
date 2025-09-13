@@ -15,13 +15,12 @@
 - Component logger alignment:
   - `core/schemas.py`: use `get_component_logger('main')` in validation fallback
 - Documentation and UX:
-  - `interaction_handlers.py` commands output links to `DISCORD.md`
-  - `DISCORD.md` is the single source for command listings
+  - `DISCORD.md` is the developer/admin command reference; in-app help/commands now point users to use 'commands' or slash-commands instead of docs
 
 ### Tests
 - Extended behavior tests:
   - Profile render is not raw JSON (formatted text)
-  - Commands output includes `DISCORD.md` link
+  - Commands output validated (no direct doc links; shows available commands)
   - Existing static logging check test validates new rules
 
 ### Impact
