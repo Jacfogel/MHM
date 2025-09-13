@@ -1,4 +1,50 @@
-﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-10This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
+﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-13This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-13 - AI Response Quality and Command Parsing Fixes
+
+### Overview
+- Fixed duplicate AI processing and inappropriate command classification
+- Enhanced conversational engagement and response quality
+- Resolved multiple issues with emotional distress message handling
+
+### Changes
+- **Command Parsing Logic Fix**:
+  - Fixed backwards logic in `communication/message_processing/command_parser.py`
+  - Now skips AI-enhanced parsing for messages with confidence = 0.0 (clearly not commands)
+  - AI-enhanced parsing only used for ambiguous cases (confidence > 0 but < 0.8)
+  - Eliminated unnecessary AI calls for emotional distress messages
+- **AI Enhancement Fix**:
+  - Disabled AI enhancement for help commands in `communication/message_processing/interaction_manager.py`
+  - Prevents duplicate AI calls when processing structured commands
+- **Command Parsing Prompt Improvements**:
+  - Enhanced `ai/prompt_manager.py` command prompt to better distinguish commands from emotional distress
+  - Added explicit guidance: "Do NOT classify emotional distress, general conversation, or venting as commands"
+  - Updated fallback wellness prompt with conversational engagement guidelines
+- **Conversational Engagement Enhancement**:
+  - Updated `resources/assistant_system_prompt.txt` with conversational engagement guidelines
+  - Added specific examples: "How are you feeling about that?", "I'm here if you want to talk more about this"
+  - Ensures all responses leave natural openings for continued conversation
+
+### Technical Details
+- **Confidence Thresholds**: 
+  - High confidence rule-based: > 0.8
+  - AI-enhanced parsing: >= 0.6
+  - Fallback threshold: > 0.3
+- **Parsing Flow**: Rule-based → Skip AI if confidence = 0.0 → AI-enhanced for ambiguous → Fallback
+- **AI Call Reduction**: Eliminated duplicate command/chat mode calls for emotional messages
+
+### Results
+- ✅ Emotional distress messages no longer misclassified as "help" commands
+- ✅ Eliminated duplicate AI processing (was 2 calls per message, now 1)
+- ✅ Removed inappropriate data responses to emotional pleas
+- ✅ Enhanced conversational engagement with natural openings
+- ⚠️ **Remaining Issue**: Message truncation and need for stronger conversational endings
+
+### Files Modified
+- `communication/message_processing/command_parser.py`
+- `communication/message_processing/interaction_manager.py`
+- `ai/prompt_manager.py`
+- `resources/assistant_system_prompt.txt`
+
+## 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
 ## 2025-09-13 - Logging Style Enforcement and Profile/Help Sanity
 
 ### Overview

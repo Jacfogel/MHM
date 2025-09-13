@@ -298,16 +298,21 @@ class EnhancedCommandParser:
         for intent, patterns in self.intent_patterns.items():
             self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
     
+    
     @handle_errors("parsing command", default_return=ParsingResult(
         ParsedCommand("unknown", {}, 0.0, ""), 0.0, "fallback"
     ))
-    def parse(self, message: str) -> ParsingResult:
+    def parse(self, message: str, user_id: str = None) -> ParsingResult:
         """
         Parse a user message into a structured command.
         
         Returns:
             ParsingResult with parsed command, confidence, and method used
         """
+        from core.logger import get_component_logger
+        logger = get_component_logger('communication_manager')
+        logger.info(f"COMMAND_PARSER: Parsing message for user {user_id}: '{message[:50]}...'")
+        
         if not message or not message.strip():
             return ParsingResult(
                 ParsedCommand("unknown", {}, 0.0, message),
@@ -319,8 +324,12 @@ class EnhancedCommandParser:
         if rule_result.confidence > AI_RULE_BASED_HIGH_CONFIDENCE_THRESHOLD:
             return rule_result
         
-        # Try AI-enhanced parsing (slower, more flexible)
-        ai_result = self._ai_enhanced_parse(message)
+        # If rule-based parsing has zero confidence, it's clearly not a command - skip AI parsing
+        if rule_result.confidence == 0.0:
+            return rule_result
+        
+        # Try AI-enhanced parsing only for ambiguous cases (confidence > 0 but < high threshold)
+        ai_result = self._ai_enhanced_parse(message, user_id)
         if ai_result.confidence >= AI_AI_ENHANCED_CONFIDENCE_THRESHOLD:
             return ai_result
         
@@ -357,13 +366,14 @@ class EnhancedCommandParser:
             0.0, "rule_based"
         )
     
-    def _ai_enhanced_parse(self, message: str) -> ParsingResult:
+    def _ai_enhanced_parse(self, message: str, user_id: str = None) -> ParsingResult:
         """Parse using AI chatbot capabilities"""
         try:
             # Use existing AI chatbot command parsing
             ai_response = self.ai_chatbot.generate_response(
                 message, 
                 mode="command",
+                user_id=user_id,
                 timeout=AI_COMMAND_PARSING_TIMEOUT
             )
             

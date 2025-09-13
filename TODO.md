@@ -99,6 +99,18 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**AI Response Quality Improvements** - Fix message truncation and enhance conversational openings
+- *What it means*: The AI responses are getting cut off mid-sentence and need better conversational engagement endings
+- *Why it helps*: Provides complete, engaging responses that encourage continued conversation
+- *Estimated effort*: Small
+- *Issues identified*:
+  - [ ] **Message Truncation**: Second response got cut off mid-sentence ("it can be tough to manage all of...")
+  - [ ] **Conversational Openings**: Third response needs stronger engagement ("where would you like to start?" or "what feels the heaviest right now?" or "how about we take it one thing at a time?")
+- *Next steps*:
+  - [ ] Investigate why AI responses are being truncated (max_tokens, response length limits)
+  - [ ] Enhance conversational engagement prompts to be more specific about ending patterns
+  - [ ] Test response completeness and engagement quality
+
 **Quantitative Check-in Analytics Expansion** - Include all opted‑in quantitative questions
 - *What it means*: Users can enable multiple preset check‑in questions; analytics should aggregate all quantitative ones (mood, stress, energy, sleep quality, anxiety, etc.) based on what the user has opted into.
 - *Why it helps*: Richer insights that reflect the user’s selected tracking fields

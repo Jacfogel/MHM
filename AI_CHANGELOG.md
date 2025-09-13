@@ -29,6 +29,14 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-13 - AI Response Quality and Command Parsing Fixes ✅. **COMPLETED**
+- Fixed duplicate AI processing and inappropriate command classification for emotional distress messages
+- Enhanced command parsing logic to skip AI calls for clearly non-command messages (confidence = 0.0)
+- Disabled AI enhancement for help commands to prevent duplicate processing
+- Updated AI prompts with conversational engagement guidelines to always leave natural openings
+- Eliminated inappropriate data responses to emotional pleas; now provides empathetic support
+- **Remaining**: Message truncation and need for stronger conversational endings
+
 ### 2025-09-13 - Logging Style Enforcement + Docs ?. **COMPLETED**
 - Fixed remaining multi-arg logger calls (converted to f-strings) and added static check to enforce no more than one positional arg to any `*.logger.*` call
 - Extended static logger check to forbid `logging.getLogger(__name__)` in app code (allowed in `core/logger.py`, `tests/`, `scripts/`, `ai_tools/`)

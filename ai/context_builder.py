@@ -74,7 +74,7 @@ class ContextBuilder:
         """
         try:
             # Get comprehensive user context from context manager
-            context = user_context_manager.get_user_context(
+            context = user_context_manager.get_ai_context(
                 user_id, 
                 include_conversation_history=include_conversation_history
             )

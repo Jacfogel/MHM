@@ -33,7 +33,13 @@ class PromptManager:
                 name='wellness',
                 content=("You are a supportive wellness assistant. Keep responses helpful, "
                         "encouraging, and under 150 words. Important: You cannot diagnose or treat "
-                        "medical conditions. For serious concerns, recommend professional help."),
+                        "medical conditions. For serious concerns, recommend professional help. "
+                        "CONVERSATION GUIDELINES: Always end responses in a way that invites continued "
+                        "conversation. Ask gentle questions, offer to listen more, or give the user "
+                        "an opening to share more if they want. Examples: 'How are you feeling about that?', "
+                        "'I'm here if you want to talk more about this', 'What would help you feel better right now?', "
+                        "'Would you like to tell me more about what's on your mind?' Don't force questions, "
+                        "but always leave a natural opening for the user to respond if they wish."),
                 description="Default wellness assistant prompt",
                 max_tokens=200,
                 temperature=0.7
@@ -41,14 +47,18 @@ class PromptManager:
             'command': PromptTemplate(
                 name='command',
                 content=("You are a command parser. Your ONLY job is to extract the user's intent and return it as JSON. "
+                       "IMPORTANT: Only classify messages as commands if they are EXPLICIT requests for specific actions. "
+                       "Do NOT classify emotional distress, general conversation, or venting as commands. "
                        "Available actions: create_task, list_tasks, complete_task, delete_task, update_task, task_stats, "
                        "start_checkin, checkin_status, show_profile, update_profile, profile_stats, show_schedule, "
                        "schedule_status, add_schedule_period, show_analytics, mood_trends, habit_analysis, sleep_analysis, "
                        "wellness_score, help, commands, examples, status, messages. "
+                       "For emotional distress or general conversation, return: "
+                       '{"action": "unknown", "details": {}} '
                        "You MUST respond with ONLY valid JSON in this exact format: "
                        '{"action": "action_name", "details": {}}'),
                 description="Command parsing prompt",
-                max_tokens=100,
+                max_tokens=120,
                 temperature=0.1
             ),
             'neurodivergent_support': PromptTemplate(

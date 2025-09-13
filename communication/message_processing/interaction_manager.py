@@ -160,19 +160,19 @@ class InteractionManager:
             return InteractionResponse(reply_text, completed)
         
         # Parse the message to determine intent
-        parsing_result = self.command_parser.parse(message)
-        logger.debug(f"Parsed message for user {user_id}: {parsing_result.method} method, "
+        parsing_result = self.command_parser.parse(message, user_id)
+        logger.info(f"INTERACTION_MANAGER: Parsed message for user {user_id}: {parsing_result.method} method, "
                     f"intent: {parsing_result.parsed_command.intent}, "
                     f"confidence: {parsing_result.confidence}")
         
         # Handle structured commands
         if parsing_result.confidence >= self.min_command_confidence:
-            logger.debug(f"Handling as structured command: {parsing_result.parsed_command.intent}")
+            logger.info(f"INTERACTION_MANAGER: Handling as structured command: {parsing_result.parsed_command.intent}")
             return self._handle_structured_command(user_id, parsing_result, channel_type)
         
         # Fall back to contextual chat
         if self.fallback_to_chat:
-            logger.debug(f"Handling as contextual chat: confidence {parsing_result.confidence} < {self.min_command_confidence}")
+            logger.info(f"INTERACTION_MANAGER: Handling as contextual chat: confidence {parsing_result.confidence} < {self.min_command_confidence}")
             print(f"DEBUG: Going to contextual chat with confidence {parsing_result.confidence}")
             return self._handle_contextual_chat(user_id, message, channel_type)
         
@@ -201,7 +201,7 @@ class InteractionManager:
         parsed_command = parsing_result.parsed_command
         intent = parsed_command.intent
 
-        # Built-in intents that don't use a specific handler
+        # Built-in intents that don't use a specific handler (no AI enhancement needed)
         if intent in ['help']:
             return self._get_help_response(user_id, parsed_command.original_message)
         if intent in ['commands']:
@@ -243,16 +243,11 @@ class InteractionManager:
             )
     
     def _handle_contextual_chat(self, user_id: str, message: str, channel_type: str) -> InteractionResponse:
-        """Handle contextual chat using AI chatbot"""
+        """Handle contextual chat using AI chatbot with mixed intent support"""
         try:
-            # Try AI command parsing first for ambiguous messages
-            ai_command_result = self._try_ai_command_parsing(user_id, message, channel_type)
-            if ai_command_result:
-                return ai_command_result
-            
-            # If AI command parsing didn't find a command, generate contextual response
+            # Generate a single AI response that can handle both conversational and actionable content
             ai_chatbot = get_ai_chatbot()
-            response = ai_chatbot.generate_response(user_id, message, mode="chat")
+            response = ai_chatbot.generate_response(message, user_id=user_id, mode="chat")
             return InteractionResponse(response, True)
             
         except Exception as e:

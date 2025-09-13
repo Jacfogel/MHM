@@ -19,6 +19,7 @@ from core.logger import get_logger, get_component_logger
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_checkins, get_recent_chat_interactions
 from core.message_management import get_recent_messages
+from core.schedule_utilities import get_active_schedules
 from core.error_handling import handle_errors
 from user.user_context import UserContext
 from user.user_preferences import UserPreferences
@@ -113,7 +114,7 @@ class UserContextManager:
             'preferred_name': user_context.get_preferred_name() or user_context_data.get('preferred_name', ''),
             'active_categories': user_preferences.get('categories', []),
             'messaging_service': user_preferences.get('channel', {}).get('type', ''),
-            'active_schedules': self._get_active_schedules({})  # Schedules handled separately
+            'active_schedules': get_active_schedules(user_id)  # Use direct function call
         }
     
     @handle_errors("getting recent activity", default_return={})

@@ -417,11 +417,12 @@ class DiscordBot(BaseChannel):
                 logger.warning("Pre-flight network check failed, but continuing with initialization")
                 # Don't fail immediately, let Discord.py handle the connection
             
-            # Create bot instance
+            # Create bot instance with automatic command processing disabled
             self.bot = commands.Bot(
                 command_prefix='!',
                 intents=intents,
-                application_id=DISCORD_APPLICATION_ID
+                application_id=DISCORD_APPLICATION_ID,
+                help_command=None  # Disable default help command
             )
             
             # Register events and commands
@@ -656,11 +657,13 @@ class DiscordBot(BaseChannel):
             if message.author == self.bot.user:
                 return
 
-            # Let commands run if the message starts with "!"
-            if message.content.startswith("!"):
+            # Only process explicit commands (starting with "!" or "/")
+            if message.content.startswith("!") or message.content.startswith("/"):
                 await self.bot.process_commands(message)
                 return
 
+            # Process regular messages (not commands) through the interaction manager
+            # This prevents Discord from automatically trying to match commands to regular messages
             # Map Discord user ID to internal user ID
             discord_user_id = str(message.author.id)
             internal_user_id = get_user_id_by_identifier(discord_user_id)
@@ -694,6 +697,7 @@ class DiscordBot(BaseChannel):
             # Use the new interaction manager for enhanced user interactions
             try:
                 from communication.message_processing.interaction_manager import handle_user_message
+                discord_logger.info(f"DISCORD_BOT: Calling handle_user_message for user {internal_user_id} with message: '{message.content[:50]}...'")
                 response = handle_user_message(internal_user_id, message.content, "discord")
                 
                 if response.message:

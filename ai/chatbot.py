@@ -316,9 +316,23 @@ class AIChatBotSingleton:
                    f"Remember that seeking support and taking care of yourself shows real strength. "
                    f"Keep up the great work!")
         
-        # Default contextual response - more generic fallback
+        # Default contextual response - more empathetic fallback
+        # Check for distress keywords
+        distress_keywords = ['breakdown', 'overwhelmed', 'struggling', 'difficult', 'hard', 'tough', 'stress', 'anxiety', 'depression', 'sad', 'upset', 'worried', 'scared', 'frustrated', 'angry']
+        if any(keyword in prompt_lower for keyword in distress_keywords):
+            return (f"{name_prefix}I can hear that you're going through a really tough time right now. "
+                   f"I'm here with you, and it's okay to feel overwhelmed. "
+                   f"Would you like to talk about what's happening, or would it help to focus on just getting through the next few minutes?")
+        
+        # Check for general emotional support needs
+        support_keywords = ['help', 'support', 'listen', 'talk', 'feel', 'emotion', 'mood', 'crisis']
+        if any(keyword in prompt_lower for keyword in support_keywords):
+            return (f"{name_prefix}I'm here to listen and support you through whatever you're experiencing. "
+                   f"You don't have to face this alone. What would be most helpful right now?")
+        
+        # Default empathetic response
         return (f"{name_prefix}I'm here to listen and support you. "
-               f"What's on your mind?")
+               f"How are you feeling right now? What's on your mind?")
 
     @handle_errors("getting fallback response", default_return="I'd like to help with that! While my AI capabilities may be limited, I can offer encouragement and general wellness tips.")
     def _get_fallback_response(self, user_prompt: str) -> str:
@@ -385,7 +399,7 @@ class AIChatBotSingleton:
     def _create_comprehensive_context_prompt(self, user_id: str, user_prompt: str) -> list:
         """Create a comprehensive context prompt with all user data for LM Studio."""
         # Get comprehensive user context
-        context = user_context_manager.get_user_context(user_id, include_conversation_history=True)
+        context = user_context_manager.get_ai_context(user_id, include_conversation_history=True)
         
         # Build detailed context string with all available data
         context_parts = []
@@ -601,9 +615,9 @@ Additional Instructions:
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(mode, user_prompt, user_id)
 
-        # Check cache first
+        # Check cache first, but skip cache for fallback responses to allow variation
         cached_response = self.response_cache.get(prompt_for_key, uid_for_key, prompt_type=ptype)
-        if cached_response:
+        if cached_response and not cached_response.startswith("I'm here to listen and support you"):
             ai_logger.debug("AI response served from cache", 
                            user_id=user_id, 
                            mode=mode, 
@@ -617,7 +631,7 @@ Additional Instructions:
         # Use fallback if LM Studio is not available
         if not self.lm_studio_available:
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
+            # Don't cache fallback responses to allow variation
             ai_logger.warning("AI response using fallback - LM Studio unavailable", 
                              user_id=user_id, 
                              mode=mode, 
@@ -634,7 +648,7 @@ Additional Instructions:
                              mode=mode, 
                              prompt_length=len(user_prompt))
             response = self._get_contextual_fallback(user_prompt, user_id)
-            self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
+            # Don't cache fallback responses to allow variation
             return response
 
         logger.debug(
@@ -685,7 +699,7 @@ Additional Instructions:
             else:
                 # API failed, use contextual fallback
                 response = self._get_contextual_fallback(user_prompt, user_id)
-                self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
+                # Don't cache fallback responses to allow variation
                 ai_logger.error("AI response generation failed - using fallback", 
                                user_id=user_id, 
                                mode=mode, 
@@ -832,7 +846,7 @@ Additional Instructions:
             timeout = AI_CONTEXTUAL_RESPONSE_TIMEOUT
             
         # Get comprehensive context 
-        context = user_context_manager.get_user_context(user_id, include_conversation_history=True)
+        context = user_context_manager.get_ai_context(user_id, include_conversation_history=True)
         
         # Create a meaningful but concise context summary for better AI performance
         context_summary = []

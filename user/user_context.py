@@ -13,6 +13,7 @@ from core.user_data_handlers import (
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
+from core.schedule_utilities import get_active_schedules
 
 logger = get_component_logger('user_activity')
 context_logger = get_component_logger('user_activity')
@@ -290,7 +291,7 @@ class UserContext:
             'preferred_name': context_data.get('preferred_name', ''),
             'account_status': account_data.get('account_status', 'unknown'),
             'preferences': preferences_data,
-            'active_schedules': self._get_active_schedules(preferences_data.get('schedules', {}))
+            'active_schedules': get_active_schedules(self.user_data.get('user_id', ''))
         }
         
         return context
