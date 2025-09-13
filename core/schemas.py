@@ -170,7 +170,7 @@ class PreferencesModel(BaseModel):
         except Exception as e:
             # If there's any other error (like missing env vars), use default categories
             from core.logger import get_component_logger
-            logger = get_component_logger(__name__)
+            logger = get_component_logger('main')
             logger.warning(f"Category validation error: {e}, using default categories")
             
             # Default categories that should always be valid

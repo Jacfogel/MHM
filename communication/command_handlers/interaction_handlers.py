@@ -983,7 +983,7 @@ class CheckinHandler(InteractionHandler):
         for checkin in recent_checkins[:5]:  # Show last 5
             date = checkin.get('date', 'Unknown date')
             mood = checkin.get('mood', 'No mood recorded')
-            response += f"📅 {date}: Mood {mood}/10\n"
+            response += f"📅 {date}: Mood {mood}/5\n"
         
         if len(recent_checkins) > 5:
             response += f"... and {len(recent_checkins) - 5} more"
@@ -1477,7 +1477,8 @@ class HelpHandler(InteractionHandler):
         response += "• 'Show me my profile'\n"
         response += "• 'How am I doing with my tasks this week?'\n"
         response += "• 'What's my completion rate?'\n"
-        response += "• 'Show my check-in history'"
+        response += "• 'Show my check-in history'\n"
+        response += "\nSee DISCORD.md for a complete command reference."
         
         return InteractionResponse(response, True)
     
@@ -2172,7 +2173,7 @@ class AnalyticsHandler(InteractionHandler):
             mood_summary = ""
             if 'error' not in mood_data:
                 avg_mood = mood_data.get('average_mood', 0)
-                mood_summary = f"Average mood: {avg_mood}/10"
+            mood_summary = f"Average mood: {avg_mood}/5"
             
             # Get habit analysis
             habit_data = analytics.get_habit_analysis(user_id, days)
@@ -2218,8 +2219,8 @@ class AnalyticsHandler(InteractionHandler):
                 return InteractionResponse("You don't have enough mood data for analysis yet. Try completing some check-ins first!", True)
             
             response = f"**😊 Mood Trends (Last {days} days):**\n\n"
-            response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/10\n"
-            response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/10\n"
+            response += f"📈 **Average Mood:** {mood_data.get('average_mood', 0)}/5\n"
+            response += f"📊 **Mood Range:** {mood_data.get('min_mood', 0)} - {mood_data.get('max_mood', 0)}/5\n"
             response += f"📉 **Trend:** {mood_data.get('trend', 'Stable')}\n\n"
             
             # Show mood distribution
@@ -2369,7 +2370,7 @@ class AnalyticsHandler(InteractionHandler):
             for checkin in checkin_history[:5]:  # Show last 5 check-ins
                 date = checkin.get('date', 'Unknown date')
                 mood = checkin.get('mood', 'No mood recorded')
-                response += f"📅 {date}: Mood {mood}/10\n"
+                response += f"📅 {date}: Mood {mood}/5\n"
             
             if len(checkin_history) > 5:
                 response += f"... and {len(checkin_history) - 5} more check-ins\n"

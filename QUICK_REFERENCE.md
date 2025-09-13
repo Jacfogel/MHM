@@ -1,4 +1,4 @@
-# Quick Reference Guide
+﻿# Quick Reference Guide
 
 > **Audience**: Human Developer (Beginner Programmer)  
 > **Purpose**: Essential commands and troubleshooting  
@@ -54,20 +54,7 @@ pip freeze > requirements.txt
 
 ## Discord Commands
 
-- Slash commands (type in Discord):
-  - `/tasks` → show your tasks
-  - `/profile` → show your profile
-  - `/schedule` → show your schedules
-  - `/messages` → show your messages
-  - `/analytics` → show wellness analytics
-  - `/status` → show system/user status
-  - `/checkin` → start a check-in flow
-  - `/cancel` → cancel the current flow
-
-- Classic commands (if enabled):
-  - `!tasks`, `!profile`, `!schedule`, `!messages`, `!analytics`, `!status`
-  - Map to the same actions as the slash versions
-
+For a complete, up-to-date command list and examples, see `DISCORD.md`.
 ### User Data
 - `data/users/` - User profiles and preferences
 - `data/users/{user_id}/messages/` - Per-user custom messages by category

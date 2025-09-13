@@ -1,9 +1,62 @@
-# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-10This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## ðŸš€ Recent Changes (Most Recent First)## 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
+ï»¿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-10This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## ðŸš€ Recent Changes (Most Recent First)## 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
+## 2025-09-13 - Logging Style Enforcement and Profile/Help Sanity
+
+### Overview
+- Enforced component logger usage patterns and standardized call styles
+- Verified profile output formatting and stabilized help/commands doc references
+
+### Changes
+- Logger call fixes:
+  - Converted remaining multi-arg logger calls to f-strings
+    - `core/logger.py:517`, `core/service.py:205`
+- Static checks updated (`scripts/static_checks/check_channel_loggers.py`):
+  - Forbid direct `logging.getLogger(...)` and `import logging` in app code (excludes `core/logger.py`, `tests/`, `scripts/`, `ai_tools/`)
+  - New AST check: no more than one positional arg to any `*.logger.*` call
+- Component logger alignment:
+  - `core/schemas.py`: use `get_component_logger('main')` in validation fallback
+- Documentation and UX:
+  - `interaction_handlers.py` commands output links to `DISCORD.md`
+  - `DISCORD.md` is the single source for command listings
+
+### Tests
+- Extended behavior tests:
+  - Profile render is not raw JSON (formatted text)
+  - Commands output includes `DISCORD.md` link
+  - Existing static logging check test validates new rules
+
+### Impact
+- Consistent logging across components, reduced runtime risk
+- Clear, centralized command documentation with friendly in-app pointers
+
+---
+## 2025-09-13 - Scale Normalization and Discord Command Documentation
+
+### Overview
+- Ensured consistent user-facing scales for mood/energy (1â€“5) across command handlers
+- Consolidated Discord command documentation into a single `DISCORD.md` reference and linked from in-app help
+
+### Key Changes
+- Normalized scale strings:
+  - `communication/command_handlers/checkin_handler.py`: check-in status shows `Mood X/5`
+  - `communication/command_handlers/interaction_handlers.py`: history/status/trends messages updated to `/5`
+  - Verified analytics trends already using `/5`; History now shows `Mood/5 | Energy/5`
+- Tests added (behavior):
+  - `tests/behavior/test_interaction_handlers_coverage_expansion.py`: asserts `/5` appears in status, history, and trends outputs
+- Documentation:
+  - Added `DISCORD.md` with comprehensive command list and examples
+  - Updated `QUICK_REFERENCE.md` to point to `DISCORD.md` (removed duplicated command listing)
+
+### Impact
+- Consistent UX for mood/energy displays
+- Clear, centralized Discord command discovery for users
+- Guarded by behavior tests to prevent regressions
+
+---
 
 ### Overview
 - Added concise, centralized command discovery inside the bot (help + `commands`)
 - Prevented unintended truncation by excluding structured/report intents from AI enhancement
-- Normalized analytics mood scale to 1–5 and adjusted energy scale in history to 1–5
+- Normalized analytics mood scale to 1ï¿½5 and adjusted energy scale in history to 1ï¿½5
 - Full test suite green (1405 passed, 1 skipped); audit shows 100% doc coverage
 
 ### Details
@@ -13,7 +66,7 @@
 - No-Enhancement Policy
   - Updated Interaction Manager to bypass AI enhancement for intents: analytics, profile, schedule, messages, status, and related stats; preserves full-length outputs
 - Analytics Scales
-  - `analytics_handler.py`: mood now 1–5 across overview, trends, ranges; check-in history shows mood 1–5 and energy 1–5
+  - `analytics_handler.py`: mood now 1ï¿½5 across overview, trends, ranges; check-in history shows mood 1ï¿½5 and energy 1ï¿½5
   - Follow-up task queued to sweep `interaction_handlers.py` and `checkin_handler.py` for `/10` remnants
 - Tests & Audits
   - `python run_tests.py --mode all`: 1405 passed, 1 skipped; warnings unchanged

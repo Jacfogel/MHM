@@ -101,7 +101,7 @@ class CheckinHandler(InteractionHandler):
         for checkin in recent_checkins[:5]:  # Show last 5
             date = checkin.get('date', 'Unknown date')
             mood = checkin.get('mood', 'No mood recorded')
-            response += f"📅 {date}: Mood {mood}/10\n"
+            response += f"📅 {date}: Mood {mood}/5\n"
         
         if len(recent_checkins) > 5:
             response += f"... and {len(recent_checkins) - 5} more"

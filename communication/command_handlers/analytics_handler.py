@@ -263,7 +263,7 @@ class AnalyticsHandler(InteractionHandler):
                 energy = checkin.get('energy', 'N/A')
                 
                 response += f"**{i+1}.** {timestamp}\n"
-                response += f"   😊 Mood: {mood}/5 | ⚡ Energy: {energy}/10\n"
+                response += f"   😊 Mood: {mood}/5 | ⚡ Energy: {energy}/5\n"
                 
                 # Add some key responses if available
                 responses = checkin.get('responses', {})

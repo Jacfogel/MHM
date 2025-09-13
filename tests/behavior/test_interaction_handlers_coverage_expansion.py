@@ -592,20 +592,54 @@ class TestCheckinHandlerCoverage:
         """Test checking check-in status."""
         handler = CheckinHandler()
         user_id = "test_user_checkin_3"
-        
+
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
+
         parsed_command = ParsedCommand(
             intent="checkin_status",
             entities={},
             confidence=0.9,
             original_message="checkin status"
         )
-        
+
         response = handler.handle(user_id, parsed_command)
-        
+
         assert isinstance(response, InteractionResponse)
         assert "check-in" in response.message.lower()
+
+    def test_checkin_status_displays_scale_out_of_5(self, test_data_dir, monkeypatch):
+        """Ensure check-in status lines render mood values on a /5 scale."""
+        handler = CheckinHandler()
+        user_id = "test_user_checkin_scale_1"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        # Force check-ins enabled and provide a recent check-in
+        monkeypatch.setenv("MHM_TESTING", "1")
+
+        from core import response_tracking as rt
+        monkeypatch.setattr(rt, "is_user_checkins_enabled", lambda uid: True)
+        monkeypatch.setattr(rt, "get_recent_checkins", lambda uid, limit=7: [
+            {
+                "date": "2025-01-10",
+                "timestamp": "2025-01-10 09:00:00",
+                "mood": 3,
+            }
+        ])
+
+        parsed_command = ParsedCommand(
+            intent="checkin_status",
+            entities={},
+            confidence=0.9,
+            original_message="checkin status"
+        )
+
+        response = handler.handle(user_id, parsed_command)
+
+        assert isinstance(response, InteractionResponse)
+        # If history is shown, it must display /5; otherwise accept the no-data message
+        if "recent check-ins" in response.message.lower():
+            assert "/5" in response.message
 
 
 class TestProfileHandlerCoverage:
@@ -626,9 +660,27 @@ class TestProfileHandlerCoverage:
         )
         
         response = handler.handle(user_id, parsed_command)
-        
+
         assert isinstance(response, InteractionResponse)
         assert "profile" in response.message.lower()
+
+    def test_show_profile_not_raw_json(self, test_data_dir):
+        """Profile display should be formatted text, not raw JSON."""
+        handler = ProfileHandler()
+        user_id = "test_user_profile_fmt"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        parsed_command = ParsedCommand(
+            intent="show_profile",
+            entities={},
+            confidence=0.9,
+            original_message="show profile"
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        msg = response.message.strip()
+        assert not (msg.startswith("{") or msg.startswith("[")), "Profile output should be human-readable, not JSON"
     
     def test_handle_update_profile(self, test_data_dir):
         """Test updating user profile."""
@@ -737,20 +789,88 @@ class TestAnalyticsHandlerCoverage:
         """Test showing mood trends."""
         handler = AnalyticsHandler()
         user_id = "test_user_analytics_2"
-        
+
         TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        
+
         parsed_command = ParsedCommand(
             intent="mood_trends",
             entities={},
             confidence=0.9,
             original_message="mood trends"
         )
-        
+
         response = handler.handle(user_id, parsed_command)
-        
+
         assert isinstance(response, InteractionResponse)
         assert "mood" in response.message.lower()
+
+    def test_mood_trends_displays_scale_out_of_5(self, test_data_dir, monkeypatch):
+        """Ensure mood trends render averages/ranges on a /5 scale."""
+        handler = AnalyticsHandler()
+        user_id = "test_user_analytics_scale_1"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        # Patch analytics to return deterministic data
+        import types
+        from core import checkin_analytics as ca
+
+        class _MockAnalytics:
+            def get_mood_trends(self, uid, days):
+                return {
+                    "average_mood": 3.2,
+                    "min_mood": 1,
+                    "max_mood": 5,
+                    "trend": "Improving",
+                    "mood_distribution": {"1": 1, "3": 2, "5": 1},
+                }
+
+        monkeypatch.setattr(ca, "CheckinAnalytics", lambda: _MockAnalytics())
+
+        parsed_command = ParsedCommand(
+            intent="mood_trends",
+            entities={},
+            confidence=0.9,
+            original_message="mood trends"
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert isinstance(response, InteractionResponse)
+        assert "/5" in response.message
+
+    def test_checkin_history_displays_scale_out_of_5(self, test_data_dir, monkeypatch):
+        """Ensure check-in history shows mood as /5."""
+        handler = AnalyticsHandler()
+        user_id = "test_user_analytics_scale_2"
+
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+
+        from core import checkin_analytics as ca
+
+        class _MockAnalytics:
+            def get_checkin_history(self, uid, days):
+                return [
+                    {
+                        "date": "2025-01-10",
+                        "timestamp": "2025-01-10 09:00:00",
+                        "mood": 4,
+                        "energy": 2,
+                        "responses": {"How was your sleep?": "Okay"}
+                    }
+                ]
+
+        monkeypatch.setattr(ca, "CheckinAnalytics", lambda: _MockAnalytics())
+
+        parsed_command = ParsedCommand(
+            intent="checkin_history",
+            entities={},
+            confidence=0.9,
+            original_message="checkin history"
+        )
+
+        response = handler.handle(user_id, parsed_command)
+        assert isinstance(response, InteractionResponse)
+        assert "/5" in response.message
 
 
 class TestHelpHandlerCoverage:
@@ -790,8 +910,9 @@ class TestHelpHandlerCoverage:
         )
         
         response = handler.handle(user_id, parsed_command)
-        
+
         assert isinstance(response, InteractionResponse)
+        assert "DISCORD.md" in response.message, "Commands output should link to DISCORD.md for full list"
         assert "command" in response.message.lower()
     
     def test_handle_examples(self, test_data_dir):

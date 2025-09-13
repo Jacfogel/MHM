@@ -514,7 +514,7 @@ def setup_logging():
     
     # Log successful setup
     logger = logging.getLogger(__name__)
-    logger.info("Logging initialized - Console level: %s, File level: DEBUG", logging.getLevelName(log_level))
+    logger.info(f"Logging initialized - Console level: {logging.getLevelName(log_level)}, File level: DEBUG")
     logger.info("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
 
 

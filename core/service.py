@@ -202,10 +202,7 @@ class MHMService:
             
         except Exception as log_error:
             # If we can't even log, then we definitely have a problem
-            logger.error(
-                "Logging system is not working - cannot write log messages: %s",
-                log_error,
-            )
+            logger.error(f"Logging system is not working - cannot write log messages: {log_error}")
             # Fall through to restart logic
         
         # Only restart if we have clear evidence of logging failure
