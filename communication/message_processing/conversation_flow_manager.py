@@ -84,6 +84,35 @@ class ConversationManager:
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
         """Initialize the object."""
         self.user_states = {}
+        self._state_file = "data/conversation_states.json"
+        self._load_user_states()
+
+    def _load_user_states(self) -> None:
+        """Load user states from disk"""
+        try:
+            if os.path.exists(self._state_file):
+                with open(self._state_file, 'r', encoding='utf-8') as f:
+                    self.user_states = json.load(f)
+                logger.info(f"Loaded {len(self.user_states)} user states from disk")
+                for user_id, state in self.user_states.items():
+                    logger.info(f"Loaded state for user {user_id}: flow={state.get('flow')}, state={state.get('state')}")
+            else:
+                logger.debug("No existing conversation states file found")
+        except Exception as e:
+            logger.error(f"Failed to load user states: {e}")
+            self.user_states = {}
+
+    def _save_user_states(self) -> None:
+        """Save user states to disk"""
+        try:
+            # Ensure data directory exists
+            os.makedirs(os.path.dirname(self._state_file), exist_ok=True)
+            
+            with open(self._state_file, 'w', encoding='utf-8') as f:
+                json.dump(self.user_states, f, indent=2)
+            logger.debug(f"Saved {len(self.user_states)} user states to disk")
+        except Exception as e:
+            logger.error(f"Failed to save user states: {e}")
 
     def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> None:
         """Expire an active check-in flow when an unrelated outbound message is sent.
@@ -94,6 +123,7 @@ class ConversationManager:
             if user_state and user_state.get("flow") == FLOW_CHECKIN:
                 # End the flow silently
                 self.user_states.pop(user_id, None)
+                self._save_user_states()
                 logger.info(f"Expired active check-in flow for user {user_id} due to unrelated outbound message")
         except Exception:
             # Don't let this affect outbound sending
@@ -117,6 +147,7 @@ class ConversationManager:
                 if not is_user_checkins_enabled(user_id):
                     # Clear any existing state for this user
                     self.user_states.pop(user_id, None)
+                    self._save_user_states()
                     return (
                         "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                         True
@@ -142,6 +173,7 @@ class ConversationManager:
         else:
             # Unknown flow - reset to default contextual chat
             self.user_states.pop(user_id, None)
+            self._save_user_states()
             ai_bot = get_ai_chatbot()
             reply = ai_bot.generate_contextual_response(user_id, message_text, timeout=10)
             return (reply, True)
@@ -156,9 +188,19 @@ class ConversationManager:
         if not is_user_checkins_enabled(user_id):
             # Clear any existing state for this user
             self.user_states.pop(user_id, None)
+            self._save_user_states()
             return (
                 "Check-ins are not enabled for your account. Please contact an administrator to enable check-ins.",
                 True
+            )
+        
+        # Check if user already has an active checkin flow
+        existing_state = self.user_states.get(user_id)
+        if existing_state and existing_state.get("flow") == FLOW_CHECKIN:
+            # User already has an active checkin - ask if they want to restart
+            return (
+                "You already have a check-in in progress. Type /cancel to cancel the current check-in, or continue answering the questions.",
+                False
             )
         
         # Initialize dynamic check-in flow based on user preferences
@@ -172,6 +214,38 @@ class ConversationManager:
                         checkin_type="daily")
         
         return result
+
+    @handle_errors("clearing stuck flows", default_return=("I'm having trouble clearing your flow state. Please try again.", True))
+    def clear_stuck_flows(self, user_id: str) -> tuple[str, bool]:
+        """
+        Clear any stuck conversation flows for a user.
+        This is a safety mechanism to reset flow state when it gets stuck.
+        """
+        existing_state = self.user_states.get(user_id)
+        if existing_state:
+            flow_type = existing_state.get("flow", "unknown")
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            logger.info(f"Cleared stuck flow {flow_type} for user {user_id}")
+            return (f"Cleared stuck flow state. You can now use commands normally.", True)
+        else:
+            return ("No active flow found to clear.", True)
+
+    @handle_errors("restarting checkin", default_return=("I'm having trouble restarting your check-in. Please try again.", True))
+    def restart_checkin(self, user_id: str) -> tuple[str, bool]:
+        """
+        Force restart a check-in flow, clearing any existing checkin state.
+        This should be used when user explicitly wants to start over.
+        """
+        # Clear any existing checkin state
+        existing_state = self.user_states.get(user_id)
+        if existing_state and existing_state.get("flow") == FLOW_CHECKIN:
+            self.user_states.pop(user_id, None)
+            self._save_user_states()
+            logger.info(f"Cleared existing checkin flow for user {user_id} before restart")
+        
+        # Start a new checkin
+        return self.start_checkin(user_id)
 
     # Scaffold for future feature flows to keep architecture consistent and channel-agnostic
     @handle_errors("starting tasks flow", default_return=("I'm having trouble starting the tasks flow.", True))
@@ -229,6 +303,7 @@ class ConversationManager:
             "current_question_index": 0
         }
         self.user_states[user_id] = user_state
+        self._save_user_states()
         
         # Compose user-requested intro plus first question
         first_question_key = question_order[0]
@@ -358,7 +433,13 @@ class ConversationManager:
         """
         if message_text.lower().startswith("/cancel"):
             self.user_states.pop(user_id, None)
+            self._save_user_states()
             return ("Check-in canceled. You can start again anytime with /checkin", True)
+        
+        # Handle common commands even while in checkin flow
+        if message_text.lower().startswith("/") or message_text.lower().startswith("!"):
+            # Handle common commands directly to avoid circular dependency
+            return self._handle_command_during_checkin(user_id, message_text)
 
         state = user_state["state"]
         data = user_state["data"]
@@ -380,6 +461,7 @@ class ConversationManager:
         
         # Move to next question
         user_state['current_question_index'] = current_index + 1
+        self._save_user_states()
         
         # Get next question or complete
         return self._get_next_question(user_id, user_state)
@@ -512,8 +594,81 @@ class ConversationManager:
         
         # Clear the user state
         self.user_states.pop(user_id, None)
+        self._save_user_states()
         
         return (completion_message, True)
+
+    @handle_errors("handling command during checkin", default_return=("I'm having trouble with that command right now. Please continue with your check-in.", False))
+    def _handle_command_during_checkin(self, user_id: str, message_text: str) -> tuple[str, bool]:
+        """Handle common commands while user is in a checkin flow"""
+        message_lower = message_text.lower().strip()
+        
+        # Handle help command
+        if message_lower in ["/help", "!help", "/commands", "!commands"]:
+            return (
+                "You're currently in a check-in. Here are your options:\n"
+                "• Continue answering the questions\n"
+                "• Type `/cancel` to cancel the check-in\n"
+                "• Type `/clear` to clear stuck flows\n"
+                "• Type `/tasks` to see your tasks\n"
+                "• Type `/profile` to see your profile\n"
+                "• Type `/status` to see your status",
+                False
+            )
+        
+        # Handle clear command
+        elif message_lower in ["/clear", "!clear"]:
+            return self.clear_stuck_flows(user_id)
+        
+        # Handle tasks command
+        elif message_lower in ["/tasks", "!tasks"]:
+            from communication.command_handlers.task_handler import TaskHandler
+            handler = TaskHandler()
+            response = handler.handle_list_tasks(user_id, {})
+            return (response.message, False)
+        
+        # Handle profile command
+        elif message_lower in ["/profile", "!profile"]:
+            from communication.command_handlers.profile_handler import ProfileHandler
+            handler = ProfileHandler()
+            response = handler.handle_show_profile(user_id, {})
+            return (response.message, False)
+        
+        # Handle status command
+        elif message_lower in ["/status", "!status"]:
+            from communication.command_handlers.analytics_handler import AnalyticsHandler
+            handler = AnalyticsHandler()
+            response = handler.handle_show_status(user_id, {})
+            return (response.message, False)
+        
+        # Handle analytics command
+        elif message_lower in ["/analytics", "!analytics"]:
+            from communication.command_handlers.analytics_handler import AnalyticsHandler
+            handler = AnalyticsHandler()
+            response = handler.handle_show_analytics(user_id, {})
+            return (response.message, False)
+        
+        # Handle schedule command
+        elif message_lower in ["/schedule", "!schedule"]:
+            from communication.command_handlers.schedule_handler import ScheduleHandler
+            handler = ScheduleHandler()
+            response = handler.handle_show_schedule(user_id, {})
+            return (response.message, False)
+        
+        # Handle messages command
+        elif message_lower in ["/messages", "!messages"]:
+            from communication.command_handlers.interaction_handlers import get_interaction_handler
+            handler = get_interaction_handler("messages")
+            response = handler.handle_show_messages(user_id, {})
+            return (response.message, False)
+        
+        # Unknown command
+        else:
+            return (
+                f"Unknown command: {message_text}\n"
+                "You're currently in a check-in. Type `/help` for available commands or continue answering the questions.",
+                False
+            )
 
     @handle_errors("generating completion message", default_return="✅ Check-in complete! Thanks for taking the time. See you next time! 🌟")
     def _generate_completion_message(self, user_id: str, data: dict) -> str:

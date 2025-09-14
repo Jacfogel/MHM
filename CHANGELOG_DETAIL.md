@@ -1,4 +1,31 @@
-﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-13This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-13 - AI Response Quality and Command Parsing Fixes
+﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-14This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-14 - Discord Command Processing Fix
+
+### Overview
+- Fixed critical issue where Discord bot was not processing `!` and `/` commands
+- Commands were being received by Discord but not processed by our interaction manager
+- Resolved command discovery and functionality issues for Discord users
+
+### Changes
+- **Discord Bot Command Handling Fix**:
+  - Fixed `communication/communication_channels/discord/bot.py` `on_message` event
+  - Removed `return` statement that was preventing commands from reaching interaction manager
+  - Commands were being processed by Discord's built-in command system and then discarded
+  - Now all `!` and `/` commands properly flow through our custom command handling system
+- **Enhanced Logging**:
+  - Added comprehensive logging to track command detection and processing
+  - `COMMAND_DETECTION`, `SLASH_COMMAND`, and `BANG_COMMAND` log entries for debugging
+  - Improved visibility into command processing flow
+
+### Technical Details
+- **Root Cause**: Discord bot was calling `bot.process_commands(message)` for `!` and `/` commands, then immediately `return`ing
+- **Fix**: Removed the `return` statement so commands continue through the interaction manager
+- **Impact**: Both `!help` and `/help` commands now work correctly
+- **Testing**: Verified through Discord logs showing successful command processing
+
+### Files Modified
+- `communication/communication_channels/discord/bot.py` - Fixed command handling logic
+
+## 2025-09-13 - AI Response Quality and Command Parsing Fixes
 
 ### Overview
 - Fixed duplicate AI processing and inappropriate command classification

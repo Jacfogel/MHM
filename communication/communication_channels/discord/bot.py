@@ -657,10 +657,8 @@ class DiscordBot(BaseChannel):
             if message.author == self.bot.user:
                 return
 
-            # Only process explicit commands (starting with "!" or "/")
-            if message.content.startswith("!") or message.content.startswith("/"):
-                await self.bot.process_commands(message)
-                return
+            # Process explicit commands (starting with "!" or "/") through our interaction manager
+            # Note: We don't call bot.process_commands() because we handle commands through our own system
 
             # Process regular messages (not commands) through the interaction manager
             # This prevents Discord from automatically trying to match commands to regular messages

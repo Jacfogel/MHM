@@ -29,6 +29,22 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-14 - Discord Command Processing Fix ✅. **COMPLETED**
+- Fixed critical issue where Discord bot was not processing `!` and `/` commands due to incorrect command handling
+- Removed `return` statement in Discord bot's `on_message` event that was preventing commands from reaching the interaction manager
+- Commands were being processed by Discord's built-in system and then discarded instead of going through our custom command handling
+- Added enhanced logging to track command detection and processing flow
+- **Impact**: Both `!help` and `/help` commands now work correctly, providing users with proper command discovery and functionality
+
+### 2025-09-13 - Checkin Flow State Persistence and Overwrite Fix ✅. **COMPLETED**
+- Fixed critical issue where checkin flows were lost on system restart due to in-memory state storage
+- Added persistent storage for conversation flow states in `data/conversation_states.json`
+- Fixed checkin flow overwrite issue - new checkins were silently overwriting existing active checkins
+- Added protection against starting new checkins when one is already active
+- Added `/restart` command to explicitly restart checkin flows when needed
+- Reduced overly aggressive checkin cancellation - only cancels for truly interfering message types
+- **Impact**: Users can now complete checkins even if system restarts during the flow, and won't lose progress to accidental overwrites
+
 ### 2025-09-13 - AI Response Quality and Command Parsing Fixes ✅. **COMPLETED**
 - Fixed duplicate AI processing and inappropriate command classification for emotional distress messages
 - Enhanced command parsing logic to skip AI calls for clearly non-command messages (confidence = 0.0)

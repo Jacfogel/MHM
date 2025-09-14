@@ -55,6 +55,8 @@ class InteractionManager:
             CommandDefinition("status", "status", "Show system/user status", is_flow=False),
             CommandDefinition("help", "help", "Show help and examples", is_flow=False),
             CommandDefinition("checkin", "start checkin", "Start a check-in", is_flow=True),
+            CommandDefinition("restart", "restart checkin", "Restart check-in (clears current)", is_flow=True),
+            CommandDefinition("clear", "clear flows", "Clear stuck conversation flows", is_flow=True),
             CommandDefinition("cancel", "/cancel", "Cancel current flow", is_flow=False),
         ]
 
@@ -84,8 +86,10 @@ class InteractionManager:
         
         # Handle explicit slash-commands first to preserve legacy flow behavior
         message_stripped = message.strip() if message else ""
+        logger.info(f"COMMAND_DETECTION: Processing message '{message_stripped[:50]}...' for user {user_id}")
         # Optional prefix processing for channel-agnostic handling
         if message_stripped.startswith("/"):
+            logger.info(f"SLASH_COMMAND: Detected slash command '{message_stripped}' for user {user_id}")
             lowered = message_stripped.lower()
             # Extract the command name after '/'
             parts = lowered.split()
@@ -103,6 +107,12 @@ class InteractionManager:
             if cmd_def and cmd_def.is_flow:
                 if cmd_name == 'checkin':
                     reply_text, completed = conversation_manager.start_checkin(user_id)
+                    return InteractionResponse(reply_text, completed)
+                elif cmd_name == 'restart':
+                    reply_text, completed = conversation_manager.restart_checkin(user_id)
+                    return InteractionResponse(reply_text, completed)
+                elif cmd_name == 'clear':
+                    reply_text, completed = conversation_manager.clear_stuck_flows(user_id)
                     return InteractionResponse(reply_text, completed)
                 starter_name = f'start_{cmd_name}_flow'
                 starter_fn = getattr(conversation_manager, starter_name, None)
@@ -122,6 +132,7 @@ class InteractionManager:
 
         elif message_stripped.startswith("!"):
             # Handle bang-prefixed commands (like !tasks, !help, etc.)
+            logger.info(f"BANG_COMMAND: Detected bang command '{message_stripped}' for user {user_id}")
             lowered = message_stripped.lower()
             # Extract the command name after '!'
             parts = lowered.split()
@@ -135,6 +146,12 @@ class InteractionManager:
                 if cmd_name == 'checkin':
                     reply_text, completed = conversation_manager.start_checkin(user_id)
                     return InteractionResponse(reply_text, completed)
+                elif cmd_name == 'restart':
+                    reply_text, completed = conversation_manager.restart_checkin(user_id)
+                    return InteractionResponse(reply_text, completed)
+                elif cmd_name == 'clear':
+                    reply_text, completed = conversation_manager.clear_stuck_flows(user_id)
+                    return InteractionResponse(reply_text, completed)
                 starter_name = f'start_{cmd_name}_flow'
                 starter_fn = getattr(conversation_manager, starter_name, None)
                 if callable(starter_fn):
@@ -143,21 +160,23 @@ class InteractionManager:
                 else:
                     return InteractionResponse(f"Flow '{cmd_name}' is not available yet.", True)
 
-            # Otherwise, map to single-turn intent via mapped message
-            for key, mapped in self.slash_command_map.items():
-                if lowered == key or lowered.startswith(key + ' '):
-                    return self.handle_message(user_id, mapped, channel_type)
+            # For non-flow commands, handle them directly using the mapped message
+            elif cmd_def:
+                return self.handle_message(user_id, cmd_def.mapped_message, channel_type)
 
             # Unknown bang command → drop prefix and continue to structured parsing below
             message = message_stripped[1:]
 
         # Check if user is in an active conversation flow
         user_state = conversation_manager.user_states.get(user_id, {"flow": 0, "state": 0, "data": {}})
+        logger.info(f"FLOW_CHECK: User {user_id} flow state: {user_state.get('flow', 'None')} (type: {type(user_state.get('flow'))})")
         if user_state["flow"] != 0:
             # User is in a flow (like check-in), let conversation manager handle it
-            logger.debug(f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager")
+            logger.info(f"User {user_id} in active flow {user_state['flow']}, delegating to conversation manager")
             reply_text, completed = conversation_manager.handle_inbound_message(user_id, message)
             return InteractionResponse(reply_text, completed)
+        else:
+            logger.info(f"User {user_id} not in active flow, proceeding with command parsing")
         
         # Parse the message to determine intent
         parsing_result = self.command_parser.parse(message, user_id)
