@@ -1857,3 +1857,22 @@ def cleanup_communication_manager():
             test_logger.info("CommunicationManager cleanup completed")
     except Exception as e:
         test_logger.warning(f"Error during CommunicationManager cleanup: {e}")
+
+@pytest.fixture(autouse=True)
+def cleanup_conversation_manager():
+    """Clean up ConversationManager state before each test."""
+    # Clear state before test
+    try:
+        from communication.message_processing.conversation_flow_manager import conversation_manager
+        conversation_manager.clear_all_states()
+    except Exception as e:
+        test_logger.warning(f"Error clearing conversation manager state: {e}")
+    
+    yield
+    
+    # Clear state after test
+    try:
+        from communication.message_processing.conversation_flow_manager import conversation_manager
+        conversation_manager.clear_all_states()
+    except Exception as e:
+        test_logger.warning(f"Error clearing conversation manager state: {e}")

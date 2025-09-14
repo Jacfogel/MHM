@@ -231,6 +231,12 @@ class ConversationManager:
         else:
             return ("No active flow found to clear.", True)
 
+    def clear_all_states(self):
+        """Clear all user states - primarily for testing."""
+        self.user_states.clear()
+        self._save_user_states()
+        logger.info("Cleared all user states")
+
     @handle_errors("restarting checkin", default_return=("I'm having trouble restarting your check-in. Please try again.", True))
     def restart_checkin(self, user_id: str) -> tuple[str, bool]:
         """

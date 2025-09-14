@@ -240,7 +240,8 @@ class TestUserContextManagerBehavior:
         
         # Mock UserContext and data retrieval
         with patch('user.context_manager.UserContext') as mock_user_context_class, \
-             patch('user.context_manager.get_user_data') as mock_get_user_data:
+             patch('user.context_manager.get_user_data') as mock_get_user_data, \
+             patch('user.context_manager.get_active_schedules') as mock_get_active_schedules:
             
             mock_user_context = MagicMock()
             mock_user_context.get_preferred_name.return_value = "TestUser"
@@ -251,6 +252,8 @@ class TestUserContextManagerBehavior:
                 'account': {'account': {'username': 'testuser', 'email': 'test@example.com'}},
                 'context': {'context': {'preferred_name': 'TestUser', 'timezone': 'UTC'}}
             }.get(data_type, {})
+            
+            mock_get_active_schedules.return_value = []
             
             # Act
             profile = manager._get_user_profile(test_user_id)
@@ -613,7 +616,8 @@ class TestUserContextManagerIntegration:
         
         # Mock UserContext and data retrieval to return the correct data
         with patch('user.context_manager.UserContext') as mock_user_context_class, \
-             patch('user.context_manager.get_user_data') as mock_get_user_data:
+             patch('user.context_manager.get_user_data') as mock_get_user_data, \
+             patch('user.context_manager.get_active_schedules') as mock_get_active_schedules:
             
             mock_user_context = MagicMock()
             mock_user_context.get_preferred_name.return_value = "realuser"
@@ -625,6 +629,8 @@ class TestUserContextManagerIntegration:
                 'account': {'account': {'username': 'realuser', 'email': f'{test_user_id}@example.com'}},
                 'context': {'context': {'preferred_name': 'realuser', 'timezone': 'UTC'}}
             }.get(data_type, {})
+            
+            mock_get_active_schedules.return_value = []
             
             # Act
             context = manager.get_user_context(test_user_id)
