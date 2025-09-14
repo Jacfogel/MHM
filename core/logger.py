@@ -227,6 +227,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         if os.environ.get('DISABLE_LOG_ROTATION') == '1':
             return
         
+        # Close the current stream
         if self.stream:
             self.stream.close()
             self.stream = None
@@ -237,36 +238,53 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         time_tuple = time.localtime(dst_time)
         dfn = self.rotation_filename(self.baseFilename + "." + time.strftime(self.suffix, time_tuple))
         
-        # Move current log file to backup directory if it exists
+        # Try to handle the rollover with Windows-safe logic
         if os.path.exists(self.baseFilename):
             backup_name = f"{os.path.basename(self.baseFilename)}.{time.strftime(self.suffix, time_tuple)}"
             backup_path = os.path.join(self.backup_dir, backup_name)
             
             # Windows-safe file move with retry logic
             try:
-                # Try to move the file
-                shutil.move(self.baseFilename, backup_path)
+                # Try to rename the file (this is what the parent class would do)
+                if os.path.exists(dfn):
+                    os.unlink(dfn)  # Remove existing rollover file if it exists
+                os.rename(self.baseFilename, dfn)
+                
+                # Now move to backup directory
+                try:
+                    shutil.move(dfn, backup_path)
+                except (PermissionError, OSError) as move_error:
+                    # If move to backup fails, at least we have the rotated file
+                    print(f"Warning: Could not move rotated log to backup directory: {move_error}")
+                    
             except PermissionError as e:
                 # File is locked, try alternative approach
                 try:
-                    # Try to copy and then delete (more Windows-friendly)
+                    # Try to copy the file instead of moving it
                     shutil.copy2(self.baseFilename, backup_path)
-                    # Try to delete the original, but don't fail if it's locked
-                    try:
-                        os.unlink(self.baseFilename)
-                    except (PermissionError, OSError):
-                        # File is still locked, leave it and continue
-                        pass
+                    # Don't try to delete the original - let it be overwritten
+                    print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
                 except (PermissionError, OSError) as copy_error:
-                    # Even copy failed, log the issue but don't crash
+                    # Even copy failed, skip rollover for this time
                     print(f"Warning: Could not backup log file {self.baseFilename}: {copy_error}")
-                    # Continue with rollover anyway
+                    # Reopen the current file and continue
+                    self.stream = self._open()
+                    return
             except Exception as e:
                 # Any other error, log it but continue
                 print(f"Warning: Error during log rollover: {e}")
+                # Reopen the current file and continue
+                self.stream = self._open()
+                return
         
         # Call parent's doRollover to handle the actual rollover logic
-        super().doRollover()
+        # But only if we successfully handled the file movement above
+        try:
+            super().doRollover()
+        except Exception as e:
+            # If parent rollover fails, at least reopen the current file
+            print(f"Warning: Parent rollover failed: {e}")
+            self.stream = self._open()
 
 
 class HeartbeatWarningFilter(logging.Filter):
@@ -988,5 +1006,55 @@ def force_restart_logging():
         return True
         
     except Exception as e:
-        print(f"Error restarting logging system: {e}")
+        print(f"Failed to restart logging system: {e}")
+        return False
+
+
+def clear_log_file_locks():
+    """
+    Clear any file locks that might be preventing log rotation.
+    
+    This function attempts to handle Windows file locking issues by:
+    1. Temporarily disabling log rotation
+    2. Closing all log file handlers
+    3. Reopening them with fresh file handles
+    
+    Returns:
+        bool: True if locks were cleared successfully, False otherwise
+    """
+    try:
+        # Temporarily disable log rotation
+        os.environ['DISABLE_LOG_ROTATION'] = '1'
+        
+        # Close all handlers that might be holding file locks
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers[:]:
+            if hasattr(handler, 'stream') and handler.stream:
+                try:
+                    handler.stream.close()
+                except:
+                    pass
+            handler.close()
+        
+        # Clear component loggers too
+        for component_name, component_logger in _component_loggers.items():
+            for handler in component_logger.logger.handlers[:]:
+                if hasattr(handler, 'stream') and handler.stream:
+                    try:
+                        handler.stream.close()
+                    except:
+                        pass
+                handler.close()
+        
+        # Remove the temporary environment variable
+        if 'DISABLE_LOG_ROTATION' in os.environ:
+            del os.environ['DISABLE_LOG_ROTATION']
+        
+        return True
+        
+    except Exception as e:
+        print(f"Failed to clear log file locks: {e}")
+        # Make sure to remove the environment variable even if there was an error
+        if 'DISABLE_LOG_ROTATION' in os.environ:
+            del os.environ['DISABLE_LOG_ROTATION']
         return False

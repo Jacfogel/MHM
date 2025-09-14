@@ -276,6 +276,12 @@ ui_logger.info("Admin panel started")
 - Check file permissions
 - Verify component name is valid
 
+### Log Rotation Issues (Windows)
+- **Problem**: Log files stop updating due to file locking during rotation
+- **Solution**: Use `clear_log_file_locks()` to clear file locks
+- **Recovery**: Use `force_restart_logging()` to restart logging system
+- **Prevention**: Improved rotation handling with better Windows compatibility
+
 ### Performance Issues
 - Use appropriate log levels
 - Avoid excessive structured data
@@ -285,3 +291,11 @@ ui_logger.info("Admin panel started")
 - Monitor log file sizes
 - Use `cleanup_old_logs()` if needed
 - Check compression is working
+
+### Logging System Recovery
+If logging stops working:
+1. Check for conflicting MHM processes: `Get-Process python`
+2. Stop conflicting processes if found
+3. Use `clear_log_file_locks()` to clear file locks
+4. Use `force_restart_logging()` to restart logging system
+5. Verify logs are updating: `Get-ChildItem logs/ -Name | ForEach-Object { Write-Host "$_ - Last modified: $((Get-Item "logs/$_").LastWriteTime)" }`

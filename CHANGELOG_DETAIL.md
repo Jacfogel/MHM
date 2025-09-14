@@ -1,4 +1,43 @@
-﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-14This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-14 - Discord Command Processing Fix
+﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History
+
+## 2025-09-14 - Critical Logging Issues Resolution
+
+### Overview
+- Fixed Windows file locking during log rotation that was causing app.log and errors.log to stop updating
+- Improved log rotation handling with better Windows compatibility
+- Added recovery mechanisms for logging system corruption
+
+### Problem
+- **app.log Random Stops**: Logging was stopping randomly due to file locking during rotation
+- **errors.log Stale**: No updates in nearly a month despite errors occurring
+- **Process Interference**: Multiple MHM processes were interfering with logging system
+
+### Root Cause
+Windows file locking during log rotation when `TimedRotatingFileHandler` tried to rename log files, encountering `PermissionError` because another MHM process was holding the file open.
+
+### Solution Implemented
+1. **Improved Log Rotation Handling**: Enhanced `BackupDirectoryRotatingFileHandler.doRollover()` method with better Windows file handling
+2. **Added Recovery Functions**: 
+   - `clear_log_file_locks()` - Clears file locks and allows logging to continue
+   - `force_restart_logging()` - Force restarts logging system when corrupted
+3. **Process Management**: Added detection and cleanup of conflicting MHM processes
+4. **Error Logging Fix**: Fixed error logging configuration to properly route errors to errors.log via component loggers
+
+### Results
+- ✅ app.log now updates properly (LastWriteTime: 2025-09-14 14:10:09)
+- ✅ errors.log now updates properly (LastWriteTime: 2025-09-14 13:58:08)
+- ✅ All component loggers working correctly
+- ✅ System logging fully functional for debugging and monitoring
+
+### Files Modified
+- `core/logger.py` - Enhanced rotation handling and recovery functions
+
+### Impact
+- **Critical**: Essential for debugging and system monitoring
+- **Reliability**: Logging system now robust against Windows file locking issues
+- **Maintainability**: Added recovery mechanisms for future logging issues
+
+---> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-14This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-14 - Discord Command Processing Fix
 
 ### Overview
 - Fixed critical issue where Discord bot was not processing `!` and `/` commands

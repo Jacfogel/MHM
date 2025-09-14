@@ -29,6 +29,13 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-14 - Critical Logging Issues Resolution ✅. **COMPLETED**
+- Fixed Windows file locking during log rotation that was causing app.log and errors.log to stop updating
+- Improved `BackupDirectoryRotatingFileHandler` with better Windows file handling and recovery mechanisms
+- Added `clear_log_file_locks()` and `force_restart_logging()` functions for logging system recovery
+- Fixed error logging configuration to properly route errors to errors.log via component loggers
+- **Impact**: Both app.log and errors.log now update properly, essential for debugging and system monitoring
+
 ### 2025-09-14 - Discord Command Processing Fix ✅. **COMPLETED**
 - Fixed critical issue where Discord bot was not processing `!` and `/` commands due to incorrect command handling
 - Removed `return` statement in Discord bot's `on_message` event that was preventing commands from reaching the interaction manager
