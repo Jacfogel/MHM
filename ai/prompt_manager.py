@@ -123,16 +123,21 @@ class PromptManager:
         Returns:
             The prompt string
         """
+        logger.debug(f"Getting prompt for type: {prompt_type}")
+        
         # If custom prompt is available and type is wellness/neurodivergent_support, use it
         if self._custom_prompt and prompt_type in ['wellness', 'neurodivergent_support']:
+            logger.debug(f"Using custom prompt for type: {prompt_type}")
             return self._custom_prompt
         
         # Otherwise use fallback prompts
         template = self._fallback_prompts.get(prompt_type)
         if template:
+            logger.debug(f"Using fallback prompt for type: {prompt_type}")
             return template.content
         
         # Default to wellness prompt
+        logger.debug(f"Prompt type '{prompt_type}' not found, using default wellness prompt")
         return self._fallback_prompts['wellness'].content
     
     def get_prompt_template(self, prompt_type: str) -> Optional[PromptTemplate]:
@@ -160,7 +165,7 @@ class PromptManager:
             template: PromptTemplate to add
         """
         self._prompt_templates[template.name] = template
-        logger.info(f"Added custom prompt template: {template.name}")
+        logger.info(f"Added custom prompt template: {template.name} (content_length={len(template.content)}, max_tokens={template.max_tokens})")
     
     def remove_prompt_template(self, prompt_type: str) -> bool:
         """
@@ -226,7 +231,9 @@ class PromptManager:
         Returns:
             Combined contextual prompt
         """
-        return f"{base_prompt}\n\nContext: {context}\n\nUser: {user_input}\n\nAssistant:"
+        contextual_prompt = f"{base_prompt}\n\nContext: {context}\n\nUser: {user_input}\n\nAssistant:"
+        logger.debug(f"Created contextual prompt: base_length={len(base_prompt)}, context_length={len(context)}, input_length={len(user_input)}, total_length={len(contextual_prompt)}")
+        return contextual_prompt
     
     def create_task_prompt(self, task_description: str, user_context: str = "") -> str:
         """
@@ -239,10 +246,12 @@ class PromptManager:
         Returns:
             Task-specific prompt
         """
+        logger.debug(f"Creating task prompt for: {task_description[:50]}...")
         base_prompt = self.get_prompt('task_assistant')
         context = f"Task: {task_description}"
         if user_context:
             context += f"\nUser Context: {user_context}"
+            logger.debug(f"Added user context to task prompt: {len(user_context)} characters")
         
         return self.create_contextual_prompt(base_prompt, context, "Help me with this task")
     
@@ -257,10 +266,12 @@ class PromptManager:
         Returns:
             Check-in specific prompt
         """
+        logger.debug(f"Creating checkin prompt for type: {checkin_type}")
         base_prompt = self.get_prompt('checkin')
         context = f"Check-in Type: {checkin_type}"
         if user_context:
             context += f"\nUser Context: {user_context}"
+            logger.debug(f"Added user context to checkin prompt: {len(user_context)} characters")
         
         return self.create_contextual_prompt(base_prompt, context, "Let's do a check-in")
 

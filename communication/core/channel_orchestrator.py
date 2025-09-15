@@ -488,7 +488,12 @@ class CommunicationManager:
             
             # FIXED: Better return value validation
             if success is True:
-                logger.info(f"Message sent successfully via {channel_name} to {recipient}")
+                # Enhanced logging with message content and time period
+                message_preview = message[:50] + "..." if len(message) > 50 else message
+                time_period = kwargs.get('time_period', 'unknown')
+                user_id = kwargs.get('user_id', 'unknown')
+                category = kwargs.get('category', 'unknown')
+                logger.info(f"Message sent successfully via {channel_name} to {recipient} | User: {user_id}, Category: {category}, Period: {time_period} | Content: '{message_preview}'")
                 return True
             elif success is False:
                 logger.warning(f"Channel {channel_name} returned False for message send to {recipient}")
@@ -568,16 +573,23 @@ class CommunicationManager:
                     
                     # Try to send via the bot's sync methods
                     try:
-                        channel = bot.get_channel(int(recipient))
-                        if channel:
-                            # This is hacky but might work
-                            import asyncio
-                            loop = asyncio.new_event_loop()
-                            asyncio.set_event_loop(loop)
-                            loop.run_until_complete(channel.send(message))
-                            loop.close()
-                            logger.info(f"Direct Discord message sent to channel {recipient}")
-                            return True
+                        # Handle special Discord user format - skip sync method for discord_user: format
+                        if recipient.startswith("discord_user:"):
+                            # This format is handled by the async send_message method
+                            # Skip the sync channel lookup for discord_user: format
+                            pass
+                        else:
+                            # Try to convert to integer for channel ID
+                            channel = bot.get_channel(int(recipient))
+                            if channel:
+                                # This is hacky but might work
+                                import asyncio
+                                loop = asyncio.new_event_loop()
+                                asyncio.set_event_loop(loop)
+                                loop.run_until_complete(channel.send(message))
+                                loop.close()
+                                logger.info(f"Direct Discord message sent to channel {recipient}")
+                                return True
                     except Exception as e:
                         logger.error(f"Direct Discord send failed: {e}")
                         
@@ -968,7 +980,9 @@ class CommunicationManager:
                 matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
                 current_time_period = matching_periods[0] if matching_periods else None
                 store_sent_message(user_id, category, message_id, message_to_send, time_period=current_time_period)
-                logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category}")
+                # Enhanced logging with message content
+                message_preview = message[:50] + "..." if len(message) > 50 else message
+                logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category} | Content: '{message_preview}'")
             else:
                 logger.error(f"Failed to send AI-generated message for user {user_id}")
                 
@@ -1048,12 +1062,16 @@ class CommunicationManager:
                     # Get the current time period for storage
                     current_time_period = matching_periods[0] if matching_periods else None
                     store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
-                    logger.info(f"Successfully sent deduplicated message for user {user_id}, category {category}")
+                    # Enhanced logging with message content and time period
+                    message_preview = message_to_send['message'][:50] + "..." if len(message_to_send['message']) > 50 else message_to_send['message']
+                    logger.info(f"Successfully sent deduplicated message for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'")
                 else:
-                    logger.warning(f"Message send returned False but may have still been delivered for user {user_id}, category {category}")
+                    # Enhanced logging with message content and time period
+                    current_time_period = matching_periods[0] if matching_periods else None
+                    message_preview = message_to_send['message'][:50] + "..." if len(message_to_send['message']) > 50 else message_to_send['message']
+                    logger.warning(f"Message send returned False but may have still been delivered for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'")
                     # Still store it since the message might have gone through
                     from core.message_management import store_sent_message
-                    current_time_period = matching_periods[0] if matching_periods else None
                     store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
                     
             except Exception as send_error:

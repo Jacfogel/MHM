@@ -48,77 +48,6 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**Fix Test Isolation Issues** - Test cleanup and state management ✅ **COMPLETED**
-- *What it means*: Several tests are failing due to persistent user states from previous test runs
-- *Why it helps*: Ensures test reliability and prevents false failures from test contamination
-- *Estimated effort*: Medium
-- *Status*: ✅ **COMPLETED** - All 6 test failures fixed with proper test isolation
-
-  - All tests passing with improved reliability
-# TODO.md - MHM Project Tasks
-
-> **Audience**: Human Developer (Beginner Programmer) and AI collaborators
-> **Purpose**: Current development priorities and planned improvements  
-> **Style**: Organized, actionable, beginner-friendly
-
-> **See [README.md](README.md) for complete navigation and project overview**
-> **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
-> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](TESTING_IMPROVEMENT_PLAN_DETAIL.md) for testing strategy**
-
-## 📝 How to Add New TODOs
-
-When adding new tasks, follow this format:
-
-```markdown
-**Task Title** - Brief description
-- *What it means*: Simple explanation of the task
-- *Why it helps*: Clear benefit or improvement
-- *Estimated effort*: Small/Medium/Large
-```
-
-**Guidelines:**
-- Use **bold** for task titles
-- Group tasks by priority (High/Medium/Low sections)
-- Use clear, action-oriented titles
-- Include estimated effort to help with planning
-- Add status indicators (⚠️ **IN PROGRESS**) when relevant
-- Don't include priority field since tasks are already grouped by priority
-- **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
-
-### Test Data Cleanup Standards (Optional but Recommended)
-- Pre-run (session start):
-  - Remove `tests/data/pytest-of-Julie` if present
-  - Clear all children of `tests/data/tmp`
-  - Remove stray `tests/data/config` directory
-  - Remove root files `tests/data/.env` and `tests/data/requirements.txt`
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-- Post-run (session end):
-  - Clear all children of `tests/data/tmp`
-  - Clear all children of `tests/data/flags`
-  - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-- Users directory policy:
-  - All test users must reside under `tests/data/users/<id>`
-  - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
-  - Post-run: ensure `tests/data/users` has no lingering test users
-
-
-## High Priority
-
-**Critical Logging Issues** - Fix app.log and errors.log problems ✅ **COMPLETED**
-- *What it means*: app.log stops getting updates randomly (likely multiple processes/test runs), errors.log hasn't updated in nearly a month despite errors occurring
-- *Why it helps*: Essential for debugging, monitoring system health, and troubleshooting issues
-- *Estimated effort*: Medium
-- *Status*: ✅ **COMPLETED** - Fixed Windows file locking during log rotation, improved rotation handling, added recovery mechanisms
-- *Issues resolved*:
-  - ✅ **app.log Random Stops**: Fixed file locking during rotation, improved Windows compatibility
-  - ✅ **errors.log Stale**: Fixed error logging configuration, now properly routes errors to errors.log
-  - ✅ **Process Interference**: Added process detection and cleanup, improved rotation handling
-- *Results*:
-  - ✅ Both app.log and errors.log now update properly
-  - ✅ Added `clear_log_file_locks()` and `force_restart_logging()` functions
-  - ✅ Improved `BackupDirectoryRotatingFileHandler` with better Windows file handling
-  - ✅ All logging components working correctly
 
 **AI Response Quality Improvements** - Fix message truncation and enhance conversational openings
 - *What it means*: The AI responses are getting cut off mid-sentence and need better conversational engagement endings
@@ -145,28 +74,24 @@ When adding new tasks, follow this format:
   - [ ] Integrate per-field summaries into "show analytics" response
   - [ ] Add behavior tests validating per-field section in analytics overview
 
-**High Complexity Function Refactoring - Phase 2** ⚠️ **NEW PRIORITY**
-- *What it means*: Continue refactoring high complexity functions identified in audit (1839 functions >50 nodes)
+**High Complexity Function Refactoring - Phase 2** 🔄 **IN PROGRESS**
+- *What it means*: Continue refactoring high complexity functions identified in audit (1856 functions >50 nodes)
 - *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
 - *Estimated effort*: Large
+- *Completed Work*:
+  - ✅ `get_user_data_summary` refactoring — Reduced 800-node complexity to 15 focused helper functions
+  - ✅ Helper function naming convention — Implemented `_main_function__helper_name` pattern
+  - ✅ All tests passing — Verified stability after refactoring
+  - ✅ Minor logging enhancements — Added comprehensive logging to core modules for better debugging
 - *Next Priority Targets*:
   - `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727)
   - `ui/ui_app_qt.py::validate_configuration` (complexity: 692)
-  - `core/user_data_manager.py::get_user_data_summary` (complexity: 800) - ✅ previously completed
 - *Subtasks*:
-  - [ ] **Analyze Next Priority Functions**
-    - [ ] Export top-50 most complex functions from audit details
-    - [ ] Categorize functions by module and complexity level
-    - [ ] Identify patterns in high-complexity functions (long methods, deep nesting, etc.)
-  - [ ] **Implement Refactoring Strategy - Phase 2**
-    - [ ] Extract helper functions to reduce complexity
-    - [ ] Break down large methods into smaller, focused functions
-    - [ ] Reduce conditional nesting and improve readability
-    - [ ] Add comprehensive tests for refactored functions
-  - [ ] **Monitor Progress**
-    - [ ] Track complexity reduction metrics
-    - [ ] Ensure refactoring doesn't break existing functionality
-    - [ ] Validate improvements through testing and audit results
+  - [x] **Analyze Complexity Distribution**
+  - [x] **Prioritize Refactoring Targets**
+  - [x] **Implement Refactoring Strategy - Phase 1**
+  - [ ] **Implement Refactoring Strategy - Phase 2** (targets listed above)
+  - [ ] **Monitor Progress** (metrics, regression checks, audits)
 
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
@@ -190,33 +115,6 @@ When adding new tasks, follow this format:
     - [ ] Consider using different process management strategies for headless mode
     - [ ] Investigate if UI restart logic can be shared with headless mode
     - [ ] Explore service daemon or system service approaches
-
-**Windows Fatal Exception Investigation** ⚠️ **NEW PRIORITY**
-- *What it means*: Investigate and fix the Windows fatal exception (access violation) that occurs during full test suite execution
-- *Why it helps*: Ensures system stability and prevents crashes during comprehensive testing
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] **Investigate Root Cause**
-    - [ ] Analyze crash logs and error patterns
-    - [ ] Identify if issue is related to Discord bot threads or UI widget cleanup
-    - [ ] Determine if issue is Windows-specific or affects all platforms
-    - [ ] Check for memory management or threading issues
-  - [ ] **Implement Fix**
-    - [ ] Apply appropriate fix based on root cause analysis
-    - [ ] Test fix with full test suite execution
-    - [ ] Verify no regressions in core functionality
-    - [ ] Monitor for recurrence of the issue
-  - [ ] **Prevention Measures**
-    - [ ] Add crash detection and recovery mechanisms
-    - [ ] Implement proper resource cleanup in test environment
-    - [ ] Add monitoring for similar issues in production
-    - [ ] Document prevention strategies
-
-**User Context & Preferences Integration Investigation** - Investigate and improve integration
-- *What it means*: Investigate how `user/user_context.py` and `user/user_preferences.py` are integrated and used by other modules, identify gaps and improvements
-- *Why it helps*: Ensures user state and preferences are properly utilized across the system for better personalization
-- *Estimated effort*: Medium
-- *Status*: From PLANS.md - needs investigation and action
 
 **Phase 1: Enhanced Task & Check-in Systems** 🔄 **IN PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
@@ -284,68 +182,6 @@ When adding new tasks, follow this format:
     - [ ] Apply same refactoring approach (extract helpers, reduce nesting)
     - [ ] Maintain functionality while reducing complexity
     - [ ] Update tests and documentation
-
-**Code Complexity Reduction - High Priority Refactoring** 🔄 **IN PROGRESS**
-- *What it means*: Address 1476 high complexity functions (>50 nodes) identified in latest audit to improve maintainability and reduce technical debt
-- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer and more efficient
-- *Estimated effort*: Large
-- *Completed Work*:
-  - ✅ `get_user_data_summary` refactoring — Reduced 800-node complexity to 15 focused helper functions
-  - ✅ Helper function naming convention — Implemented `_main_function__helper_name` pattern
-  - ✅ All tests passing — Verified stability after refactoring
-- *Subtasks*:
-  - [x] **Analyze Complexity Distribution**
-  - [x] **Prioritize Refactoring Targets**
-  - [x] **Implement Refactoring Strategy - Phase 1**
-  - [ ] **Implement Refactoring Strategy - Phase 2** (targets listed above)
-  - [ ] **Monitor Progress** (metrics, regression checks, audits)
-
-## **Next Priority Test Coverage Expansion**
-
-**Core User Data Manager** (39% → 70%) - Core data management
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Test user data loading and saving operations
-  - [ ] Test data validation and normalization
-  - [ ] Test error handling for data operations
-  - [ ] Test data migration and compatibility
-  - [ ] Test concurrent access and data integrity
-
-**Core Service** (51% → 70%) - Core service functionality
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Test service startup and shutdown
-  - [ ] Test service state management
-  - [ ] Test error handling and recovery
-  - [ ] Test service communication with other components
-  - [ ] Test service monitoring and health checks
-
-**Core Scheduler** (57% → 70%) - Core scheduling functionality
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Test scheduling logic and timing
-  - [ ] Test task execution and management
-  - [ ] Test error handling for scheduled operations
-  - [ ] Test scheduler state management
-  - [ ] Test scheduler performance and scalability
-
-**Enhanced Command Parser** (40% → 70%) - Natural language processing
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Test natural language pattern matching
-  - [ ] Test entity extraction and parsing
-  - [ ] Test command intent recognition
-  - [ ] Test error handling for invalid inputs
-  - [ ] Test edge cases and boundary conditions
-
-**Email Bot** (37% → 60%) - Email communication channel
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Test email sending functionality
-  - [ ] Test email receiving and parsing
-  - [ ] Test email authentication and security
-  - [ ] Test error handling for email failures
-
 
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
@@ -613,17 +449,3 @@ When adding new tasks, follow this format:
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
 - *Estimated effort*: Small
 
-## **Test Isolation Issues Resolution** ✅ **MAJOR PROGRESS**
-- *What it means*: Identified and addressed multiple test isolation issues causing persistent test failures in the full suite
-- *Why it helps*: Resolves test reliability issues and ensures consistent results across execution contexts
-- *Estimated effort*: Medium
-- *Completed Work*:
-  - ✅ Fixed multiple `conftest.py` conflicts; removed duplicate root `conftest.py`
-  - ✅ Enhanced test cleanup and UUID-based user dir cleanup
-  - ✅ Prevented `scripts/` tests from being collected
-  - ✅ Standardized test data paths under `tests/data`
-  - ✅ Autouse fixture to purge user data caches and enforce `mock_config`
-  - ✅ Restored `MHM_TESTING` and `CATEGORIES` after dialog tests
-  - ✅ Added diagnostics in `get_user_data`
-- *Remaining Issues*:
-  - ⚠️ Full-suite verification over multiple seeds/runs; continue monitoring

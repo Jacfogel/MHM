@@ -29,6 +29,26 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-14 - Minor Logging Enhancements to Core Modules ✅. **COMPLETED**
+- Enhanced logging in `core/schedule_utilities.py` with detailed schedule processing and activity tracking
+- Enhanced logging in `ai/context_builder.py` with context building, analysis, and prompt creation tracking
+- Enhanced logging in `ai/prompt_manager.py` with prompt loading, retrieval, and creation tracking
+- Added comprehensive debug and warning logs to track data flow, validation outcomes, and operational steps
+- **Impact**: Better visibility into schedule processing, AI context building, and prompt management for debugging and monitoring
+
+### 2025-09-14 - Enhanced Message Logging with Content and Time Period ✅. **COMPLETED**
+- Added message content preview (first 50 characters) to all message sending logs
+- Added time period information to message sending logs for better debugging and monitoring
+- Enhanced logging in channel orchestrator, Discord bot, and email bot for comprehensive message tracking
+- Improved log format includes user ID, category, time period, and message content preview
+- **Impact**: Much better visibility into what messages are being sent, when, and to whom for debugging and monitoring
+
+### 2025-09-14 - Discord Channel ID Parsing Fix ✅. **COMPLETED**
+- Fixed channel ID parsing error in `send_message_sync` method that was trying to convert `discord_user:` format to integer
+- Added proper handling for `discord_user:` format in sync Discord message sending fallback
+- Messages were still being delivered successfully via async fallback, but sync method was logging unnecessary errors
+- **Impact**: Eliminates "invalid literal for int()" errors in channel orchestrator logs while maintaining message delivery
+
 ### 2025-09-14 - Critical Logging Issues Resolution ✅. **COMPLETED**
 - Fixed Windows file locking during log rotation that was causing app.log and errors.log to stop updating
 - Improved `BackupDirectoryRotatingFileHandler` with better Windows file handling and recovery mechanisms

@@ -24,23 +24,41 @@ validation_logger = get_component_logger('user_activity')
 @handle_errors("validating email", default_return=False)
 def is_valid_email(email):
     if not email:
+        logger.debug("Email validation failed: empty email provided")
         return False
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    return bool(re.match(pattern, email))
+    is_valid = bool(re.match(pattern, email))
+    if is_valid:
+        logger.debug(f"Email validation passed: {email}")
+    else:
+        logger.warning(f"Email validation failed: invalid format for '{email}'")
+    return is_valid
 
 @handle_errors("validating phone", default_return=False)
 def is_valid_phone(phone):
     if not phone:
+        logger.debug("Phone validation failed: empty phone provided")
         return False
     cleaned = re.sub(r'[\s\-\(\)\.]', '', phone)
-    return cleaned.isdigit() and len(cleaned) >= 10
+    is_valid = cleaned.isdigit() and len(cleaned) >= 10
+    if is_valid:
+        logger.debug(f"Phone validation passed: {phone}")
+    else:
+        logger.warning(f"Phone validation failed: invalid format for '{phone}' (cleaned: '{cleaned}')")
+    return is_valid
 
 @handle_errors("validating time format", default_return=False)
 def validate_schedule_periods__validate_time_format(time_str: str) -> bool:
     if not time_str:
+        logger.debug("Time format validation failed: empty time provided")
         return False
     pattern = r'^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
-    return bool(re.match(pattern, time_str))
+    is_valid = bool(re.match(pattern, time_str))
+    if is_valid:
+        logger.debug(f"Time format validation passed: {time_str}")
+    else:
+        logger.warning(f"Time format validation failed: invalid format for '{time_str}'")
+    return is_valid
 
 @handle_errors("converting to title case", default_return="")
 def _shared__title_case(text: str) -> str:
@@ -95,6 +113,7 @@ def _shared__title_case(text: str) -> str:
 @handle_errors("validating user update", default_return=(False, ["Validation failed"]))
 def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) -> Tuple[bool, List[str]]:
     """Validate partial updates to an existing user's data."""
+    logger.debug(f"Validating user update for user {user_id}, data_type: {data_type}, fields: {list(updates.keys())}")
     errors: List[str] = []
     if not user_id:
         errors.append("user_id is required")
@@ -201,7 +220,12 @@ def validate_user_update(user_id: str, data_type: str, updates: Dict[str, Any]) 
         except Exception as e:
             errors.append(f"Schedules validation error: {e}")
 
-    return len(errors) == 0, errors
+    is_valid = len(errors) == 0
+    if is_valid:
+        logger.debug(f"User update validation passed for user {user_id}, data_type: {data_type}")
+    else:
+        logger.warning(f"User update validation failed for user {user_id}, data_type: {data_type} - errors: {errors}")
+    return is_valid, errors
 
 
 @handle_errors("validating schedule periods", default_return=(False, ["Validation failed"]))

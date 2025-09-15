@@ -112,7 +112,9 @@ class EmailBot(BaseChannel):
         except RuntimeError:
             loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self.send_message__send_email_sync, recipient, message, kwargs)
-        logger.info(f"Email sent to {recipient}")
+        # Enhanced logging with message content
+        message_preview = message[:50] + "..." if len(message) > 50 else message
+        logger.info(f"Email sent to {recipient} | Content: '{message_preview}'")
         return True
 
     @handle_errors("sending email synchronously")

@@ -17,6 +17,10 @@ try:
 except Exception:
     pytz = None
 
+# Add logging support for schema validation
+from core.logger import get_component_logger
+logger = get_component_logger('main')
+
 
 # ----------------------------- Common Validators -----------------------------
 
@@ -78,7 +82,12 @@ class AccountModel(BaseModel):
         if not v:
             return v
         pattern = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-        return v if pattern.match(v) else ""
+        if pattern.match(v):
+            logger.debug(f"Email validation passed: {v}")
+            return v
+        else:
+            logger.warning(f"Invalid email format provided: '{v}' - normalized to empty string")
+            return ""
 
     @field_validator("discord_user_id")
     @classmethod
@@ -86,7 +95,14 @@ class AccountModel(BaseModel):
         # Accept any non-empty string; tests and legacy data may use username#discriminator format
         if not v:
             return ""
-        return v.strip() if isinstance(v, str) else ""
+        if isinstance(v, str):
+            normalized = v.strip()
+            if normalized != v:
+                logger.debug(f"Discord ID normalized (whitespace trimmed): '{v}' -> '{normalized}'")
+            return normalized
+        else:
+            logger.warning(f"Discord ID validation failed: expected string, got {type(v).__name__}: {v}")
+            return ""
 
     @field_validator("timezone")
     @classmethod
@@ -99,10 +115,13 @@ class AccountModel(BaseModel):
             return ""
         try:
             if pytz and vv in pytz.all_timezones:
+                logger.debug(f"Timezone validation passed: {vv}")
                 return vv
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Timezone validation error for '{vv}': {e}")
             pass
         # Unknown timezone → return empty to avoid misleading data
+        logger.warning(f"Unknown timezone provided: '{vv}' - normalized to empty string")
         return ""
 
 
@@ -158,19 +177,20 @@ class PreferencesModel(BaseModel):
             invalid_categories = [c for c in v if c not in allowed_categories]
             
             if invalid_categories:
+                logger.error(f"Invalid categories provided: {invalid_categories}. Allowed categories: {allowed_categories}")
                 raise ValueError(f"Invalid categories: {invalid_categories}. Allowed categories: {allowed_categories}")
             
+            logger.debug(f"Categories validation passed: {v}")
             return v
         except ImportError:
             # If message_management is not available, allow all categories
+            logger.warning("Message management module not available - allowing all categories without validation")
             return v
         except ValueError:
             # Re-raise ValueError (invalid categories) - don't catch this
             raise
         except Exception as e:
             # If there's any other error (like missing env vars), use default categories
-            from core.logger import get_component_logger
-            logger = get_component_logger('main')
             logger.warning(f"Category validation error: {e}, using default categories")
             
             # Default categories that should always be valid
@@ -196,7 +216,14 @@ class PeriodModel(BaseModel):
     @field_validator("start_time", "end_time")
     @classmethod
     def _valid_time(cls, v: str) -> str:
-        return v if _TIME_PATTERN.match(v or "") else "00:00"
+        if not v:
+            return "00:00"
+        if _TIME_PATTERN.match(v):
+            logger.debug(f"Time validation passed: {v}")
+            return v
+        else:
+            logger.warning(f"Invalid time format provided: '{v}' - normalized to '00:00'")
+            return "00:00"
 
     @field_validator("days")
     @classmethod
@@ -204,7 +231,14 @@ class PeriodModel(BaseModel):
         if not v:
             return ["ALL"]
         filtered = [d for d in v if d in _VALID_DAYS]
-        return filtered or ["ALL"]
+        invalid_days = [d for d in v if d not in _VALID_DAYS]
+        if invalid_days:
+            logger.warning(f"Invalid days provided: {invalid_days} - filtered out. Valid days: {_VALID_DAYS}")
+        if not filtered:
+            logger.warning(f"No valid days provided, defaulting to ['ALL']")
+            return ["ALL"]
+        logger.debug(f"Days validation passed: {filtered}")
+        return filtered
 
 
 class CategoryScheduleModel(BaseModel):

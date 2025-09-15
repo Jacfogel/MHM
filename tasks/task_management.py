@@ -255,20 +255,25 @@ def update_task(user_id: str, task_id: str, updates: Dict[str, Any]) -> bool:
         # Find and update the task
         for task in tasks:
             if task.get('task_id') == task_id:
-                # Update allowed fields
+                # Track what fields are being updated
+                updated_fields = []
                 allowed_fields = ['title', 'description', 'due_date', 'due_time', 
                                 'reminder_periods', 'priority', 'tags', 'quick_reminders',
                                 'recurrence_pattern', 'recurrence_interval', 'repeat_after_completion', 'next_due_date']
                 for field, value in updates.items():
                     if field in allowed_fields:
+                        old_value = task.get(field, 'None')
                         task[field] = value
+                        updated_fields.append(f"{field}: {old_value} -> {value}")
+                    else:
+                        logger.warning(f"Attempted to update disallowed field '{field}' for task {task_id}")
                 
                 # Add last updated timestamp
                 task['last_updated'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 
                 # Save updated tasks
                 if save_active_tasks(user_id, tasks):
-                    logger.info(f"Updated task {task_id} for user {user_id}")
+                    logger.info(f"Updated task {task_id} for user {user_id} | Fields: {', '.join(updated_fields)}")
                     
                     # Handle reminder updates
                     if 'reminder_periods' in updates:
@@ -342,16 +347,20 @@ def complete_task(user_id: str, task_id: str, completion_data: Optional[Dict[str
         # Save both updated lists
         if (save_active_tasks(user_id, updated_active_tasks) and 
             save_completed_tasks(user_id, completed_tasks)):
-            logger.info(f"Completed task {task_id} for user {user_id}")
+            # Enhanced completion logging with task details
+            task_title = task_to_complete.get('title', 'Unknown')
+            completion_time = task_to_complete.get('completed_at', 'Unknown')
+            logger.info(f"Completed task '{task_title}' (ID: {task_id}) for user {user_id} at {completion_time}")
             
             # Clean up task-specific reminders when task is completed
             cleanup_task_reminders(user_id, task_id)
+            logger.debug(f"Cleaned up reminders for completed task {task_id}")
             
             # Handle recurring tasks - create next instance if needed
             if task_to_complete.get('recurrence_pattern'):
                 next_task_created = _create_next_recurring_task_instance(user_id, task_to_complete)
                 if next_task_created:
-                    logger.info(f"Created next recurring task instance for task {task_id}")
+                    logger.info(f"Created next recurring task instance for task '{task_title}' (ID: {task_id})")
             
             return True
         else:
@@ -424,20 +433,30 @@ def delete_task(user_id: str, task_id: str) -> bool:
         # Load active tasks
         tasks = load_active_tasks(user_id)
         
+        # Find the task to get its details before deletion
+        task_to_delete = None
+        for task in tasks:
+            if task.get('task_id') == task_id:
+                task_to_delete = task
+                break
+        
         # Remove the task
         original_count = len(tasks)
         tasks = [task for task in tasks if task.get('task_id') != task_id]
         
         if len(tasks) == original_count:
-            logger.warning(f"Task {task_id} not found for user {user_id}")
+            logger.warning(f"Task {task_id} not found for deletion for user {user_id}")
             return False
         
         # Save updated tasks
         if save_active_tasks(user_id, tasks):
-            logger.info(f"Deleted task {task_id} for user {user_id}")
+            # Enhanced deletion logging with task details
+            task_title = task_to_delete.get('title', 'Unknown') if task_to_delete else 'Unknown'
+            logger.info(f"Deleted task '{task_title}' (ID: {task_id}) for user {user_id}")
             
             # Clean up task-specific reminders when task is deleted
             cleanup_task_reminders(user_id, task_id)
+            logger.debug(f"Cleaned up reminders for deleted task {task_id}")
             
             return True
         else:

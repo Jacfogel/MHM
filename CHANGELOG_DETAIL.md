@@ -1,5 +1,151 @@
 ﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
+## 2025-09-14 - Minor Logging Enhancements to Core Modules
+
+### Overview
+- Enhanced logging in `core/schedule_utilities.py` with detailed schedule processing and activity tracking
+- Enhanced logging in `ai/context_builder.py` with context building, analysis, and prompt creation tracking
+- Enhanced logging in `ai/prompt_manager.py` with prompt loading, retrieval, and creation tracking
+- Added comprehensive debug and warning logs to track data flow, validation outcomes, and operational steps
+
+### Problem
+- **Limited Logging Coverage**: Core modules had minimal logging, making it difficult to track data flow and operations
+- **Schedule Processing Visibility**: No visibility into schedule processing, validation, and activity tracking
+- **AI Context Building**: Limited logging in AI context building and prompt management processes
+- **Debugging Difficulty**: Hard to troubleshoot issues in core modules without detailed operational logs
+
+### Solution Implemented
+1. **Enhanced Schedule Utilities Logging**: Added detailed logging to `get_active_schedules()`, `is_schedule_active()`, and `get_current_active_schedules()`
+2. **Enhanced AI Context Builder Logging**: Added logging to `build_user_context()`, `analyze_context()`, `create_context_prompt()`, and related functions
+3. **Enhanced Prompt Manager Logging**: Added logging to `get_prompt()`, `create_contextual_prompt()`, `add_prompt_template()`, and related functions
+4. **Comprehensive Coverage**: Added debug and warning logs to track data flow, validation outcomes, and operational steps
+
+### Files Modified
+- `core/schedule_utilities.py`: Enhanced schedule processing and activity tracking logs
+- `ai/context_builder.py`: Enhanced context building, analysis, and prompt creation logs
+- `ai/prompt_manager.py`: Enhanced prompt loading, retrieval, and creation logs
+
+### Log Examples
+**Schedule Utilities:**
+```
+Processed 4 schedule periods, found 2 active: ['morning', 'evening']
+Invalid schedule data for period 'afternoon': expected dict, got str
+Time check: 08:00 <= 09:30 <= 12:00 = True
+```
+
+**AI Context Builder:**
+```
+Building context for user user-123, include_conversation_history=True
+Retrieved 5 recent check-ins for user user-123
+Context analysis completed: wellness_score=7.2, mood_trend=stable, energy_trend=improving, insights_count=3
+```
+
+**Prompt Manager:**
+```
+Getting prompt for type: wellness
+Using custom prompt for type: wellness
+Created contextual prompt: base_length=150, context_length=200, input_length=50, total_length=400
+```
+
+### Testing
+- Created and ran comprehensive test suite to verify new logging functionality
+- Verified all new logging messages appear correctly in logs
+- Confirmed logging doesn't impact system performance
+- All tests passed successfully
+
+### Impact
+- **Better Debugging**: Can now track schedule processing, AI context building, and prompt management operations
+- **Improved Monitoring**: Detailed logs help monitor system health and performance
+- **Enhanced Troubleshooting**: Comprehensive logging helps diagnose issues in core modules
+- **Better Understanding**: Logs provide insight into system behavior and data flow
+
+---
+
+## 2025-09-14 - Enhanced Message Logging with Content and Time Period
+
+### Overview
+- Added message content preview (first 50 characters) to all message sending logs
+- Added time period information to message sending logs for better debugging and monitoring
+- Enhanced logging across all communication channels for comprehensive message tracking
+
+### Problem
+- **Limited Logging Information**: Message sending logs only showed basic information (channel, recipient, user, category)
+- **No Message Content**: Couldn't see what messages were actually being sent in the logs
+- **No Time Period Context**: Missing information about when messages were sent relative to time periods
+- **Debugging Difficulty**: Hard to troubleshoot message delivery issues without seeing actual content
+
+### Solution Implemented
+1. **Enhanced Channel Orchestrator Logging**: Added message content preview and time period to main message sending logs
+2. **Enhanced Discord Bot Logging**: Added message content preview to Discord DM sending logs
+3. **Enhanced Email Bot Logging**: Added message content preview to email sending logs
+4. **Consistent Format**: Standardized log format across all channels with user ID, category, time period, and content preview
+5. **Smart Truncation**: Messages longer than 50 characters are truncated with "..." for readability
+
+### Files Modified
+- `communication/core/channel_orchestrator.py`: Enhanced main message sending logs
+- `communication/communication_channels/discord/bot.py`: Enhanced Discord DM logging
+- `communication/communication_channels/email/bot.py`: Enhanced email sending logs
+
+### Log Format Examples
+**Before:**
+```
+Message sent successfully via discord to discord_user:user-123
+Successfully sent deduplicated message for user user-123, category motivational
+```
+
+**After:**
+```
+Message sent successfully via discord to discord_user:user-123 | User: user-123, Category: motivational, Period: morning | Content: 'Take a moment to breathe and check in with yoursel...'
+Successfully sent deduplicated message for user user-123, category motivational | Period: morning | Content: 'Take a moment to breathe and check in with yoursel...'
+```
+
+### Testing
+- Created and ran comprehensive test suite to verify logging format
+- Verified message truncation logic works correctly (50 chars + "...")
+- Confirmed all required log elements are present in enhanced format
+- All tests passed successfully
+
+### Impact
+- **Better Debugging**: Can now see exactly what messages are being sent and when
+- **Improved Monitoring**: Time period information helps track message scheduling
+- **Enhanced Troubleshooting**: Message content visibility helps diagnose delivery issues
+- **Consistent Logging**: Standardized format across all communication channels
+- **Maintained Performance**: Logging enhancements don't impact message delivery performance
+
+## 2025-09-14 - Discord Channel ID Parsing Fix
+
+### Overview
+- Fixed channel ID parsing error in `send_message_sync` method that was trying to convert `discord_user:` format to integer
+- Added proper handling for `discord_user:` format in sync Discord message sending fallback
+- Messages were still being delivered successfully via async fallback, but sync method was logging unnecessary errors
+
+### Problem
+- **Error Logging**: "Direct Discord send failed: invalid literal for int() with base 10: 'discord_user:me581649-4533-4f13-9aeb-da8cb64b8342'"
+- **Sync Method Issue**: The `send_message_sync` method was trying to convert `discord_user:` format to integer for channel lookup
+- **Unnecessary Errors**: While messages were still being delivered via async fallback, the sync method was logging errors
+
+### Root Cause
+The `send_message_sync` method in `communication/core/channel_orchestrator.py` was attempting to use `bot.get_channel(int(recipient))` for all recipients, but the `discord_user:` format (used for Discord user DMs) cannot be converted to an integer.
+
+### Solution Implemented
+1. **Added Format Check**: Added check for `discord_user:` format before attempting integer conversion
+2. **Skip Sync Method**: For `discord_user:` format, skip the sync channel lookup and rely on async method
+3. **Maintain Functionality**: Preserved existing behavior for actual channel IDs while fixing the parsing error
+
+### Files Modified
+- `communication/core/channel_orchestrator.py`: Added format check in `send_message_sync` method
+
+### Testing
+- System startup tested successfully
+- No new errors in logs after fix
+- Messages continue to be delivered correctly via async fallback
+- Discord bot functioning normally
+
+### Impact
+- **Eliminates Error Logs**: No more "invalid literal for int()" errors in channel orchestrator
+- **Maintains Message Delivery**: All Discord messages continue to be delivered successfully
+- **Cleaner Logs**: Reduces noise in error logs while preserving functionality
+
 ## 2025-09-14 - Critical Logging Issues Resolution
 
 ### Overview

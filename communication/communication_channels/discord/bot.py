@@ -1023,12 +1023,15 @@ class DiscordBot(BaseChannel):
                             await user.send(message, view=view)
                         else:
                             await user.send(message)
-                        logger.info(f"DM sent to Discord user {discord_user_id}")
+                        # Enhanced logging with message content
+                        message_preview = message[:50] + "..." if len(message) > 50 else message
+                        logger.info(f"DM sent to Discord user {discord_user_id} | Content: '{message_preview}'")
                         discord_logger.info("Discord DM sent", 
                                           user_id=discord_user_id, 
                                           message_length=len(message),
                                           has_embed=bool(embed),
-                                          has_components=bool(view))
+                                          has_components=bool(view),
+                                          message_preview=message_preview)
                         return True
                     else:
                         logger.warning(f"Could not find Discord user {discord_user_id}")

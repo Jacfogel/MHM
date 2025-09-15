@@ -73,6 +73,8 @@ class ContextBuilder:
             ContextData object with all available context
         """
         try:
+            logger.debug(f"Building context for user {user_id}, include_conversation_history={include_conversation_history}")
+            
             # Get comprehensive user context from context manager
             context = user_context_manager.get_ai_context(
                 user_id, 
@@ -81,6 +83,7 @@ class ContextBuilder:
             
             # Get recent check-ins
             recent_checkins = get_recent_responses(user_id, limit=10)
+            logger.debug(f"Retrieved {len(recent_checkins)} recent check-ins for user {user_id}")
             
             # Get user profile and context data
             profile_result = get_user_data(user_id, 'profile')
@@ -89,11 +92,15 @@ class ContextBuilder:
             user_profile = profile_result.get('profile', {}) if profile_result else {}
             user_context = context_result.get('context', {}) if context_result else {}
             
+            conversation_history = context.get('conversation_history', []) if context else []
+            
+            logger.debug(f"Context built successfully for user {user_id}: profile_fields={len(user_profile)}, context_fields={len(user_context)}, conversation_entries={len(conversation_history)}")
+            
             return ContextData(
                 user_profile=user_profile,
                 user_context=user_context,
                 recent_checkins=recent_checkins,
-                conversation_history=context.get('conversation_history', []),
+                conversation_history=conversation_history,
                 current_time=datetime.now()
             )
             
@@ -115,9 +122,11 @@ class ContextBuilder:
         try:
             recent_checkins = context_data.recent_checkins
             if not recent_checkins:
+                logger.debug("No recent check-ins available for analysis")
                 return ContextAnalysis()
             
             total_entries = len(recent_checkins)
+            logger.debug(f"Analyzing {total_entries} recent check-ins")
             
             # Analyze breakfast patterns
             breakfast_count = sum(1 for entry in recent_checkins if entry.get('ate_breakfast') is True)
@@ -149,6 +158,8 @@ class ContextBuilder:
                 breakfast_rate, avg_mood, avg_energy, teeth_brushing_rate,
                 mood_trend, energy_trend
             )
+            
+            logger.debug(f"Context analysis completed: wellness_score={wellness_score:.1f}, mood_trend={mood_trend}, energy_trend={energy_trend}, insights_count={len(insights)}")
             
             return ContextAnalysis(
                 breakfast_rate=breakfast_rate,
@@ -272,6 +283,8 @@ class ContextBuilder:
             Formatted context prompt string
         """
         try:
+            logger.debug("Creating context prompt for AI interaction")
+            
             if analysis is None:
                 analysis = self.analyze_context(context_data)
             
@@ -281,8 +294,10 @@ class ContextBuilder:
             profile = context_data.user_profile
             if profile.get('preferred_name'):
                 context_parts.append(f"User's name: {profile['preferred_name']}")
+                logger.debug(f"Added user name to context: {profile['preferred_name']}")
             if profile.get('active_categories'):
                 context_parts.append(f"Interests: {', '.join(profile['active_categories'])}")
+                logger.debug(f"Added user interests to context: {profile['active_categories']}")
             
             # Neurodivergent-specific context
             user_context = context_data.user_context
@@ -291,21 +306,25 @@ class ContextBuilder:
                 health_conditions = user_context.get('custom_fields', {}).get('health_conditions', [])
                 if health_conditions:
                     context_parts.append(f"Health conditions: {', '.join(health_conditions)}")
+                    logger.debug(f"Added health conditions to context: {health_conditions}")
                 
                 # User's notes for AI
                 notes_for_ai = user_context.get('notes_for_ai', [])
                 if notes_for_ai:
                     context_parts.append(f"User notes for AI: {'; '.join(notes_for_ai)}")
+                    logger.debug(f"Added user notes to context: {len(notes_for_ai)} notes")
                 
                 # Encouraging activities
                 encouraging_activities = user_context.get('activities_for_encouragement', [])
                 if encouraging_activities:
                     context_parts.append(f"Encouraging activities: {', '.join(encouraging_activities)}")
+                    logger.debug(f"Added encouraging activities to context: {encouraging_activities}")
                 
                 # Goals
                 goals = user_context.get('goals', [])
                 if goals:
                     context_parts.append(f"User goals: {', '.join(goals)}")
+                    logger.debug(f"Added user goals to context: {goals}")
             
             # Recent check-in analysis
             if context_data.recent_checkins:
@@ -322,8 +341,13 @@ class ContextBuilder:
                 # Add insights
                 if analysis.insights:
                     context_parts.append(f"Key insights: {', '.join(analysis.insights)}")
+                
+                logger.debug(f"Added check-in analysis to context: {total_entries} entries, wellness_score={analysis.overall_wellness_score:.1f}")
             
-            return "\n".join(context_parts)
+            context_prompt = "\n".join(context_parts)
+            logger.debug(f"Context prompt created successfully: {len(context_prompt)} characters, {len(context_parts)} sections")
+            
+            return context_prompt
             
         except Exception as e:
             logger.error(f"Error creating context prompt: {e}")
