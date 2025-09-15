@@ -477,10 +477,20 @@ class CommunicationManager:
                 pass
             return False
 
-        # Check network connectivity
-        if not wait_for_network():
-            logger.error("Network not available. Aborting message send.")
-            raise MessageSendError("Network not available.")
+        # Check network connectivity with proper error handling
+        try:
+            if not wait_for_network():
+                from core.error_handling import handle_network_error
+                handle_network_error(
+                    ConnectionError("Network not available"), 
+                    "message send", 
+                    kwargs.get('user_id')
+                )
+                return False
+        except Exception as network_error:
+            from core.error_handling import handle_network_error
+            handle_network_error(network_error, "network check", kwargs.get('user_id'))
+            return False
         
         try:
             # FIXED: Ensure we're actually awaiting a coroutine
@@ -504,8 +514,17 @@ class CommunicationManager:
                 # If it's not explicitly False, assume success if no exception was raised
                 return True
             
+        except ConnectionError as e:
+            from core.error_handling import handle_network_error
+            handle_network_error(e, f"message send via {channel_name}", kwargs.get('user_id'))
+            return False
+        except TimeoutError as e:
+            from core.error_handling import handle_network_error
+            handle_network_error(e, f"message send via {channel_name}", kwargs.get('user_id'))
+            return False
         except Exception as e:
-            logger.error(f"Error sending message via {channel_name}: {e}")
+            from core.error_handling import handle_communication_error
+            handle_communication_error(e, channel_name, f"message send to {recipient}", kwargs.get('user_id'))
             return False
 
     def _check_logging_health(self):

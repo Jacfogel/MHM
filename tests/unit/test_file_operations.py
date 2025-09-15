@@ -47,7 +47,12 @@ class TestFileOperations:
     def test_load_json_data_file_not_found(self):
         """Test loading JSON data from non-existent file."""
         data = load_json_data('/nonexistent/file.json')
-        assert data is None
+        # With improved error handling, we now get default data instead of None
+        assert data is not None
+        assert isinstance(data, dict)
+        assert 'data' in data
+        assert 'created' in data
+        assert 'file_type' in data
     
     @pytest.mark.unit
     @pytest.mark.file_io

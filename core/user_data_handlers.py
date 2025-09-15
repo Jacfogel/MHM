@@ -137,9 +137,9 @@ def get_user_data(
                 if user_id not in known_ids:
                     logger.debug(f"get_user_data: user {user_id} not in index with auto_create=False; returning empty")
                     return {}
-            except Exception:
+            except Exception as index_error:
+                logger.debug(f"Index check failed for user {user_id}: {index_error}")
                 # If index check fails, fall back to file-based checks below
-                pass
     except Exception:
         pass
 
@@ -186,32 +186,34 @@ def get_user_data(
                         _f.write(
                             f"load_attempt: user_id={user_id}, type={data_type}, path={file_path}, exists={_exists}, loader={loader_name}\n"
                         )
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                except Exception as debug_error:
+                    logger.debug(f"Debug logging failed: {debug_error}")
+        except Exception as test_error:
+            logger.debug(f"Test logging failed: {test_error}")
         # Honor auto_create=False strictly: if target file does not exist, skip loading
         try:
             if auto_create is False and not os.path.exists(file_path):
                 data = None
             else:
                 data = loader_info['loader'](user_id, auto_create=auto_create)
-        except Exception:
+        except Exception as load_error:
+            logger.warning(f"Failed to load {data_type} for user {user_id}: {load_error}")
             data = None
         # Enforce strict no-autocreate semantics for nonexistent users/files
         if auto_create is False:
             try:
                 from core.config import get_user_data_dir as _get_user_data_dir
                 user_dir_exists = os.path.exists(_get_user_data_dir(user_id))
-            except Exception:
+            except Exception as dir_error:
+                logger.debug(f"Failed to check user directory existence: {dir_error}")
                 user_dir_exists = False
             # Exclude any data for users not present in the index (per-type guard)
             try:
                 known_ids = set(get_all_user_ids())
                 if user_id not in known_ids:
                     data = None
-            except Exception:
-                pass
+            except Exception as known_ids_error:
+                logger.debug(f"Failed to get known user IDs: {known_ids_error}")
             # If user dir doesn't exist or file doesn't exist, treat as no data
             if not user_dir_exists or not os.path.exists(file_path):
                 data = None

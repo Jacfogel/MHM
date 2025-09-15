@@ -361,9 +361,15 @@ class TestUserManagementEdgeCases:
         with open(os.path.join(user_dir, 'preferences.json'), 'w') as f:
             f.write('{invalid json}')
         
-        # Test with auto_create=False to ensure we get empty dict for corrupted files
+        # Test with auto_create=False - with improved error handling, we get default data structure
         user_data = get_user_data(user_id, 'preferences', auto_create=False)
-        assert user_data == {}  # Should return empty dict when file is corrupted and auto_create=False
+        # Should return a structure with default data when file is corrupted
+        assert isinstance(user_data, dict)
+        assert 'preferences' in user_data
+        assert isinstance(user_data['preferences'], dict)
+        assert 'data' in user_data['preferences']
+        assert 'created' in user_data['preferences']
+        assert 'file_type' in user_data['preferences']
     
     @pytest.mark.unit
     @pytest.mark.user_management

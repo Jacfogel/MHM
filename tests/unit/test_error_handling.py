@@ -232,17 +232,18 @@ class TestErrorHandlingFunctions:
             
             result = handle_file_error(error, "test_file.json", "reading file")
             
-            assert result is False
-            # Should be called multiple times: error + user message + retry messages
-            assert mock_logger.error.call_count >= 2
+            assert result is True  # Should succeed with file_path context
+            # Should be called for error logging and recovery success
+            assert mock_logger.error.call_count >= 1
+            assert mock_logger.info.call_count >= 1  # Recovery success message
             
             # Check that we have the main error call
             error_calls = [call for call in mock_logger.error.call_args_list if "test_file.json" in call[0][0] and "reading file" in call[0][0]]
             assert len(error_calls) >= 1
             
-            # Check that we have the user-friendly message
-            user_calls = [call for call in mock_logger.error.call_args_list if "User Error:" in call[0][0]]
-            assert len(user_calls) >= 1
+            # Check that we have recovery success message
+            success_calls = [call for call in mock_logger.info.call_args_list if "Successfully recovered" in call[0][0]]
+            assert len(success_calls) >= 1
     
     @pytest.mark.unit
     @pytest.mark.smoke

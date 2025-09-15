@@ -182,6 +182,13 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                 "category": context.get('category', 'unknown'),
                 "created": datetime.now().isoformat()
             }
+        elif file_path.endswith('.json'):
+            # Generic JSON file - create basic structure
+            return {
+                "data": {},
+                "created": datetime.now().isoformat(),
+                "file_type": "generic_json"
+            }
         return None
 
 class JSONDecodeRecovery(ErrorRecoveryStrategy):
@@ -269,7 +276,116 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 "category": context.get('category', 'unknown'),
                 "created": datetime.now().isoformat()
             }
+        elif file_path.endswith('.json'):
+            # Generic JSON file - create basic structure
+            return {
+                "data": {},
+                "created": datetime.now().isoformat(),
+                "file_type": "generic_json"
+            }
         return None
+
+class NetworkRecovery(ErrorRecoveryStrategy):
+    """Recovery strategy for network-related errors."""
+    
+    def __init__(self):
+        """Initialize the NetworkRecovery strategy."""
+        super().__init__("Network Recovery", "Handles network connectivity issues with retry logic")
+    
+    def can_handle(self, error: Exception) -> bool:
+        """
+        Check if this strategy can handle the given error.
+        
+        Args:
+            error: The exception to check
+            
+        Returns:
+            True if this strategy can handle network-related errors
+        """
+        # Be very specific - only handle actual network errors
+        if isinstance(error, (ConnectionError, TimeoutError)):
+            return True
+        if isinstance(error, CommunicationError) and "network" in str(error).lower():
+            return True
+        # Don't handle file system errors, permission errors, etc.
+        return False
+    
+    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+        """
+        Attempt to recover from network errors by waiting and retrying.
+        
+        Args:
+            error: The exception that occurred
+            context: Additional context containing operation details
+            
+        Returns:
+            True if recovery was successful, False otherwise
+        """
+        try:
+            import time
+            from core.service_utilities import wait_for_network
+            
+            # Wait for network to be available
+            if wait_for_network(timeout=30):
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
+                logger.info("Network recovery successful - connection restored")
+                return True
+            else:
+                from core.logger import get_component_logger
+                logger = get_component_logger('main')
+                logger.warning("Network recovery failed - connection not restored")
+                return False
+        except Exception as e:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
+            logger.error(f"Network recovery failed: {e}")
+            return False
+
+class ConfigurationRecovery(ErrorRecoveryStrategy):
+    """Recovery strategy for configuration-related errors."""
+    
+    def __init__(self):
+        """Initialize the ConfigurationRecovery strategy."""
+        super().__init__("Configuration Recovery", "Handles configuration errors by using defaults")
+    
+    def can_handle(self, error: Exception) -> bool:
+        """
+        Check if this strategy can handle the given error.
+        
+        Args:
+            error: The exception to check
+            
+        Returns:
+            True if this strategy can handle configuration-related errors
+        """
+        return isinstance(error, ConfigurationError) or (
+            isinstance(error, KeyError) and "config" in str(error).lower()
+        )
+    
+    def recover(self, error: Exception, context: Dict[str, Any]) -> bool:
+        """
+        Attempt to recover from configuration errors by using default values.
+        
+        Args:
+            error: The exception that occurred
+            context: Additional context containing configuration details
+            
+        Returns:
+            True if recovery was successful, False otherwise
+        """
+        try:
+            # For now, configuration recovery is not implemented
+            # Return False to indicate no recovery was possible
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
+            logger.warning("Configuration recovery not implemented - using default behavior")
+            return False
+        except Exception as e:
+            from core.logger import get_component_logger
+            logger = get_component_logger('main')
+            logger.error(f"Configuration recovery failed: {e}")
+            return False
 
 # ============================================================================
 # ERROR HANDLER
@@ -287,6 +403,8 @@ class ErrorHandler:
         self.recovery_strategies: List[ErrorRecoveryStrategy] = [
             FileNotFoundRecovery(),
             JSONDecodeRecovery(),
+            NetworkRecovery(),
+            ConfigurationRecovery(),
         ]
         self.error_count: Dict[str, int] = {}
         self.max_retries = 3
@@ -418,6 +536,14 @@ class ErrorHandler:
             return f"Operation timed out. Please try again."
         elif isinstance(error, ValueError):
             return f"Invalid data format. Please check your input and try again."
+        elif isinstance(error, KeyError):
+            return f"Missing required information. Please check your input and try again."
+        elif isinstance(error, TypeError):
+            return f"Data type error. Please check your input format and try again."
+        elif isinstance(error, OSError):
+            return f"System error occurred. Please try again or contact support."
+        elif isinstance(error, MemoryError):
+            return f"System is low on memory. Please try again later."
         else:
             return f"An unexpected error occurred during {operation}. Please try again or contact support."
 
@@ -563,5 +689,29 @@ def handle_configuration_error(error: Exception, setting: str, operation: str) -
     """Convenience function for handling configuration errors."""
     context = {
         'setting': setting
+    }
+    return error_handler.handle_error(error, context, operation)
+
+def handle_network_error(error: Exception, operation: str, user_id: str = None) -> bool:
+    """Convenience function for handling network errors."""
+    context = {
+        'user_id': user_id,
+        'network_operation': operation
+    }
+    return error_handler.handle_error(error, context, operation)
+
+def handle_validation_error(error: Exception, field: str, operation: str, user_id: str = None) -> bool:
+    """Convenience function for handling validation errors."""
+    context = {
+        'field': field,
+        'user_id': user_id
+    }
+    return error_handler.handle_error(error, context, operation)
+
+def handle_ai_error(error: Exception, operation: str, user_id: str = None) -> bool:
+    """Convenience function for handling AI-related errors."""
+    context = {
+        'user_id': user_id,
+        'ai_operation': operation
     }
     return error_handler.handle_error(error, context, operation) 
