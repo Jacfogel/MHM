@@ -1398,7 +1398,7 @@ SETUP INSTRUCTIONS:
 3. Restart the MHM application
 4. Run "Validate Configuration" again to check
 
-For detailed setup instructions, see the README.md file.
+For detailed setup instructions, see the ui/README.md file.
 """
         
         help_text.setPlainText(help_content)

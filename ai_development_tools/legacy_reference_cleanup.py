@@ -18,11 +18,10 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 from collections import defaultdict
-import logging
+from core.logger import get_component_logger
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = get_component_logger(__name__)
 
 class LegacyReferenceCleanup:
     """Identifies and cleans up legacy references in MHM."""
@@ -253,7 +252,7 @@ class LegacyReferenceCleanup:
             report = self.generate_cleanup_report(findings)
             
             # Save report
-            report_file = self.project_root / "LEGACY_REFERENCE_REPORT.md"
+            report_file = self.project_root / "development_docs" / "LEGACY_REFERENCE_REPORT.md"
             with open(report_file, 'w', encoding='utf-8') as f:
                 f.write(report)
             

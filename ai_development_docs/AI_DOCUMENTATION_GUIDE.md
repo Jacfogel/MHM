@@ -1,23 +1,23 @@
 # AI Documentation Guide - Quick Reference
 
 > **Purpose**: Essential documentation navigation for AI collaborators  
-> **For details**: See [DOCUMENTATION_GUIDE.md](DOCUMENTATION_GUIDE.md)
+> **For details**: See [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md)
 
 ## 🚀 Document Selection
 
 ### **Quick Decision Tree**
-1. **New to project?** → `README.md`
-2. **Setting up?** → `HOW_TO_RUN.md`
-3. **Developing?** → `DEVELOPMENT_WORKFLOW.md`
-4. **Need commands?** → `QUICK_REFERENCE.md`
-5. **Understanding system?** → `ARCHITECTURE.md`
+1. **New to project?** → `../README.md`
+2. **Setting up?** → `../HOW_TO_RUN.md`
+3. **Developing?** → `../DEVELOPMENT_WORKFLOW.md`
+4. **Need commands?** → `../QUICK_REFERENCE.md`
+5. **Understanding system?** → `../ARCHITECTURE.md`
 6. **AI collaboration?** → `AI_*` files
-7. **Current status?** → `AI_CHANGELOG.md`, `TODO.md`
+7. **Current status?** → `AI_CHANGELOG.md`, `../TODO.md`
 
 ### **Document Categories**
-- **Human-Facing**: `README.md`, `DEVELOPMENT_WORKFLOW.md`, `ARCHITECTURE.md`
+- **Human-Facing**: `../README.md`, `../DEVELOPMENT_WORKFLOW.md`, `../ARCHITECTURE.md`
 - **AI-Facing**: `AI_*` files, `.cursor/rules/`
-- **Status/History**: `CHANGELOG_*.md`, `TODO.md`, `PLANS.md`
+- **Status/History**: `CHANGELOG_*.md`, `../TODO.md`, `development_docs/PLANS.md`
 
 ## 📋 AI Documentation
 
@@ -38,10 +38,10 @@
 
 ### **Paired Document Updates**
 **CRITICAL**: When updating human-facing documents, check AI-facing counterparts:
-- **DEVELOPMENT_WORKFLOW.md** ↔ **AI_DEVELOPMENT_WORKFLOW.md**
+- **../DEVELOPMENT_WORKFLOW.md** ↔ **AI_DEVELOPMENT_WORKFLOW.md**
 - **ARCHITECTURE.md** ↔ **AI_ARCHITECTURE.md**
-- **DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
-- **CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
+- **../DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
+- **development_docs/CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
 
 ## 🎯 AI Standards
 - **Concise**: Essential information only
@@ -76,4 +76,4 @@
 ---
 
 ## What's In The Full Doc
-- See `DOCUMENTATION_GUIDE.md` for the full document map: quick reference, documentation summary table, maintenance guidelines, standards, and coding/naming conventions, plus links to all human‑facing and AI‑facing documents.
+- See `../DOCUMENTATION_GUIDE.md` for the full document map: quick reference, documentation summary table, maintenance guidelines, standards, and coding/naming conventions, plus links to all human‑facing and AI‑facing documents.

@@ -362,8 +362,8 @@ def generate_module_dependencies_content(actual_imports: Dict[str, Dict], existi
     content.append("> **Last Updated**: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     content.append("")
     content.append("> **See [README.md](README.md) for complete navigation and project overview**")
-    content.append("> **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**")
-    content.append("> **See [TODO.md](TODO.md) for current documentation priorities**")
+    content.append("> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**")
+    content.append("> **See [TODO.md](../TODO.md) for current documentation priorities**")
     content.append("")
     
     # Overview section
@@ -970,7 +970,7 @@ UI Dependencies:
 - `user/` - User context (depends on core)
 - `tasks/` - Task management (depends on core)
 
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**  
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
 > **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
     
@@ -1042,7 +1042,7 @@ def update_module_dependencies():
     actual_imports = scan_all_python_files()
     
     # Read existing content to preserve manual enhancements
-    detail_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
+    detail_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'
     existing_content = ""
     if detail_path.exists():
         try:
@@ -1069,14 +1069,14 @@ def update_module_dependencies():
             f.write(final_detail_content)
         
         # Write the AI file
-        ai_path = Path(__file__).parent.parent / 'AI_MODULE_DEPENDENCIES.md'
+        ai_path = Path(__file__).parent.parent / 'ai_development_docs' / 'AI_MODULE_DEPENDENCIES.md'
         with open(ai_path, 'w', encoding='utf-8') as f:
             f.write(ai_content)
         
         print(f"[SUCCESS] Both module dependency files updated successfully!")
         print(f"[FILES] Generated:")
-        print(f"   MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies")
-        print(f"   AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies")
+        print(f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies")
+        print(f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies")
         print(f"[STATS] Statistics:")
         print(f"   Files scanned: {len(actual_imports)}")
         print(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}")
@@ -1118,7 +1118,7 @@ def update_module_dependencies():
         return True
         
     except Exception as e:
-        print(f"[ERROR] Failed to write MODULE_DEPENDENCIES_DETAIL.md: {e}")
+        print(f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}")
         return False
 
 if __name__ == "__main__":

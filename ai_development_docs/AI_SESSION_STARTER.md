@@ -22,7 +22,7 @@
 
 ### **Audit-First Protocol (CRITICAL)**
 **BEFORE** creating any documentation or comprehensive analysis:
-1. **ALWAYS** run `python ai_tools/ai_tools_runner.py audit` first
+1. **ALWAYS** run `python ai_development_tools/ai_tools_runner.py audit` first
 2. **ALWAYS** show audit results to user with statistics
 3. **NEVER** create documentation from partial information
 4. **ALWAYS** ask for user approval before proceeding
@@ -63,8 +63,8 @@ Personal mental health assistant that helps manage executive functioning deficit
 
 ### **Quick Status Check**
 - **Check `AI_CHANGELOG.md`** for recent changes and activity
-- **Check `TODO.md`** for current priorities and tasks
-- **Run `python ai_tools/ai_tools_runner.py status`** for comprehensive status
+- **Check `../TODO.md`** for current priorities and tasks
+- **Run `python ai_development_tools/ai_tools_runner.py status`** for comprehensive status
 
 ## 🔧 **QUICK COMMANDS**
 
@@ -74,10 +74,10 @@ Personal mental health assistant that helps manage executive functioning deficit
 python run_mhm.py
 
 # Get system status
-python ai_tools/ai_tools_runner.py status
+python ai_development_tools/ai_tools_runner.py status
 
 # Run full audit
-python ai_tools/ai_tools_runner.py audit
+python ai_development_tools/ai_tools_runner.py audit
 
 # Create backup
 Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse
@@ -88,7 +88,7 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 2. **Create Backup**: PowerShell backup command
 3. **Make Small Changes**: Incremental approach
 4. **Test After**: `python run_mhm.py`
-5. **Update CHANGELOGs**: Document changes fully in `CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
+5. **Update CHANGELOGs**: Document changes fully in `../development_docs/CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
 
 ## 💬 **COMMUNICATION GUIDELINES**
 
@@ -110,13 +110,13 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 
 ### **When You Need More Context**
 - **`AI_REFERENCE.md`** - Complete troubleshooting and system understanding
-- **`CHANGELOG_DETAIL.md`** - Complete change history
-- **`TODO.md`** - Full task list and priorities
+- **`development_docs/CHANGELOG_DETAIL.md`** - Complete change history
+- **`../TODO.md`** - Full task list and priorities
 
 ### **When You Need Technical Details**
-- **`ARCHITECTURE.md`** - System architecture and design
-- **`DEVELOPMENT_WORKFLOW.md`** - Detailed development practices
-- **`ai_tools/README.md`** - Complete tool usage and configuration
+- **`../ARCHITECTURE.md`** - System architecture and design
+- **`../DEVELOPMENT_WORKFLOW.md`** - Detailed development practices
+- **`ai_development_tools/README.md`** - Complete tool usage and configuration
 
 ### **AI-Specific Quick References**
 - **`AI_DEVELOPMENT_WORKFLOW.md`** - AI-optimized development patterns

@@ -6,7 +6,7 @@
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
-> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](TESTING_IMPROVEMENT_PLAN_DETAIL.md) for testing strategy**
+> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
 
 ## 📝 How to Add New TODOs
 
@@ -163,7 +163,7 @@ When adding new tasks, follow this format:
     - [ ] Ensure all profile information is displayed (not truncated)
   - [ ] **Document All Discord Commands**
     - [ ] Audit all available Discord commands (slash commands, ! commands, natural language)
-    - [ ] Keep comprehensive list in `DISCORD.md` with examples (developer/admin only)
+    - [ ] Keep comprehensive list in `communication/communication_channels/discord/DISCORD.md` with examples (developer/admin only)
     - [ ] Ensure help system surfaces core commands and examples
     - [ ] Test all commands to ensure they work properly
 
@@ -412,7 +412,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Add CI job step to run `scripts/static_checks/check_channel_loggers.py`
   - [ ] Ensure job runs before test steps and fails the pipeline on violations
-  - [ ] Document the check in `LOGGING_GUIDE.md` (contributor notes)
+  - [ ] Document the check in `logs/LOGGING_GUIDE.md` (contributor notes)
 
 **Scripts Directory Cleanup** - Clean up the `scripts/` directory
 - *What it means*: Remove outdated/broken files, organize remaining utilities, move AI tools to `ai_tools/`

@@ -3,26 +3,26 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-09-11 20:36:11
+> **Last Updated**: 2025-09-15 00:22:48
 
 > **See [README.md](README.md) for complete navigation and project overview**
-> **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
-> **See [TODO.md](TODO.md) for current documentation priorities**
+> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
+> **See [TODO.md](../TODO.md) for current documentation priorities**
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 94.9% ⚠️ NEEDS ATTENTION**
+### **Function Documentation Coverage: 94.8% ⚠️ NEEDS ATTENTION**
 - **Files Scanned**: 139
-- **Functions Found**: 2552
-- **Methods Found**: 2097
-- **Classes Found**: 261
-- **Total Items**: 4649
-- **Functions Documented**: 2389
-- **Methods Documented**: 2021
-- **Classes Documented**: 215
-- **Total Documented**: 4410
+- **Functions Found**: 2575
+- **Methods Found**: 2112
+- **Classes Found**: 265
+- **Total Items**: 4687
+- **Functions Documented**: 2409
+- **Methods Documented**: 2034
+- **Classes Documented**: 217
+- **Total Documented**: 4443
 - **Template-Generated**: 57
-- **Last Updated**: 2025-09-11
+- **Last Updated**: 2025-09-15
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -36,7 +36,7 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (391)
+### **Core System Functions** (404)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (0)
@@ -51,7 +51,7 @@ User context, preferences, and data management functions.
 ### **Task Management Functions** (21)
 Task management and scheduling functions.
 
-### **Test Functions** (1731)
+### **Test Functions** (1741)
 Test functions and testing utilities.
 
 ## 📁 **Module Organization**
@@ -198,6 +198,15 @@ This class provides analytics and insights from check-in data.
 - ✅ `get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
 - ✅ `get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
 - ✅ `get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
+- ✅ `get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
+
+Parameters:
+    user_id: target user
+    days: number of recent check-ins to analyze
+    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
+
+Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
+Only includes fields that appear in the data and are in enabled_fields if provided.
 - ✅ `get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
 - ✅ `get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
 - ✅ `get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
@@ -221,6 +230,15 @@ This class provides analytics and insights from check-in data.
   - ✅ `CheckinAnalytics.get_completion_rate(self, user_id, days)` - Calculate overall completion rate for check-ins
   - ✅ `CheckinAnalytics.get_habit_analysis(self, user_id, days)` - Analyze habit patterns from check-in data
   - ✅ `CheckinAnalytics.get_mood_trends(self, user_id, days)` - Analyze mood trends over the specified period
+  - ✅ `CheckinAnalytics.get_quantitative_summaries(self, user_id, days, enabled_fields)` - Compute per-field averages and ranges for opted-in quantitative fields.
+
+Parameters:
+    user_id: target user
+    days: number of recent check-ins to analyze
+    enabled_fields: list of fields to include (e.g., ['mood','energy','stress','sleep_quality','anxiety'])
+
+Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
+Only includes fields that appear in the data and are in enabled_fields if provided.
   - ✅ `CheckinAnalytics.get_sleep_analysis(self, user_id, days)` - Analyze sleep patterns from check-in data
   - ✅ `CheckinAnalytics.get_task_weekly_stats(self, user_id, days)` - Calculate weekly statistics for tasks
   - ✅ `CheckinAnalytics.get_wellness_score(self, user_id, days)` - Calculate overall wellness score from check-in data
@@ -346,6 +364,8 @@ Args:
     description: A description of what this strategy does
 - ✅ `__init__(self)` - Initialize the FileNotFoundRecovery strategy.
 - ✅ `__init__(self)` - Initialize the JSONDecodeRecovery strategy.
+- ✅ `__init__(self)` - Initialize the NetworkRecovery strategy.
+- ✅ `__init__(self)` - Initialize the ConfigurationRecovery strategy.
 - ✅ `__init__(self)` - Initialize the ErrorHandler with default recovery strategies.
 
 Sets up recovery strategies for common error types like missing files and corrupted JSON.
@@ -376,7 +396,22 @@ Args:
     
 Returns:
     True if this strategy can handle JSON decode errors or JSON-related file operation errors
+- ✅ `can_handle(self, error)` - Check if this strategy can handle the given error.
+
+Args:
+    error: The exception to check
+    
+Returns:
+    True if this strategy can handle network-related errors
+- ✅ `can_handle(self, error)` - Check if this strategy can handle the given error.
+
+Args:
+    error: The exception to check
+    
+Returns:
+    True if this strategy can handle configuration-related errors
 - ❌ `decorator(func)` - No description
+- ✅ `handle_ai_error(error, operation, user_id)` - Convenience function for handling AI-related errors.
 - ✅ `handle_communication_error(error, channel, operation, user_id)` - Convenience function for handling communication errors.
 - ✅ `handle_configuration_error(error, setting, operation)` - Convenience function for handling configuration errors.
 - ✅ `handle_error(self, error, context, operation, user_friendly)` - Handle an error with recovery strategies and logging.
@@ -397,6 +432,8 @@ Args:
     user_friendly: Whether to show user-friendly error messages
     default_return: Value to return if error occurs and can't be recovered
 - ✅ `handle_file_error(error, file_path, operation, user_id, category)` - Convenience function for handling file-related errors.
+- ✅ `handle_network_error(error, operation, user_id)` - Convenience function for handling network errors.
+- ✅ `handle_validation_error(error, field, operation, user_id)` - Convenience function for handling validation errors.
 - ✅ `recover(self, error, context)` - Attempt to recover from the error. Returns True if successful.
 - ✅ `recover(self, error, context)` - Attempt to recover from the error by creating missing files with default data.
 
@@ -414,6 +451,22 @@ Args:
     
 Returns:
     True if recovery was successful, False otherwise
+- ✅ `recover(self, error, context)` - Attempt to recover from network errors by waiting and retrying.
+
+Args:
+    error: The exception that occurred
+    context: Additional context containing operation details
+    
+Returns:
+    True if recovery was successful, False otherwise
+- ✅ `recover(self, error, context)` - Attempt to recover from configuration errors by using default values.
+
+Args:
+    error: The exception that occurred
+    context: Additional context containing configuration details
+    
+Returns:
+    True if recovery was successful, False otherwise
 - ✅ `safe_file_operation(file_path, operation, user_id, category)` - Context manager for safe file operations with automatic error handling.
 
 Usage:
@@ -424,6 +477,23 @@ Usage:
 - ✅ `AIError` - Raised when AI operations fail.
 - ✅ `CommunicationError` - Raised when communication channels fail.
 - ✅ `ConfigurationError` - Raised when configuration is invalid or missing.
+- ✅ `ConfigurationRecovery` - Recovery strategy for configuration-related errors.
+  - ✅ `ConfigurationRecovery.__init__(self)` - Initialize the ConfigurationRecovery strategy.
+  - ✅ `ConfigurationRecovery.can_handle(self, error)` - Check if this strategy can handle the given error.
+
+Args:
+    error: The exception to check
+    
+Returns:
+    True if this strategy can handle configuration-related errors
+  - ✅ `ConfigurationRecovery.recover(self, error, context)` - Attempt to recover from configuration errors by using default values.
+
+Args:
+    error: The exception that occurred
+    context: Additional context containing configuration details
+    
+Returns:
+    True if recovery was successful, False otherwise
 - ✅ `DataError` - Raised when there are issues with data files or data integrity.
 - ✅ `ErrorHandler` - Centralized error handler for MHM.
   - ✅ `ErrorHandler.__init__(self)` - Initialize the ErrorHandler with default recovery strategies.
@@ -494,6 +564,23 @@ Args:
     message: Human-readable error message
     details: Optional dictionary with additional error details
     recoverable: Whether this error can be recovered from
+- ✅ `NetworkRecovery` - Recovery strategy for network-related errors.
+  - ✅ `NetworkRecovery.__init__(self)` - Initialize the NetworkRecovery strategy.
+  - ✅ `NetworkRecovery.can_handle(self, error)` - Check if this strategy can handle the given error.
+
+Args:
+    error: The exception to check
+    
+Returns:
+    True if this strategy can handle network-related errors
+  - ✅ `NetworkRecovery.recover(self, error, context)` - Attempt to recover from network errors by waiting and retrying.
+
+Args:
+    error: The exception that occurred
+    context: Additional context containing operation details
+    
+Returns:
+    True if recovery was successful, False otherwise
 - ✅ `RecoveryError` - Raised when error recovery fails.
 - ✅ `SafeFileContext` - Context manager for safe file operations.
   - ✅ `SafeFileContext.__enter__(self)` - Enter the context manager for safe file operations.
@@ -606,6 +693,15 @@ Args:
 
 Returns:
     bool: True if cleanup was performed, False otherwise
+- ✅ `clear_log_file_locks()` - Clear any file locks that might be preventing log rotation.
+
+This function attempts to handle Windows file locking issues by:
+1. Temporarily disabling log rotation
+2. Closing all log file handlers
+3. Reopening them with fresh file handles
+
+Returns:
+    bool: True if locks were cleared successfully, False otherwise
 - ✅ `compress_old_logs()` - Compress log files older than 7 days and move them to archive directory.
 
 Returns:
@@ -958,6 +1054,22 @@ Args:
     
 Returns:
     list: List of active schedule period names
+- ✅ `get_current_active_schedules(schedules, current_time)` - Get list of schedule periods that are currently active based on time and day.
+
+Args:
+    schedules: Dictionary containing all schedule periods
+    current_time: Current time to check against (defaults to now)
+    
+Returns:
+    list: List of currently active schedule period names
+- ✅ `is_schedule_active(schedule_data, current_time)` - Check if a schedule period is currently active based on time and day.
+
+Args:
+    schedule_data: Dictionary containing schedule period data
+    current_time: Current time to check against (defaults to now)
+    
+Returns:
+    bool: True if the schedule is active, False otherwise
 
 #### `core/scheduler.py`
 **Functions:**
@@ -3045,7 +3157,12 @@ loader entries for: account, preferences, context, schedules.
 
 #### `tests/behavior/test_interaction_handlers_coverage_expansion.py`
 **Functions:**
+- ❌ `_mock_get_user_data(uid, section)` - No description
+- ❌ `get_checkin_history(self, uid, days)` - No description
+- ❌ `get_mood_trends(self, uid, days)` - No description
 - ✅ `mock_communication_manager()` - Mock communication manager for testing.
+- ✅ `test_checkin_history_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure check-in history shows mood as /5.
+- ✅ `test_checkin_status_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure check-in status lines render mood values on a /5 scale.
 - ✅ `test_data_dir(test_path_factory)` - Provide per-test data directory under tests/data/tmp.
 - ✅ `test_get_examples(self)` - Test getting example commands.
 - ✅ `test_get_help(self)` - Test getting help text.
@@ -3101,24 +3218,32 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `test_handle_update_task_no_updates(self, test_data_dir)` - Test updating a task without specifying updates.
 - ✅ `test_handle_update_task_with_updates(self, test_data_dir)` - Test updating a task with specific updates.
 - ✅ `test_handler_with_missing_user_data(self, test_data_dir)` - Test handlers with missing user data.
+- ✅ `test_mood_trends_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure mood trends render averages/ranges on a /5 scale.
 - ✅ `test_parse_relative_date_existing_date(self)` - Test relative date parsing for existing date.
 - ✅ `test_parse_relative_date_next_month(self)` - Test relative date parsing for 'next month'.
 - ✅ `test_parse_relative_date_next_week(self)` - Test relative date parsing for 'next week'.
 - ✅ `test_parse_relative_date_today(self)` - Test relative date parsing for 'today'.
 - ✅ `test_parse_relative_date_tomorrow(self)` - Test relative date parsing for 'tomorrow'.
+- ✅ `test_profile_get_help_is_text(self)` - ProfileHandler.get_help should return a helpful text string.
+- ✅ `test_quantitative_summary_respects_enabled_fields(self, test_data_dir, monkeypatch)` - Quant summary should include only enabled numeric fields present in data.
+- ✅ `test_show_profile_not_raw_json(self, test_data_dir)` - Profile display should be formatted text, not raw JSON.
 - ✅ `test_task_management_handler_error_handling(self, test_data_dir)` - Test error handling in task management.
 **Classes:**
 - ✅ `TestAnalyticsHandlerAdvancedCoverage` - Test advanced analytics handler functionality for coverage expansion.
   - ✅ `TestAnalyticsHandlerAdvancedCoverage.test_handle_show_analytics_with_no_data(self, test_data_dir)` - Test analytics display when user has no data.
   - ✅ `TestAnalyticsHandlerAdvancedCoverage.test_handle_show_analytics_with_specific_metric(self, test_data_dir)` - Test analytics display with specific metric request.
 - ✅ `TestAnalyticsHandlerCoverage` - Test AnalyticsHandler comprehensive coverage.
+  - ✅ `TestAnalyticsHandlerCoverage.test_checkin_history_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure check-in history shows mood as /5.
   - ✅ `TestAnalyticsHandlerCoverage.test_handle_mood_trends(self, test_data_dir)` - Test showing mood trends.
   - ✅ `TestAnalyticsHandlerCoverage.test_handle_show_analytics(self, test_data_dir)` - Test showing analytics.
+  - ✅ `TestAnalyticsHandlerCoverage.test_mood_trends_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure mood trends render averages/ranges on a /5 scale.
+  - ✅ `TestAnalyticsHandlerCoverage.test_quantitative_summary_respects_enabled_fields(self, test_data_dir, monkeypatch)` - Quant summary should include only enabled numeric fields present in data.
 - ✅ `TestCheckinHandlerAdvancedCoverage` - Test advanced checkin handler functionality for coverage expansion.
   - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_checkin_response_with_invalid_response(self, test_data_dir)` - Test checkin response handling with invalid response format.
   - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_start_checkin_with_disabled_checkins(self, test_data_dir)` - Test starting checkin when checkins are disabled for user.
   - ✅ `TestCheckinHandlerAdvancedCoverage.test_handle_start_checkin_with_no_questions(self, test_data_dir)` - Test starting checkin when no questions are available.
 - ✅ `TestCheckinHandlerCoverage` - Test CheckinHandler comprehensive coverage.
+  - ✅ `TestCheckinHandlerCoverage.test_checkin_status_displays_scale_out_of_5(self, test_data_dir, monkeypatch)` - Ensure check-in status lines render mood values on a /5 scale.
   - ✅ `TestCheckinHandlerCoverage.test_handle_checkin_status(self, test_data_dir)` - Test checking check-in status.
   - ✅ `TestCheckinHandlerCoverage.test_handle_continue_checkin(self, test_data_dir)` - Test continuing check-in process.
   - ✅ `TestCheckinHandlerCoverage.test_handle_start_checkin_new_user(self, test_data_dir)` - Test starting check-in for new user.
@@ -3139,6 +3264,8 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestProfileHandlerCoverage.test_handle_profile_stats(self, test_data_dir)` - Test showing profile statistics.
   - ✅ `TestProfileHandlerCoverage.test_handle_show_profile(self, test_data_dir)` - Test showing user profile.
   - ✅ `TestProfileHandlerCoverage.test_handle_update_profile(self, test_data_dir)` - Test updating user profile.
+  - ✅ `TestProfileHandlerCoverage.test_profile_get_help_is_text(self)` - ProfileHandler.get_help should return a helpful text string.
+  - ✅ `TestProfileHandlerCoverage.test_show_profile_not_raw_json(self, test_data_dir)` - Profile display should be formatted text, not raw JSON.
 - ✅ `TestScheduleManagementHandlerAdvancedCoverage` - Test advanced schedule management functionality for coverage expansion.
   - ✅ `TestScheduleManagementHandlerAdvancedCoverage.test_handle_show_schedule_with_no_schedules(self, test_data_dir)` - Test schedule display when user has no schedules.
   - ✅ `TestScheduleManagementHandlerAdvancedCoverage.test_handle_update_schedule_with_invalid_period(self, test_data_dir)` - Test schedule update with invalid time period.
@@ -3181,6 +3308,10 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestTaskManagementHandlerCoverage.test_parse_relative_date_next_week(self)` - Test relative date parsing for 'next week'.
   - ✅ `TestTaskManagementHandlerCoverage.test_parse_relative_date_today(self)` - Test relative date parsing for 'today'.
   - ✅ `TestTaskManagementHandlerCoverage.test_parse_relative_date_tomorrow(self)` - Test relative date parsing for 'tomorrow'.
+- ❌ `_MockAnalytics` - No description
+  - ❌ `_MockAnalytics.get_mood_trends(self, uid, days)` - No description
+- ❌ `_MockAnalytics` - No description
+  - ❌ `_MockAnalytics.get_checkin_history(self, uid, days)` - No description
 
 #### `tests/behavior/test_logger_behavior.py`
 **Functions:**
@@ -4254,6 +4385,7 @@ Returns the number of files removed.
 If a log file exceeds ~2MB, attempt to rename it to an .old timestamped file.
 If rename fails (e.g., due to file locks), fall back to truncating contents.
 - ✅ `cleanup_communication_manager()` - Clean up CommunicationManager singleton after all tests complete.
+- ✅ `cleanup_conversation_manager()` - Clean up ConversationManager state before each test.
 - ✅ `cleanup_test_users_after_session()` - Remove test users from tests/data/users/ after all tests. NEVER touches real user data.
 - ✅ `cleanup_tmp_at_session_end()` - Clear tests/data/tmp contents at session end to keep the workspace tidy.
 - ✅ `clear_user_caches_between_tests()` - Ensure user data caches don't leak between tests.

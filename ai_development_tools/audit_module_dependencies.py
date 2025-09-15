@@ -115,7 +115,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
 
 def parse_module_dependencies() -> Dict[str, List[str]]:
     """Parse the existing MODULE_DEPENDENCIES_DETAIL.md to extract documented dependencies."""
-    deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
+    deps_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'
     documented = {}
     
     try:
@@ -261,7 +261,7 @@ def identify_enhancement_needs(documented_deps: Dict[str, List[str]], actual_imp
     for file_path in documented_deps.keys():
         if file_path in actual_imports:
             # Check if it has manual enhancement markers
-            deps_path = Path(__file__).parent.parent / 'MODULE_DEPENDENCIES_DETAIL.md'
+            deps_path = Path(__file__).parent.parent / 'development_docs' / 'MODULE_DEPENDENCIES_DETAIL.md'
             try:
                 with open(deps_path, 'r', encoding='utf-8') as f:
                     content = f.read()

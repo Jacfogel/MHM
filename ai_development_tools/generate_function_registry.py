@@ -312,8 +312,8 @@ def generate_function_registry_content(actual_functions: Dict[str, Dict]) -> str
 > **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 > **See [README.md](README.md) for complete navigation and project overview**
-> **See [ARCHITECTURE.md](ARCHITECTURE.md) for system architecture and design**
-> **See [TODO.md](TODO.md) for current documentation priorities**
+> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
+> **See [TODO.md](../TODO.md) for current documentation priorities**
 
 ## 📋 **Overview**
 
@@ -627,7 +627,7 @@ Core System Decision Tree:
 - `user/` - User context and preferences
 - `tasks/` - Task management system
 
-> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](FUNCTION_REGISTRY_DETAIL.md)**  
+> **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
 > **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 """
     
@@ -717,12 +717,12 @@ def update_function_registry():
     ai_content = generate_ai_function_registry_content(actual_functions)
     
     # Write DETAIL file
-    detail_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY_DETAIL.md'
+    detail_path = Path(__file__).parent.parent / 'development_docs' / 'FUNCTION_REGISTRY_DETAIL.md'
     with open(detail_path, 'w', encoding='utf-8') as f:
         f.write(detail_content)
     
     # Write AI file
-    ai_path = Path(__file__).parent.parent / 'AI_FUNCTION_REGISTRY.md'
+    ai_path = Path(__file__).parent.parent / 'ai_development_docs' / 'AI_FUNCTION_REGISTRY.md'
     with open(ai_path, 'w', encoding='utf-8') as f:
         f.write(ai_content)
     
@@ -753,8 +753,8 @@ def update_function_registry():
     
     print(f"\n[SUCCESS] Both function registry files updated successfully!")
     print(f"[FILES] Generated:")
-    print(f"   FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry")
-    print(f"   AI_FUNCTION_REGISTRY.md - Concise AI-focused registry")
+    print(f"   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry")
+    print(f"   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry")
     print(f"[STATS] Statistics:")
     print(f"   Files scanned: {total_files}")
     print(f"   Functions found: {total_functions}")

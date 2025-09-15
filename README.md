@@ -13,8 +13,8 @@ MHM is a simple personal assistant created by and for a single beginner programm
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and components
 - **[Quick Reference](QUICK_REFERENCE.md)** - Common commands and shortcuts
 - **[Documentation Guide](DOCUMENTATION_GUIDE.md)** - How to contribute to docs
-- **[Development Plans](PLANS.md)** - Current plans and strategies
-- **[Recent Changes](AI_CHANGELOG.md)** - Brief summary of recent changes
+- **[Development Plans](development_docs/PLANS.md)** - Current plans and strategies
+- **[Recent Changes](ai_development_docs/AI_CHANGELOG.md)** - Brief summary of recent changes
 - **[Current Priorities](TODO.md)** - What we're working on next
 
 ## Features
@@ -49,9 +49,9 @@ See **HOW_TO_RUN.md** for more details.
 - **ARCHITECTURE.md** - System structure and data organization
 - **DEVELOPMENT_WORKFLOW.md** - Safe development practices for beginners
 - **QUICK_REFERENCE.md** - Essential commands and troubleshooting
-- **PLANS.md** - Development plans and strategies
-- **AI_CHANGELOG.md** - Brief summary of recent changes
-- **CHANGELOG_DETAIL.md** - Complete detailed change history
+- **development_docs/PLANS.md** - Development plans and strategies
+- **ai_development_docs/AI_CHANGELOG.md** - Brief summary of recent changes
+- **development_docs/CHANGELOG_DETAIL.md** - Complete detailed change history
 - **TODO.md** - Current development priorities
 - **DOCUMENTATION_GUIDE.md** - Documentation organization and standards
 
@@ -115,7 +115,7 @@ This project is personal. Keep forks private and respect mental health data.
 
 **Recent Success**: We've successfully implemented a comprehensive error handling system that makes the application much more reliable and easier to debug. **This covers the entire application - from the UI to the background service to all communication channels.**
 
-For current development priorities and completed improvements, see **TODO.md** and **AI_CHANGELOG.md**.
+For current development priorities and completed improvements, see **TODO.md** and **ai_development_docs/AI_CHANGELOG.md**.
 
 ## 🆘 Troubleshooting
 

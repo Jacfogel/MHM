@@ -6,7 +6,7 @@
 ## 🚨 **Troubleshooting Patterns**
 
 ### **If Documentation Seems Incomplete**
-1. **Run Audit Script** - `python ai_tools/ai_tools_runner.py audit`
+1. **Run Audit Script** - `python ai_development_tools/ai_tools_runner.py audit`
 2. **Show Results** - Display completeness statistics
 3. **Identify Gaps** - Point out what's missing
 4. **Create Plan** - Plan how to fill gaps
@@ -83,4 +83,4 @@
 ---
 
 ## What's In The Full Doc
-- For deeper explanations and the full troubleshooting playbook, see `DOCUMENTATION_GUIDE.md`, `ARCHITECTURE.md`, and `DEVELOPMENT_WORKFLOW.md`. This AI quick reference mirrors those docs at a high level for fast, context‑aware assistance.
+- For deeper explanations and the full troubleshooting playbook, see `../DOCUMENTATION_GUIDE.md`, `../ARCHITECTURE.md`, and `../DEVELOPMENT_WORKFLOW.md`. This AI quick reference mirrors those docs at a high level for fast, context‑aware assistance.

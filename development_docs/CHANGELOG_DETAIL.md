@@ -1,5 +1,44 @@
 ﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
+## 2025-09-15 - Documentation System Fixes
+
+### Overview
+- Fixed static logging check failures in ai_development_tools files by replacing direct logging imports with centralized core.logger system
+- Fixed Unicode encoding issues in analyze_documentation.py by replacing Unicode arrows with ASCII equivalents
+- All tests and audits now pass successfully (1411/1412 tests passing, 1 skipped)
+
+### Problem
+- **Static Logging Check Failures**: Files in ai_development_tools were using direct `import logging` and `logging.getLogger()` instead of the project's centralized logging system
+- **Unicode Encoding Issues**: analyze_documentation.py contained Unicode arrow characters (→) that caused encoding errors on Windows
+- **Test Failures**: These issues caused the static logging check test to fail, preventing full test suite success
+
+### Solution Implemented
+- **Updated Logging Imports**: Replaced `import logging` with `from core.logger import get_component_logger` in:
+  - `ai_development_tools/documentation_sync_checker.py`
+  - `ai_development_tools/legacy_reference_cleanup.py`
+  - `ai_development_tools/regenerate_coverage_metrics.py`
+- **Updated Logger Initialization**: Replaced `logging.getLogger(__name__)` with `get_component_logger(__name__)`
+- **Fixed Unicode Issues**: Replaced Unicode arrows (→) with ASCII equivalents (->) in analyze_documentation.py
+- **Removed Redundant Logging Setup**: Removed `logging.basicConfig()` calls since the centralized system handles configuration
+
+### Files Modified
+- `ai_development_tools/documentation_sync_checker.py` - Updated logging imports and initialization
+- `ai_development_tools/legacy_reference_cleanup.py` - Updated logging imports and initialization
+- `ai_development_tools/regenerate_coverage_metrics.py` - Updated logging imports and initialization
+- `ai_development_tools/analyze_documentation.py` - Fixed Unicode encoding issues
+
+### Testing
+- **Static Logging Check**: Now passes successfully
+- **Full Test Suite**: 1411/1412 tests passing, 1 skipped
+- **Audit System**: All audits now pass successfully
+- **Verification**: Confirmed all ai_development_tools files use centralized logging system
+
+### Impact
+- **Improved Code Quality**: Consistent logging patterns across all project files
+- **Reliable Audit System**: All audit tools now work without errors
+- **Full Test Suite Success**: Static logging check no longer fails
+- **Better Maintainability**: Centralized logging system ensures consistent behavior
+
 ## 2025-09-14 - Comprehensive Exception Handling System Improvements
 
 ### Overview
@@ -8,7 +47,7 @@
 - Enhanced FileNotFoundRecovery and JSONDecodeRecovery with better error detection and generic JSON file support
 - Improved network operations in channel orchestrator with proper exception handling and error recovery
 - Standardized exception handling in user data operations with proper error logging and context
-- Created comprehensive EXCEPTION_HANDLING_GUIDE.md documenting the entire error handling system
+- Created comprehensive core/ERROR_HANDLING_GUIDE.md documenting the entire error handling system
 
 ### Problem
 - **Inconsistent Exception Handling**: Some modules used `@handle_errors` decorator consistently, others had bare try-catch blocks
@@ -40,7 +79,7 @@
    - Improved error context for better debugging
 
 5. **Comprehensive Documentation**:
-   - Created `EXCEPTION_HANDLING_GUIDE.md` with complete system documentation
+   - Created `core/ERROR_HANDLING_GUIDE.md` with complete system documentation
    - Documented all recovery strategies and their usage patterns
    - Provided examples and best practices for developers
 
@@ -245,7 +284,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - **Reliability**: Logging system now robust against Windows file locking issues
 - **Maintainability**: Added recovery mechanisms for future logging issues
 
----> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-14This is the complete detailed changelog. **See [AI_CHANGELOG.md](AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-14 - Discord Command Processing Fix
+---> **Audience**: Developers & contributors  > **Purpose**: Complete detailed changelog history  > **Style**: Chronological, detailed, reference-oriented  > **Last Updated**: 2025-09-14This is the complete detailed changelog. **See [AI_CHANGELOG.md](ai_development_docs/AI_CHANGELOG.md) for brief summaries for AI context**## 🚀 Recent Changes (Most Recent First)## 2025-09-14 - Discord Command Processing Fix
 
 ### Overview
 - Fixed critical issue where Discord bot was not processing `!` and `/` commands
@@ -335,7 +374,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Component logger alignment:
   - `core/schemas.py`: use `get_component_logger('main')` in validation fallback
 - Documentation and UX:
-  - `DISCORD.md` is the developer/admin command reference; in-app help/commands now point users to use 'commands' or slash-commands instead of docs
+  - `communication/communication_channels/discord/DISCORD.md` is the developer/admin command reference; in-app help/commands now point users to use 'commands' or slash-commands instead of docs
 
 ### Tests
 - Extended behavior tests:
@@ -352,7 +391,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 
 ### Overview
 - Ensured consistent user-facing scales for mood/energy (1–5) across command handlers
-- Consolidated Discord command documentation into a single `DISCORD.md` reference and linked from in-app help
+- Consolidated Discord command documentation into a single `communication/communication_channels/discord/DISCORD.md` reference and linked from in-app help
 
 ### Key Changes
 - Normalized scale strings:
@@ -362,8 +401,8 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Tests added (behavior):
   - `tests/behavior/test_interaction_handlers_coverage_expansion.py`: asserts `/5` appears in status, history, and trends outputs
 - Documentation:
-  - Added `DISCORD.md` with comprehensive command list and examples
-  - Updated `QUICK_REFERENCE.md` to point to `DISCORD.md` (removed duplicated command listing)
+  - Added `communication/communication_channels/discord/DISCORD.md` with comprehensive command list and examples
+  - Updated `QUICK_REFERENCE.md` to point to `communication/communication_channels/discord/DISCORD.md` (removed duplicated command listing)
 
 ### Impact
 - Consistent UX for mood/energy displays

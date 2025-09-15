@@ -20,13 +20,13 @@ def get_documentation_files() -> Dict[str, str]:
         'CHANGELOG_DETAIL.md', 
         'DEVELOPMENT_WORKFLOW.md',
         'DOCUMENTATION_GUIDE.md',
-        'FUNCTION_REGISTRY_DETAIL.md',
+        'development_docs/FUNCTION_REGISTRY_DETAIL.md',
         'HOW_TO_RUN.md',
         'QUICK_REFERENCE.md',
         'UI_MIGRATION_PLAN_DETAIL.md',
         'TODO.md',
         'DEVELOPMENT_GUIDELINES.md',
-        'MODULE_DEPENDENCIES_DETAIL.md'
+        'development_docs/MODULE_DEPENDENCIES_DETAIL.md'
     ]
     
     for doc_file in doc_files:
@@ -163,14 +163,14 @@ def generate_consolidation_report():
         print(f"\n   [SETUP] Setup/Installation Files ({len(setup_files)} files):")
         for file in setup_files:
             print(f"      - {file}")
-        print(f"      → Consolidate into single 'SETUP.md'")
+        print(f"      -> Consolidate into single 'SETUP.md'")
     
     workflow_files = [f for f in docs.keys() if 'workflow' in f.lower() or 'development' in f.lower()]
     if len(workflow_files) > 1:
         print(f"\n   [WORKFLOW] Workflow Files ({len(workflow_files)} files):")
         for file in workflow_files:
             print(f"      - {file}")
-        print(f"      → Consolidate into single 'DEVELOPMENT.md'")
+        print(f"      -> Consolidate into single 'DEVELOPMENT.md'")
     
     # Identify redundant information
     print(f"\n[REDUNDANT] REDUNDANT INFORMATION:")

@@ -156,7 +156,7 @@ def scan_all_python_files() -> Dict[str, Dict]:
 
 def parse_function_registry() -> Dict[str, List[str]]:
     """Parse the existing FUNCTION_REGISTRY_DETAIL.md to extract documented functions."""
-    registry_path = Path(__file__).parent.parent / 'FUNCTION_REGISTRY_DETAIL.md'
+    registry_path = Path(__file__).parent.parent / 'development_docs' / 'FUNCTION_REGISTRY_DETAIL.md'
     documented = {}
     
     try:

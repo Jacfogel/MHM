@@ -254,7 +254,7 @@ class AIToolsRunner:
         if result['success']:
             print(result['output'])
             print("\n✅ Documentation sync check completed!")
-            print("Check LEGACY_REFERENCE_REPORT.md for detailed findings")
+            print("Check development_docs/LEGACY_REFERENCE_REPORT.md for detailed findings")
         return result['success']
     
     def run_coverage_regeneration(self):
@@ -273,7 +273,7 @@ class AIToolsRunner:
         if result['success']:
             print(result['output'])
             print("\n✅ Legacy reference scan completed!")
-            print("Check LEGACY_REFERENCE_REPORT.md for findings")
+            print("Check development_docs/LEGACY_REFERENCE_REPORT.md for findings")
         return True
     
     def generate_directory_trees(self):
@@ -283,7 +283,7 @@ class AIToolsRunner:
         if result['success']:
             print(result['output'])
             print("\n✅ Directory tree generated!")
-            print("Check DIRECTORY_TREE.md for project structure")
+            print("Check development_docs/DIRECTORY_TREE.md for project structure")
         return result['success']
     
     # ===== HELPER METHODS =====
@@ -762,8 +762,8 @@ Output Files:
   ai_tools/audit_summary.txt - Concise summary for AI consumption
   ai_tools/critical_issues.txt - Priority issues requiring attention
   ai_tools/ai_audit_detailed_results.json - Detailed audit results (for reference)
-  DIRECTORY_TREE.md - Auto-generated project directory structure
-  LEGACY_REFERENCE_REPORT.md - Report of legacy references found
+  development_docs/DIRECTORY_TREE.md - Auto-generated project directory structure
+  development_docs/LEGACY_REFERENCE_REPORT.md - Report of legacy references found
 
 Note: These tools are optimized for AI collaboration and provide concise,
 actionable information to improve development workflow.

@@ -8,10 +8,10 @@
 
 ### **Dependency Coverage: 100.0% ✅ COMPLETED**
 - **Files Scanned**: 139
-- **Total Imports**: 1756
+- **Total Imports**: 1776
 - **Standard Library**: 0 (0.0%)
-- **Third-Party**: 406 (23.1%)
-- **Local Imports**: 795 (45.3%)
+- **Third-Party**: 414 (23.3%)
+- **Local Imports**: 805 (45.3%)
 
 ## 🧠 **Dependency Decision Trees**
 
@@ -172,5 +172,5 @@ UI Dependencies:
 - `user/` - User context (depends on core)
 - `tasks/` - Task management (depends on core)
 
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](MODULE_DEPENDENCIES_DETAIL.md)**  
-> **Last Updated**: 2025-09-11 20:36:12
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
+> **Last Updated**: 2025-09-15 00:22:50

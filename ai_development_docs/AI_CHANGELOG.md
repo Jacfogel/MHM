@@ -29,13 +29,19 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-15 - Documentation System Fixes ✅. **COMPLETED**
+- Fixed static logging check failures in ai_development_tools files by replacing direct logging imports with centralized core.logger system
+- Fixed Unicode encoding issues in analyze_documentation.py by replacing Unicode arrows with ASCII equivalents
+- All tests and audits now pass successfully (1411/1412 tests passing, 1 skipped)
+- **Impact**: Improved code quality, consistent logging patterns, reliable audit system, and full test suite success
+
 ### 2025-09-14 - Comprehensive Exception Handling System Improvements ✅. **COMPLETED**
 - Enhanced core error handling system with comprehensive user-friendly error messages for all common exception types
 - Added new recovery strategies: NetworkRecovery (handles network connectivity issues), ConfigurationRecovery (handles config errors)
 - Enhanced FileNotFoundRecovery and JSONDecodeRecovery with better error detection and generic JSON file support
 - Improved network operations in channel orchestrator with proper exception handling and error recovery
 - Standardized exception handling in user data operations with proper error logging and context
-- Created comprehensive EXCEPTION_HANDLING_GUIDE.md documenting the entire error handling system
+- Created comprehensive core/ERROR_HANDLING_GUIDE.md documenting the entire error handling system
 - Updated all test expectations to reflect improved error handling behavior (102 error handling tests now passing)
 - Fixed remaining test failures in response tracking and global error handler tests
 - **Impact**: System now has automatic recovery for common errors, better user experience with friendly error messages, comprehensive logging for debugging, and **100% test success rate (1411/1412 tests passing, 1 skipped)**
@@ -100,8 +106,8 @@ Guidelines:
 ### 2025-09-13 - Scale Normalization + Discord Docs ?. **COMPLETED**
 - Normalized all mood/energy displays to 1–5 across command handlers (status, history, mood trends)
 - Added targeted behavior tests asserting “/5” rendering for status, history, and trends
-- Introduced `DISCORD.md` with consolidated Discord command reference (developer/admin doc); in-app commands do not reference docs directly
-- Cleaned `QUICK_REFERENCE.md` to point to `DISCORD.md` instead of duplicating commands
+- Introduced `communication/communication_channels/discord/DISCORD.md` with consolidated Discord command reference (developer/admin doc); in-app commands do not reference docs directly
+- Cleaned `QUICK_REFERENCE.md` to point to `communication/communication_channels/discord/DISCORD.md` instead of duplicating commands
 
 ### 2025-09-12 - Commands Help + Report Length Safeguard ✅ COMPLETED
 - Added concise in-bot command list (help + new `commands` intent) sourced from central registry

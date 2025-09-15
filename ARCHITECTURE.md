@@ -5,7 +5,7 @@
 > **Style**: Technical, detailed, reference-oriented
 
 > **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md) for AI-optimized quick reference**
+> **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**
 
 ## 🚀 Quick Reference
 
@@ -34,11 +34,13 @@
 
 ## Directory Structure & Key Modules
 
-- **ai_tools/**: AI collaboration tools, audit scripts, and documentation management
+- **ai_development_docs/**: AI-optimized documentation for AI collaborators
+- **ai_development_tools/**: AI collaboration tools, audit scripts, and documentation management
 - **communication/**: Messaging channels and orchestration (Discord, Email, etc.)
 - **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
-- **ai/**: Local AI integration modules
 - **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
+- **development_docs/**: Human-focused development documentation and technical references
+- **ai/**: Local AI integration modules
 - **resources/default_messages/**: Default motivational, health, and other message templates
 - **resources/**: Application resources and presets
 - **scripts/**: One-off scripts, debug, and migration tools

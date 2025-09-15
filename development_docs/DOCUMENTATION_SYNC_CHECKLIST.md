@@ -22,7 +22,7 @@
 
 ### **Before Making Documentation Changes**
 - [ ] **Identify Affected Pairs**: Check if change affects a paired document
-- [ ] **Run Sync Check**: `python ai_tools/ai_tools_runner.py doc-sync`
+- [ ] **Run Sync Check**: `python ai_development_tools/ai_tools_runner.py doc-sync`
 - [ ] **Review Findings**: Check LEGACY_REFERENCE_REPORT.md for path drift
 - [ ] **Plan Updates**: Determine what needs updating in paired documents
 
@@ -33,7 +33,7 @@
 - [ ] **Check Cross-References**: Verify internal links and references are accurate
 
 ### **After Documentation Updates**
-- [ ] **Run Sync Check Again**: `python ai_tools/ai_tools_runner.py doc-sync`
+- [ ] **Run Sync Check Again**: `python ai_development_tools/ai_tools_runner.py doc-sync`
 - [ ] **Verify No New Issues**: Ensure no new path drift or sync issues
 - [ ] **Update Timestamps**: Update "Last Updated" fields in both documents
 - [ ] **Test References**: Verify all file paths and links work correctly
@@ -43,16 +43,16 @@
 ### **Documentation Synchronization Checker**
 ```bash
 # Check for sync issues and path drift
-python ai_tools/ai_tools_runner.py doc-sync
+python ai_development_tools/ai_tools_runner.py doc-sync
 
 # Generate directory trees
-python ai_tools/ai_tools_runner.py trees
+python ai_development_tools/ai_tools_runner.py trees
 
 # Scan for legacy references
-python ai_tools/ai_tools_runner.py legacy
+python ai_development_tools/ai_tools_runner.py legacy
 
 # Regenerate coverage metrics
-python ai_tools/ai_tools_runner.py coverage
+python ai_development_tools/ai_tools_runner.py coverage
 ```
 
 ### **What Each Tool Does**

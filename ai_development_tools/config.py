@@ -130,8 +130,8 @@ VERSION_SYNC = {
         "TODO.md",
         "DEVELOPMENT_WORKFLOW.md",
 
-        "FUNCTION_REGISTRY_DETAIL.md",
-        "MODULE_DEPENDENCIES_DETAIL.md",
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
         "ARCHITECTURE.md",
         "QUICK_REFERENCE.md",
         "HOW_TO_RUN.md"

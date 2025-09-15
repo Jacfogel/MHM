@@ -1,7 +1,7 @@
 # AI Development Workflow - Quick Reference
 
 > **Purpose**: Essential development patterns for AI collaborators  
-> **For details**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)
+> **For details**: See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md)
 
 ## 🎯 **CRITICAL: Code Quality Philosophy**
 
@@ -97,4 +97,4 @@ git add . && git commit -m "message" && git push origin main
 ---
 
 ## What's In The Full Doc
-- See `DEVELOPMENT_WORKFLOW.md` for comprehensive guidance: Safety First, Virtual Environment Best Practices, Development Process, Testing Strategy, Emergency Procedures, Common Tasks, and PowerShell‑safe Git workflow.
+- See `../DEVELOPMENT_WORKFLOW.md` for comprehensive guidance: Safety First, Virtual Environment Best Practices, Development Process, Testing Strategy, Emergency Procedures, Common Tasks, and PowerShell‑safe Git workflow.

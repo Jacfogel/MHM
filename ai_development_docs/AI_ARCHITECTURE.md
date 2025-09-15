@@ -1,7 +1,7 @@
 # AI Architecture - Quick Reference
 
 > **Purpose**: Essential architectural patterns for AI collaborators  
-> **For details**: See [ARCHITECTURE.md](ARCHITECTURE.md)
+> **For details**: See [ARCHITECTURE.md](../ARCHITECTURE.md)
 
 ## 🚀 Quick Reference
 
@@ -61,7 +61,7 @@
 - `ui/`: PySide6 admin tools (users don’t need to open UI)
 - `resources/default_messages/`: message templates
 - `data/users/`: per‑user runtime data
-- `ai_tools/`: audits and documentation helpers
+- `ai_development_tools/`: audits and documentation helpers
 
 ## Data Handling Patterns (Concise)
 - Read/modify/write the full preferences dict; don’t partially overwrite files.

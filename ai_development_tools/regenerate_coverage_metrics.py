@@ -15,11 +15,10 @@ import subprocess
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple
-import logging
+from core.logger import get_component_logger
 
 # Set up logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = get_component_logger(__name__)
 
 class CoverageMetricsRegenerator:
     """Regenerates test coverage metrics for MHM."""

@@ -56,8 +56,8 @@ def generate_all_documentation():
     if success1 and success2:
         print("[SUCCESS] All documentation generated successfully!")
         print("\n[FILES] Generated Files:")
-        print("   - FUNCTION_REGISTRY_DETAIL.md")
-        print("   - MODULE_DEPENDENCIES_DETAIL.md")
+        print("   - development_docs/FUNCTION_REGISTRY_DETAIL.md")
+        print("   - development_docs/MODULE_DEPENDENCIES_DETAIL.md")
         print("\n[NEXT] Next Steps:")
         print("   - Review the generated documentation")
         print("   - Commit changes to version control")
@@ -65,9 +65,9 @@ def generate_all_documentation():
     else:
         print("[ERROR] Some documentation generation failed!")
         if not success1:
-            print("   - FUNCTION_REGISTRY_DETAIL.md generation failed")
+            print("   - development_docs/FUNCTION_REGISTRY_DETAIL.md generation failed")
         if not success2:
-            print("   - MODULE_DEPENDENCIES_DETAIL.md generation failed")
+            print("   - development_docs/MODULE_DEPENDENCIES_DETAIL.md generation failed")
         print("\n[TROUBLESHOOT] Troubleshooting:")
         print("   - Check for syntax errors in Python files")
         print("   - Ensure all required modules are available")
@@ -81,8 +81,8 @@ def show_usage():
     print("  python generate_documentation.py          # Generate all documentation")
     print("  python generate_documentation.py --help   # Show this help")
     print("\nIndividual Generators:")
-    print("  python generate_function_registry.py      # Generate FUNCTION_REGISTRY_DETAIL.md only")
-    print("  python generate_module_dependencies.py    # Generate MODULE_DEPENDENCIES_DETAIL.md only")
+    print("  python generate_function_registry.py      # Generate development_docs/FUNCTION_REGISTRY_DETAIL.md only")
+    print("  python generate_module_dependencies.py    # Generate development_docs/MODULE_DEPENDENCIES_DETAIL.md only")
     print("\nWhat it does:")
     print("  - Scans all Python files in the project")
     print("  - Extracts function/class information and dependencies")

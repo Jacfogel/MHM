@@ -5,7 +5,7 @@
 > **Style**: Comprehensive, step-by-step, supportive
 
 > **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_DEVELOPMENT_WORKFLOW.md](AI_DEVELOPMENT_WORKFLOW.md) for AI-optimized quick reference**
+> **See [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for AI-optimized quick reference**
 
 ## 🚀 Quick Reference
 
@@ -118,8 +118,8 @@ deactivate
 - **Test communication channels**: Verify features work through communication channels, especially Discord
 
 ### **Step 4: Document**
-- Update `CHANGELOG_DETAIL.md` with what you changed
-- Update `AI_CHANGELOG.md` with brief summary for AI context
+- Update `development_docs/CHANGELOG_DETAIL.md` with what you changed
+- Update `ai_development_docs/AI_CHANGELOG.md` with brief summary for AI context
 - Update any relevant documentation
 - Note any new dependencies in `requirements.txt`
 - **Update communication docs**: Document how users interact with new features
