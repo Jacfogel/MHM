@@ -324,9 +324,38 @@ def setup_qmessagebox_patches():
 # Set up QMessageBox patches
 setup_qmessagebox_patches()
 
+# Custom formatter that includes test context
+class TestContextFormatter(logging.Formatter):
+    """Custom formatter that automatically prepends test names to log messages."""
+    
+    def format(self, record):
+        # Get test name from pytest's environment variable
+        test_name = os.environ.get('PYTEST_CURRENT_TEST', '')
+        if test_name:
+            # Extract just the test function name from the full test path
+            test_name = test_name.split('::')[-1] if '::' in test_name else test_name
+            # Only add test context if it's not already there (avoid duplication)
+            if not record.msg.startswith(f"[{test_name}]"):
+                record.msg = f"[{test_name}] {record.msg}"
+        
+        return super().format(record)
+
+# Global flag to prevent multiple test logging setups
+_test_logging_setup_done = False
+_test_logger_global = None
+_test_log_file_global = None
+
 # Set up dedicated testing logging
 def setup_test_logging():
     """Set up dedicated logging for tests with complete isolation from main app logging."""
+    global _test_logging_setup_done, _test_logger_global, _test_log_file_global
+    
+    # Prevent multiple setup calls
+    if _test_logging_setup_done:
+        return _test_logger_global, _test_log_file_global
+    
+    _test_logging_setup_done = True
+    
     # Create test logs directory
     test_logs_dir = Path(project_root) / "tests" / "logs"
     test_logs_dir.mkdir(exist_ok=True)
@@ -361,8 +390,8 @@ def setup_test_logging():
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.ERROR)  # Minimize console spam during full runs
     
-    # Create formatter
-    formatter = logging.Formatter(
+    # Create formatter with test context
+    formatter = TestContextFormatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     file_handler.setFormatter(formatter)
@@ -387,10 +416,153 @@ def setup_test_logging():
     mhm_logger.addHandler(file_handler)
     mhm_logger.propagate = False
     
+    # Store for reuse
+    _test_logger_global = test_logger
+    _test_log_file_global = test_log_file
+    
     return test_logger, test_log_file
 
 # Set up test logging
 test_logger, test_log_file = setup_test_logging()
+
+# Session-based log rotation management
+class SessionLogRotationManager:
+    """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
+    
+    def __init__(self, max_size_mb=5):
+        self.max_size_bytes = max_size_mb * 1024 * 1024
+        self.log_files = []
+        self.rotation_needed = False
+        
+    def register_log_file(self, file_path):
+        """Register a log file for session-based rotation monitoring."""
+        if file_path and os.path.exists(file_path):
+            self.log_files.append(file_path)
+    
+    def register_debug_log_file(self):
+        """Register the get_user_data_debug.log file if it exists."""
+        debug_log_path = os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'get_user_data_debug.log')
+        if os.path.exists(debug_log_path):
+            if debug_log_path not in self.log_files:
+                self.log_files.append(debug_log_path)
+                test_logger.info(f"🔄 Registered debug log file: {debug_log_path}")
+    
+    def check_rotation_needed(self):
+        """Check if any log file exceeds the size limit."""
+        for log_file in self.log_files:
+            try:
+                if os.path.exists(log_file):
+                    file_size = os.path.getsize(log_file)
+                    if file_size > self.max_size_bytes:
+                        self.rotation_needed = True
+                        test_logger.info(f"Log file {log_file} exceeds {self.max_size_bytes} bytes, session rotation needed")
+                        return True
+            except (OSError, FileNotFoundError):
+                continue
+        return False
+    
+    def rotate_all_logs(self):
+        """Rotate all registered log files together to maintain continuity."""
+        if not self.rotation_needed:
+            return
+            
+        test_logger.info("Starting session-based log rotation for all log files")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # Ensure backups directory exists
+        backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        
+        for log_file in self.log_files:
+            try:
+                if os.path.exists(log_file) and os.path.getsize(log_file) > 0:
+                    # Create backup filename with timestamp
+                    log_filename = Path(log_file).name
+                    backup_filename = f"{log_filename}.{timestamp}.bak"
+                    backup_file = backup_dir / backup_filename
+                    
+                    # Move log file to backups directory
+                    shutil.move(log_file, backup_file)
+                    test_logger.info(f"Rotated {log_file} to {backup_file}")
+                    
+                    # Create new empty log file
+                    with open(log_file, 'w', encoding='utf-8') as f:
+                        f.write(f"# Log rotated at {datetime.now().isoformat()}\n")
+                        
+            except (OSError, FileNotFoundError) as e:
+                test_logger.warning(f"Failed to rotate {log_file}: {e}")
+        
+        self.rotation_needed = False
+        test_logger.info("Session-based log rotation completed")
+
+# Global session rotation manager
+session_rotation_manager = SessionLogRotationManager()
+
+# Register the test_run file with session rotation manager
+if test_log_file and test_log_file.exists():
+    session_rotation_manager.register_log_file(str(test_log_file))
+
+# Log lifecycle management
+class LogLifecycleManager:
+    """Manages log file lifecycle including backup, archive, and cleanup operations."""
+    
+    def __init__(self, archive_days=30):
+        self.archive_days = archive_days
+        self.backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
+        self.archive_dir = Path(os.environ.get('LOG_ARCHIVE_DIR', 'tests/logs/archive'))
+        
+        # Ensure directories exist
+        self.backup_dir.mkdir(parents=True, exist_ok=True)
+        self.archive_dir.mkdir(parents=True, exist_ok=True)
+    
+    def cleanup_old_archives(self):
+        """Remove archive files older than the specified number of days."""
+        cutoff_date = datetime.now().timestamp() - (self.archive_days * 24 * 60 * 60)
+        
+        cleaned_count = 0
+        for archive_file in self.archive_dir.glob('*'):
+            try:
+                if archive_file.is_file() and archive_file.stat().st_mtime < cutoff_date:
+                    archive_file.unlink()
+                    cleaned_count += 1
+                    test_logger.debug(f"Removed old archive: {archive_file}")
+            except (OSError, FileNotFoundError) as e:
+                test_logger.warning(f"Failed to remove archive {archive_file}: {e}")
+        
+        if cleaned_count > 0:
+            test_logger.info(f"Cleaned up {cleaned_count} old archive files (older than {self.archive_days} days)")
+    
+    def archive_old_backups(self):
+        """Move old backup files to archive directory."""
+        cutoff_date = datetime.now().timestamp() - (7 * 24 * 60 * 60)  # 7 days
+        
+        archived_count = 0
+        for backup_file in self.backup_dir.glob('*'):
+            try:
+                if backup_file.is_file() and backup_file.stat().st_mtime < cutoff_date:
+                    # Create archive filename with timestamp
+                    timestamp = datetime.fromtimestamp(backup_file.stat().st_mtime).strftime("%Y%m%d_%H%M%S")
+                    archive_filename = f"{backup_file.stem}_{timestamp}{backup_file.suffix}"
+                    archive_path = self.archive_dir / archive_filename
+                    
+                    shutil.move(str(backup_file), str(archive_path))
+                    archived_count += 1
+                    test_logger.debug(f"Archived backup: {backup_file} -> {archive_path}")
+            except (OSError, FileNotFoundError) as e:
+                test_logger.warning(f"Failed to archive backup {backup_file}: {e}")
+        
+        if archived_count > 0:
+            test_logger.info(f"Archived {archived_count} old backup files")
+    
+    def perform_lifecycle_maintenance(self):
+        """Perform all lifecycle maintenance operations."""
+        test_logger.info("Starting log lifecycle maintenance")
+        self.archive_old_backups()
+        self.cleanup_old_archives()
+        test_logger.info("Log lifecycle maintenance completed")
+
+# Global log lifecycle manager
+log_lifecycle_manager = LogLifecycleManager()
 
 # Configure size-based rotation for component logs during tests to avoid growth
 @pytest.fixture(scope="session", autouse=True)
@@ -404,6 +576,7 @@ def setup_component_log_rotation():
 
     # Map logger names to their file env vars (already pointed to tests/logs/* in this file)
     logger_file_env = {
+        # Core system loggers
         "mhm": os.environ.get("LOG_MAIN_FILE"),
         "mhm.errors": os.environ.get("LOG_ERRORS_FILE"),
         "mhm.scheduler": os.environ.get("LOG_SCHEDULER_FILE"),
@@ -413,9 +586,40 @@ def setup_component_log_rotation():
         "mhm.email": os.environ.get("LOG_EMAIL_FILE"),
         "mhm.ui": os.environ.get("LOG_UI_FILE"),
         "mhm.communication_manager": os.environ.get("LOG_COMMUNICATION_MANAGER_FILE"),
+        "mhm.user_activity": os.environ.get("LOG_USER_ACTIVITY_FILE"),
+        
+        # Core component loggers
+        "mhm.schedule_utilities": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'schedule_utilities.log'),
+        "mhm.analytics": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'analytics.log'),
+        "mhm.message": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message.log'),
+        "mhm.backup": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'backup.log'),
+        "mhm.checkin_dynamic": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'checkin_dynamic.log'),
+        
+        # Communication component loggers
+        "mhm.channel_orchestrator": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'channel_orchestrator.log'),
+        "mhm.command_registry": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'command_registry.log'),
+        "mhm.discord_events": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'discord_events.log'),
+        "mhm.message_router": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message_router.log'),
+        "mhm.discord_api": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'discord_api.log'),
+        "mhm.message_formatter": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message_formatter.log'),
+        "mhm.rich_formatter": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'rich_formatter.log'),
+        "mhm.channel_monitor": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'channel_monitor.log'),
+        "mhm.retry_manager": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'retry_manager.log'),
+        
+        # Command handler loggers
+        "mhm.analytics_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'analytics_handler.log'),
+        "mhm.checkin_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'checkin_handler.log'),
+        "mhm.profile_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'profile_handler.log'),
+        "mhm.schedule_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'schedule_handler.log'),
+        
+        # AI component loggers
+        "mhm.ai_context": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_context.log'),
+        "mhm.ai_prompt": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_prompt.log'),
+        "mhm.ai_cache": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_cache.log'),
+        "mhm.ai_conversation": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_conversation.log'),
     }
 
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     for logger_name, file_path in logger_file_env.items():
         if not file_path:
@@ -445,52 +649,25 @@ def setup_component_log_rotation():
             logger_obj.addHandler(handler)
             logger_obj.setLevel(level)
             logger_obj.propagate = False
+            
+            # Register log file with session rotation manager
+            session_rotation_manager.register_log_file(file_path)
         except Exception:
             # Never fail tests due to logging configuration issues
             continue
+    
+    # Apply TestContextFormatter to all existing loggers when in test mode
+    try:
+        from core.logger import apply_test_context_formatter_to_all_loggers
+        apply_test_context_formatter_to_all_loggers()
+    except Exception:
+        # Never fail tests due to logging configuration issues
+        pass
 
 
-@pytest.fixture(scope="session", autouse=True)
-def cap_component_log_sizes_on_start():
-    """Cap oversized component logs at session start by rotating or truncating.
-
-    If a log file exceeds ~2MB, attempt to rename it to an .old timestamped file.
-    If rename fails (e.g., due to file locks), fall back to truncating contents.
-    """
-    max_bytes = 2_000_000
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_paths = [
-        os.environ.get("LOG_MAIN_FILE"),
-        os.environ.get("LOG_ERRORS_FILE"),
-        os.environ.get("LOG_SCHEDULER_FILE"),
-        os.environ.get("LOG_FILE_OPS_FILE"),
-        os.environ.get("LOG_AI_FILE"),
-        os.environ.get("LOG_DISCORD_FILE"),
-        os.environ.get("LOG_EMAIL_FILE"),
-        os.environ.get("LOG_UI_FILE"),
-        os.environ.get("LOG_COMMUNICATION_MANAGER_FILE"),
-    ]
-    for p in log_paths:
-        try:
-            if not p or not os.path.exists(p):
-                continue
-            if os.path.getsize(p) <= max_bytes:
-                continue
-            # Prefer rename rotation to preserve history
-            rotated = f"{p}.{timestamp}.old"
-            try:
-                os.replace(p, rotated)
-                # Recreate empty file
-                open(p, 'w', encoding='utf-8').close()
-                test_logger.info(f"Capped oversized log by rotation: {p} -> {rotated}")
-            except Exception:
-                # Fall back to truncating contents
-                with open(p, 'w', encoding='utf-8') as f:
-                    f.truncate(0)
-                test_logger.info(f"Capped oversized log by truncation: {p}")
-        except Exception:
-            # Never fail session for log maintenance
-            pass
+# REMOVED: cap_component_log_sizes_on_start fixture
+# This was causing individual file rotation which conflicts with SessionLogRotationManager
+# The SessionLogRotationManager handles all rotation consistently at session start/end
 
 # --- HOUSEKEEPING: Prune old test artifacts to keep repo tidy ---
 def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int) -> int:
@@ -621,6 +798,30 @@ def prune_test_artifacts_before_and_after_session():
             test_logger.info(f"Cleared children of {tmp_dir}")
     except Exception:
         pass
+
+@pytest.fixture(scope="session", autouse=True)
+def log_lifecycle_maintenance():
+    """Perform log lifecycle maintenance at session start."""
+    # Perform lifecycle maintenance (archive old backups, cleanup old archives)
+    log_lifecycle_manager.perform_lifecycle_maintenance()
+    
+    yield
+
+@pytest.fixture(scope="session", autouse=True)
+def session_log_rotation_check():
+    """Check for log rotation needs at session start and end."""
+    # Register the debug log file if it exists
+    session_rotation_manager.register_debug_log_file()
+    # Check if rotation is needed at session start
+    session_rotation_manager.check_rotation_needed()
+    
+    yield
+    
+    # Check if rotation is needed at session end and perform if necessary
+    # Re-register the debug log file in case it was created during the session
+    session_rotation_manager.register_debug_log_file()
+    if session_rotation_manager.check_rotation_needed():
+        session_rotation_manager.rotate_all_logs()
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():

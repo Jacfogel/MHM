@@ -144,9 +144,22 @@ class TestLoggerCoverageExpansionPhase3Simple:
         
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
             mock_paths.return_value = {
+                'main_file': str(log_dir / "main.log"),
                 'communication_manager_file': str(log_file),
                 'backup_dir': str(backup_dir),
-                'errors_file': str(log_dir / "errors.log")
+                'errors_file': str(log_dir / "errors.log"),
+                'discord_file': str(log_dir / "discord.log"),
+                'ai_file': str(log_dir / "ai.log"),
+                'user_activity_file': str(log_dir / "user_activity.log"),
+                'email_file': str(log_dir / "email.log"),
+                'ui_file': str(log_dir / "ui.log"),
+                'file_ops_file': str(log_dir / "file_ops.log"),
+                'scheduler_file': str(log_dir / "scheduler.log"),
+                'schedule_utilities_file': str(log_dir / "schedule_utilities.log"),
+                'analytics_file': str(log_dir / "analytics.log"),
+                'message_file': str(log_dir / "message.log"),
+                'backup_file': str(log_dir / "backup.log"),
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
             }
             
             # Clear any existing loggers
@@ -176,7 +189,20 @@ class TestLoggerCoverageExpansionPhase3Simple:
             mock_paths.return_value = {
                 'main_file': str(main_log_file),
                 'backup_dir': str(backup_dir),
-                'errors_file': str(log_dir / "errors.log")
+                'errors_file': str(log_dir / "errors.log"),
+                'discord_file': str(log_dir / "discord.log"),
+                'ai_file': str(log_dir / "ai.log"),
+                'user_activity_file': str(log_dir / "user_activity.log"),
+                'communication_manager_file': str(log_dir / "communication_manager.log"),
+                'email_file': str(log_dir / "email.log"),
+                'ui_file': str(log_dir / "ui.log"),
+                'file_ops_file': str(log_dir / "file_ops.log"),
+                'scheduler_file': str(log_dir / "scheduler.log"),
+                'schedule_utilities_file': str(log_dir / "schedule_utilities.log"),
+                'analytics_file': str(log_dir / "analytics.log"),
+                'message_file': str(log_dir / "message.log"),
+                'backup_file': str(log_dir / "backup.log"),
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
             }
             
             # Clear any existing loggers
@@ -433,7 +459,18 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'discord_file': str(log_dir / "discord.log"),
                 'ai_file': str(log_dir / "ai.log"),
                 'backup_dir': str(backup_dir),
-                'errors_file': str(log_dir / "errors.log")
+                'errors_file': str(log_dir / "errors.log"),
+                'user_activity_file': str(log_dir / "user_activity.log"),
+                'communication_manager_file': str(log_dir / "communication_manager.log"),
+                'email_file': str(log_dir / "email.log"),
+                'ui_file': str(log_dir / "ui.log"),
+                'file_ops_file': str(log_dir / "file_ops.log"),
+                'scheduler_file': str(log_dir / "scheduler.log"),
+                'schedule_utilities_file': str(log_dir / "schedule_utilities.log"),
+                'analytics_file': str(log_dir / "analytics.log"),
+                'message_file': str(log_dir / "message.log"),
+                'backup_file': str(log_dir / "backup.log"),
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
             }
             
             # Create multiple component loggers

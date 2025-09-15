@@ -7,6 +7,7 @@ import re
 import time
 import json
 import gzip
+import sys
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
@@ -16,6 +17,47 @@ def _is_testing_environment():
             os.getenv('PYTEST_CURRENT_TEST') is not None or
             'pytest' in os.getenv('PYTHONPATH', '') or
             any('test' in arg.lower() for arg in os.sys.argv if arg.startswith('-')))
+
+
+class TestContextFormatter(logging.Formatter):
+    """Custom formatter that automatically prepends test names to log messages."""
+    
+    def format(self, record):
+        # Get test name from pytest's environment variable
+        test_name = os.environ.get('PYTEST_CURRENT_TEST', '')
+        if test_name:
+            # Extract just the test function name from the full test path
+            test_name = test_name.split('::')[-1] if '::' in test_name else test_name
+            # Only add test context if it's not already there (avoid duplication)
+            if not str(record.msg).startswith(f"[{test_name}]"):
+                record.msg = f"[{test_name}] {record.msg}"
+        # If no test context available, don't add anything (this is normal during setup)
+        
+        return super().format(record)
+
+
+def apply_test_context_formatter_to_all_loggers():
+    """Apply TestContextFormatter to all existing loggers when in test mode."""
+    if not _is_testing_environment():
+        return
+    
+    test_formatter = TestContextFormatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # Apply to all existing loggers
+    count = 0
+    for logger_name in logging.Logger.manager.loggerDict:
+        logger = logging.getLogger(logger_name)
+        for handler in logger.handlers:
+            if isinstance(handler, (RotatingFileHandler, TimedRotatingFileHandler)):
+                handler.setFormatter(test_formatter)
+                count += 1
+    
+    # Debug: Print to stderr so we can see if this function is being called
+    if count > 0:
+        print(f"DEBUG: Applied TestContextFormatter to {count} handlers", file=sys.stderr)
 
 def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
@@ -39,6 +81,12 @@ def _get_log_paths_for_environment():
             'ui_file': os.path.join(base_dir, 'ui.log'),
             'file_ops_file': os.path.join(base_dir, 'file_ops.log'),
             'scheduler_file': os.path.join(base_dir, 'scheduler.log'),
+            # Additional component loggers used in the codebase
+            'schedule_utilities_file': os.path.join(base_dir, 'schedule_utilities.log'),
+            'analytics_file': os.path.join(base_dir, 'analytics.log'),
+            'message_file': os.path.join(base_dir, 'message.log'),
+            'backup_file': os.path.join(base_dir, 'backup.log'),
+            'checkin_dynamic_file': os.path.join(base_dir, 'checkin_dynamic.log'),
         }
     else:
         # Use centralized paths from config - import locally to avoid circular import
@@ -57,6 +105,12 @@ def _get_log_paths_for_environment():
             'ui_file': config.LOG_UI_FILE,
             'file_ops_file': config.LOG_FILE_OPS_FILE,
             'scheduler_file': config.LOG_SCHEDULER_FILE,
+            # Additional component loggers used in the codebase
+            'schedule_utilities_file': os.path.join(config.LOGS_DIR, 'schedule_utilities.log'),
+            'analytics_file': os.path.join(config.LOGS_DIR, 'analytics.log'),
+            'message_file': os.path.join(config.LOGS_DIR, 'message.log'),
+            'backup_file': os.path.join(config.LOGS_DIR, 'backup.log'),
+            'checkin_dynamic_file': os.path.join(config.LOGS_DIR, 'checkin_dynamic.log'),
         }
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
@@ -106,10 +160,17 @@ class ComponentLogger:
         self.logger.propagate = False
         
         # Create formatter with component name
-        formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
+        # Use TestContextFormatter in test mode, regular formatter otherwise
+        if _is_testing_environment():
+            formatter = TestContextFormatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+        else:
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
         
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
@@ -445,7 +506,13 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'ui': log_paths['ui_file'],
             'file_ops': log_paths['file_ops_file'],
             'scheduler': log_paths['scheduler_file'],
-            'main': log_paths['main_file']
+            'main': log_paths['main_file'],
+            # Additional component loggers used in the codebase
+            'schedule_utilities': log_paths['schedule_utilities_file'],
+            'analytics': log_paths['analytics_file'],
+            'message': log_paths['message_file'],
+            'backup': log_paths['backup_file'],
+            'checkin_dynamic': log_paths['checkin_dynamic_file']
         }
         
         log_file = log_file_map.get(component_name, log_paths['main_file'])

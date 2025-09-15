@@ -230,7 +230,7 @@ class TestErrorHandlingFunctions:
             mock_get_logger.return_value = mock_logger
             error = FileNotFoundError("File not found")
             
-            result = handle_file_error(error, "test_file.json", "reading file")
+            result = handle_file_error(error, "tests/data/test_file.json", "reading file")
             
             assert result is True  # Should succeed with file_path context
             # Should be called for error logging and recovery success
@@ -238,7 +238,7 @@ class TestErrorHandlingFunctions:
             assert mock_logger.info.call_count >= 1  # Recovery success message
             
             # Check that we have the main error call
-            error_calls = [call for call in mock_logger.error.call_args_list if "test_file.json" in call[0][0] and "reading file" in call[0][0]]
+            error_calls = [call for call in mock_logger.error.call_args_list if "tests/data/test_file.json" in call[0][0] and "reading file" in call[0][0]]
             assert len(error_calls) >= 1
             
             # Check that we have recovery success message
