@@ -180,10 +180,12 @@ logger.critical("Critical errors")
 
 ### Archival Process
 - **Trigger**: Logs older than 7 days are automatically compressed
+- **Schedule**: Daily at 02:00 via the scheduler system
 - **Compression**: Gzip compression to save space
 - **Location**: Compressed files moved to `logs/archive/`
 - **Retention**: Archived logs kept for 30 days by default
 - **Naming**: `component.log.YYYY-MM-DD.gz` format
+- **Automatic**: No manual intervention required - runs via `SchedulerManager.perform_daily_log_archival()`
 
 ### Example File Lifecycle (All Components)
 1. **Day 1**: `discord.log` (active)
@@ -380,9 +382,20 @@ removed_count = cleanup_old_archives(max_days=30)
 
 The system automatically:
 - Rotates logs daily at midnight
+- **Schedules log archival daily at 02:00** via the scheduler system
 - Compresses logs older than 7 days
 - Moves compressed logs to archive directory
+- Cleans up archives older than 30 days
 - Maintains disk space usage
+
+### Scheduler Integration
+
+Log archival is now fully integrated with the MHM scheduler system:
+- **Daily Schedule**: Runs automatically at 02:00 every day
+- **Method**: `SchedulerManager.perform_daily_log_archival()`
+- **Functions**: Calls `compress_old_logs()` and `cleanup_old_archives()`
+- **Logging**: All archival operations are logged to the scheduler log
+- **Error Handling**: Uses the standard error handling system with `@handle_errors`
 
 ## Migration from Old System
 

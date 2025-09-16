@@ -52,6 +52,9 @@ class SchedulerManager:
                 # Immediately schedule messages for all users when service starts
                 self.schedule_all_users_immediately()
                 
+                # Schedule daily log archival at 02:00 (after user scheduling)
+                schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
+                
                 # Then set up recurring daily scheduling at 01:00 for all users
                 user_ids = get_all_user_ids()
                 for user_id in user_ids:
@@ -1051,6 +1054,30 @@ class SchedulerManager:
         except Exception as e:
             logger.error(f"Error scheduling task reminder for user {user_id}, task {task_id}: {e}")
             return False
+
+    @handle_errors("performing daily log archival")
+    def perform_daily_log_archival(self):
+        """
+        Perform daily log archival to compress old logs and clean up archives.
+        This runs automatically at 02:00 daily via the scheduler.
+        """
+        try:
+            from core.logger import compress_old_logs, cleanup_old_archives
+            
+            logger.info("Starting daily log archival process")
+            
+            # Compress logs older than 7 days
+            compressed_count = compress_old_logs()
+            logger.info(f"Daily log archival: compressed {compressed_count} old log files")
+            
+            # Clean up archives older than 30 days
+            cleaned_count = cleanup_old_archives()
+            logger.info(f"Daily log archival: cleaned {cleaned_count} old archive files")
+            
+            logger.info("Daily log archival process completed successfully")
+            
+        except Exception as e:
+            logger.error(f"Error during daily log archival: {e}")
 
     @handle_errors("cleaning up task reminders")
     def cleanup_task_reminders(self, user_id, task_id=None):

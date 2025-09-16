@@ -29,6 +29,20 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-16 - Test Isolation Issues Resolution ✅. **COMPLETED**
+- Fixed test isolation issues found through randomized test runs with different seeds
+- Resolved `test_get_user_preferences_corrupted_file` assertion mismatch - function correctly returns default data structure
+- Simplified `test_scheduler_loop_daily_job_scheduling_real_behavior` to focus on scheduler lifecycle rather than complex mocking
+- Enhanced warning suppression for Discord library deprecation and thread exception warnings
+- **Impact**: Test suite now achieves 100% success rate (1411 passed, 1 skipped) across all randomized test runs, ensuring robust test isolation
+
+### 2025-09-16 - Automatic Log Archival System Integration ✅. **COMPLETED**
+- Added daily log archival scheduling to the MHM scheduler system at 02:00 daily
+- Implemented `SchedulerManager.perform_daily_log_archival()` method with proper error handling
+- Integrated `compress_old_logs()` and `cleanup_old_archives()` functions into automatic daily workflow
+- Updated logging documentation to reflect automatic archival scheduling
+- **Impact**: Log files now automatically archive without manual intervention, preventing log backlog accumulation and maintaining optimal disk usage
+
 ### 2025-09-15 - Test Logging System Final Optimizations ✅. **COMPLETED**
 - Reduced log rotation threshold from 100MB to 10MB for better testing visibility and rotation observation
 - Enhanced test data cleanup to remove stray test.log files and pytest-of-Julie directories

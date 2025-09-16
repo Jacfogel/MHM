@@ -104,18 +104,6 @@ def get_user_data(
             logger.debug(f"[TEST] USER_DATA_LOADERS state: {loader_state}")
             if missing:
                 logger.warning(f"[TEST] Missing loaders detected: {missing}")
-            # Ensure capture even if component log routing changes – write to dedicated test log
-            try:
-                debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
-                os.makedirs(debug_log_dir, exist_ok=True)
-                debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
-                with open(debug_log_path, 'a', encoding='utf-8') as _f:
-                    _f.write(
-                        f"get_user_data: user_id={user_id}, types={data_types}, state={loader_state}, missing={missing}\n"
-                    )
-            except Exception:
-                # Best-effort diagnostics only
-                pass
     except Exception:
         # Never let diagnostics interfere with normal operation
         pass
@@ -176,18 +164,6 @@ def get_user_data(
                 logger.warning(
                     f"[TEST] Loading {data_type} for {user_id} path={file_path} via={loader_name} auto_create={auto_create}"
                 )
-                # Mirror detailed load attempt to dedicated test log
-                try:
-                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
-                    os.makedirs(debug_log_dir, exist_ok=True)
-                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
-                    _exists = os.path.exists(file_path)
-                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
-                        _f.write(
-                            f"load_attempt: user_id={user_id}, type={data_type}, path={file_path}, exists={_exists}, loader={loader_name}\n"
-                        )
-                except Exception as debug_error:
-                    logger.debug(f"Debug logging failed: {debug_error}")
         except Exception as test_error:
             logger.debug(f"Test logging failed: {test_error}")
         # Honor auto_create=False strictly: if target file does not exist, skip loading
@@ -221,30 +197,8 @@ def get_user_data(
             logger.warning(
                 f"No data returned for {data_type} (user={user_id}, path={file_path}, loader={loader_name})"
             )
-            try:
-                if os.getenv('MHM_TESTING') == '1':
-                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
-                    os.makedirs(debug_log_dir, exist_ok=True)
-                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
-                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
-                        _f.write(
-                            f"load_result: user_id={user_id}, type={data_type}, returned=none\n"
-                        )
-            except Exception:
-                pass
         elif isinstance(data, dict):
             logger.debug(f"Loaded {data_type} keys: {list(data.keys())}")
-            try:
-                if os.getenv('MHM_TESTING') == '1':
-                    debug_log_dir = os.path.join(os.getcwd(), 'tests', 'logs')
-                    os.makedirs(debug_log_dir, exist_ok=True)
-                    debug_log_path = os.path.join(debug_log_dir, 'get_user_data_debug.log')
-                    with open(debug_log_path, 'a', encoding='utf-8') as _f:
-                        _f.write(
-                            f"load_result: user_id={user_id}, type={data_type}, returned_keys={list(data.keys())}\n"
-                        )
-            except Exception:
-                pass
 
         # Field extraction logic
         if fields is not None:

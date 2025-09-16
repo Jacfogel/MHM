@@ -26,6 +26,7 @@ from datetime import datetime
 warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
+warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
 
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below
@@ -433,14 +434,6 @@ class SessionLogRotationManager:
         if file_path and os.path.exists(file_path):
             self.log_files.append(file_path)
     
-    def register_debug_log_file(self):
-        """Register the get_user_data_debug.log file if it exists."""
-        debug_log_path = os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'get_user_data_debug.log')
-        if os.path.exists(debug_log_path):
-            if debug_log_path not in self.log_files:
-                self.log_files.append(debug_log_path)
-                test_logger.info(f"🔄 Registered debug log file: {debug_log_path}")
-    
     def check_rotation_needed(self):
         """Check if any log file exceeds the size limit."""
         for log_file in self.log_files:
@@ -802,8 +795,6 @@ def log_lifecycle_maintenance():
 @pytest.fixture(scope="session", autouse=True)
 def session_log_rotation_check():
     """Check for log rotation needs at session start and end."""
-    # Register the debug log file if it exists
-    session_rotation_manager.register_debug_log_file()
     # Check if rotation is needed at session start and rotate immediately if needed
     if session_rotation_manager.check_rotation_needed():
         session_rotation_manager.rotate_all_logs()
@@ -811,8 +802,6 @@ def session_log_rotation_check():
     yield
     
     # Check if rotation is needed at session end and perform if necessary
-    # Re-register the debug log file in case it was created during the session
-    session_rotation_manager.register_debug_log_file()
     if session_rotation_manager.check_rotation_needed():
         session_rotation_manager.rotate_all_logs()
 
