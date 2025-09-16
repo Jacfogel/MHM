@@ -66,12 +66,15 @@ def _get_log_paths_for_environment():
         base_dir = os.getenv('LOGS_DIR', 'tests/logs')
         backup_dir = os.path.join(base_dir, 'backups')
         archive_dir = os.path.join(base_dir, 'archive')
+        
+        # Allow override of main file via environment variable in tests
+        main_file = os.getenv('LOG_MAIN_FILE', os.path.join(base_dir, 'app.log'))
 
         return {
             'base_dir': base_dir,
             'backup_dir': backup_dir,
             'archive_dir': archive_dir,
-            'main_file': os.path.join(base_dir, 'app.log'),
+            'main_file': main_file,
             'discord_file': os.path.join(base_dir, 'discord.log'),
             'ai_file': os.path.join(base_dir, 'ai.log'),
             'user_activity_file': os.path.join(base_dir, 'user_activity.log'),

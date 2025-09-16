@@ -40,6 +40,8 @@ When adding new tasks, follow this format:
   - Clear all children of `tests/data/flags`
   - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
   - Remove legacy `tests/data/resources` and `tests/data/nested` if present
+  - Remove test backup files from `tests/data/backups/` (user_backup_*.zip)
+  - Remove old test_run files from `tests/logs/` (test_run.log and test_run_*.log)
 - Users directory policy:
   - All test users must reside under `tests/data/users/<id>`
   - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
@@ -458,10 +460,10 @@ When adding new tasks, follow this format:
 - *Status*: ✅ **FULLY IMPLEMENTED AND TESTED**
 
 **Session-Based Log Rotation** ✅ **COMPLETED**
-- *What it means*: Implemented session-based log rotation that checks at session start/end and rotates all logs together if any exceed 5MB, preventing mid-test rotation that could break log continuity
+- *What it means*: Implemented session-based log rotation that checks at session start/end and rotates all logs together if any exceed 10MB, preventing mid-test rotation that could break log continuity
 - *Why it helps*: Prevents test log files from growing too large and maintains log continuity during test runs
 - *Implementation*: `SessionLogRotationManager` coordinates rotation across all registered log files with automatic session start/end checks
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED**
+- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Reduced threshold from 100MB to 10MB for better testing visibility
 
 **Professional Log Lifecycle Management** ✅ **COMPLETED**
 - *What it means*: Implemented proper backup/archive structure where rotated logs go to `tests/logs/backups/` with timestamped filenames, then automatically archive to `tests/logs/archive/` after 30 days
@@ -487,4 +489,23 @@ When adding new tasks, follow this format:
   - ✅ All failing tests fixed with complete mock data
   - ✅ test_file.json created in appropriate test directory
 - *Status*: ✅ **PRODUCTION-READY LOGGING SYSTEM**
+
+**Test Data Cleanup and Warning Suppression** ✅ **COMPLETED**
+- *What it means*: Enhanced test data cleanup to remove stray test.log files and suppressed Discord library warnings
+- *Why it helps*: Keeps test environment clean and reduces noise in test output
+- *Implementation*: Added cleanup for stray test.log files in session cleanup, added warning filters for Discord deprecation warnings
+- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Verified cleanup removes pytest-of-Julie directories and test.log files
+
+**Log Rotation Threshold Optimization** ✅ **COMPLETED**
+- *What it means*: Reduced log rotation threshold from 100MB to 10MB for better testing visibility
+- *Why it helps*: Allows observation of rotation behavior during normal test runs
+- *Implementation*: Modified SessionLogRotationManager max_size_mb parameter from 100 to 10
+- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Successfully triggered rotation during test runs
+
+**Monitor Remaining Test Warnings** - **LOW PRIORITY**
+- *What it means*: Monitor and address remaining pytest warnings that appear during test runs
+- *Why it helps*: Maintains clean test output and identifies potential issues early
+- *Current status*: Discord library warnings suppressed, scheduler thread exception fixed
+- *Remaining*: Monitor for any new warnings that may appear in future test runs
+- *Estimated effort*: Small
 

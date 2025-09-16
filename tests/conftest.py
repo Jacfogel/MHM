@@ -356,14 +356,18 @@ def setup_test_logging():
     
     _test_logging_setup_done = True
     
+    # Suppress Discord library warnings
+    import warnings
+    warnings.filterwarnings("ignore", message="'audioop' is deprecated and slated for removal in Python 3.13", category=DeprecationWarning)
+    warnings.filterwarnings("ignore", message="parameter 'timeout' of type 'float' is deprecated", category=DeprecationWarning)
+    
     # Create test logs directory
     test_logs_dir = Path(project_root) / "tests" / "logs"
     test_logs_dir.mkdir(exist_ok=True)
     (test_logs_dir / "backups").mkdir(exist_ok=True)
     
-    # Create test log filename with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    test_log_file = test_logs_dir / f"test_run_{timestamp}.log"
+    # Create test log filename with consistent naming (one per session)
+    test_log_file = test_logs_dir / "test_run.log"
     
     # Configure test logger
     test_logger = logging.getLogger("mhm_tests")
@@ -372,19 +376,9 @@ def setup_test_logging():
     # Clear any existing handlers
     test_logger.handlers.clear()
     
-    # Use size-based rotating handler for test logs to prevent unbounded growth
-    try:
-        from logging.handlers import RotatingFileHandler
-        file_handler = RotatingFileHandler(
-            filename=str(test_log_file),
-            maxBytes=1_000_000,
-            backupCount=5,
-            encoding='utf-8'
-        )
-        file_handler.setLevel(logging.DEBUG)
-    except Exception:
-        file_handler = logging.FileHandler(test_log_file, encoding='utf-8')
-        file_handler.setLevel(logging.DEBUG)
+    # Use simple file handler for test logs (no size-based rotation during session)
+    file_handler = logging.FileHandler(test_log_file, encoding='utf-8')
+    file_handler.setLevel(logging.DEBUG)
     
     # Console handler for test output
     console_handler = logging.StreamHandler()
@@ -429,7 +423,7 @@ test_logger, test_log_file = setup_test_logging()
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
     
-    def __init__(self, max_size_mb=5):
+    def __init__(self, max_size_mb=10):
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
@@ -460,6 +454,7 @@ class SessionLogRotationManager:
             except (OSError, FileNotFoundError):
                 continue
         return False
+    
     
     def rotate_all_logs(self):
         """Rotate all registered log files together to maintain continuity."""
@@ -567,12 +562,11 @@ log_lifecycle_manager = LogLifecycleManager()
 # Configure size-based rotation for component logs during tests to avoid growth
 @pytest.fixture(scope="session", autouse=True)
 def setup_component_log_rotation():
-    """Replace component logger handlers with size-rotating handlers under tests/logs.
+    """Replace component logger handlers with simple file handlers under tests/logs.
 
-    Keeps per-component logs bounded without relying on app's rotation, which can
-    conflict with Windows file locking. Logs rotate at ~1MB with up to 5 backups.
+    Uses simple FileHandler to avoid rotation conflicts during test sessions.
+    Session-based rotation is handled separately by SessionLogRotationManager.
     """
-    from logging.handlers import RotatingFileHandler
 
     # Map logger names to their file env vars (already pointed to tests/logs/* in this file)
     logger_file_env = {
@@ -626,10 +620,8 @@ def setup_component_log_rotation():
             continue
         try:
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            handler = RotatingFileHandler(
+            handler = logging.FileHandler(
                 filename=file_path,
-                maxBytes=1_000_000,
-                backupCount=5,
                 encoding='utf-8',
                 delay=True,
             )
@@ -812,8 +804,9 @@ def session_log_rotation_check():
     """Check for log rotation needs at session start and end."""
     # Register the debug log file if it exists
     session_rotation_manager.register_debug_log_file()
-    # Check if rotation is needed at session start
-    session_rotation_manager.check_rotation_needed()
+    # Check if rotation is needed at session start and rotate immediately if needed
+    if session_rotation_manager.check_rotation_needed():
+        session_rotation_manager.rotate_all_logs()
     
     yield
     
@@ -1794,6 +1787,98 @@ def cleanup_test_users_after_session():
             os.remove(user_index_file)
         except Exception:
             pass
+    
+    # Clean up test backup files to prevent clutter
+    backup_dir = os.path.join(test_data_dir, "backups")
+    if os.path.exists(backup_dir):
+        try:
+            for item in os.listdir(backup_dir):
+                item_path = os.path.join(backup_dir, item)
+                if os.path.isfile(item_path) and item.startswith("user_backup_"):
+                    os.remove(item_path)
+        except Exception:
+            pass
+    
+    # Clean up other test artifacts according to cleanup standards
+    try:
+        # Remove pytest temporary directories
+        pytest_dir = os.path.join(test_data_dir, "pytest-of-Julie")
+        if os.path.exists(pytest_dir):
+            shutil.rmtree(pytest_dir, ignore_errors=True)
+        
+        # Remove stray config directory
+        config_dir = os.path.join(test_data_dir, "config")
+        if os.path.exists(config_dir):
+            shutil.rmtree(config_dir, ignore_errors=True)
+        
+        # Remove root files
+        for filename in [".env", "requirements.txt", "test_file.json"]:
+            file_path = os.path.join(test_data_dir, filename)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        
+        # Remove legacy nested directory
+        nested_dir = os.path.join(test_data_dir, "nested")
+        if os.path.exists(nested_dir):
+            shutil.rmtree(nested_dir, ignore_errors=True)
+        
+        # Remove corrupted files
+        for item in os.listdir(test_data_dir):
+            if (item.startswith("tmp") and ".corrupted_" in item) or ".corrupted_" in item:
+                item_path = os.path.join(test_data_dir, item)
+                if os.path.isfile(item_path):
+                    os.remove(item_path)
+        
+        # Clear tmp directory
+        tmp_dir = os.path.join(test_data_dir, "tmp")
+        if os.path.exists(tmp_dir):
+            for item in os.listdir(tmp_dir):
+                item_path = os.path.join(tmp_dir, item)
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path, ignore_errors=True)
+                else:
+                    os.remove(item_path)
+        
+        # Clear flags directory
+        flags_dir = os.path.join(test_data_dir, "flags")
+        if os.path.exists(flags_dir):
+            for item in os.listdir(flags_dir):
+                item_path = os.path.join(flags_dir, item)
+                if os.path.isfile(item_path):
+                    os.remove(item_path)
+        
+        # Clear logs directory
+        logs_dir = os.path.join(test_data_dir, "logs")
+        if os.path.exists(logs_dir):
+            shutil.rmtree(logs_dir, ignore_errors=True)
+        
+        # Clean up old test_run files in tests/logs
+        test_logs_dir = os.path.join(project_root, "tests", "logs")
+        if os.path.exists(test_logs_dir):
+            try:
+                for item in os.listdir(test_logs_dir):
+                    if (item.startswith("test_run_") and item.endswith(".log")) or item == "test_run.log":
+                        item_path = os.path.join(test_logs_dir, item)
+                        if os.path.isfile(item_path):
+                            os.remove(item_path)
+            except Exception:
+                pass
+        
+        # Clean up any stray test.log files in tests/data
+        try:
+            for root, dirs, files in os.walk(test_data_dir):
+                for file in files:
+                    if file == "test.log":
+                        file_path = os.path.join(root, file)
+                        try:
+                            os.remove(file_path)
+                        except Exception:
+                            pass
+        except Exception:
+            pass
+            
+    except Exception:
+        pass  # Ignore cleanup errors
 
 @pytest.fixture(scope="function", autouse=True)
 def clear_user_caches_between_tests():

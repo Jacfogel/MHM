@@ -1031,10 +1031,13 @@ class TestSchedulerLoopCoverage:
             try:
                 scheduler_manager.run_daily_scheduler()
                 time.sleep(0.1)  # Give thread time to start and fail
-                scheduler_manager.stop_scheduler()
             except Exception:
                 # This is expected - the error handler should catch and re-raise
                 pass
+            finally:
+                # Always ensure scheduler is stopped to prevent thread exceptions
+                scheduler_manager.stop_scheduler()
+                time.sleep(0.1)  # Give thread time to stop
             
             # Verify side effects: scheduler should have attempted to start
             mock_get_users.assert_called()
