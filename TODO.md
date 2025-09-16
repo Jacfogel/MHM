@@ -76,8 +76,8 @@ When adding new tasks, follow this format:
   - [ ] Integrate per-field summaries into "show analytics" response
   - [ ] Add behavior tests validating per-field section in analytics overview
 
-**High Complexity Function Refactoring - Phase 2** 🔄 **IN PROGRESS**
-- *What it means*: Continue refactoring high complexity functions identified in audit (1856 functions >50 nodes)
+**High Complexity Function Refactoring - Phase 3** 🔄 **IN PROGRESS**
+- *What it means*: Continue refactoring high complexity functions identified in audit (1885 functions >50 nodes)
 - *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
 - *Estimated effort*: Large
 - *Completed Work*:
@@ -88,15 +88,23 @@ When adding new tasks, follow this format:
   - ✅ `get_personalization_data` refactoring — Reduced 727-node complexity to 6 focused helper functions
   - ✅ Legacy message function calls — Fixed tests to use `get_recent_messages` instead of legacy `get_last_10_messages`
   - ✅ Test warning suppression — Suppressed expected thread exception warnings in scheduler tests
+  - ✅ `perform_cleanup` refactoring — Reduced 302-node complexity to 6 focused helper functions
+  - ✅ `validate_backup` refactoring — Reduced 249-node complexity to 5 focused helper functions
+  - ✅ `validate_system_state` refactoring — Reduced 203-node complexity to 2 focused helper functions
+  - ✅ `create_backup` refactoring — Reduced 195-node complexity to 3 focused helper functions
 - *Next Priority Targets*:
-  - `ui/ui_app_qt.py::validate_configuration` (complexity: 692)
-  - Additional high complexity functions from audit analysis
+  - `get_user_data` in `core/user_data_handlers.py` (likely high complexity, used extensively)
+  - `save_user_data` in `core/user_data_handlers.py` (critical for data persistence)
+  - `cleanup_old_tasks` in `core/scheduler.py` (complex job management)
+  - `cleanup_task_reminders` in `core/scheduler.py` (similar to above)
 - *Subtasks*:
   - [x] **Analyze Complexity Distribution**
   - [x] **Prioritize Refactoring Targets**
   - [x] **Implement Refactoring Strategy - Phase 1**
   - [x] **Implement Refactoring Strategy - Phase 2** (get_personalization_data completed)
-  - [ ] **Continue with validate_configuration** (next priority target)
+  - [x] **Implement Refactoring Strategy - Phase 3** (backup and cleanup functions completed)
+  - [ ] **Continue with core data functions** (get_user_data, save_user_data)
+  - [ ] **Continue with scheduler functions** (cleanup_old_tasks, cleanup_task_reminders)
   - [ ] **Monitor Progress** (metrics, regression checks, audits)
 
 **Nightly No-Shim Validation Runs**

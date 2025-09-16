@@ -111,27 +111,37 @@ def calculate_cache_size(pycache_dirs, pyc_files):
     
     return total_size
 
-@handle_errors("performing cleanup", default_return=False)
-def perform_cleanup(root_path='.'):
-    """Perform the actual cleanup of cache files."""
-    root_path = Path(root_path).resolve()
-    
-    logger.info(f"Starting automatic cache cleanup in: {root_path}")
-    
-    # Find cache files
+@handle_errors("discovering cache files", default_return=([], []))
+def _perform_cleanup__discover_cache_files(root_path):
+    """Discover all cache files and directories in the given root path."""
     pycache_dirs = find_pycache_dirs(root_path)
     pyc_files = find_pyc_files(root_path)
-    
-    if not pycache_dirs and not pyc_files:
-        logger.info("No cache files found to clean up")
-        return True
-    
+    return pycache_dirs, pyc_files
+
+@handle_errors("logging discovery results", default_return=0)
+def _perform_cleanup__log_discovery_results(pycache_dirs, pyc_files):
+    """Calculate total size and log discovery results."""
     total_size = calculate_cache_size(pycache_dirs, pyc_files)
     
     logger.info(f"Found {len(pycache_dirs)} __pycache__ directories and {len(pyc_files)} .pyc files")
     logger.info(f"Total cache size: {total_size / 1024:.1f} KB ({total_size / (1024*1024):.2f} MB)")
     
+    return total_size
+
+@handle_errors("removing cache files", default_return=(0, 0))
+def _perform_cleanup__remove_cache_files(pycache_dirs, pyc_files):
+    """Remove all discovered cache directories and files."""
     # Remove __pycache__ directories
+    removed_dirs = _perform_cleanup__remove_cache_directories(pycache_dirs)
+    
+    # Remove standalone .pyc files
+    removed_files = _perform_cleanup__remove_cache_files_list(pyc_files)
+    
+    return removed_dirs, removed_files
+
+@handle_errors("removing cache directories", default_return=0)
+def _perform_cleanup__remove_cache_directories(pycache_dirs):
+    """Remove all __pycache__ directories."""
     removed_dirs = 0
     for pycache_dir in pycache_dirs:
         try:
@@ -141,8 +151,11 @@ def perform_cleanup(root_path='.'):
                 logger.debug(f"Removed directory: {pycache_dir}")
         except Exception as e:
             logger.warning(f"Failed to remove directory {pycache_dir}: {e}")
-    
-    # Remove standalone .pyc files
+    return removed_dirs
+
+@handle_errors("removing cache files list", default_return=0)
+def _perform_cleanup__remove_cache_files_list(pyc_files):
+    """Remove all standalone .pyc files."""
     removed_files = 0
     for pyc_file in pyc_files:
         try:
@@ -152,9 +165,36 @@ def perform_cleanup(root_path='.'):
                 logger.debug(f"Removed file: {pyc_file}")
         except Exception as e:
             logger.warning(f"Failed to remove file {pyc_file}: {e}")
-    
+    return removed_files
+
+@handle_errors("logging completion results")
+def _perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size):
+    """Log the final cleanup results and statistics."""
     logger.info(f"Cleanup complete: Removed {removed_dirs} directories and {removed_files} files")
     logger.info(f"Freed up {total_size / 1024:.1f} KB ({total_size / (1024*1024):.2f} MB)")
+
+@handle_errors("performing cleanup", default_return=False)
+def perform_cleanup(root_path='.'):
+    """Perform the actual cleanup of cache files."""
+    root_path = Path(root_path).resolve()
+    
+    logger.info(f"Starting automatic cache cleanup in: {root_path}")
+    
+    # Find cache files
+    pycache_dirs, pyc_files = _perform_cleanup__discover_cache_files(root_path)
+    
+    if not pycache_dirs and not pyc_files:
+        logger.info("No cache files found to clean up")
+        return True
+    
+    # Calculate total size and log discovery results
+    total_size = _perform_cleanup__log_discovery_results(pycache_dirs, pyc_files)
+    
+    # Remove cache files
+    removed_dirs, removed_files = _perform_cleanup__remove_cache_files(pycache_dirs, pyc_files)
+    
+    # Log final results
+    _perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)
     
     return True
 
