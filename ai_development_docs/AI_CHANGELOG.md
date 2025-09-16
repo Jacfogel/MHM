@@ -29,6 +29,13 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-16 - High Complexity Function Refactoring and Test Improvements ✅. **COMPLETED**
+- Successfully refactored `get_personalization_data` function (complexity: 727) by extracting 6 focused helper functions using `_main_function__helper_name` pattern
+- Fixed legacy message function calls in tests to use `get_recent_messages` instead of deprecated `get_last_10_messages`
+- Fixed failing scheduler test by correcting mock path from `core.user_data_handlers.get_all_user_ids` to `core.scheduler.get_all_user_ids`
+- Suppressed expected thread exception warning in scheduler error handling test using `@pytest.mark.filterwarnings` decorator
+- **Impact**: Improved code maintainability, eliminated legacy function calls, fixed test failures, and reduced warning noise (from 5 to 4 warnings)
+
 ### 2025-09-16 - Test Isolation Issues Resolution ✅. **COMPLETED**
 - Fixed test isolation issues found through randomized test runs with different seeds
 - Resolved `test_get_user_preferences_corrupted_file` assertion mismatch - function correctly returns default data structure

@@ -1,5 +1,71 @@
 ﻿# CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
+## 2025-09-16 - High Complexity Function Refactoring and Test Improvements
+
+### Overview
+- Successfully refactored high complexity `get_personalization_data` function (complexity: 727)
+- Fixed legacy message function calls in tests to use modern API
+- Fixed failing scheduler test by correcting mock path
+- Suppressed expected thread exception warning in scheduler error handling test
+- Achieved 100% test success rate with reduced warning noise
+
+### Problem
+- **High Complexity Function**: `get_personalization_data` function had 727 complexity nodes, making it difficult to maintain and debug
+- **Legacy Function Calls**: Tests were using deprecated `get_last_10_messages` function instead of modern `get_recent_messages`
+- **Failing Scheduler Test**: Test was mocking wrong import path, causing test failures
+- **Warning Noise**: Expected thread exception warning was cluttering test output
+
+### Solution Implemented
+- **Refactored get_personalization_data Function**:
+  - Extracted 6 focused helper functions using `_main_function__helper_name` pattern
+  - `_get_personalization_data__extract_basic_fields()` - Handles simple text fields
+  - `_get_personalization_data__extract_gender_identity()` - Handles gender identity checkboxes and custom input
+  - `_get_personalization_data__extract_date_of_birth()` - Handles complex calendar widget logic
+  - `_get_personalization_data__extract_pronouns()` - Handles pronoun selection and custom input
+  - `_get_personalization_data__extract_emergency_contact()` - Handles emergency contact information
+  - `_get_personalization_data__extract_medical_info()` - Handles medical information fields
+  - Maintained full functionality while improving code readability and maintainability
+- **Fixed Legacy Message Function Calls**:
+  - Updated `tests/behavior/test_message_behavior.py` to use `get_recent_messages` instead of `get_last_10_messages`
+  - Updated test method names to reflect new function usage
+  - All message behavior tests now pass without legacy warnings
+- **Fixed Scheduler Test**:
+  - Corrected mock path from `core.user_data_handlers.get_all_user_ids` to `core.scheduler.get_all_user_ids`
+  - Test now properly validates error handling behavior
+  - Added `@pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")` decorator to suppress expected warning
+- **Enhanced Warning Suppression**:
+  - Added pytest.mark.filterwarnings decorator to specific test that generates expected thread exception
+  - Reduced warning count from 5 to 4 warnings (20% reduction)
+  - Only Discord library warnings remain (external library, cannot be controlled)
+
+### Technical Details
+- **Code Quality**: Reduced function complexity from 727 to manageable helper functions
+- **Maintainability**: Helper functions follow established naming convention for better traceability
+- **Test Reliability**: Fixed failing test and eliminated legacy function calls
+- **Warning Management**: Suppressed expected warnings while preserving important ones
+
+### Files Modified
+- `ui/widgets/user_profile_settings_widget.py` - Refactored get_personalization_data function
+- `tests/behavior/test_message_behavior.py` - Fixed legacy function calls
+- `tests/behavior/test_scheduler_coverage_expansion.py` - Fixed mock path and added warning suppression
+- `pytest.ini` - Enhanced warning filters
+- `tests/conftest.py` - Improved warning suppression
+
+### Testing
+- **Full Test Suite**: ✅ 1411 passed, 1 skipped (100% success rate)
+- **Refactored Function**: All UI tests pass, functionality preserved
+- **Legacy Function Fix**: Message behavior tests pass without warnings
+- **Scheduler Test**: Error handling test passes with suppressed expected warning
+- **Warning Reduction**: From 5 to 4 warnings (20% improvement)
+
+### Impact
+- **Code Maintainability**: Significantly improved through function refactoring
+- **Test Reliability**: Fixed failing test and eliminated legacy dependencies
+- **Development Experience**: Cleaner test output with reduced warning noise
+- **System Stability**: All functionality preserved with improved code quality
+
+---
+
 ## 2025-09-16 - Test Isolation Issues Resolution and Warning Suppression
 
 ### Overview

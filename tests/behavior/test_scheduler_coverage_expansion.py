@@ -1022,10 +1022,11 @@ class TestSchedulerLoopCoverage:
     
     @pytest.mark.behavior
     @pytest.mark.schedules
+    @pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
     def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop error handling when scheduling fails."""
-        with patch('core.user_data_handlers.get_all_user_ids') as mock_get_users, \
-             patch('core.user_data_handlers.get_user_data') as mock_get_data:
+        with patch('core.scheduler.get_all_user_ids') as mock_get_users, \
+             patch('core.scheduler.get_user_data') as mock_get_data:
             
             # Mock error during scheduling
             mock_get_users.side_effect = Exception("Database connection failed")

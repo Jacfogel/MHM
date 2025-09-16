@@ -295,111 +295,144 @@ class UserProfileSettingsWidget(QWidget):
             # Start with existing data to preserve fields we don't handle yet
             data = self.existing_data.copy() if self.existing_data else {}
             
-            # Preferred Name
-            if hasattr(self.ui, 'lineEdit_preferred_name'):
-                data['preferred_name'] = self.ui.lineEdit_preferred_name.text().strip()
-
-            # Gender Identity
-            gender_identity = []
-            if hasattr(self.ui, 'checkBox_woman') and self.ui.checkBox_woman.isChecked():
-                gender_identity.append('Woman')
-            if hasattr(self.ui, 'checkBox_man') and self.ui.checkBox_man.isChecked():
-                gender_identity.append('Man')
-            if hasattr(self.ui, 'checkBox_nonbinary') and self.ui.checkBox_nonbinary.isChecked():
-                gender_identity.append('Non-binary')
-            if hasattr(self.ui, 'checkBox_none') and self.ui.checkBox_none.isChecked():
-                gender_identity.append('None')
-            if hasattr(self.ui, 'checkBox_prefer_not_to_say') and self.ui.checkBox_prefer_not_to_say.isChecked():
-                gender_identity.append('Prefer not to say')
-            if hasattr(self.ui, 'lineEdit_custom_gender'):
-                custom_genders = self.ui.lineEdit_custom_gender.text().strip()
-                if custom_genders:
-                    gender_identity.extend([g.strip() for g in custom_genders.split(',') if g.strip()])
-            data['gender_identity'] = gender_identity
-
-            # Date of Birth (if present in UI)
-            if hasattr(self.ui, 'calendarWidget_date_of_birth'):
-                selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
-                if selected_date.isValid():
-                    # Only save the date if it's different from the default (current date)
-                    # or if there was an existing date of birth
-                    current_date = QDate.currentDate()
-                    existing_dob = self.existing_data.get('date_of_birth', '')
-                    
-                    # Convert QDate to ISO format string
-                    dob_str = selected_date.toString(Qt.DateFormat.ISODate)
-                    
-                    # Only save if user actually selected a date (not default current date)
-                    # or if there was an existing date of birth that we should preserve
-                    if selected_date != current_date or existing_dob:
-                        data['date_of_birth'] = dob_str
-                    else:
-                        # Clear date if user didn't actually select one
-                        data['date_of_birth'] = ''
-                else:
-                    # Clear date if invalid
-                    data['date_of_birth'] = ''
-
-            # Timezone functionality moved to channel selection widget
-            # Timezone is now handled by the channel selection widget
-
-            # Health conditions - use dynamic list container
-            if 'custom_fields' not in data:
-                data['custom_fields'] = {}
-            data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
-
-            # Medications - use dynamic list container
-            data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
-
-            # Allergies/Sensitivities - use dynamic list container
-            data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
-
-            # Interests via dynamic container
-            data['interests'] = self.interests_container.get_values()
-
-            # Goals - use dynamic list container
-            data['goals'] = self.goals_container.get_values()
-
-            # Loved Ones/Support Network (multi-line text, parse as Name - Type - Relationship1,Relationship2)
-            if hasattr(self.ui, 'textEdit_loved_ones'):
-                loved_ones_text = self.ui.textEdit_loved_ones.toPlainText().strip()
-                loved_ones = []
-                if loved_ones_text:
-                    for line in loved_ones_text.split('\n'):
-                        parts = [p.strip() for p in line.split('-')]
-                        name = parts[0] if len(parts) > 0 else ''
-                        type_val = parts[1] if len(parts) > 1 else ''
-                        relationships = []
-                        if len(parts) > 2:
-                            relationships = [r.strip() for r in parts[2].split(',') if r.strip()]
-                        if name:
-                            loved_ones.append({
-                                'name': name,
-                                'type': type_val,
-                                'relationships': relationships
-                            })
-                data['loved_ones'] = loved_ones
-
-            # Notes for AI (use notes field, wrap as list if not empty)
-            notes_text = self.ui.textEdit_notes.toPlainText().strip() if hasattr(self.ui, 'textEdit_notes') else ""
-            notes_for_ai = [notes_text] if notes_text else []
-            data['notes_for_ai'] = notes_for_ai
-
-            # Preserve other fields that we don't handle yet
-            if 'timezone' not in data:
-                data['timezone'] = ''
-            if 'reminders_needed' not in data:
-                data['reminders_needed'] = []
-            if 'activities_for_encouragement' not in data:
-                data['activities_for_encouragement'] = []
-            if 'preferred_name' not in data:
-                data['preferred_name'] = ''
+            # Extract data from UI using helper functions
+            self._get_personalization_data__extract_basic_fields(data)
+            self._get_personalization_data__extract_gender_identity(data)
+            self._get_personalization_data__extract_date_of_birth(data)
+            self._get_personalization_data__extract_dynamic_containers(data)
+            self._get_personalization_data__extract_loved_ones(data)
+            self._get_personalization_data__extract_notes(data)
+            self._get_personalization_data__ensure_required_fields(data)
 
             return data
         except Exception as e:
             logger.error(f"Error getting personalization data: {e}")
             return self.existing_data or {}
     
+    def _get_personalization_data__extract_basic_fields(self, data: Dict[str, Any]) -> None:
+        """Extract basic text fields from the UI."""
+        # Preferred Name
+        if hasattr(self.ui, 'lineEdit_preferred_name'):
+            data['preferred_name'] = self.ui.lineEdit_preferred_name.text().strip()
+
+    def _get_personalization_data__extract_gender_identity(self, data: Dict[str, Any]) -> None:
+        """Extract gender identity from checkboxes and custom input."""
+        gender_identity = []
+        
+        # Standard gender identity checkboxes
+        gender_mappings = [
+            ('checkBox_woman', 'Woman'),
+            ('checkBox_man', 'Man'),
+            ('checkBox_nonbinary', 'Non-binary'),
+            ('checkBox_none', 'None'),
+            ('checkBox_prefer_not_to_say', 'Prefer not to say')
+        ]
+        
+        for checkbox_attr, value in gender_mappings:
+            if hasattr(self.ui, checkbox_attr) and getattr(self.ui, checkbox_attr).isChecked():
+                gender_identity.append(value)
+        
+        # Custom gender identities
+        if hasattr(self.ui, 'lineEdit_custom_gender'):
+            custom_genders = self.ui.lineEdit_custom_gender.text().strip()
+            if custom_genders:
+                gender_identity.extend([g.strip() for g in custom_genders.split(',') if g.strip()])
+        
+        data['gender_identity'] = gender_identity
+
+    def _get_personalization_data__extract_date_of_birth(self, data: Dict[str, Any]) -> None:
+        """Extract date of birth from calendar widget with proper validation."""
+        if not hasattr(self.ui, 'calendarWidget_date_of_birth'):
+            return
+            
+        selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
+        if not selected_date.isValid():
+            data['date_of_birth'] = ''
+            return
+        
+        # Only save the date if it's different from the default (current date)
+        # or if there was an existing date of birth
+        current_date = QDate.currentDate()
+        existing_dob = self.existing_data.get('date_of_birth', '')
+        
+        # Convert QDate to ISO format string
+        dob_str = selected_date.toString(Qt.DateFormat.ISODate)
+        
+        # Only save if user actually selected a date (not default current date)
+        # or if there was an existing date of birth that we should preserve
+        if selected_date != current_date or existing_dob:
+            data['date_of_birth'] = dob_str
+        else:
+            # Clear date if user didn't actually select one
+            data['date_of_birth'] = ''
+
+    def _get_personalization_data__extract_dynamic_containers(self, data: Dict[str, Any]) -> None:
+        """Extract data from all dynamic list containers."""
+        # Ensure custom_fields structure exists
+        if 'custom_fields' not in data:
+            data['custom_fields'] = {}
+        
+        # Health conditions - use dynamic list container
+        data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
+        
+        # Medications - use dynamic list container
+        data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
+        
+        # Allergies/Sensitivities - use dynamic list container
+        data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
+        
+        # Interests via dynamic container
+        data['interests'] = self.interests_container.get_values()
+        
+        # Goals - use dynamic list container
+        data['goals'] = self.goals_container.get_values()
+
+    def _get_personalization_data__extract_loved_ones(self, data: Dict[str, Any]) -> None:
+        """Extract loved ones data from text field with structured parsing."""
+        if not hasattr(self.ui, 'textEdit_loved_ones'):
+            return
+            
+        loved_ones_text = self.ui.textEdit_loved_ones.toPlainText().strip()
+        loved_ones = []
+        
+        if loved_ones_text:
+            for line in loved_ones_text.split('\n'):
+                parts = [p.strip() for p in line.split('-')]
+                name = parts[0] if len(parts) > 0 else ''
+                type_val = parts[1] if len(parts) > 1 else ''
+                relationships = []
+                if len(parts) > 2:
+                    relationships = [r.strip() for r in parts[2].split(',') if r.strip()]
+                
+                if name:
+                    loved_ones.append({
+                        'name': name,
+                        'type': type_val,
+                        'relationships': relationships
+                    })
+        
+        data['loved_ones'] = loved_ones
+
+    def _get_personalization_data__extract_notes(self, data: Dict[str, Any]) -> None:
+        """Extract notes for AI from text field."""
+        notes_text = self.ui.textEdit_notes.toPlainText().strip() if hasattr(self.ui, 'textEdit_notes') else ""
+        notes_for_ai = [notes_text] if notes_text else []
+        data['notes_for_ai'] = notes_for_ai
+
+    def _get_personalization_data__ensure_required_fields(self, data: Dict[str, Any]) -> None:
+        """Ensure all required fields exist in the data structure."""
+        # Preserve other fields that we don't handle yet
+        required_fields = {
+            'timezone': '',
+            'reminders_needed': [],
+            'activities_for_encouragement': [],
+            'preferred_name': ''
+        }
+        
+        for field, default_value in required_fields.items():
+            if field not in data:
+                data[field] = default_value
+
     def get_settings(self):
         """Get the current user profile settings."""
         return self.get_personalization_data()

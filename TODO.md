@@ -85,14 +85,18 @@ When adding new tasks, follow this format:
   - ✅ Helper function naming convention — Implemented `_main_function__helper_name` pattern
   - ✅ All tests passing — Verified stability after refactoring
   - ✅ Minor logging enhancements — Added comprehensive logging to core modules for better debugging
+  - ✅ `get_personalization_data` refactoring — Reduced 727-node complexity to 6 focused helper functions
+  - ✅ Legacy message function calls — Fixed tests to use `get_recent_messages` instead of legacy `get_last_10_messages`
+  - ✅ Test warning suppression — Suppressed expected thread exception warnings in scheduler tests
 - *Next Priority Targets*:
-  - `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727)
   - `ui/ui_app_qt.py::validate_configuration` (complexity: 692)
+  - Additional high complexity functions from audit analysis
 - *Subtasks*:
   - [x] **Analyze Complexity Distribution**
   - [x] **Prioritize Refactoring Targets**
   - [x] **Implement Refactoring Strategy - Phase 1**
-  - [ ] **Implement Refactoring Strategy - Phase 2** (targets listed above)
+  - [x] **Implement Refactoring Strategy - Phase 2** (get_personalization_data completed)
+  - [ ] **Continue with validate_configuration** (next priority target)
   - [ ] **Monitor Progress** (metrics, regression checks, audits)
 
 **Nightly No-Shim Validation Runs**

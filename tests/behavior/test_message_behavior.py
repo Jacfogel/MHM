@@ -28,7 +28,7 @@ from core.message_management import (
     edit_message,
     update_message,
     delete_message,
-    get_last_10_messages,
+    get_recent_messages,
     store_sent_message,
     create_message_file_from_defaults,
     ensure_user_message_files
@@ -403,7 +403,7 @@ class TestSentMessages:
     
     @pytest.mark.messages
     @pytest.mark.file_io
-    def test_get_last_10_messages_success(self, test_data_dir):
+    def test_get_recent_messages_success(self, test_data_dir):
         """Test getting last 10 sent messages successfully."""
         user_id = "test-user-last10"
         category = "motivational"
@@ -431,7 +431,7 @@ class TestSentMessages:
         
         # Mock determine_file_path to return our test file
         with patch('core.message_management.determine_file_path', return_value=sent_messages_file):
-            messages = get_last_10_messages(user_id, category)
+            messages = get_recent_messages(user_id, category=category, limit=10)
             
             assert len(messages) == 3
             # Messages are sorted by timestamp descending, so msg3 (latest) comes first
@@ -441,7 +441,7 @@ class TestSentMessages:
     
     @pytest.mark.messages
     @pytest.mark.file_io
-    def test_get_last_10_messages_empty(self, test_data_dir):
+    def test_get_recent_messages_empty(self, test_data_dir):
         """Test getting last 10 messages when none exist."""
         user_id = "test-user"
         category = "motivational"
@@ -450,7 +450,7 @@ class TestSentMessages:
         mock_load = Mock(return_value={})
         
         with patch('core.message_management.load_json_data', mock_load):
-            result = get_last_10_messages(user_id, category)
+            result = get_recent_messages(user_id, category=category, limit=10)
             
             assert result == []
             mock_load.assert_called_once()

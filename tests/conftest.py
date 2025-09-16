@@ -28,6 +28,18 @@ warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float'
 warnings.filterwarnings("ignore", category=pytest.PytestUnhandledThreadExceptionWarning)
 warnings.filterwarnings("ignore", category=pytest.PytestUnraisableExceptionWarning)
 
+# Suppress specific Discord library warnings more broadly
+warnings.filterwarnings("ignore", module="discord.player")
+warnings.filterwarnings("ignore", module="discord.http")
+warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning)
+warnings.filterwarnings("ignore", message=".*timeout.*deprecated.*", category=DeprecationWarning)
+
+# Additional comprehensive warning suppression
+warnings.filterwarnings("ignore", message=".*audioop.*", category=DeprecationWarning, module="discord.*")
+warnings.filterwarnings("ignore", message=".*timeout.*", category=DeprecationWarning, module="discord.*")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.player")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.http")
+
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below
 # patch core.config attributes to isolate user data under tests/data/users.
