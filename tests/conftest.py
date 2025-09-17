@@ -1419,14 +1419,14 @@ def force_test_data_directory():
         tempfile.tempdir = original_tempdir
 
 @pytest.fixture(scope="function")
-def mock_user_data(mock_config, request):
+def mock_user_data(mock_config, test_data_dir, request):
     """Create mock user data for testing with unique user ID for each test."""
     import uuid
     import core.config
     
     # Generate unique user ID for each test to prevent interference
     user_id = f"test-user-{uuid.uuid4().hex[:8]}"
-    user_dir = os.path.join(core.config.USER_INFO_DIR_PATH, user_id)
+    user_dir = os.path.join(test_data_dir, "users", user_id)
     os.makedirs(user_dir, exist_ok=True)
     
     test_logger.debug(f"Creating mock user data for user: {user_id}")

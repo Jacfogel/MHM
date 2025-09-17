@@ -1,0 +1,94 @@
+---
+description: Code patterns, error handling, and AI response optimization strategies
+globs: *.py
+alwaysApply: false
+---
+# Code Quality & AI Optimization
+
+## Response Guidelines
+- Keep explanations simple and clear
+- Focus on one concept at a time
+- Provide step-by-step instructions
+- Always suggest testing after changes
+
+## Code Analysis Priority
+1. Check file existence before operations
+2. Validate configuration at startup
+3. Handle missing data gracefully
+4. Log errors appropriately
+5. Test changes incrementally
+
+## Common Pitfalls to Avoid
+- Don't assume files exist
+- Don't make multiple changes without testing
+- Don't forget to update documentation
+- Don't ignore error conditions
+
+## Efficient Problem Solving
+1. Identify the specific issue
+2. Check related files and functions
+3. Make minimal changes
+4. Test the fix
+5. Document the solution
+
+## Error Handling Pattern
+```python
+try:
+    # Operation that might fail
+    result = some_operation()
+except FileNotFoundError:
+    logger.error(f"Required file not found: {file_path}")
+    return None
+except Exception as e:
+    logger.error(f"Unexpected error: {e}")
+    return None
+```
+
+## File Operations Pattern
+```python
+def safe_file_operation(file_path):
+    if not os.path.exists(file_path):
+        logger.warning(f"File not found: {file_path}")
+        return None
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading {file_path}: {e}")
+        return None
+```
+
+## Configuration Validation Pattern
+```python
+def validate_config():
+    required_vars = ['DISCORD_BOT_TOKEN']
+    missing = [var for var in required_vars if not os.getenv(var)]
+    
+    if missing:
+        raise ConfigError(f"Missing required environment variables: {missing}")
+```
+
+## Testing Pattern
+```python
+# Always test after changes
+def test_changes():
+    try:
+        subprocess.run([sys.executable, 'run_mhm.py'], 
+                      capture_output=True, timeout=30)
+        return True
+    except Exception as e:
+        logger.error(f"Test failed: {e}")
+        return False
+```
+
+## User Communication
+- Explain WHY changes are needed
+- Break complex tasks into steps
+- Provide clear error messages
+
+---
+
+**TESTING**: If you can see this rule, please confirm by saying "I can see the code-quality.mdc rule"
+
+

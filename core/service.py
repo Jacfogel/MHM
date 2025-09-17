@@ -124,6 +124,88 @@ class MHMService:
         return paths
 
     @handle_errors("checking and fixing logging")
+    def _check_and_fix_logging__test_logging_functionality(self, test_message):
+        """Test if logging functionality works by writing a test message and flushing handlers."""
+        logger.debug(test_message)
+        
+        # Force flush all handlers to ensure messages are written
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            if hasattr(handler, 'flush'):
+                handler.flush()
+        
+        # Give more time for file operations and buffering
+        time.sleep(0.5)
+
+    def _check_and_fix_logging__ensure_log_file_exists(self):
+        """Ensure the log file exists, creating it if necessary."""
+        from core.config import LOG_MAIN_FILE
+        
+        if not os.path.exists(LOG_MAIN_FILE):
+            logger.warning("Log file does not exist - logging may have issues")
+            # Do not delete or alter the provided path; create the file to satisfy health check
+            try:
+                with open(LOG_MAIN_FILE, 'a', encoding='utf-8') as _f:
+                    _f.write('')
+            except Exception:
+                raise Exception("Log file missing")
+
+    def _check_and_fix_logging__read_recent_log_content(self):
+        """Read the last 1000 characters from the log file to check for recent activity."""
+        from core.config import LOG_MAIN_FILE
+        
+        with open(LOG_MAIN_FILE, 'r', encoding='utf-8') as f:
+            # Read last 1000 characters to check for recent activity
+            f.seek(0, 2)  # Go to end
+            file_size = f.tell()
+            if file_size > 1000:
+                f.seek(file_size - 1000)
+            else:
+                f.seek(0)
+            return f.read()
+
+    def _check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp):
+        """Check if our test message or recent timestamp patterns are present in log content."""
+        if (test_message in recent_content or 
+            any(str(test_timestamp - i) in recent_content for i in range(60))):
+            logger.debug("Logging system verified")
+            return True
+        return False
+
+    def _check_and_fix_logging__check_recent_activity_timestamps(self, recent_content):
+        """Check if there's any recent activity within the last 5 minutes using timestamp patterns."""
+        import re
+        
+        current_time = datetime.now()
+        recent_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
+        matches = re.findall(recent_pattern, recent_content)
+        
+        if matches:
+            try:
+                latest_log_time = datetime.strptime(matches[-1], '%Y-%m-%d %H:%M:%S')
+                time_diff = (current_time - latest_log_time).total_seconds()
+                
+                if time_diff < 300:  # Less than 5 minutes
+                    logger.debug("Logging system healthy")
+                    return True
+            except ValueError:
+                pass  # Failed to parse timestamp, continue to restart check
+        
+        logger.warning("No recent logging activity detected, may need restart")
+        return False
+
+    def _check_and_fix_logging__force_restart_logging_system(self):
+        """Force restart the logging system and update the global logger."""
+        logger.warning("Logging system verification failed - attempting force restart...")
+        
+        from core.logger import force_restart_logging
+        if force_restart_logging():
+            logger.info("Logging system force restarted successfully")
+            return True
+        else:
+            logger.error("Failed to restart logging system")
+            return False
+
     def check_and_fix_logging(self):
         """Check if logging is working and restart if needed"""
         global logger
@@ -134,64 +216,20 @@ class MHMService:
         
         # Try logging at different levels to test all handlers
         try:
-            logger.debug(test_message)
-            
-            # Force flush all handlers to ensure messages are written
-            root_logger = logging.getLogger()
-            for handler in root_logger.handlers:
-                if hasattr(handler, 'flush'):
-                    handler.flush()
-            
-            # Give more time for file operations and buffering
-            time.sleep(0.5)
-            
-            # Check if log file exists and is accessible
-            from core.config import LOG_MAIN_FILE
-            if not os.path.exists(LOG_MAIN_FILE):
-                logger.warning("Log file does not exist - logging may have issues")
-                # Do not delete or alter the provided path; create the file to satisfy health check
-                try:
-                    with open(LOG_MAIN_FILE, 'a', encoding='utf-8') as _f:
-                        _f.write('')
-                except Exception:
-                    raise Exception("Log file missing")
+            self._check_and_fix_logging__test_logging_functionality(test_message)
+            self._check_and_fix_logging__ensure_log_file_exists()
             
             # Try to read the last few lines to verify logging is working
             try:
-                with open(LOG_MAIN_FILE, 'r', encoding='utf-8') as f:
-                    # Read last 1000 characters to check for recent activity
-                    f.seek(0, 2)  # Go to end
-                    file_size = f.tell()
-                    if file_size > 1000:
-                        f.seek(file_size - 1000)
-                    else:
-                        f.seek(0)
-                    recent_content = f.read()
-                    
-                    # Look for our test message or recent timestamp patterns
-                    if (test_message in recent_content or 
-                        any(str(test_timestamp - i) in recent_content for i in range(60))):
-                        logger.debug("Logging system verified")
-                        return
-                    else:
-                        # Check if there's any recent activity (within last 5 minutes)
-                        import re
-                        current_time = datetime.now()
-                        recent_pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})'
-                        matches = re.findall(recent_pattern, recent_content)
-                        
-                        if matches:
-                            try:
-                                latest_log_time = datetime.strptime(matches[-1], '%Y-%m-%d %H:%M:%S')
-                                time_diff = (current_time - latest_log_time).total_seconds()
-                                
-                                if time_diff < 300:  # Less than 5 minutes
-                                    logger.debug("Logging system healthy")
-                                    return
-                            except ValueError:
-                                pass  # Failed to parse timestamp, continue to restart check
-                        
-                        logger.warning("No recent logging activity detected, may need restart")
+                recent_content = self._check_and_fix_logging__read_recent_log_content()
+                
+                # Look for our test message or recent timestamp patterns
+                if self._check_and_fix_logging__verify_test_message_present(recent_content, test_message, test_timestamp):
+                    return
+                
+                # Check if there's any recent activity (within last 5 minutes)
+                if self._check_and_fix_logging__check_recent_activity_timestamps(recent_content):
+                    return
             
             except Exception as file_error:
                 logger.warning(f"Could not verify log file contents: {file_error}")
@@ -206,17 +244,9 @@ class MHMService:
             # Fall through to restart logic
         
         # Only restart if we have clear evidence of logging failure
-        logger.warning(
-            "Logging system verification failed - attempting force restart..."
-        )
-        
-        # Force restart logging
-        from core.logger import force_restart_logging
-        if force_restart_logging():
+        if self._check_and_fix_logging__force_restart_logging_system():
+            # Update global logger after successful restart
             logger = get_component_logger('main')
-            logger.info("Logging system force restarted successfully")
-        else:
-            logger.error("Failed to restart logging system")
 
     @handle_errors("starting service")
     def start(self):
@@ -417,116 +447,230 @@ class MHMService:
         self.cleanup_reschedule_requests()
     
     @handle_errors("checking test message requests")
-    def check_test_message_requests(self):
-        """Check for and process test message request files from admin panel"""
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        
-        # Look for test message request files
+    def _check_test_message_requests__get_base_directory(self):
+        """Get the base directory for test message request files."""
+        return os.path.dirname(os.path.dirname(__file__))
+
+    def _check_test_message_requests__discover_request_files(self, base_dir):
+        """Discover all test message request files in the base directory."""
+        request_files = []
         for filename in os.listdir(base_dir):
             if filename.startswith('test_message_request_') and filename.endswith('.flag'):
-                request_file = os.path.join(base_dir, filename)
+                request_files.append(os.path.join(base_dir, filename))
+        return request_files
+
+    def _check_test_message_requests__parse_request_file(self, request_file):
+        """Parse and validate a test message request file."""
+        import json
+        
+        with open(request_file, 'r') as f:
+            request_data = json.load(f)
+        
+        user_id = request_data.get('user_id')
+        category = request_data.get('category')
+        source = request_data.get('source', 'unknown')
+        
+        return {
+            'user_id': user_id,
+            'category': category,
+            'source': source
+        }
+
+    def _check_test_message_requests__validate_request_data(self, request_data, filename):
+        """Validate request data and check if it should be processed."""
+        user_id = request_data['user_id']
+        category = request_data['category']
+        
+        if not user_id or not category:
+            logger.warning(f"Invalid test message request in {filename}: missing user_id or category")
+            return False
+        
+        return True
+
+    def _check_test_message_requests__process_valid_request(self, request_data):
+        """Process a valid test message request."""
+        user_id = request_data['user_id']
+        category = request_data['category']
+        source = request_data['source']
+        
+        logger.info(f"Processing test message request from {source}: user={user_id}, category={category}")
+        
+        # Use the communication manager to send the message
+        if self.communication_manager:
+            self.communication_manager.handle_message_sending(user_id, category)
+            logger.info(f"Test message sent successfully for {user_id}, category={category}")
+        else:
+            logger.error("Communication manager not available for test message")
+
+    def _check_test_message_requests__cleanup_request_file(self, request_file, filename):
+        """Clean up a processed request file."""
+        try:
+            os.remove(request_file)
+            logger.info(f"Processed test message request: {filename}")
+        except Exception as cleanup_error:
+            logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
+
+    def _check_test_message_requests__handle_processing_error(self, request_file, filename, error):
+        """Handle errors during request processing."""
+        logger.error(f"Error processing test message request {filename}: {error}")
+        # Try to remove the problematic file
+        try:
+            os.remove(request_file)
+            logger.debug(f"Removed problematic request file: {filename}")
+        except Exception as cleanup_error:
+            logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+
+    def check_test_message_requests(self):
+        """Check for and process test message request files from admin panel"""
+        base_dir = self._check_test_message_requests__get_base_directory()
+        request_files = self._check_test_message_requests__discover_request_files(base_dir)
+        
+        for request_file in request_files:
+            filename = os.path.basename(request_file)
+            
+            try:
+                # Parse and validate the request
+                request_data = self._check_test_message_requests__parse_request_file(request_file)
                 
-                try:
-                    # Read and process the request
-                    with open(request_file, 'r') as f:
-                        import json
-                        request_data = json.load(f)
-                    
-                    user_id = request_data.get('user_id')
-                    category = request_data.get('category')
-                    source = request_data.get('source', 'unknown')
-                    
-                    if user_id and category:
-                        logger.info(f"Processing test message request from {source}: user={user_id}, category={category}")
-                        
-                        # Use the communication manager to send the message
-                        if self.communication_manager:
-                            self.communication_manager.handle_message_sending(user_id, category)
-                            logger.info(f"Test message sent successfully for {user_id}, category={category}")
-                        else:
-                            logger.error("Communication manager not available for test message")
-                    else:
-                        logger.warning(f"Invalid test message request in {filename}: missing user_id or category")
-                    
-                    # Remove the processed request file
-                    os.remove(request_file)
-                    logger.info(f"Processed test message request: {filename}")
-                    
-                except Exception as e:
-                    logger.error(f"Error processing test message request {filename}: {e}")
-                    # Try to remove the problematic file
-                    try:
-                        os.remove(request_file)
-                        logger.debug(f"Removed problematic request file: {filename}")
-                    except Exception as cleanup_error:
-                        logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+                if self._check_test_message_requests__validate_request_data(request_data, filename):
+                    self._check_test_message_requests__process_valid_request(request_data)
+                
+                # Clean up the request file
+                self._check_test_message_requests__cleanup_request_file(request_file, filename)
+                
+            except Exception as e:
+                self._check_test_message_requests__handle_processing_error(request_file, filename, e)
     
+    def _cleanup_test_message_requests__get_base_directory(self):
+        """Get the base directory for test message request files."""
+        return os.path.dirname(os.path.dirname(__file__))
+    
+    def _cleanup_test_message_requests__is_test_message_request_file(self, filename):
+        """Check if a filename matches the test message request file pattern."""
+        return filename.startswith('test_message_request_') and filename.endswith('.flag')
+    
+    def _cleanup_test_message_requests__remove_request_file(self, request_file, filename):
+        """Remove a single test message request file with proper error handling."""
+        try:
+            os.remove(request_file)
+            logger.info(f"Cleanup: Removed test message request file: {filename}")
+            return True
+        except Exception as e:
+            logger.warning(f"Could not remove test message request file {filename}: {e}")
+            return False
+
     @handle_errors("cleaning up test message requests")
     def cleanup_test_message_requests(self):
         """Clean up any remaining test message request files"""
-        base_dir = os.path.dirname(os.path.dirname(__file__))
+        base_dir = self._cleanup_test_message_requests__get_base_directory()
         
         for filename in os.listdir(base_dir):
-            if filename.startswith('test_message_request_') and filename.endswith('.flag'):
+            if self._cleanup_test_message_requests__is_test_message_request_file(filename):
                 request_file = os.path.join(base_dir, filename)
-                try:
-                    os.remove(request_file)
-                    logger.info(f"Cleanup: Removed test message request file: {filename}")
-                except Exception as e:
-                    logger.warning(f"Could not remove test message request file {filename}: {e}")
+                self._cleanup_test_message_requests__remove_request_file(request_file, filename)
 
     @handle_errors("checking reschedule requests")
-    def check_reschedule_requests(self):
-        """Check for and process reschedule request files from UI"""
-        base_dir = os.path.dirname(os.path.dirname(__file__))
-        
-        # Look for reschedule request files
+    def _check_reschedule_requests__get_base_directory(self):
+        """Get the base directory for reschedule request files."""
+        return os.path.dirname(os.path.dirname(__file__))
+
+    def _check_reschedule_requests__discover_request_files(self, base_dir):
+        """Discover all reschedule request files in the base directory."""
+        request_files = []
         for filename in os.listdir(base_dir):
             if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
-                request_file = os.path.join(base_dir, filename)
+                request_files.append(os.path.join(base_dir, filename))
+        return request_files
+
+    def _check_reschedule_requests__parse_request_file(self, request_file):
+        """Parse and validate a reschedule request file."""
+        import json
+        
+        with open(request_file, 'r') as f:
+            request_data = json.load(f)
+        
+        user_id = request_data.get('user_id')
+        category = request_data.get('category')
+        source = request_data.get('source', 'unknown')
+        request_timestamp = request_data.get('timestamp', 0)
+        
+        return {
+            'user_id': user_id,
+            'category': category,
+            'source': source,
+            'timestamp': request_timestamp
+        }
+
+    def _check_reschedule_requests__validate_request_data(self, request_data, filename):
+        """Validate request data and check if it should be processed."""
+        user_id = request_data['user_id']
+        category = request_data['category']
+        request_timestamp = request_data['timestamp']
+        
+        # Skip old requests that were created before service startup
+        if self.startup_time and request_timestamp < self.startup_time:
+            logger.debug(f"Ignoring old reschedule request from before service startup: {filename}")
+            return False
+        
+        if not user_id or not category:
+            logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
+            return False
+        
+        return True
+
+    def _check_reschedule_requests__process_valid_request(self, request_data):
+        """Process a valid reschedule request."""
+        user_id = request_data['user_id']
+        category = request_data['category']
+        source = request_data['source']
+        
+        logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
+        
+        if self.scheduler_manager:
+            # Reset and reschedule for this user/category
+            self.scheduler_manager.reset_and_reschedule_daily_messages(category, user_id)
+            logger.info(f"Reschedule completed for {user_id}, category={category}")
+        else:
+            logger.error("Scheduler manager not available for reschedule")
+
+    def _check_reschedule_requests__cleanup_request_file(self, request_file, filename):
+        """Clean up a processed request file."""
+        try:
+            os.remove(request_file)
+            logger.info(f"Processed reschedule request: {filename}")
+        except Exception as cleanup_error:
+            logger.warning(f"Could not remove request file {filename}: {cleanup_error}")
+
+    def _check_reschedule_requests__handle_processing_error(self, request_file, filename, error):
+        """Handle errors during request processing."""
+        logger.error(f"Error processing reschedule request {filename}: {error}")
+        # Try to remove the problematic file
+        try:
+            os.remove(request_file)
+            logger.debug(f"Removed problematic request file: {filename}")
+        except Exception as cleanup_error:
+            logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+
+    def check_reschedule_requests(self):
+        """Check for and process reschedule request files from UI"""
+        base_dir = self._check_reschedule_requests__get_base_directory()
+        request_files = self._check_reschedule_requests__discover_request_files(base_dir)
+        
+        for request_file in request_files:
+            filename = os.path.basename(request_file)
+            
+            try:
+                # Parse and validate the request
+                request_data = self._check_reschedule_requests__parse_request_file(request_file)
                 
-                try:
-                    # Read and process the request
-                    with open(request_file, 'r') as f:
-                        import json
-                        request_data = json.load(f)
-                    
-                    user_id = request_data.get('user_id')
-                    category = request_data.get('category')
-                    source = request_data.get('source', 'unknown')
-                    request_timestamp = request_data.get('timestamp', 0)
-                    
-                    # Skip old requests that were created before service startup
-                    if self.startup_time and request_timestamp < self.startup_time:
-                        logger.debug(f"Ignoring old reschedule request from before service startup: {filename}")
-                        os.remove(request_file)
-                        continue
-                    
-                    if user_id and category:
-                        # Process the reschedule request
-                        logger.info(f"Processing reschedule request from {source}: user={user_id}, category={category}")
-                        
-                        if self.scheduler_manager:
-                            # Reset and reschedule for this user/category
-                            self.scheduler_manager.reset_and_reschedule_daily_messages(category, user_id)
-                            logger.info(f"Reschedule completed for {user_id}, category={category}")
-                        else:
-                            logger.error("Scheduler manager not available for reschedule")
-                    else:
-                        logger.warning(f"Invalid reschedule request in {filename}: missing user_id or category")
-                    
-                    # Remove the processed request file
-                    os.remove(request_file)
-                    logger.info(f"Processed reschedule request: {filename}")
-                    
-                except Exception as e:
-                    logger.error(f"Error processing reschedule request {filename}: {e}")
-                    # Try to remove the problematic file
-                    try:
-                        os.remove(request_file)
-                        logger.debug(f"Removed problematic request file: {filename}")
-                    except Exception as cleanup_error:
-                        logger.warning(f"Could not remove problematic request file {filename}: {cleanup_error}")
+                if self._check_reschedule_requests__validate_request_data(request_data, filename):
+                    self._check_reschedule_requests__process_valid_request(request_data)
+                
+                # Clean up the request file
+                self._check_reschedule_requests__cleanup_request_file(request_file, filename)
+                
+            except Exception as e:
+                self._check_reschedule_requests__handle_processing_error(request_file, filename, e)
 
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):

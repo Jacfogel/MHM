@@ -1304,3 +1304,264 @@ class TestWakeTimerCoverage:
             
             # Verify side effects: should have attempted to create subprocess
             mock_popen.assert_called_once()
+
+
+class TestSelectTaskForReminderBehavior:
+    """Test comprehensive behavior of select_task_for_reminder function."""
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_empty_list_real_behavior(self, scheduler_manager):
+        """Test selecting task from empty list returns None."""
+        # Test real behavior: empty list should return None
+        result = scheduler_manager.select_task_for_reminder([])
+        assert result is None
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_single_task_real_behavior(self, scheduler_manager):
+        """Test selecting task from single-item list returns that task."""
+        task = {
+            'id': 'task1',
+            'title': 'Single Task',
+            'priority': 'medium',
+            'due_date': '2025-09-20'
+        }
+        
+        # Test real behavior: single task should be returned
+        result = scheduler_manager.select_task_for_reminder([task])
+        assert result == task
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_priority_weighting_real_behavior(self, scheduler_manager):
+        """Test priority-based weighting works correctly."""
+        tasks = [
+            {'id': 'task1', 'title': 'Critical Task', 'priority': 'critical', 'due_date': '2025-09-20'},
+            {'id': 'task2', 'title': 'High Task', 'priority': 'high', 'due_date': '2025-09-20'},
+            {'id': 'task3', 'title': 'Medium Task', 'priority': 'medium', 'due_date': '2025-09-20'},
+            {'id': 'task4', 'title': 'Low Task', 'priority': 'low', 'due_date': '2025-09-20'},
+            {'id': 'task5', 'title': 'No Priority Task', 'priority': 'none', 'due_date': '2025-09-20'}
+        ]
+        
+        # Test multiple times to verify weighting works
+        results = []
+        for _ in range(100):
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['priority'])
+        
+        # Critical tasks should be selected most often (3.0x weight)
+        critical_count = results.count('critical')
+        high_count = results.count('high')
+        medium_count = results.count('medium')
+        low_count = results.count('low')
+        none_count = results.count('none')
+        
+        # Verify priority weighting is working (critical should be most frequent)
+        assert critical_count > medium_count
+        assert critical_count > low_count
+        assert critical_count > none_count
+        assert high_count > low_count
+        assert high_count > none_count
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_due_today_weighting_real_behavior(self, scheduler_manager):
+        """Test due date proximity weighting for tasks due today."""
+        today = datetime.now().date().strftime('%Y-%m-%d')
+        future_date = (datetime.now().date() + timedelta(days=30)).strftime('%Y-%m-%d')
+        
+        tasks = [
+            {'id': 'task1', 'title': 'Due Today', 'priority': 'medium', 'due_date': today},
+            {'id': 'task2', 'title': 'Due Later', 'priority': 'medium', 'due_date': future_date}
+        ]
+        
+        # Test multiple times to verify due today weighting
+        results = []
+        for _ in range(50):
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['title'])
+        
+        # Due today task should be selected more often (2.5x weight vs 0.8x weight)
+        due_today_count = results.count('Due Today')
+        due_later_count = results.count('Due Later')
+        
+        assert due_today_count > due_later_count
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_overdue_weighting_real_behavior(self, scheduler_manager):
+        """Test overdue task weighting with exponential increase."""
+        overdue_date = (datetime.now().date() - timedelta(days=5)).strftime('%Y-%m-%d')
+        future_date = (datetime.now().date() + timedelta(days=30)).strftime('%Y-%m-%d')
+        
+        tasks = [
+            {'id': 'task1', 'title': 'Overdue Task', 'priority': 'medium', 'due_date': overdue_date},
+            {'id': 'task2', 'title': 'Future Task', 'priority': 'medium', 'due_date': future_date}
+        ]
+        
+        # Test multiple times to verify overdue weighting
+        results = []
+        for _ in range(50):
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['title'])
+        
+        # Overdue task should be selected much more often
+        overdue_count = results.count('Overdue Task')
+        future_count = results.count('Future Task')
+        
+        assert overdue_count > future_count
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_no_due_date_weighting_real_behavior(self, scheduler_manager):
+        """Test tasks without due dates get slight reduction in weight."""
+        tasks = [
+            {'id': 'task1', 'title': 'No Due Date', 'priority': 'medium'},
+            {'id': 'task2', 'title': 'Has Due Date', 'priority': 'medium', 'due_date': '2025-09-20'}
+        ]
+        
+        # Test multiple times to verify no due date weighting
+        results = []
+        for _ in range(30):
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['title'])
+        
+        # Tasks with due dates should be slightly preferred (0.9x vs 1.0x weight)
+        no_due_count = results.count('No Due Date')
+        has_due_count = results.count('Has Due Date')
+        
+        # Should be close but due date task should have slight edge
+        assert has_due_count >= no_due_count
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_invalid_date_format_real_behavior(self, scheduler_manager):
+        """Test handling of invalid date formats gracefully."""
+        tasks = [
+            {'id': 'task1', 'title': 'Invalid Date', 'priority': 'medium', 'due_date': 'invalid-date'},
+            {'id': 'task2', 'title': 'Valid Date', 'priority': 'medium', 'due_date': '2025-09-20'}
+        ]
+        
+        # Test real behavior: should handle invalid dates gracefully
+        result = scheduler_manager.select_task_for_reminder(tasks)
+        
+        # Should return one of the tasks (not crash)
+        assert result is not None
+        assert result['id'] in ['task1', 'task2']
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_large_task_list_real_behavior(self, scheduler_manager):
+        """Test performance and correctness with large task lists."""
+        # Create 50 tasks with varying priorities and due dates
+        tasks = []
+        today = datetime.now().date()
+        
+        for i in range(50):
+            priority = ['critical', 'high', 'medium', 'low', 'none'][i % 5]
+            due_date = (today + timedelta(days=i-25)).strftime('%Y-%m-%d')  # Mix of past and future
+            
+            tasks.append({
+                'id': f'task{i}',
+                'title': f'Task {i}',
+                'priority': priority,
+                'due_date': due_date
+            })
+        
+        # Test real behavior: should handle large lists efficiently
+        result = scheduler_manager.select_task_for_reminder(tasks)
+        
+        # Should return a valid task
+        assert result is not None
+        assert result['id'].startswith('task')
+        assert result['priority'] in ['critical', 'high', 'medium', 'low', 'none']
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_zero_weights_fallback_real_behavior(self, scheduler_manager):
+        """Test fallback to random selection when all weights are zero."""
+        # Create tasks that would result in zero weights (edge case)
+        tasks = [
+            {'id': 'task1', 'title': 'Task 1', 'priority': 'invalid_priority'},
+            {'id': 'task2', 'title': 'Task 2', 'priority': 'invalid_priority'}
+        ]
+        
+        # Test real behavior: should fallback to random selection
+        result = scheduler_manager.select_task_for_reminder(tasks)
+        
+        # Should return one of the tasks (not crash)
+        assert result is not None
+        assert result['id'] in ['task1', 'task2']
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_exception_handling_real_behavior(self, scheduler_manager):
+        """Test exception handling with fallback to random selection."""
+        # Create tasks that might cause issues
+        tasks = [
+            {'id': 'task1', 'title': 'Task 1', 'priority': 'medium', 'due_date': '2025-09-20'},
+            {'id': 'task2', 'title': 'Task 2', 'priority': 'high', 'due_date': '2025-09-21'}
+        ]
+        
+        # Test real behavior: should handle exceptions gracefully
+        with patch('random.choices', side_effect=Exception("Random selection failed")):
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            
+            # Should fallback to random.choice
+            assert result is not None
+            assert result['id'] in ['task1', 'task2']
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_week_proximity_weighting_real_behavior(self, scheduler_manager):
+        """Test sliding scale weighting for tasks due within a week."""
+        today = datetime.now().date()
+        
+        tasks = [
+            {'id': 'task1', 'title': 'Due Tomorrow', 'priority': 'medium', 'due_date': (today + timedelta(days=1)).strftime('%Y-%m-%d')},
+            {'id': 'task2', 'title': 'Due in 3 Days', 'priority': 'medium', 'due_date': (today + timedelta(days=3)).strftime('%Y-%m-%d')},
+            {'id': 'task3', 'title': 'Due in 7 Days', 'priority': 'medium', 'due_date': (today + timedelta(days=7)).strftime('%Y-%m-%d')}
+        ]
+        
+        # Test multiple times to verify week proximity weighting
+        results = []
+        for _ in range(200):  # Increased sample size for more reliable results
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['title'])
+        
+        # Closer due dates should be selected more often
+        tomorrow_count = results.count('Due Tomorrow')
+        three_days_count = results.count('Due in 3 Days')
+        seven_days_count = results.count('Due in 7 Days')
+        
+        # Tomorrow should be most frequent (highest weight), 7 days should be least frequent (lowest weight)
+        # Allow some variance due to randomness but verify overall trend
+        assert tomorrow_count > seven_days_count, f"Tomorrow ({tomorrow_count}) should be more frequent than 7 days ({seven_days_count})"
+        assert three_days_count > seven_days_count, f"3 days ({three_days_count}) should be more frequent than 7 days ({seven_days_count})"
+        
+        # Verify all tasks were selected at least once (function is working)
+        assert tomorrow_count > 0
+        assert three_days_count > 0
+        assert seven_days_count > 0
+    
+    @pytest.mark.behavior
+    def test_select_task_for_reminder_month_proximity_weighting_real_behavior(self, scheduler_manager):
+        """Test sliding scale weighting for tasks due within a month."""
+        today = datetime.now().date()
+        
+        tasks = [
+            {'id': 'task1', 'title': 'Due in 8 Days', 'priority': 'medium', 'due_date': (today + timedelta(days=8)).strftime('%Y-%m-%d')},
+            {'id': 'task2', 'title': 'Due in 15 Days', 'priority': 'medium', 'due_date': (today + timedelta(days=15)).strftime('%Y-%m-%d')},
+            {'id': 'task3', 'title': 'Due in 30 Days', 'priority': 'medium', 'due_date': (today + timedelta(days=30)).strftime('%Y-%m-%d')}
+        ]
+        
+        # Test multiple times to verify month proximity weighting
+        results = []
+        for _ in range(200):  # Increased sample size for more reliable results
+            result = scheduler_manager.select_task_for_reminder(tasks)
+            results.append(result['title'])
+        
+        # Closer due dates should be selected more often within month range
+        eight_days_count = results.count('Due in 8 Days')
+        fifteen_days_count = results.count('Due in 15 Days')
+        thirty_days_count = results.count('Due in 30 Days')
+        
+        # 8 days should be more frequent than 30 days (higher weight)
+        # Allow some variance due to randomness but verify overall trend
+        assert eight_days_count > thirty_days_count, f"8 days ({eight_days_count}) should be more frequent than 30 days ({thirty_days_count})"
+        assert fifteen_days_count > thirty_days_count, f"15 days ({fifteen_days_count}) should be more frequent than 30 days ({thirty_days_count})"
+        
+        # Verify all tasks were selected at least once (function is working)
+        assert eight_days_count > 0
+        assert fifteen_days_count > 0
+        assert thirty_days_count > 0

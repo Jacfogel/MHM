@@ -990,14 +990,15 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening schedule editor: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open schedule editor: {str(e)}")
     
-    @handle_errors("sending test message")
-    def send_test_message(self):
-        """Send a test message to the selected user"""
+    def _send_test_message__validate_user_selection(self):
+        """Validate that a user is selected."""
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
-            return
-        
-        # Check if service is running
+            return False
+        return True
+    
+    def _send_test_message__validate_service_running(self):
+        """Validate that the service is running."""
         is_running, pid = self.service_manager.is_service_running()
         if not is_running:
             QMessageBox.warning(self, "Service Not Running", 
@@ -1007,18 +1008,37 @@ class MHMManagerUI(QMainWindow):
                                "2. Wait for service to initialize\n"
                                "3. Try sending the test message again\n\n"
                                "The admin panel does not create its own communication channels.")
-            return
-        
-        # Get the currently selected category from the dropdown
+            return False
+        return True
+    
+    def _send_test_message__get_selected_category(self):
+        """Get and validate the selected category from the dropdown."""
         current_index = self.ui.comboBox_user_categories.currentIndex()
         if current_index <= 0:  # No category selected or "Select a category..." is selected
             QMessageBox.warning(self, "No Category Selected", "Please select a category from the dropdown above.")
-            return
+            return None
         
-        # Get the actual category value from the combo box data
         category = self.ui.comboBox_user_categories.itemData(current_index)
         if not category:
             QMessageBox.warning(self, "Invalid Category", "Please select a valid category from the dropdown.")
+            return None
+        
+        return category
+
+    @handle_errors("sending test message")
+    def send_test_message(self):
+        """Send a test message to the selected user"""
+        # Validate user selection
+        if not self._send_test_message__validate_user_selection():
+            return
+        
+        # Validate service is running
+        if not self._send_test_message__validate_service_running():
+            return
+        
+        # Get and validate selected category
+        category = self._send_test_message__get_selected_category()
+        if not category:
             return
         
         logger.info(f"Admin Panel: Preparing test message for user {self.current_user}, category {category}")

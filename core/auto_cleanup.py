@@ -85,11 +85,10 @@ def find_pyc_files(root_path):
     return pyc_files
 
 @handle_errors("calculating cache size", default_return=0)
-def calculate_cache_size(pycache_dirs, pyc_files):
-    """Calculate total size of cache files."""
+def _calculate_cache_size__calculate_pycache_directories_size(pycache_dirs):
+    """Calculate total size of __pycache__ directories."""
     total_size = 0
     
-    # Calculate size of __pycache__ directories
     for pycache_dir in pycache_dirs:
         try:
             if os.path.exists(pycache_dir):
@@ -101,7 +100,13 @@ def calculate_cache_size(pycache_dirs, pyc_files):
         except Exception as e:
             logger.warning(f"Error calculating size for {pycache_dir}: {e}")
     
-    # Calculate size of standalone .pyc files
+    return total_size
+
+@handle_errors("calculating cache size", default_return=0)
+def _calculate_cache_size__calculate_pyc_files_size(pyc_files):
+    """Calculate total size of standalone .pyc files."""
+    total_size = 0
+    
     for pyc_file in pyc_files:
         try:
             if os.path.exists(pyc_file):
@@ -110,6 +115,17 @@ def calculate_cache_size(pycache_dirs, pyc_files):
             logger.warning(f"Error calculating size for {pyc_file}: {e}")
     
     return total_size
+
+@handle_errors("calculating cache size", default_return=0)
+def calculate_cache_size(pycache_dirs, pyc_files):
+    """Calculate total size of cache files."""
+    # Calculate size of __pycache__ directories
+    pycache_size = _calculate_cache_size__calculate_pycache_directories_size(pycache_dirs)
+    
+    # Calculate size of standalone .pyc files
+    pyc_files_size = _calculate_cache_size__calculate_pyc_files_size(pyc_files)
+    
+    return pycache_size + pyc_files_size
 
 @handle_errors("discovering cache files", default_return=([], []))
 def _perform_cleanup__discover_cache_files(root_path):
@@ -256,27 +272,50 @@ def archive_old_messages_for_all_users():
         logger.error(f"Error during message archiving: {e}")
         return False
 
+def _get_cleanup_status__get_never_cleaned_status():
+    """Get status when cleanup has never been performed."""
+    return {
+        'last_cleanup': 'Never',
+        'days_since': float('inf'),
+        'next_cleanup': 'On next startup'
+    }
+
+def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
+    """Calculate days since last cleanup."""
+    last_date = datetime.fromtimestamp(last_cleanup_timestamp)
+    days_since = (datetime.now() - last_date).days
+    return days_since, last_date
+
+def _get_cleanup_status__format_next_cleanup_date(last_date):
+    """Format the next cleanup date or return 'Overdue'."""
+    next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
+    return next_cleanup_date.strftime('%Y-%m-%d') if next_cleanup_date > datetime.now() else 'Overdue'
+
+def _get_cleanup_status__build_status_response(last_date, days_since, next_cleanup):
+    """Build the final status response dictionary."""
+    return {
+        'last_cleanup': last_date.strftime('%Y-%m-%d %H:%M:%S'),
+        'days_since': days_since,
+        'next_cleanup': next_cleanup
+    }
+
 @handle_errors("getting cleanup status", default_return={"error": "Failed to get status"})
 def get_cleanup_status():
     """Get information about the cleanup status."""
     last_cleanup_timestamp = get_last_cleanup_timestamp()
+    
+    # Handle case where cleanup has never been performed
     if last_cleanup_timestamp == 0:
-        return {
-            'last_cleanup': 'Never',
-            'days_since': float('inf'),
-            'next_cleanup': 'On next startup'
-        }
+        return _get_cleanup_status__get_never_cleaned_status()
     
-    # Convert timestamp to datetime
-    last_date = datetime.fromtimestamp(last_cleanup_timestamp)
-    days_since = (datetime.now() - last_date).days
-    next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
+    # Calculate days since cleanup and get last date
+    days_since, last_date = _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp)
     
-    return {
-        'last_cleanup': last_date.strftime('%Y-%m-%d %H:%M:%S'),
-        'days_since': days_since,
-        'next_cleanup': next_cleanup_date.strftime('%Y-%m-%d') if next_cleanup_date > datetime.now() else 'Overdue'
-    }
+    # Format next cleanup date
+    next_cleanup = _get_cleanup_status__format_next_cleanup_date(last_date)
+    
+    # Build and return status response
+    return _get_cleanup_status__build_status_response(last_date, days_since, next_cleanup)
 
 if __name__ == "__main__":
     # For testing purposes
