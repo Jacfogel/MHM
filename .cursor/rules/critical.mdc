@@ -162,5 +162,28 @@ The user has **strong preferences** about legacy and backward compatibility code
 # 3. [Step 3]
 ```
 
+**Legacy Reference Cleanup Tool Maintenance:**
+- **Tool Location**: `ai_development_tools/legacy_reference_cleanup.py`
+- **Usage**: `python ai_development_tools/ai_tools_runner.py legacy`
+- **Report**: `development_docs/LEGACY_REFERENCE_REPORT.md`
+
+**When Adding New Legacy Patterns to Tool:**
+1. **Add Specific Patterns**: Only add patterns that match actual legacy code, not broad terms
+2. **Include Replacement Mappings**: Provide automated cleanup suggestions
+3. **Test for False Positives**: Ensure patterns don't match legitimate code
+4. **Document in Tool**: Update the tool's docstring with new patterns
+5. **Update Tool When Legacy Code Identified**: Add new patterns as legacy code is discovered
+
+**Current Tool Patterns:**
+- Old bot/ directory references: `bot/`, `from bot.`, `import bot.`
+- Deprecated functions: `get_last_10_messages(`, `channel_registry`, `LegacyChannelWrapper`
+- Legacy compatibility markers: `# LEGACY COMPATIBILITY:`, `LEGACY COMPATIBILITY:`
+
+**Tool Maintenance Requirements:**
+- **Weekly**: Run legacy reference cleanup tool
+- **When Adding Legacy Code**: Add patterns to the tool
+- **During Code Review**: Check for proper legacy code documentation
+- **Monthly**: Review legacy code usage and plan removals
+
 **TESTING**: If you can see this rule, please confirm by saying "I can see the critical.mdc rule"
 

@@ -29,6 +29,33 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-17 - Legacy Code Cleanup, Modernization, and Test Warning Fixes ✅ **COMPLETED**
+- **Legacy Code Reduction**: Removed redundant `enabled_features` and `channel` field preservation code from `core/user_data_handlers.py`
+- **Function Removal**: Removed unused `store_checkin_response()` function and updated all import statements
+- **Nested Flags Detection**: Removed never-triggered nested 'enabled' flags detection from preferences
+- **Schedule Utility Modernization**: Removed legacy `_get_active_schedules()` methods and updated tests to use modern `core.schedule_utilities.get_active_schedules()`
+- **Email Preservation Modernization**: Moved email field preservation from legacy function to main data handling logic
+- **Incorrect Comments**: Removed incorrect comment about `get_user_data` being legacy in `tasks/task_management.py`
+- **Channel Method Cleanup**: Removed unused legacy `get_available_channels()` and `is_channel_ready()` methods from CommunicationManager
+- **Discord Bot Legacy Removal**: Removed legacy `start()`, `stop()`, and `is_initialized()` methods from Discord bot
+- **Email Bot Legacy Removal**: Removed legacy `start()`, `stop()`, and `is_initialized()` methods from Email bot
+- **Communication Manager Update**: Updated to use `shutdown()` instead of `stop()` for channel cleanup
+- **Test Migration**: Updated Discord and Email bot tests to use modern async methods
+- **Tool Enhancement**: Excluded .md files from legacy reference cleanup tool search
+- **User Data Modernization**: Confirmed all 3 real users already use modern `features` object structure
+- **Discord Warning Fixes**: Enhanced warning suppression for Discord.py deprecation warnings and aiohttp session cleanup
+- **Test Cleanup Improvements**: Added proper aiohttp session cleanup and improved Discord bot test fixtures
+- **Testing**: All tests pass, reduced legacy compatibility markers from 9 to 2 files (78% reduction)
+- **Impact**: Major legacy code reduction, improved code clarity, cleaner test output, maintained full backward compatibility
+
+### 2025-09-17 - Legacy Reference Cleanup Tool Enhancement and Legacy Function Removal ✅ **COMPLETED**
+- Enhanced legacy reference cleanup tool with specific patterns for deprecated functions and legacy compatibility markers
+- Removed unused `get_last_10_messages()` function that had no callers in the codebase
+- Added detection for actual legacy function calls (`_get_question_text_legacy`, `_validate_response_legacy`) from LEGACY COMPATIBILITY comments
+- Refined patterns to eliminate false positives (156 → 16 files with actual legacy code)
+- Integrated tool maintenance requirements into existing legacy code standards in critical.mdc
+- **Impact**: Tool now provides actionable results and successfully identified removable legacy code
+
 ### 2025-09-17 - Test Artifact Cleanup and Fixture Fixes ✅ **COMPLETED**
 - **Test Artifact Cleanup**: Removed leftover `.test_tracker` file and test user directories (`test-debug-user`, `test-user-2`) from real data directory
 - **Fixture Fix**: Fixed `mock_user_data` fixture in `tests/conftest.py` to use `test_data_dir` instead of real user directory, preventing test pollution

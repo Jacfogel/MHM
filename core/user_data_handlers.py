@@ -477,66 +477,10 @@ def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[st
     return invalid_types, result
 
 
-def _save_user_data__legacy_account(updated: Dict[str, Any], updates: Dict[str, Any]) -> None:
-    """Handle legacy account field compatibility."""
-    # LEGACY COMPATIBILITY: Preserve legacy account fields
-    # TODO: Remove after callers no longer write 'channel' or 'enabled_features' into account.json
-    # REMOVAL PLAN:
-    # 1. Log warnings whenever legacy fields are used (below)
-    # 2. Add metrics to track frequency over 2 weeks
-    # 3. Remove preservation and update tests/callers accordingly
-    # NOTE: Channel data lives in preferences.json; enabled feature flags live under account.features
-    # This block preserves backward compatibility only.
-    if "channel" in updates:
-        updated["channel"] = updates["channel"]
-        try:
-            logger.warning(
-                "LEGACY COMPATIBILITY: 'account.channel' was provided and preserved. Move channel to preferences.channel."
-            )
-        except Exception:
-            pass
-    
-    if "enabled_features" in updates:
-        updated["enabled_features"] = updates["enabled_features"]
-        try:
-            logger.warning(
-                "LEGACY COMPATIBILITY: 'account.enabled_features' was provided and preserved. Use account.features subkeys instead."
-            )
-        except Exception:
-            pass
-    # Preserve top-level email if provided by legacy callers
-    if "email" in updates and not updated.get("email"):
-        updated["email"] = updates["email"]
-        try:
-            logger.warning(
-                "LEGACY COMPATIBILITY: 'account.email' was provided and preserved for backward compatibility."
-            )
-        except Exception:
-            pass
 
 
 def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
     """Handle legacy preferences compatibility and cleanup."""
-    # LEGACY COMPATIBILITY: Detect nested 'enabled' flags in preferences and warn.
-    # TODO: Remove after all callers stop writing nested enabled flags
-    # REMOVAL PLAN:
-    # 1. Log a one-time warning when these fields are detected
-    # 2. Track usage via logs/metrics for 2 weeks
-    # 3. Start stripping in a future release and update tests/callers
-    try:
-        has_enabled = (
-            isinstance(updated.get("task_settings"), dict) and "enabled" in updated["task_settings"]
-        ) or (
-            isinstance(updated.get("checkin_settings"), dict) and "enabled" in updated["checkin_settings"]
-        )
-        if has_enabled and not globals().get("_warned_enabled_flags_present", False):
-            logger.warning(
-                "LEGACY COMPATIBILITY: Found nested 'enabled' flags under preferences. "
-                "These will be deprecated; prefer account.features."
-            )
-            globals()["_warned_enabled_flags_present"] = True
-    except Exception:
-        pass
     
     # If corresponding features are disabled, remove entire settings blocks only for "full" updates
     # (heuristic: presence of 'categories' implies a full preferences payload). Partial updates preserve blocks.
@@ -631,7 +575,9 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
         
         # Handle legacy compatibility
         if dt == "account":
-            _save_user_data__legacy_account(updated, updates)
+            # Preserve email field if provided in updates but not already in updated data
+            if "email" in updates and not updated.get("email"):
+                updated["email"] = updates["email"]
         elif dt == "preferences":
             _save_user_data__legacy_preferences(updated, updates, user_id)
         
@@ -944,14 +890,8 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                     feats = dict(acct.get('features', {})) if isinstance(acct, dict) else {}
                     if new_categories and feats.get('automated_messages') != 'enabled':
                         feats['automated_messages'] = 'enabled'
-                        # Update account with enabled feature and mirror to legacy index-compatible field
+                        # Update account with enabled feature
                         _ = update_user_account(user_id, {'features': feats})
-                        try:
-                            # LEGACY COMPATIBILITY: keep enabled_features in account for index readers
-                            enabled_features = sorted([k for k, v in feats.items() if v == 'enabled'])
-                            _ = update_user_account(user_id, {'enabled_features': enabled_features})
-                        except Exception:
-                            pass
                 except Exception:
                     pass
         except Exception as err:

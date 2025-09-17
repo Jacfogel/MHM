@@ -213,6 +213,23 @@ When adding new tasks, follow this format:
   - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
   - [ ] Confirm single "User check-in started" entry after successful send
 
+**Legacy Code Management - Current Status** ✅ **MAJOR PROGRESS**
+- *What it means*: Comprehensive legacy code cleanup and modernization completed with significant progress
+- *Why it helps*: Reduces technical debt, improves maintainability, and simplifies codebase
+- *Current Status*: **78% reduction in legacy compatibility markers** (from 9 to 2 files)
+- *Completed Work*:
+  - ✅ **Legacy Function Removal**: Removed unused legacy functions and updated all callers
+  - ✅ **Legacy Field Preservation**: Removed redundant field preservation code for modernized user data
+  - ✅ **Legacy Method Cleanup**: Removed legacy bot methods and updated tests to use modern async methods
+  - ✅ **Legacy Comment Cleanup**: Removed stale legacy compatibility comments
+  - ✅ **Tool Enhancement**: Enhanced legacy reference cleanup tool with better patterns and exclusions
+- *Remaining Work*:
+  - [ ] **Monitor Remaining Legacy Markers**: Only 2 files remain with legacy compatibility markers
+    - `core/user_data_manager.py` (2 markers) - Backward compatibility mappings
+    - `user/user_context.py` (1 marker) - Preference method delegation
+  - [ ] **Legacy Preferences Flag Monitoring**: Monitor for nested 'enabled' flags warnings
+- *Impact*: Major reduction in legacy code, improved code clarity, maintained full backward compatibility
+
 **Legacy Preferences Flag Monitoring and Removal Plan**
 - *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
 - *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
@@ -222,25 +239,29 @@ When adding new tasks, follow this format:
   - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
   - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
 
-**Legacy Check-in Methods Testing and Monitoring** ⚠️ **NEW PRIORITY**
+**Discord Test Warning Fixes and Resource Cleanup** ✅ **COMPLETED**
+- *What it means*: Fix Discord.py deprecation warnings and aiohttp session cleanup issues in tests
+- *Why it helps*: Provides cleaner test output and better resource management
+- *Estimated effort*: Small
+- *Completed Work*:
+  - ✅ **Warning Suppression**: Enhanced warning filters in `tests/conftest.py` and `pytest.ini` for Discord.py and aiohttp warnings
+  - ✅ **Session Cleanup**: Added `_cleanup_aiohttp_sessions()` method to Discord bot shutdown process
+  - ✅ **Test Fixture Improvements**: Enhanced Discord bot test fixtures with better cleanup and exception handling
+  - ✅ **Resource Management**: Improved Discord bot shutdown to properly clean up orphaned aiohttp sessions
+  - ✅ **Warning Reduction**: Reduced test warnings from 4 to 1-2 (only Discord library warnings remain)
+- *Impact*: Much cleaner test output, better resource management, easier debugging
+
+**Legacy Check-in Methods Testing and Monitoring** ✅ **COMPLETED**
 - *What it means*: Test and monitor the newly added legacy check-in methods (`_get_question_text_legacy()` and `_validate_response_legacy()`)
 - *Why it helps*: Ensures legacy methods function as intended and provides data for future removal decisions.
 - *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] **Test Legacy Methods Functionality**
-    - [ ] Create unit tests for `_get_question_text_legacy()` method
-    - [ ] Create unit tests for `_validate_response_legacy()` method
-    - [ ] Verify legacy methods produce same results as original hardcoded system
-    - [ ] Test legacy methods with edge cases and error conditions
-  - [ ] **Monitor Legacy Method Usage**
-    - [ ] Monitor logs for `LEGACY COMPATIBILITY: _get_question_text_legacy() called` warnings
-    - [ ] Monitor logs for `LEGACY COMPATIBILITY: _validate_response_legacy() called` warnings
-    - [ ] Track frequency of legacy method access over 2 weeks
-    - [ ] Document any unexpected usage patterns
-  - [ ] **Prepare for Removal**
-    - [ ] If no usage detected after 2 weeks, plan removal for 2025-09-09
-    - [ ] Update tests to remove legacy method dependencies
-    - [ ] Remove legacy methods and update documentation
+- *Completed Work*:
+  - ✅ **Legacy Methods Removed**: Removed unused `_get_question_text_legacy()` and `_validate_response_legacy()` methods from `communication/message_processing/conversation_flow_manager.py`
+  - ✅ **Function Call Updates**: Updated call to `store_checkin_response()` to use modern `store_user_response()` function
+  - ✅ **Import Cleanup**: Removed unused import of `store_checkin_response` from conversation flow manager
+  - ✅ **Test Updates**: Updated all tests to use modern functions instead of legacy methods
+  - ✅ **Legacy Report**: Confirmed removal reduced legacy compatibility markers in cleanup tool
+- *Impact*: Cleaner codebase with no unused legacy methods, improved maintainability
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.

@@ -29,9 +29,16 @@ class TestDiscordBotBehavior:
         """Create a Discord bot instance for testing"""
         bot = DiscordBot()
         yield bot
-        # Cleanup
-        if bot.bot:
-            asyncio.run(bot.shutdown())
+        # Cleanup - ensure proper shutdown
+        try:
+            if bot.bot:
+                asyncio.run(bot.shutdown())
+            # Clean up any remaining tasks
+            if hasattr(bot, 'discord_thread') and bot.discord_thread and bot.discord_thread.is_alive():
+                bot.discord_thread.join(timeout=5)
+        except Exception:
+            # Ignore cleanup errors in tests
+            pass
 
     @pytest.fixture
     def mock_discord_bot(self):
@@ -477,12 +484,12 @@ class TestDiscordBotBehavior:
         bot = DiscordBot()
         
         # Test when not initialized
-        assert not bot.is_initialized(), "Should not be initialized initially"
+        assert bot.get_status() != ChannelStatus.READY, "Should not be ready initially"
         
         # Test when initialized
         bot.bot = mock_discord_bot
         bot._set_status(ChannelStatus.READY)
-        assert bot.is_initialized(), "Should be initialized after setup"
+        assert bot.get_status() == ChannelStatus.READY, "Should be ready after setup"
 
     @pytest.mark.channels
     @pytest.mark.regression

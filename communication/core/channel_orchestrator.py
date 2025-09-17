@@ -765,8 +765,10 @@ class CommunicationManager:
         # Stop all channels
         for name, channel in self._channels_dict.items():
             try:
-                if hasattr(channel, 'stop'):
-                    channel.stop()
+                if hasattr(channel, 'shutdown'):
+                    asyncio.run(channel.shutdown())
+                elif hasattr(channel, 'stop'):
+                    channel.stop()  # Fallback for any remaining legacy channels
                 logger.debug(f"Channel {name} stopped")
             except Exception as e:
                 logger.error(f"Error stopping channel {name}: {e}")
@@ -1000,7 +1002,7 @@ class CommunicationManager:
                 current_time_period = matching_periods[0] if matching_periods else None
                 store_sent_message(user_id, category, message_id, message_to_send, time_period=current_time_period)
                 # Enhanced logging with message content
-                message_preview = message[:50] + "..." if len(message) > 50 else message
+                message_preview = message_to_send[:50] + "..." if len(message_to_send) > 50 else message_to_send
                 logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category} | Content: '{message_preview}'")
             else:
                 logger.error(f"Failed to send AI-generated message for user {user_id}")
@@ -1100,34 +1102,6 @@ class CommunicationManager:
         except Exception as e:
             logger.error(f"Error in predefined message handling for user {user_id}, category {category}: {e}")
 
-    # LEGACY COMPATIBILITY: Methods for backward compatibility
-    # TODO: Remove after all callers are updated to use new channel management
-    # REMOVAL PLAN:
-    # 1. Update all callers to use new channel management methods
-    # 2. Remove these legacy methods
-    # 3. Monitor for any remaining usage
-    # USAGE TRACKING: Monitor for calls to get_available_channels() and is_channel_ready()
-    def get_available_channels(self) -> List[str]:
-        """Get list of available/initialized channels"""
-        logger.warning("LEGACY COMPATIBILITY: CommunicationManager.get_available_channels() called - use get_active_channels() instead")
-        return list(self._channels_dict.keys())
-
-    def is_channel_ready(self, channel_name: str) -> bool:
-        """Check if a specific channel is ready"""
-        logger.warning("LEGACY COMPATIBILITY: CommunicationManager.is_channel_ready() called - use get_channel_status() instead")
-        channel = self._channels_dict.get(channel_name)
-        if not channel:
-            return False
-        
-        try:
-            # Special handling for Discord bot - check if it can actually send messages
-            if channel_name == 'discord' and hasattr(channel, 'can_send_messages'):
-                return channel.can_send_messages()
-            
-            return channel.is_ready()
-        except Exception as e:
-            logger.error(f"Error checking if channel {channel_name} is ready: {e}")
-            return False
 
     # NEW METHODS: More specific channel management methods
     def get_active_channels(self) -> List[str]:

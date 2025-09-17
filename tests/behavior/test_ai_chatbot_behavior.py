@@ -356,7 +356,7 @@ class TestAIChatBotBehavior:
         assert success, "Test user should be created successfully"
         
         # Get user context
-        context = context_manager.get_user_context(user_id, include_conversation_history=True)
+        context = context_manager.get_ai_context(user_id, include_conversation_history=True)
         
         # Verify context is generated
         assert isinstance(context, dict), "User context should be a dictionary"

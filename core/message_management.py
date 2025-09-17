@@ -531,19 +531,6 @@ def _parse_timestamp(timestamp_str: str) -> datetime:
     # If no format matches, return min timestamp
     return datetime.min.replace(tzinfo=timezone.utc)
 
-# LEGACY COMPATIBILITY: get_last_10_messages function - now redirects to get_recent_messages
-def get_last_10_messages(user_id: str, category: str) -> List[Dict[str, Any]]:
-    """
-    LEGACY COMPATIBILITY: Redirects to get_recent_messages for backward compatibility.
-    
-    TODO: Remove after all callers are updated to use get_recent_messages
-    REMOVAL PLAN:
-    1. Update all callers to use get_recent_messages
-    2. Remove this function
-    3. Monitor for any remaining references
-    """
-    logger.warning(f"LEGACY COMPATIBILITY: get_last_10_messages called for user {user_id}, category {category}. Please update to use get_recent_messages.")
-    return get_recent_messages(user_id, category=category, limit=10) 
 
 @handle_errors("creating message file from defaults")
 def create_message_file_from_defaults(user_id: str, category: str) -> bool:

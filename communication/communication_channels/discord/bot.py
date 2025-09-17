@@ -299,6 +299,34 @@ class DiscordBot(BaseChannel):
             logger.error(f"Error during event loop cleanup: {e}")
             return False
 
+    async def _cleanup_aiohttp_sessions(self) -> bool:
+        """Clean up any remaining aiohttp sessions to prevent warnings"""
+        try:
+            # Get current event loop
+            loop = asyncio.get_running_loop()
+            
+            # Find and close any aiohttp sessions
+            import gc
+            import aiohttp
+            
+            # Force garbage collection to find any orphaned sessions
+            gc.collect()
+            
+            # Look for aiohttp ClientSession objects in memory
+            for obj in gc.get_objects():
+                if isinstance(obj, aiohttp.ClientSession) and not obj.closed:
+                    try:
+                        await obj.close()
+                        logger.debug("Closed orphaned aiohttp session")
+                    except Exception as e:
+                        logger.debug(f"Error closing aiohttp session: {e}")
+            
+            return True
+            
+        except Exception as e:
+            logger.debug(f"Error during aiohttp session cleanup: {e}")
+            return False
+
     def _get_detailed_connection_status(self) -> Dict[str, Any]:
         """Get detailed connection status information"""
         status_info = {
@@ -860,6 +888,9 @@ class DiscordBot(BaseChannel):
                     # Clean up the event loop if it exists
                     if hasattr(self, '_loop') and self._loop:
                         await self._cleanup_event_loop_safely(self._loop)
+                    
+                    # Additional cleanup for aiohttp sessions
+                    await self._cleanup_aiohttp_sessions()
                         
                 except Exception as e:
                     logger.error(f"Error during Discord bot shutdown: {e}")
@@ -1285,74 +1316,6 @@ class DiscordBot(BaseChannel):
             logger.error(f"Manual reconnection failed: {e}")
             return False
 
-    # LEGACY COMPATIBILITY: Synchronous interface for testing and backward compatibility
-# TODO: Remove after migrating all tests to use async initialize() method
-# REMOVAL PLAN:
-# 1. Update behavior tests to use async initialize() instead of start()
-# 2. Update communication manager to use shutdown() instead of stop()
-# 3. Monitor usage for 1 week after migration
-# 4. Remove legacy methods if no usage detected
-# USAGE TRACKING: Monitor for calls to start() and stop() methods
-    # TODO: Remove after migrating all tests to use async initialize() method
-    # REMOVAL PLAN:
-    # 1. Update behavior tests to use async initialize() instead of start()
-    # 2. Update communication manager to use shutdown() instead of stop()
-    # 3. Monitor usage for 1 week after migration
-    # 4. Remove legacy methods if no usage detected
-    @handle_errors("starting Discord bot")
-    def start(self):
-        """
-        Legacy start method for backward compatibility.
-        
-        Initializes the Discord bot if not already running.
-        This method is maintained for testing infrastructure compatibility.
-        """
-        if not self.is_initialized():
-            logger.info("Starting Discord bot...")
-            asyncio.run(self.initialize())
-        else:
-            logger.info("Discord bot already running")
-
-    @handle_errors("stopping Discord bot")
-    def stop(self):
-        """
-        Legacy stop method for backward compatibility - thread-safe.
-        
-        Stops the Discord bot and cleans up resources.
-        This method is maintained for communication manager compatibility.
-        """
-        logger.info("Stopping Discord bot...")
-        
-        # Send stop command to Discord thread
-        try:
-            self._command_queue.put(("stop", None))
-        except Exception as e:
-            logger.warning(f"Error sending stop command: {e}")
-        
-        # Wait for thread to finish
-        if self.discord_thread and self.discord_thread.is_alive():
-            self.discord_thread.join(timeout=10)
-            if self.discord_thread.is_alive():
-                logger.warning("Discord thread did not stop gracefully")
-        
-        # Stop the bot
-        if self.bot:
-            try:
-                asyncio.run(self.shutdown())
-            except Exception as e:
-                logger.error(f"Error during Discord bot shutdown: {e}")
-        
-        logger.info("Discord bot stopped")
-
-    def is_initialized(self):
-        """
-        Legacy method for backward compatibility.
-        
-        Returns:
-            bool: True if the Discord bot is initialized and ready
-        This method is maintained for testing infrastructure compatibility.
-        """
-        return self.get_status() == ChannelStatus.READY
 
     # Keep the existing send_dm method for specific Discord functionality
     @handle_errors("sending Discord DM", default_return=False)

@@ -20,19 +20,6 @@ from core.error_handling import (
 logger = get_component_logger('user_activity')
 tracking_logger = get_component_logger('user_activity')
 
-# LEGACY COMPATIBILITY: Backward-compatible aliases for renamed functions
-# TODO: Remove after tests and codebase have been migrated to new names
-# REMOVAL PLAN:
-# 1. Log all legacy calls to identify remaining call sites
-# 2. Update imports in remaining modules/tests
-# 3. Remove these aliases after 2 weeks of no usage
-
-
-
-@handle_errors("legacy store_checkin_response")
-def store_checkin_response(user_id: str, response_data: dict):
-    logger.warning("LEGACY COMPATIBILITY: store_checkin_response() called; use store_user_response() instead")
-    return store_user_response(user_id, response_data, "checkin")
 
 def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""
@@ -69,10 +56,6 @@ def store_user_response(user_id: str, response_data: dict, response_type: str = 
     save_json_data(existing_data, log_file)
     logger.debug(f"Stored {response_type} response for user {user_id}")
 
-@handle_errors("storing checkin response")
-def store_checkin_response(user_id: str, response_data: dict):
-    """Store a check-in response."""
-    store_user_response(user_id, response_data, "checkin")
 
 @handle_errors("storing chat interaction")
 def store_chat_interaction(user_id: str, user_message: str, ai_response: str, context_used: bool = False):
@@ -193,9 +176,7 @@ def track_user_response(user_id: str, category: str, response_data: Dict[str, An
         
         # Store the response data based on category
         if category == "checkin":
-            store_checkin_response(user_id, response_data)
-        elif category == "checkin":  # LEGACY category name used by some tests
-            store_checkin_response(user_id, response_data)
+            store_user_response(user_id, response_data, "checkin")
         elif category == "chat_interaction":
             # For chat interactions, we need user_message and ai_response
             user_message = response_data.get('user_message', '')

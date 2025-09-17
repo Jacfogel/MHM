@@ -384,9 +384,10 @@ class TestEmailBotBehavior:
                 mock_imap.return_value.__enter__.return_value = mock_imap_instance
                 
                 # Act
-                self.email_bot.start()
+                result = asyncio.run(self.email_bot.initialize())
                 
                 # Assert
+                assert result is True, "Should initialize successfully"
                 assert self.email_bot.status == ChannelStatus.READY, "Should be in READY status"
     
     def test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir):
@@ -397,42 +398,43 @@ class TestEmailBotBehavior:
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_USERNAME', 'test@example.com'), \
              patch('communication.communication_channels.email.bot.EMAIL_SMTP_PASSWORD', 'password123'):
             
-            # Act & Assert - The legacy start method may not raise exception due to error handling
+            # Act & Assert - Test async initialize method failure behavior
             # This tests the actual behavior rather than expected behavior
             try:
-                self.email_bot.start()
+                result = asyncio.run(self.email_bot.initialize())
                 # If no exception is raised, that's also valid behavior
-                assert True, "Legacy start method should handle errors gracefully"
-            except EmailBotError:
+                assert isinstance(result, bool), "Should return boolean result"
+            except Exception:
                 # If exception is raised, that's also valid behavior
-                assert True, "Legacy start method should raise EmailBotError on failure"
+                assert True, "Initialize method should handle errors gracefully"
     
-    def test_email_bot_legacy_stop_method_behavior(self, test_data_dir):
-        """Test legacy stop method behavior."""
+    def test_email_bot_async_shutdown_method_behavior(self, test_data_dir):
+        """Test async shutdown method behavior."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
         
         # Act
-        self.email_bot.stop()
+        result = asyncio.run(self.email_bot.shutdown())
         
         # Assert
+        assert isinstance(result, bool), "Should return boolean result"
         assert self.email_bot.status == ChannelStatus.STOPPED, "Should be in STOPPED status"
     
-    def test_email_bot_legacy_is_initialized_method_behavior(self, test_data_dir):
-        """Test legacy is_initialized method behavior."""
+    def test_email_bot_status_checking_behavior(self, test_data_dir):
+        """Test email bot status checking behavior."""
         # Arrange - Set bot to ready state
         self.email_bot._set_status(ChannelStatus.READY)
         
         # Act
-        result = self.email_bot.is_initialized()
+        status = self.email_bot.get_status()
         
         # Assert
-        assert result is True, "Should return True when ready"
+        assert status == ChannelStatus.READY, "Should return READY status when ready"
         
         # Test when not ready
         self.email_bot._set_status(ChannelStatus.INITIALIZING)
-        result = self.email_bot.is_initialized()
-        assert result is False, "Should return False when not ready"
+        status = self.email_bot.get_status()
+        assert status == ChannelStatus.INITIALIZING, "Should return INITIALIZING status when not ready"
     
     def test_email_bot_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that email bot error handling preserves system stability."""

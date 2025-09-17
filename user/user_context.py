@@ -239,27 +239,6 @@ class UserContext:
         else:
             logger.warning("UserPreferences not initialized - cannot update preference")
 
-    # LEGACY COMPATIBILITY: Now uses shared schedule utility
-    # TODO: Remove after all callers are updated to use core.schedule_utilities directly
-    # REMOVAL PLAN:
-    # 1. Update all callers to use core.schedule_utilities.get_active_schedules directly
-    # 2. Remove this method
-    # 3. Remove the import when no longer needed
-    
-    @handle_errors("getting active schedules")
-    def _get_active_schedules(self, schedules):
-        """
-        Get list of currently active schedule periods.
-        
-        Args:
-            schedules: Dictionary containing schedule periods
-            
-        Returns:
-            list: List of active schedule period names
-        """
-        logger.warning("LEGACY COMPATIBILITY: UserContext._get_active_schedules() called - use core.schedule_utilities.get_active_schedules() directly")
-        from core.schedule_utilities import get_active_schedules
-        return get_active_schedules(schedules)
 
     @handle_errors("getting instance context")
     def get_instance_context(self):
@@ -296,13 +275,3 @@ class UserContext:
         
         return context
     
-    # LEGACY COMPATIBILITY: Alias for backward compatibility
-    # TODO: Remove after all callers are updated to use get_instance_context
-    # REMOVAL PLAN:
-    # 1. Update all callers to use get_instance_context
-    # 2. Remove this alias method
-    
-    def get_user_context(self):
-        """Legacy alias for get_instance_context - use get_instance_context instead."""
-        logger.warning("LEGACY COMPATIBILITY: UserContext.get_user_context() called - use get_instance_context() instead")
-        return self.get_instance_context()

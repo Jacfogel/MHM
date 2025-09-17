@@ -40,6 +40,10 @@ warnings.filterwarnings("ignore", message=".*timeout.*", category=DeprecationWar
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.player")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="discord.http")
 
+# Suppress aiohttp client session warnings
+warnings.filterwarnings("ignore", message=".*Unclosed client session.*", category=ResourceWarning)
+warnings.filterwarnings("ignore", message=".*Task was destroyed but it is pending.*", category=RuntimeWarning)
+
 # Note: Do not override BASE_DATA_DIR/USER_INFO_DIR_PATH via environment here,
 # as some unit tests assert the library defaults. Session fixtures below
 # patch core.config attributes to isolate user data under tests/data/users.

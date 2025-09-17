@@ -110,7 +110,7 @@ class TestUserContextManagerBehavior:
             mock_get_messages.return_value = [{'id': 'msg1', 'content': 'test message'}]
             
             # Act
-            result = manager.get_user_context(test_user_id)
+            result = manager.get_ai_context(test_user_id)
             
             # Assert - Verify complete structure creation
             assert 'user_profile' in result, "Should have user_profile"
@@ -139,7 +139,7 @@ class TestUserContextManagerBehavior:
             }.get(data_type, {})
             
             # Act
-            result = manager.get_user_context(test_user_id, include_conversation_history=False)
+            result = manager.get_ai_context(test_user_id, include_conversation_history=False)
             
             # Assert - Verify conversation history is excluded
             assert 'conversation_history' in result, "Should have conversation_history key"
@@ -366,9 +366,9 @@ class TestUserContextManagerBehavior:
     @pytest.mark.critical
     @pytest.mark.regression
     def test_get_active_schedules_identifies_active_periods(self, test_data_dir):
-        """Test that _get_active_schedules identifies actually active schedule periods."""
+        """Test that get_active_schedules identifies actually active schedule periods."""
         # Arrange
-        manager = UserContextManager()
+        from core.schedule_utilities import get_active_schedules
         
         # Test schedules with active and inactive periods (actual format)
         test_schedules = {
@@ -393,7 +393,7 @@ class TestUserContextManagerBehavior:
         }
         
         # Act
-        active_schedules = manager._get_active_schedules(test_schedules)
+        active_schedules = get_active_schedules(test_schedules)
         
         # Assert - Verify active period identification
         assert len(active_schedules) == 2, "Should identify 2 active periods"
@@ -484,7 +484,7 @@ class TestUserContextManagerBehavior:
             mock_get_user_data.side_effect = Exception("Test error")
             
             # Act - Should not raise exception due to error handling
-            result = manager.get_user_context(test_user_id)
+            result = manager.get_ai_context(test_user_id)
             
             # Assert - Verify graceful error handling
             assert result is not None, "Should return result even with errors"
@@ -518,7 +518,7 @@ class TestUserContextManagerBehavior:
             mock_get_interactions.return_value = [{'user_message': 'Hello', 'ai_response': 'Hi there!'}]
             
             # Act
-            context = manager.get_user_context(test_user_id)
+            context = manager.get_ai_context(test_user_id)
             formatted_context = manager.format_context_for_ai(context)
             
             # Assert - Verify AI integration
@@ -558,7 +558,7 @@ class TestUserContextManagerBehavior:
             mock_get_messages.return_value = []
             
             # Act
-            context = manager.get_user_context(test_user_id)
+            context = manager.get_ai_context(test_user_id)
             
             # Assert - Verify performance under load
             assert context is not None, "Should return context under load"
@@ -633,7 +633,7 @@ class TestUserContextManagerIntegration:
             mock_get_active_schedules.return_value = []
             
             # Act
-            context = manager.get_user_context(test_user_id)
+            context = manager.get_ai_context(test_user_id)
             
             # Assert - Verify real data integration
             assert context is not None, "Should return context with real data"
@@ -656,7 +656,7 @@ class TestUserContextManagerIntegration:
             f.write("invalid json content")
         
         # Act - Should handle corrupted files gracefully
-        context = manager.get_user_context(test_user_id)
+        context = manager.get_ai_context(test_user_id)
         
         # Assert - Verify error recovery
         assert context is not None, "Should return context even with corrupted files"
@@ -675,7 +675,7 @@ class TestUserContextManagerIntegration:
         # For now, we'll test that the manager can handle rapid successive calls
         for i in range(10):
             manager.add_conversation_exchange(test_user_id, f"Concurrent message {i}", f"Concurrent response {i}")
-            context = manager.get_user_context(test_user_id)
+            context = manager.get_ai_context(test_user_id)
         
         # Assert - Verify concurrent access safety
         assert test_user_id in manager.conversation_history, "User should still be in conversation history"

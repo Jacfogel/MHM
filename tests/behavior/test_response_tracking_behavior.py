@@ -11,7 +11,6 @@ from unittest.mock import patch, MagicMock
 from core.user_data_handlers import get_user_data
 from core.response_tracking import (
     store_user_response,
-    store_checkin_response,
     store_chat_interaction,
     get_recent_responses,
     get_recent_checkins,
@@ -78,32 +77,6 @@ class TestResponseTrackingBehavior:
         assert len(data) == 2, "Should have two response entries"
         assert data[0]["mood"] == 3, "First response should be stored"
         assert data[1]["mood"] == 7, "Second response should be stored"
-    
-    @pytest.mark.behavior
-    @pytest.mark.analytics
-    @pytest.mark.file_io
-    @pytest.mark.critical
-    @pytest.mark.regression
-    def test_store_checkin_response_uses_correct_file(self, test_data_dir):
-        """Test that checkin responses are stored in the correct file."""
-        user_id = "test-user-checkin"
-        response_data = {"mood": 6, "sleep": 8, "stress": 3}
-        
-        # Arrange - Mock file path to use test directory
-        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
-        
-        # Act - Store checkin with mocked file path
-        with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
-            store_checkin_response(user_id, response_data)
-        
-        # Assert - Verify correct file was used
-        assert os.path.exists(checkins_file), "checkins file should be created"
-        
-        with open(checkins_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        assert len(data) == 1, "Should have one checkin entry"
-        assert data[0]["mood"] == 6, "Checkin data should be stored correctly"
     
     @pytest.mark.behavior
     @pytest.mark.analytics
@@ -387,11 +360,11 @@ class TestResponseTrackingBehavior:
         # Act - Track checkin response
         with patch('core.response_tracking.get_user_data') as mock_get_user_data:
             mock_get_user_data.return_value = {"account": test_account}
-            with patch('core.response_tracking.store_checkin_response') as mock_store:
+            with patch('core.response_tracking.store_user_response') as mock_store:
                 track_user_response(user_id, "checkin", {"mood": 6, "energy": 7})
         
         # Assert - Verify checkin was stored
-        mock_store.assert_called_once_with(user_id, {"mood": 6, "energy": 7})
+        mock_store.assert_called_once_with(user_id, {"mood": 6, "energy": 7}, "checkin")
     
     @pytest.mark.analytics
     @pytest.mark.file_io
@@ -571,7 +544,8 @@ class TestResponseTrackingIntegration:
                 
                 # 3. Store a checkin response
                 if enabled:
-                    store_checkin_response(user_id, {"mood": 6, "energy": 7})
+                    from core.response_tracking import store_user_response
+                    store_user_response(user_id, {"mood": 6, "energy": 7}, "checkin")
                 
                 # 4. Get recent checkins
                 recent = get_recent_checkins(user_id, limit=1)

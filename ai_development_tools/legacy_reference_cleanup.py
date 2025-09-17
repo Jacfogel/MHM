@@ -6,10 +6,21 @@ This script identifies and helps clean up legacy references to:
 - Old bot/ directory (now communication/)
 - Outdated import paths
 - Historical references in changelogs and archives
-- Other deprecated code paths
+- Deprecated functions and classes
+- Legacy compatibility markers
 
 Usage:
     python ai_tools/legacy_reference_cleanup.py [--scan] [--clean] [--dry-run]
+
+LEGACY CODE STANDARDS COMPLIANCE:
+This tool is part of the mandatory legacy code management system. When adding new
+legacy patterns, follow these requirements:
+1. Add specific patterns (not broad matches like "bot" or "legacy")
+2. Include replacement mappings for automated cleanup
+3. Test patterns to ensure they don't create false positives
+4. Document new patterns in this file's docstring
+5. Update the tool when new legacy code is identified
+6. See .cursor/rules/critical.mdc for complete legacy code standards
 """
 
 import os
@@ -29,18 +40,20 @@ class LegacyReferenceCleanup:
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
         
-        # Legacy patterns to identify
+        # Legacy patterns to identify - specific to old bot/ directory structure and deprecated functions
         self.legacy_patterns = {
             'old_bot_directory': [
                 r'bot/',
                 r'from\s+bot\.',
                 r'import\s+bot\.',
-                r'bot\.',
             ],
             'old_import_paths': [
                 r'from\s+bot\.communication',
-                r'from\s+bot\.discord',
+                r'from\s+bot\.discord', 
                 r'from\s+bot\.email',
+                r'import\s+bot\.communication',
+                r'import\s+bot\.discord',
+                r'import\s+bot\.email',
             ],
             'historical_references': [
                 r'bot/communication',
@@ -48,8 +61,12 @@ class LegacyReferenceCleanup:
                 r'bot/email',
             ],
             'deprecated_functions': [
-                r'bot_',
-                r'_bot_',
+                r'LegacyChannelWrapper',
+                r'_create_legacy_channel_access\(',
+                r'store_checkin_response\(',
+            ],
+            'legacy_compatibility_markers': [
+                r'# LEGACY COMPATIBILITY:',
             ]
         }
         
@@ -58,14 +75,32 @@ class LegacyReferenceCleanup:
             'CHANGELOG_DETAIL.md',
             'AI_CHANGELOG.md',
             'archive/',
+            'development_docs/',
+            'ai_development_docs/',
+            'logs/',
+            'TODO.md',
+            'PLANS.md',
+            'FUNCTION_REGISTRY',
+            'MODULE_DEPENDENCIES',
+            'LEGACY_REFERENCE_REPORT.md',
         }
         
-        # Replacement mappings
+        # File extensions to skip entirely
+        self.skip_extensions = {'.md', '.txt', '.json', '.log'}
+        
+        # Replacement mappings - specific to old bot/ directory structure and deprecated functions
         self.replacement_mappings = {
             'bot/': 'communication/',
             'from bot.': 'from communication.',
             'import bot.': 'import communication.',
-            'bot.': 'communication.',
+            'from bot.communication': 'from communication.communication_channels',
+            'from bot.discord': 'from communication.communication_channels.discord',
+            'from bot.email': 'from communication.communication_channels.email',
+            'import bot.communication': 'import communication.communication_channels',
+            'import bot.discord': 'import communication.communication_channels.discord',
+            'import bot.email': 'import communication.communication_channels.email',
+            'LegacyChannelWrapper': 'direct channel access',
+            '_create_legacy_channel_access(': 'direct channel access (',
         }
     
     def scan_for_legacy_references(self) -> Dict[str, List[Tuple[str, str, List[str]]]]:
@@ -115,7 +150,11 @@ class LegacyReferenceCleanup:
         file_str = str(file_path)
         
         # Skip certain directories
-        skip_dirs = ['__pycache__', '.git', '.venv', 'node_modules', 'htmlcov']
+        skip_dirs = [
+            '__pycache__', '.git', '.venv', 'node_modules', 'htmlcov',
+            'ai_development_docs', 'ai_development_tools', 'archive', 
+            'development_docs', 'scripts'
+        ]
         for skip_dir in skip_dirs:
             if skip_dir in file_str:
                 return True
@@ -124,6 +163,10 @@ class LegacyReferenceCleanup:
         for preserve_pattern in self.preserve_files:
             if preserve_pattern in file_str:
                 return True
+        
+        # Skip certain file extensions
+        if file_path.suffix.lower() in self.skip_extensions:
+            return True
         
         return False
     

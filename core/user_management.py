@@ -668,13 +668,6 @@ def update_user_account(user_id: str, updates: Dict[str, Any], auto_create: bool
     result = save_user_data(user_id, {'account': updates}, auto_create=auto_create)
     return result.get('account', False)
 
-# LEGACY COMPATIBILITY: update_user_preferences moved to core.user_data_handlers
-# TODO: Remove after all callers are updated to use core.user_data_handlers.update_user_preferences
-# REMOVAL PLAN:
-# 1. Update all callers to use core.user_data_handlers.update_user_preferences
-# 2. Remove this function
-# 3. Remove the import when no longer needed
-
 @handle_errors("updating user context")
 def update_user_context(user_id: str, updates: Dict[str, Any], auto_create: bool = True) -> bool:
     """Update user context information."""

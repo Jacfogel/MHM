@@ -24,12 +24,7 @@ from core.user_data_handlers import get_user_data
 from core.response_tracking import (
     is_user_checkins_enabled,
     get_recent_checkins,
-    store_checkin_response,
-    store_checkin_response as _legacy_store_checkin_response,
 )
-
-# Expose store_checkin_response for tests that patch it
-store_checkin_response = _legacy_store_checkin_response
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -394,43 +389,6 @@ class ConversationManager:
         
         return question_text
 
-    # LEGACY COMPATIBILITY: Hardcoded question system replaced by dynamic manager
-    # TODO: Remove after dynamic checkin system is fully tested and stable (2025-09-09)
-    # REMOVAL PLAN:
-    # 1. Ensure dynamic manager is working correctly in production
-    # 2. Monitor for any issues with question loading or responses
-    # 3. Remove hardcoded question_texts dictionary after 2 weeks of stable operation
-    # 4. Update any remaining references to use dynamic manager exclusively
-    def _get_question_text_legacy(self, question_key: str, previous_data: dict) -> str:
-        """LEGACY: Get appropriate question text based on question type and previous responses"""
-        logger.warning("LEGACY COMPATIBILITY: _get_question_text_legacy() called; use dynamic manager instead")
-        
-        question_texts = {
-            'mood': "How are you feeling today on a scale of 1 to 5? (1=terrible, 5=great)",
-            'ate_breakfast': "Did you eat breakfast today? (yes/no)",
-            'energy': "How is your energy level on a scale of 1 to 5? (1=exhausted, 5=very energetic)",
-            'brushed_teeth': "Did you brush your teeth today? (yes/no)",
-            'sleep_quality': "How well did you sleep last night on a scale of 1 to 5? (1=terrible, 5=excellent)",
-            'sleep_hours': "How many hours did you sleep last night? (enter a number)",
-            'anxiety_level': "How anxious are you feeling today on a scale of 1 to 5? (1=very calm, 5=very anxious)",
-            'focus_level': "How focused do you feel today on a scale of 1 to 5? (1=very distracted, 5=very focused)",
-            'medication_taken': "Did you take your medication today? (yes/no)",
-            'exercise': "Did you do any exercise today? (yes/no)",
-            'hydration': "Are you staying hydrated today? (yes/no)",
-            'social_interaction': "Did you have any social interaction today? (yes/no)",
-            'stress_level': "How stressed are you feeling today on a scale of 1 to 5? (1=very relaxed, 5=very stressed)",
-            'daily_reflection': "Any brief thoughts or reflections about today? (optional - just press enter to skip)"
-        }
-        
-        # Add contextual prompts based on previous responses
-        if question_key == 'energy' and previous_data.get('mood', 0) <= 2:
-            return "I noticed you're feeling down. How is your energy level today on a scale of 1 to 5? (1=exhausted, 5=very energetic)"
-        elif question_key == 'sleep_quality' and previous_data.get('energy', 0) <= 2:
-            return "Since your energy seems low, how well did you sleep last night on a scale of 1 to 5? (1=terrible, 5=excellent)"
-        elif question_key == 'daily_reflection':
-            return "Any brief thoughts or reflections about today? (This is optional - just press enter to skip)"
-        
-        return question_texts.get(question_key, "Please answer this question:")
 
     @handle_errors("handling checkin", default_return=("I'm having trouble with the check-in. Let's start over.", True))
     def _handle_checkin(self, user_id: str, user_state: dict, message_text: str) -> tuple[str, bool]:
@@ -487,90 +445,6 @@ class ConversationManager:
             'message': error_message
         }
 
-    # LEGACY COMPATIBILITY: Hardcoded validation system replaced by dynamic manager
-    # TODO: Remove after dynamic checkin system is fully tested and stable (2025-09-09)
-    # REMOVAL PLAN:
-    # 1. Ensure dynamic manager validation is working correctly in production
-    # 2. Monitor for any validation issues or edge cases
-    # 3. Remove hardcoded validation logic after 2 weeks of stable operation
-    # 4. Update any remaining references to use dynamic manager exclusively
-    def _validate_response_legacy(self, question_key: str, response: str) -> dict:
-        """LEGACY: Validate user response based on question type"""
-        logger.warning("LEGACY COMPATIBILITY: _validate_response_legacy() called; use dynamic manager instead")
-        
-        response = response.strip()
-        
-        # Yes/no questions
-        yes_no_questions = ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'social_interaction']
-        if question_key in yes_no_questions:
-            is_yes = response.lower() in ["yes", "y", "yeah", "yep", "true", "1"]
-            return {
-                'valid': True,
-                'value': is_yes,
-                'message': None
-            }
-        
-        # Scale questions (1-5)
-        scale_questions = ['mood', 'energy', 'sleep_quality', 'anxiety_level', 'focus_level', 'stress_level']
-        if question_key in scale_questions:
-            try:
-                value = int(response)
-                if 1 <= value <= 5:
-                    return {
-                        'valid': True,
-                        'value': value,
-                        'message': None
-                    }
-                else:
-                    return {
-                        'valid': False,
-                        'value': None,
-                        'message': f"Please enter a number between 1 and 5 for {question_key.replace('_', ' ')}."
-                    }
-            except ValueError:
-                return {
-                    'valid': False,
-                    'value': None,
-                    'message': f"Please enter a number between 1 and 5 for {question_key.replace('_', ' ')}."
-                }
-        
-        # Sleep hours (number)
-        if question_key == 'sleep_hours':
-            try:
-                value = float(response)
-                if 0 <= value <= 24:
-                    return {
-                        'valid': True,
-                        'value': value,
-                        'message': None
-                    }
-                else:
-                    return {
-                        'valid': False,
-                        'value': None,
-                        'message': "Please enter a number between 0 and 24 for sleep hours."
-                    }
-            except ValueError:
-                return {
-                    'valid': False,
-                    'value': None,
-                    'message': "Please enter a number for sleep hours."
-                }
-        
-        # Daily reflection (text, optional)
-        if question_key == 'daily_reflection':
-            return {
-                'valid': True,
-                'value': response if response else "No reflection provided",
-                'message': None
-            }
-        
-        # Default case
-        return {
-            'valid': False,
-            'value': None,
-            'message': "I didn't understand that response. Please try again."
-        }
 
     @handle_errors("completing checkin", default_return=("Thanks for completing your check-in! There was an issue saving your responses, but I've recorded what I could.", True))
     def _complete_checkin(self, user_id: str, user_state: dict) -> tuple[str, bool]:
@@ -581,9 +455,9 @@ class ConversationManager:
         # Add questions asked to the data for future weighting
         data['questions_asked'] = question_order
         
-        # Store the check-in data (legacy alias retained for tests)
-        # Use exposed legacy-compatible function name so tests can patch it
-        store_checkin_response(user_id, data)
+        # Store the check-in data using modern function
+        from core.response_tracking import store_user_response
+        store_user_response(user_id, data, "checkin")
         
         # Log user activity for check-in completion
         from core.logger import get_component_logger

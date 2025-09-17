@@ -57,7 +57,7 @@ class UserContextManager:
             logger.warning("No user currently logged in")
             return self._get_minimal_context(None)
         
-        return self.get_user_context(current_user_id, include_conversation_history)
+        return self.get_ai_context(current_user_id, include_conversation_history)
         
     @handle_errors("getting AI context", default_return=None)
     def get_ai_context(self, user_id: str, include_conversation_history: bool = True) -> Dict[str, Any]:
@@ -83,16 +83,6 @@ class UserContextManager:
         logger.debug(f"Generated AI context for user {user_id}")
         return context
     
-    # LEGACY COMPATIBILITY: Alias for backward compatibility
-    # TODO: Remove after all callers are updated to use get_ai_context
-    # REMOVAL PLAN:
-    # 1. Update all callers to use get_ai_context
-    # 2. Remove this alias method
-    
-    def get_user_context(self, user_id: str, include_conversation_history: bool = True) -> Dict[str, Any]:
-        """Legacy alias for get_ai_context - use get_ai_context instead."""
-        logger.warning("LEGACY COMPATIBILITY: UserContextManager.get_user_context() called - use get_ai_context() instead")
-        return self.get_ai_context(user_id, include_conversation_history)
     
     @handle_errors("getting user profile", default_return={})
     def _get_user_profile(self, user_id: str) -> Dict[str, Any]:
@@ -242,27 +232,6 @@ class UserContextManager:
         
         return mood_trend
     
-    # LEGACY COMPATIBILITY: Now uses shared schedule utility
-    # TODO: Remove after all callers are updated to use core.schedule_utilities directly
-    # REMOVAL PLAN:
-    # 1. Update all callers to use core.schedule_utilities.get_active_schedules directly
-    # 2. Remove this method
-    # 3. Remove the import when no longer needed
-    
-    @handle_errors("getting active schedules", default_return=[])
-    def _get_active_schedules(self, schedules: Dict) -> List[str]:
-        """
-        Get list of currently active schedule periods.
-        
-        Args:
-            schedules: Dictionary containing schedule periods
-            
-        Returns:
-            list: List of active schedule period names
-        """
-        logger.warning("LEGACY COMPATIBILITY: UserContextManager._get_active_schedules() called - use core.schedule_utilities.get_active_schedules() directly")
-        from core.schedule_utilities import get_active_schedules
-        return get_active_schedules(schedules)
     
     @handle_errors("getting conversation history", default_return=[])
     def _get_conversation_history(self, user_id: str) -> List[Dict[str, str]]:

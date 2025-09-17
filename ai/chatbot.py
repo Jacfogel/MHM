@@ -41,23 +41,8 @@ from core.error_handling import (
 ai_logger = get_component_logger('ai')
 logger = ai_logger
 
-# LEGACY COMPATIBILITY: SystemPromptLoader class removed - using PromptManager instead
-# TODO: Remove after confirming all tests and usage migrated to PromptManager
-# REMOVAL PLAN:
-# 1. All fallback prompts consolidated in PromptManager
-# 2. PromptManager already has get_prompt() method with same functionality
-# 3. Single source of truth for all prompts prevents drift
-# 4. Tests should be migrated to test PromptManager directly
-
 # Global prompt manager instance
 prompt_manager = get_prompt_manager()
-
-# LEGACY COMPATIBILITY: Duplicate ResponseCache class removed
-# TODO: Remove after confirming no direct usage of this class
-# REMOVAL PLAN:
-# 1. Verified AIChatBotSingleton uses get_response_cache() from ai.cache_manager
-# 2. No direct instantiation of ResponseCache found in codebase
-# 3. Removed duplicate implementation to reduce maintenance burden
 
 class AIChatBotSingleton:
     """
