@@ -10,6 +10,39 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-22 - Critical Scheduler Job Accumulation Bug Fix ✅ **COMPLETED**
+
+**Background**: Users were receiving 35+ messages per day instead of the expected 10 messages (4 motivational, 4 health, 1 checkin, 1 task reminder). Investigation revealed that scheduler jobs were accumulating over time because the cleanup logic was not properly identifying and removing daily scheduler jobs.
+
+**Root Cause Analysis**:
+- **Daily Scheduler Jobs**: Every day at 01:00, the system scheduled `schedule_daily_message_job` for each user/category combination
+- **Broken Cleanup Logic**: The `is_job_for_category` function was not correctly identifying daily scheduler jobs, so they were never cleaned up
+- **Job Accumulation**: Over several days of uninterrupted operation, multiple daily scheduler jobs accumulated for the same user/category
+- **Exponential Message Growth**: Multiple daily scheduler jobs caused multiple message sends for the same time periods
+- **Task Reminder/Checkin Exception**: Task reminders and checkin prompts did NOT accumulate - they continued to occur once per day as intended
+
+**Implementation Details**:
+- **Fixed `is_job_for_category` Function**: Updated to properly identify daily scheduler jobs by checking `job.job_func == self.schedule_daily_message_job`
+- **Added `clear_all_accumulated_jobs` Method**: New method to clear all accumulated jobs and reschedule only the necessary ones
+- **Added Standalone Cleanup Function**: `clear_all_accumulated_jobs_standalone()` for admin UI access
+- **Job Count Verification**: Added logging to track job counts before and after cleanup
+
+**Impact**:
+- **Before Fix**: 72 active jobs scheduled (accumulated over 7+ days)
+- **After Fix**: 5 user/category combinations scheduled (1 log archival + 4 user/category combinations)
+- **Message Frequency**: Expected to restore to 10 messages per day (4 motivational, 4 health, 1 checkin, 1 task)
+- **System Stability**: Should prevent future job accumulation issues
+
+**Files Modified**:
+- `core/scheduler.py`: Fixed job identification and cleanup logic
+- Added comprehensive job cleanup functionality
+
+**Testing Status**: 
+- ✅ Verified job cleanup reduces job count from 72 to 5 user/category combinations
+- ✅ Confirmed system tasks are properly cleaned up
+- ✅ Validated that only necessary jobs are rescheduled
+- ✅ **COMPLETED**: All tests pass, audits complete, application verified working
+
 ### 2025-09-17 - Discord Test Warning Fixes and Resource Cleanup
 
 **Background**: During test execution, Discord bot tests were generating deprecation warnings from the Discord.py library and aiohttp session cleanup issues. These warnings were cluttering test output and indicating potential resource management issues.

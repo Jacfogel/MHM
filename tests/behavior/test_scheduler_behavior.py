@@ -77,7 +77,13 @@ class TestSchedulerManager:
         """Test checking for jobs when a matching job exists."""
         # Mock schedule.jobs to contain a matching job
         mock_job = Mock()
-        mock_job.job_func.args = ['test-user', 'motivational']
+        
+        # Create a mock job_func that has the correct function reference and args
+        mock_job_func = Mock()
+        mock_job_func.args = ['test-user', 'motivational']
+        # Set the function reference to the actual function we're checking for
+        mock_job_func.__eq__ = lambda self, other: other == scheduler_manager.schedule_daily_message_job
+        mock_job.job_func = mock_job_func
         
         with patch('core.scheduler.schedule') as mock_schedule:
             mock_schedule.jobs = [mock_job]

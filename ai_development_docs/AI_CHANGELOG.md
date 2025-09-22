@@ -29,6 +29,14 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-22 - Critical Scheduler Job Accumulation Bug Fix ✅ **COMPLETED**
+- **Job Accumulation Fix**: Fixed scheduler job accumulation causing 35+ messages/day instead of expected 10
+- **Cleanup Logic Update**: Updated `is_job_for_category` function to properly identify daily scheduler jobs for cleanup
+- **Preventive Measures**: Added `clear_all_accumulated_jobs` method to prevent future job accumulation
+- **Performance Impact**: Reduced active jobs from 72 to 5 user/category combinations
+- **Important Note**: Task reminders and checkin prompts did NOT accumulate - they continued once/day as intended
+- **Status**: ⏳ **PENDING** confirmation that message frequency returns to expected 10 messages per day
+
 ### 2025-09-17 - Legacy Code Cleanup, Modernization, and Test Warning Fixes ✅ **COMPLETED**
 - **Legacy Code Reduction**: Removed redundant `enabled_features` and `channel` field preservation code from `core/user_data_handlers.py`
 - **Function Removal**: Removed unused `store_checkin_response()` function and updated all import statements

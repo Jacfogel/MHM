@@ -161,12 +161,19 @@ class SchedulerManager:
         if job is None:
             # Check all jobs for this user and category
             for existing_job in schedule.jobs:
-                if existing_job.job_func.args and existing_job.job_func.args[0] == user_id and existing_job.job_func.args[1] == category:
+                # Check if this is a daily scheduler job for this user/category
+                if (existing_job.job_func == self.schedule_daily_message_job and 
+                    existing_job.job_func.args and 
+                    existing_job.job_func.args[0] == user_id and 
+                    existing_job.job_func.args[1] == category):
                     return True
             return False
         else:
             # Check specific job
-            if job.job_func.args and job.job_func.args[0] == user_id and job.job_func.args[1] == category:
+            if (job.job_func == self.schedule_daily_message_job and 
+                job.job_func.args and 
+                job.job_func.args[0] == user_id and 
+                job.job_func.args[1] == category):
                 return True
             return False
     
@@ -230,7 +237,7 @@ class SchedulerManager:
             except Exception as e:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
         
-        logger.info(f"Scheduling complete: {total_scheduled} user/category combinations scheduled")
+        logger.info(f"Scheduling complete: {total_scheduled} user/category combinations scheduled (includes checkins if enabled)")
 
     @handle_errors("scheduling new user")
     def schedule_new_user(self, user_id: str):
@@ -710,38 +717,105 @@ class SchedulerManager:
                 logger.debug(f"Skipping job without valid at_time: {getattr(job, 'at_time', 'None')}")
         
         logger.info(f"In-memory scheduler cleanup completed for user {user_id}, category {category}.")
+    
+    @handle_errors("clearing all accumulated jobs")
+    def clear_all_accumulated_jobs(self):
+        """Clears all accumulated scheduler jobs and reschedules only the necessary ones."""
+        logger.info("Clearing all accumulated scheduler jobs...")
+        
+        # Count jobs before cleanup
+        initial_job_count = len(schedule.jobs)
+        logger.info(f"Initial job count: {initial_job_count} (accumulated jobs to be cleared)")
+        
+        # Clear all jobs
+        schedule.clear()
+        logger.info("All scheduler jobs cleared")
+        
+        # Reschedule only the necessary jobs:
+        # 1. Daily log archival at 02:00
+        schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
+        logger.debug("Rescheduled daily log archival at 02:00")
+        
+        # 2. One daily scheduler job per user/category at 01:00
+        user_ids = get_all_user_ids()
+        user_category_count = 0
+        checkin_count = 0
+        
+        for user_id in user_ids:
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
+            for category in categories:
+                schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category=category)
+                user_category_count += 1
+            
+            # Check if checkins are enabled for this user
+            try:
+                user_data_result = get_user_data(user_id, 'account')
+                user_account = user_data_result.get('account')
+                if user_account and user_account.get('features', {}).get('checkins') == 'enabled':
+                    # Check if check-in category exists in schedules
+                    time_periods = get_schedule_time_periods(user_id, "checkin")
+                    if time_periods:
+                        schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category="checkin")
+                        checkin_count += 1
+            except Exception as e:
+                logger.debug(f"Could not check checkin status for user {user_id}: {e}")
+        
+        final_job_count = len(schedule.jobs)
+        jobs_cleared = initial_job_count - final_job_count
+        
+        # Build descriptive breakdown
+        breakdown_parts = ["1 log archival"]
+        if user_category_count > 0:
+            breakdown_parts.append(f"{user_category_count} user/category combinations")
+        if checkin_count > 0:
+            breakdown_parts.append(f"{checkin_count} checkin(s)")
+        
+        breakdown = " + ".join(breakdown_parts)
+        logger.info(f"Final daily scheduler job count: {final_job_count} ({breakdown})")
+        if jobs_cleared > 0:
+            logger.info(f"Cleared {jobs_cleared} accumulated daily scheduler jobs")
+        elif jobs_cleared == 0:
+            logger.info("No accumulated jobs to clear (system was already clean)")
+        else:
+            logger.info(f"Added {abs(jobs_cleared)} daily scheduler jobs (system had fewer jobs than expected)")
 
-        # Cleanup system tasks using schtasks command (Windows-specific)
-        task_prefix = f"Wake_{user_id}_{category}_"
+        # Cleanup system tasks for all users/categories
+        logger.info("Starting system task cleanup for all users...")
+        system_tasks_cleaned = 0
+        
         try:
             result = subprocess.run(['schtasks', '/query', '/fo', 'LIST', '/v'], 
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.returncode != 0:
                 logger.debug(f"Could not query system tasks: {result.stderr}")
-                logger.info(f"System task cleanup completed for user {user_id}, category {category} (no tasks to clean).")
+                logger.info("System task cleanup completed (no tasks to clean).")
                 return
             
             tasks = result.stdout.splitlines()
             tasks_deleted = 0
 
-            for i, line in enumerate(tasks):
-                if line.startswith("TaskName:") and task_prefix in line:
+            # Look for tasks with our user ID prefixes
+            for line in tasks:
+                if line.startswith("TaskName:"):
                     task_name = line.split(":")[1].strip()
-                    logger.info(f"Deleting old system task: {task_name}")
-                    try:
-                        # Use check=False to prevent exceptions on missing tasks
-                        del_result = subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
-                                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
-                        if del_result.returncode == 0:
-                            tasks_deleted += 1
-                            logger.debug(f"Successfully deleted task: {task_name}")
-                        else:
-                            # Task probably doesn't exist anymore - this is fine
-                            logger.debug(f"Task {task_name} may already be deleted: {del_result.stderr}")
-                    except Exception as del_error:
-                        logger.debug(f"Error deleting task {task_name}: {del_error}")
+                    # Check if this is one of our MHM wake tasks
+                    if "Wake_" in task_name and any(user_id in task_name for user_id in user_ids):
+                        logger.info(f"Deleting old system task: {task_name}")
+                        try:
+                            # Use check=False to prevent exceptions on missing tasks
+                            del_result = subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
+                                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
+                            if del_result.returncode == 0:
+                                tasks_deleted += 1
+                                logger.debug(f"Successfully deleted task: {task_name}")
+                            else:
+                                # Task probably doesn't exist anymore - this is fine
+                                logger.debug(f"Task {task_name} may already be deleted: {del_result.stderr}")
+                        except Exception as del_error:
+                            logger.debug(f"Error deleting task {task_name}: {del_error}")
 
-            logger.info(f"System task cleanup completed for user {user_id}, category {category}.")
+            logger.info(f"System task cleanup completed: {tasks_deleted} tasks deleted.")
             if tasks_deleted > 0:
                 logger.debug(f"Deleted {tasks_deleted} old system tasks")
                 
@@ -1268,6 +1342,29 @@ def cleanup_task_reminders(user_id, task_id=None):
 
 # Import get_user_categories from user_management to avoid duplication
 from core.user_management import get_user_categories
+
+@handle_errors("clearing all accumulated jobs standalone")
+def clear_all_accumulated_jobs_standalone():
+    """
+    Standalone function to clear all accumulated scheduler jobs.
+    This can be called from the admin UI or service to fix job accumulation issues.
+    """
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        
+        # Create communication manager and scheduler manager
+        communication_manager = CommunicationManager()
+        scheduler_manager = SchedulerManager(communication_manager)
+        
+        # Clear all accumulated jobs
+        scheduler_manager.clear_all_accumulated_jobs()
+        
+        logger.info("Standalone: All accumulated scheduler jobs cleared successfully")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Standalone: Error clearing accumulated scheduler jobs: {e}")
+        return False
 
 def process_user_schedules(user_id: str):
     """Process schedules for a specific user."""
