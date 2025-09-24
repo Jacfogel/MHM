@@ -17,7 +17,6 @@ from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
-    cleanup_task_reminders,
     get_user_categories,
     process_user_schedules
 )
@@ -78,11 +77,10 @@ class TestSchedulerManager:
         # Mock schedule.jobs to contain a matching job
         mock_job = Mock()
         
-        # Create a mock job_func that has the correct function reference and args
+        # Create a mock job_func that has the correct function reference and keywords
         mock_job_func = Mock()
-        mock_job_func.args = ['test-user', 'motivational']
-        # Set the function reference to the actual function we're checking for
-        mock_job_func.__eq__ = lambda self, other: other == scheduler_manager.schedule_daily_message_job
+        mock_job_func.keywords = {'user_id': 'test-user', 'category': 'motivational'}
+        mock_job_func.func = scheduler_manager.schedule_daily_message_job
         mock_job.job_func = mock_job_func
         
         with patch('core.scheduler.schedule') as mock_schedule:
@@ -467,35 +465,5 @@ class TestTaskReminderFunctions:
             # Should not raise any exceptions
             schedule_all_task_reminders(user_id)
     
-    @pytest.mark.behavior
-    @pytest.mark.schedules
-    def test_cleanup_task_reminders_success(self):
-        """Test cleaning up task reminders."""
-        user_id = 'test-task-user'
-        
-        # Mock schedule.jobs
-        mock_job = Mock()
-        mock_job.job_func.args = [user_id, 'task_reminder']
-        
-        with patch('core.scheduler.schedule') as mock_schedule:
-            mock_schedule.jobs = [mock_job]
-            
-            # Should not raise any exceptions
-            cleanup_task_reminders(user_id)
-    
-    @pytest.mark.behavior
-    @pytest.mark.schedules
-    def test_cleanup_task_reminders_specific_task(self):
-        """Test cleaning up specific task reminders."""
-        user_id = 'test-task-user'
-        task_id = 'task-123'
-        
-        # Mock schedule.jobs
-        mock_job = Mock()
-        mock_job.job_func.args = [user_id, 'task_reminder', task_id]
-        
-        with patch('core.scheduler.schedule') as mock_schedule:
-            mock_schedule.jobs = [mock_job]
-            
-            # Should not raise any exceptions
-            cleanup_task_reminders(user_id, task_id) 
+    # Task reminder cleanup tests removed - function no longer exists
+    # Task reminders are now managed consistently with other jobs 

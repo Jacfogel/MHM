@@ -39,7 +39,6 @@ from tasks.task_management import (
     get_tasks_due_soon,
     are_tasks_enabled,
     schedule_task_reminders,
-    cleanup_task_reminders,
     add_user_task_tag,
     remove_user_task_tag,
     setup_default_task_tags,
@@ -637,27 +636,8 @@ class TestTaskManagementCoverageExpansion:
         
         assert result is True
 
-    def test_cleanup_task_reminders_real_behavior(self, mock_user_data_dir, user_id):
-        """Test cleaning up task-specific reminders."""
-        task_id = "test-task-id"
-        
-        with patch('core.service.get_scheduler_manager') as mock_get_scheduler:
-            mock_scheduler = Mock()
-            mock_get_scheduler.return_value = mock_scheduler
-            
-            result = cleanup_task_reminders(user_id, task_id)
-            
-            assert result is True
-            mock_scheduler.cleanup_task_reminders.assert_called_once_with(user_id, task_id)
-
-    def test_cleanup_task_reminders_no_scheduler_real_behavior(self, mock_user_data_dir, user_id):
-        """Test cleaning up reminders when scheduler is not available."""
-        task_id = "test-task-id"
-        
-        with patch('core.service.get_scheduler_manager', return_value=None):
-            result = cleanup_task_reminders(user_id, task_id)
-            
-            assert result is False
+    # Task reminder cleanup tests removed - function no longer exists
+    # Task reminders are now managed consistently with other jobs
 
     # ============================================================================
     # Task Tag Management Tests

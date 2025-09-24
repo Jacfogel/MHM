@@ -49,11 +49,15 @@ class SchedulerManager:
         """
         def scheduler_loop():
             try:
+                # Clear all accumulated jobs first to prevent job accumulation
+                self.clear_all_accumulated_jobs()
+                
                 # Immediately schedule messages for all users when service starts
                 self.schedule_all_users_immediately()
                 
                 # Schedule daily log archival at 02:00 (after user scheduling)
                 schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
+                logger.info("Scheduled new daily job for log archival at 02:00")
                 
                 # Then set up recurring daily scheduling at 01:00 for all users
                 user_ids = get_all_user_ids()
@@ -65,6 +69,13 @@ class SchedulerManager:
                         # Check if a job already exists for this user and category before scheduling
                         if not self.is_job_for_category(None, user_id, category):
                             schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category=category)
+                            logger.info(f"Scheduled new daily job for user {user_id}, category {category}")
+                        else:
+                            logger.info(f"Daily job already exists for user {user_id}, category {category} - skipping duplicate")
+                
+                # Log job count after daily job scheduling
+                active_jobs = len(schedule.jobs)
+                logger.info(f"Daily job scheduling complete: {active_jobs} total active jobs scheduled")
             except Exception as e:
                 logger.error(f"Error scheduling daily jobs: {e}")
                 raise
@@ -75,8 +86,8 @@ class SchedulerManager:
                     schedule.run_pending()
                     loop_count += 1
                     
-                    # Log every 60 iterations (60 minutes / 1 hour) instead of every 15 to reduce log spam
-                    if loop_count % 60 == 0:
+                    # Log every 5 iterations (5 minutes) for diagnostic purposes
+                    if loop_count % 5 == 0:
                         active_jobs = len(schedule.jobs)
                         # Only log if there are actually jobs scheduled - don't log 0 jobs
                         if active_jobs > 0:
@@ -162,18 +173,22 @@ class SchedulerManager:
             # Check all jobs for this user and category
             for existing_job in schedule.jobs:
                 # Check if this is a daily scheduler job for this user/category
-                if (existing_job.job_func == self.schedule_daily_message_job and 
-                    existing_job.job_func.args and 
-                    existing_job.job_func.args[0] == user_id and 
-                    existing_job.job_func.args[1] == category):
+                if (hasattr(existing_job.job_func, 'func') and 
+                    existing_job.job_func.func == self.schedule_daily_message_job and 
+                    hasattr(existing_job.job_func, 'keywords') and 
+                    existing_job.job_func.keywords.get('user_id') == user_id and 
+                    existing_job.job_func.keywords.get('category') == category):
+                    logger.debug(f"Found existing daily job for user {user_id}, category {category}")
                     return True
+            logger.debug(f"No existing daily job found for user {user_id}, category {category}")
             return False
         else:
             # Check specific job
-            if (job.job_func == self.schedule_daily_message_job and 
-                job.job_func.args and 
-                job.job_func.args[0] == user_id and 
-                job.job_func.args[1] == category):
+            if (hasattr(job.job_func, 'func') and 
+                job.job_func.func == self.schedule_daily_message_job and 
+                hasattr(job.job_func, 'keywords') and 
+                job.job_func.keywords.get('user_id') == user_id and 
+                job.job_func.keywords.get('category') == category):
                 return True
             return False
     
@@ -238,6 +253,20 @@ class SchedulerManager:
                 logger.error(f"Failed to get categories for user {user_id}: {e}")
         
         logger.info(f"Scheduling complete: {total_scheduled} user/category combinations scheduled (includes checkins if enabled)")
+        
+        # Log current job count for diagnostic purposes
+        active_jobs = len(schedule.jobs)
+        logger.info(f"Current scheduler status: {active_jobs} total active jobs scheduled")
+        
+        # Log job types for diagnostic purposes
+        job_types = {}
+        for job in schedule.jobs:
+            job_func_name = job.job_func.__name__
+            job_types[job_func_name] = job_types.get(job_func_name, 0) + 1
+        
+        if job_types:
+            job_type_summary = ", ".join([f"{count} {name}" for name, count in job_types.items()])
+            logger.info(f"Job breakdown: {job_type_summary}")
 
     @handle_errors("scheduling new user")
     def schedule_new_user(self, user_id: str):
@@ -731,54 +760,19 @@ class SchedulerManager:
         schedule.clear()
         logger.info("All scheduler jobs cleared")
         
-        # Reschedule only the necessary jobs:
-        # 1. Daily log archival at 02:00
-        schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
-        logger.debug("Rescheduled daily log archival at 02:00")
-        
-        # 2. One daily scheduler job per user/category at 01:00
-        user_ids = get_all_user_ids()
-        user_category_count = 0
-        checkin_count = 0
-        
-        for user_id in user_ids:
-            prefs_result = get_user_data(user_id, 'preferences')
-            categories = prefs_result.get('preferences', {}).get('categories', [])
-            for category in categories:
-                schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category=category)
-                user_category_count += 1
-            
-            # Check if checkins are enabled for this user
-            try:
-                user_data_result = get_user_data(user_id, 'account')
-                user_account = user_data_result.get('account')
-                if user_account and user_account.get('features', {}).get('checkins') == 'enabled':
-                    # Check if check-in category exists in schedules
-                    time_periods = get_schedule_time_periods(user_id, "checkin")
-                    if time_periods:
-                        schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category="checkin")
-                        checkin_count += 1
-            except Exception as e:
-                logger.debug(f"Could not check checkin status for user {user_id}: {e}")
+        # Don't reschedule daily jobs here - the main scheduler loop will handle that
+        # This function is only for clearing accumulated jobs, not scheduling new ones
         
         final_job_count = len(schedule.jobs)
         jobs_cleared = initial_job_count - final_job_count
         
-        # Build descriptive breakdown
-        breakdown_parts = ["1 log archival"]
-        if user_category_count > 0:
-            breakdown_parts.append(f"{user_category_count} user/category combinations")
-        if checkin_count > 0:
-            breakdown_parts.append(f"{checkin_count} checkin(s)")
-        
-        breakdown = " + ".join(breakdown_parts)
-        logger.info(f"Final daily scheduler job count: {final_job_count} ({breakdown})")
+        logger.info(f"Job cleanup complete: {jobs_cleared} accumulated jobs cleared")
         if jobs_cleared > 0:
-            logger.info(f"Cleared {jobs_cleared} accumulated daily scheduler jobs")
+            logger.info(f"Cleared {jobs_cleared} accumulated scheduler jobs")
         elif jobs_cleared == 0:
-            logger.info("No accumulated jobs to clear (system was already clean)")
+            logger.info("No accumulated jobs to clear (system was already clean - previous scheduler instance properly cleaned up)")
         else:
-            logger.info(f"Added {abs(jobs_cleared)} daily scheduler jobs (system had fewer jobs than expected)")
+            logger.info(f"Added {abs(jobs_cleared)} scheduler jobs (system had fewer jobs than expected)")
 
         # Cleanup system tasks for all users/categories
         logger.info("Starting system task cleanup for all users...")
@@ -795,6 +789,9 @@ class SchedulerManager:
             tasks = result.stdout.splitlines()
             tasks_deleted = 0
 
+            # Get user IDs for task cleanup
+            user_ids = get_all_user_ids()
+            
             # Look for tasks with our user ID prefixes
             for line in tasks:
                 if line.startswith("TaskName:"):
@@ -821,7 +818,7 @@ class SchedulerManager:
                 
         except Exception as query_error:
             logger.debug(f"Error querying system tasks for cleanup: {query_error}")
-            logger.info(f"System task cleanup skipped for user {user_id}, category {category} (query failed).")
+            logger.info(f"System task cleanup skipped (query failed).")
 
     @handle_errors("scheduling all task reminders")
     def schedule_all_task_reminders(self, user_id):
@@ -1102,6 +1099,26 @@ class SchedulerManager:
             # Schedule the task reminder
             schedule.every().day.at(time_str).do(self.handle_task_reminder, user_id=user_id, task_id=task_id)
             
+            # Set wake timer for the task reminder
+            from datetime import datetime, timedelta
+            import pytz
+            
+            # Create datetime for today at the specified time
+            tz = pytz.timezone('America/Regina')
+            now = datetime.now(tz)
+            today = now.date()
+            
+            # Parse the reminder time
+            hour, minute = map(int, time_str.split(':'))
+            schedule_datetime = datetime.combine(today, datetime.min.time().replace(hour=hour, minute=minute), tzinfo=tz)
+            
+            # If the time has already passed today, schedule for tomorrow
+            if schedule_datetime <= now:
+                schedule_datetime += timedelta(days=1)
+            
+            # Set wake timer for task reminder
+            self.set_wake_timer(schedule_datetime, user_id, "tasks", "task_reminder")
+            
             logger.info(f"Scheduled daily task reminder for user {user_id}, task {task_id} at {time_str}")
             return True
             
@@ -1185,44 +1202,8 @@ class SchedulerManager:
         except Exception as e:
             logger.error(f"Error during daily log archival: {e}")
 
-    @handle_errors("cleaning up task reminders")
-    def cleanup_task_reminders(self, user_id, task_id=None):
-        """
-        Clean up task reminders for a user or specific task.
-        """
-        try:
-            jobs_to_keep = []
-            for job in schedule.jobs:
-                # Keep jobs that are not task reminders for this user/task
-                if (job.job_func.__name__ != 'handle_task_reminder' or
-                    job.job_func.args[0] != user_id or
-                    (task_id and job.job_func.args[1] != task_id)):
-                    jobs_to_keep.append(job)
-            
-            # Clear all jobs and reschedule only the ones we want to keep
-            schedule.clear()
-            for job in jobs_to_keep:
-                # Re-add the job with its original schedule
-                if hasattr(job, 'at_time') and job.at_time:
-                    at_time_str = str(job.at_time)
-                    if ' ' in at_time_str:
-                        at_time_str = at_time_str.split(' ')[1]
-                    if ':' in at_time_str:
-                        time_parts = at_time_str.split(':')
-                        if len(time_parts) >= 2:
-                            at_time_str = f"{time_parts[0]}:{time_parts[1]}"
-                            try:
-                                schedule.every().day.at(at_time_str).do(job.job_func, *job.job_func.args)
-                            except Exception as e:
-                                logger.warning(f"Could not re-add job with time {at_time_str}: {e}")
-            
-            if task_id:
-                logger.info(f"Cleaned up task reminders for user {user_id}, task {task_id}")
-            else:
-                logger.info(f"Cleaned up all task reminders for user {user_id}")
-                
-        except Exception as e:
-            logger.error(f"Error cleaning up task reminders for user {user_id}: {e}")
+    # Task reminders are now managed consistently with other jobs
+    # No special cleanup function needed - they're handled by the main scheduler cleanup
 
 # Standalone functions for admin UI access
 @handle_errors("running full scheduler standalone")
@@ -1322,23 +1303,8 @@ def schedule_all_task_reminders(user_id):
     except Exception as e:
         logger.error(f"Error in task reminder scheduling request for user {user_id}: {e}")
 
-@handle_errors("cleaning up task reminders for user")
-def cleanup_task_reminders(user_id, task_id=None):
-    """
-    Standalone function to clean up task reminders for a user.
-    This can be called from the admin UI without needing a scheduler instance.
-    """
-    try:
-        # For now, just log that cleanup was requested
-        # The actual cleanup will happen when the main scheduler restarts
-        if task_id:
-            logger.info(f"Task reminder cleanup requested for user {user_id}, task {task_id}")
-        else:
-            logger.info(f"Task reminder cleanup requested for user {user_id}")
-        logger.info("Task reminders will be cleaned up when the main scheduler restarts")
-        
-    except Exception as e:
-        logger.error(f"Error in task reminder cleanup request for user {user_id}: {e}")
+# Task reminders are now managed consistently with other jobs
+# No special cleanup function needed - they're handled by the main scheduler cleanup
 
 # Import get_user_categories from user_management to avoid duplication
 from core.user_management import get_user_categories

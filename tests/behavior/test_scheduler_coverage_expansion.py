@@ -20,7 +20,6 @@ from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
-    cleanup_task_reminders,
     get_user_categories,
     process_user_schedules,
     process_category_schedule
@@ -760,33 +759,8 @@ class TestCleanupOperations:
                 assert mock_schedule.clear.called
                 assert mock_schedule.every.called
     
-    @pytest.mark.behavior
-    @pytest.mark.schedules
-    def test_cleanup_task_reminders_real_behavior(self, scheduler_manager):
-        """Test cleaning up task reminders."""
-        user_id = 'test-user'
-        task_id = 'task-1'
-        
-        # Create mock jobs
-        mock_job1 = Mock()
-        mock_job1.job_func.__name__ = 'handle_task_reminder'
-        mock_job1.job_func.args = [user_id, task_id]
-        mock_job1.at_time = '10:00'
-        
-        mock_job2 = Mock()
-        mock_job2.job_func.__name__ = 'handle_sending_scheduled_message'
-        mock_job2.job_func.args = [user_id, 'motivational']
-        mock_job2.at_time = '11:00'
-        
-        with patch('core.scheduler.schedule') as mock_schedule:
-            mock_schedule.jobs = [mock_job1, mock_job2]
-            
-            # Test real behavior: function should clean up task reminders
-            scheduler_manager.cleanup_task_reminders(user_id, task_id)
-            
-            # Verify side effects
-            assert mock_schedule.clear.called
-            assert mock_schedule.every.called
+    # Task reminder cleanup tests removed - function no longer exists
+    # Task reminders are now managed consistently with other jobs
 
 class TestStandaloneFunctions:
     """Test standalone scheduler functions."""
@@ -807,17 +781,8 @@ class TestStandaloneFunctions:
             # Verify side effect
             mock_tasks_enabled.assert_called_once_with(user_id)
     
-    @pytest.mark.behavior
-    @pytest.mark.schedules
-    def test_cleanup_task_reminders_standalone_real_behavior(self):
-        """Test standalone cleanup_task_reminders function."""
-        user_id = 'test-user'
-        task_id = 'task-1'
-        
-        # Test real behavior: function should log cleanup request
-        cleanup_task_reminders(user_id, task_id)
-        
-        # Function should complete without errors
+    # Task reminder cleanup tests removed - function no longer exists
+    # Task reminders are now managed consistently with other jobs
     
     @pytest.mark.behavior
     @pytest.mark.schedules

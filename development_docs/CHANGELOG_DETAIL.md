@@ -10,6 +10,38 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-24 - Scheduler Job Management Consistency Fix ✅ **COMPLETED**
+
+**Background**: Following the scheduler job accumulation bug fix, additional inconsistencies were discovered in how different job types were managed. Task reminders had their own separate cleanup function that was never called, and task reminders were not getting Wake timers like other jobs.
+
+**Issues Identified**:
+- **Task Reminder Inconsistency**: Task reminders had a separate `cleanup_task_reminders()` function that was never called, creating inconsistent job management
+- **Missing Wake Timers**: Task reminders were not getting Windows Scheduled Tasks (Wake_ tasks) like other jobs
+- **Test Import Errors**: Tests were importing the removed `cleanup_task_reminders` function, causing test failures
+
+**Implementation Details**:
+- **Removed Inconsistent Cleanup**: Removed the unused `cleanup_task_reminders()` function from SchedulerManager class and standalone function
+- **Added Wake Timers to Task Reminders**: Updated `schedule_task_reminder_at_time()` to call `set_wake_timer()` like other jobs
+- **Fixed Test Imports**: Updated test files to remove imports of the deleted function
+- **Enhanced Logging**: Added job type breakdown logging for better diagnostic visibility
+- **Consistent Job Management**: All job types (daily messages, checkin prompts, task reminders) now managed consistently
+
+**Impact**:
+- **Consistent Job Management**: All job types now follow the same cleanup and scheduling patterns
+- **Proper Wake Timers**: Task reminders now get Windows Scheduled Tasks like other jobs
+- **Test Suite Fixed**: All 1,481 tests now pass without import errors
+- **Better Diagnostics**: Enhanced logging shows job type breakdown for troubleshooting
+
+**Files Modified**:
+- `core/scheduler.py`: Removed `cleanup_task_reminders()` function, added Wake timer to task reminders
+- `tests/behavior/test_scheduler_behavior.py`: Removed imports and tests for deleted function
+- `tests/behavior/test_scheduler_coverage_expansion.py`: Removed imports and tests for deleted function  
+- `tests/behavior/test_task_management_coverage_expansion.py`: Removed imports and tests for deleted function
+
+**Status**: ✅ **COMPLETED** - All job types now managed consistently, all tests passing
+
+---
+
 ### 2025-09-22 - Critical Scheduler Job Accumulation Bug Fix ✅ **COMPLETED**
 
 **Background**: Users were receiving 35+ messages per day instead of the expected 10 messages (4 motivational, 4 health, 1 checkin, 1 task reminder). Investigation revealed that scheduler jobs were accumulating over time because the cleanup logic was not properly identifying and removing daily scheduler jobs.
