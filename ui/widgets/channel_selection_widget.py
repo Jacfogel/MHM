@@ -79,7 +79,6 @@ class ChannelSelectionWidget(QWidget):
         """Get all contact info fields from the widget."""
         return {
             'email': self.ui.lineEdit_email.text().strip(),
-            'phone': self.ui.lineEdit_phone.text().strip(),
             'discord_id': self.ui.lineEdit_discordID.text().strip()
         }
 
@@ -124,11 +123,9 @@ class ChannelSelectionWidget(QWidget):
                 if utc_idx >= 0:
                     self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
 
-    def set_contact_info(self, email=None, phone=None, discord_id=None, timezone=None):
+    def set_contact_info(self, email=None, discord_id=None, timezone=None):
         if email is not None:
             self.ui.lineEdit_email.setText(email)
-        if phone is not None:
-            self.ui.lineEdit_phone.setText(phone)
         if discord_id is not None:
             self.ui.lineEdit_discordID.setText(discord_id)
         if timezone is not None:

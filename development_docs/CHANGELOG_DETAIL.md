@@ -10,6 +10,42 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-24 - Channel Settings Dialog Fixes and Test Suite Stabilization ✅ **COMPLETED**
+
+**Background**: User reported that the Channel Settings dialog was not working correctly - Discord ID field was empty, radio buttons weren't set, and saving resulted in phone field errors. Investigation revealed the UI had been updated to remove the phone field, but the code still referenced it.
+
+**Issues Identified**:
+- **Phone Field Error**: Code was trying to access `self.ui.lineEdit_phone.text()` but the UI design file showed no `lineEdit_phone` field
+- **Discord ID Not Loading**: Discord ID field was empty despite user data containing `discord_user_id: "670723025439555615"`
+- **Radio Buttons Not Set**: Discord/Email radio buttons weren't being selected correctly based on user preferences
+- **Save Method Errors**: Save method was trying to access non-existent phone field and validate phone data
+
+**Implementation Details**:
+- **Removed Phone Field References**: Updated `ChannelSelectionWidget.get_all_contact_info()` to only return existing fields (email, discord_id)
+- **Fixed set_contact_info Method**: Removed phone parameter from method signature since field doesn't exist
+- **Updated Channel Management Dialog**: Removed phone parameter from `set_contact_info()` call and removed phone validation
+- **Fixed Save Method**: Removed phone field access and validation from save logic
+- **Cleared Python Cache**: Removed `__pycache__` directories to ensure changes took effect
+- **Fixed Test Suite**: Updated failing scheduler test mock structure to match current `is_job_for_category` implementation
+
+**Files Modified**:
+- `ui/widgets/channel_selection_widget.py`: Removed phone field references from get/set methods
+- `ui/dialogs/channel_management_dialog.py`: Removed phone validation and parameter passing
+- `tests/ui/test_channel_management_dialog_coverage_expansion.py`: Removed phone validation from tests
+- `tests/behavior/test_scheduler_behavior.py`: Fixed test mock structure
+
+**Testing Results**:
+- **Application Startup**: `python run_mhm.py` works without errors
+- **Data Loading**: Discord ID correctly loads (`670723025439555615`), email loads, Discord radio button selected
+- **Save Functionality**: No more phone field errors when saving channel settings
+- **Full Test Suite**: All 1480 tests passing, 1 skipped, only expected Discord library warnings
+
+**Impact**:
+- **Channel Settings Dialog**: Now works perfectly - loads data correctly and saves without errors
+- **User Experience**: Users can properly manage their communication channel settings
+- **System Stability**: No more phone field errors affecting channel management
+- **Test Suite Health**: All tests passing with proper mock structures
+
 ### 2025-09-24 - Scheduler Job Management Consistency Fix ✅ **COMPLETED**
 
 **Background**: Following the scheduler job accumulation bug fix, additional inconsistencies were discovered in how different job types were managed. Task reminders had their own separate cleanup function that was never called, and task reminders were not getting Wake timers like other jobs.

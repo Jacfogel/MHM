@@ -3,7 +3,7 @@ from ui.generated.channel_management_dialog_pyqt import Ui_Dialog
 from ui.widgets.channel_selection_widget import ChannelSelectionWidget
 from core.logger import get_component_logger
 from PySide6.QtCore import Signal
-from core.user_data_validation import is_valid_email, is_valid_phone
+from core.user_data_validation import is_valid_email
 from core.user_data_handlers import (
     get_user_data,
     update_channel_preferences,
@@ -45,15 +45,14 @@ class ChannelManagementDialog(QDialog):
                 channel_cap = channel_lc.capitalize()
                 # Always prepopulate all contact fields
                 email = account.get('email', '')
-                phone = account.get('phone', '')
                 discord_id = account.get('discord_user_id', '')
                 timezone = account.get('timezone', 'America/Regina')
-                self.channel_widget.set_contact_info(email=email, phone=phone, discord_id=discord_id, timezone=timezone)
+                
+                self.channel_widget.set_contact_info(email=email, discord_id=discord_id, timezone=timezone)
                 # Set the selected channel radio button
                 value = ''
                 if channel_lc == 'email':
                     value = email
-
                 elif channel_lc == 'discord':
                     value = discord_id
                 self.channel_widget.set_selected_channel(channel_cap, value)
@@ -92,10 +91,6 @@ class ChannelManagementDialog(QDialog):
             if contact_info['email'] and not is_valid_email(contact_info['email']):
                 validation_errors.append(f"Invalid email format: {contact_info['email']}")
             
-            # Validate phone if provided
-            if contact_info['phone'] and not is_valid_phone(contact_info['phone']):
-                validation_errors.append(f"Invalid phone format: {contact_info['phone']}")
-            
             # Show validation errors if any
             if validation_errors:
                 error_message = "Please correct the following validation errors:\n\n" + "\n".join(validation_errors)
@@ -129,7 +124,6 @@ class ChannelManagementDialog(QDialog):
             
             # Save all contact info to account/profile (including empty fields to clear them)
             account['email'] = contact_info['email'] if contact_info['email'] else ''
-            account['phone'] = contact_info['phone'] if contact_info['phone'] else ''
             account['discord_user_id'] = contact_info['discord_id'] if contact_info['discord_id'] else ''
             
             # Save timezone to account

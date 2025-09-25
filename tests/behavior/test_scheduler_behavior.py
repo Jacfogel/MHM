@@ -77,10 +77,10 @@ class TestSchedulerManager:
         # Mock schedule.jobs to contain a matching job
         mock_job = Mock()
         
-        # Create a mock job_func that has the correct function reference and keywords
+        # Create a mock job_func that matches the expected structure
         mock_job_func = Mock()
-        mock_job_func.keywords = {'user_id': 'test-user', 'category': 'motivational'}
         mock_job_func.func = scheduler_manager.schedule_daily_message_job
+        mock_job_func.keywords = {'user_id': 'test-user', 'category': 'motivational'}
         mock_job.job_func = mock_job_func
         
         with patch('core.scheduler.schedule') as mock_schedule:

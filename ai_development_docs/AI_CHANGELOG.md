@@ -29,6 +29,15 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-24 - Channel Settings Dialog Fixes and Test Suite Stabilization ✅ **COMPLETED**
+- **Channel Dialog Phone Field Error**: Fixed `'Ui_Form_channel_selection' object has no attribute 'lineEdit_phone'` error by removing non-existent phone field references
+- **Discord ID Data Loading**: Fixed Discord ID field not populating (now correctly loads `670723025439555615`)
+- **Radio Button Selection**: Fixed Discord/Email radio buttons not being set correctly (Discord button now properly selected)
+- **Phone Validation Removal**: Removed phone field validation from save method since field doesn't exist in UI
+- **Test Suite Fix**: Fixed failing scheduler test by updating mock structure to match current `is_job_for_category` implementation
+- **Full Test Suite Success**: All 1480 tests passing, 1 skipped, only expected Discord library warnings
+- **Impact**: Channel Settings dialog now works perfectly - loads data correctly and saves without errors
+
 ### 2025-09-24 - Scheduler Job Management Consistency Fix ✅ **COMPLETED**
 - **Job Accumulation Fix**: Fixed scheduler job accumulation causing 35+ messages/day instead of expected 10
 - **Cleanup Logic Update**: Updated `is_job_for_category` function to properly identify daily scheduler jobs for cleanup

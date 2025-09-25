@@ -57,7 +57,6 @@ class TestChannelManagementDialogCoverageExpansion:
         dialog.channel_widget.get_timezone.return_value = 'America/Regina'
         dialog.channel_widget.get_all_contact_info.return_value = {
             'email': 'test@example.com',
-            'phone': '+1234567890',
             'discord_id': '123456789'
         }
 
@@ -65,7 +64,6 @@ class TestChannelManagementDialogCoverageExpansion:
              patch('ui.dialogs.channel_management_dialog.update_channel_preferences') as mock_update_prefs, \
              patch('ui.dialogs.channel_management_dialog.update_user_account') as mock_update_account, \
              patch('ui.dialogs.channel_management_dialog.is_valid_email') as mock_valid_email, \
-             patch('ui.dialogs.channel_management_dialog.is_valid_phone') as mock_valid_phone, \
              patch('ui.dialogs.channel_management_dialog.QMessageBox.information') as mock_info:
 
             mock_get_data.side_effect = lambda user_id, data_type: {
@@ -73,7 +71,6 @@ class TestChannelManagementDialogCoverageExpansion:
                 'preferences': {'channel': {'type': 'email'}}
             }.get(data_type, {})
             mock_valid_email.return_value = True
-            mock_valid_phone.return_value = True
 
             # Call the actual method
             ChannelManagementDialog.save_channel_settings(dialog)
@@ -98,7 +95,6 @@ class TestChannelManagementDialogCoverageExpansion:
         dialog.channel_widget.get_timezone.return_value = 'America/Regina'
         dialog.channel_widget.get_all_contact_info.return_value = {
             'email': 'test@example.com',
-            'phone': '+1234567890',
             'discord_id': '123456789'
         }
 
@@ -106,7 +102,6 @@ class TestChannelManagementDialogCoverageExpansion:
              patch('ui.dialogs.channel_management_dialog.update_channel_preferences') as mock_update_prefs, \
              patch('ui.dialogs.channel_management_dialog.update_user_account') as mock_update_account, \
              patch('ui.dialogs.channel_management_dialog.is_valid_email') as mock_valid_email, \
-             patch('ui.dialogs.channel_management_dialog.is_valid_phone') as mock_valid_phone, \
              patch('ui.dialogs.channel_management_dialog.QMessageBox.information') as mock_info:
 
             mock_get_data.side_effect = lambda user_id, data_type: {
@@ -114,7 +109,6 @@ class TestChannelManagementDialogCoverageExpansion:
                 'preferences': {'channel': {'type': 'discord'}}
             }.get(data_type, {})
             mock_valid_email.return_value = True
-            mock_valid_phone.return_value = True
 
             # Call the actual method
             ChannelManagementDialog.save_channel_settings(dialog)
@@ -217,40 +211,37 @@ class TestChannelManagementDialogCoverageExpansion:
             mock_warning.assert_called_once()
             assert "Invalid email format" in mock_warning.call_args[0][2]
 
-    def test_save_channel_settings_validation_error_invalid_phone(self, mock_user_data):
-        """Test validation error for invalid phone format."""
+    def test_save_channel_settings_validation_error_invalid_discord_id(self, mock_user_data):
+        """Test validation error for missing Discord ID."""
         # Create a mock dialog instance
         dialog = Mock(spec=ChannelManagementDialog)
         dialog.user_id = 'test-user'
-        
+
         # Mock the channel widget
         dialog.channel_widget = Mock()
-        dialog.channel_widget.get_selected_channel.return_value = ('Email', 'test@example.com')
+        dialog.channel_widget.get_selected_channel.return_value = ('Discord', '')
         dialog.channel_widget.get_timezone.return_value = 'America/Regina'
         dialog.channel_widget.get_all_contact_info.return_value = {
             'email': 'test@example.com',
-            'phone': 'invalid-phone',
-            'discord_id': '123456789'
+            'discord_id': ''
         }
         
         with patch('ui.dialogs.channel_management_dialog.get_user_data') as mock_get_data, \
-             patch('ui.dialogs.channel_management_dialog.is_valid_phone') as mock_valid_phone, \
              patch('ui.dialogs.channel_management_dialog.QMessageBox.warning') as mock_warning:
             
             mock_get_data.side_effect = lambda user_id, data_type: {
                 'account': {'features': {'automated_messages': 'enabled'}},
-                'preferences': {'channel': {'type': 'email'}}
+                'preferences': {'channel': {'type': 'discord'}}
             }.get(data_type, {})
-            mock_valid_phone.return_value = False
             
             # Call the actual method
             ChannelManagementDialog.save_channel_settings(dialog)
             
             mock_warning.assert_called_once()
-            assert "Invalid phone format" in mock_warning.call_args[0][2]
+            assert "Discord ID is required" in mock_warning.call_args[0][2]
 
-    def test_save_channel_settings_multiple_validation_errors(self, mock_user_data):
-        """Test multiple validation errors."""
+    def test_save_channel_settings_validation_error_invalid_email(self, mock_user_data):
+        """Test validation error for invalid email format."""
         # Create a mock dialog instance
         dialog = Mock(spec=ChannelManagementDialog)
         dialog.user_id = 'test-user'
@@ -260,14 +251,12 @@ class TestChannelManagementDialogCoverageExpansion:
         dialog.channel_widget.get_selected_channel.return_value = ('Email', '')
         dialog.channel_widget.get_timezone.return_value = 'America/Regina'
         dialog.channel_widget.get_all_contact_info.return_value = {
-            'email': '',  # Empty email to trigger "Email address is required"
-            'phone': 'invalid-phone',
+            'email': 'invalid-email',  # Invalid email format
             'discord_id': '123456789'
         }
         
         with patch('ui.dialogs.channel_management_dialog.get_user_data') as mock_get_data, \
              patch('ui.dialogs.channel_management_dialog.is_valid_email') as mock_valid_email, \
-             patch('ui.dialogs.channel_management_dialog.is_valid_phone') as mock_valid_phone, \
              patch('ui.dialogs.channel_management_dialog.QMessageBox.warning') as mock_warning:
             
             mock_get_data.side_effect = lambda user_id, data_type: {
@@ -275,15 +264,13 @@ class TestChannelManagementDialogCoverageExpansion:
                 'preferences': {'channel': {'type': 'email'}}
             }.get(data_type, {})
             mock_valid_email.return_value = False
-            mock_valid_phone.return_value = False
             
             # Call the actual method
             ChannelManagementDialog.save_channel_settings(dialog)
             
             mock_warning.assert_called_once()
             warning_message = mock_warning.call_args[0][2]
-            assert "Email address is required" in warning_message
-            assert "Invalid phone format" in warning_message
+            assert "Invalid email format" in warning_message
 
     def test_save_channel_settings_exception_handling(self, mock_user_data):
         """Test exception handling during save."""
