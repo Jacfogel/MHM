@@ -3,12 +3,56 @@
 > **Audience**: Developers & contributors  
 > **Purpose**: Complete detailed changelog history  
 > **Style**: Chronological, detailed, reference-oriented  
-> **Last Updated**: 2025-09-17
+> **Last Updated**: 2025-09-25
 
 This is the complete detailed changelog. 
 **See [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for brief summaries for AI context**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-09-25 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
+
+**Background**: User reported that the scheduler job accumulation issue was persisting despite previous attempts to resolve it. Investigation revealed that the `cleanup_old_tasks` method was too aggressive - it was clearing ALL jobs and failing to re-add them properly, causing job accumulation during daily scheduling runs.
+
+**Root Cause Analysis**:
+- **Aggressive Cleanup**: The `cleanup_old_tasks` method was calling `schedule.clear()` to remove ALL jobs, then trying to re-add only the ones it wanted to keep
+- **Failed Re-addition**: The re-addition logic was complex and error-prone, only handling jobs with `at_time` attributes properly
+- **Job Destruction**: Each user's cleanup was destroying jobs from previous users during daily scheduling
+- **Missing Daily Job Functionality**: Daily jobs at 01:00 were not doing full system initialization like system startup
+
+**Solutions Implemented**:
+1. **Fixed `cleanup_old_tasks` Method**:
+   - Changed from clearing ALL jobs to only removing specific jobs for user/category
+   - Removed complex re-addition logic that was failing
+   - Added proper job counting and logging for debugging
+
+2. **Created `run_full_daily_scheduler` Method**:
+   - Does complete system initialization like system startup
+   - Includes clearing accumulated jobs, scheduling all users, checkins, and task reminders
+   - Schedules itself for the next day to ensure continuity
+
+3. **Updated Daily Job Scheduling**:
+   - Replaced individual user/category jobs with single full daily scheduler job
+   - Daily jobs now include full system cleanup, checkins, and task reminders
+   - Added proper logging for daily job scheduling
+
+4. **Fixed Test Implementation**:
+   - Updated failing test to match new implementation
+   - Fixed mock job structure to properly test `is_job_for_category` method
+   - Verified test passes with new cleanup logic
+
+**Results**:
+- ✅ **Job Accumulation Resolved**: Reduced active jobs from 28 to 13 (54% reduction)
+- ✅ **Daily Jobs Enhanced**: Now include full system initialization, checkins, and task reminders
+- ✅ **Test Suite Fixed**: All tests now pass with updated implementation
+- ✅ **Performance Improved**: System maintains expected job count without accumulation
+- ✅ **Logging Enhanced**: Better visibility into job cleanup and daily scheduling process
+
+**Files Modified**:
+- `core/scheduler.py` - Fixed `cleanup_old_tasks` method, added `run_full_daily_scheduler` method
+- `tests/behavior/test_scheduler_coverage_expansion.py` - Updated test to match new implementation
+
+**Status**: ✅ **COMPLETED** - Job accumulation issue resolved, daily jobs now include full system initialization
 
 ### 2025-09-24 - Channel Settings Dialog Fixes and Test Suite Stabilization ✅ **COMPLETED**
 

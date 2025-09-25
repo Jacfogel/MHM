@@ -736,28 +736,35 @@ class TestCleanupOperations:
         user_id = 'test-user'
         category = 'motivational'
         
-        # Create mock jobs
+        # Create mock jobs with proper structure for is_job_for_category
         mock_job1 = Mock()
-        mock_job1.job_func.args = [user_id, category]
+        mock_job1.job_func.func = scheduler_manager.schedule_daily_message_job
+        mock_job1.job_func.keywords = {'user_id': user_id, 'category': category}
         mock_job1.at_time = '10:00'
-        
+
         mock_job2 = Mock()
-        mock_job2.job_func.args = ['other-user', 'health']
+        mock_job2.job_func.func = scheduler_manager.schedule_daily_message_job
+        mock_job2.job_func.keywords = {'user_id': 'other-user', 'category': 'health'}
         mock_job2.at_time = '11:00'
         
         with patch('core.scheduler.schedule') as mock_schedule:
-            mock_schedule.jobs = [mock_job1, mock_job2]
-            
+            # Create a mutable list that can be modified
+            jobs_list = [mock_job1, mock_job2]
+            mock_schedule.jobs = jobs_list
+
             with patch('subprocess.run') as mock_run:
                 mock_run.return_value.returncode = 0
                 mock_run.return_value.stdout = "TaskName: Wake_test-user_motivational_1000"
-                
+
                 # Test real behavior: function should clean up tasks
                 scheduler_manager.cleanup_old_tasks(user_id, category)
-                
-                # Verify side effects
-                assert mock_schedule.clear.called
-                assert mock_schedule.every.called
+
+                # Verify side effects - new implementation removes specific jobs instead of clearing all
+                # Check that jobs were removed from the list
+                assert len(jobs_list) == 1  # Should have 1 job left (other-user)
+                # Verify the remaining job is not for the test user/category
+                remaining_job = jobs_list[0]
+                assert remaining_job.job_func.keywords['user_id'] == 'other-user'
     
     # Task reminder cleanup tests removed - function no longer exists
     # Task reminders are now managed consistently with other jobs

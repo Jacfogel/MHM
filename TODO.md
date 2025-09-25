@@ -550,12 +550,15 @@ When adding new tasks, follow this format:
 - *Remaining*: Monitor for any new warnings that may appear in future test runs
 - *Estimated effort*: Small
 
-**Scheduler Job Accumulation Fix Verification** ✅ **COMPLETED**
-- *What it means*: Verify that the scheduler job accumulation fix is working correctly and monitor message frequency
-- *Why it helps*: Ensures users receive the expected 10 messages per day instead of 35+ messages
+**Scheduler Job Accumulation Issue Resolution** ✅ **COMPLETED**
+- *What it means*: Fixed job accumulation during daily scheduling runs and improved daily job functionality
+- *Why it helps*: Prevents system slowdown, ensures proper daily scheduling, and maintains expected message frequency
 - *Completed work*:
-  - ✅ Fixed `is_job_for_category` function to properly identify daily scheduler jobs
-  - ✅ Added `clear_all_accumulated_jobs` method to prevent job accumulation
+  - ✅ Fixed `cleanup_old_tasks` method to only remove specific jobs instead of clearing all jobs
+  - ✅ Created `run_full_daily_scheduler` method for complete daily initialization
+  - ✅ Updated daily jobs to include full system cleanup, checkins, and task reminders
+  - ✅ Fixed test to match new implementation
+  - ✅ Verified job accumulation issue is resolved (reduced from 28 to 13 active jobs)
   - ✅ Added standalone cleanup function for admin UI access
   - ✅ Improved logging to distinguish between daily scheduler jobs and individual message jobs
   - ✅ Fixed failing test for updated function

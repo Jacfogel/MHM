@@ -59,19 +59,10 @@ class SchedulerManager:
                 schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
                 logger.info("Scheduled new daily job for log archival at 02:00")
                 
-                # Then set up recurring daily scheduling at 01:00 for all users
-                user_ids = get_all_user_ids()
-                for user_id in user_ids:
-                    # Get user categories
-                    prefs_result = get_user_data(user_id, 'preferences')
-                    categories = prefs_result.get('preferences', {}).get('categories', [])
-                    for category in categories:
-                        # Check if a job already exists for this user and category before scheduling
-                        if not self.is_job_for_category(None, user_id, category):
-                            schedule.every().day.at("01:00").do(self.schedule_daily_message_job, user_id=user_id, category=category)
-                            logger.info(f"Scheduled new daily job for user {user_id}, category {category}")
-                        else:
-                            logger.info(f"Daily job already exists for user {user_id}, category {category} - skipping duplicate")
+                # Schedule a single full daily scheduler job at 01:00 to handle complete system initialization
+                # This ensures checkins, task reminders, and full cleanup happen daily
+                schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
+                logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, and full cleanup)")
                 
                 # Log job count after daily job scheduling
                 active_jobs = len(schedule.jobs)
@@ -319,6 +310,32 @@ class SchedulerManager:
         except Exception as e:
             logger.error(f"Failed to schedule new user {user_id}: {e}")
             raise
+
+    @handle_errors("running full daily scheduler")
+    def run_full_daily_scheduler(self):
+        """
+        Runs the full daily scheduler process - same as system startup.
+        This includes clearing accumulated jobs, scheduling all users, checkins, and task reminders.
+        """
+        logger.info("Running full daily scheduler process (01:00 daily job)")
+        
+        # Clear all accumulated jobs first to prevent job accumulation
+        self.clear_all_accumulated_jobs()
+        
+        # Immediately schedule messages for all users (includes checkins and task reminders)
+        self.schedule_all_users_immediately()
+        
+        # Schedule daily log archival at 02:00 (after user scheduling)
+        schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
+        logger.info("Scheduled new daily job for log archival at 02:00")
+        
+        # Schedule the next day's full daily scheduler job at 01:00
+        schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
+        logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, and full cleanup)")
+        
+        # Log job count after daily job scheduling
+        active_jobs = len(schedule.jobs)
+        logger.info(f"Full daily scheduler complete: {active_jobs} total active jobs scheduled")
 
     @handle_errors("scheduling daily message job")
     def schedule_daily_message_job(self, user_id, category):
@@ -711,41 +728,28 @@ class SchedulerManager:
     @handle_errors("cleaning up old tasks")
     def cleanup_old_tasks(self, user_id, category):
         """Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category."""
-        # Store jobs we want to keep (not for this user/category)
-        jobs_to_keep = []
+        # Count jobs before cleanup
+        initial_job_count = len(schedule.jobs)
+        jobs_removed = 0
+        
+        # Remove only jobs for this specific user and category
+        jobs_to_remove = []
         for job in schedule.jobs:
-            if not self.is_job_for_category(job, user_id, category):
-                jobs_to_keep.append(job)
+            if self.is_job_for_category(job, user_id, category):
+                jobs_to_remove.append(job)
         
-        # Clear all jobs and reschedule only the ones we want to keep
-        schedule.clear()
-        for job in jobs_to_keep:
-            # Re-add the job with its original schedule
-            if hasattr(job, 'at_time') and job.at_time:
-                # Ensure at_time is a string and in the correct format
-                at_time_str = str(job.at_time)
-                # Extract just the time part if it's a full datetime string
-                if ' ' in at_time_str:
-                    at_time_str = at_time_str.split(' ')[1]  # Get time part only
-                # Handle times with seconds (HH:MM:SS) by extracting just HH:MM
-                if ':' in at_time_str:
-                    time_parts = at_time_str.split(':')
-                    if len(time_parts) >= 2:
-                        # Take just HH:MM part
-                        at_time_str = f"{time_parts[0]}:{time_parts[1]}"
-                        try:
-                            schedule.every().day.at(at_time_str).do(job.job_func, *job.job_func.args)
-                            # Only log re-added jobs at TRACE level or when troubleshooting
-                        except Exception as e:
-                            logger.warning(f"Could not re-add job with time {at_time_str}: {e}")
-                    else:
-                        logger.warning(f"Invalid time format for job: {at_time_str}")
-                else:
-                    logger.warning(f"Invalid time format for job: {at_time_str}")
-            else:
-                logger.debug(f"Skipping job without valid at_time: {getattr(job, 'at_time', 'None')}")
+        # Remove the identified jobs
+        for job in jobs_to_remove:
+            try:
+                schedule.jobs.remove(job)
+                jobs_removed += 1
+                logger.debug(f"Removed job for user {user_id}, category {category}")
+            except ValueError:
+                # Job was already removed
+                pass
         
-        logger.info(f"In-memory scheduler cleanup completed for user {user_id}, category {category}.")
+        final_job_count = len(schedule.jobs)
+        logger.info(f"In-memory scheduler cleanup completed for user {user_id}, category {category}. Removed {jobs_removed} jobs (from {initial_job_count} to {final_job_count} total jobs).")
     
     @handle_errors("clearing all accumulated jobs")
     def clear_all_accumulated_jobs(self):
