@@ -24,6 +24,25 @@ This directory contains the comprehensive test suite for the Mental Health Manag
 - **Maintainability**: Tests are easy to understand and update
 - **Reliability**: Tests produce consistent, repeatable results
 
+### **est Data Cleanup Standards (Optional but Recommended)**
+- **Pre-run (session start)**:
+  - Remove `tests/data/pytest-of-Julie` if present
+  - Clear all children of `tests/data/tmp`
+  - Remove stray `tests/data/config` directory
+  - Remove root files `tests/data/.env` and `tests/data/requirements.txt`
+  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
+- **Post-run (session end)**:
+  - Clear all children of `tests/data/tmp`
+  - Clear all children of `tests/data/flags`
+  - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
+  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
+  - Remove test backup files from `tests/data/backups/` (user_backup_*.zip)
+  - Remove old test_run files from `tests/logs/` (test_run.log and test_run_*.log)
+- **Users directory policy**:
+  - All test users must reside under `tests/data/users/<id>`
+  - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
+  - Post-run: ensure `tests/data/users` has no lingering test users
+
 ## 🏗️ **Test Organization Structure**
 
 ### **Primary Organization: By Feature/Workflow (Operational Grouping)**

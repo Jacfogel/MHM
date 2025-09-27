@@ -28,40 +28,16 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
-### Test Data Cleanup Standards (Optional but Recommended)
-- Pre-run (session start):
-  - Remove `tests/data/pytest-of-Julie` if present
-  - Clear all children of `tests/data/tmp`
-  - Remove stray `tests/data/config` directory
-  - Remove root files `tests/data/.env` and `tests/data/requirements.txt`
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-- Post-run (session end):
-  - Clear all children of `tests/data/tmp`
-  - Clear all children of `tests/data/flags`
-  - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-  - Remove test backup files from `tests/data/backups/` (user_backup_*.zip)
-  - Remove old test_run files from `tests/logs/` (test_run.log and test_run_*.log)
-- Users directory policy:
-  - All test users must reside under `tests/data/users/<id>`
-  - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
-  - Post-run: ensure `tests/data/users` has no lingering test users
-
-
 ## High Priority
 
-
-**AI Response Quality Improvements** - Fix message truncation and enhance conversational openings
-- *What it means*: The AI responses are getting cut off mid-sentence and need better conversational engagement endings
-- *Why it helps*: Provides complete, engaging responses that encourage continued conversation
+**Chat Interaction Storage Testing** - Verify real user scenarios
+- *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building
+- *Why it helps*: Ensures AI can reference previous conversations for better continuity
 - *Estimated effort*: Small
-- *Issues identified*:
-  - [ ] **Message Truncation**: Second response got cut off mid-sentence ("it can be tough to manage all of...")
-  - [ ] **Conversational Openings**: Third response needs stronger engagement ("where would you like to start?" or "what feels the heaviest right now?" or "how about we take it one thing at a time?")
 - *Next steps*:
-  - [ ] Investigate why AI responses are being truncated (max_tokens, response length limits)
-  - [ ] Enhance conversational engagement prompts to be more specific about ending patterns
-  - [ ] Test response completeness and engagement quality
+  - [ ] Test chat interaction storage with various user message types
+  - [ ] Verify context building works correctly with stored interactions
+  - [ ] Test fallback response storage scenarios
 
 **Quantitative Check-in Analytics Expansion** - Include all opted‑in quantitative questions
 - *What it means*: Users can enable multiple preset check‑in questions; analytics should aggregate all quantitative ones (mood, stress, energy, sleep quality, anxiety, etc.) based on what the user has opted into.
@@ -76,27 +52,6 @@ When adding new tasks, follow this format:
   - [ ] Integrate per-field summaries into "show analytics" response
   - [ ] Add behavior tests validating per-field section in analytics overview
 
-**High Complexity Function Refactoring - Phase 3** ✅ **COMPLETED**
-- *What it means*: Continue refactoring high complexity functions identified in audit (1,978 functions >50 nodes)
-- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
-- *Estimated effort*: Large
-- *Completed Work*:
-  - ✅ `get_user_data_summary` refactoring — Reduced 800-node complexity to 15 focused helper functions
-  - ✅ Helper function naming convention — Implemented `_main_function__helper_name` pattern
-  - ✅ All tests passing — Verified stability after refactoring
-  - ✅ Minor logging enhancements — Added comprehensive logging to core modules for better debugging
-  - ✅ `get_personalization_data` refactoring — Reduced 727-node complexity to 6 focused helper functions
-  - ✅ Legacy message function calls — Fixed tests to use `get_recent_messages` instead of legacy `get_last_10_messages`
-  - ✅ Test warning suppression — Suppressed expected thread exception warnings in scheduler tests
-  - ✅ `perform_cleanup` refactoring — Reduced 302-node complexity to 6 focused helper functions
-  - ✅ `validate_backup` refactoring — Reduced 249-node complexity to 5 focused helper functions
-  - ✅ `validate_system_state` refactoring — Reduced 203-node complexity to 2 focused helper functions
-  - ✅ `create_backup` refactoring — Reduced 195-node complexity to 3 focused helper functions
-  - ✅ **MAJOR SUCCESS**: Refactored 8 high-complexity functions with 90% complexity reduction (1,618 → ~155 nodes)
-  - ✅ **Test Coverage Expansion**: Added 57 comprehensive tests covering all scenarios and edge cases
-  - ✅ **Test Artifact Cleanup**: Fixed test fixture pollution and cleaned up test artifacts
-- *Current Status*: Phase 3 completed successfully with comprehensive test coverage and refactoring
-- *Next Phase*: Continue with remaining high-complexity functions identified in latest audit (1,978 functions >50 nodes)
 
 **High Complexity Function Refactoring - Phase 4** ⚠️ **NEW PRIORITY**
 - *What it means*: Continue refactoring high complexity functions identified in latest audit (1,978 functions >50 nodes)
@@ -213,22 +168,6 @@ When adding new tasks, follow this format:
   - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
   - [ ] Confirm single "User check-in started" entry after successful send
 
-**Legacy Code Management - Current Status** ✅ **MAJOR PROGRESS**
-- *What it means*: Comprehensive legacy code cleanup and modernization completed with significant progress
-- *Why it helps*: Reduces technical debt, improves maintainability, and simplifies codebase
-- *Current Status*: **78% reduction in legacy compatibility markers** (from 9 to 2 files)
-- *Completed Work*:
-  - ✅ **Legacy Function Removal**: Removed unused legacy functions and updated all callers
-  - ✅ **Legacy Field Preservation**: Removed redundant field preservation code for modernized user data
-  - ✅ **Legacy Method Cleanup**: Removed legacy bot methods and updated tests to use modern async methods
-  - ✅ **Legacy Comment Cleanup**: Removed stale legacy compatibility comments
-  - ✅ **Tool Enhancement**: Enhanced legacy reference cleanup tool with better patterns and exclusions
-- *Remaining Work*:
-  - [ ] **Monitor Remaining Legacy Markers**: Only 2 files remain with legacy compatibility markers
-    - `core/user_data_manager.py` (2 markers) - Backward compatibility mappings
-    - `user/user_context.py` (1 marker) - Preference method delegation
-  - [ ] **Legacy Preferences Flag Monitoring**: Monitor for nested 'enabled' flags warnings
-- *Impact*: Major reduction in legacy code, improved code clarity, maintained full backward compatibility
 
 **Legacy Preferences Flag Monitoring and Removal Plan**
 - *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
@@ -239,29 +178,7 @@ When adding new tasks, follow this format:
   - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
   - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
 
-**Discord Test Warning Fixes and Resource Cleanup** ✅ **COMPLETED**
-- *What it means*: Fix Discord.py deprecation warnings and aiohttp session cleanup issues in tests
-- *Why it helps*: Provides cleaner test output and better resource management
-- *Estimated effort*: Small
-- *Completed Work*:
-  - ✅ **Warning Suppression**: Enhanced warning filters in `tests/conftest.py` and `pytest.ini` for Discord.py and aiohttp warnings
-  - ✅ **Session Cleanup**: Added `_cleanup_aiohttp_sessions()` method to Discord bot shutdown process
-  - ✅ **Test Fixture Improvements**: Enhanced Discord bot test fixtures with better cleanup and exception handling
-  - ✅ **Resource Management**: Improved Discord bot shutdown to properly clean up orphaned aiohttp sessions
-  - ✅ **Warning Reduction**: Reduced test warnings from 4 to 1-2 (only Discord library warnings remain)
-- *Impact*: Much cleaner test output, better resource management, easier debugging
 
-**Legacy Check-in Methods Testing and Monitoring** ✅ **COMPLETED**
-- *What it means*: Test and monitor the newly added legacy check-in methods (`_get_question_text_legacy()` and `_validate_response_legacy()`)
-- *Why it helps*: Ensures legacy methods function as intended and provides data for future removal decisions.
-- *Estimated effort*: Small
-- *Completed Work*:
-  - ✅ **Legacy Methods Removed**: Removed unused `_get_question_text_legacy()` and `_validate_response_legacy()` methods from `communication/message_processing/conversation_flow_manager.py`
-  - ✅ **Function Call Updates**: Updated call to `store_checkin_response()` to use modern `store_user_response()` function
-  - ✅ **Import Cleanup**: Removed unused import of `store_checkin_response` from conversation flow manager
-  - ✅ **Test Updates**: Updated all tests to use modern functions instead of legacy methods
-  - ✅ **Legacy Report**: Confirmed removal reduced legacy compatibility markers in cleanup tool
-- *Impact*: Cleaner codebase with no unused legacy methods, improved maintainability
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
@@ -492,57 +409,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
 - *Estimated effort*: Small
 
-## Test Logging System Improvements ✅ **COMPLETED**
-
-**Enhanced Test Context Integration** ✅ **COMPLETED**
-- *What it means*: Implemented `TestContextFormatter` that automatically prepends test names to log messages using pytest's `PYTEST_CURRENT_TEST` environment variable
-- *Why it helps*: Enables easy test debugging with contextual log messages without manual logging calls
-- *Implementation*: Custom formatter automatically adds test context like `[test_name (setup)]` to all log messages
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED**
-
-**Session-Based Log Rotation** ✅ **COMPLETED**
-- *What it means*: Implemented session-based log rotation that checks at session start/end and rotates all logs together if any exceed 10MB, preventing mid-test rotation that could break log continuity
-- *Why it helps*: Prevents test log files from growing too large and maintains log continuity during test runs
-- *Implementation*: `SessionLogRotationManager` coordinates rotation across all registered log files with automatic session start/end checks
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Reduced threshold from 100MB to 10MB for better testing visibility
-
-**Professional Log Lifecycle Management** ✅ **COMPLETED**
-- *What it means*: Implemented proper backup/archive structure where rotated logs go to `tests/logs/backups/` with timestamped filenames, then automatically archive to `tests/logs/archive/` after 30 days
-- *Why it helps*: Follows proper log lifecycle management and ensures complete test log isolation
-- *Implementation*: `LogLifecycleManager` handles automatic archiving of old backups (7+ days) and cleanup of old archives (30+ days)
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED**
-
-**Comprehensive Testing and Validation** ✅ **COMPLETED**
-- *What it means*: All logging improvements have been thoroughly tested to ensure they work without breaking existing functionality
-- *Why it helps*: Ensures system stability and reliability of the enhanced logging system
-- *Results*: All unit tests (157 passed, 1 skipped) and behavior tests (1059 passed, 1 deselected) pass successfully
-- *Status*: ✅ **FULLY VALIDATED AND WORKING**
-
-**Final System Verification** ✅ **COMPLETED**
-- *What it means*: Verified that test_run files are properly managed and participate in the rotation system
-- *Why it helps*: Ensures complete logging system consistency and proper file lifecycle management
-- *Results*: 
-  - ✅ Only one test_run file created per test session (multiple files expected for full test suite)
-  - ✅ test_run files rotate along with component logs to tests/logs/backups/
-  - ✅ All 23 component loggers working correctly with TestContextFormatter
-  - ✅ SessionLogRotationManager rotates all logs together consistently
-  - ✅ No conflicting rotation mechanisms
-  - ✅ All failing tests fixed with complete mock data
-  - ✅ test_file.json created in appropriate test directory
-- *Status*: ✅ **PRODUCTION-READY LOGGING SYSTEM**
-
-**Test Data Cleanup and Warning Suppression** ✅ **COMPLETED**
-- *What it means*: Enhanced test data cleanup to remove stray test.log files and suppressed Discord library warnings
-- *Why it helps*: Keeps test environment clean and reduces noise in test output
-- *Implementation*: Added cleanup for stray test.log files in session cleanup, added warning filters for Discord deprecation warnings
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Verified cleanup removes pytest-of-Julie directories and test.log files
-
-**Log Rotation Threshold Optimization** ✅ **COMPLETED**
-- *What it means*: Reduced log rotation threshold from 100MB to 10MB for better testing visibility
-- *Why it helps*: Allows observation of rotation behavior during normal test runs
-- *Implementation*: Modified SessionLogRotationManager max_size_mb parameter from 100 to 10
-- *Status*: ✅ **FULLY IMPLEMENTED AND TESTED** - Successfully triggered rotation during test runs
-
 **Monitor Remaining Test Warnings** - **LOW PRIORITY**
 - *What it means*: Monitor and address remaining pytest warnings that appear during test runs
 - *Why it helps*: Maintains clean test output and identifies potential issues early
@@ -550,19 +416,4 @@ When adding new tasks, follow this format:
 - *Remaining*: Monitor for any new warnings that may appear in future test runs
 - *Estimated effort*: Small
 
-**Scheduler Job Accumulation Issue Resolution** ✅ **COMPLETED**
-- *What it means*: Fixed job accumulation during daily scheduling runs and improved daily job functionality
-- *Why it helps*: Prevents system slowdown, ensures proper daily scheduling, and maintains expected message frequency
-- *Completed work*:
-  - ✅ Fixed `cleanup_old_tasks` method to only remove specific jobs instead of clearing all jobs
-  - ✅ Created `run_full_daily_scheduler` method for complete daily initialization
-  - ✅ Updated daily jobs to include full system cleanup, checkins, and task reminders
-  - ✅ Fixed test to match new implementation
-  - ✅ Verified job accumulation issue is resolved (reduced from 28 to 13 active jobs)
-  - ✅ Added standalone cleanup function for admin UI access
-  - ✅ Improved logging to distinguish between daily scheduler jobs and individual message jobs
-  - ✅ Fixed failing test for updated function
-  - ✅ All tests pass, audits complete, application verified working
-- *Next steps*: Monitor actual message frequency over next few days to confirm fix effectiveness
-- *Estimated effort*: Small (monitoring only)
 

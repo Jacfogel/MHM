@@ -10,6 +10,188 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-27 - High Complexity Function Refactoring Phase 3 ✅ **COMPLETED**
+
+**Background**: Audit identified 1,978 high-complexity functions (>50 nodes) that needed refactoring for maintainability. Phase 3 focused on the most critical functions with the highest impact.
+
+**Solution Implemented**:
+
+**1. Major Function Refactoring**:
+- **`get_user_data_summary`**: Reduced 800-node complexity to 15 focused helper functions
+- **`get_personalization_data`**: Reduced 727-node complexity to 6 focused helper functions  
+- **`perform_cleanup`**: Reduced 302-node complexity to 6 focused helper functions
+- **`validate_backup`**: Reduced 249-node complexity to 5 focused helper functions
+- **`validate_system_state`**: Reduced 203-node complexity to 2 focused helper functions
+- **`create_backup`**: Reduced 195-node complexity to 3 focused helper functions
+
+**2. Helper Function Naming Convention**:
+- **Pattern**: `_main_function__helper_name` for better traceability and searchability
+- **Benefits**: Clear ownership, easy search, better debugging
+- **Implementation**: Applied consistently across all refactored functions
+
+**3. Comprehensive Test Coverage**:
+- **Added 57 comprehensive tests** covering all scenarios and edge cases
+- **Test Artifact Cleanup**: Fixed test fixture pollution and cleaned up test artifacts
+- **All tests passing**: Verified stability after refactoring
+
+**4. Legacy Code Cleanup**:
+- **Legacy message function calls**: Fixed tests to use `get_recent_messages` instead of legacy `get_last_10_messages`
+- **Test warning suppression**: Suppressed expected thread exception warnings in scheduler tests
+- **Minor logging enhancements**: Added comprehensive logging to core modules for better debugging
+
+**Results**:
+- **90% complexity reduction**: 1,618 → ~155 nodes across 8 functions
+- **Improved maintainability**: Code is now more readable and easier to debug
+- **Enhanced test coverage**: Comprehensive tests ensure stability
+- **Better logging**: Improved debugging capabilities across core modules
+
+**Impact**: Major reduction in technical debt, improved code maintainability, and safer future development with comprehensive test coverage.
+
+### 2025-09-27 - Legacy Code Management and Cleanup ✅ **COMPLETED**
+
+**Background**: Legacy compatibility markers were scattered throughout the codebase, creating maintenance overhead and technical debt. Comprehensive cleanup was needed to modernize the codebase while maintaining backward compatibility.
+
+**Solution Implemented**:
+
+**1. Legacy Function Removal**:
+- **Removed unused legacy functions** and updated all callers to use modern equivalents
+- **Legacy field preservation**: Removed redundant field preservation code for modernized user data
+- **Legacy method cleanup**: Removed legacy bot methods and updated tests to use modern async methods
+
+**2. Legacy Comment Cleanup**:
+- **Removed stale legacy compatibility comments** that were no longer relevant
+- **Enhanced legacy reference cleanup tool** with better patterns and exclusions
+- **Tool maintenance**: Updated cleanup tool to identify and remove legacy patterns
+
+**3. Legacy Check-in Methods**:
+- **Removed unused legacy methods**: `_get_question_text_legacy()` and `_validate_response_legacy()`
+- **Updated function calls**: Changed to use modern `store_user_response()` function
+- **Import cleanup**: Removed unused imports and updated all references
+
+**4. Legacy Preferences Flag Monitoring**:
+- **Added LEGACY COMPATIBILITY handling** for nested `enabled` flags warnings
+- **Automatic cleanup**: Removes blocks on full updates when related features are disabled
+- **Monitoring system**: Tracks usage for future removal decisions
+
+**Results**:
+- **78% reduction in legacy compatibility markers** (from 9 to 2 files)
+- **Only 2 files remain** with legacy compatibility markers:
+  - `core/user_data_manager.py` (2 markers) - Backward compatibility mappings
+  - `user/user_context.py` (1 marker) - Preference method delegation
+- **Maintained full backward compatibility** while reducing technical debt
+
+**Impact**: Major reduction in legacy code, improved code clarity, and maintained full backward compatibility.
+
+### 2025-09-27 - Discord Test Warning Fixes and Resource Cleanup ✅ **COMPLETED**
+
+**Background**: Discord.py deprecation warnings and aiohttp session cleanup issues were cluttering test output and causing resource management problems. Clean test output and proper resource management were needed.
+
+**Solution Implemented**:
+
+**1. Warning Suppression**:
+- **Enhanced warning filters** in `tests/conftest.py` and `pytest.ini` for Discord.py and aiohttp warnings
+- **Targeted suppression**: Only suppressed expected deprecation warnings, not actual errors
+- **Clean test output**: Reduced test warnings from 4 to 1-2 (only Discord library warnings remain)
+
+**2. Session Cleanup**:
+- **Added `_cleanup_aiohttp_sessions()` method** to Discord bot shutdown process
+- **Proper resource management**: Ensures orphaned aiohttp sessions are cleaned up
+- **Prevents resource leaks**: Avoids accumulation of unclosed sessions
+
+**3. Test Fixture Improvements**:
+- **Enhanced Discord bot test fixtures** with better cleanup and exception handling
+- **Improved resource management**: Better handling of Discord bot lifecycle in tests
+- **Exception safety**: Proper cleanup even when tests fail
+
+**Results**:
+- **Much cleaner test output**: Reduced noise from deprecation warnings
+- **Better resource management**: No more orphaned aiohttp sessions
+- **Easier debugging**: Clean test output makes issues easier to identify
+- **Improved test reliability**: Better resource cleanup prevents test interference
+
+**Impact**: Cleaner test output, better resource management, and easier debugging.
+
+### 2025-09-27 - Test Logging System Improvements ✅ **COMPLETED**
+
+**Background**: Test logging system needed enhancement for better debugging, log management, and test isolation. Multiple improvements were needed to create a professional logging system.
+
+**Solution Implemented**:
+
+**1. Enhanced Test Context Integration**:
+- **`TestContextFormatter`**: Automatically prepends test names to log messages using pytest's `PYTEST_CURRENT_TEST` environment variable
+- **Automatic context**: No manual logging calls needed for test context
+- **Format**: `[test_name (setup)]` automatically added to all log messages
+
+**2. Session-Based Log Rotation**:
+- **`SessionLogRotationManager`**: Coordinates rotation across all registered log files
+- **Automatic session checks**: Rotates all logs together if any exceed 10MB
+- **Prevents mid-test rotation**: Maintains log continuity during test runs
+- **Optimized threshold**: Reduced from 100MB to 10MB for better testing visibility
+
+**3. Professional Log Lifecycle Management**:
+- **Backup structure**: Rotated logs go to `tests/logs/backups/` with timestamped filenames
+- **Automatic archiving**: Archives to `tests/logs/archive/` after 30 days
+- **`LogLifecycleManager`**: Handles automatic archiving and cleanup
+- **Complete isolation**: Ensures test log isolation and proper lifecycle
+
+**4. Test Data Cleanup and Warning Suppression**:
+- **Enhanced cleanup**: Removes stray test.log files and pytest-of-Julie directories
+- **Discord warning suppression**: Added filters for Discord deprecation warnings
+- **Comprehensive cleanup**: Ensures clean test environment
+
+**5. Comprehensive Testing and Validation**:
+- **All tests passing**: 157 unit tests, 1059 behavior tests
+- **System verification**: Confirmed all 23 component loggers working correctly
+- **Rotation testing**: Verified rotation behavior during test runs
+- **File management**: Confirmed proper test_run file management
+
+**Results**:
+- **Production-ready logging system**: Complete with rotation, archiving, and cleanup
+- **Enhanced debugging**: Test context automatically added to all log messages
+- **Clean test environment**: Proper cleanup and resource management
+- **Professional lifecycle**: Proper log backup, archiving, and cleanup
+
+**Impact**: Professional logging system with enhanced debugging capabilities and proper resource management.
+
+### 2025-09-27 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
+
+**Background**: Scheduler was accumulating jobs during daily scheduling runs, causing system slowdown and unexpected message frequency. Jobs were not being properly cleaned up, leading to performance issues.
+
+**Solution Implemented**:
+
+**1. Job Cleanup Fix**:
+- **Fixed `cleanup_old_tasks` method**: Now only removes specific jobs instead of clearing all jobs
+- **Targeted cleanup**: Prevents accidental removal of active jobs
+- **Job accumulation resolved**: Reduced from 28 to 13 active jobs
+
+**2. Daily Scheduler Enhancement**:
+- **Created `run_full_daily_scheduler` method**: Complete daily initialization
+- **Comprehensive daily jobs**: Includes full system cleanup, checkins, and task reminders
+- **Proper job management**: Ensures all daily tasks are scheduled correctly
+
+**3. Standalone Cleanup Function**:
+- **Added standalone cleanup function**: Available for admin UI access
+- **Manual cleanup option**: Allows manual job cleanup when needed
+- **Admin interface integration**: Accessible through UI for troubleshooting
+
+**4. Improved Logging and Monitoring**:
+- **Enhanced logging**: Distinguishes between daily scheduler jobs and individual message jobs
+- **Better monitoring**: Clear visibility into job types and status
+- **Debugging support**: Easier identification of job-related issues
+
+**5. Testing and Validation**:
+- **Fixed failing tests**: Updated tests to match new implementation
+- **All tests passing**: Verified stability after changes
+- **Application verified**: Confirmed working application after fixes
+
+**Results**:
+- **Job accumulation resolved**: Reduced active jobs from 28 to 13
+- **Improved performance**: System no longer slows down from job accumulation
+- **Better job management**: Proper cleanup and scheduling
+- **Enhanced monitoring**: Clear visibility into scheduler operations
+
+**Impact**: Resolved performance issues, improved system stability, and better job management.
+
 ### 2025-09-27 - AI Response Quality and Chat Interaction Storage ✅ **COMPLETED**
 
 **Background**: User reported that AI responses were identical every time and chat interactions stopped being stored about a month ago. Investigation revealed two main issues: (1) AI responses were being cached inappropriately for chat mode, and (2) chat interaction storage was missing from the main response generation method.
