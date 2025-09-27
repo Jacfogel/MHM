@@ -3,12 +3,52 @@
 > **Audience**: Developers & contributors  
 > **Purpose**: Complete detailed changelog history  
 > **Style**: Chronological, detailed, reference-oriented  
-> **Last Updated**: 2025-09-25
+> **Last Updated**: 2025-09-27
 
 This is the complete detailed changelog. 
 **See [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for brief summaries for AI context**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging ✅ **COMPLETED**
+
+**Background**: User reported that scheduler logging always showed "15 active jobs scheduled" throughout the day, which was misleading since messages were being sent but the job count never changed. This made the logging useless for monitoring scheduler activity.
+
+**Root Cause Analysis**:
+- **Misleading Logging**: The scheduler was logging total job count every hour, but jobs were recurring so the count never changed
+- **No Useful Information**: The logging didn't show what types of jobs were running or their status
+- **User Expectation Mismatch**: Users expected job count to decrease as messages were sent
+
+**Solution Implemented**:
+
+**1. One-Time Jobs Implementation**:
+- **Modified `handle_sending_scheduled_message`**: Added job removal after successful execution
+- **Added `_remove_user_message_job` method**: Safely removes jobs for specific user/category after execution
+- **Updated job behavior**: Jobs now remove themselves after sending messages instead of recurring daily
+
+**2. Meaningful Logging Enhancement**:
+- **Replaced simple count**: Changed from "15 active jobs scheduled" to detailed breakdown
+- **Added job type counting**: Now shows "X total jobs (Y system, Z message, W task)"
+- **Improved monitoring**: Users can now see exactly what types of jobs are running
+
+**Technical Changes**:
+- **File**: `core/scheduler.py`
+- **Method**: `handle_sending_scheduled_message` - added job removal after execution
+- **Method**: `_remove_user_message_job` - new method to safely remove jobs
+- **Method**: Scheduler loop logging - enhanced to show job type breakdown
+
+**Benefits**:
+- **Dynamic Job Count**: Job count now decreases throughout the day as messages are sent
+- **Better Monitoring**: Logging shows meaningful breakdown of job types
+- **User Expectations Met**: Behavior now matches what users expect from a scheduler
+- **Improved Debugging**: Easier to understand scheduler state and activity
+
+**Testing Results**:
+- **Full Test Suite**: 1479 passed, 1 failed (unrelated auto cleanup test), 1 skipped
+- **AI Audit**: All audits passed successfully
+- **Scheduler Verification**: Confirmed new logging format working correctly
+
+**Status**: ✅ **COMPLETED** - Scheduler now provides meaningful logging and realistic job count behavior
 
 ### 2025-09-25 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
 

@@ -52,10 +52,7 @@ class SchedulerManager:
                 # Clear all accumulated jobs first to prevent job accumulation
                 self.clear_all_accumulated_jobs()
                 
-                # Immediately schedule messages for all users when service starts
-                self.schedule_all_users_immediately()
-                
-                # Schedule daily log archival at 02:00 (after user scheduling)
+                # Schedule daily log archival at 02:00
                 schedule.every().day.at("02:00").do(self.perform_daily_log_archival)
                 logger.info("Scheduled new daily job for log archival at 02:00")
                 
@@ -63,6 +60,9 @@ class SchedulerManager:
                 # This ensures checkins, task reminders, and full cleanup happen daily
                 schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
                 logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, and full cleanup)")
+                
+                # Schedule messages for all users immediately on startup (one-time only)
+                self.schedule_all_users_immediately()
                 
                 # Log job count after daily job scheduling
                 active_jobs = len(schedule.jobs)
@@ -77,12 +77,28 @@ class SchedulerManager:
                     schedule.run_pending()
                     loop_count += 1
                     
-                    # Log every 5 iterations (5 minutes) for diagnostic purposes
-                    if loop_count % 5 == 0:
+                    # Log every 60 iterations (60 minutes) for diagnostic purposes
+                    if loop_count % 60 == 0:
                         active_jobs = len(schedule.jobs)
                         # Only log if there are actually jobs scheduled - don't log 0 jobs
                         if active_jobs > 0:
-                            logger.info(f"Scheduler running: {active_jobs} active jobs scheduled")
+                            # Count different types of jobs for more meaningful logging
+                            system_jobs = 0
+                            user_message_jobs = 0
+                            task_jobs = 0
+                            
+                            for job in schedule.jobs:
+                                if hasattr(job.job_func, 'func'):
+                                    if job.job_func.func == self.perform_daily_log_archival:
+                                        system_jobs += 1
+                                    elif job.job_func.func == self.run_full_daily_scheduler:
+                                        system_jobs += 1
+                                    elif job.job_func.func == self.handle_sending_scheduled_message:
+                                        user_message_jobs += 1
+                                    elif job.job_func.func == self.handle_task_reminder:
+                                        task_jobs += 1
+                            
+                            logger.info(f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)")
                         
                     # Use wait instead of sleep to allow immediate shutdown
                     if self._stop_event.wait(timeout=60):  # Wait 60 seconds or until stop signal
@@ -419,6 +435,7 @@ class SchedulerManager:
                         logger.info(f"Adjusted scheduling time to future for user {user_id}: {schedule_datetime}")
 
                     time_part = schedule_datetime.strftime('%H:%M')
+                    # Schedule as one-time job that will remove itself after execution
                     schedule.every().day.at(time_part).do(self.handle_sending_scheduled_message, user_id=user_id, category=category)
                     logger.info(f"Successfully scheduled {category} message for user {user_id}, period {period_name} at {time_part} on {schedule_datetime.strftime('%Y-%m-%d')}.")
 
@@ -628,6 +645,7 @@ class SchedulerManager:
     def handle_sending_scheduled_message(self, user_id, category, retry_attempts=3, retry_delay=30):
         """
         Handles the sending of scheduled messages with retries.
+        This is a one-time job that removes itself after execution.
         """
         if self.communication_manager is None:
             logger.error("Communication manager is not initialized.")
@@ -639,12 +657,46 @@ class SchedulerManager:
                 # Try to send the message
                 self.communication_manager.handle_message_sending(user_id, category)
                 logger.info(f"Message sent successfully for user {user_id}, category {category}.")
+                
+                # Remove this job after successful execution to make it a one-time job
+                self._remove_user_message_job(user_id, category)
                 return  # Exit after successful execution
             except Exception as e:
                 logger.error(f"Error sending message for user {user_id}, category {category}: {e}")
                 attempt += 1
                 logger.info(f"Retrying in {retry_delay} seconds... ({attempt}/{retry_attempts})")
                 time.sleep(retry_delay)  # Wait before retrying
+        
+        # Remove job even if it failed after all retries
+        self._remove_user_message_job(user_id, category)
+
+    @handle_errors("removing user message job")
+    def _remove_user_message_job(self, user_id, category):
+        """
+        Removes user message jobs from the scheduler after execution.
+        This makes user message jobs effectively one-time jobs.
+        """
+        try:
+            # Find and remove jobs for this user and category
+            jobs_to_remove = []
+            for job in schedule.jobs:
+                if (hasattr(job.job_func, 'func') and 
+                    job.job_func.func == self.handle_sending_scheduled_message and
+                    len(job.job_func.args) >= 2 and
+                    job.job_func.args[0] == user_id and 
+                    job.job_func.args[1] == category):
+                    jobs_to_remove.append(job)
+            
+            # Remove the jobs
+            for job in jobs_to_remove:
+                schedule.jobs.remove(job)
+                logger.debug(f"Removed one-time job for user {user_id}, category {category}")
+            
+            if jobs_to_remove:
+                logger.info(f"Removed {len(jobs_to_remove)} completed message job(s) for user {user_id}, category {category}")
+            
+        except Exception as e:
+            logger.error(f"Error removing user message job for user {user_id}, category {category}: {e}")
 
     @handle_errors("handling task reminder")
     def handle_task_reminder(self, user_id, task_id, retry_attempts=3, retry_delay=30):

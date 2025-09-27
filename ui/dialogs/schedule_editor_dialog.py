@@ -297,6 +297,9 @@ class ScheduleEditorDialog(QDialog):
             # Clear cache
             clear_schedule_periods_cache(self.user_id, self.category)
             
+            # Trigger rescheduling for this user and category
+            self._trigger_rescheduling()
+            
             # Call on_save callback if provided
             if self.on_save:
                 self.on_save()
@@ -308,6 +311,40 @@ class ScheduleEditorDialog(QDialog):
             logger.error(f"Error saving schedule: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save schedule: {str(e)}")
             return False
+    
+    def _trigger_rescheduling(self):
+        """Trigger rescheduling for this user and category when schedule changes."""
+        try:
+            import json
+            import os
+            from datetime import datetime
+            
+            # Create a reschedule request file that the service will pick up
+            request_data = {
+                'user_id': self.user_id,
+                'category': self.category,
+                'timestamp': datetime.now().isoformat(),
+                'source': 'schedule_editor'
+            }
+            
+            # Create the requests directory if it doesn't exist
+            requests_dir = 'data/requests'
+            os.makedirs(requests_dir, exist_ok=True)
+            
+            # Create a unique filename
+            timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
+            filename = f"reschedule_{self.user_id}_{self.category}_{timestamp_str}.json"
+            request_file = os.path.join(requests_dir, filename)
+            
+            # Write the request file
+            with open(request_file, 'w') as f:
+                json.dump(request_data, f, indent=2)
+            
+            logger.info(f"Created reschedule request for user {self.user_id}, category {self.category}")
+            
+        except Exception as e:
+            logger.error(f"Error creating reschedule request: {e}")
+            # Don't fail the save operation if rescheduling fails
     
     def cancel(self):
         """Cancel the dialog."""

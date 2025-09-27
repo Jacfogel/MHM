@@ -29,6 +29,14 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging ✅ **COMPLETED**
+- **One-Time Jobs**: Implemented jobs that remove themselves after execution instead of recurring daily
+- **Meaningful Logging**: Added breakdown showing job types (system, message, task) instead of just total count
+- **Dynamic Job Count**: Job count now decreases throughout day as messages are sent (was always 15)
+- **Improved Monitoring**: Logging now shows "X total jobs (Y system, Z message, W task)" for better debugging
+- **User Experience**: More realistic scheduler behavior that matches user expectations
+- **Status**: ✅ **COMPLETED** - Scheduler logging now provides useful information and job count reflects actual activity
+
 ### 2025-09-25 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
 - **Root Cause Fixed**: Resolved `cleanup_old_tasks` method that was clearing ALL jobs and failing to re-add them properly
 - **Targeted Cleanup**: Changed cleanup logic to only remove jobs for specific user/category instead of clearing all jobs
