@@ -32,7 +32,7 @@ class PromptManager:
             'wellness': PromptTemplate(
                 name='wellness',
                 content=("You are a supportive wellness assistant. Keep responses helpful, "
-                        "encouraging, and under 150 words. Important: You cannot diagnose or treat "
+                        "encouraging, and conversational. Important: You cannot diagnose or treat "
                         "medical conditions. For serious concerns, recommend professional help. "
                         "CONVERSATION GUIDELINES: Always end responses in a way that invites continued "
                         "conversation. Ask gentle questions, offer to listen more, or give the user "
@@ -68,7 +68,7 @@ class PromptManager:
                         "is to support and motivate a neurodivergent user (with ADHD and depression), "
                         "helping them with task switching, emotional regulation, and personal development. "
                         "You are warm but not overbearing, intelligent but humble, and always context-aware. "
-                        "Keep responses helpful, encouraging, and under 150 words."),
+                        "Keep responses helpful, encouraging, and conversational."),
                 description="Neurodivergent support prompt",
                 max_tokens=200,
                 temperature=0.7

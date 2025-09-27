@@ -14,7 +14,7 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 from core.logger import get_logger, get_component_logger
 from core.error_handling import handle_errors
-from core.config import AI_MAX_RESPONSE_LENGTH
+from core.config import AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
 from communication.message_processing.command_parser import get_enhanced_command_parser, ParsingResult
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.command_handlers.interaction_handlers import get_interaction_handler, get_all_handlers
@@ -326,8 +326,17 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                 
                 if not has_system_content:
                     # Apply length guard only for AI chat-like enhancements; report-style are excluded above
+                    # Use centralized response length limits
                     if len(enhanced_text) > AI_MAX_RESPONSE_LENGTH:
-                        enhanced_text = enhanced_text[:AI_MAX_RESPONSE_LENGTH-3] + "..."
+                        # Smart truncation at sentence boundary
+                        cut = enhanced_text[:AI_MAX_RESPONSE_LENGTH]
+                        for mark in (". ", "! ", "? "):
+                            idx = cut.rfind(mark)
+                            if idx >= 0 and idx > AI_MAX_RESPONSE_LENGTH * 0.6:
+                                enhanced_text = cut[:idx+1]
+                                break
+                        else:
+                            enhanced_text = cut.rstrip() + "..."
                     response.message = enhanced_text.strip()
                 else:
                     logger.debug(f"AI enhancement returned system content, keeping original response")

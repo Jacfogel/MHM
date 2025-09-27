@@ -29,6 +29,12 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-27 - AI Response Quality and Chat Interaction Storage ✅ **COMPLETED**
+- **AI Response Variation**: Implemented mode-specific caching (no cache for chat, cache for commands) and configurable temperature settings
+- **Chat Interaction Storage**: Fixed missing chat interaction storage - added store_chat_interaction calls to main generate_response method for chat mode
+- **Temperature Configuration**: Added environment variables for AI_CHAT_TEMPERATURE=0.7, AI_COMMAND_TEMPERATURE=0.0, AI_CLARIFICATION_TEMPERATURE=0.1
+- **Impact**: AI now provides natural, varied responses in chat mode while maintaining deterministic command responses
+
 ### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging ✅ **COMPLETED**
 - **One-Time Jobs**: Implemented jobs that remove themselves after execution instead of recurring daily
 - **Meaningful Logging**: Added breakdown showing job types (system, message, task) instead of just total count

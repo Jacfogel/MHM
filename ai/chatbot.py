@@ -23,7 +23,8 @@ from core.config import (
     AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT,
     AI_CONNECTION_TEST_TIMEOUT, AI_API_CALL_TIMEOUT, AI_PERSONALIZED_MESSAGE_TIMEOUT,
     AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT,
-    AI_MAX_RESPONSE_LENGTH,
+    AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS, AI_MAX_RESPONSE_TOKENS, AI_MIN_RESPONSE_LENGTH,
+    AI_CHAT_TEMPERATURE, AI_COMMAND_TEMPERATURE, AI_CLARIFICATION_TEMPERATURE,
 )
 # Legacy import removed - using get_user_data() instead
 from core.response_tracking import get_recent_responses, store_chat_interaction
@@ -358,7 +359,7 @@ class AIChatBotSingleton:
         return (f"{name_prefix}Hope you're having a good day! Remember to take care of yourself "
                f"and celebrate the small wins along the way.")
 
-    @handle_errors("optimizing prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and under 150 words."}, {"role": "user", "content": "Hello"}])
+    @handle_errors("optimizing prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational."}, {"role": "user", "content": "Hello"}])
     def _optimize_prompt(self, user_prompt: str, context: Optional[str] = None) -> list:
         """Create optimized messages array for LM Studio API."""
         # Create system message using the centralized prompt loader
@@ -380,7 +381,7 @@ class AIChatBotSingleton:
         
         return [system_message, user_message]
 
-    @handle_errors("creating comprehensive context prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and under 150 words."}, {"role": "user", "content": "Hello"}])
+    @handle_errors("creating comprehensive context prompt", default_return=[{"role": "system", "content": "You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational."}, {"role": "user", "content": "Hello"}])
     def _create_comprehensive_context_prompt(self, user_id: str, user_prompt: str) -> list:
         """Create a comprehensive context prompt with all user data for LM Studio."""
         # Get comprehensive user context
@@ -502,8 +503,8 @@ Additional Instructions:
 - Use the user's actual data to provide personalized, specific responses
 - Reference specific numbers, percentages, and trends from their check-in data
 - Be encouraging and supportive while being honest about their patterns
-- CRITICAL: Keep responses SHORT - under 150 words
-- Be concise and direct - avoid long explanations
+- Keep responses conversational and helpful (typically 50-300 words)
+- Be supportive and engaging - provide meaningful responses
 - If they ask about their data, provide specific insights from their check-ins
 - If they ask about habits, reference their actual performance (e.g., "You've been eating breakfast 90% of the time")
 - For health advice, be general and recommend professional help for serious concerns
@@ -600,14 +601,15 @@ Additional Instructions:
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(mode, user_prompt, user_id)
 
-        # Check cache first, but skip cache for fallback responses to allow variation
-        cached_response = self.response_cache.get(prompt_for_key, uid_for_key, prompt_type=ptype)
-        if cached_response and not cached_response.startswith("I'm here to listen and support you"):
-            ai_logger.debug("AI response served from cache", 
-                           user_id=user_id, 
-                           mode=mode, 
-                           prompt_length=len(user_prompt))
-            return cached_response
+        # Check cache first, but skip cache for chat mode and fallback responses to allow variation
+        if mode != "chat":
+            cached_response = self.response_cache.get(prompt_for_key, uid_for_key, prompt_type=ptype)
+            if cached_response and not cached_response.startswith("I'm here to listen and support you"):
+                ai_logger.debug("AI response served from cache", 
+                               user_id=user_id, 
+                               mode=mode, 
+                               prompt_length=len(user_prompt))
+                return cached_response
         
         # Test connection if not available
         if not self.lm_studio_available:
@@ -643,17 +645,16 @@ Additional Instructions:
         if mode == "command":
             messages = self._create_command_parsing_prompt(user_prompt)
             max_tokens = 60
-            temperature = 0.0
+            temperature = AI_COMMAND_TEMPERATURE
         elif mode == "command_with_clarification":
             messages = self._create_command_parsing_with_clarification_prompt(user_prompt)
             max_tokens = 120
-            temperature = 0.1
+            temperature = AI_CLARIFICATION_TEMPERATURE
         else:
             messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-            # Calculate max_tokens based on AI_MAX_RESPONSE_LENGTH (roughly 3 characters per token for more generous allocation)
-            # This allows the model to generate more complete responses before our smart truncation
-            max_tokens = min(200, max(50, AI_MAX_RESPONSE_LENGTH // 3))
-            temperature = 0.2
+            # Use centralized token limit from config
+            max_tokens = AI_MAX_RESPONSE_TOKENS
+            temperature = AI_CHAT_TEMPERATURE
         
         try:
             # Call LM Studio API with adaptive timeout
@@ -667,12 +668,21 @@ Additional Instructions:
             if result:
                 response = result.strip()
                 
-                # Enforce response length limit with smart truncation
-                max_words = int(os.getenv("AI_MAX_RESPONSE_WORDS", "0")) or None
-                response = self._smart_truncate_response(response, AI_MAX_RESPONSE_LENGTH, max_words)
+                # Enforce response length limit with smart truncation using centralized config
+                response = self._smart_truncate_response(response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS)
                 
-                # Cache successful responses
-                self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
+                # Enhance response for better conversational engagement
+                response = self._enhance_conversational_engagement(response)
+                
+                # Cache successful responses (skip cache for chat mode to allow variation)
+                if mode != "chat":
+                    self.response_cache.set(prompt_for_key, response, uid_for_key, prompt_type=ptype)
+                
+                # Store chat interaction for context and reference
+                if mode == "chat" and user_id:
+                    from core.response_tracking import store_chat_interaction
+                    store_chat_interaction(user_id, user_prompt, response, context_used=True)
+                
                 ai_logger.info("AI response generated successfully", 
                               user_id=user_id, 
                               mode=mode, 
@@ -685,6 +695,12 @@ Additional Instructions:
                 # API failed, use contextual fallback
                 response = self._get_contextual_fallback(user_prompt, user_id)
                 # Don't cache fallback responses to allow variation
+                
+                # Store fallback chat interaction for context and reference
+                if mode == "chat" and user_id:
+                    from core.response_tracking import store_chat_interaction
+                    store_chat_interaction(user_id, user_prompt, response, context_used=False)
+                
                 ai_logger.error("AI response generation failed - using fallback", 
                                user_id=user_id, 
                                mode=mode, 
@@ -988,6 +1004,51 @@ Additional Instructions:
                 return cut[:idx+1]
         
         return cut.rstrip() + "…"
+
+    @handle_errors("enhancing conversational engagement", default_return="")
+    def _enhance_conversational_engagement(self, response: str) -> str:
+        """
+        Enhance response to ensure good conversational engagement.
+        Adds engagement prompts if the response doesn't already have them.
+        """
+        if not response or len(response.strip()) < AI_MIN_RESPONSE_LENGTH:
+            return response
+        
+        # Check if response already ends with engagement indicators
+        response_lower = response.lower().strip()
+        engagement_indicators = [
+            "?", "how are you", "what do you think", "would you like", 
+            "tell me more", "i'm here", "feel free", "let me know",
+            "what's on your mind", "how can i help", "anything else"
+        ]
+        
+        # If response already has engagement, return as-is
+        for indicator in engagement_indicators:
+            if response_lower.endswith(indicator) or indicator in response_lower[-50:]:
+                return response
+        
+        # Add gentle engagement prompt if response seems complete but lacks engagement
+        if response.endswith(('.', '!', '...')):
+            engagement_options = [
+                " How are you feeling about that?",
+                " I'm here if you want to talk more about this.",
+                " What would help you feel better right now?",
+                " Would you like to tell me more about what's on your mind?",
+                " How can I support you with this?",
+                " What else is on your mind today?"
+            ]
+            
+            # Choose engagement based on response content
+            if any(word in response_lower for word in ['difficult', 'hard', 'struggle', 'tough', 'challenge']):
+                return response + engagement_options[0]  # "How are you feeling about that?"
+            elif any(word in response_lower for word in ['good', 'great', 'better', 'improve', 'progress']):
+                return response + engagement_options[3]  # "Would you like to tell me more..."
+            elif any(word in response_lower for word in ['help', 'support', 'need', 'want']):
+                return response + engagement_options[4]  # "How can I support you..."
+            else:
+                return response + engagement_options[5]  # "What else is on your mind..."
+        
+        return response
 
     @handle_errors("getting adaptive timeout", default_return=15)
     def _get_adaptive_timeout(self, base_timeout: int) -> int:

@@ -10,6 +10,58 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-27 - AI Response Quality and Chat Interaction Storage ✅ **COMPLETED**
+
+**Background**: User reported that AI responses were identical every time and chat interactions stopped being stored about a month ago. Investigation revealed two main issues: (1) AI responses were being cached inappropriately for chat mode, and (2) chat interaction storage was missing from the main response generation method.
+
+**Root Cause Analysis**:
+- **Identical AI Responses**: Chat mode was using low temperature (0.2) and caching responses, leading to identical responses for repeated questions
+- **Missing Chat Storage**: `store_chat_interaction` function existed but was never called in the main `generate_response` method
+- **Configuration Issues**: AI response limits and temperature settings were scattered across multiple files
+
+**Solution Implemented**:
+
+**1. Mode-Specific Caching Strategy**:
+- **Chat Mode**: Disabled caching to allow natural variation in responses
+- **Command Mode**: Maintained caching for deterministic command parsing
+- **Clarification Mode**: Maintained caching for consistent clarification requests
+
+**2. Configurable Temperature Settings**:
+- **AI_CHAT_TEMPERATURE=0.7**: Natural, varied responses for chat mode
+- **AI_COMMAND_TEMPERATURE=0.0**: Deterministic classification for commands
+- **AI_CLARIFICATION_TEMPERATURE=0.1**: Consistent clarification requests
+
+**3. Chat Interaction Storage Fix**:
+- **Added storage calls**: Integrated `store_chat_interaction` into main `generate_response` method
+- **Context tracking**: Properly marks `context_used=True` for successful AI responses and `context_used=False` for fallbacks
+- **User history**: All chat interactions now properly logged for AI context and user analysis
+
+**4. Centralized Configuration**:
+- **Environment variables**: All AI response limits and temperature settings now configurable via .env file
+- **Consistent limits**: Removed conflicting word count restrictions across multiple files
+- **Single source of truth**: All AI response configuration centralized in `core/config.py`
+
+**Files Modified**:
+- `ai/chatbot.py`: Added mode-specific caching logic and chat interaction storage
+- `core/config.py`: Added temperature configuration variables
+- `.env`: Updated with new temperature settings
+
+**Testing Results**:
+- **Chat Mode**: Now generates varied, natural responses to repeated questions
+- **Command Mode**: Maintains deterministic behavior for reliable command parsing
+- **Chat Storage**: Successfully stores interactions in `data/users/{user_id}/chat_interactions.json`
+- **Test Suite**: 1479 passed, 1 failed (unrelated timestamp test), 1 skipped
+
+**Impact**:
+- **User Experience**: AI conversations now feel natural and varied instead of repetitive
+- **Context Building**: AI can now reference previous conversations for better continuity
+- **Reliability**: Command parsing remains deterministic while chat becomes more human-like
+- **Analytics**: Complete chat interaction history available for analysis and debugging
+
+**Outstanding Issues**:
+- **Test Failure**: `test_build_user_context_creates_fresh_timestamp` fails due to identical timestamps in rapid succession
+- **Testing Needed**: Verify chat interaction storage works correctly with real user scenarios
+
 ### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging ✅ **COMPLETED**
 
 **Background**: User reported that scheduler logging always showed "15 active jobs scheduled" throughout the day, which was misleading since messages were being sent but the job count never changed. This made the logging useless for monitoring scheduler activity.

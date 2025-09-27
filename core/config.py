@@ -98,8 +98,17 @@ AI_RULE_BASED_FALLBACK_THRESHOLD = float(os.getenv('AI_RULE_BASED_FALLBACK_THRES
 AI_AI_PARSING_BASE_CONFIDENCE = float(os.getenv('AI_AI_PARSING_BASE_CONFIDENCE', '0.7'))  # Base confidence for successful AI parsing
 AI_AI_PARSING_PARTIAL_CONFIDENCE = float(os.getenv('AI_AI_PARSING_PARTIAL_CONFIDENCE', '0.6'))  # Confidence for partial AI parsing results
 
-# AI Response Length Configuration
-AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '800'))  # Maximum character length for AI-generated responses
+# AI Response Length Configuration - Centralized limits for AI chatbot responses only
+# Note: These limits apply ONLY to AI chatbot responses, not system-generated messages
+AI_MAX_RESPONSE_LENGTH = int(os.getenv('AI_MAX_RESPONSE_LENGTH', '1200'))  # Maximum character length for AI-generated responses
+AI_MAX_RESPONSE_WORDS = int(os.getenv('AI_MAX_RESPONSE_WORDS', '0')) or None  # Optional word limit (0 = disabled)
+AI_MAX_RESPONSE_TOKENS = int(os.getenv('AI_MAX_RESPONSE_TOKENS', '300'))  # Maximum tokens for AI responses
+AI_MIN_RESPONSE_LENGTH = int(os.getenv('AI_MIN_RESPONSE_LENGTH', '50'))  # Minimum character length to avoid too-short responses
+
+# AI Temperature Configuration - Controls response randomness for different modes
+AI_CHAT_TEMPERATURE = float(os.getenv('AI_CHAT_TEMPERATURE', '0.7'))  # Chat mode: conversational and varied
+AI_COMMAND_TEMPERATURE = float(os.getenv('AI_COMMAND_TEMPERATURE', '0.0'))  # Command parsing: deterministic classification
+AI_CLARIFICATION_TEMPERATURE = float(os.getenv('AI_CLARIFICATION_TEMPERATURE', '0.1'))  # Clarification: consistent clarification requests
 
 # User Context Caching
 CONTEXT_CACHE_TTL = int(os.getenv('CONTEXT_CACHE_TTL', '300'))  # 5 minutes
