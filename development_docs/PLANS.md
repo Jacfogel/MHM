@@ -10,6 +10,38 @@
 
 ## 📋 **Current Active Plans**
 
+### **Test File Cleanup and Schedule Editor Fix** ✅ **COMPLETED**
+
+**Status**: ✅ **COMPLETED**  
+**Priority**: High  
+**Effort**: Small  
+**Date**: 2025-09-28
+
+**Objective**: Fix schedule editor dialog creating test files in real data directory instead of test directory.
+
+**Background**: User discovered test files being created in the real `data/requests/` directory instead of the test directory, causing clutter and potential data pollution. Files like `reschedule_test_schedule_editor_motivational_20250928_013553_339902.json` were accumulating in the real data directory.
+
+**Implementation Plan**:
+- [x] **Root Cause Analysis**: Identified that schedule editor dialog was hardcoded to use `'data/requests'` path regardless of test environment
+- [x] **Environment Detection**: Updated dialog to detect test environment by checking if `BASE_DATA_DIR` is patched
+- [x] **Test Directory Usage**: When in test environment, dialog now uses `tests/data/requests` instead of `data/requests`
+- [x] **Cleanup Enhancement**: Added automatic cleanup of test request files in test configuration
+- [x] **File Cleanup**: Removed existing test files from real data directory
+- [x] **Verification**: Confirmed no test files are created in real data directory during tests
+
+**Results**:
+- **Data Integrity**: Real data directory no longer polluted with test files
+- **Test Isolation**: Proper separation between test and production data
+- **Maintenance**: Automatic cleanup prevents accumulation of test artifacts
+- **User Experience**: Cleaner data directory structure
+
+**Success Criteria**:
+- [x] Test files no longer created in real data directory
+- [x] Test files use test data directory when appropriate
+- [x] Automatic cleanup removes test files after test completion
+- [x] Production usage still works correctly
+- [x] All tests pass without creating files in real data directory
+
 ### **Channel Settings Dialog Fixes and Test Suite Stabilization** ✅ **COMPLETED**
 
 **Status**: ✅ **COMPLETED**  

@@ -30,12 +30,22 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-**Scheduler Test Failure** - Fix failing scheduler test
-- *What it means*: One test in `test_scheduler_coverage_expansion.py` is failing
-- *Why it helps*: Ensures test suite stability and coverage accuracy
+**Test File Cleanup** - Fix test files being created in real data directory ✅ **COMPLETED**
+- *What it means*: Schedule editor dialog was creating test files in real `data/requests/` directory instead of test directory
+- *Why it helps*: Prevents test files from polluting real data directory, maintains proper test isolation
 - *Estimated effort*: Small
-- *Status*: ⚠️ **IN PROGRESS** - Test failure in `test_scheduler_loop_error_handling_real_behavior`
-- *Details*: Mock `get_all_user_ids` not being called as expected in scheduler error handling test
+- *Status*: ✅ **COMPLETED** - Fixed environment detection in schedule editor dialog
+- *Results*: Test files now use test data directory, automatic cleanup added
+
+**Test File Cleanup Verification** - Verify test file cleanup fix works correctly
+- *What it means*: Test that schedule editor dialog no longer creates files in real data directory
+- *Why it helps*: Ensures test isolation is maintained and real data directory stays clean
+- *Estimated effort*: Small
+- *Next steps*:
+  - [ ] Run schedule editor tests and verify no files created in `data/requests/`
+  - [ ] Verify test files are created in `tests/data/requests/` when appropriate
+  - [ ] Test cleanup mechanism removes test files after test completion
+  - [ ] Verify production usage still works correctly
 
 **Chat Interaction Storage Testing** - Verify real user scenarios
 - *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building
@@ -60,11 +70,12 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests validating per-field section in analytics overview
 
 
-**High Complexity Function Refactoring - Phase 4** ⚠️ **NEW PRIORITY**
-- *What it means*: Continue refactoring high complexity functions identified in latest audit (1,978 functions >50 nodes)
+**High Complexity Function Refactoring - Phase 4** ⚠️ **HIGH PRIORITY**
+- *What it means*: Continue refactoring high complexity functions identified in latest audit (1,980 functions >50 nodes)
 - *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
 - *Estimated effort*: Large
 - *Current Status*: Ready to begin with comprehensive test coverage approach established
+- *Audit Results*: 1,980 high complexity functions identified, focus on auto_cleanup.py, backup_manager.py, logger.py
 - *Next Priority Targets*:
   - `get_user_data` in `core/user_data_handlers.py` (likely high complexity, used extensively)
   - `save_user_data` in `core/user_data_handlers.py` (critical for data persistence)

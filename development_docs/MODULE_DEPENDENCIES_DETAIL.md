@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
 > **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  
-> **Last Updated**: 2025-09-28 01:16:39
+> **Last Updated**: 2025-09-28 03:30:59
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
@@ -13,11 +13,11 @@
 
 ### **Module Dependencies Coverage: 100.0% ✅ COMPLETED**
 - **Files Scanned**: 140
-- **Total Imports Found**: 1799
+- **Total Imports Found**: 1800
 - **Dependencies Documented**: 140 (100% coverage)
 - **Standard Library Imports**: 573
 - **Third-Party Imports**: 411
-- **Local Imports**: 815
+- **Local Imports**: 816
 - **Last Updated**: 2025-09-28
 
 **Status**: ✅ **COMPLETED** - All module dependencies have been documented with comprehensive dependency and usage information.
@@ -26,9 +26,9 @@
 
 ## 🔍 **Import Statistics**
 
-- **Standard Library**: 573 imports (31.9%)
+- **Standard Library**: 573 imports (31.8%)
 - **Third-party**: 411 imports (22.8%)
-- **Local**: 815 imports (45.3%)
+- **Local**: 816 imports (45.3%)
 
 ## 📁 **Module Dependencies by Directory**
 
@@ -188,6 +188,7 @@
   - `tests/unit/test_config.py`
   - `tests/unit/test_file_operations.py`
   - `tests/unit/test_user_management.py`
+  - `ui/dialogs/schedule_editor_dialog.py`
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
@@ -3581,6 +3582,7 @@
 - **Purpose**: Dialog component for schedule editor dialog
 - **Dependencies**: 
   - **Local**:
+    - `core.config` (🆕)
     - `core.error_handling (handle_errors)` (🆕)
     - `core.logger (setup_logging, get_logger, get_component_logger)` (🆕)
     - `core.schedule_management (get_schedule_time_periods, set_schedule_period_active, is_schedule_period_active, get_current_time_periods_with_validation, add_schedule_period, edit_schedule_period, delete_schedule_period, clear_schedule_periods_cache, get_period_data__validate_and_format_time, get_period_data__time_24h_to_12h_display, get_period_data__time_12h_display_to_24h, get_current_day_names, set_schedule_periods, get_schedule_days, set_schedule_days)` (🆕)
@@ -3607,7 +3609,7 @@
   - `ui/ui_app_qt.py`
 
 **Dependency Changes**:
-- Added: core.error_handling, core.logger, core.schedule_management, core.ui_management, core.user_data_validation, ui.generated.schedule_editor_dialog_pyqt, ui.widgets.period_row_widget
+- Added: core.config, core.error_handling, core.logger, core.schedule_management, core.ui_management, core.user_data_validation, ui.generated.schedule_editor_dialog_pyqt, ui.widgets.period_row_widget
 - Removed: PySide6.QtCore, PySide6.QtGui, PySide6.QtWidgets, tests/ui/test_dialog_behavior.py, tests/ui/test_dialog_coverage_expansion.py, ui/ui_app_qt.py
 
 <!-- MANUAL_ENHANCEMENT_START -->

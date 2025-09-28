@@ -1793,6 +1793,21 @@ def cleanup_test_users_after_session():
         except Exception:
             pass
     
+    # Clean up test request files from schedule editor tests
+    requests_dir = os.path.join(test_data_dir, "requests")
+    if os.path.exists(requests_dir):
+        try:
+            for item in os.listdir(requests_dir):
+                # Clean up test request files (reschedule_test_*)
+                if item.startswith("reschedule_test_"):
+                    item_path = os.path.join(requests_dir, item)
+                    try:
+                        os.remove(item_path)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
+    
     # Clean up test backup files to prevent clutter
     backup_dir = os.path.join(test_data_dir, "backups")
     if os.path.exists(backup_dir):

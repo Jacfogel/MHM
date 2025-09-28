@@ -328,7 +328,14 @@ class ScheduleEditorDialog(QDialog):
             }
             
             # Create the requests directory if it doesn't exist
-            requests_dir = 'data/requests'
+            # Use test data directory if in test environment, otherwise use production directory
+            import core.config
+            if hasattr(core.config, 'BASE_DATA_DIR') and core.config.BASE_DATA_DIR != 'data':
+                # We're in a test environment (BASE_DATA_DIR is patched to tests/data), use test data directory
+                requests_dir = os.path.join(core.config.BASE_DATA_DIR, 'requests')
+            else:
+                # Production environment, use standard data directory
+                requests_dir = 'data/requests'
             os.makedirs(requests_dir, exist_ok=True)
             
             # Create a unique filename
