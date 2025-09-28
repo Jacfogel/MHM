@@ -6,11 +6,11 @@
 
 ## 🎯 **Current Status**
 
-### **Documentation Coverage: 94.8% ⚠️ GOOD**
-- **Total Functions**: 2575
-- **Total Methods**: 2112
-- **Documented**: 4443/4687
-- **Files Scanned**: 139
+### **Documentation Coverage: 94.7% ⚠️ GOOD**
+- **Total Functions**: 2735
+- **Total Methods**: 2251
+- **Documented**: 4721/4986
+- **Files Scanned**: 140
 
 ## 🧠 **Decision Trees for AI Context**
 
@@ -183,4 +183,4 @@ Core System Decision Tree:
 - `tasks/` - Task management system
 
 > **For complete function details, see [FUNCTION_REGISTRY_DETAIL.md](development_docs/FUNCTION_REGISTRY_DETAIL.md)**  
-> **Last Updated**: 2025-09-15 00:22:48
+> **Last Updated**: 2025-09-28 01:16:37

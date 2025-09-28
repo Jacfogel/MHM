@@ -179,8 +179,6 @@ def validate_file_structure(created_files: List[str], modified_files: List[str])
 def generate_validation_report(validation_type: str, **kwargs) -> str:
     """Generate a comprehensive validation report."""
     report = []
-    report.append("AI WORK VALIDATION REPORT")
-    report.append("=" * 50)
     report.append(f"Validation Type: {validation_type}")
     report.append("")
     

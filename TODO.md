@@ -30,6 +30,13 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Scheduler Test Failure** - Fix failing scheduler test
+- *What it means*: One test in `test_scheduler_coverage_expansion.py` is failing
+- *Why it helps*: Ensures test suite stability and coverage accuracy
+- *Estimated effort*: Small
+- *Status*: ⚠️ **IN PROGRESS** - Test failure in `test_scheduler_loop_error_handling_real_behavior`
+- *Details*: Mock `get_all_user_ids` not being called as expected in scheduler error handling test
+
 **Chat Interaction Storage Testing** - Verify real user scenarios
 - *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building
 - *Why it helps*: Ensures AI can reference previous conversations for better continuity

@@ -5,7 +5,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage
+|   .coveragerc
 |   .env
 |   .gitattributes
 |   .gitignore
@@ -24,6 +24,16 @@ C:.
 |   TODO.md
 |   
 +---.cursor
+|   +---commands
+|   |       audit.md
+|   |       docs-sync.md
+|   |       legacy-cleanup.md
+|   |       quick-status.md
+|   |       README.md
+|   |       test-coverage.md
+|   |       validate-work.md
+|   |       version-sync.md
+|   |       
 |   \---rules
 |           audit.mdc
 |           context.mdc
@@ -57,22 +67,26 @@ C:.
 |       
 +---ai_development_tools
 |   |   ai_audit_detailed_results.json
+|   |   AI_PRIORITIES.md
+|   |   AI_STATUS.md
 |   |   ai_tools_runner.py
 |   |   analyze_documentation.py
 |   |   audit_function_registry.py
 |   |   audit_module_dependencies.py
-|   |   audit_summary.txt
 |   |   auto_document_functions.py
 |   |   config.py
 |   |   config_validation_results.json
 |   |   config_validator.py
+|   |   consolidated_report.txt
+|   |   coverage.json
 |   |   decision_support.py
+|   |   docs_sync_report.txt
 |   |   documentation_sync_checker.py
-|   |   file_auditor.py
+|   |   file_rotation.py
 |   |   function_discovery.py
-|   |   generate_documentation.py
 |   |   generate_function_registry.py
 |   |   generate_module_dependencies.py
+|   |   legacy_cleanup_report.txt
 |   |   legacy_reference_cleanup.py
 |   |   quick_status.py
 |   |   README.md
@@ -81,8 +95,8 @@ C:.
 |   |   validate_ai_work.py
 |   |   version_sync.py
 |   |   
-|   \---__pycache__
-    (Python cache files)
+|   +---archive
+    (archived files)
 +---archive
     (archived files)
 +---communication
@@ -106,6 +120,7 @@ C:.
 |   |   config.py
 |   |   error_handling.py
 |   |   ERROR_HANDLING_GUIDE.md
+|   |   file_auditor.py
 |   |   file_operations.py
 |   |   logger.py
 |   |   message_management.py
@@ -135,7 +150,7 @@ C:.
 |       DIRECTORY_TREE.md
 |       DOCUMENTATION_SYNC_CHECKLIST.md
 |       FUNCTION_REGISTRY_DETAIL.md
-|       LEGACY_CODE_MANAGEMENT_STRATEGY.md
+|       HIGH_COMPLEXITY_FUNCTIONS_ANALYSIS.md
 |       LEGACY_REFERENCE_REPORT.md
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
@@ -144,13 +159,17 @@ C:.
 +---logs
 |   |   ai.log
 |   |   app.log
+|   |   backup.log
+|   |   checkin_dynamic.log
 |   |   communication_manager.log
 |   |   discord.log
 |   |   email.log
 |   |   errors.log
 |   |   file_ops.log
 |   |   LOGGING_GUIDE.md
+|   |   message.log
 |   |   scheduler.log
+|   |   schedule_utilities.log
 |   |   ui.log
 |   |   user_activity.log
 |   |   

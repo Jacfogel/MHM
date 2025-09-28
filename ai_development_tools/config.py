@@ -97,10 +97,8 @@ QUICK_AUDIT = {
     'run_dependency_audit': True,
     'run_documentation_audit': True,
     'run_validation': True,
-    'generate_summary': True,
     'save_results': True,
     'results_file': 'ai_tools/ai_audit_detailed_results.json',
-    'summary_file': 'ai_tools/audit_summary.txt',
     'issues_file': 'ai_tools/critical_issues.txt',
     'audit_scripts': [
         'function_discovery.py',
@@ -116,12 +114,15 @@ QUICK_AUDIT = {
 # Version sync settings
 VERSION_SYNC = {
     'ai_docs': [
-        "AI_ORIENTATION.md",
-        "AI_QUICK_REFERENCE.md", 
-        "AI_RULES.md",
-        "AI_CONTEXT.md",
-        "ai_tools/TRIGGER.md",
-        "ai_tools/README.md"
+        "ai_development_docs/AI_ARCHITECTURE.md",
+        "ai_development_docs/AI_CHANGELOG.md",
+        "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
+        "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
+        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
+        "ai_development_docs/AI_REFERENCE.md",
+        "ai_development_docs/AI_SESSION_STARTER.md",
+        "ai_development_tools/README.md"
     ],
     'docs': [
         "README.md",
@@ -141,6 +142,23 @@ VERSION_SYNC = {
         "core/service.py",
         "core/config.py",
         "requirements.txt"
+    ],
+    'cursor_rules': [
+        ".cursor/rules/*.mdc"
+    ],
+    'core_system_files': [
+        "run_mhm.py",
+        "core/service.py",
+        "core/config.py"
+    ],
+    'documentation_patterns': [
+        "*.md"
+    ],
+    'exclude_patterns': [
+        "*.pyc",
+        "__pycache__",
+        ".git",
+        ".venv"
     ]
 }
 

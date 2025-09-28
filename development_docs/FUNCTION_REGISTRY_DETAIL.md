@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete registry of all functions and classes in the MHM codebase  
 > **Status**: **ACTIVE** - Auto-generated from codebase analysis with template enhancement  
-> **Last Updated**: 2025-09-15 00:22:48
+> **Last Updated**: 2025-09-28 01:16:37
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
@@ -11,18 +11,18 @@
 
 ## 📋 **Overview**
 
-### **Function Documentation Coverage: 94.8% ⚠️ NEEDS ATTENTION**
-- **Files Scanned**: 139
-- **Functions Found**: 2575
-- **Methods Found**: 2112
-- **Classes Found**: 265
-- **Total Items**: 4687
-- **Functions Documented**: 2409
-- **Methods Documented**: 2034
-- **Classes Documented**: 217
-- **Total Documented**: 4443
-- **Template-Generated**: 57
-- **Last Updated**: 2025-09-15
+### **Function Documentation Coverage: 94.7% ⚠️ NEEDS ATTENTION**
+- **Files Scanned**: 140
+- **Functions Found**: 2735
+- **Methods Found**: 2251
+- **Classes Found**: 273
+- **Total Items**: 4986
+- **Functions Documented**: 2555
+- **Methods Documented**: 2166
+- **Classes Documented**: 224
+- **Total Documented**: 4721
+- **Template-Generated**: 63
+- **Last Updated**: 2025-09-28
 
 **Status**: ⚠️ **GOOD** - Most functions documented, some gaps remain
 
@@ -36,22 +36,22 @@
 
 ## 🔍 **Function Categories**
 
-### **Core System Functions** (404)
+### **Core System Functions** (469)
 Core system utilities, configuration, error handling, and data management functions.
 
 ### **Communication Functions** (0)
 Bot implementations, channel management, and communication utilities.
 
-### **User Interface Functions** (366)
+### **User Interface Functions** (377)
 UI dialogs, widgets, and user interaction functions.
 
-### **User Management Functions** (39)
+### **User Management Functions** (35)
 User context, preferences, and data management functions.
 
 ### **Task Management Functions** (21)
 Task management and scheduling functions.
 
-### **Test Functions** (1741)
+### **Test Functions** (1829)
 Test functions and testing utilities.
 
 ## 📁 **Module Organization**
@@ -60,6 +60,18 @@ Test functions and testing utilities.
 
 #### `core/auto_cleanup.py`
 **Functions:**
+- ✅ `_calculate_cache_size__calculate_pyc_files_size(pyc_files)` - Calculate total size of standalone .pyc files.
+- ✅ `_calculate_cache_size__calculate_pycache_directories_size(pycache_dirs)` - Calculate total size of __pycache__ directories.
+- ✅ `_get_cleanup_status__build_status_response(last_date, days_since, next_cleanup)` - Build the final status response dictionary.
+- ✅ `_get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp)` - Calculate days since last cleanup.
+- ✅ `_get_cleanup_status__format_next_cleanup_date(last_date)` - Format the next cleanup date or return 'Overdue'.
+- ✅ `_get_cleanup_status__get_never_cleaned_status()` - Get status when cleanup has never been performed.
+- ✅ `_perform_cleanup__discover_cache_files(root_path)` - Discover all cache files and directories in the given root path.
+- ✅ `_perform_cleanup__log_completion_results(removed_dirs, removed_files, total_size)` - Log the final cleanup results and statistics.
+- ✅ `_perform_cleanup__log_discovery_results(pycache_dirs, pyc_files)` - Calculate total size and log discovery results.
+- ✅ `_perform_cleanup__remove_cache_directories(pycache_dirs)` - Remove all __pycache__ directories.
+- ✅ `_perform_cleanup__remove_cache_files(pycache_dirs, pyc_files)` - Remove all discovered cache directories and files.
+- ✅ `_perform_cleanup__remove_cache_files_list(pyc_files)` - Remove all standalone .pyc files.
 - ✅ `archive_old_messages_for_all_users()` - Archive old messages for all users during monthly cleanup.
 This runs alongside the cache cleanup to maintain message file sizes.
 - ✅ `auto_cleanup_if_needed(root_path, interval_days)` - Main function to check if cleanup is needed and perform it if so.
@@ -83,10 +95,20 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
 - ✅ `_backup_log_files(self, zipf)` - Backup log files.
 - ✅ `_backup_user_data(self, zipf)` - Backup all user data directories.
 - ✅ `_cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
+- ✅ `_create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
+- ✅ `_create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs)` - Create the backup zip file with all specified components.
+- ✅ `_create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
 - ✅ `_create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs)` - Create a manifest file describing the backup contents.
 - ✅ `_get_backup_info(self, backup_path)` - Get information about a specific backup.
 - ✅ `_restore_config_files(self, zipf)` - Restore configuration files from backup.
 - ✅ `_restore_user_data(self, zipf)` - Restore user data from backup.
+- ✅ `_validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
+- ✅ `_validate_backup__check_file_integrity(self, zipf, errors)` - Check if the zip file is not corrupted.
+- ✅ `_validate_backup__validate_content_requirements(self, zipf, errors)` - Validate that backup contains required content.
+- ✅ `_validate_backup__validate_manifest(self, zipf, errors)` - Validate the backup manifest file.
+- ✅ `_validate_backup__validate_zip_file(self, backup_path)` - Validate zip file integrity and contents.
+- ✅ `_validate_system_state__ensure_user_data_directory()` - Ensure the user data directory exists, creating it if necessary.
+- ✅ `_validate_system_state__validate_user_index()` - Validate the user index file and corresponding user directories.
 - ✅ `create_automatic_backup(operation_name)` - Create an automatic backup before major operations.
 
 Args:
@@ -145,10 +167,18 @@ Sets up backup directory, maximum backup count, and ensures backup directory exi
   - ✅ `BackupManager._backup_log_files(self, zipf)` - Backup log files.
   - ✅ `BackupManager._backup_user_data(self, zipf)` - Backup all user data directories.
   - ✅ `BackupManager._cleanup_old_backups(self)` - Remove old backups by count and age retention policy.
+  - ✅ `BackupManager._create_backup__cleanup_old_backups(self)` - Clean up old backups by count and age.
+  - ✅ `BackupManager._create_backup__create_zip_file(self, backup_path, backup_name, include_users, include_config, include_logs)` - Create the backup zip file with all specified components.
+  - ✅ `BackupManager._create_backup__setup_backup(self, backup_name)` - Setup backup name and path parameters.
   - ✅ `BackupManager._create_backup_manifest(self, zipf, backup_name, include_users, include_config, include_logs)` - Create a manifest file describing the backup contents.
   - ✅ `BackupManager._get_backup_info(self, backup_path)` - Get information about a specific backup.
   - ✅ `BackupManager._restore_config_files(self, zipf)` - Restore configuration files from backup.
   - ✅ `BackupManager._restore_user_data(self, zipf)` - Restore user data from backup.
+  - ✅ `BackupManager._validate_backup__check_file_exists(self, backup_path, errors)` - Check if the backup file exists and add error if not.
+  - ✅ `BackupManager._validate_backup__check_file_integrity(self, zipf, errors)` - Check if the zip file is not corrupted.
+  - ✅ `BackupManager._validate_backup__validate_content_requirements(self, zipf, errors)` - Validate that backup contains required content.
+  - ✅ `BackupManager._validate_backup__validate_manifest(self, zipf, errors)` - Validate the backup manifest file.
+  - ✅ `BackupManager._validate_backup__validate_zip_file(self, backup_path)` - Validate zip file integrity and contents.
   - ✅ `BackupManager.create_backup(self, backup_name, include_users, include_config, include_logs)` - Create a comprehensive backup of the system.
 
 Args:
@@ -604,6 +634,37 @@ Args:
 - ✅ `UserInterfaceError` - Raised when UI operations fail.
 - ✅ `ValidationError` - Raised when data validation fails.
 
+#### `core/file_auditor.py`
+**Functions:**
+- ✅ `__init__(self)` - Initialize the object
+- ❌ `_classify_path(path)` - No description
+- ✅ `_get_audit_directories(self)` - Get configurable audit directories from environment or use defaults.
+- ❌ `_split_env_list(value)` - No description
+- ❌ `critical(self)` - No description
+- ❌ `debug(self)` - No description
+- ❌ `error(self)` - No description
+- ❌ `info(self)` - No description
+- ✅ `record_created(path, reason, extra)` - Programmatically record a file creation event.
+
+Safe to call even if auditor disabled. Includes optional stack if FILE_AUDIT_STACK=1.
+- ✅ `start(self)` - Start the file auditor (no-op for now).
+- ❌ `start_auditor()` - No description
+- ✅ `stop(self)` - Stop the file auditor (no-op for now).
+- ❌ `stop_auditor()` - No description
+- ❌ `warning(self)` - No description
+**Classes:**
+- ✅ `FileAuditor` - Auditor for tracking file creation and modification patterns.
+  - ✅ `FileAuditor.__init__(self)` - Initialize the object
+  - ✅ `FileAuditor._get_audit_directories(self)` - Get configurable audit directories from environment or use defaults.
+  - ✅ `FileAuditor.start(self)` - Start the file auditor (no-op for now).
+  - ✅ `FileAuditor.stop(self)` - Stop the file auditor (no-op for now).
+- ❌ `_DummyLogger` - No description
+  - ❌ `_DummyLogger.critical(self)` - No description
+  - ❌ `_DummyLogger.debug(self)` - No description
+  - ❌ `_DummyLogger.error(self)` - No description
+  - ❌ `_DummyLogger.info(self)` - No description
+  - ❌ `_DummyLogger.warning(self)` - No description
+
 #### `core/file_operations.py`
 **Functions:**
 - ✅ `_create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled)` - Create account.json with actual user data.
@@ -679,6 +740,7 @@ Raises:
 - ✅ `_get_log_paths_for_environment()` - Get appropriate log paths based on the current environment.
 - ✅ `_is_testing_environment()` - Check if we're running in a testing environment.
 - ✅ `_log(self, level, message)` - Internal logging method with structured data support.
+- ✅ `apply_test_context_formatter_to_all_loggers()` - Apply TestContextFormatter to all existing loggers when in test mode.
 - ✅ `cleanup_old_archives(max_days)` - Remove archived log files older than specified days.
 
 Args:
@@ -726,6 +788,7 @@ Useful when logging configuration becomes corrupted or needs to be reset.
 
 Returns:
     bool: True if restart was successful, False otherwise
+- ❌ `format(self, record)` - No description
 - ✅ `get_component_logger(component_name)` - Get or create a component-specific logger.
 
 Args:
@@ -816,6 +879,8 @@ Example use: prevent Discord-related logs from going to app.log.
 - Logs a summary every hour with total count
   - ✅ `HeartbeatWarningFilter.__init__(self)` - Initialize the object
   - ❌ `HeartbeatWarningFilter.filter(self, record)` - No description
+- ✅ `TestContextFormatter` - Custom formatter that automatically prepends test names to log messages.
+  - ❌ `TestContextFormatter.format(self, record)` - No description
 - ❌ `_DummyLogger` - No description
   - ✅ `_DummyLogger.__init__(self, name)` - Initialize the object
 
@@ -890,13 +955,6 @@ Returns:
         - files_checked: int - Number of categories checked
         - files_created: int - Number of new files created
         - files_existing: int - Number of files that already existed
-- ✅ `get_last_10_messages(user_id, category)` - LEGACY COMPATIBILITY: Redirects to get_recent_messages for backward compatibility.
-
-TODO: Remove after all callers are updated to use get_recent_messages
-REMOVAL PLAN:
-1. Update all callers to use get_recent_messages
-2. Remove this function
-3. Monitor for any remaining references
 - ✅ `get_message_categories()` - Retrieves message categories from the environment variable CATEGORIES.
 Allows for either a comma-separated string or a JSON array.
 
@@ -959,8 +1017,6 @@ Raises:
 - ✅ `get_user_info_for_tracking(user_id)` - Get user information for response tracking.
 - ✅ `is_user_checkins_enabled(user_id)` - Check if check-ins are enabled for a user.
 - ✅ `store_chat_interaction(user_id, user_message, ai_response, context_used)` - Store a chat interaction between user and AI.
-- ❌ `store_checkin_response(user_id, response_data)` - No description
-- ✅ `store_checkin_response(user_id, response_data)` - Store a check-in response.
 - ✅ `store_user_response(user_id, response_data, response_type)` - Store user response data in appropriate file structure.
 - ✅ `track_user_response(user_id, category, response_data)` - Track a user's response to a message.
 
@@ -1077,10 +1133,17 @@ Returns:
 
 Args:
     communication_manager: The communication manager for sending messages
+- ✅ `_remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
+This makes user message jobs effectively one-time jobs.
+- ✅ `_select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
+- ✅ `_select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
+- ✅ `_select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
+- ✅ `_select_task_for_reminder__handle_edge_cases(self, incomplete_tasks)` - Handle edge cases for task selection.
+- ✅ `_select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks)` - Select a task based on calculated weights.
 - ✅ `cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
-- ✅ `cleanup_task_reminders(user_id, task_id)` - Standalone function to clean up task reminders for a user.
-This can be called from the admin UI without needing a scheduler instance.
-- ✅ `cleanup_task_reminders(self, user_id, task_id)` - Clean up task reminders for a user or specific task.
+- ✅ `clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
+- ✅ `clear_all_accumulated_jobs_standalone()` - Standalone function to clear all accumulated scheduler jobs.
+This can be called from the admin UI or service to fix job accumulation issues.
 - ✅ `get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
 - ✅ `get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
 Args:
@@ -1089,16 +1152,21 @@ Args:
 Returns:
     Random time in HH:MM format
 - ✅ `handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay)` - Handles the sending of scheduled messages with retries.
+This is a one-time job that removes itself after execution.
 - ✅ `handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
 - ✅ `is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
 - ✅ `is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
 - ✅ `log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
+- ✅ `perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
+This runs automatically at 02:00 daily via the scheduler.
 - ✅ `process_category_schedule(user_id, category)` - Process schedule for a specific user and category.
 - ✅ `process_user_schedules(user_id)` - Process schedules for a specific user.
 - ✅ `reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
 - ✅ `run_category_scheduler_standalone(user_id, category)` - Standalone function to run scheduler for a specific user and category.
 This can be called from the admin UI without needing a scheduler instance.
 - ✅ `run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
+- ✅ `run_full_daily_scheduler(self)` - Runs the full daily scheduler process - same as system startup.
+This includes clearing accumulated jobs, scheduling all users, checkins, and task reminders.
 - ✅ `run_full_scheduler_standalone()` - Standalone function to run the full scheduler for all users.
 This can be called from the admin UI without needing a scheduler instance.
 - ✅ `run_user_scheduler_standalone(user_id)` - Standalone function to run scheduler for a specific user.
@@ -1145,8 +1213,15 @@ Args:
 
 Args:
     communication_manager: The communication manager for sending messages
+  - ✅ `SchedulerManager._remove_user_message_job(self, user_id, category)` - Removes user message jobs from the scheduler after execution.
+This makes user message jobs effectively one-time jobs.
+  - ✅ `SchedulerManager._select_task_for_reminder__calculate_due_date_weight(self, task, today)` - Calculate due date proximity weight for a task.
+  - ✅ `SchedulerManager._select_task_for_reminder__calculate_priority_weight(self, task)` - Calculate priority-based weight for a task.
+  - ✅ `SchedulerManager._select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today)` - Calculate weights for all tasks.
+  - ✅ `SchedulerManager._select_task_for_reminder__handle_edge_cases(self, incomplete_tasks)` - Handle edge cases for task selection.
+  - ✅ `SchedulerManager._select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks)` - Select a task based on calculated weights.
   - ✅ `SchedulerManager.cleanup_old_tasks(self, user_id, category)` - Cleans up all tasks (scheduled jobs and system tasks) associated with a given user and category.
-  - ✅ `SchedulerManager.cleanup_task_reminders(self, user_id, task_id)` - Clean up task reminders for a user or specific task.
+  - ✅ `SchedulerManager.clear_all_accumulated_jobs(self)` - Clears all accumulated scheduler jobs and reschedules only the necessary ones.
   - ✅ `SchedulerManager.get_random_time_within_period(self, user_id, category, period, timezone_str)` - Get a random time within a specified period for a given category.
   - ✅ `SchedulerManager.get_random_time_within_task_period(self, start_time, end_time)` - Generate a random time within a task reminder period.
 Args:
@@ -1155,12 +1230,17 @@ Args:
 Returns:
     Random time in HH:MM format
   - ✅ `SchedulerManager.handle_sending_scheduled_message(self, user_id, category, retry_attempts, retry_delay)` - Handles the sending of scheduled messages with retries.
+This is a one-time job that removes itself after execution.
   - ✅ `SchedulerManager.handle_task_reminder(self, user_id, task_id, retry_attempts, retry_delay)` - Handles sending task reminders with retries.
   - ✅ `SchedulerManager.is_job_for_category(self, job, user_id, category)` - Determines if a job is scheduled for a specific user and category.
   - ✅ `SchedulerManager.is_time_conflict(self, user_id, schedule_datetime)` - Checks if there is a time conflict with any existing scheduled jobs for the user.
   - ✅ `SchedulerManager.log_scheduled_tasks(self)` - Logs all current and upcoming scheduled tasks in a user-friendly manner.
+  - ✅ `SchedulerManager.perform_daily_log_archival(self)` - Perform daily log archival to compress old logs and clean up archives.
+This runs automatically at 02:00 daily via the scheduler.
   - ✅ `SchedulerManager.reset_and_reschedule_daily_messages(self, category, user_id)` - Resets scheduled tasks for a specific category and reschedules daily messages for that category.
   - ✅ `SchedulerManager.run_daily_scheduler(self)` - Starts the daily scheduler in a separate thread that handles all users.
+  - ✅ `SchedulerManager.run_full_daily_scheduler(self)` - Runs the full daily scheduler process - same as system startup.
+This includes clearing accumulated jobs, scheduling all users, checkins, and task reminders.
   - ✅ `SchedulerManager.schedule_all_task_reminders(self, user_id)` - Schedule reminders for all active tasks for a user.
 For each reminder period, pick one random task and schedule it at a random time within the period.
   - ✅ `SchedulerManager.schedule_all_users_immediately(self)` - Schedule daily messages immediately for all users
@@ -1243,6 +1323,29 @@ Args:
 - ✅ `__init__(self)` - Initialize the MHM backend service.
 
 Sets up communication manager, scheduler manager, and registers emergency shutdown handler.
+- ✅ `_check_and_fix_logging__check_recent_activity_timestamps(self, recent_content)` - Check if there's any recent activity within the last 5 minutes using timestamp patterns.
+- ✅ `_check_and_fix_logging__ensure_log_file_exists(self)` - Ensure the log file exists, creating it if necessary.
+- ✅ `_check_and_fix_logging__force_restart_logging_system(self)` - Force restart the logging system and update the global logger.
+- ✅ `_check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
+- ✅ `_check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
+- ✅ `_check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
+- ✅ `_check_reschedule_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
+- ✅ `_check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
+- ✅ `_check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
+- ✅ `_check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
+- ✅ `_check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
+- ✅ `_check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
+- ✅ `_check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
+- ✅ `_check_test_message_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
+- ✅ `_check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
+- ✅ `_check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
+- ✅ `_check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
+- ✅ `_check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
+- ✅ `_check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
+- ✅ `_check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
+- ✅ `_cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
+- ✅ `_cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
+- ✅ `_cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
 - ✅ `check_and_fix_logging(self)` - Check if logging is working and restart if needed
 - ✅ `check_reschedule_requests(self)` - Check for and process reschedule request files from UI
 - ✅ `check_test_message_requests(self)` - Check for and process test message request files from admin panel
@@ -1278,6 +1381,29 @@ Sets up signal handlers for graceful shutdown.
   - ✅ `MHMService.__init__(self)` - Initialize the MHM backend service.
 
 Sets up communication manager, scheduler manager, and registers emergency shutdown handler.
+  - ✅ `MHMService._check_and_fix_logging__check_recent_activity_timestamps(self, recent_content)` - Check if there's any recent activity within the last 5 minutes using timestamp patterns.
+  - ✅ `MHMService._check_and_fix_logging__ensure_log_file_exists(self)` - Ensure the log file exists, creating it if necessary.
+  - ✅ `MHMService._check_and_fix_logging__force_restart_logging_system(self)` - Force restart the logging system and update the global logger.
+  - ✅ `MHMService._check_and_fix_logging__read_recent_log_content(self)` - Read the last 1000 characters from the log file to check for recent activity.
+  - ✅ `MHMService._check_and_fix_logging__test_logging_functionality(self, test_message)` - Test if logging functionality works by writing a test message and flushing handlers.
+  - ✅ `MHMService._check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp)` - Check if our test message or recent timestamp patterns are present in log content.
+  - ✅ `MHMService._check_reschedule_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
+  - ✅ `MHMService._check_reschedule_requests__discover_request_files(self, base_dir)` - Discover all reschedule request files in the base directory.
+  - ✅ `MHMService._check_reschedule_requests__get_base_directory(self)` - Get the base directory for reschedule request files.
+  - ✅ `MHMService._check_reschedule_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
+  - ✅ `MHMService._check_reschedule_requests__parse_request_file(self, request_file)` - Parse and validate a reschedule request file.
+  - ✅ `MHMService._check_reschedule_requests__process_valid_request(self, request_data)` - Process a valid reschedule request.
+  - ✅ `MHMService._check_reschedule_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
+  - ✅ `MHMService._check_test_message_requests__cleanup_request_file(self, request_file, filename)` - Clean up a processed request file.
+  - ✅ `MHMService._check_test_message_requests__discover_request_files(self, base_dir)` - Discover all test message request files in the base directory.
+  - ✅ `MHMService._check_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
+  - ✅ `MHMService._check_test_message_requests__handle_processing_error(self, request_file, filename, error)` - Handle errors during request processing.
+  - ✅ `MHMService._check_test_message_requests__parse_request_file(self, request_file)` - Parse and validate a test message request file.
+  - ✅ `MHMService._check_test_message_requests__process_valid_request(self, request_data)` - Process a valid test message request.
+  - ✅ `MHMService._check_test_message_requests__validate_request_data(self, request_data, filename)` - Validate request data and check if it should be processed.
+  - ✅ `MHMService._cleanup_test_message_requests__get_base_directory(self)` - Get the base directory for test message request files.
+  - ✅ `MHMService._cleanup_test_message_requests__is_test_message_request_file(self, filename)` - Check if a filename matches the test message request file pattern.
+  - ✅ `MHMService._cleanup_test_message_requests__remove_request_file(self, request_file, filename)` - Remove a single test message request file with proper error handling.
   - ✅ `MHMService.check_and_fix_logging(self)` - Check if logging is working and restart if needed
   - ✅ `MHMService.check_reschedule_requests(self)` - Check for and process reschedule request files from UI
   - ✅ `MHMService.check_test_message_requests(self)` - Check for and process test message request files from admin panel
@@ -1407,7 +1533,6 @@ Returns:
 #### `core/user_data_handlers.py`
 **Functions:**
 - ✅ `_save_user_data__create_backup(user_id, valid_types, create_backup)` - Create backup if needed for major data updates.
-- ✅ `_save_user_data__legacy_account(updated, updates)` - Handle legacy account field compatibility.
 - ✅ `_save_user_data__legacy_preferences(updated, updates, user_id)` - Handle legacy preferences compatibility and cleanup.
 - ✅ `_save_user_data__normalize_data(dt, updated)` - Apply Pydantic normalization to data.
 - ✅ `_save_user_data__save_single_type(user_id, dt, updates, auto_create)` - Save a single data type for a user.
@@ -2002,6 +2127,8 @@ loader entries for: account, preferences, context, schedules.
 
 #### `tests/behavior/test_auto_cleanup_behavior.py`
 **Functions:**
+- ❌ `mock_exists_with_changes(path)` - No description
+- ❌ `mock_walk_with_error(path)` - No description
 - ✅ `temp_test_dir(self, test_data_dir)` - Create temporary test directory with cache files.
 - ✅ `temp_test_environment(self, test_data_dir)` - Create temporary test environment with cache files and tracker.
 - ✅ `temp_tracker_file(self, test_data_dir)` - Create temporary tracker file for testing.
@@ -2009,12 +2136,28 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `temp_tracker_file(self, test_data_dir)` - Create temporary tracker file for testing.
 - ✅ `test_auto_cleanup_if_needed_not_needed_real_behavior(self, temp_test_environment)` - REAL BEHAVIOR TEST: Test auto cleanup when not needed.
 - ✅ `test_auto_cleanup_if_needed_real_behavior(self, temp_test_environment)` - REAL BEHAVIOR TEST: Test automatic cleanup decision and execution.
+- ✅ `test_calculate_cache_size_concurrent_file_changes_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when files change during calculation.
+- ✅ `test_calculate_cache_size_empty_inputs_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with empty inputs.
+- ✅ `test_calculate_cache_size_file_corruption_handling_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when files are corrupted or inaccessible.
+- ✅ `test_calculate_cache_size_large_cache_scenario_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test calculating cache size with large number of files.
+- ✅ `test_calculate_cache_size_nested_directory_structure_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with deeply nested directories.
+- ✅ `test_calculate_cache_size_nonexistent_files_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with non-existent files.
+- ✅ `test_calculate_cache_size_permission_error_simulation_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when file access fails.
 - ✅ `test_calculate_cache_size_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test calculating cache size.
 - ✅ `test_find_pyc_files_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test finding .pyc files.
 - ✅ `test_find_pycache_dirs_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test finding __pycache__ directories.
+- ✅ `test_get_cleanup_status_29_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was 29 days ago (just under threshold).
+- ✅ `test_get_cleanup_status_31_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was 31 days ago (just over threshold).
+- ✅ `test_get_cleanup_status_corrupted_tracker_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file contains invalid JSON.
+- ✅ `test_get_cleanup_status_empty_tracker_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file is empty.
+- ✅ `test_get_cleanup_status_exactly_30_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was exactly 30 days ago (boundary condition).
+- ✅ `test_get_cleanup_status_invalid_timestamp_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file contains invalid timestamp.
+- ✅ `test_get_cleanup_status_missing_timestamp_field_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file is missing timestamp field.
 - ✅ `test_get_cleanup_status_never_cleaned_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when never cleaned before.
 - ✅ `test_get_cleanup_status_overdue_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup is overdue.
 - ✅ `test_get_cleanup_status_recent_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when recently cleaned.
+- ✅ `test_get_cleanup_status_very_old_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was very old (100+ days ago).
+- ✅ `test_get_cleanup_status_very_recent_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was very recent (1 day ago).
 - ✅ `test_get_last_cleanup_timestamp_no_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test getting timestamp when no tracker file exists.
 - ✅ `test_get_last_cleanup_timestamp_with_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test getting timestamp from existing tracker file.
 - ✅ `test_perform_cleanup_real_behavior(self, temp_test_environment)` - REAL BEHAVIOR TEST: Test performing actual cleanup.
@@ -2026,6 +2169,13 @@ loader entries for: account, preferences, context, schedules.
 **Classes:**
 - ✅ `TestAutoCleanupFileDiscoveryBehavior` - Test file discovery functionality with real behavior verification.
   - ✅ `TestAutoCleanupFileDiscoveryBehavior.temp_test_dir(self, test_data_dir)` - Create temporary test directory with cache files.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_concurrent_file_changes_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when files change during calculation.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_empty_inputs_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with empty inputs.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_file_corruption_handling_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when files are corrupted or inaccessible.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_large_cache_scenario_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test calculating cache size with large number of files.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_nested_directory_structure_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with deeply nested directories.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_nonexistent_files_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation with non-existent files.
+  - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_permission_error_simulation_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test cache size calculation when file access fails.
   - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_calculate_cache_size_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test calculating cache size.
   - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_find_pyc_files_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test finding .pyc files.
   - ✅ `TestAutoCleanupFileDiscoveryBehavior.test_find_pycache_dirs_real_behavior(self, temp_test_dir)` - REAL BEHAVIOR TEST: Test finding __pycache__ directories.
@@ -2042,9 +2192,18 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestAutoCleanupLogicBehavior.test_should_run_cleanup_recent_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test cleanup decision when recently cleaned.
 - ✅ `TestAutoCleanupStatusBehavior` - Test cleanup status functionality with real behavior verification.
   - ✅ `TestAutoCleanupStatusBehavior.temp_tracker_file(self, test_data_dir)` - Create temporary tracker file for testing.
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_29_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was 29 days ago (just under threshold).
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_31_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was 31 days ago (just over threshold).
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_corrupted_tracker_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file contains invalid JSON.
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_empty_tracker_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file is empty.
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_exactly_30_days_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was exactly 30 days ago (boundary condition).
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_invalid_timestamp_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file contains invalid timestamp.
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_missing_timestamp_field_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when tracker file is missing timestamp field.
   - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_never_cleaned_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when never cleaned before.
   - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_overdue_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup is overdue.
   - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_recent_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when recently cleaned.
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_very_old_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was very old (100+ days ago).
+  - ✅ `TestAutoCleanupStatusBehavior.test_get_cleanup_status_very_recent_cleanup_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test status when cleanup was very recent (1 day ago).
 - ✅ `TestAutoCleanupTimestampBehavior` - Test timestamp tracking functionality with real behavior verification.
   - ✅ `TestAutoCleanupTimestampBehavior.temp_tracker_file(self, test_data_dir)` - Create temporary tracker file for testing.
   - ✅ `TestAutoCleanupTimestampBehavior.test_get_last_cleanup_timestamp_no_file_real_behavior(self, temp_tracker_file)` - REAL BEHAVIOR TEST: Test getting timestamp when no tracker file exists.
@@ -2656,10 +2815,53 @@ loader entries for: account, preferences, context, schedules.
 **Functions:**
 - ✅ `mock_communication_manager(self)` - Mock communication manager.
 - ✅ `mock_config(self)` - Mock configuration to avoid real config dependencies.
+- ❌ `mock_remove_with_disappearing_files(file_path)` - No description
+- ❌ `mock_remove_with_partial_failure(file_path)` - No description
 - ✅ `mock_scheduler_manager(self)` - Mock scheduler manager.
 - ✅ `service(self)` - Create a fresh MHMService instance for each test.
+- ✅ `test_check_and_fix_logging_basic_success(self, service)` - Test basic successful logging verification.
+- ✅ `test_check_and_fix_logging_check_recent_activity_timestamps_invalid_timestamp(self, service)` - Test the most complex helper function - recent activity timestamp checking with invalid timestamp.
+- ✅ `test_check_and_fix_logging_check_recent_activity_timestamps_old_activity(self, service)` - Test the most complex helper function - recent activity timestamp checking with old activity.
+- ✅ `test_check_and_fix_logging_check_recent_activity_timestamps_recent_activity(self, service)` - Test the most complex helper function - recent activity timestamp checking with recent activity.
 - ✅ `test_check_and_fix_logging_failure_real_behavior(self, service)` - Test logging check and fix failure.
+- ✅ `test_check_and_fix_logging_file_creation_failure(self, service)` - Test logging verification when log file creation fails.
+- ✅ `test_check_and_fix_logging_file_missing(self, service)` - Test logging verification when log file doesn't exist.
+- ✅ `test_check_and_fix_logging_old_activity_restart(self, service)` - Test logging restart when activity is too old.
+- ✅ `test_check_and_fix_logging_read_recent_log_content_large_file(self, service)` - Test reading recent log content from a large log file.
+- ✅ `test_check_and_fix_logging_read_recent_log_content_small_file(self, service)` - Test reading recent log content from a small log file.
+- ✅ `test_check_and_fix_logging_recent_activity_detected(self, service)` - Test detection of recent logging activity.
 - ✅ `test_check_and_fix_logging_success_real_behavior(self, service)` - Test successful logging check and fix.
+- ✅ `test_check_and_fix_logging_verify_test_message_present_found(self, service)` - Test verifying test message presence when message is found.
+- ✅ `test_check_and_fix_logging_verify_test_message_present_not_found(self, service)` - Test verifying test message presence when message is not found.
+- ✅ `test_check_reschedule_requests_handle_processing_error_cleanup_failure(self, service)` - Test error handling helper when file cleanup fails.
+- ✅ `test_check_reschedule_requests_handle_processing_error_successful_cleanup(self, service)` - Test error handling helper with successful file cleanup.
+- ✅ `test_check_reschedule_requests_invalid_file(self, service)` - Test reschedule requests with invalid file data.
+- ✅ `test_check_reschedule_requests_json_error(self, service)` - Test reschedule requests with JSON parsing error.
+- ✅ `test_check_reschedule_requests_no_files(self, service)` - Test reschedule requests when no files exist.
+- ✅ `test_check_reschedule_requests_old_file_processed(self, service)` - Test reschedule requests with old timestamp still processed.
+- ✅ `test_check_reschedule_requests_valid_file(self, service)` - Test reschedule requests with valid file.
+- ✅ `test_check_reschedule_requests_validate_request_data_missing_fields(self, service)` - Test request data validation with missing required fields.
+- ✅ `test_check_reschedule_requests_validate_request_data_old_timestamp(self, service)` - Test request data validation with old timestamp.
+- ✅ `test_check_test_message_requests_communication_error(self, service)` - Test test message requests when communication manager raises error.
+- ✅ `test_check_test_message_requests_handle_processing_error_cleanup_failure(self, service)` - Test test message error handling helper when file cleanup fails.
+- ✅ `test_check_test_message_requests_handle_processing_error_successful_cleanup(self, service)` - Test test message error handling helper with successful file cleanup.
+- ✅ `test_check_test_message_requests_invalid_file(self, service)` - Test test message requests with invalid file data.
+- ✅ `test_check_test_message_requests_json_error(self, service)` - Test test message requests with JSON parsing error.
+- ✅ `test_check_test_message_requests_no_communication_manager(self, service)` - Test test message requests when communication manager is None.
+- ✅ `test_check_test_message_requests_no_files(self, service)` - Test test message requests when no files exist.
+- ✅ `test_check_test_message_requests_valid_file(self, service)` - Test test message requests with valid file.
+- ✅ `test_cleanup_test_message_requests_concurrent_access_simulation_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when files disappear during processing.
+- ✅ `test_cleanup_test_message_requests_directory_access_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when directory listing fails.
+- ✅ `test_cleanup_test_message_requests_empty_directory_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when no request files exist.
+- ✅ `test_cleanup_test_message_requests_file_in_use_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when files are in use by another process.
+- ✅ `test_cleanup_test_message_requests_file_permission_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when file removal fails due to permission errors.
+- ✅ `test_cleanup_test_message_requests_large_number_of_files_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup with many request files.
+- ✅ `test_cleanup_test_message_requests_mixed_file_types_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup with mixed file types in directory.
+- ✅ `test_cleanup_test_message_requests_partial_failure_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when some files succeed and others fail.
+- ✅ `test_cleanup_test_message_requests_remove_request_file_generic_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with generic error by helper function.
+- ✅ `test_cleanup_test_message_requests_remove_request_file_not_found_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with file not found error by helper function.
+- ✅ `test_cleanup_test_message_requests_remove_request_file_permission_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with permission error by helper function.
+- ✅ `test_cleanup_test_message_requests_remove_request_file_success_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test successful file removal by helper function.
 - ✅ `test_get_scheduler_manager_real_behavior(self)` - Test getting scheduler manager.
 - ✅ `test_initialize_paths_real_behavior(self, service)` - Test path initialization with real behavior verification.
 - ✅ `test_initialize_paths_with_empty_categories_real_behavior(self, service)` - Test path initialization with empty categories list.
@@ -2695,8 +2897,49 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestCoreServiceCoverageExpansion.mock_config(self)` - Mock configuration to avoid real config dependencies.
   - ✅ `TestCoreServiceCoverageExpansion.mock_scheduler_manager(self)` - Mock scheduler manager.
   - ✅ `TestCoreServiceCoverageExpansion.service(self)` - Create a fresh MHMService instance for each test.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_basic_success(self, service)` - Test basic successful logging verification.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_check_recent_activity_timestamps_invalid_timestamp(self, service)` - Test the most complex helper function - recent activity timestamp checking with invalid timestamp.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_check_recent_activity_timestamps_old_activity(self, service)` - Test the most complex helper function - recent activity timestamp checking with old activity.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_check_recent_activity_timestamps_recent_activity(self, service)` - Test the most complex helper function - recent activity timestamp checking with recent activity.
   - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_failure_real_behavior(self, service)` - Test logging check and fix failure.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_file_creation_failure(self, service)` - Test logging verification when log file creation fails.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_file_missing(self, service)` - Test logging verification when log file doesn't exist.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_old_activity_restart(self, service)` - Test logging restart when activity is too old.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_read_recent_log_content_large_file(self, service)` - Test reading recent log content from a large log file.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_read_recent_log_content_small_file(self, service)` - Test reading recent log content from a small log file.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_recent_activity_detected(self, service)` - Test detection of recent logging activity.
   - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_success_real_behavior(self, service)` - Test successful logging check and fix.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_verify_test_message_present_found(self, service)` - Test verifying test message presence when message is found.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_and_fix_logging_verify_test_message_present_not_found(self, service)` - Test verifying test message presence when message is not found.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_handle_processing_error_cleanup_failure(self, service)` - Test error handling helper when file cleanup fails.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_handle_processing_error_successful_cleanup(self, service)` - Test error handling helper with successful file cleanup.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_invalid_file(self, service)` - Test reschedule requests with invalid file data.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_json_error(self, service)` - Test reschedule requests with JSON parsing error.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_no_files(self, service)` - Test reschedule requests when no files exist.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_old_file_processed(self, service)` - Test reschedule requests with old timestamp still processed.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_valid_file(self, service)` - Test reschedule requests with valid file.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_validate_request_data_missing_fields(self, service)` - Test request data validation with missing required fields.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_reschedule_requests_validate_request_data_old_timestamp(self, service)` - Test request data validation with old timestamp.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_communication_error(self, service)` - Test test message requests when communication manager raises error.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_handle_processing_error_cleanup_failure(self, service)` - Test test message error handling helper when file cleanup fails.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_handle_processing_error_successful_cleanup(self, service)` - Test test message error handling helper with successful file cleanup.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_invalid_file(self, service)` - Test test message requests with invalid file data.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_json_error(self, service)` - Test test message requests with JSON parsing error.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_no_communication_manager(self, service)` - Test test message requests when communication manager is None.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_no_files(self, service)` - Test test message requests when no files exist.
+  - ✅ `TestCoreServiceCoverageExpansion.test_check_test_message_requests_valid_file(self, service)` - Test test message requests with valid file.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_concurrent_access_simulation_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when files disappear during processing.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_directory_access_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when directory listing fails.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_empty_directory_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when no request files exist.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_file_in_use_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when files are in use by another process.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_file_permission_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when file removal fails due to permission errors.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_large_number_of_files_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup with many request files.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_mixed_file_types_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup with mixed file types in directory.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_partial_failure_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test cleanup when some files succeed and others fail.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_remove_request_file_generic_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with generic error by helper function.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_remove_request_file_not_found_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with file not found error by helper function.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_remove_request_file_permission_error_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test file removal with permission error by helper function.
+  - ✅ `TestCoreServiceCoverageExpansion.test_cleanup_test_message_requests_remove_request_file_success_real_behavior(self, service)` - REAL BEHAVIOR TEST: Test successful file removal by helper function.
   - ✅ `TestCoreServiceCoverageExpansion.test_get_scheduler_manager_real_behavior(self)` - Test getting scheduler manager.
   - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_real_behavior(self, service)` - Test path initialization with real behavior verification.
   - ✅ `TestCoreServiceCoverageExpansion.test_initialize_paths_with_empty_categories_real_behavior(self, service)` - Test path initialization with empty categories list.
@@ -2855,27 +3098,27 @@ loader entries for: account, preferences, context, schedules.
 - ❌ `send_email(recipient, message)` - No description
 - ✅ `setup_method(self)` - Set up test environment.
 - ✅ `setup_method(self)` - Set up test environment.
+- ✅ `test_email_bot_async_shutdown_method_behavior(self, test_data_dir)` - Test async shutdown method behavior.
 - ✅ `test_email_bot_data_integrity(self, test_data_dir)` - Test that email bot maintains data integrity.
 - ✅ `test_email_bot_error_handling_preserves_system_stability(self, test_data_dir)` - Test that email bot error handling preserves system stability.
 - ✅ `test_email_bot_initialization_creates_proper_structure(self, test_data_dir)` - Test that EmailBot initialization creates proper internal structure.
 - ✅ `test_email_bot_initialization_with_custom_config(self, test_data_dir)` - Test that EmailBot initialization with custom config works properly.
-- ✅ `test_email_bot_legacy_is_initialized_method_behavior(self, test_data_dir)` - Test legacy is_initialized method behavior.
 - ✅ `test_email_bot_legacy_start_method_behavior(self, test_data_dir)` - Test legacy start method behavior.
 - ✅ `test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir)` - Test legacy start method failure behavior.
-- ✅ `test_email_bot_legacy_stop_method_behavior(self, test_data_dir)` - Test legacy stop method behavior.
 - ✅ `test_email_bot_performance_under_load(self, test_data_dir)` - Test that email bot performs well under load.
+- ✅ `test_email_bot_status_checking_behavior(self, test_data_dir)` - Test email bot status checking behavior.
 **Classes:**
 - ✅ `TestEmailBotBehavior` - Test real behavior of Email Bot.
   - ✅ `TestEmailBotBehavior.setup_method(self)` - Set up test environment.
+  - ✅ `TestEmailBotBehavior.test_email_bot_async_shutdown_method_behavior(self, test_data_dir)` - Test async shutdown method behavior.
   - ✅ `TestEmailBotBehavior.test_email_bot_data_integrity(self, test_data_dir)` - Test that email bot maintains data integrity.
   - ✅ `TestEmailBotBehavior.test_email_bot_error_handling_preserves_system_stability(self, test_data_dir)` - Test that email bot error handling preserves system stability.
   - ✅ `TestEmailBotBehavior.test_email_bot_initialization_creates_proper_structure(self, test_data_dir)` - Test that EmailBot initialization creates proper internal structure.
   - ✅ `TestEmailBotBehavior.test_email_bot_initialization_with_custom_config(self, test_data_dir)` - Test that EmailBot initialization with custom config works properly.
-  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_is_initialized_method_behavior(self, test_data_dir)` - Test legacy is_initialized method behavior.
   - ✅ `TestEmailBotBehavior.test_email_bot_legacy_start_method_behavior(self, test_data_dir)` - Test legacy start method behavior.
   - ✅ `TestEmailBotBehavior.test_email_bot_legacy_start_method_failure_behavior(self, test_data_dir)` - Test legacy start method failure behavior.
-  - ✅ `TestEmailBotBehavior.test_email_bot_legacy_stop_method_behavior(self, test_data_dir)` - Test legacy stop method behavior.
   - ✅ `TestEmailBotBehavior.test_email_bot_performance_under_load(self, test_data_dir)` - Test that email bot performs well under load.
+  - ✅ `TestEmailBotBehavior.test_email_bot_status_checking_behavior(self, test_data_dir)` - Test email bot status checking behavior.
 - ✅ `TestEmailBotIntegration` - Test integration behavior of Email Bot.
   - ✅ `TestEmailBotIntegration.setup_method(self)` - Set up test environment.
 
@@ -3506,12 +3749,12 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `test_edit_message_success(self, test_data_dir)` - Test editing a message successfully.
 - ✅ `test_ensure_user_message_files_success(self, test_data_dir)` - Test ensuring user message files exist successfully.
 - ✅ `test_full_message_lifecycle(self, test_data_dir)` - Test complete message lifecycle (add, edit, delete).
-- ✅ `test_get_last_10_messages_empty(self, test_data_dir)` - Test getting last 10 messages when none exist.
-- ✅ `test_get_last_10_messages_success(self, test_data_dir)` - Test getting last 10 sent messages successfully.
 - ✅ `test_get_message_categories_custom(self)` - Test getting custom message categories.
 - ✅ `test_get_message_categories_default(self)` - Test getting default message categories.
 - ✅ `test_get_message_categories_empty(self)` - Test getting message categories when none are defined.
 - ✅ `test_get_message_categories_success(self)` - Test getting message categories successfully.
+- ✅ `test_get_recent_messages_empty(self, test_data_dir)` - Test getting last 10 messages when none exist.
+- ✅ `test_get_recent_messages_success(self, test_data_dir)` - Test getting last 10 sent messages successfully.
 - ✅ `test_load_default_messages_file_not_found(self, test_data_dir, mock_config)` - Test loading default messages when file doesn't exist.
 - ✅ `test_load_default_messages_invalid_json(self, test_data_dir, mock_config)` - Test loading default messages with invalid JSON.
 - ✅ `test_load_default_messages_success(self, test_data_dir)` - Test loading default messages successfully.
@@ -3546,8 +3789,8 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestMessageFileManagement.test_create_message_file_from_defaults_success(self, test_data_dir)` - Test creating message file from defaults successfully.
   - ✅ `TestMessageFileManagement.test_ensure_user_message_files_success(self, test_data_dir)` - Test ensuring user message files exist successfully.
 - ✅ `TestSentMessages` - Test sent message tracking functionality.
-  - ✅ `TestSentMessages.test_get_last_10_messages_empty(self, test_data_dir)` - Test getting last 10 messages when none exist.
-  - ✅ `TestSentMessages.test_get_last_10_messages_success(self, test_data_dir)` - Test getting last 10 sent messages successfully.
+  - ✅ `TestSentMessages.test_get_recent_messages_empty(self, test_data_dir)` - Test getting last 10 messages when none exist.
+  - ✅ `TestSentMessages.test_get_recent_messages_success(self, test_data_dir)` - Test getting last 10 sent messages successfully.
   - ✅ `TestSentMessages.test_store_sent_message_success(self, test_data_dir)` - Test storing a sent message successfully.
 
 #### `tests/behavior/test_observability_logging.py`
@@ -3570,7 +3813,6 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `test_response_tracking_integration_with_user_data(self, test_data_dir)` - Test integration between response tracking and user data management.
 - ✅ `test_response_tracking_performance_under_load(self, test_data_dir)` - Test that response tracking performs well under load.
 - ✅ `test_store_chat_interaction_creates_chat_log(self, test_data_dir)` - Test that chat interactions are stored in chat interactions file.
-- ✅ `test_store_checkin_response_uses_correct_file(self, test_data_dir)` - Test that checkin responses are stored in the correct file.
 - ✅ `test_store_user_response_creates_actual_file(self, test_data_dir)` - Test that storing user response actually creates data files.
 - ✅ `test_store_user_response_persists_multiple_entries(self, test_data_dir)` - Test that storing multiple responses actually persists all entries.
 - ✅ `test_track_user_response_stores_chat_interaction(self, test_data_dir)` - Test that tracking user response stores chat interaction data.
@@ -3589,7 +3831,6 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestResponseTrackingBehavior.test_response_tracking_error_handling_preserves_system_stability(self, test_data_dir)` - Test that response tracking error handling preserves system stability.
   - ✅ `TestResponseTrackingBehavior.test_response_tracking_performance_under_load(self, test_data_dir)` - Test that response tracking performs well under load.
   - ✅ `TestResponseTrackingBehavior.test_store_chat_interaction_creates_chat_log(self, test_data_dir)` - Test that chat interactions are stored in chat interactions file.
-  - ✅ `TestResponseTrackingBehavior.test_store_checkin_response_uses_correct_file(self, test_data_dir)` - Test that checkin responses are stored in the correct file.
   - ✅ `TestResponseTrackingBehavior.test_store_user_response_creates_actual_file(self, test_data_dir)` - Test that storing user response actually creates data files.
   - ✅ `TestResponseTrackingBehavior.test_store_user_response_persists_multiple_entries(self, test_data_dir)` - Test that storing multiple responses actually persists all entries.
   - ✅ `TestResponseTrackingBehavior.test_track_user_response_stores_chat_interaction(self, test_data_dir)` - Test that tracking user response stores chat interaction data.
@@ -3642,8 +3883,6 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `mock_communication_manager()` - Create a mock communication manager.
 - ✅ `scheduler_manager(self, mock_communication_manager)` - Create a SchedulerManager instance for testing.
 - ✅ `test_cleanup_old_tasks(self, scheduler_manager, test_data_dir)` - Test cleaning up old scheduled tasks.
-- ✅ `test_cleanup_task_reminders_specific_task(self)` - Test cleaning up specific task reminders.
-- ✅ `test_cleanup_task_reminders_success(self)` - Test cleaning up task reminders.
 - ✅ `test_get_random_time_within_period_invalid_times(self, scheduler_manager)` - Test getting random time with invalid time format.
 - ✅ `test_get_random_time_within_period_valid_times(self, scheduler_manager)` - Test getting random time within a valid time period.
 - ✅ `test_get_user_categories_no_user(self)` - Test getting categories for non-existent user.
@@ -3694,8 +3933,6 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestSchedulerManager.test_scheduler_manager_initialization(self, mock_communication_manager)` - Test SchedulerManager initialization.
   - ✅ `TestSchedulerManager.test_stop_scheduler_no_thread(self, scheduler_manager)` - Test stopping scheduler when no thread is running.
 - ✅ `TestTaskReminderFunctions` - Test task reminder specific functions.
-  - ✅ `TestTaskReminderFunctions.test_cleanup_task_reminders_specific_task(self)` - Test cleaning up specific task reminders.
-  - ✅ `TestTaskReminderFunctions.test_cleanup_task_reminders_success(self)` - Test cleaning up task reminders.
   - ✅ `TestTaskReminderFunctions.test_schedule_all_task_reminders_disabled(self, test_data_dir)` - Test scheduling task reminders when task management is disabled.
   - ✅ `TestTaskReminderFunctions.test_schedule_all_task_reminders_success(self, test_data_dir)` - Test scheduling all task reminders for a user.
 
@@ -3704,8 +3941,6 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `mock_communication_manager()` - Create a mock communication manager.
 - ✅ `scheduler_manager(mock_communication_manager)` - Create a SchedulerManager instance for testing.
 - ✅ `test_cleanup_old_tasks_real_behavior(self, scheduler_manager)` - Test cleaning up old scheduled tasks.
-- ✅ `test_cleanup_task_reminders_real_behavior(self, scheduler_manager)` - Test cleaning up task reminders.
-- ✅ `test_cleanup_task_reminders_standalone_real_behavior(self)` - Test standalone cleanup_task_reminders function.
 - ✅ `test_get_random_time_within_period_future_scheduling(self, scheduler_manager)` - Test getting random time for future scheduling.
 - ✅ `test_get_random_time_within_period_invalid_period(self, scheduler_manager)` - Test getting random time with invalid period.
 - ✅ `test_get_random_time_within_period_missing_times(self, scheduler_manager)` - Test getting random time with missing start/end times.
@@ -3740,11 +3975,23 @@ loader entries for: account, preferences, context, schedules.
 - ✅ `test_schedule_new_user_real_behavior(self, scheduler_manager, test_data_dir)` - Test scheduling a newly created user.
 - ✅ `test_schedule_task_reminder_at_time_completed_task(self, scheduler_manager)` - Test scheduling task reminder for a completed task.
 - ✅ `test_schedule_task_reminder_at_time_real_behavior(self, scheduler_manager)` - Test scheduling a task reminder at a specific time.
-- ✅ `test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager)` - Test that scheduler loop properly schedules daily jobs for all users.
+- ✅ `test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager, test_data_dir)` - Test that scheduler loop properly schedules daily jobs for all users.
 - ✅ `test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop error handling when scheduling fails.
 - ✅ `test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop properly responds to stop events.
 - ✅ `test_scheduler_manager_initialization_real_behavior(self, mock_communication_manager)` - Test SchedulerManager initialization with real behavior verification.
 - ✅ `test_scheduler_manager_no_communication_manager(self)` - Test scheduler manager with no communication manager.
+- ✅ `test_select_task_for_reminder_due_today_weighting_real_behavior(self, scheduler_manager)` - Test due date proximity weighting for tasks due today.
+- ✅ `test_select_task_for_reminder_empty_list_real_behavior(self, scheduler_manager)` - Test selecting task from empty list returns None.
+- ✅ `test_select_task_for_reminder_exception_handling_real_behavior(self, scheduler_manager)` - Test exception handling with fallback to random selection.
+- ✅ `test_select_task_for_reminder_invalid_date_format_real_behavior(self, scheduler_manager)` - Test handling of invalid date formats gracefully.
+- ✅ `test_select_task_for_reminder_large_task_list_real_behavior(self, scheduler_manager)` - Test performance and correctness with large task lists.
+- ✅ `test_select_task_for_reminder_month_proximity_weighting_real_behavior(self, scheduler_manager)` - Test sliding scale weighting for tasks due within a month.
+- ✅ `test_select_task_for_reminder_no_due_date_weighting_real_behavior(self, scheduler_manager)` - Test tasks without due dates get slight reduction in weight.
+- ✅ `test_select_task_for_reminder_overdue_weighting_real_behavior(self, scheduler_manager)` - Test overdue task weighting with exponential increase.
+- ✅ `test_select_task_for_reminder_priority_weighting_real_behavior(self, scheduler_manager)` - Test priority-based weighting works correctly.
+- ✅ `test_select_task_for_reminder_single_task_real_behavior(self, scheduler_manager)` - Test selecting task from single-item list returns that task.
+- ✅ `test_select_task_for_reminder_week_proximity_weighting_real_behavior(self, scheduler_manager)` - Test sliding scale weighting for tasks due within a week.
+- ✅ `test_select_task_for_reminder_zero_weights_fallback_real_behavior(self, scheduler_manager)` - Test fallback to random selection when all weights are zero.
 - ✅ `test_set_wake_timer_failure_handling(self, scheduler_manager)` - Test wake timer failure handling.
 - ✅ `test_set_wake_timer_process_failure_real_behavior(self, scheduler_manager)` - Test wake timer setting when process fails.
 - ✅ `test_set_wake_timer_real_behavior(self, scheduler_manager)` - Test setting wake timer for scheduled messages.
@@ -3758,7 +4005,6 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestCheckinSchedulingCoverage.test_schedule_checkin_missing_start_time_real_behavior(self, scheduler_manager)` - Test check-in scheduling with missing start time.
 - ✅ `TestCleanupOperations` - Test cleanup operations.
   - ✅ `TestCleanupOperations.test_cleanup_old_tasks_real_behavior(self, scheduler_manager)` - Test cleaning up old scheduled tasks.
-  - ✅ `TestCleanupOperations.test_cleanup_task_reminders_real_behavior(self, scheduler_manager)` - Test cleaning up task reminders.
 - ✅ `TestErrorHandling` - Test error handling and edge cases.
   - ✅ `TestErrorHandling.test_get_random_time_within_period_missing_times(self, scheduler_manager)` - Test getting random time with missing start/end times.
   - ✅ `TestErrorHandling.test_handle_sending_scheduled_message_no_communication_manager(self, scheduler_manager)` - Test message sending with no communication manager.
@@ -3778,7 +4024,7 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestMessageScheduling.test_schedule_message_for_period_time_conflict_retry(self, scheduler_manager)` - Test scheduling with time conflicts and retry logic.
   - ✅ `TestMessageScheduling.test_schedule_new_user_real_behavior(self, scheduler_manager, test_data_dir)` - Test scheduling a newly created user.
 - ✅ `TestSchedulerLoopCoverage` - Test scheduler loop functionality and error handling.
-  - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager)` - Test that scheduler loop properly schedules daily jobs for all users.
+  - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager, test_data_dir)` - Test that scheduler loop properly schedules daily jobs for all users.
   - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop error handling when scheduling fails.
   - ✅ `TestSchedulerLoopCoverage.test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager)` - Test scheduler loop properly responds to stop events.
 - ✅ `TestSchedulerManagerLifecycle` - Test SchedulerManager lifecycle and threading.
@@ -3786,8 +4032,20 @@ loader entries for: account, preferences, context, schedules.
   - ✅ `TestSchedulerManagerLifecycle.test_scheduler_manager_initialization_real_behavior(self, mock_communication_manager)` - Test SchedulerManager initialization with real behavior verification.
   - ✅ `TestSchedulerManagerLifecycle.test_stop_scheduler_no_thread_graceful_handling(self, scheduler_manager)` - Test stopping scheduler when no thread is running.
   - ✅ `TestSchedulerManagerLifecycle.test_stop_scheduler_thread_cleanup_real_behavior(self, scheduler_manager)` - Test that stop_scheduler properly cleans up the thread.
+- ✅ `TestSelectTaskForReminderBehavior` - Test comprehensive behavior of select_task_for_reminder function.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_due_today_weighting_real_behavior(self, scheduler_manager)` - Test due date proximity weighting for tasks due today.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_empty_list_real_behavior(self, scheduler_manager)` - Test selecting task from empty list returns None.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_exception_handling_real_behavior(self, scheduler_manager)` - Test exception handling with fallback to random selection.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_invalid_date_format_real_behavior(self, scheduler_manager)` - Test handling of invalid date formats gracefully.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_large_task_list_real_behavior(self, scheduler_manager)` - Test performance and correctness with large task lists.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_month_proximity_weighting_real_behavior(self, scheduler_manager)` - Test sliding scale weighting for tasks due within a month.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_no_due_date_weighting_real_behavior(self, scheduler_manager)` - Test tasks without due dates get slight reduction in weight.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_overdue_weighting_real_behavior(self, scheduler_manager)` - Test overdue task weighting with exponential increase.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_priority_weighting_real_behavior(self, scheduler_manager)` - Test priority-based weighting works correctly.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_single_task_real_behavior(self, scheduler_manager)` - Test selecting task from single-item list returns that task.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_week_proximity_weighting_real_behavior(self, scheduler_manager)` - Test sliding scale weighting for tasks due within a week.
+  - ✅ `TestSelectTaskForReminderBehavior.test_select_task_for_reminder_zero_weights_fallback_real_behavior(self, scheduler_manager)` - Test fallback to random selection when all weights are zero.
 - ✅ `TestStandaloneFunctions` - Test standalone scheduler functions.
-  - ✅ `TestStandaloneFunctions.test_cleanup_task_reminders_standalone_real_behavior(self)` - Test standalone cleanup_task_reminders function.
   - ✅ `TestStandaloneFunctions.test_get_user_checkin_preferences_real_behavior(self)` - Test getting user check-in preferences.
   - ✅ `TestStandaloneFunctions.test_process_category_schedule_real_behavior(self)` - Test processing schedule for a specific category.
   - ✅ `TestStandaloneFunctions.test_process_user_schedules_real_behavior(self)` - Test processing schedules for a specific user.
@@ -4008,8 +4266,6 @@ real service startup behavior for testing.
 - ✅ `test_add_user_task_tag_new_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding a new task tag.
 - ✅ `test_are_tasks_enabled_empty_user_id_real_behavior(self, mock_user_data_dir)` - Test checking tasks enabled with empty user ID.
 - ✅ `test_are_tasks_enabled_real_behavior(self, mock_user_data_dir, user_id)` - Test checking if tasks are enabled for a user.
-- ✅ `test_cleanup_task_reminders_no_scheduler_real_behavior(self, mock_user_data_dir, user_id)` - Test cleaning up reminders when scheduler is not available.
-- ✅ `test_cleanup_task_reminders_real_behavior(self, mock_user_data_dir, user_id)` - Test cleaning up task-specific reminders.
 - ✅ `test_complete_task_not_found_real_behavior(self, mock_user_data_dir, user_id)` - Test completing a non-existent task.
 - ✅ `test_complete_task_with_completion_data_real_behavior(self, mock_user_data_dir, user_id)` - Test task completion with custom completion data.
 - ✅ `test_complete_task_with_default_completion_real_behavior(self, mock_user_data_dir, user_id)` - Test task completion with default completion time.
@@ -4066,8 +4322,6 @@ real service startup behavior for testing.
   - ✅ `TestTaskManagementCoverageExpansion.test_add_user_task_tag_new_tag_real_behavior(self, mock_user_data_dir, user_id)` - Test adding a new task tag.
   - ✅ `TestTaskManagementCoverageExpansion.test_are_tasks_enabled_empty_user_id_real_behavior(self, mock_user_data_dir)` - Test checking tasks enabled with empty user ID.
   - ✅ `TestTaskManagementCoverageExpansion.test_are_tasks_enabled_real_behavior(self, mock_user_data_dir, user_id)` - Test checking if tasks are enabled for a user.
-  - ✅ `TestTaskManagementCoverageExpansion.test_cleanup_task_reminders_no_scheduler_real_behavior(self, mock_user_data_dir, user_id)` - Test cleaning up reminders when scheduler is not available.
-  - ✅ `TestTaskManagementCoverageExpansion.test_cleanup_task_reminders_real_behavior(self, mock_user_data_dir, user_id)` - Test cleaning up task-specific reminders.
   - ✅ `TestTaskManagementCoverageExpansion.test_complete_task_not_found_real_behavior(self, mock_user_data_dir, user_id)` - Test completing a non-existent task.
   - ✅ `TestTaskManagementCoverageExpansion.test_complete_task_with_completion_data_real_behavior(self, mock_user_data_dir, user_id)` - Test task completion with custom completion data.
   - ✅ `TestTaskManagementCoverageExpansion.test_complete_task_with_default_completion_real_behavior(self, mock_user_data_dir, user_id)` - Test task completion with default completion time.
@@ -4118,6 +4372,17 @@ real service startup behavior for testing.
 #### `tests/behavior/test_ui_app_behavior.py`
 **Functions:**
 - ✅ `qt_app(self)` - Create a QApplication instance for testing.
+- ✅ `qt_app(self)` - Create a QApplication instance for testing.
+- ✅ `test_confirm_test_message_user_cancels_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test confirm_test_message when user cancels.
+- ✅ `test_confirm_test_message_user_confirms_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test confirm_test_message when user confirms.
+- ✅ `test_send_actual_test_message_creates_request_file_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_actual_test_message creates request file.
+- ✅ `test_send_test_message_edge_case_negative_index_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message with negative combo box index.
+- ✅ `test_send_test_message_invalid_category_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when category data is invalid.
+- ✅ `test_send_test_message_no_category_selected_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when no category is selected.
+- ✅ `test_send_test_message_no_user_selected_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when no user is selected.
+- ✅ `test_send_test_message_service_manager_error_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when service manager throws error.
+- ✅ `test_send_test_message_service_not_running_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when service is not running.
+- ✅ `test_send_test_message_successful_flow_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test successful send_test_message flow.
 - ✅ `test_service_manager_configuration_validation_checks_actual_config(self, test_data_dir)` - Test that configuration validation checks actual configuration.
 - ✅ `test_service_manager_configuration_validation_handles_invalid_config(self, test_data_dir)` - Test that configuration validation handles invalid configuration.
 - ✅ `test_service_manager_initialization_creates_proper_structure(self, test_data_dir)` - Test that ServiceManager initialization creates proper internal structure.
@@ -4131,6 +4396,7 @@ real service startup behavior for testing.
 - ✅ `test_ui_app_data_integrity(self, qt_app, test_data_dir)` - Test that UI app maintains data integrity.
 - ✅ `test_ui_app_error_handling_preserves_system_stability(self, qt_app, test_data_dir)` - Test that UI app error handling preserves system stability.
 - ✅ `test_ui_app_error_recovery_with_real_operations(self, test_data_dir)` - Test error recovery when working with real operations.
+- ✅ `test_ui_app_initialization_creates_proper_structure(self, qt_app, test_data_dir)` - Test that UI app initialization creates proper internal structure.
 - ✅ `test_ui_app_initialization_creates_proper_structure(self, qt_app, test_data_dir)` - Test that UI app initialization creates proper internal structure.
 - ✅ `test_ui_app_integration_with_service_manager(self, test_data_dir)` - Test integration between UI app and service manager.
 - ✅ `test_ui_app_new_user_creation_opens_account_creator(self, qt_app, test_data_dir)` - Test that new user creation opens account creator dialog.
@@ -4164,6 +4430,19 @@ real service startup behavior for testing.
   - ✅ `TestUIAppIntegration.test_ui_app_concurrent_access_safety(self, test_data_dir)` - Test that UI app handles concurrent access safely.
   - ✅ `TestUIAppIntegration.test_ui_app_error_recovery_with_real_operations(self, test_data_dir)` - Test error recovery when working with real operations.
   - ✅ `TestUIAppIntegration.test_ui_app_integration_with_service_manager(self, test_data_dir)` - Test integration between UI app and service manager.
+- ✅ `TestUIAppIntegration` - Test UI app integration and complex workflows.
+  - ✅ `TestUIAppIntegration.qt_app(self)` - Create a QApplication instance for testing.
+  - ✅ `TestUIAppIntegration.test_confirm_test_message_user_cancels_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test confirm_test_message when user cancels.
+  - ✅ `TestUIAppIntegration.test_confirm_test_message_user_confirms_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test confirm_test_message when user confirms.
+  - ✅ `TestUIAppIntegration.test_send_actual_test_message_creates_request_file_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_actual_test_message creates request file.
+  - ✅ `TestUIAppIntegration.test_send_test_message_edge_case_negative_index_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message with negative combo box index.
+  - ✅ `TestUIAppIntegration.test_send_test_message_invalid_category_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when category data is invalid.
+  - ✅ `TestUIAppIntegration.test_send_test_message_no_category_selected_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when no category is selected.
+  - ✅ `TestUIAppIntegration.test_send_test_message_no_user_selected_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when no user is selected.
+  - ✅ `TestUIAppIntegration.test_send_test_message_service_manager_error_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when service manager throws error.
+  - ✅ `TestUIAppIntegration.test_send_test_message_service_not_running_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test send_test_message when service is not running.
+  - ✅ `TestUIAppIntegration.test_send_test_message_successful_flow_real_behavior(self, qt_app, test_data_dir)` - REAL BEHAVIOR TEST: Test successful send_test_message flow.
+  - ✅ `TestUIAppIntegration.test_ui_app_initialization_creates_proper_structure(self, qt_app, test_data_dir)` - Test that UI app initialization creates proper internal structure.
 
 #### `tests/behavior/test_user_context_behavior.py`
 **Functions:**
@@ -4171,7 +4450,7 @@ real service startup behavior for testing.
 - ✅ `test_add_conversation_exchange_maintains_history_limit(self, test_data_dir)` - Test that add_conversation_exchange maintains conversation history limit.
 - ✅ `test_format_context_for_ai_creates_readable_string(self, test_data_dir)` - Test that format_context_for_ai creates actual readable string from context.
 - ✅ `test_format_context_for_ai_handles_empty_context(self, test_data_dir)` - Test that format_context_for_ai handles empty or minimal context gracefully.
-- ✅ `test_get_active_schedules_identifies_active_periods(self, test_data_dir)` - Test that _get_active_schedules identifies actually active schedule periods.
+- ✅ `test_get_active_schedules_identifies_active_periods(self, test_data_dir)` - Test that get_active_schedules identifies actually active schedule periods.
 - ✅ `test_get_conversation_history_handles_empty_history(self, test_data_dir)` - Test that _get_conversation_history handles users with no conversation history.
 - ✅ `test_get_conversation_history_returns_actual_data(self, test_data_dir)` - Test that _get_conversation_history returns actual stored conversation data.
 - ✅ `test_get_conversation_insights_analyzes_actual_data(self, test_data_dir)` - Test that _get_conversation_insights analyzes actual conversation data.
@@ -4196,7 +4475,7 @@ real service startup behavior for testing.
   - ✅ `TestUserContextManagerBehavior.test_add_conversation_exchange_maintains_history_limit(self, test_data_dir)` - Test that add_conversation_exchange maintains conversation history limit.
   - ✅ `TestUserContextManagerBehavior.test_format_context_for_ai_creates_readable_string(self, test_data_dir)` - Test that format_context_for_ai creates actual readable string from context.
   - ✅ `TestUserContextManagerBehavior.test_format_context_for_ai_handles_empty_context(self, test_data_dir)` - Test that format_context_for_ai handles empty or minimal context gracefully.
-  - ✅ `TestUserContextManagerBehavior.test_get_active_schedules_identifies_active_periods(self, test_data_dir)` - Test that _get_active_schedules identifies actually active schedule periods.
+  - ✅ `TestUserContextManagerBehavior.test_get_active_schedules_identifies_active_periods(self, test_data_dir)` - Test that get_active_schedules identifies actually active schedule periods.
   - ✅ `TestUserContextManagerBehavior.test_get_conversation_history_handles_empty_history(self, test_data_dir)` - Test that _get_conversation_history handles users with no conversation history.
   - ✅ `TestUserContextManagerBehavior.test_get_conversation_history_returns_actual_data(self, test_data_dir)` - Test that _get_conversation_history returns actual stored conversation data.
   - ✅ `TestUserContextManagerBehavior.test_get_conversation_insights_analyzes_actual_data(self, test_data_dir)` - Test that _get_conversation_insights analyzes actual conversation data.
@@ -4369,6 +4648,8 @@ real service startup behavior for testing.
 
 #### `tests/conftest.py`
 **Functions:**
+- ✅ `__init__(self, max_size_mb)` - Initialize the object
+- ✅ `__init__(self, archive_days)` - Initialize the object
 - ❌ `_apply_get_user_data_shim_early()` - No description
 - ✅ `_fallback_read_from_files(user_id, key)` - Read requested type directly from user JSON files as a last resort.
 - ❌ `_helper(user_id)` - No description
@@ -4380,12 +4661,11 @@ real service startup behavior for testing.
 Returns the number of files removed.
 - ❌ `_update_index(user_id)` - No description
 - ❌ `about()` - No description
-- ✅ `cap_component_log_sizes_on_start()` - Cap oversized component logs at session start by rotating or truncating.
-
-If a log file exceeds ~2MB, attempt to rename it to an .old timestamped file.
-If rename fails (e.g., due to file locks), fall back to truncating contents.
+- ✅ `archive_old_backups(self)` - Move old backup files to archive directory.
+- ✅ `check_rotation_needed(self)` - Check if any log file exceeds the size limit.
 - ✅ `cleanup_communication_manager()` - Clean up CommunicationManager singleton after all tests complete.
 - ✅ `cleanup_conversation_manager()` - Clean up ConversationManager state before each test.
+- ✅ `cleanup_old_archives(self)` - Remove archive files older than the specified number of days.
 - ✅ `cleanup_test_users_after_session()` - Remove test users from tests/data/users/ after all tests. NEVER touches real user data.
 - ✅ `cleanup_tmp_at_session_end()` - Clear tests/data/tmp contents at session end to keep the workspace tidy.
 - ✅ `clear_user_caches_between_tests()` - Ensure user data caches don't leak between tests.
@@ -4406,12 +4686,14 @@ If present but missing files, writes minimal JSON structures to materialize them
 Restores after each test to ensure environment stability across the suite.
 - ✅ `fix_user_data_loaders()` - Ensure loaders stay correctly registered for each test without overwriting metadata.
 - ✅ `force_test_data_directory()` - Route all system temp usage into tests/data for the entire session.
+- ❌ `format(self, record)` - No description
 - ❌ `information()` - No description
 - ✅ `initialize_loader_import_order()` - Import core.user_management before core.user_data_handlers and register loaders once.
 
 This ensures both modules share the same USER_DATA_LOADERS dict and that required
 loaders are present without relying on the data shim.
 - ✅ `isolate_logging()` - Ensure complete logging isolation during tests to prevent test logs from appearing in main app.log.
+- ✅ `log_lifecycle_maintenance()` - Perform log lifecycle maintenance at session start.
 - ✅ `materialize_user_minimal_via_public_apis(user_id)` - Ensure minimal structures exist without overwriting existing data.
 
 - Merges into existing account (preserves internal_username and enabled features)
@@ -4425,11 +4707,12 @@ loaders are present without relying on the data shim.
 - ✅ `mock_schedule_data()` - Mock schedule data for testing.
 - ✅ `mock_service_data()` - Mock service data for testing.
 - ✅ `mock_task_data()` - Mock task data for testing.
-- ✅ `mock_user_data(mock_config, request)` - Create mock user data for testing with unique user ID for each test.
+- ✅ `mock_user_data(mock_config, test_data_dir, request)` - Create mock user data for testing with unique user ID for each test.
 - ✅ `mock_user_data_with_messages(test_data_dir, mock_config, request)` - Create mock user data for testing with automated_messages enabled and categories.
 - ✅ `path_sanitizer()` - Guardrail: ensure temp resolution stays within tests/data and detect escapes.
 
 Fails fast if the active temp directory is outside tests/data.
+- ✅ `perform_lifecycle_maintenance(self)` - Perform all lifecycle maintenance operations.
 - ✅ `prune_test_artifacts_before_and_after_session()` - Prune old logs (tests/logs) and backups (tests/data/backups) before and after the session.
 
 Defaults: logs older than 14 days, test backups older than 7 days.
@@ -4440,11 +4723,14 @@ Override via TEST_LOG_RETENTION_DAYS and TEST_BACKUP_RETENTION_DAYS env vars.
 - ✅ `pytest_sessionfinish(session, exitstatus)` - Log test session finish.
 - ✅ `pytest_sessionstart(session)` - Log test session start.
 - ❌ `question()` - No description
+- ✅ `register_log_file(self, file_path)` - Register a log file for session-based rotation monitoring.
 - ✅ `register_user_data_loaders_session()` - Ensure core user data loaders are present without overwriting metadata.
-- ✅ `setup_component_log_rotation()` - Replace component logger handlers with size-rotating handlers under tests/logs.
+- ✅ `rotate_all_logs(self)` - Rotate all registered log files together to maintain continuity.
+- ✅ `session_log_rotation_check()` - Check for log rotation needs at session start and end.
+- ✅ `setup_component_log_rotation()` - Replace component logger handlers with simple file handlers under tests/logs.
 
-Keeps per-component logs bounded without relying on app's rotation, which can
-conflict with Windows file locking. Logs rotate at ~1MB with up to 5 backups.
+Uses simple FileHandler to avoid rotation conflicts during test sessions.
+Session-based rotation is handled separately by SessionLogRotationManager.
 - ✅ `setup_logging_isolation()` - Set up logging isolation before any core modules are imported.
 - ✅ `setup_qmessagebox_patches()` - Set up global QMessageBox patches to prevent popup dialogs during testing.
 - ✅ `setup_test_logging()` - Set up dedicated logging for tests with complete isolation from main app logging.
@@ -4470,12 +4756,24 @@ Returns True if predicate succeeds within timeout, otherwise False.
 - ❌ `wrapped_get_user_data(user_id, data_type)` - No description
 - ❌ `wrapped_get_user_data(user_id, data_type)` - No description
 **Classes:**
+- ✅ `LogLifecycleManager` - Manages log file lifecycle including backup, archive, and cleanup operations.
+  - ✅ `LogLifecycleManager.__init__(self, archive_days)` - Initialize the object
+  - ✅ `LogLifecycleManager.archive_old_backups(self)` - Move old backup files to archive directory.
+  - ✅ `LogLifecycleManager.cleanup_old_archives(self)` - Remove archive files older than the specified number of days.
+  - ✅ `LogLifecycleManager.perform_lifecycle_maintenance(self)` - Perform all lifecycle maintenance operations.
 - ❌ `MockQMessageBox` - No description
   - ❌ `MockQMessageBox.about()` - No description
   - ❌ `MockQMessageBox.critical()` - No description
   - ❌ `MockQMessageBox.information()` - No description
   - ❌ `MockQMessageBox.question()` - No description
   - ❌ `MockQMessageBox.warning()` - No description
+- ✅ `SessionLogRotationManager` - Manages session-based log rotation that rotates ALL logs together if any exceed size limits.
+  - ✅ `SessionLogRotationManager.__init__(self, max_size_mb)` - Initialize the object
+  - ✅ `SessionLogRotationManager.check_rotation_needed(self)` - Check if any log file exceeds the size limit.
+  - ✅ `SessionLogRotationManager.register_log_file(self, file_path)` - Register a log file for session-based rotation monitoring.
+  - ✅ `SessionLogRotationManager.rotate_all_logs(self)` - Rotate all registered log files together to maintain continuity.
+- ✅ `TestContextFormatter` - Custom formatter that automatically prepends test names to log messages.
+  - ❌ `TestContextFormatter.format(self, record)` - No description
 
 #### `tests/debug_file_paths.py`
 **Functions:**
@@ -5096,14 +5394,14 @@ Returns:
 - ✅ `mock_user_data(self)` - Mock user data for testing.
 - ✅ `test_get_selected_channel(self, mock_user_data)` - Test get_selected_channel method.
 - ✅ `test_save_channel_settings_exception_handling(self, mock_user_data)` - Test exception handling during save.
-- ✅ `test_save_channel_settings_multiple_validation_errors(self, mock_user_data)` - Test multiple validation errors.
 - ✅ `test_save_channel_settings_removes_old_settings(self, mock_user_data)` - Test that old settings are properly removed.
 - ✅ `test_save_channel_settings_success_discord(self, mock_user_data)` - Test successful save with Discord channel.
 - ✅ `test_save_channel_settings_success_email(self, mock_user_data)` - Test successful save with email channel.
 - ✅ `test_save_channel_settings_validation_error_discord_required(self, mock_user_data)` - Test validation error when Discord ID is required but not provided.
 - ✅ `test_save_channel_settings_validation_error_email_required(self, mock_user_data)` - Test validation error when email is required but not provided.
+- ✅ `test_save_channel_settings_validation_error_invalid_discord_id(self, mock_user_data)` - Test validation error for missing Discord ID.
 - ✅ `test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
-- ✅ `test_save_channel_settings_validation_error_invalid_phone(self, mock_user_data)` - Test validation error for invalid phone format.
+- ✅ `test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
 - ✅ `test_save_channel_settings_without_user(self)` - Test save_channel_settings when no user ID is set.
 - ✅ `test_set_selected_channel(self, mock_user_data)` - Test set_selected_channel method.
 **Classes:**
@@ -5111,14 +5409,14 @@ Returns:
   - ✅ `TestChannelManagementDialogCoverageExpansion.mock_user_data(self)` - Mock user data for testing.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_get_selected_channel(self, mock_user_data)` - Test get_selected_channel method.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_exception_handling(self, mock_user_data)` - Test exception handling during save.
-  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_multiple_validation_errors(self, mock_user_data)` - Test multiple validation errors.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_removes_old_settings(self, mock_user_data)` - Test that old settings are properly removed.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_success_discord(self, mock_user_data)` - Test successful save with Discord channel.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_success_email(self, mock_user_data)` - Test successful save with email channel.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_discord_required(self, mock_user_data)` - Test validation error when Discord ID is required but not provided.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_email_required(self, mock_user_data)` - Test validation error when email is required but not provided.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_discord_id(self, mock_user_data)` - Test validation error for missing Discord ID.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
-  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_phone(self, mock_user_data)` - Test validation error for invalid phone format.
+  - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_validation_error_invalid_email(self, mock_user_data)` - Test validation error for invalid email format.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_save_channel_settings_without_user(self)` - Test save_channel_settings when no user ID is set.
   - ✅ `TestChannelManagementDialogCoverageExpansion.test_set_selected_channel(self, mock_user_data)` - Test set_selected_channel method.
 
@@ -6136,6 +6434,7 @@ Args:
 #### `ui/dialogs/schedule_editor_dialog.py`
 **Functions:**
 - ✅ `__init__(self, parent, user_id, category, on_save)` - Initialize the object.
+- ✅ `_trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
 - ✅ `add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
 - ✅ `cancel(self)` - Cancel the dialog.
 - ✅ `center_dialog(self)` - Center the dialog on the parent window.
@@ -6155,6 +6454,7 @@ Args:
 **Classes:**
 - ✅ `ScheduleEditorDialog` - Dialog for editing schedules.
   - ✅ `ScheduleEditorDialog.__init__(self, parent, user_id, category, on_save)` - Initialize the object.
+  - ✅ `ScheduleEditorDialog._trigger_rescheduling(self)` - Trigger rescheduling for this user and category when schedule changes.
   - ✅ `ScheduleEditorDialog.add_new_period(self, period_name, period_data)` - Add a new period row using the PeriodRowWidget.
   - ✅ `ScheduleEditorDialog.cancel(self)` - Cancel the dialog.
   - ✅ `ScheduleEditorDialog.center_dialog(self)` - Center the dialog on the parent window.
@@ -6602,6 +6902,9 @@ Args:
 **Functions:**
 - ✅ `__init__(self)` - Initialize the object.
 - ✅ `__init__(self)` - Initialize the object.
+- ✅ `_send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
+- ✅ `_send_test_message__validate_service_running(self)` - Validate that the service is running.
+- ✅ `_send_test_message__validate_user_selection(self)` - Validate that a user is selected.
 - ❌ `cleanup_old_requests()` - No description
 - ✅ `closeEvent(self, event)` - Handle window close event
 - ✅ `confirm_test_message(self, category)` - Confirm and send test message
@@ -6657,6 +6960,9 @@ Args:
 **Classes:**
 - ✅ `MHMManagerUI` - Main MHM Management UI using PySide6
   - ✅ `MHMManagerUI.__init__(self)` - Initialize the object.
+  - ✅ `MHMManagerUI._send_test_message__get_selected_category(self)` - Get and validate the selected category from the dropdown.
+  - ✅ `MHMManagerUI._send_test_message__validate_service_running(self)` - Validate that the service is running.
+  - ✅ `MHMManagerUI._send_test_message__validate_user_selection(self)` - Validate that a user is selected.
   - ✅ `MHMManagerUI.closeEvent(self, event)` - Handle window close event
   - ✅ `MHMManagerUI.confirm_test_message(self, category)` - Confirm and send test message
   - ✅ `MHMManagerUI.connect_signals(self)` - Connect UI signals to slots
@@ -6733,7 +7039,7 @@ Args:
 - ❌ `get_selected_channel(self)` - No description
 - ✅ `get_timezone(self)` - Get the selected timezone.
 - ✅ `populate_timezones(self)` - Populate the timezone combo box with options.
-- ❌ `set_contact_info(self, email, phone, discord_id, timezone)` - No description
+- ❌ `set_contact_info(self, email, discord_id, timezone)` - No description
 - ❌ `set_selected_channel(self, channel, value)` - No description
 - ✅ `set_timezone(self, timezone)` - Set the timezone.
 **Classes:**
@@ -6750,7 +7056,7 @@ Args:
   - ❌ `ChannelSelectionWidget.get_selected_channel(self)` - No description
   - ✅ `ChannelSelectionWidget.get_timezone(self)` - Get the selected timezone.
   - ✅ `ChannelSelectionWidget.populate_timezones(self)` - Populate the timezone combo box with options.
-  - ❌ `ChannelSelectionWidget.set_contact_info(self, email, phone, discord_id, timezone)` - No description
+  - ❌ `ChannelSelectionWidget.set_contact_info(self, email, discord_id, timezone)` - No description
   - ❌ `ChannelSelectionWidget.set_selected_channel(self, channel, value)` - No description
   - ✅ `ChannelSelectionWidget.set_timezone(self, timezone)` - Set the timezone.
 
@@ -7015,6 +7321,13 @@ Args:
 #### `ui/widgets/user_profile_settings_widget.py`
 **Functions:**
 - ✅ `__init__(self, parent, user_id, existing_data)` - Initialize the object.
+- ✅ `_get_personalization_data__ensure_required_fields(self, data)` - Ensure all required fields exist in the data structure.
+- ✅ `_get_personalization_data__extract_basic_fields(self, data)` - Extract basic text fields from the UI.
+- ✅ `_get_personalization_data__extract_date_of_birth(self, data)` - Extract date of birth from calendar widget with proper validation.
+- ✅ `_get_personalization_data__extract_dynamic_containers(self, data)` - Extract data from all dynamic list containers.
+- ✅ `_get_personalization_data__extract_gender_identity(self, data)` - Extract gender identity from checkboxes and custom input.
+- ✅ `_get_personalization_data__extract_loved_ones(self, data)` - Extract loved ones data from text field with structured parsing.
+- ✅ `_get_personalization_data__extract_notes(self, data)` - Extract notes for AI from text field.
 - ✅ `get_personalization_data(self)` - Get all personalization data from the form, preserving existing data structure.
 - ✅ `get_settings(self)` - Get the current user profile settings.
 - ✅ `load_existing_data(self)` - Load existing personalization data into the form.
@@ -7024,6 +7337,13 @@ Args:
 **Classes:**
 - ✅ `UserProfileSettingsWidget` - Widget for user profile settings configuration.
   - ✅ `UserProfileSettingsWidget.__init__(self, parent, user_id, existing_data)` - Initialize the object.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__ensure_required_fields(self, data)` - Ensure all required fields exist in the data structure.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_basic_fields(self, data)` - Extract basic text fields from the UI.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_date_of_birth(self, data)` - Extract date of birth from calendar widget with proper validation.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_dynamic_containers(self, data)` - Extract data from all dynamic list containers.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_gender_identity(self, data)` - Extract gender identity from checkboxes and custom input.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_loved_ones(self, data)` - Extract loved ones data from text field with structured parsing.
+  - ✅ `UserProfileSettingsWidget._get_personalization_data__extract_notes(self, data)` - Extract notes for AI from text field.
   - ✅ `UserProfileSettingsWidget.get_personalization_data(self)` - Get all personalization data from the form, preserving existing data structure.
   - ✅ `UserProfileSettingsWidget.get_settings(self)` - Get the current user profile settings.
   - ✅ `UserProfileSettingsWidget.load_existing_data(self)` - Load existing personalization data into the form.
@@ -7038,13 +7358,6 @@ Args:
 - ✅ `__init__(self)` - Initialize the UserContextManager.
 
 Sets up conversation history storage for tracking user interactions.
-- ✅ `_get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
 - ✅ `_get_conversation_history(self, user_id)` - Get recent conversation history with this user.
 - ✅ `_get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
 - ✅ `_get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
@@ -7086,19 +7399,11 @@ Args:
     
 Returns:
     Dict containing all relevant user context for current user
-- ✅ `get_user_context(self, user_id, include_conversation_history)` - Legacy alias for get_ai_context - use get_ai_context instead.
 **Classes:**
 - ✅ `UserContextManager` - Manages rich user context for AI conversations.
   - ✅ `UserContextManager.__init__(self)` - Initialize the UserContextManager.
 
 Sets up conversation history storage for tracking user interactions.
-  - ✅ `UserContextManager._get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
   - ✅ `UserContextManager._get_conversation_history(self, user_id)` - Get recent conversation history with this user.
   - ✅ `UserContextManager._get_conversation_insights(self, user_id)` - Get insights from recent chat interactions.
   - ✅ `UserContextManager._get_minimal_context(self, user_id)` - Fallback minimal context if full context generation fails.
@@ -7140,18 +7445,10 @@ Args:
     
 Returns:
     Dict containing all relevant user context for current user
-  - ✅ `UserContextManager.get_user_context(self, user_id, include_conversation_history)` - Legacy alias for get_ai_context - use get_ai_context instead.
 
 #### `user/user_context.py`
 **Functions:**
 - ✅ `__new__(cls)` - Create a new instance.
-- ✅ `_get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
 - ✅ `get_instance_context(self)` - Get basic user context from the current UserContext instance.
 
 Returns:
@@ -7171,7 +7468,6 @@ Returns:
 
 Returns:
     str: The current preferred name, or None if not set.
-- ✅ `get_user_context(self)` - Legacy alias for get_instance_context - use get_instance_context instead.
 - ✅ `get_user_id(self)` - Retrieves the user_id from the user_data dictionary.
 
 Returns:
@@ -7209,13 +7505,6 @@ Args:
 **Classes:**
 - ❌ `UserContext` - No description
   - ✅ `UserContext.__new__(cls)` - Create a new instance.
-  - ✅ `UserContext._get_active_schedules(self, schedules)` - Get list of currently active schedule periods.
-
-Args:
-    schedules: Dictionary containing schedule periods
-    
-Returns:
-    list: List of active schedule period names
   - ✅ `UserContext.get_instance_context(self)` - Get basic user context from the current UserContext instance.
 
 Returns:
@@ -7235,7 +7524,6 @@ Returns:
 
 Returns:
     str: The current preferred name, or None if not set.
-  - ✅ `UserContext.get_user_context(self)` - Legacy alias for get_instance_context - use get_instance_context instead.
   - ✅ `UserContext.get_user_id(self)` - Retrieves the user_id from the user_data dictionary.
 
 Returns:

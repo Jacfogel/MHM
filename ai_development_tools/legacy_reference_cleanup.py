@@ -29,10 +29,19 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 from collections import defaultdict
-from core.logger import get_component_logger
+import sys
+from pathlib import Path
 
-# Set up logging
-logger = get_component_logger(__name__)
+# Add project root to path for imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+try:
+    from core.logger import get_component_logger
+    logger = get_component_logger(__name__)
+except ImportError:
+    # Fallback logging if core.logger not available
+    logger = None
 
 class LegacyReferenceCleanup:
     """Identifies and cleans up legacy references in MHM."""
@@ -105,7 +114,8 @@ class LegacyReferenceCleanup:
     
     def scan_for_legacy_references(self) -> Dict[str, List[Tuple[str, str, List[str]]]]:
         """Scan the codebase for legacy references."""
-        logger.info("Scanning for legacy references...")
+        if logger:
+            logger.info("Scanning for legacy references...")
         
         findings = defaultdict(list)
         
@@ -124,7 +134,8 @@ class LegacyReferenceCleanup:
                         findings[pattern_type].append((str(py_file.relative_to(self.project_root)), content, matches))
                         
             except Exception as e:
-                logger.warning(f"Error reading {py_file}: {e}")
+                if logger:
+                    logger.warning(f"Error reading {py_file}: {e}")
         
         # Scan Markdown files
         for md_file in self.project_root.rglob("*.md"):
@@ -141,7 +152,8 @@ class LegacyReferenceCleanup:
                         findings[pattern_type].append((str(md_file.relative_to(self.project_root)), content, matches))
                         
             except Exception as e:
-                logger.warning(f"Error reading {md_file}: {e}")
+                if logger:
+                    logger.warning(f"Error reading {md_file}: {e}")
         
         return findings
     
@@ -227,7 +239,8 @@ class LegacyReferenceCleanup:
     def cleanup_legacy_references(self, findings: Dict[str, List[Tuple[str, str, List[str]]]], 
                                  dry_run: bool = True) -> Dict[str, List[str]]:
         """Clean up legacy references in the codebase."""
-        logger.info(f"Cleaning up legacy references (dry_run={dry_run})...")
+        if logger:
+            logger.info(f"Cleaning up legacy references (dry_run={dry_run})...")
         
         cleanup_results = defaultdict(list)
         
@@ -288,7 +301,8 @@ class LegacyReferenceCleanup:
         results = {}
         
         if scan:
-            logger.info("Starting legacy reference scan...")
+            if logger:
+                logger.info("Starting legacy reference scan...")
             findings = self.scan_for_legacy_references()
             
             # Generate report
@@ -299,14 +313,15 @@ class LegacyReferenceCleanup:
             with open(report_file, 'w', encoding='utf-8') as f:
                 f.write(report)
             
-            logger.info(f"Legacy reference report saved: {report_file}")
+            if logger:
+                logger.info(f"Legacy reference report saved: {report_file}")
             
             results['findings'] = findings
             results['report_file'] = str(report_file)
             
             # Print summary
             total_issues = sum(len(files) for files in findings.values())
-            print(f"\n🔍 Legacy Reference Scan Complete")
+            print(f"\nLegacy Reference Scan Complete")
             print(f"   Files with issues: {total_issues}")
             print(f"   Report saved to: {report_file}")
             
@@ -316,7 +331,8 @@ class LegacyReferenceCleanup:
                         print(f"   {pattern_type}: {len(files)} files")
         
         if clean and 'findings' in results:
-            logger.info("Starting cleanup process...")
+            if logger:
+                logger.info("Starting cleanup process...")
             cleanup_results = self.cleanup_legacy_references(results['findings'], dry_run)
             
             results['cleanup'] = cleanup_results

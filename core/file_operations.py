@@ -21,7 +21,7 @@ from core.error_handling import (
     handle_errors, safe_file_operation
 )
 try:
-    from ai_tools.file_auditor import record_created as _record_created
+    from core.file_auditor import record_created as _record_created
 except Exception:
     _record_created = None
 

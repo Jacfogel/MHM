@@ -1,204 +1,91 @@
-# AI Tools Directory
+# AI Development Tools
 
-This directory contains tools optimized for AI-assisted development collaboration.
+This directory contains tools optimized for AI-assisted development collaboration and codebase analysis.
 
-## 📋 Available Tools
+## 🎯 Primary Tool
 
-### `ai_tools_runner.py` ⭐ **PRIMARY TOOL**
-**Purpose**: Comprehensive interface for all AI tools (SINGLE ENTRY POINT)
-**When to use**: Primary tool for all AI tool operations - both simple and advanced
-**Simple Commands**: `python ai_tools_runner.py <command>` (audit, docs, validate, config, help, status)
-**Advanced Commands**: `python ai_tools_runner.py <command>` (workflow, quick-audit, decision-support, version-sync)
+### `ai_tools_runner.py` ⭐ **MAIN ENTRY POINT**
+**Purpose**: Comprehensive interface for all AI development tools
+**Usage**: `python ai_development_tools/ai_tools_runner.py <command>`
 
-### `quick_status.py` ⭐ **AI OPTIMIZED**
-**Purpose**: Concise, actionable status information for AI collaboration
-**When to use**: When you need quick overview of codebase status and actionable items
-**Command**: `python ai_tools/quick_status.py concise` or `python ai_tools/quick_status.py json`
-**Output**: Optimized for AI consumption with clear action items and critical issues
+**Available Commands:**
+- `audit` - Comprehensive audit with AI-optimized outputs
+- `docs-sync` - Documentation synchronization check
+- `legacy-cleanup` - Legacy code reference cleanup
+- `quick-status` - System status overview
+- `validate-work` - AI work validation
+- `test-coverage` - Test coverage regeneration
+- `version-sync` - Version synchronization
 
-### `function_discovery.py`
-**Purpose**: Find and categorize all functions (handlers, tests, complex, undocumented)
-**When to use**: Need to understand what functions exist and their characteristics
-**Command**: `python ai_tools/function_discovery.py`
+## 📊 AI-Optimized Outputs
 
-### `decision_support.py`
-**Purpose**: Dashboard showing actionable insights for codebase improvement
-**When to use**: Before making architectural decisions or suggesting changes
-**Command**: `python ai_tools/decision_support.py`
+The audit command creates AI-optimized documents:
+- **`AI_STATUS.md`** - Current codebase state with actionable insights
+- **`AI_PRIORITIES.md`** - Immediate next steps and focus areas
+- **`audit_report.txt`** - Human-readable detailed report
+- **`ai_audit_detailed_results.json`** - Raw audit data (rotated)
 
-### `validate_ai_work.py`
-**Purpose**: Validate AI-generated work before presenting to user
-**When to use**: Before showing any documentation, analysis, or recommendations
-**Command**: `python ai_tools/validate_ai_work.py`
+## 🔧 Core Audit Tools
 
-### `audit_function_registry.py`
-**Purpose**: Check completeness and accuracy of function documentation
-**When to use**: When creating or updating function registries
-**Command**: `python ai_tools/audit_function_registry.py`
+### Function Analysis
+- **`function_discovery.py`** - Discovers and categorizes all functions
+- **`decision_support.py`** - AI decision support dashboard
+- **`audit_function_registry.py`** - Audits function registry completeness
+- **`audit_module_dependencies.py`** - Audits module dependencies
 
-### `audit_module_dependencies.py`
-**Purpose**: Analyze module dependencies and import relationships
-**When to use**: When understanding code architecture or making structural changes
-**Command**: `python ai_tools/audit_module_dependencies.py`
+### Documentation Tools
+- **`generate_function_registry.py`** - Creates AI_FUNCTION_REGISTRY.md
+- **`generate_module_dependencies.py`** - Creates AI_MODULE_DEPENDENCIES.md
+- **`analyze_documentation.py`** - Analyzes documentation redundancy
 
-### `analyze_documentation.py`
-**Purpose**: Find documentation overlap and redundancy
-**When to use**: When consolidating documentation or identifying gaps
-**Command**: `python ai_tools/analyze_documentation.py`
+### Validation Tools
+- **`documentation_sync_checker.py`** - Checks documentation synchronization
+- **`legacy_reference_cleanup.py`** - Identifies legacy code references
+- **`validate_ai_work.py`** - Validates AI-generated work
+- **`config_validator.py`** - Validates tool configuration consistency
 
-### `version_sync.py`
-**Purpose**: Automatically synchronize version numbers and dates across all AI documentation, project docs, and core system files
-**When to use**: After making changes to documentation or core files, before backups, before audits
-**Command**: `python ai_tools/version_sync.py sync --scope=docs`
+### Status Tools
+- **`quick_status.py`** - Quick system status
+- **`regenerate_coverage_metrics.py`** - Coverage analysis
+- **`version_sync.py`** - Version synchronization
 
-#### **Scopes for Version Sync**
-- `ai_docs` (default): AI documentation and cursor rules
-- `docs`: All documentation files (`.md`, `.txt`, `.mdc`)
-- `core`: Key system files (`run_mhm.py`, `core/service.py`, etc.)
-- `all`: Everything (use with caution)
+## 📁 File Organization
 
-**Examples:**
-```powershell
-# Sync all documentation files
-python ai_tools/version_sync.py sync --scope=docs
+### Rotating Files (with automatic backup/archive)
+- **AI Documents**: `AI_STATUS.md`, `AI_PRIORITIES.md`
+- **Reports**: `audit_report.txt`, `docs_sync_report.txt`, `legacy_cleanup_report.txt`, etc.
+- **Data**: `ai_audit_detailed_results.json`, `coverage.json`
 
-# Sync core system files
-python ai_tools/version_sync.py sync --scope=core
-
-# Show status for docs/core
-python ai_tools/version_sync.py status docs
-python ai_tools/version_sync.py status core
-```
-
-### `config_validator.py`
-**Purpose**: Validates that all tools use configuration consistently and checks configuration completeness
-**When to use**: After making configuration changes or when troubleshooting tool issues
-**Command**: `python ai_tools/config_validator.py`
-
-### `tool_guide.py`
-**Purpose**: Comprehensive guide for when to use each tool and how to interpret output
-**When to use**: When unsure which tool to use or how to understand results
-**Command**: `python ai_tools/tool_guide.py guide`
-
-## 🔗 **Documentation Synchronization Tools**
-
-### `documentation_sync_checker.py` ⭐ **NEW**
-**Purpose**: Check documentation synchronization and identify path drift between code and docs
-**When to use**: Before/after documentation changes, to maintain consistency between paired docs
-**Command**: `python ai_tools/documentation_sync_checker.py --check`
-**Output**: Identifies sync issues, path drift, and paired documentation inconsistencies
-
-### `regenerate_coverage_metrics.py` ⭐ **NEW**
-**Purpose**: Regenerate test coverage metrics and update TEST_COVERAGE_EXPANSION_PLAN.md
-**When to use**: After test runs, to keep coverage plan current and actionable
-**Command**: `python ai_tools/regenerate_coverage_metrics.py --update-plan`
-**Output**: Updates coverage plan with current metrics and generates detailed reports
-
-### `legacy_reference_cleanup.py` ⭐ **NEW**
-**Purpose**: Scan and clean up legacy references to deprecated code paths
-**When to use**: After refactoring, to identify outdated references and clean up legacy code
-**Command**: `python ai_tools/legacy_reference_cleanup.py --scan`
-**Output**: Report of legacy references found and cleanup recommendations
-
-### **Documentation Synchronization Commands**
-```bash
-# Check documentation sync and path drift
-python ai_tools/ai_tools_runner.py doc-sync
-
-# Generate directory trees for documentation
-python ai_tools/ai_tools_runner.py trees
-
-# Scan for legacy references
-python ai_tools/ai_tools_runner.py legacy
-
-# Regenerate coverage metrics
-python ai_tools/ai_tools_runner.py coverage
-```
-
-## ⚙️ Configuration
-
-### `config.py`
-Central configuration file for all AI tools. Optimized for AI collaboration with:
-- Concise output settings
-- Actionable insights focus
-- Priority issue highlighting
-- Integration mode for data sharing
-
-## 🎯 Best Practices
-
-1. **Use `ai_tools_runner.py`** as the single entry point for all operations
-2. **Use `quick_status.py`** for rapid status assessment and action items
-3. **Use simple commands** (audit, docs, validate, config, status) for basic operations
-4. **Use advanced commands** (workflow, quick-audit, decision-support) for complex tasks
-5. **Always run audits first** before major decisions or documentation work
-6. **Validate work** before presenting to user
-7. **Customize `config.py`** for project-specific needs
-8. **Run config validation** after configuration changes
-9. **Sync versions** after documentation or core code changes
-
-## 🔧 Customization
-
-Edit `config.py` to adjust:
-- Complexity thresholds
-- Handler keywords
-- Documentation coverage requirements
-- Output formatting preferences
-- AI collaboration optimization settings
-
-## 📊 Output Files
-
-- `ai_audit_detailed_results.json`: Detailed results from quick audits (for reference)
-- `audit_summary.txt`: Concise summary for AI consumption
-- `critical_issues.txt`: Priority issues requiring attention
-- Console output: Real-time results and recommendations
+### Static Files
+- **Tool Scripts**: All `.py` files
+- **Configuration**: `config.py`, `.coveragerc`
+- **Documentation**: `README.md`
 
 ## 🚀 Quick Start
 
-### Simple Commands (For Users)
-```powershell
-# Get quick status overview
-python ai_tools/ai_tools_runner.py status
+1. **Run Full Audit**: `python ai_development_tools/ai_tools_runner.py audit`
+2. **Check Status**: `python ai_development_tools/ai_tools_runner.py quick-status`
+3. **Sync Docs**: `python ai_development_tools/ai_tools_runner.py docs-sync`
 
-# Run full audit of codebase and documentation
-python ai_tools/ai_tools_runner.py audit
+## 📈 File Rotation
 
-# Update all documentation (function registry, dependencies)
-python ai_tools/ai_tools_runner.py docs
+All output files are automatically rotated with:
+- **Backup**: Previous versions moved to `archive/` with timestamps
+- **History**: Execution history maintained
+- **Cleanup**: Old versions automatically removed (7-day retention)
 
-# Validate AI-generated work
-python ai_tools/ai_tools_runner.py validate
+## 🤖 AI Collaboration
 
-# Check configuration consistency
-python ai_tools/ai_tools_runner.py config
+These tools are specifically designed for AI assistants to:
+- **Understand** current codebase state
+- **Identify** priorities and next steps
+- **Track** progress and changes
+- **Maintain** documentation consistency
+- **Validate** work quality
 
-# Show help
-python ai_tools/ai_tools_runner.py help
-```
+## 📚 Generated Documentation
 
-### Advanced Commands (For AI Collaborators)
-```powershell
-# Get concise status with action items
-python ai_tools/quick_status.py concise
-
-# Get detailed status as JSON
-python ai_tools/quick_status.py json
-
-# Run workflow with audit-first protocol
-python ai_tools/ai_tools_runner.py workflow documentation
-python ai_tools/ai_tools_runner.py workflow function_registry
-python ai_tools/ai_tools_runner.py workflow code_analysis
-
-# Run comprehensive audit
-python ai_tools/ai_tools_runner.py quick-audit
-
-# Get actionable insights
-python ai_tools/ai_tools_runner.py decision-support
-
-# Sync version numbers
-python ai_tools/ai_tools_runner.py version-sync docs
-python ai_tools/ai_tools_runner.py version-sync core
-```
-
----
-
-**Remember**: These tools are optimized for AI collaboration and provide concise, actionable information to improve development workflow and work around context limits. 
+The tools create comprehensive documentation in:
+- **`ai_development_docs/`** - AI-optimized static documentation
+- **`development_docs/`** - Human-readable detailed documentation
+- **`ai_development_tools/`** - Real-time status and priorities

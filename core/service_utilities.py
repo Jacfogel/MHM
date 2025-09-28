@@ -15,7 +15,7 @@ import pytz
 from typing import Optional
 from core.logger import get_logger, get_component_logger
 try:
-    from ai_tools.file_auditor import record_created as _record_created
+    from core.file_auditor import record_created as _record_created
 except Exception:
     _record_created = None
 from core.config import SCHEDULER_INTERVAL

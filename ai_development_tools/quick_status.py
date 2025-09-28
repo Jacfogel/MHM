@@ -193,8 +193,7 @@ class QuickStatus:
         """Print comprehensive status for AI consumption"""
         status = self.get_quick_status()
         
-        print("QUICK STATUS FOR AI COLLABORATION")
-        print("=" * 40)
+        # Remove headers - they'll be added by the consolidated report
         print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
         

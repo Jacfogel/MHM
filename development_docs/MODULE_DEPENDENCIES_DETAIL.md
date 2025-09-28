@@ -3,7 +3,7 @@
 > **Audience**: Human developer and AI collaborators  
 > **Purpose**: Complete dependency map for all modules in the MHM codebase  
 > **Status**: **ACTIVE** - Hybrid auto-generated and manually enhanced  
-> **Last Updated**: 2025-09-15 00:22:50
+> **Last Updated**: 2025-09-28 01:16:39
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**
@@ -12,13 +12,13 @@
 ## 📋 **Overview**
 
 ### **Module Dependencies Coverage: 100.0% ✅ COMPLETED**
-- **Files Scanned**: 139
-- **Total Imports Found**: 1776
-- **Dependencies Documented**: 139 (100% coverage)
-- **Standard Library Imports**: 557
-- **Third-Party Imports**: 414
-- **Local Imports**: 805
-- **Last Updated**: 2025-09-15
+- **Files Scanned**: 140
+- **Total Imports Found**: 1799
+- **Dependencies Documented**: 140 (100% coverage)
+- **Standard Library Imports**: 573
+- **Third-Party Imports**: 411
+- **Local Imports**: 815
+- **Last Updated**: 2025-09-28
 
 **Status**: ✅ **COMPLETED** - All module dependencies have been documented with comprehensive dependency and usage information.
 
@@ -26,9 +26,9 @@
 
 ## 🔍 **Import Statistics**
 
-- **Standard Library**: 557 imports (31.4%)
-- **Third-party**: 414 imports (23.3%)
-- **Local**: 805 imports (45.3%)
+- **Standard Library**: 573 imports (31.9%)
+- **Third-party**: 411 imports (22.8%)
+- **Local**: 815 imports (45.3%)
 
 ## 📁 **Module Dependencies by Directory**
 
@@ -288,12 +288,39 @@
 
 <!-- MANUAL_ENHANCEMENT_END -->
 
+#### `core/file_auditor.py`
+- **Purpose**: Core system module for file_auditor
+- **Dependencies**: 
+  - **Local**:
+    - `core.logger (get_component_logger)` (🆕)
+  - **Standard Library**:
+    - `os`
+    - `threading`
+    - `time`
+    - `typing (Dict, Set, Optional, List)`
+  - **Third-party**:
+    - `__future__ (annotations)`
+    - `traceback`
+- **Used by**: 
+  - `core/file_operations.py`
+  - `core/service.py`
+  - `core/service_utilities.py`
+
+**Dependency Changes**:
+- Added: core.logger
+- Removed: core/file_operations.py, core/service.py, core/service_utilities.py
+
+<!-- MANUAL_ENHANCEMENT_START -->
+<!-- Add any additional context, key functions, or special considerations here -->
+<!-- MANUAL_ENHANCEMENT_END -->
+
 #### `core/file_operations.py`
 - **Purpose**: File operations and data management
 - **Dependencies**: 
   - **Local**:
     - `core.config (USER_INFO_DIR_PATH, DEFAULT_MESSAGES_DIR_PATH, get_user_file_path, ensure_user_directory, get_user_data_dir)` (🆕)
     - `core.error_handling (error_handler, FileOperationError, DataError, handle_file_error, handle_errors, safe_file_operation)` (🆕)
+    - `core.file_auditor (record_created)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.message_management (create_message_file_from_defaults)` (🆕)
     - `core.user_data_manager (update_message_references, update_user_index)` (🆕)
@@ -308,8 +335,6 @@
     - `shutil`
     - `time`
     - `time`
-  - **Third-party**:
-    - `ai_tools.file_auditor (record_created)`
 - **Used by**: 
   - `core/checkin_dynamic_manager.py`
   - `core/message_management.py`
@@ -330,8 +355,8 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger, core.message_management, core.user_data_manager
-- Removed: ai_tools.file_auditor, core/checkin_dynamic_manager.py, core/message_management.py, core/response_tracking.py, core/service.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_management.py, tasks/task_management.py, tests/behavior/test_account_management_real_behavior.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialog_behavior.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/unit/test_file_operations.py, ui/dialogs/account_creator_dialog.py
+- Added: core.config, core.error_handling, core.file_auditor, core.logger, core.message_management, core.user_data_manager
+- Removed: core/checkin_dynamic_manager.py, core/message_management.py, core/response_tracking.py, core/service.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_management.py, tasks/task_management.py, tests/behavior/test_account_management_real_behavior.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialog_behavior.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/unit/test_file_operations.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: File operations and data management
@@ -353,6 +378,7 @@
     - `os`
     - `re`
     - `shutil`
+    - `sys`
     - `time`
   - **Third-party**:
     - `glob`
@@ -368,6 +394,7 @@
   - `core/checkin_dynamic_manager.py`
   - `core/config.py`
   - `core/error_handling.py`
+  - `core/file_auditor.py`
   - `core/file_operations.py`
   - `core/message_management.py`
   - `core/response_tracking.py`
@@ -387,6 +414,7 @@
   - `tests/behavior/test_logger_coverage_expansion.py`
   - `tests/behavior/test_logger_coverage_expansion_phase3_simple.py`
   - `tests/behavior/test_observability_logging.py`
+  - `tests/conftest.py`
   - `tests/unit/test_cleanup.py`
   - `tests/unit/test_logging_components.py`
   - `ui/dialogs/account_creator_dialog.py`
@@ -413,7 +441,7 @@
 
 **Dependency Changes**:
 - Added: core.config
-- Removed: core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/config.py, core/error_handling.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/schemas.py, core/service.py, core/service_utilities.py, core/ui_management.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, core/user_management.py, logging.handlers, tasks/task_management.py, tests/behavior/test_logger_behavior.py, tests/behavior/test_logger_coverage_expansion.py, tests/behavior/test_logger_coverage_expansion_phase3_simple.py, tests/behavior/test_observability_logging.py, tests/unit/test_cleanup.py, tests/unit/test_logging_components.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
+- Removed: core/auto_cleanup.py, core/backup_manager.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/config.py, core/error_handling.py, core/file_auditor.py, core/file_operations.py, core/message_management.py, core/response_tracking.py, core/schedule_management.py, core/schedule_utilities.py, core/scheduler.py, core/schemas.py, core/service.py, core/service_utilities.py, core/ui_management.py, core/user_data_handlers.py, core/user_data_manager.py, core/user_data_validation.py, core/user_management.py, logging.handlers, tasks/task_management.py, tests/behavior/test_logger_behavior.py, tests/behavior/test_logger_coverage_expansion.py, tests/behavior/test_logger_coverage_expansion_phase3_simple.py, tests/behavior/test_observability_logging.py, tests/conftest.py, tests/unit/test_cleanup.py, tests/unit/test_logging_components.py, ui/dialogs/account_creator_dialog.py, ui/dialogs/category_management_dialog.py, ui/dialogs/channel_management_dialog.py, ui/dialogs/checkin_management_dialog.py, ui/dialogs/schedule_editor_dialog.py, ui/dialogs/task_completion_dialog.py, ui/dialogs/task_crud_dialog.py, ui/dialogs/task_edit_dialog.py, ui/dialogs/task_management_dialog.py, ui/dialogs/user_profile_dialog.py, ui/ui_app_qt.py, ui/widgets/category_selection_widget.py, ui/widgets/channel_selection_widget.py, ui/widgets/checkin_settings_widget.py, ui/widgets/period_row_widget.py, ui/widgets/tag_widget.py, ui/widgets/task_settings_widget.py, ui/widgets/user_profile_settings_widget.py, user/context_manager.py, user/user_context.py, user/user_preferences.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Logging system configuration and management
@@ -545,12 +573,13 @@
     - `datetime (datetime, time)`
     - `typing (Dict, List, Optional)`
 - **Used by**: 
+  - `tests/behavior/test_user_context_behavior.py`
   - `user/context_manager.py`
   - `user/user_context.py`
 
 **Dependency Changes**:
 - Added: core.logger
-- Removed: user/context_manager.py, user/user_context.py
+- Removed: tests/behavior/test_user_context_behavior.py, user/context_manager.py, user/user_context.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -563,6 +592,7 @@
     - `core.error_handling (error_handler, SchedulerError, CommunicationError, handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
     - `core.logger (suppress_noisy_logging)` (🆕)
+    - `core.logger (compress_old_logs, cleanup_old_archives)` (🆕)
     - `core.schedule_management (get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation)` (🆕)
     - `core.schedule_management (get_schedule_time_periods)` (🆕)
     - `core.scheduler (SchedulerManager)` (🆕)
@@ -581,11 +611,15 @@
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `datetime`
+    - `datetime`
+    - `datetime`
     - `datetime (datetime, timedelta)`
     - `datetime (datetime, timedelta)`
     - `datetime (datetime, timedelta)`
     - `os`
     - `pytz`
+    - `pytz`
+    - `random`
     - `random`
     - `random`
     - `random`
@@ -595,6 +629,7 @@
     - `time`
     - `typing (List, Dict, Any)`
   - **Third-party**:
+    - `communication.core.channel_orchestrator (CommunicationManager)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
@@ -651,7 +686,10 @@
     - `core.config (validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError)` (🆕)
     - `core.config (LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir)` (🆕)
     - `core.config (LOG_MAIN_FILE)` (🆕)
+    - `core.config (LOG_MAIN_FILE)` (🆕)
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
+    - `core.file_auditor (start_auditor)` (🆕)
+    - `core.file_auditor (stop_auditor)` (🆕)
     - `core.file_operations (verify_file_access, determine_file_path)` (🆕)
     - `core.logger (setup_logging, get_logger, get_component_logger)` (🆕)
     - `core.logger (force_restart_logging)` (🆕)
@@ -673,8 +711,6 @@
     - `time`
     - `typing (List)`
   - **Third-party**:
-    - `ai_tools.file_auditor (start_auditor)`
-    - `ai_tools.file_auditor (stop_auditor)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
 - **Used by**: 
   - `tasks/task_management.py`
@@ -683,8 +719,8 @@
   - `ui/dialogs/account_creator_dialog.py`
 
 **Dependency Changes**:
-- Added: core.auto_cleanup, core.config, core.error_handling, core.file_operations, core.logger, core.scheduler, core.user_data_handlers, core.user_management
-- Removed: ai_tools.file_auditor, communication.core.channel_orchestrator, tasks/task_management.py, tests/behavior/test_core_service_coverage_expansion.py, tests/behavior/test_service_behavior.py, ui/dialogs/account_creator_dialog.py
+- Added: core.auto_cleanup, core.config, core.error_handling, core.file_auditor, core.file_operations, core.logger, core.scheduler, core.user_data_handlers, core.user_management
+- Removed: communication.core.channel_orchestrator, tasks/task_management.py, tests/behavior/test_core_service_coverage_expansion.py, tests/behavior/test_service_behavior.py, ui/dialogs/account_creator_dialog.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Main service orchestration and management
@@ -698,6 +734,7 @@
     - `core.config (SCHEDULER_INTERVAL)` (🆕)
     - `core.config (get_backups_dir)` (🆕)
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
+    - `core.file_auditor (record_created)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -709,8 +746,6 @@
     - `socket`
     - `time`
     - `typing (Optional)`
-  - **Third-party**:
-    - `ai_tools.file_auditor (record_created)`
 - **Used by**: 
   - `core/error_handling.py`
   - `core/schedule_management.py`
@@ -718,8 +753,8 @@
   - `tests/behavior/test_service_utilities_behavior.py`
 
 **Dependency Changes**:
-- Added: core.config, core.error_handling, core.logger
-- Removed: ai_tools.file_auditor, core/error_handling.py, core/schedule_management.py, core/scheduler.py, tests/behavior/test_service_utilities_behavior.py
+- Added: core.config, core.error_handling, core.file_auditor, core.logger
+- Removed: core/error_handling.py, core/schedule_management.py, core/scheduler.py, tests/behavior/test_service_utilities_behavior.py
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Utility functions for service operations
@@ -1676,6 +1711,9 @@
     - `core.error_handling (DataError, FileOperationError)` (🆕)
     - `core.service (MHMService, InitializationError, main, get_scheduler_manager)` (🆕)
   - **Standard Library**:
+    - `datetime (datetime, timedelta)`
+    - `datetime (datetime, timedelta)`
+    - `json`
     - `os`
     - `pathlib (Path)`
     - `signal`
@@ -1684,7 +1722,7 @@
     - `time`
   - **Third-party**:
     - `pytest`
-    - `unittest.mock (Mock, patch, MagicMock)`
+    - `unittest.mock (Mock, patch, MagicMock, mock_open)`
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
@@ -2013,7 +2051,7 @@
   - **Local**:
     - `core.config (get_user_data_dir)` (🆕)
     - `core.config (DEFAULT_MESSAGES_DIR_PATH)` (🆕)
-    - `core.message_management (get_message_categories, load_default_messages, add_message, edit_message, update_message, delete_message, get_last_10_messages, store_sent_message, create_message_file_from_defaults, ensure_user_message_files)` (🆕)
+    - `core.message_management (get_message_categories, load_default_messages, add_message, edit_message, update_message, delete_message, get_recent_messages, store_sent_message, create_message_file_from_defaults, ensure_user_message_files)` (🆕)
   - **Standard Library**:
     - `json`
     - `os`
@@ -2060,7 +2098,8 @@
 - **Purpose**: Behavior tests for response tracking behavior
 - **Dependencies**: 
   - **Local**:
-    - `core.response_tracking (store_user_response, store_checkin_response, store_chat_interaction, get_recent_responses, get_recent_checkins, get_recent_chat_interactions, is_user_checkins_enabled, get_user_info_for_tracking, track_user_response)` (🆕)
+    - `core.response_tracking (store_user_response, store_chat_interaction, get_recent_responses, get_recent_checkins, get_recent_chat_interactions, is_user_checkins_enabled, get_user_info_for_tracking, track_user_response)` (🆕)
+    - `core.response_tracking (store_user_response)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
   - **Standard Library**:
     - `datetime`
@@ -2110,7 +2149,7 @@
 - **Dependencies**: 
   - **Local**:
     - `core.error_handling (SchedulerError)` (🆕)
-    - `core.scheduler (SchedulerManager, schedule_all_task_reminders, cleanup_task_reminders, get_user_categories, process_user_schedules)` (🆕)
+    - `core.scheduler (SchedulerManager, schedule_all_task_reminders, get_user_categories, process_user_schedules)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
@@ -2138,8 +2177,10 @@
 - **Dependencies**: 
   - **Local**:
     - `core.error_handling (SchedulerError)` (🆕)
-    - `core.scheduler (SchedulerManager, schedule_all_task_reminders, cleanup_task_reminders, get_user_categories, process_user_schedules, process_category_schedule)` (🆕)
+    - `core.scheduler (SchedulerManager, schedule_all_task_reminders, get_user_categories, process_user_schedules, process_category_schedule)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
+    - `core.user_data_handlers (save_user_data)` (🆕)
+    - `tests.test_utilities (TestUserFactory)` (🆕)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `json`
@@ -2155,7 +2196,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.error_handling, core.scheduler, core.user_data_handlers
+- Added: core.error_handling, core.scheduler, core.user_data_handlers, tests.test_utilities
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2264,7 +2305,7 @@
 - **Dependencies**: 
   - **Local**:
     - `core.user_data_handlers (get_user_data)` (🆕)
-    - `tasks.task_management (ensure_task_directory, load_active_tasks, save_active_tasks, load_completed_tasks, save_completed_tasks, create_task, update_task, complete_task, restore_task, delete_task, get_task_by_id, get_tasks_due_soon, are_tasks_enabled, schedule_task_reminders, cleanup_task_reminders, add_user_task_tag, remove_user_task_tag, setup_default_task_tags, get_user_task_stats)` (🆕)
+    - `tasks.task_management (ensure_task_directory, load_active_tasks, save_active_tasks, load_completed_tasks, save_completed_tasks, create_task, update_task, complete_task, restore_task, delete_task, get_task_by_id, get_tasks_due_soon, are_tasks_enabled, schedule_task_reminders, add_user_task_tag, remove_user_task_tag, setup_default_task_tags, get_user_task_stats)` (🆕)
   - **Standard Library**:
     - `datetime (datetime, timedelta)`
     - `json`
@@ -2312,6 +2353,7 @@
 - **Purpose**: Behavior tests for user context behavior
 - **Dependencies**: 
   - **Local**:
+    - `core.schedule_utilities (get_active_schedules)` (🆕)
     - `core.user_management (get_user_id_by_identifier)` (🆕)
     - `core.user_management (update_user_context)` (🆕)
     - `tests.test_utilities (TestUserFactory)` (🆕)
@@ -2328,7 +2370,7 @@
 - **Used by**: None (not imported by other modules)
 
 **Dependency Changes**:
-- Added: core.user_management, tests.test_utilities, user.context_manager, user.user_context, user.user_preferences
+- Added: core.schedule_utilities, core.user_management, tests.test_utilities, user.context_manager, user.user_context, user.user_preferences
 - Removed: unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
@@ -2423,6 +2465,7 @@
     - `core.config (get_user_data_dir)` (🆕)
     - `core.config (get_user_data_dir)` (🆕)
     - `core.config (get_user_data_dir)` (🆕)
+    - `core.logger (apply_test_context_formatter_to_all_loggers)` (🆕)
     - `core.user_data_handlers` (🆕)
     - `core.user_data_handlers (get_user_data, update_user_account, update_user_preferences, update_user_schedules)` (🆕)
     - `core.user_data_handlers` (🆕)
@@ -2458,6 +2501,7 @@
     - `uuid`
     - `uuid`
     - `warnings`
+    - `warnings`
   - **Third-party**:
     - `PySide6.QtWidgets (QMessageBox)`
     - `communication.core.channel_orchestrator (CommunicationManager)`
@@ -2465,8 +2509,6 @@
     - `communication.message_processing.conversation_flow_manager (conversation_manager)`
     - `importlib`
     - `importlib`
-    - `logging.handlers (RotatingFileHandler)`
-    - `logging.handlers (RotatingFileHandler)`
     - `pytest`
     - `tempfile`
     - `tempfile`
@@ -2483,8 +2525,8 @@
   - `tests/ui/test_dialogs.py`
 
 **Dependency Changes**:
-- Added: core.config, core.user_data_handlers, core.user_data_manager, core.user_management, tests.test_utilities
-- Removed: PySide6.QtWidgets, communication.core.channel_orchestrator, communication.message_processing.conversation_flow_manager, logging.handlers, tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_service_utilities_behavior.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialogs.py, unittest.mock
+- Added: core.config, core.logger, core.user_data_handlers, core.user_data_manager, core.user_management, tests.test_utilities
+- Removed: PySide6.QtWidgets, communication.core.channel_orchestrator, communication.message_processing.conversation_flow_manager, tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_service_utilities_behavior.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/test_utilities.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialogs.py, unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 **Enhanced Purpose**: Test configuration and fixtures
@@ -2737,6 +2779,7 @@
   - `tests/behavior/test_discord_bot_behavior.py`
   - `tests/behavior/test_interaction_handlers_behavior.py`
   - `tests/behavior/test_interaction_handlers_coverage_expansion.py`
+  - `tests/behavior/test_scheduler_coverage_expansion.py`
   - `tests/behavior/test_user_context_behavior.py`
   - `tests/behavior/test_user_management_coverage_expansion.py`
   - `tests/behavior/test_utilities_demo.py`
@@ -2753,7 +2796,7 @@
 
 **Dependency Changes**:
 - Added: core.config, core.file_operations, core.user_data_handlers, core.user_management, tests.conftest
-- Removed: tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_ai_context_builder_behavior.py, tests/behavior/test_ai_context_builder_coverage_expansion.py, tests/behavior/test_ai_conversation_history_behavior.py, tests/behavior/test_backup_manager_behavior.py, tests/behavior/test_communication_command_parser_behavior.py, tests/behavior/test_communication_factory_coverage_expansion.py, tests/behavior/test_communication_interaction_manager_behavior.py, tests/behavior/test_communication_manager_coverage_expansion.py, tests/behavior/test_conversation_behavior.py, tests/behavior/test_discord_bot_behavior.py, tests/behavior/test_interaction_handlers_behavior.py, tests/behavior/test_interaction_handlers_coverage_expansion.py, tests/behavior/test_user_context_behavior.py, tests/behavior/test_user_management_coverage_expansion.py, tests/behavior/test_utilities_demo.py, tests/conftest.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/integration/test_user_creation.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_user_profile_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/unit/test_file_operations.py, tests/unit/test_user_management.py, unittest.mock
+- Removed: tests/behavior/test_account_management_real_behavior.py, tests/behavior/test_ai_chatbot_behavior.py, tests/behavior/test_ai_context_builder_behavior.py, tests/behavior/test_ai_context_builder_coverage_expansion.py, tests/behavior/test_ai_conversation_history_behavior.py, tests/behavior/test_backup_manager_behavior.py, tests/behavior/test_communication_command_parser_behavior.py, tests/behavior/test_communication_factory_coverage_expansion.py, tests/behavior/test_communication_interaction_manager_behavior.py, tests/behavior/test_communication_manager_coverage_expansion.py, tests/behavior/test_conversation_behavior.py, tests/behavior/test_discord_bot_behavior.py, tests/behavior/test_interaction_handlers_behavior.py, tests/behavior/test_interaction_handlers_coverage_expansion.py, tests/behavior/test_scheduler_coverage_expansion.py, tests/behavior/test_user_context_behavior.py, tests/behavior/test_user_management_coverage_expansion.py, tests/behavior/test_utilities_demo.py, tests/conftest.py, tests/integration/test_account_lifecycle.py, tests/integration/test_account_management.py, tests/integration/test_user_creation.py, tests/ui/test_account_creation_ui.py, tests/ui/test_dialog_coverage_expansion.py, tests/ui/test_user_profile_dialog_coverage_expansion.py, tests/ui/test_widget_behavior.py, tests/unit/test_file_operations.py, tests/unit/test_user_management.py, unittest.mock
 
 <!-- MANUAL_ENHANCEMENT_START -->
 <!-- Add any additional context, key functions, or special considerations here -->
@@ -3482,7 +3525,7 @@
   - **Local**:
     - `core.logger (get_component_logger)` (🆕)
     - `core.user_data_handlers (get_user_data, update_channel_preferences, update_user_account)` (🆕)
-    - `core.user_data_validation (is_valid_email, is_valid_phone)` (🆕)
+    - `core.user_data_validation (is_valid_email)` (🆕)
     - `ui.generated.channel_management_dialog_pyqt (Ui_Dialog)` (🆕)
     - `ui.widgets.channel_selection_widget (ChannelSelectionWidget)` (🆕)
   - **Third-party**:
@@ -3546,6 +3589,9 @@
     - `ui.generated.schedule_editor_dialog_pyqt (Ui_Dialog_edit_schedule)` (🆕)
     - `ui.widgets.period_row_widget (PeriodRowWidget)` (🆕)
   - **Standard Library**:
+    - `datetime`
+    - `json`
+    - `os`
     - `os`
     - `re`
     - `sys`
@@ -4656,7 +4702,6 @@
     - `core.message_management (get_recent_messages)` (🆕)
     - `core.response_tracking (get_recent_checkins, get_recent_chat_interactions)` (🆕)
     - `core.schedule_utilities (get_active_schedules)` (🆕)
-    - `core.schedule_utilities (get_active_schedules)` (🆕)
     - `core.user_data_handlers (get_user_data)` (🆕)
     - `user.user_context (UserContext)` (🆕)
     - `user.user_preferences (UserPreferences)` (🆕)
@@ -4683,7 +4728,6 @@
   - **Local**:
     - `core.error_handling (error_handler, DataError, FileOperationError, handle_errors)` (🆕)
     - `core.logger (get_logger, get_component_logger)` (🆕)
-    - `core.schedule_utilities (get_active_schedules)` (🆕)
     - `core.schedule_utilities (get_active_schedules)` (🆕)
     - `core.user_data_handlers (get_user_data, update_user_account, update_user_preferences, update_user_context)` (🆕)
     - `core.user_data_handlers (save_user_data)` (🆕)

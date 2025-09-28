@@ -22,7 +22,7 @@ logger.debug("Logging setup successfully.")
 
 # Start file creation auditor early (developer tool)
 try:
-        from ai_tools.file_auditor import start_auditor
+        from core.file_auditor import start_auditor
         start_auditor()
 except Exception as _fa_err:
     logger.debug(f"File auditor not started: {_fa_err}")
@@ -710,7 +710,7 @@ class MHMService:
 
         # Stop file auditor last
         try:
-                from ai_tools.file_auditor import stop_auditor
+                from core.file_auditor import stop_auditor
                 stop_auditor()
         except Exception:
             pass

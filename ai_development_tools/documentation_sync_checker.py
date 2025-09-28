@@ -19,10 +19,19 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 from collections import defaultdict
-from core.logger import get_component_logger
+import sys
+from pathlib import Path
 
-# Set up logging
-logger = get_component_logger(__name__)
+# Add project root to path for imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+try:
+    from core.logger import get_component_logger
+    logger = get_component_logger(__name__)
+except ImportError:
+    # Fallback logging if core.logger not available
+    logger = None
 
 class DocumentationSyncChecker:
     """Checks and maintains documentation synchronization."""
@@ -30,10 +39,10 @@ class DocumentationSyncChecker:
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
         self.paired_docs = {
-            'DEVELOPMENT_WORKFLOW.md': 'AI_DEVELOPMENT_WORKFLOW.md',
-            'ARCHITECTURE.md': 'AI_ARCHITECTURE.md',
-            'DOCUMENTATION_GUIDE.md': 'AI_DOCUMENTATION_GUIDE.md',
-            'CHANGELOG_DETAIL.md': 'AI_CHANGELOG.md',
+            'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+            'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
+            'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+            'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
         }
         
         # Common path patterns that might drift
@@ -70,7 +79,8 @@ class DocumentationSyncChecker:
                                     paths.add(module)
                                     
                     except Exception as e:
-                        logger.warning(f"Error reading {py_file}: {e}")
+                        if logger:
+                            logger.warning(f"Error reading {py_file}: {e}")
                         
         return paths
     
@@ -100,7 +110,8 @@ class DocumentationSyncChecker:
                                 doc_paths[str(md_file.relative_to(self.project_root))].append(match)
                                 
             except Exception as e:
-                logger.warning(f"Error reading {md_file}: {e}")
+                if logger:
+                    logger.warning(f"Error reading {md_file}: {e}")
                 
         return doc_paths
     
@@ -175,7 +186,8 @@ class DocumentationSyncChecker:
         result = subprocess.run(['tree', '/F', '/A'], capture_output=True, text=True, shell=True)
         
         if result.returncode != 0:
-            logger.error("Error running tree command")
+            if logger:
+                logger.error("Error running tree command")
             return ""
         
         lines = result.stdout.split('\n')
@@ -247,12 +259,14 @@ class DocumentationSyncChecker:
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(final_content))
             
-        logger.info(f"Directory tree generated: {output_path}")
+        if logger:
+            logger.info(f"Directory tree generated: {output_path}")
         return str(output_path)
     
     def run_checks(self) -> Dict[str, any]:
         """Run all documentation synchronization checks."""
-        logger.info("Running documentation synchronization checks...")
+        if logger:
+            logger.info("Running documentation synchronization checks...")
         
         results = {
             'paired_docs': self.check_paired_documentation(),
@@ -275,13 +289,14 @@ class DocumentationSyncChecker:
     
     def print_report(self, results: Dict[str, any]):
         """Print a formatted report of the results."""
-        print("\n" + "="*80)
-        print("DOCUMENTATION SYNCHRONIZATION CHECK REPORT")
-        print("="*80)
+        # Remove headers - they'll be added by the consolidated report
+        
+        # Limit output to avoid Unicode issues
+        max_issues_per_file = 5
         
         # Summary
         summary = results['summary']
-        print(f"\n📊 SUMMARY:")
+        print(f"\nSUMMARY:")
         print(f"   Status: {summary['status']}")
         print(f"   Total Issues: {summary['total_issues']}")
         print(f"   Paired Doc Issues: {summary['paired_doc_issues']}")
@@ -289,29 +304,30 @@ class DocumentationSyncChecker:
         
         # Paired Documentation Issues
         if results['paired_docs']:
-            print(f"\n🔗 PAIRED DOCUMENTATION ISSUES:")
+            print(f"\nPAIRED DOCUMENTATION ISSUES:")
             for issue_type, issues in results['paired_docs'].items():
                 if issues:
                     print(f"   {issue_type}:")
                     for issue in issues:
-                        print(f"     - {issue}")
+                        # Clean Unicode characters that cause encoding issues
+                        clean_issue = issue.encode('ascii', 'ignore').decode('ascii')
+                        print(f"     - {clean_issue}")
         
-        # Path Drift Issues
+        # Path Drift Issues (summary only)
         if results['path_drift']:
-            print(f"\n🛤️  PATH DRIFT ISSUES:")
-            for doc_file, issues in results['path_drift'].items():
-                if issues:
-                    print(f"   {doc_file}:")
-                    for issue in issues:
-                        print(f"     - {issue}")
+            print(f"\nPATH DRIFT ISSUES:")
+            print(f"   Total files with issues: {len(results['path_drift'])}")
+            print(f"   Total issues found: {sum(len(issues) for issues in results['path_drift'].values())}")
+            print(f"   Top files with most issues:")
+            sorted_files = sorted(results['path_drift'].items(), key=lambda x: len(x[1]), reverse=True)
+            for doc_file, issues in sorted_files[:5]:
+                print(f"     {doc_file}: {len(issues)} issues")
         
         if summary['total_issues'] == 0:
-            print(f"\n✅ All documentation synchronization checks passed!")
+            print(f"\nAll documentation synchronization checks passed!")
         else:
-            print(f"\n⚠️  Found {summary['total_issues']} documentation synchronization issues.")
+            print(f"\nFound {summary['total_issues']} documentation synchronization issues.")
             print("   Consider running with --fix to attempt automatic fixes.")
-        
-        print("\n" + "="*80)
 
 
 def main():
@@ -336,8 +352,9 @@ def main():
         checker.print_report(results)
         
         if args.fix:
-            logger.info("Auto-fix functionality not yet implemented")
-            logger.info("Please review the issues above and fix them manually")
+            if logger:
+                logger.info("Auto-fix functionality not yet implemented")
+                logger.info("Please review the issues above and fix them manually")
 
 
 if __name__ == "__main__":

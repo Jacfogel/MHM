@@ -15,10 +15,19 @@ import subprocess
 import argparse
 from pathlib import Path
 from typing import Dict, List, Tuple
-from core.logger import get_component_logger
+import sys
+from pathlib import Path
 
-# Set up logging
-logger = get_component_logger(__name__)
+# Add project root to path for imports
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+try:
+    from core.logger import get_component_logger
+    logger = get_component_logger(__name__)
+except ImportError:
+    # Fallback logging if core.logger not available
+    logger = None
 
 class CoverageMetricsRegenerator:
     """Regenerates test coverage metrics for MHM."""
@@ -39,12 +48,14 @@ class CoverageMetricsRegenerator:
         
     def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis and extract metrics."""
-        logger.info("Running pytest coverage analysis...")
+        if logger:
+            logger.info("Running pytest coverage analysis...")
         
         try:
-            # Run coverage analysis
+            # Run coverage analysis with proper configuration
+            coverage_output = self.project_root / "ai_development_tools" / "coverage.json"
             cmd = [
-                'python', '-m', 'pytest',
+                sys.executable, '-m', 'pytest',
                 '--cov=core',
                 '--cov=communication', 
                 '--cov=ui',
@@ -52,14 +63,26 @@ class CoverageMetricsRegenerator:
                 '--cov=user',
                 '--cov=ai',
                 '--cov-report=term-missing',
+                f'--cov-report=json:{coverage_output}',
+                '--cov-config=coverage.ini',
                 '--tb=no',
-                '-q'
+                '-q',
+                '--maxfail=5',  # Stop after 5 failures
+                'tests/'  # Run all tests like the plan
             ]
             
             result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
             
             if result.returncode != 0:
-                logger.warning("Coverage analysis had issues, but continuing...")
+                if logger:
+                    logger.warning("Coverage analysis had issues, but continuing...")
+            
+            # Clean up .coverage file from root directory
+            coverage_file = self.project_root / ".coverage"
+            if coverage_file.exists():
+                coverage_file.unlink()
+                if logger:
+                    logger.info("Cleaned up .coverage file from project root")
                 
             # Parse coverage output
             coverage_data = self.parse_coverage_output(result.stdout)
@@ -217,7 +240,7 @@ class CoverageMetricsRegenerator:
         sorted_modules = sorted(coverage_data.items(), key=lambda x: x[1]['coverage'])
         
         for module_name, data in sorted_modules:
-            status_emoji = "✅" if data['coverage'] >= 80 else "⚠️" if data['coverage'] >= 60 else "❌"
+            status_emoji = "*" if data['coverage'] >= 80 else "!" if data['coverage'] >= 60 else "X"
             summary_lines.append(f"- **{status_emoji} {module_name}**: {data['coverage']}% ({data['covered']}/{data['statements']} lines)")
             
         return '\n'.join(summary_lines)
@@ -289,20 +312,16 @@ class CoverageMetricsRegenerator:
             coverage_results['overall']
         )
         
-        # Print summary
-        print("\n" + "="*80)
-        print("TEST COVERAGE METRICS REGENERATION")
-        print("="*80)
+        # Print summary (headers removed - added by consolidated report)
         print(coverage_summary)
-        print("="*80)
         
         # Update plan if requested
         if update_plan:
             success = self.update_coverage_plan(coverage_summary)
             if success:
-                print("\n✅ Coverage plan updated successfully!")
+                print("\n* Coverage plan updated successfully!")
             else:
-                print("\n❌ Failed to update coverage plan")
+                print("\n* Failed to update coverage plan")
         
         return coverage_results
 

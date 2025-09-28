@@ -2,7 +2,7 @@
 
 > **Purpose**: Centralized checklist to ensure paired AI/human documentation remains synchronized  
 > **Audience**: Human developers and AI collaborators  
-> **Last Updated**: 2025-09-01  
+> **Last Updated**: 2025-09-27  
 > **Status**: ACTIVE - Use this checklist for all documentation updates
 
 ## 🔗 **Paired Documentation Files**
@@ -18,11 +18,17 @@
 - [ ] **AI_MODULE_DEPENDENCIES.md** (auto-generated - do not edit directly)
 - [ ] **DIRECTORY_TREE.md** (auto-generated - do not edit directly)
 
+### **AI Development Tools Output**
+- [ ] **AI_STATUS.md** (AI-optimized status document)
+- [ ] **AI_PRIORITIES.md** (AI-optimized priorities document)
+- [ ] **consolidated_report.txt** (comprehensive human report)
+- [ ] **ai_audit_detailed_results.json** (detailed audit data)
+
 ## 📋 **Synchronization Checklist**
 
 ### **Before Making Documentation Changes**
 - [ ] **Identify Affected Pairs**: Check if change affects a paired document
-- [ ] **Run Sync Check**: `python ai_development_tools/ai_tools_runner.py doc-sync`
+- [ ] **Run Sync Check**: Use Cursor command `/docs-sync` or `python ai_development_tools/ai_tools_runner.py docs-sync`
 - [ ] **Review Findings**: Check LEGACY_REFERENCE_REPORT.md for path drift
 - [ ] **Plan Updates**: Determine what needs updating in paired documents
 
@@ -33,33 +39,45 @@
 - [ ] **Check Cross-References**: Verify internal links and references are accurate
 
 ### **After Documentation Updates**
-- [ ] **Run Sync Check Again**: `python ai_development_tools/ai_tools_runner.py doc-sync`
+- [ ] **Run Sync Check Again**: Use Cursor command `/docs-sync` or `python ai_development_tools/ai_tools_runner.py docs-sync`
 - [ ] **Verify No New Issues**: Ensure no new path drift or sync issues
 - [ ] **Update Timestamps**: Update "Last Updated" fields in both documents
 - [ ] **Test References**: Verify all file paths and links work correctly
 
 ## 🛠️ **Automated Tools**
 
-### **Documentation Synchronization Checker**
+### **Cursor Commands (Recommended)**
 ```bash
-# Check for sync issues and path drift
-python ai_development_tools/ai_tools_runner.py doc-sync
+# Use these Cursor chat commands for quick access:
+/audit          # Comprehensive system audit
+/docs-sync      # Check documentation synchronization
+/legacy-cleanup # Scan for legacy code references
+/quick-status   # Get system status overview
+/test-coverage  # Generate test coverage report
+/validate-work  # Validate AI-generated work
+/version-sync   # Check version consistency
+```
 
-# Generate directory trees
-python ai_development_tools/ai_tools_runner.py trees
-
-# Scan for legacy references
-python ai_development_tools/ai_tools_runner.py legacy
-
-# Regenerate coverage metrics
-python ai_development_tools/ai_tools_runner.py coverage
+### **Direct Tool Execution**
+```bash
+# Alternative: Run tools directly
+python ai_development_tools/ai_tools_runner.py audit
+python ai_development_tools/ai_tools_runner.py docs-sync
+python ai_development_tools/ai_tools_runner.py legacy-cleanup
+python ai_development_tools/ai_tools_runner.py quick-status
+python ai_development_tools/ai_tools_runner.py test-coverage
+python ai_development_tools/ai_tools_runner.py validate-work
+python ai_development_tools/ai_tools_runner.py version-sync
 ```
 
 ### **What Each Tool Does**
-- **doc-sync**: Identifies documentation synchronization issues and path drift
-- **trees**: Generates auto-updating directory structure for documentation
-- **legacy**: Scans for outdated references and deprecated code paths
-- **coverage**: Updates test coverage metrics in TEST_COVERAGE_EXPANSION_PLAN.md
+- **audit**: Comprehensive system audit with AI-optimized outputs
+- **docs-sync**: Identifies documentation synchronization issues and path drift
+- **legacy-cleanup**: Scans for outdated references and deprecated code paths
+- **quick-status**: Provides system health overview
+- **test-coverage**: Updates test coverage metrics and generates reports
+- **validate-work**: Validates AI-generated work quality
+- **version-sync**: Ensures version consistency across documentation
 
 ## 📊 **Quality Metrics**
 
@@ -98,6 +116,14 @@ python ai_development_tools/ai_tools_runner.py coverage
 - [ ] Update relevant workflow documentation
 - [ ] Add examples to both human and AI docs
 - [ ] Update command registry if applicable
+- [ ] Add Cursor command if applicable (`.cursor/commands/`)
+
+### **When Updating AI Development Tools**
+- [ ] Update AI_STATUS.md and AI_PRIORITIES.md
+- [ ] Regenerate consolidated_report.txt
+- [ ] Update ai_audit_detailed_results.json
+- [ ] Check file rotation and archiving
+- [ ] Verify Cursor commands still work
 
 ## 🚨 **Troubleshooting**
 
