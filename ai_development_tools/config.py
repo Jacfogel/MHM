@@ -7,14 +7,21 @@ Optimized for AI assistants to get concise, actionable information about the cod
 from pathlib import Path
 
 # Project-specific settings
-PROJECT_ROOT = "."
+# Handle both direct execution and runner execution
+import os
+if os.path.basename(os.getcwd()) == 'ai_development_tools':
+    PROJECT_ROOT = ".."  # Running from ai_development_tools directory
+else:
+    PROJECT_ROOT = "."   # Running from project root via runner
 SCAN_DIRECTORIES = [
     'core',
-    'communication',
+    'communication', 
     'ui',
     'user',
     'tasks',
-    'tests'
+    'tests',
+    'ai'                     # AI chatbot and context building
+    # Note: 'scripts' and 'ai_development_tools' excluded per standard_exclusions.py
 ]
 
 # AI Collaboration Optimization
@@ -29,16 +36,18 @@ AI_COLLABORATION = {
 
 # Function discovery settings
 FUNCTION_DISCOVERY = {
-    'max_complexity_threshold': 50,  # Functions above this complexity need attention
-    'min_docstring_length': 10,      # Minimum docstring length to be considered documented
-    'handler_keywords': [            # Keywords that indicate handler/utility functions
+    'moderate_complexity_threshold': 50,   # Functions above this complexity need review
+    'high_complexity_threshold': 100,      # Functions above this complexity need refactoring
+    'critical_complexity_threshold': 200,  # Functions above this complexity are critical
+    'min_docstring_length': 10,            # Minimum docstring length to be considered documented
+    'handler_keywords': [                  # Keywords that indicate handler/utility functions
         'handle', 'process', 'validate', 'check', 'get', 'set', 'save', 'load',
         'create', 'update', 'delete', 'manage', 'configure', 'setup'
     ],
-    'test_keywords': [               # Keywords that indicate test functions
+    'test_keywords': [                     # Keywords that indicate test functions
         'test_', 'test', 'check_', 'verify_', 'assert_'
     ],
-    'critical_functions': [          # Functions that are critical for system operation
+    'critical_functions': [                # Functions that are critical for system operation
         'main', 'run', 'start', 'stop', 'init', 'setup', 'validate'
     ]
 }
@@ -46,7 +55,9 @@ FUNCTION_DISCOVERY = {
 # Validation settings
 VALIDATION = {
     'documentation_coverage_threshold': 80.0,  # Minimum acceptable documentation coverage
-    'complexity_warning_threshold': 30,        # Functions above this complexity get warnings
+    'moderate_complexity_warning': 50,         # Functions above this complexity get warnings
+    'high_complexity_warning': 100,            # Functions above this complexity need attention
+    'critical_complexity_warning': 200,        # Functions above this complexity are critical
     'duplicate_function_warning': True,        # Warn about duplicate function names
     'missing_docstring_warning': True,        # Warn about functions without docstrings
     'critical_issues_first': True,            # Show critical issues before minor ones
@@ -118,33 +129,61 @@ VERSION_SYNC = {
         "ai_development_docs/AI_CHANGELOG.md",
         "ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md",
         "ai_development_docs/AI_DOCUMENTATION_GUIDE.md",
-        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
-        "ai_development_docs/AI_MODULE_DEPENDENCIES.md",
         "ai_development_docs/AI_REFERENCE.md",
         "ai_development_docs/AI_SESSION_STARTER.md",
         "ai_development_tools/README.md"
     ],
+    'generated_ai_docs': [
+        "ai_development_docs/AI_FUNCTION_REGISTRY.md",
+        "ai_development_docs/AI_MODULE_DEPENDENCIES.md"
+    ],
     'docs': [
         "README.md",
-        "AI_CHANGELOG.md",
-        "CHANGELOG_DETAIL.md",
+        "development_docs/CHANGELOG_DETAIL.md",
         "TODO.md",
         "DEVELOPMENT_WORKFLOW.md",
-
-        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
-        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+        "DOCUMENTATION_GUIDE.md",
+        "PROJECT_VISION.md",
+        "development_docs/DOCUMENTATION_SYNC_CHECKLIST.md",
+        "development_docs/PLANS.md",
         "ARCHITECTURE.md",
         "QUICK_REFERENCE.md",
         "HOW_TO_RUN.md"
+    ],
+    'generated_docs': [
+        "development_docs/FUNCTION_REGISTRY_DETAIL.md",
+        "development_docs/MODULE_DEPENDENCIES_DETAIL.md",
+        "development_docs/DIRECTORY_TREE.md",
+        "development_docs/LEGACY_REFERENCE_REPORT.md"
     ],
     'core': [
         "run_mhm.py",
         "core/service.py",
         "core/config.py",
-        "requirements.txt"
+        "requirements.txt",
+        ".gitignore"
     ],
     'cursor_rules': [
         ".cursor/rules/*.mdc"
+    ],
+    'cursor_commands': [
+        ".cursor/commands/README.md"
+    ],
+    'communication_docs': [
+        "communication/communication_channels/discord/DISCORD.md"
+    ],
+    'core_docs': [
+        "core/ERROR_HANDLING_GUIDE.md"
+    ],
+    'logs_docs': [
+        "logs/LOGGING_GUIDE.md"
+    ],
+    'scripts_docs': [
+        "scripts/README.md"
+    ],
+    'tests_docs': [
+        "tests/MANUAL_TESTING_GUIDE.md",
+        "tests/README.md"
     ],
     'core_system_files': [
         "run_mhm.py",

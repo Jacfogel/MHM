@@ -12,15 +12,18 @@ from typing import Dict, List, Set
 import importlib.util
 import sys
 
-# Import config
+# Import config and standard exclusions
 sys.path.insert(0, str(Path(__file__).parent))
 import config
+from standard_exclusions import get_analysis_exclusions, should_exclude_file
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES
 HANDLER_KEYWORDS = config.FUNCTION_DISCOVERY['handler_keywords']
 TEST_KEYWORDS = config.FUNCTION_DISCOVERY['test_keywords']
-MAX_COMPLEXITY = config.FUNCTION_DISCOVERY['max_complexity_threshold']
+MODERATE_COMPLEXITY = config.FUNCTION_DISCOVERY['moderate_complexity_threshold']
+HIGH_COMPLEXITY = config.FUNCTION_DISCOVERY['high_complexity_threshold']
+CRITICAL_COMPLEXITY = config.FUNCTION_DISCOVERY['critical_complexity_threshold']
 
 
 def is_auto_generated_code(file_path: str, func_name: str) -> bool:
@@ -42,6 +45,8 @@ def is_auto_generated_code(file_path: str, func_name: str) -> bool:
     auto_generated_patterns = {
         'setupUi',  # PyQt UI setup functions
         'retranslateUi',  # PyQt translation functions
+        'setup_ui',  # Alternative PyQt setup
+        'retranslate_ui',  # Alternative PyQt translation
     }
     
     if func_name in auto_generated_patterns:
@@ -50,6 +55,30 @@ def is_auto_generated_code(file_path: str, func_name: str) -> bool:
     # Exclude files in generated directories
     if '/generated/' in file_path or '\\generated\\' in file_path:
         return True
+    
+    # Exclude files with auto-generated patterns in name
+    auto_generated_file_patterns = [
+        '_pyqt.py',  # PyQt generated files
+        '_ui.py',    # UI generated files
+        '_generated.py',  # Explicitly generated files
+        '_auto.py',  # Auto-generated files
+    ]
+    
+    for pattern in auto_generated_file_patterns:
+        if file_path.endswith(pattern):
+            return True
+    
+    # Exclude functions with auto-generated naming patterns
+    auto_generated_func_patterns = [
+        'setup_ui_',  # UI setup functions
+        'retranslate_ui_',  # UI translation functions
+        '_generated_',  # Functions with generated in name
+        '_auto_',  # Functions with auto in name
+    ]
+    
+    for pattern in auto_generated_func_patterns:
+        if pattern in func_name:
+            return True
     
     return False
 
@@ -199,10 +228,14 @@ def scan_all_functions() -> List[Dict]:
         if not dir_path.exists():
             continue
         for py_file in dir_path.rglob('*.py'):
-            all_functions.extend(extract_functions(str(py_file)))
+            # Use standard exclusions to filter files
+            if not should_exclude_file(str(py_file), 'analysis', 'development'):
+                all_functions.extend(extract_functions(str(py_file)))
     # Also scan root directory
     for py_file in PROJECT_ROOT.glob('*.py'):
-        all_functions.extend(extract_functions(str(py_file)))
+        # Use standard exclusions to filter files
+        if not should_exclude_file(str(py_file), 'analysis', 'development'):
+            all_functions.extend(extract_functions(str(py_file)))
     return all_functions
 
 
@@ -211,9 +244,11 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
     categories = {
         'handlers': [],
         'tests': [],
-        'complex': [],
+        'moderate_complex': [],      # 50-99 nodes
+        'high_complex': [],          # 100-199 nodes  
+        'critical_complex': [],      # 200+ nodes
         'undocumented': [],
-        'special_methods': [],  # New category for special methods
+        'special_methods': [],      # Special Python methods
         'other': []
     }
     for func in functions:
@@ -221,8 +256,12 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
             categories['tests'].append(func)
         elif func['is_handler']:
             categories['handlers'].append(func)
-        elif func['complexity'] > MAX_COMPLEXITY:
-            categories['complex'].append(func)
+        elif func['complexity'] >= CRITICAL_COMPLEXITY:
+            categories['critical_complex'].append(func)
+        elif func['complexity'] >= HIGH_COMPLEXITY:
+            categories['high_complex'].append(func)
+        elif func['complexity'] >= MODERATE_COMPLEXITY:
+            categories['moderate_complex'].append(func)
         elif func['is_special']:
             # Special methods go to their own category
             categories['special_methods'].append(func)
@@ -236,8 +275,25 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
 
 def print_summary(categories: Dict[str, List[Dict]]):
     print("\n=== FUNCTION DISCOVERY SUMMARY ===")
+    
+    # Print complexity categories with clear descriptions
+    complexity_categories = {
+        'critical_complex': f"CRITICAL COMPLEXITY (>{CRITICAL_COMPLEXITY-1} nodes)",
+        'high_complex': f"HIGH COMPLEXITY ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes)", 
+        'moderate_complex': f"MODERATE COMPLEXITY ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes)",
+        'handlers': "HANDLERS/UTILITIES",
+        'tests': "TESTS",
+        'undocumented': "UNDOCUMENTED",
+        'special_methods': "SPECIAL METHODS",
+        'other': "OTHER"
+    }
+    
     for cat, funcs in categories.items():
-        print(f"\n{cat.upper()} ({len(funcs)}):")
+        if cat in complexity_categories:
+            print(f"\n{complexity_categories[cat]} ({len(funcs)}):")
+        else:
+            print(f"\n{cat.upper()} ({len(funcs)}):")
+            
         for func in funcs[:10]:
             print(f"  - {func['name']} (file: {Path(func['file']).name}, complexity: {func['complexity']})")
         if len(funcs) > 10:
@@ -247,13 +303,62 @@ def print_summary(categories: Dict[str, List[Dict]]):
     special_count = len(categories.get('special_methods', []))
     if special_count > 0:
         print(f"\nNote: {special_count} special Python methods excluded from undocumented count")
+    
+    # Add complexity summary
+    total_complex = (len(categories.get('moderate_complex', [])) + 
+                    len(categories.get('high_complex', [])) + 
+                    len(categories.get('critical_complex', [])))
+    if total_complex > 0:
+        print(f"\nComplexity Summary: {total_complex} functions need attention")
+        print(f"  - Moderate: {len(categories.get('moderate_complex', []))} functions")
+        print(f"  - High: {len(categories.get('high_complex', []))} functions") 
+        print(f"  - Critical: {len(categories.get('critical_complex', []))} functions")
 
+
+def validate_results(categories: Dict[str, List[Dict]]) -> bool:
+    """
+    Validate that the results are reasonable and not inflated.
+    
+    Args:
+        categories: Categorized function results
+        
+    Returns:
+        True if results are reasonable, False if they seem inflated
+    """
+    total_functions = sum(len(funcs) for funcs in categories.values())
+    
+    # Check for reasonable function counts
+    if total_functions > 10000:  # Unreasonably high
+        print(f"[WARNING] Total functions ({total_functions}) seems unreasonably high")
+        return False
+    
+    # Check for inflated complexity counts
+    complex_functions = (len(categories.get('moderate_complex', [])) + 
+                        len(categories.get('high_complex', [])) + 
+                        len(categories.get('critical_complex', [])))
+    
+    if complex_functions > total_functions * 0.8:  # More than 80% complex
+        print(f"[WARNING] High percentage of complex functions ({complex_functions}/{total_functions})")
+        return False
+    
+    # Check for reasonable critical complexity count
+    critical_count = len(categories.get('critical_complex', []))
+    if critical_count > total_functions * 0.3:  # More than 30% critical
+        print(f"[WARNING] High percentage of critical complexity functions ({critical_count}/{total_functions})")
+        return False
+    
+    return True
 
 def main():
     print("[SCAN] Scanning for all functions...")
     all_functions = scan_all_functions()
     print(f"Found {len(all_functions)} functions.")
     categories = categorize_functions(all_functions)
+    
+    # Validate results before showing
+    if not validate_results(categories):
+        print("\n[WARNING] Results may be inflated. Check auto-generated code detection.")
+    
     print_summary(categories)
     print("\nTip: Use this output to quickly find handlers, tests, complex, or undocumented functions.")
 

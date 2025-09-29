@@ -37,11 +37,11 @@ This directory contains tools optimized for AI-assisted development collaboratio
 **Available Commands:**
 - `audit` - Comprehensive audit with AI-optimized outputs
 - `audit --fast` - Fast audit (skips test coverage, ~30 seconds vs 3-4 minutes)
-- `docs-sync` - Documentation synchronization check
-- `legacy-cleanup` - Legacy code reference cleanup
-- `quick-status` - System status overview
-- `validate-work` - AI work validation
-- `test-coverage` - Test coverage regeneration
+- `doc-sync` - Documentation synchronization check
+- `legacy` - Legacy code reference cleanup
+- `status` - System status overview
+- `validate` - AI work validation
+- `coverage` - Test coverage regeneration
 - `version-sync` - Version synchronization
 
 ## ⚡ Fast Mode vs Full Mode
@@ -63,7 +63,7 @@ This directory contains tools optimized for AI-assisted development collaboratio
 The audit command creates AI-optimized documents:
 - **`AI_STATUS.md`** - Current codebase state with actionable insights
 - **`AI_PRIORITIES.md`** - Immediate next steps and focus areas
-- **`audit_report.txt`** - Human-readable detailed report
+- **`consolidated_report.txt`** - Human-readable detailed report
 - **`ai_audit_detailed_results.json`** - Raw audit data (rotated)
 
 ## 🔧 Core Audit Tools
@@ -94,7 +94,7 @@ The audit command creates AI-optimized documents:
 
 ### Rotating Files (with automatic backup/archive)
 - **AI Documents**: `AI_STATUS.md`, `AI_PRIORITIES.md`
-- **Reports**: `audit_report.txt`, `docs_sync_report.txt`, `legacy_cleanup_report.txt`, etc.
+- **Reports**: `consolidated_report.txt`, `docs_sync_report.txt`, `legacy_cleanup_report.txt`, etc.
 - **Data**: `ai_audit_detailed_results.json`, `coverage.json`
 
 ### Static Files
@@ -105,8 +105,8 @@ The audit command creates AI-optimized documents:
 ## 🚀 Quick Start
 
 1. **Run Full Audit**: `python ai_development_tools/ai_tools_runner.py audit`
-2. **Check Status**: `python ai_development_tools/ai_tools_runner.py quick-status`
-3. **Sync Docs**: `python ai_development_tools/ai_tools_runner.py docs-sync`
+2. **Check Status**: `python ai_development_tools/ai_tools_runner.py status`
+3. **Sync Docs**: `python ai_development_tools/ai_tools_runner.py doc-sync`
 
 ## 📈 File Rotation
 

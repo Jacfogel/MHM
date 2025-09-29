@@ -10,6 +10,11 @@ import re
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 import json
+import sys
+
+# Import standard exclusions
+sys.path.insert(0, str(Path(__file__).parent))
+from standard_exclusions import should_exclude_file
 
 def extract_functions_from_file(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file."""
@@ -124,18 +129,20 @@ def scan_all_python_files() -> Dict[str, Dict]:
             continue
             
         for py_file in dir_path.rglob('*.py'):
-            relative_path = py_file.relative_to(project_root)
-            file_key = str(relative_path).replace('\\', '/')
-            
-            functions = extract_functions_from_file(str(py_file))
-            classes = extract_classes_from_file(str(py_file))
-            
-            results[file_key] = {
-                'functions': functions,
-                'classes': classes,
-                'total_functions': len(functions),
-                'total_classes': len(classes)
-            }
+            # Use standard exclusions to filter files
+            if not should_exclude_file(str(py_file), 'analysis', 'development'):
+                relative_path = py_file.relative_to(project_root)
+                file_key = str(relative_path).replace('\\', '/')
+                
+                functions = extract_functions_from_file(str(py_file))
+                classes = extract_classes_from_file(str(py_file))
+                
+                results[file_key] = {
+                    'functions': functions,
+                    'classes': classes,
+                    'total_functions': len(functions),
+                    'total_classes': len(classes)
+                }
     
     # Also scan root directory for .py files
     for py_file in project_root.glob('*.py'):
@@ -206,7 +213,9 @@ def generate_audit_report():
     print(f"   Functions found: {total_actual_functions}")
     print(f"   Classes found: {total_actual_classes}")
     print(f"   Functions documented: {total_documented_functions}")
-    print(f"   Coverage: {(total_documented_functions/total_actual_functions*100):.1f}%" if total_actual_functions > 0 else "   Coverage: N/A")
+    coverage_percent = (total_documented_functions/total_actual_functions*100) if total_actual_functions > 0 else 0
+    print(f"   Coverage: {coverage_percent:.1f}%")
+    print(f"coverage: {coverage_percent:.1f}%")
     
     # Missing functions
     print(f"\n[MISS] MISSING FROM REGISTRY:")
@@ -227,6 +236,7 @@ def generate_audit_report():
                     missing_count += 1
     
     print(f"\n   Total missing functions: {missing_count}")
+    print(f"missing items: {missing_count}")
     
     # Extra functions (documented but not found)
     print(f"\n[EXTRA] EXTRA IN REGISTRY (not found in files):")

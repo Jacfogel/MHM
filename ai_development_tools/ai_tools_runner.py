@@ -451,12 +451,36 @@ class AIToolsRunner:
         metrics = {}
         
         for line in lines:
-            if 'functions found:' in line.lower():
-                metrics['total_functions'] = line.split(':')[-1].strip()
-            elif 'functions documented:' in line.lower():
-                metrics['documented_functions'] = line.split(':')[-1].strip()
-            elif 'coverage:' in line.lower():
-                metrics['coverage'] = line.split(':')[-1].strip()
+            if 'found' in line.lower() and 'functions' in line.lower():
+                # Extract number from "Found 3102 functions."
+                import re
+                match = re.search(r'Found (\d+) functions', line)
+                if match:
+                    metrics['total_functions'] = match.group(1)
+            elif 'moderate complexity' in line.lower():
+                # Extract from "MODERATE COMPLEXITY (50-99 nodes) (153):"
+                import re
+                match = re.search(r'\((\d+)\):', line)
+                if match:
+                    metrics['moderate_complexity'] = match.group(1)
+            elif 'high complexity' in line.lower():
+                # Extract from "HIGH COMPLEXITY (100-199 nodes) (136):"
+                import re
+                match = re.search(r'\((\d+)\):', line)
+                if match:
+                    metrics['high_complexity'] = match.group(1)
+            elif 'critical complexity' in line.lower():
+                # Extract from "CRITICAL COMPLEXITY (>199 nodes) (97):"
+                import re
+                match = re.search(r'\((\d+)\):', line)
+                if match:
+                    metrics['critical_complexity'] = match.group(1)
+            elif 'undocumented' in line.lower():
+                # Extract from "UNDOCUMENTED (71):"
+                import re
+                match = re.search(r'\((\d+)\):', line)
+                if match:
+                    metrics['undocumented'] = match.group(1)
         
         self.results_cache['function_discovery'] = metrics
     
@@ -467,9 +491,23 @@ class AIToolsRunner:
         
         for line in lines:
             if 'coverage:' in line.lower():
-                metrics['doc_coverage'] = line.split(':')[-1].strip()
+                # Extract coverage percentage
+                import re
+                match = re.search(r'coverage:\s*(\d+\.?\d*)%', line, re.IGNORECASE)
+                if match:
+                    metrics['doc_coverage'] = f"{match.group(1)}%"
+                else:
+                    # Fallback to simple extraction
+                    coverage_text = line.split(':')[-1].strip()
+                    metrics['doc_coverage'] = coverage_text
             elif 'missing from registry:' in line.lower():
                 metrics['missing_docs'] = line.split(':')[-1].strip()
+            elif 'missing items:' in line.lower():
+                # Extract missing items count
+                import re
+                match = re.search(r'missing items:\s*(\d+)', line, re.IGNORECASE)
+                if match:
+                    metrics['missing_items'] = match.group(1)
         
         self.results_cache['audit_function_registry'] = metrics
     
@@ -484,22 +522,55 @@ class AIToolsRunner:
             lower = line.lower()
 
             # Collect notable lines for human/AI review
-            if any(keyword in lower for keyword in ['[warn]', '[critical]', '[info]']):
+            if any(keyword in lower for keyword in ['[warn]', '[critical]', '[info]', '[complexity]', '[doc]', '[dupe]']):
                 insights.append(line)
 
-            # Parse total functions line: "Total functions: 1934"
+            # Parse total functions line: "Total functions: 3178"
             if line.startswith('Total functions:'):
                 try:
                     metrics['total_functions'] = int(line.split(':', 1)[1].strip())
                 except Exception:
                     pass
 
-            # Parse high complexity count line: "[WARN] High Complexity Functions (>50 nodes): 1478"
-            if 'high complexity functions' in lower and ':' in line:
+            # Parse complexity counts from decision support format
+            if '[critical]' in lower and 'critical complexity' in lower:
                 try:
-                    m = re.search(r':\s*(\d+)\b', line)
-                    if m:
-                        metrics['high_complexity'] = int(m.group(1))
+                    import re
+                    match = re.search(r'\(>199 nodes\): (\d+)', line)
+                    if match:
+                        metrics['critical_complexity'] = int(match.group(1))
+                except Exception:
+                    pass
+            elif '[high]' in lower and 'high complexity' in lower:
+                try:
+                    import re
+                    match = re.search(r'\(100-199 nodes\): (\d+)', line)
+                    if match:
+                        metrics['high_complexity'] = int(match.group(1))
+                except Exception:
+                    pass
+            elif '[moderate]' in lower and 'moderate complexity' in lower:
+                try:
+                    import re
+                    match = re.search(r'\(50-99 nodes\): (\d+)', line)
+                    if match:
+                        metrics['moderate_complexity'] = int(match.group(1))
+                except Exception:
+                    pass
+            elif '[doc]' in lower and 'undocumented handlers' in lower:
+                try:
+                    import re
+                    match = re.search(r'Undocumented Handlers: (\d+)', line)
+                    if match:
+                        metrics['undocumented_handlers'] = int(match.group(1))
+                except Exception:
+                    pass
+            elif '[dupe]' in lower and 'duplicate function names' in lower:
+                try:
+                    import re
+                    match = re.search(r'Duplicate Function Names: (\d+)', line)
+                    if match:
+                        metrics['duplicate_functions'] = int(match.group(1))
                 except Exception:
                     pass
 
@@ -603,19 +674,34 @@ class AIToolsRunner:
         
         # System Overview
         lines.append("## 🎯 System Overview")
-        ds_metrics = self.results_cache.get('decision_support_metrics', {})
-        total_functions = ds_metrics.get('total_functions', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
-        high_complexity = ds_metrics.get('high_complexity', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
         
+        # Get metrics from function discovery (primary source)
+        fd_metrics = self.results_cache.get('function_discovery', {})
+        ds_metrics = self.results_cache.get('decision_support_metrics', {})
+        
+        # Use function discovery metrics first, fallback to decision support
+        total_functions = fd_metrics.get('total_functions', ds_metrics.get('total_functions', 'Unknown'))
+        moderate_count = fd_metrics.get('moderate_complexity', ds_metrics.get('moderate_complexity', 'Unknown'))
+        high_count = fd_metrics.get('high_complexity', ds_metrics.get('high_complexity', 'Unknown'))
+        critical_count = fd_metrics.get('critical_complexity', ds_metrics.get('critical_complexity', 'Unknown'))
+        
+        complexity_summary = f"Moderate: {moderate_count}, High: {high_count}, Critical: {critical_count}"
+        
+        # Get documentation coverage from audit function registry
         audit_data = self.results_cache.get('audit_function_registry', {})
         doc_coverage = audit_data.get('doc_coverage', 'Unknown') if isinstance(audit_data, dict) else 'Unknown'
         
         lines.append(f"- **Total Functions**: {total_functions}")
-        lines.append(f"- **High Complexity Functions**: {high_complexity} (>50 nodes)")
+        lines.append(f"- **Complexity Distribution**: {complexity_summary}")
         lines.append(f"- **Documentation Coverage**: {doc_coverage}")
+        
+        # Determine system status based on critical complexity
         try:
-            complexity_num = int(high_complexity) if high_complexity != 'Unknown' else 0
-            status = '🟢 Healthy' if complexity_num < 2000 else '🟡 Needs Attention'
+            if 'Critical:' in complexity_summary:
+                critical_num = int(complexity_summary.split('Critical: ')[1].split(',')[0])
+                status = '🟢 Healthy' if critical_num < 50 else '🟡 Needs Attention' if critical_num < 100 else '🔴 Critical'
+            else:
+                status = '🟡 Unknown'
         except (ValueError, TypeError):
             status = '🟡 Unknown'
         lines.append(f"- **System Status**: {status}")

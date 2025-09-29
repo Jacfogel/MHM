@@ -47,7 +47,7 @@ python ai_development_tools/ai_tools_runner.py status
 - `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
 
 **Key Metrics to Extract and Report:**
-- **Function Complexity**: Count of high-complexity functions (>50 nodes)
+- **Function Complexity**: Count by level (Moderate: 50-99, High: 100-199, Critical: 200+ nodes)
 - **Documentation Coverage**: Current coverage percentage
 - **Legacy Code**: Number of legacy references found
 - **Test Coverage**: Current coverage percentages by module
@@ -59,7 +59,7 @@ python ai_development_tools/ai_tools_runner.py status
 
 #### **📊 System Overview**
 - Total Functions: [number]
-- High Complexity Functions: [number] (>50 nodes)
+- Complexity Distribution: [Moderate: X, High: Y, Critical: Z]
 - Documentation Coverage: [percentage]
 - System Health: [Healthy/Issues/Critical]
 

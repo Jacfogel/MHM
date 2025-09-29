@@ -16,7 +16,15 @@ import config
 
 # Configuration - File Categories from config
 AI_DOCS = config.VERSION_SYNC['ai_docs']
+GENERATED_AI_DOCS = config.VERSION_SYNC.get('generated_ai_docs', [])
+GENERATED_DOCS = config.VERSION_SYNC.get('generated_docs', [])
 CURSOR_RULES = config.VERSION_SYNC['cursor_rules']
+CURSOR_COMMANDS = config.VERSION_SYNC.get('cursor_commands', [])
+COMMUNICATION_DOCS = config.VERSION_SYNC.get('communication_docs', [])
+CORE_DOCS = config.VERSION_SYNC.get('core_docs', [])
+LOGS_DOCS = config.VERSION_SYNC.get('logs_docs', [])
+SCRIPTS_DOCS = config.VERSION_SYNC.get('scripts_docs', [])
+TESTS_DOCS = config.VERSION_SYNC.get('tests_docs', [])
 CORE_SYSTEM_FILES = config.VERSION_SYNC['core_system_files']
 DOCUMENTATION_PATTERNS = config.VERSION_SYNC['documentation_patterns']
 EXCLUDE_PATTERNS = config.VERSION_SYNC['exclude_patterns']
@@ -49,6 +57,15 @@ def is_recently_modified(file_path, days_back=1):
     except Exception:
         return True  # If we can't determine, assume it's recent
 
+def is_generated_file(file_path):
+    """Check if a file is generated (should be treated differently)"""
+    file_path_str = str(file_path)
+    # Normalize path separators and remove leading ./
+    normalized_path = file_path_str.replace('\\', '/').replace('./', '')
+    generated_files = GENERATED_AI_DOCS + GENERATED_DOCS
+    # Also check the original path in case normalization doesn't work
+    return normalized_path in generated_files or file_path_str in generated_files
+
 def should_track_file(file_path, scope="ai_docs"):
     """Determine if a file should be tracked for versioning"""
     file_path_str = str(file_path)
@@ -63,12 +80,23 @@ def should_track_file(file_path, scope="ai_docs"):
         return False
     
     if scope == "ai_docs":
-        # Only AI documentation and cursor rules
+        # Only AI documentation and cursor rules (exclude generated)
         return file_path_str in AI_DOCS + CURSOR_RULES
     
+    elif scope == "generated":
+        # Only generated files
+        return file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS
+    
     elif scope == "docs":
-        # All documentation files
-        return (file_path_str.endswith('.md') or 
+        # All documentation files including new categories (exclude generated)
+        all_docs = (AI_DOCS + CURSOR_RULES + CURSOR_COMMANDS + 
+                   COMMUNICATION_DOCS + CORE_DOCS + LOGS_DOCS + 
+                   SCRIPTS_DOCS + TESTS_DOCS + config.VERSION_SYNC['docs'])
+        # Exclude generated files from docs scope
+        if file_path_str in GENERATED_AI_DOCS + GENERATED_DOCS:
+            return False
+        return (file_path_str in all_docs or 
+                file_path_str.endswith('.md') or 
                 file_path_str.endswith('.txt') or 
                 file_path_str.endswith('.mdc'))
     
@@ -89,6 +117,12 @@ def find_trackable_files(scope="ai_docs"):
     if scope == "ai_docs":
         # Use predefined lists
         for file_path in AI_DOCS + CURSOR_RULES:
+            if os.path.exists(file_path):
+                trackable_files.append(file_path)
+    
+    elif scope == "generated":
+        # Use predefined generated file lists
+        for file_path in GENERATED_AI_DOCS + GENERATED_DOCS:
             if os.path.exists(file_path):
                 trackable_files.append(file_path)
     
@@ -177,22 +211,35 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
                 old_version, old_date = extract_version_info(content)
                 file_mod_date = get_file_modification_date(file_path)
                 
-                # Determine if we should update the date
-                if force_date_update or is_recently_modified(file_path, days_back=1):
-                    # File was modified recently (today/yesterday) or force update requested
+                # Special handling for generated files
+                if is_generated_file(file_path):
+                    # Generated files should always use current date and version
                     new_date = current_date
-                    if force_date_update:
-                        date_reason = "force update"
-                    elif file_mod_date == current_date:
-                        date_reason = "modified today"
+                    date_reason = "generated file"
+                    # For generated files, we might want to use a different version pattern
+                    # or skip version updates entirely since they're auto-generated
+                    if scope == "generated":
+                        # Only update date for generated files, not version
+                        new_content = update_version_info(content, old_version, new_date)
                     else:
-                        date_reason = "modified yesterday"
+                        new_content = update_version_info(content, target_version, new_date)
                 else:
-                    # File wasn't modified recently, keep existing date
-                    new_date = old_date
-                    date_reason = "unchanged"
-                
-                new_content = update_version_info(content, target_version, new_date)
+                    # Regular file handling
+                    if force_date_update or is_recently_modified(file_path, days_back=1):
+                        # File was modified recently (today/yesterday) or force update requested
+                        new_date = current_date
+                        if force_date_update:
+                            date_reason = "force update"
+                        elif file_mod_date == current_date:
+                            date_reason = "modified today"
+                        else:
+                            date_reason = "modified yesterday"
+                    else:
+                        # File wasn't modified recently, keep existing date
+                        new_date = old_date
+                        date_reason = "unchanged"
+                    
+                    new_content = update_version_info(content, target_version, new_date)
                 
                 if new_content != content:
                     with open(file_path, 'w', encoding='utf-8') as f:
@@ -336,7 +383,8 @@ if __name__ == "__main__":
         print("   python ai_tools/version_sync.py status")
         print()
         print("Available scopes:")
-        print("   ai_docs  - AI documentation and cursor rules (default)")
-        print("   docs     - All documentation files (*.md, *.txt, *.mdc)")
-        print("   core     - Core system files (run_mhm.py, core/service.py, etc.)")
-        print("   all      - All files (use with caution)") 
+        print("   ai_docs     - AI documentation and cursor rules (default)")
+        print("   docs        - All documentation files (*.md, *.txt, *.mdc)")
+        print("   generated   - Generated files (function registry, module dependencies, etc.)")
+        print("   core        - Core system files (run_mhm.py, core/service.py, etc.)")
+        print("   all         - All files (use with caution)") 

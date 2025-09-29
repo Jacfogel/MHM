@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 """
-Automatically add docstrings to Python functions in the codebase.
-Uses the same template generation logic as the function registry generator.
+MHM Auto Document Functions - Automatically add docstrings to Python functions
+
+This tool analyzes the MHM codebase and automatically generates appropriate docstrings
+for functions that lack documentation. It uses the same template generation logic as
+the function registry generator to ensure consistency.
+
+Specifically designed for the MHM mental health assistant project, it understands
+the project's patterns for handlers, utilities, and core functionality.
 """
 
 import os
