@@ -34,7 +34,7 @@ class CoverageMetricsRegenerator:
     
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
-        self.coverage_plan_file = self.project_root / "TEST_COVERAGE_EXPANSION_PLAN.md"
+        self.coverage_plan_file = self.project_root / "development_docs" / "TEST_COVERAGE_EXPANSION_PLAN.md"
         
         # Core modules to track coverage for
         self.core_modules = [

@@ -181,7 +181,7 @@ class DiscordBot(BaseChannel):
             try:
                 # Use a shorter timeout for faster failure detection
                 socket.create_connection((endpoint_hostname, endpoint_port), timeout=5)
-                logger.info(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port}")
+                logger.debug(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port}")
                 return True
             except (socket.gaierror, socket.timeout, OSError) as e:
                 logger.debug(f"Network connectivity failed to {endpoint_hostname}:{endpoint_port} - {e}")
@@ -1003,6 +1003,44 @@ class DiscordBot(BaseChannel):
         if suggestions:
             view = self._create_action_row(suggestions)
         
+        # Handle special Discord user marker first
+        if recipient.startswith("discord_user:"):
+            internal_user_id = recipient.split(":", 1)[1]
+            # Get the user's Discord user ID and send a DM
+            try:
+                from core.user_data_handlers import get_user_data
+                user_data_result = get_user_data(internal_user_id, 'account')
+                account_data = user_data_result.get('account', {})
+                discord_user_id = account_data.get('discord_user_id')
+                
+                if discord_user_id:
+                    user_id_int = int(discord_user_id)
+                    user = self.bot.get_user(user_id_int)
+                    if not user:
+                        user = await self.bot.fetch_user(user_id_int)
+                    
+                    if user:
+                        if embed and view:
+                            await user.send(embed=embed, view=view)
+                        elif embed:
+                            await user.send(embed=embed)
+                        elif view:
+                            await user.send(message, view=view)
+                        else:
+                            await user.send(message)
+                        logger.info(f"DM sent to Discord user {discord_user_id} | Content: '{message[:50]}...'")
+                        logger.info(f"Discord DM sent | {{\"user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
+                        return True
+                    else:
+                        logger.warning(f"Could not find Discord user {discord_user_id} for internal user {internal_user_id}")
+                        return False
+                else:
+                    logger.warning(f"No Discord user ID found for internal user {internal_user_id}")
+                    return False
+            except Exception as e:
+                logger.error(f"Error sending DM to Discord user {internal_user_id}: {e}")
+                return False
+        
         # Try as a channel first (preferred method)
         try:
             channel_id = int(recipient)
@@ -1029,48 +1067,6 @@ class DiscordBot(BaseChannel):
             logger.warning(f"Invalid channel ID format: {recipient}")
             pass  # Not a valid channel ID
         
-        # Handle special Discord user marker
-        if recipient.startswith("discord_user:"):
-            internal_user_id = recipient.split(":", 1)[1]
-            # Get the user's Discord user ID and send a DM
-            try:
-                from core.user_data_handlers import get_user_data
-                user_data_result = get_user_data(internal_user_id, 'account')
-                account_data = user_data_result.get('account', {})
-                discord_user_id = account_data.get('discord_user_id')
-                
-                if discord_user_id:
-                    user_id_int = int(discord_user_id)
-                    user = self.bot.get_user(user_id_int)
-                    if not user:
-                        user = await self.bot.fetch_user(user_id_int)
-                    
-                    if user:
-                        if embed and view:
-                            await user.send(embed=embed, view=view)
-                        elif embed:
-                            await user.send(embed=embed)
-                        elif view:
-                            await user.send(message, view=view)
-                        else:
-                            await user.send(message)
-                        # Enhanced logging with message content
-                        message_preview = message[:50] + "..." if len(message) > 50 else message
-                        logger.info(f"DM sent to Discord user {discord_user_id} | Content: '{message_preview}'")
-                        discord_logger.info("Discord DM sent", 
-                                          user_id=discord_user_id, 
-                                          message_length=len(message),
-                                          has_embed=bool(embed),
-                                          has_components=bool(view),
-                                          message_preview=message_preview)
-                        return True
-                    else:
-                        logger.warning(f"Could not find Discord user {discord_user_id}")
-                else:
-                    logger.warning(f"No Discord user ID found for internal user {internal_user_id}")
-            except Exception as e:
-                logger.error(f"Error sending DM to Discord user: {e}")
-                return False
         
         # If we get here, we couldn't send the message
         logger.error(f"Could not find Discord channel or user with ID {recipient}")

@@ -29,6 +29,15 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-29 - Log Analysis and Error Resolution ✅ **COMPLETED**
+- **Discord Channel ID Parsing Fix**: Fixed invalid literal for int() error in Discord bot message sending by properly handling discord_user: format
+- **Message Management KeyError Fix**: Fixed missing 'messages' key access in get_recent_messages function using safe data.get() method
+- **Coverage Plan File Path Fix**: Corrected path to development_docs/TEST_COVERAGE_EXPANSION_PLAN.md in regenerate_coverage_metrics.py
+- **Log Rotation Truncation Fix**: Fixed main log files not being truncated after daily backups by improving doRollover method
+- **File Rotation Logging Fix**: Fixed mhm.file_rotation logs going to app.log instead of file_ops.log by updating log_file_map
+- **Test Suite Validation**: All 1,480 tests pass with proper log rotation and error handling
+- **Impact**: Eliminated log errors, improved log rotation, and enhanced system reliability
+
 ### 2025-09-29 - AI Development Tools Comprehensive Review and Optimization ✅ **COMPLETED**
 - **Metrics Extraction Fix**: Fixed ai_tools_runner.py to properly extract documentation coverage metrics (was showing 100% when actual was 0%)
 - **Standard Exclusions Integration**: Updated all AI tools to use standard_exclusions.py for consistent file filtering

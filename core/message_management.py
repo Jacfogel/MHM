@@ -303,8 +303,13 @@ def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int
             logger.debug(f"No sent messages found for user {user_id}")
             return []
         
-        # Use new chronological structure
-        messages = data['messages']
+        # Use new chronological structure - handle both old and new formats
+        if 'messages' in data:
+            messages = data['messages']
+        else:
+            # Fallback for old format or empty structure
+            logger.debug(f"No 'messages' key found in data for user {user_id}, using empty list")
+            messages = []
         
         if not messages:
             logger.debug(f"No messages found for user {user_id}")
@@ -660,7 +665,7 @@ def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
             "files_existing": existing_count
         }
         
-        logger.info(f"Ensured message files for user {user_id}: {total_success}/{len(categories)} categories (created {success_count} new files, directory_created={directory_created})")
+        logger.debug(f"Ensured message files for user {user_id}: {total_success}/{len(categories)} categories (created {success_count} new files, directory_created={directory_created})")
         return result
         
     except Exception as e:

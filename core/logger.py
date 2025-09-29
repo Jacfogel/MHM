@@ -272,6 +272,7 @@ class ComponentLogger:
 class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     """
     Custom rotating file handler that moves rotated files to a backup directory.
+    Supports both time-based and size-based rotation.
     """
     
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
@@ -279,9 +280,28 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         super().__init__(filename, when=when, interval=interval, backupCount=backupCount, encoding=encoding, delay=delay)
         self.backup_dir = backup_dir
         self.base_filename = filename
+        self.maxBytes = maxBytes
         
         # Ensure backup directory exists (even during tests, as tests may need it)
         os.makedirs(self.backup_dir, exist_ok=True)
+    
+    def shouldRollover(self, record):
+        """
+        Determine if rollover should occur based on both time and size.
+        """
+        # Check time-based rollover first
+        if super().shouldRollover(record):
+            return True
+        
+        # Check size-based rollover if maxBytes is set
+        if self.maxBytes > 0 and self.stream:
+            if hasattr(self.stream, 'tell'):
+                try:
+                    if self.stream.tell() >= self.maxBytes:
+                        return True
+                except (OSError, IOError):
+                    pass
+        return False
     
     def doRollover(self):
         """
@@ -341,14 +361,17 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 self.stream = self._open()
                 return
         
-        # Call parent's doRollover to handle the actual rollover logic
-        # But only if we successfully handled the file movement above
+        # After successful file movement, reopen the original file
+        # This ensures the log file is properly reset/truncated
         try:
-            super().doRollover()
-        except Exception as e:
-            # If parent rollover fails, at least reopen the current file
-            print(f"Warning: Parent rollover failed: {e}")
             self.stream = self._open()
+        except Exception as e:
+            print(f"Warning: Could not reopen log file after rotation: {e}")
+            # Try to create a new file if reopening fails
+            try:
+                self.stream = self._open()
+            except Exception as e2:
+                print(f"Error: Could not create new log file: {e2}")
 
 
 class HeartbeatWarningFilter(logging.Filter):
@@ -515,7 +538,9 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'analytics': log_paths['analytics_file'],
             'message': log_paths['message_file'],
             'backup': log_paths['backup_file'],
-            'checkin_dynamic': log_paths['checkin_dynamic_file']
+            'checkin_dynamic': log_paths['checkin_dynamic_file'],
+            # File rotation operations should go to file_ops.log
+            'file_rotation': log_paths['file_ops_file']
         }
         
         log_file = log_file_map.get(component_name, log_paths['main_file'])
