@@ -810,7 +810,11 @@ class TestAutoCleanupIntegrationBehavior:
         
         (test_dir / "standalone.pyc").write_text("standalone content")
         
-        # Create tracker file
+        # Create logs directory for tracker file
+        logs_dir = test_dir / "logs"
+        logs_dir.mkdir(exist_ok=True)
+        
+        # Create tracker file path
         tracker_path = test_dir / CLEANUP_TRACKER_FILE
         
         yield test_dir, tracker_path

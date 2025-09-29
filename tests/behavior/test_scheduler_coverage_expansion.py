@@ -24,6 +24,7 @@ from core.scheduler import (
     process_user_schedules,
     process_category_schedule
 )
+from tests.test_isolation import TestIsolationManager
 from core.error_handling import SchedulerError
 
 @pytest.fixture
@@ -74,16 +75,18 @@ class TestSchedulerManagerLifecycle:
                 with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods:
                     mock_get_periods.return_value = {'morning': {'active': True}}
                     
-                    # Start the scheduler
-                    scheduler_manager.run_daily_scheduler()
-                    
-                    # Test real behavior: verify thread was created and started
-                    assert scheduler_manager.scheduler_thread is not None
-                    assert scheduler_manager.scheduler_thread.is_alive()
-                    assert scheduler_manager.scheduler_thread.daemon is True
-                    
-                    # Clean up
-                    scheduler_manager.stop_scheduler()
+                    # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+                    with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+                        # Start the scheduler
+                        scheduler_manager.run_daily_scheduler()
+                        
+                        # Test real behavior: verify thread was created and started
+                        assert scheduler_manager.scheduler_thread is not None
+                        assert scheduler_manager.scheduler_thread.is_alive()
+                        assert scheduler_manager.scheduler_thread.daemon is True
+                        
+                        # Clean up
+                        scheduler_manager.stop_scheduler()
     
     @pytest.mark.behavior
     @pytest.mark.schedules
@@ -102,17 +105,19 @@ class TestSchedulerManagerLifecycle:
                 with patch('core.scheduler.get_schedule_time_periods') as mock_get_periods:
                     mock_get_periods.return_value = {'morning': {'active': True}}
                     
-                    # Start the scheduler
-                    scheduler_manager.run_daily_scheduler()
-                    
-                    # Verify thread is running
-                    assert scheduler_manager.scheduler_thread.is_alive()
-                    
-                    # Stop the scheduler
-                    scheduler_manager.stop_scheduler()
-                    
-                    # Test real behavior: verify thread is cleaned up
-                    assert scheduler_manager.scheduler_thread is None
+                    # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+                    with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+                        # Start the scheduler
+                        scheduler_manager.run_daily_scheduler()
+                        
+                        # Verify thread is running
+                        assert scheduler_manager.scheduler_thread.is_alive()
+                        
+                        # Stop the scheduler
+                        scheduler_manager.stop_scheduler()
+                        
+                        # Test real behavior: verify thread is cleaned up
+                        assert scheduler_manager.scheduler_thread is None
     
     @pytest.mark.behavior
     @pytest.mark.schedules
@@ -434,12 +439,16 @@ class TestTaskReminderScheduling:
                 'completed': False
             }
             
-            # Test real behavior: function should schedule the task reminder
-            result = scheduler_manager.schedule_task_reminder_at_time(user_id, task_id, reminder_time)
-            
-            # Verify side effects
-            assert result is True
-            mock_get_task.assert_called_once_with(user_id, task_id)
+            # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+            with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+                # Test real behavior: function should schedule the task reminder
+                result = scheduler_manager.schedule_task_reminder_at_time(user_id, task_id, reminder_time)
+                
+                # Verify side effects
+                assert result is True
+                mock_get_task.assert_called_once_with(user_id, task_id)
+                # Verify set_wake_timer was called
+                mock_wake_timer.assert_called_once()
     
     @pytest.mark.behavior
     @pytest.mark.schedules
@@ -970,27 +979,29 @@ class TestSchedulerLoopCoverage:
             }
         })
         
-        # Test that scheduler can be started and stopped without errors
-        try:
-            scheduler_manager.run_daily_scheduler()
-            
-            # Check if thread started
-            assert scheduler_manager.scheduler_thread is not None, "Scheduler thread should be created"
-            assert scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should be running"
-            
-            # Give thread a moment to initialize
-            time.sleep(0.5)
-            
-            # Verify scheduler is still running
-            assert scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should still be running"
-            
-        finally:
-            # Always stop scheduler to clean up
-            scheduler_manager.stop_scheduler()
-            
-        # Verify scheduler stopped cleanly - thread may be None after stopping
-        if scheduler_manager.scheduler_thread is not None:
-            assert not scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should be stopped"
+        # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+        with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+            # Test that scheduler can be started and stopped without errors
+            try:
+                scheduler_manager.run_daily_scheduler()
+                
+                # Check if thread started
+                assert scheduler_manager.scheduler_thread is not None, "Scheduler thread should be created"
+                assert scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should be running"
+                
+                # Give thread a moment to initialize
+                time.sleep(0.5)
+                
+                # Verify scheduler is still running
+                assert scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should still be running"
+                
+            finally:
+                # Always stop scheduler to clean up
+                scheduler_manager.stop_scheduler()
+                
+            # Verify scheduler stopped cleanly - thread may be None after stopping
+            if scheduler_manager.scheduler_thread is not None:
+                assert not scheduler_manager.scheduler_thread.is_alive(), "Scheduler thread should be stopped"
     
     @pytest.mark.behavior
     @pytest.mark.schedules
@@ -1003,18 +1014,20 @@ class TestSchedulerLoopCoverage:
             # Mock error during scheduling - this will be called in schedule_all_users_immediately()
             mock_get_users.side_effect = Exception("Database connection failed")
             
-            # Test real behavior: scheduler should handle errors gracefully
-            # The error is caught by the error handler, so we test that it doesn't crash
-            try:
-                scheduler_manager.run_daily_scheduler()
-                time.sleep(0.2)  # Give thread time to start and fail
-            except Exception:
-                # This is expected - the error handler should catch and re-raise
-                pass
-            finally:
-                # Always ensure scheduler is stopped to prevent thread exceptions
-                scheduler_manager.stop_scheduler()
-                time.sleep(0.2)  # Give thread time to stop
+            # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+            with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+                # Test real behavior: scheduler should handle errors gracefully
+                # The error is caught by the error handler, so we test that it doesn't crash
+                try:
+                    scheduler_manager.run_daily_scheduler()
+                    time.sleep(0.2)  # Give thread time to start and fail
+                except Exception:
+                    # This is expected - the error handler should catch and re-raise
+                    pass
+                finally:
+                    # Always ensure scheduler is stopped to prevent thread exceptions
+                    scheduler_manager.stop_scheduler()
+                    time.sleep(0.2)  # Give thread time to stop
             
             # Verify side effects: scheduler should have attempted to call get_all_user_ids
             # The call happens in schedule_all_users_immediately() during the initial setup phase
@@ -1032,12 +1045,14 @@ class TestSchedulerLoopCoverage:
             
             mock_get_users.return_value = []
             
-            # Start scheduler
-            scheduler_manager.run_daily_scheduler()
-            time.sleep(0.1)
-            
-            # Test real behavior: stop event should terminate loop
-            scheduler_manager.stop_scheduler()
+            # CRITICAL: Mock set_wake_timer to prevent creating real Windows tasks
+            with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+                # Start scheduler
+                scheduler_manager.run_daily_scheduler()
+                time.sleep(0.1)
+                
+                # Test real behavior: stop event should terminate loop
+                scheduler_manager.stop_scheduler()
             
             # Give thread time to stop
             time.sleep(0.1)

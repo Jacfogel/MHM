@@ -29,6 +29,15 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-28 - Windows Task Scheduler Issue Resolution ✅ **COMPLETED**
+- **Critical Issue Fixed**: Tests were creating 2,828+ real Windows scheduled tasks during test runs, polluting the system
+- **Root Cause**: Scheduler tests calling `set_wake_timer()` method without proper mocking, creating real Windows tasks
+- **Solution**: Added proper mocking for `set_wake_timer` method in all scheduler tests using `patch.object(scheduler_manager, 'set_wake_timer')`
+- **Cleanup Script**: Created `scripts/cleanup_windows_tasks.py` to remove existing tasks and prevent future accumulation
+- **Test Isolation**: Created `tests/test_isolation.py` with utilities to prevent real system resource creation
+- **Verification**: All 1,480 tests pass with 0 Windows tasks created during test runs
+- **Impact**: Tests now properly isolated from system resources, preventing system pollution
+
 ### 2025-09-28 - Test Performance and File Location Fixes ✅ **COMPLETED**
 - **Test Performance Fix**: Fixed failing `test_user_data_performance_real_behavior` by mocking `update_user_index` side effect
 - **Test Isolation**: Resolved test getting 117 saves instead of expected 101 by proper mocking

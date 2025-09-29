@@ -30,6 +30,14 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+**Windows Task Scheduler Issue Resolution** - Fix tests creating real Windows scheduled tasks ✅ **COMPLETED**
+- *What it means*: Tests were creating 2,828+ real Windows scheduled tasks during test runs, polluting the system
+- *Why it helps*: Prevents system pollution and ensures tests don't create real system resources
+- *Estimated effort*: Medium
+- *Status*: ✅ **COMPLETED** - Fixed by adding proper mocking for `set_wake_timer` method in scheduler tests
+- *Results*: All tests now properly mock Windows Task Scheduler calls, no real tasks created during test runs
+- *Files Modified*: `tests/behavior/test_scheduler_coverage_expansion.py`, `scripts/cleanup_windows_tasks.py`, `tests/test_isolation.py`
+
 **Test File Cleanup** - Fix test files being created in real data directory ✅ **COMPLETED**
 - *What it means*: Schedule editor dialog was creating test files in real `data/requests/` directory instead of test directory
 - *Why it helps*: Prevents test files from polluting real data directory, maintains proper test isolation
