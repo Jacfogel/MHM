@@ -20,7 +20,7 @@ from core.logger import get_component_logger
 logger = get_component_logger('main')
 
 # File to track last cleanup timestamp
-CLEANUP_TRACKER_FILE = ".last_cache_cleanup"
+CLEANUP_TRACKER_FILE = "logs/.last_cache_cleanup"
 DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 
 @handle_errors("getting last cleanup timestamp", default_return=0)

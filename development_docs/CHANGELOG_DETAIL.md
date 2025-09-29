@@ -10,6 +10,42 @@ This is the complete detailed changelog.
 
 ## 🗓️ Recent Changes (Most Recent First)
 
+### 2025-09-28 - Test Performance and File Location Fixes ✅ **COMPLETED**
+
+**Background**: Test suite had one failing test due to side effects, and temporary files were being created in the project root directory, causing clutter and poor organization.
+
+**Implementation Details**:
+
+**Test Performance Fix**:
+- **Root Cause**: `test_user_data_performance_real_behavior` was failing because `_save_user_data__save_account` calls `update_user_index(user_id)` which triggers additional saves
+- **Solution**: Added `patch('core.user_data_manager.update_user_index')` to mock the side effect
+- **Result**: Test now passes with accurate performance metrics (101 saves as expected)
+
+**File Organization Fixes**:
+- **Cache Cleanup File**: Updated `core/auto_cleanup.py` to use `logs/.last_cache_cleanup` instead of `.last_cache_cleanup`
+- **Coverage Files**: Updated `coverage.ini` and `run_tests.py` to use `tests/.coverage` and `tests/coverage_html/`
+- **File Migration**: Moved existing files to appropriate directories
+
+**Results**:
+- **Test Suite**: All 1,480 tests now pass (1 skipped, 4 warnings from external libraries)
+- **File Organization**: Clean project root with files in appropriate directories
+- **Test Accuracy**: Performance test provides accurate metrics with proper isolation
+- **Coverage Files**: Now created in `tests/.coverage` and `tests/coverage_html/`
+- **Cache Files**: Now created in `logs/.last_cache_cleanup`
+
+**Files Modified**:
+- `core/auto_cleanup.py`: Updated to use `logs/.last_cache_cleanup`
+- `coverage.ini`: Updated to use `tests/.coverage`
+- `run_tests.py`: Updated to use `tests/.coverage` and `tests/coverage_html/`
+- `tests/behavior/test_user_management_coverage_expansion.py`: Added mock for `update_user_index`
+
+**Success Criteria**:
+- [x] All tests pass with proper isolation
+- [x] Performance test provides accurate metrics
+- [x] Temporary files organized in appropriate directories
+- [x] Clean project root directory
+- [x] All file locations properly configured
+
 ### 2025-09-28 - Generated Documentation Standards Implementation ✅ **COMPLETED**
 
 **Background**: Generated documentation files were not following consistent standards, making it difficult to identify which files are auto-generated and which tools create them. This led to confusion about which files should be manually edited vs. regenerated.

@@ -29,6 +29,15 @@ Guidelines:
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
 
+### 2025-09-28 - Test Performance and File Location Fixes ✅ **COMPLETED**
+- **Test Performance Fix**: Fixed failing `test_user_data_performance_real_behavior` by mocking `update_user_index` side effect
+- **Test Isolation**: Resolved test getting 117 saves instead of expected 101 by proper mocking
+- **File Organization**: Moved `.last_cache_cleanup` from root to `logs/` directory
+- **Coverage Files**: Moved coverage files from `logs/` to `tests/` directory for better organization
+- **Configuration Updates**: Updated `core/auto_cleanup.py`, `coverage.ini`, and `run_tests.py` for proper file locations
+- **Clean Project Root**: All temporary files now created in appropriate directories
+- **Impact**: All 1,480 tests pass with accurate performance metrics and clean project structure
+
 ### 2025-09-28 - Generated Documentation Standards Implementation ✅ **COMPLETED**
 - **Standards Implementation**: Implemented comprehensive standards for all 8 generated documentation files
 - **Generator Updates**: Updated `ai_tools_runner.py`, `config_validator.py`, and `generate_ui_files.py` to include proper headers

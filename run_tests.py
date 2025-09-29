@@ -152,7 +152,7 @@ def main():
 
     # Add coverage if requested
     if args.coverage:
-        cmd.extend(["--cov=core", "--cov=bot", "--cov=tasks", "--cov-report=html:tests/htmlcov", "--cov-report=term"])
+        cmd.extend(["--cov=core", "--cov=communication", "--cov=ui", "--cov=tasks", "--cov=user", "--cov=ai", "--cov-report=html:tests/coverage_html", "--cov-report=term"])
         # Set environment variable to control coverage data file location
         os.environ['COVERAGE_FILE'] = 'tests/.coverage'
 

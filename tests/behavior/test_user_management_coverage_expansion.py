@@ -842,12 +842,13 @@ class TestUserManagementIntegration:
                 with patch('core.user_management.save_json_data') as mock_save:
                     with patch('core.user_management.load_json_data', return_value=test_account):
                         with patch('core.user_management.validate_account_dict') as mock_validate:
-                            mock_validate.return_value = (test_account, [])
-                            
-                            # Perform multiple operations
-                            for i in range(100):
-                                _get_user_data__load_account(self.test_user_id)
-                                _save_user_data__save_account(self.test_user_id, test_account)
+                            with patch('core.user_data_manager.update_user_index'):  # Mock the side effect
+                                mock_validate.return_value = (test_account, [])
+                                
+                                # Perform multiple operations
+                                for i in range(100):
+                                    _get_user_data__load_account(self.test_user_id)
+                                    _save_user_data__save_account(self.test_user_id, test_account)
         
         end_time = time.time()
         total_time = end_time - start_time
