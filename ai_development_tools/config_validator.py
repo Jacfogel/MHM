@@ -21,7 +21,7 @@ class ConfigValidator:
     
     def __init__(self):
         self.project_root = config.get_project_root()
-        self.ai_tools_dir = self.project_root / 'ai_tools'
+        self.ai_tools_dir = self.project_root / 'ai_development_tools'
         self.validation_results = {
             'config_usage': {},
             'hardcoded_values': {},

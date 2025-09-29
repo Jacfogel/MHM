@@ -5,10 +5,19 @@ Conduct a thorough analysis of the MHM codebase to identify issues, assess syste
 
 ## Instructions for AI Assistant
 
-### 1. **Execute Comprehensive Audit**
-Run the full audit suite using PowerShell syntax:
+### 1. **Execute Fast Audit (Recommended)**
+Run the fast audit suite using PowerShell syntax (skips test coverage for speed):
 ```powershell
-# Run full audit
+# Run fast audit (~30 seconds)
+python ai_development_tools/ai_tools_runner.py audit --fast
+
+# Check exit code
+if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
+```
+
+**For Full Audit (includes test coverage):**
+```powershell
+# Run full audit (~3-4 minutes)
 python ai_development_tools/ai_tools_runner.py audit
 
 # Check exit code

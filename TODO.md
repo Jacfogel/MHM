@@ -6,7 +6,7 @@
 
 > **See [README.md](README.md) for complete navigation and project overview**
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
-> **See [TESTING_IMPROVEMENT_PLAN_DETAIL.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
+> **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
 
 ## 📝 How to Add New TODOs
 
@@ -29,6 +29,16 @@ When adding new tasks, follow this format:
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
 ## High Priority
+
+**Documentation Path Drift Resolution** - Fix remaining path drift issues ⚠️ **IN PROGRESS**
+- *What it means*: Only 1 path drift issue remains in `ai_development_docs/AI_MODULE_DEPENDENCIES.md` (99.95% reduction achieved)
+- *Why it helps*: Ensures documentation accuracy and prevents broken references
+- *Estimated effort*: Small
+- *Status*: ⚠️ **IN PROGRESS** - 1 issue remaining, 8 paired documentation synchronization issues
+- *Next steps*:
+  - [ ] Fix remaining path drift issue in AI_MODULE_DEPENDENCIES.md
+  - [ ] Address 8 paired documentation synchronization issues between human/AI docs
+  - [ ] Test documentation sync checker improvements
 
 **Windows Task Scheduler Issue Resolution** - Fix tests creating real Windows scheduled tasks ✅ **COMPLETED**
 - *What it means*: Tests were creating 2,828+ real Windows scheduled tasks during test runs, polluting the system

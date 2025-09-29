@@ -10,7 +10,7 @@ from pathlib import Path
 PROJECT_ROOT = "."
 SCAN_DIRECTORIES = [
     'core',
-    'bot', 
+    'communication',
     'ui',
     'user',
     'tasks',

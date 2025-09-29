@@ -36,12 +36,27 @@ This directory contains tools optimized for AI-assisted development collaboratio
 
 **Available Commands:**
 - `audit` - Comprehensive audit with AI-optimized outputs
+- `audit --fast` - Fast audit (skips test coverage, ~30 seconds vs 3-4 minutes)
 - `docs-sync` - Documentation synchronization check
 - `legacy-cleanup` - Legacy code reference cleanup
 - `quick-status` - System status overview
 - `validate-work` - AI work validation
 - `test-coverage` - Test coverage regeneration
 - `version-sync` - Version synchronization
+
+## ⚡ Fast Mode vs Full Mode
+
+### **Fast Mode** (`audit --fast`)
+- **Time**: ~30 seconds
+- **Includes**: All tools except test coverage regeneration
+- **Use for**: Daily development, quick status checks
+- **Skips**: Test suite execution (1,480+ tests)
+
+### **Full Mode** (`audit`)
+- **Time**: ~3-4 minutes  
+- **Includes**: All tools including test coverage
+- **Use for**: Weekly analysis, before major changes, CI/CD
+- **Includes**: Complete test suite with coverage analysis
 
 ## 📊 AI-Optimized Outputs
 

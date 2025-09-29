@@ -32,28 +32,28 @@ pyside6-uic ui/designs/{filename}.ui -o ui/generated/{filename}_pyqt.py
 All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in `ui/generated/`:
 
 **Dialog Files:**
-- `account_creator_dialog_pyqt.py` - Account creation dialog
-- `admin_panel_pyqt.py` - Main admin panel interface
-- `category_management_dialog_pyqt.py` - Category management dialog
-- `channel_management_dialog_pyqt.py` - Channel management dialog
-- `checkin_management_dialog_pyqt.py` - Check-in management dialog
-- `schedule_editor_dialog_pyqt.py` - Schedule editing dialog
-- `task_completion_dialog_pyqt.py` - Task completion dialog
-- `task_crud_dialog_pyqt.py` - Task CRUD operations dialog
-- `task_edit_dialog_pyqt.py` - Task editing dialog
-- `task_management_dialog_pyqt.py` - Task management dialog
-- `user_profile_management_dialog_pyqt.py` - User profile management dialog
+- `ui/generated/account_creator_dialog_pyqt.py` - Account creation dialog
+- `ui/generated/admin_panel_pyqt.py` - Main admin panel interface
+- `ui/generated/category_management_dialog_pyqt.py` - Category management dialog
+- `ui/generated/channel_management_dialog_pyqt.py` - Channel management dialog
+- `ui/generated/checkin_management_dialog_pyqt.py` - Check-in management dialog
+- `ui/generated/schedule_editor_dialog_pyqt.py` - Schedule editing dialog
+- `ui/generated/task_completion_dialog_pyqt.py` - Task completion dialog
+- `ui/generated/task_crud_dialog_pyqt.py` - Task CRUD operations dialog
+- `ui/generated/task_edit_dialog_pyqt.py` - Task editing dialog
+- `ui/generated/task_management_dialog_pyqt.py` - Task management dialog
+- `ui/generated/user_profile_management_dialog_pyqt.py` - User profile management dialog
 
 **Widget Files:**
-- `category_selection_widget_pyqt.py` - Category selection widget
-- `channel_selection_widget_pyqt.py` - Channel selection widget
-- `checkin_element_template_pyqt.py` - Check-in element template
-- `checkin_settings_widget_pyqt.py` - Check-in settings widget
-- `dynamic_list_field_template_pyqt.py` - Dynamic list field template
-- `period_row_template_pyqt.py` - Period row template
-- `tag_widget_pyqt.py` - Tag widget
-- `task_settings_widget_pyqt.py` - Task settings widget
-- `user_profile_settings_widget_pyqt.py` - User profile settings widget
+- `ui/generated/category_selection_widget_pyqt.py` - Category selection widget
+- `ui/generated/channel_selection_widget_pyqt.py` - Channel selection widget
+- `ui/generated/checkin_element_template_pyqt.py` - Check-in element template
+- `ui/generated/checkin_settings_widget_pyqt.py` - Check-in settings widget
+- `ui/generated/dynamic_list_field_template_pyqt.py` - Dynamic list field template
+- `ui/generated/period_row_template_pyqt.py` - Period row template
+- `ui/generated/tag_widget_pyqt.py` - Tag widget
+- `ui/generated/task_settings_widget_pyqt.py` - Task settings widget
+- `ui/generated/user_profile_settings_widget_pyqt.py` - User profile settings widget
 
 **Note**: All generated files include proper headers identifying them as auto-generated and should not be edited manually.
 

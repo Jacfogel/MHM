@@ -72,7 +72,7 @@
 **Message File Handling (2025-07):**
 - Message files are only created for categories a user is opted into.
 - All message files are always created from the corresponding file in `resources/default_messages/` (never as a list of strings).
-- Legacy/invalid files can be fixed using `scripts/fix_user_message_formats.py` (migration) and `scripts/cleanup_user_message_files.py` (cleanup).
+- Legacy/invalid files can be fixed using migration and cleanup scripts in the `scripts/` directory.
 
 **Important:**
 - `preferences.json` is a flat dict (not nested under a 'preferences' key).
@@ -122,17 +122,17 @@ The UI system uses a clean separation of concerns:
 - **Widgets** (`ui/widgets/`): Reusable widget implementations
 
 ### Naming Conventions
-- **Dialogs**: Use "management" suffix (e.g., `category_management_dialog.py`)
-- **Widgets**: Use "settings" or "selection" suffix (e.g., `category_selection_widget.py`)
-- **Generated Files**: Use "_pyqt" suffix (e.g., `category_management_dialog_pyqt.py`)
+- **Dialogs**: Use "management" suffix (e.g., `ui/dialogs/category_management_dialog.py`)
+- **Widgets**: Use "settings" or "selection" suffix (e.g., `ui/widgets/category_selection_widget.py`)
+- **Generated Files**: Use "_pyqt" suffix (e.g., `ui/generated/category_management_dialog_pyqt.py`)
 - **No Redundant Prefixes**: Removed `ui_app_` prefix since all files are in `ui/` directory
 
 ### File Mapping Examples
 | Purpose | Design File | Generated File | Implementation |
 |---------|-------------|----------------|----------------|
-| Category Management | `category_management_dialog.ui` | `category_management_dialog_pyqt.py` | `category_management_dialog.py` |
-| Account Creation | `account_creator_dialog.ui` | `account_creator_dialog_pyqt.py` | `account_creator_dialog.py` |
-| Task Settings | `task_settings_widget.ui` | `task_settings_widget_pyqt.py` | `task_settings_widget.py` |
+| Category Management | `ui/designs/category_management_dialog.ui` | `ui/generated/category_management_dialog_pyqt.py` | `ui/dialogs/category_management_dialog.py` |
+| Account Creation | `ui/designs/account_creator_dialog.ui` | `ui/generated/account_creator_dialog_pyqt.py` | `ui/dialogs/account_creator_dialog.py` |
+| Task Settings | `ui/designs/task_settings_widget.ui` | `ui/generated/task_settings_widget_pyqt.py` | `ui/widgets/task_settings_widget.py` |
 
 ## Adding New Features Safely
 - Always use the provided load/save functions for user data.
