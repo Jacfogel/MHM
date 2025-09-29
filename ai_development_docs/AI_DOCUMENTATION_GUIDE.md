@@ -43,6 +43,22 @@
 - **../DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
 - **development_docs/CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
 
+### **Cursor Commands Standards**
+**CRITICAL**: All `.cursor/commands/*.md` files must follow consistent structure:
+
+#### **Required Structure**
+- **Instructions for AI Assistant**: Clear step-by-step guidance
+- **PowerShell Syntax**: Proper PowerShell with `$LASTEXITCODE` checking
+- **Structured Reports**: Specific report formats for consistent responses
+- **Critical File Lists**: Exact files to read and analyze
+- **Action-Oriented**: Focus on what AI should do, not just tools to run
+
+#### **Command Optimization**
+- **Short Names**: Easy to type (`/audit`, `/status`, `/docs`, `/review`, `/test`)
+- **Comprehensive Coverage**: Each command covers multiple related tools
+- **Structured Output**: Consistent report formats across all commands
+- **PowerShell Native**: All commands use proper Windows/PowerShell syntax
+
 ## 🎯 AI Standards
 - **Concise**: Essential information only
 - **Scannable**: Clear headers and bullet points

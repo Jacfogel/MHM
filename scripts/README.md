@@ -1,5 +1,33 @@
 # Scripts Directory
 
+> **Audience**: Developers using MHM utility scripts and tools  
+> **Purpose**: Guide for utility scripts, migration tools, and testing scripts  
+> **Style**: Technical, reference-oriented, tool-focused
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Common Scripts**
+```powershell
+# Migration tools
+python scripts/migration/migrate_user_data_structure.py --dry-run
+
+# Testing utilities
+python scripts/testing/test_migration.py
+
+# Debug tools
+python scripts/debug/debug_user_data.py
+```
+
+### **Script Categories**
+- **Migration**: One-time data structure changes
+- **Testing**: Test utilities and validation
+- **Debug**: Troubleshooting and analysis
+- **Utilities**: Admin and maintenance tools
+
 Utility scripts, migration tools, and testing scripts for the MHM system.
 
 ## 📁 Structure

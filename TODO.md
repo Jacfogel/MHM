@@ -37,15 +37,22 @@ When adding new tasks, follow this format:
 - *Status*: ✅ **COMPLETED** - Fixed environment detection in schedule editor dialog
 - *Results*: Test files now use test data directory, automatic cleanup added
 
-**Test File Cleanup Verification** - Verify test file cleanup fix works correctly
+**Test File Cleanup Verification** - Verify test file cleanup fix works correctly ✅ **COMPLETED**
 - *What it means*: Test that schedule editor dialog no longer creates files in real data directory
 - *Why it helps*: Ensures test isolation is maintained and real data directory stays clean
 - *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - Test file cleanup fix verified working correctly
+- *Results*: Test files now use test data directory, automatic cleanup added
+
+**Test Performance Investigation** - Fix failing test_user_data_performance_real_behavior test
+- *What it means*: Test expects 101 account saves but gets 117, indicating side effects in performance test
+- *Why it helps*: Ensures test accuracy and prevents false performance metrics
+- *Estimated effort*: Small
 - *Next steps*:
-  - [ ] Run schedule editor tests and verify no files created in `data/requests/`
-  - [ ] Verify test files are created in `tests/data/requests/` when appropriate
-  - [ ] Test cleanup mechanism removes test files after test completion
-  - [ ] Verify production usage still works correctly
+  - [ ] Analyze why test is getting 117 saves instead of expected 101
+  - [ ] Fix test to properly isolate account save operations
+  - [ ] Verify test passes consistently
+  - [ ] Update test expectations if behavior is correct
 
 **Chat Interaction Storage Testing** - Verify real user scenarios
 - *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building

@@ -1,42 +1,90 @@
-# Run Comprehensive Audit
+# Run Comprehensive System Audit
 
-Run a comprehensive audit of the MHM codebase to get current system status, identify issues, and provide actionable insights.
+## Overview
+Conduct a thorough analysis of the MHM codebase to identify issues, assess system health, and provide actionable insights for development.
 
-## What This Does
+## Instructions for AI Assistant
 
-- Scans all Python files for function complexity and patterns
-- Analyzes module dependencies and relationships  
-- Checks documentation synchronization status
-- Identifies legacy references and cleanup opportunities
-- Provides concise summary with key metrics and action items
+### 1. **Execute Comprehensive Audit**
+Run the full audit suite using PowerShell syntax:
+```powershell
+# Run full audit
+python ai_development_tools/ai_tools_runner.py audit
 
-## Usage
+# Check exit code
+if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
+```
 
-This command runs: `python ai_development_tools/ai_tools_runner.py audit`
+### 2. **Run Additional Analysis Tools**
+Execute supporting analysis tools:
+```powershell
+# Documentation sync check
+python ai_development_tools/ai_tools_runner.py doc-sync
 
-## Output
+# Legacy code scan
+python ai_development_tools/ai_tools_runner.py legacy
 
-- **System Health**: Overall codebase status and metrics
-- **Critical Issues**: High-priority problems that need attention
-- **Action Items**: Specific tasks to improve code quality
-- **Documentation Status**: Sync status of paired documentation
-- **Legacy References**: Outdated code patterns to clean up
+# Configuration validation
+python ai_development_tools/ai_tools_runner.py config
 
-## When to Use
+# System status check
+python ai_development_tools/ai_tools_runner.py status
+```
 
-- **Before major changes** - Understand current system state
-- **After refactoring** - Verify improvements and identify next steps  
-- **Weekly maintenance** - Regular health checks
-- **When debugging** - Get comprehensive system overview
-- **Before AI collaboration** - Provide context for AI assistants
+### 3. **Analyze and Report Results**
+**CRITICAL**: Always read and analyze these files:
+- `ai_development_tools/consolidated_report.txt` - **Main summary**
+- `ai_development_tools/critical_issues.txt` - **Priority issues**
+- `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
 
-## Key Metrics Provided
+**Key Metrics to Extract and Report:**
+- **Function Complexity**: Count of high-complexity functions (>50 nodes)
+- **Documentation Coverage**: Current coverage percentage
+- **Legacy Code**: Number of legacy references found
+- **Test Coverage**: Current coverage percentages by module
+- **Documentation Sync**: Number of sync issues found
+- **System Health**: Overall status (Healthy/Issues/Critical)
 
-- Function complexity distribution
-- Test coverage status
-- Documentation sync status
-- Legacy code patterns
-- Module dependency health
-- Recent activity summary
+### 4. **Provide Structured Report**
+**ALWAYS provide this format in your response:**
 
-This audit follows the **Audit-First Protocol** - always run audit before creating documentation or making significant changes.
+#### **📊 System Overview**
+- Total Functions: [number]
+- High Complexity Functions: [number] (>50 nodes)
+- Documentation Coverage: [percentage]
+- System Health: [Healthy/Issues/Critical]
+
+#### **🚨 Critical Issues**
+- [List top 3-5 critical issues from critical_issues.txt]
+- [Include specific file paths and descriptions]
+
+#### **📈 Key Metrics**
+- Function Complexity: [distribution]
+- Test Coverage: [percentage by module]
+- Legacy References: [number found]
+- Documentation Sync: [number of issues]
+
+#### **🎯 Immediate Action Items**
+1. [Priority 1 - from critical issues]
+2. [Priority 2 - from critical issues]
+3. [Priority 3 - from critical issues]
+
+#### **📋 Next Steps**
+- [Specific recommendations based on findings]
+- [Suggested follow-up actions]
+- [Timeline for addressing issues]
+
+## Success Criteria
+- All audit tools complete successfully
+- Critical issues identified and prioritized
+- Actionable recommendations provided
+- System health status determined
+- Next steps clearly defined
+
+## Output Files to Always Check
+- `ai_development_tools/consolidated_report.txt` - **Main summary**
+- `ai_development_tools/critical_issues.txt` - **Priority issues**
+- `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
+- `development_docs/LEGACY_REFERENCE_REPORT.md` - **Legacy cleanup**
+- `ai_development_tools/AI_STATUS.md` - **System status**
+- `ai_development_tools/AI_PRIORITIES.md` - **Action priorities**

@@ -1,11 +1,33 @@
 # MHM Testing Framework
 
-> **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side effect verification  
 > **Audience**: Developers and AI assistants working on MHM  
+> **Purpose**: Comprehensive testing framework focused on real behavior, integration scenarios, and side effect verification  
+> **Style**: Technical, comprehensive, actionable  
 > **Status**: **ACTIVE** - Real behavior testing implemented, expanding coverage  
-> **Version**: --scope=docs - AI Collaboration System Active
-> **Last Updated**: 2025-07-21
-> **Last Updated**: 2025-07-16
+> **Last Updated**: 2025-09-28
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Test Execution**
+```powershell
+# Run all tests
+python run_tests.py
+
+# Run specific test types
+python run_tests.py --type unit
+python run_tests.py --type integration
+python run_tests.py --verbose
+```
+
+### **Test Categories**
+- **Unit Tests**: Individual function testing
+- **Integration Tests**: Cross-module workflows
+- **Behavior Tests**: Real system behavior verification
+- **UI Tests**: User interface functionality
 
 This directory contains the comprehensive test suite for the Mental Health Management (MHM) system. The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
 

@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Set, Tuple
 import json
+from datetime import datetime
 
 import config
 
@@ -301,11 +302,20 @@ def main():
     results = validator.run_validation()
     validator.print_validation_report(results)
     
-    # Save results
+    # Save results with proper headers
     results_file = validator.ai_tools_dir / 'config_validation_results.json'
     try:
+        # Add generation headers to results
+        results_with_headers = {
+            'generated_by': 'config_validator.py - Configuration Validation Tool',
+            'last_generated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            'source': 'python ai_development_tools/config_validator.py',
+            'note': 'This file is auto-generated. Do not edit manually.',
+            'validation_results': results
+        }
+        
         with open(results_file, 'w', encoding='utf-8') as f:
-            json.dump(results, f, indent=2)
+            json.dump(results_with_headers, f, indent=2)
         print(f"\nResults saved to: {results_file}")
     except Exception as e:
         print(f"\nFailed to save results: {e}")

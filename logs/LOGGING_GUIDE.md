@@ -1,5 +1,32 @@
 # Enhanced Logging System Guide
 
+> **Audience**: Developers working with MHM logging system  
+> **Purpose**: Guide for enhanced logging system with component-based separation  
+> **Style**: Technical, comprehensive, reference-oriented
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Log Files**
+- `app.log` - Main application logs
+- `discord.log` - Discord bot operations
+- `ai.log` - AI interactions and processing
+- `errors.log` - Error and critical messages
+- `user_activity.log` - User actions and check-ins
+
+### **Logging Commands**
+```powershell
+# View recent logs
+Get-Content logs/app.log -Tail 50
+Get-Content logs/errors.log -Tail 20
+
+# Monitor logs in real-time
+Get-Content logs/app.log -Wait
+```
+
 ## Overview
 
 The MHM logging system has been enhanced with component-based separation, structured logging, and better organization. This guide explains how to use the new features.

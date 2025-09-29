@@ -1,7 +1,27 @@
-DISCORD Commands and Usage
+# DISCORD Commands and Usage
 
-Audience: Users and contributors
-Purpose: Quick reference for Discord commands and natural language usage
+> **Audience**: Users and contributors  
+> **Purpose**: Quick reference for Discord commands and natural language usage  
+> **Style**: User-friendly, command-focused, reference-oriented
+
+> **See [README.md](../../../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../../../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../../../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Core Commands**
+- **Tasks**: `create task`, `list tasks`, `complete task`, `delete task`, `update task`, `task stats`
+- **Check-ins**: `start checkin`, `checkin status`, `checkin history`
+- **Profile**: `show profile`, `update profile`, `profile stats`
+- **Schedule**: `show schedule`, `update schedule`, `schedule status`
+- **Analytics**: `show analytics`, `mood trends`, `habit analysis`, `wellness score`
+- **Help**: `help`, `commands`, `examples`
+
+### **Natural Language**
+- Use natural language freely for all interactions
+- Explicit commands available for precision
+- Bot understands context and intent
 
 Overview
 - Supports Discord slash commands (when configured), classic bang/keyword commands, and natural language.

@@ -845,14 +845,12 @@ class CommunicationManager:
         else:
             self._send_predefined_message(user_id, category, messaging_service, recipient)
         
-        # Expire any active check-in flow only for messages that would interfere with checkin flow
+        # Expire any active check-in flow when any message is sent to avoid user confusion
         try:
-            # Only cancel checkin flows for interactive messages that could confuse the user
-            # Scheduled reminders, health messages, etc. should not cancel active checkins
-            interfering_categories = ["personalized", "ai_personalized", "help", "commands"]
-            if category in interfering_categories:
-                from communication.message_processing.conversation_flow_manager import conversation_manager
-                conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+            # ALL messages sent to the user should cancel active checkin flows
+            # This prevents confusion when the user receives messages while in a checkin flow
+            from communication.message_processing.conversation_flow_manager import conversation_manager
+            conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
         except Exception as _e:
             logger.debug(f"Check-in flow expiration after outbound message failed for user {user_id}: {_e}")
 

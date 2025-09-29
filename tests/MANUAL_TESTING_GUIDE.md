@@ -1,9 +1,30 @@
 # MHM Manual Testing Guide
 
-> **Purpose**: Comprehensive manual testing guide for all dialogs and UI components  
 > **Audience**: Developers and testers performing manual UI testing  
+> **Purpose**: Comprehensive manual testing guide for all dialogs and UI components  
+> **Style**: Step-by-step, checklist-focused, testing-oriented  
 > **Status**: **ACTIVE** - Consolidated from multiple sources  
-> **Last Updated**: 2025-08-19
+> **Last Updated**: 2025-09-28
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Testing Order (Recommended)**
+1. **Category Management Dialog** - Simplest, good starting point
+2. **Channel Management Dialog** - Basic functionality
+3. **Check-in Management Dialog** - Moderate complexity
+4. **Task Management Dialog** - Moderate complexity
+5. **Schedule Editor Dialog** - More complex
+6. **User Profile Dialog** - Most complex, many fields
+7. **Account Creator Dialog** - Most complex, integration testing
+
+### **Before Starting**
+- [ ] Run `python run_mhm.py` to ensure system starts
+- [ ] Have a test user ready (or create one)
+- [ ] Keep this guide open for notes
 
 ## 🎯 **Testing Strategy**
 

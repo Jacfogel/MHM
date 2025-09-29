@@ -1,5 +1,31 @@
 # AI Development Tools
 
+> **Audience**: AI assistants and developers using MHM development tools  
+> **Purpose**: Tools optimized for AI-assisted development collaboration and codebase analysis  
+> **Style**: Technical, reference-oriented, tool-focused
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Main Tool**
+```powershell
+# Run AI development tools
+python ai_development_tools/ai_tools_runner.py <command>
+
+# Available commands
+python ai_development_tools/ai_tools_runner.py help
+```
+
+### **Common Commands**
+- `audit` - Comprehensive system audit
+- `status` - Quick system status
+- `docs` - Documentation updates
+- `legacy` - Legacy code cleanup
+- `coverage` - Test coverage analysis
+
 This directory contains tools optimized for AI-assisted development collaboration and codebase analysis.
 
 ## 🎯 Primary Tool

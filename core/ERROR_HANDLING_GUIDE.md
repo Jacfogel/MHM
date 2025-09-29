@@ -1,9 +1,27 @@
 # Exception Handling Guide - MHM System
 
-> **Purpose**: Comprehensive guide to the MHM exception handling system  
 > **Audience**: Developers, AI collaborators, and maintainers  
-> **Status**: **ACTIVE** - Always follow these patterns  
-> **Style**: Technical, comprehensive, actionable
+> **Purpose**: Comprehensive guide to the MHM exception handling system  
+> **Style**: Technical, comprehensive, actionable  
+> **Status**: **ACTIVE** - Always follow these patterns
+
+> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+
+## 🚀 Quick Reference
+
+### **Error Handling Patterns**
+- **Use centralized error handling**: `core/error_handling.py`
+- **Follow exception hierarchy**: `MHMError` → specific exceptions
+- **Implement recovery strategies**: Automatic retry mechanisms
+- **Log errors properly**: Use structured logging with context
+
+### **Common Error Types**
+- **Configuration Errors**: Invalid settings or missing files
+- **Data Errors**: Corrupted or invalid user data
+- **Communication Errors**: Discord/email failures
+- **UI Errors**: Interface failures and user input issues
 
 ## 🎯 **Overview**
 

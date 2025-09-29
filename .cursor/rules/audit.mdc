@@ -46,11 +46,11 @@ relatedFiles: ["ai_tools/README.md", "AI_REFERENCE.md"]
 - **ALWAYS** ask: "Should I proceed with this data?"
 
 ## 🛠️ Required Audit Scripts
-- `python ai_tools/ai_tools_runner.py audit` - For comprehensive overview
-- `python ai_tools/function_discovery.py` - For function analysis
-- `python ai_tools/audit_function_registry.py` - For function documentation
-- `python ai_tools/audit_module_dependencies.py` - For dependency maps
-- `python ai_tools/analyze_documentation.py` - For documentation consolidation
+- `python ai_development_tools/ai_tools_runner.py audit` - For comprehensive overview
+- `python ai_development_tools/function_discovery.py` - For function analysis
+- `python ai_development_tools/audit_function_registry.py` - For function documentation
+- `python ai_development_tools/audit_module_dependencies.py` - For dependency maps
+- `python ai_development_tools/analyze_documentation.py` - For documentation consolidation
 
 ## 🔄 Audit-First Workflow
 1. **Run audit script** to get actual data
