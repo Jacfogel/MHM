@@ -79,6 +79,11 @@ The audit command creates AI-optimized documents:
 - **`generate_module_dependencies.py`** - Creates AI_MODULE_DEPENDENCIES.md
 - **`analyze_documentation.py`** - Analyzes documentation redundancy
 
+### Process Improvement Tools
+- **`version_sync.py`** - Changelog management, path validation, TODO sync
+- **`documentation_sync_checker.py`** - ASCII compliance, documentation quality
+- **Integrated in audit workflow** - Automatic process improvement checks
+
 ### Validation Tools
 - **`documentation_sync_checker.py`** - Checks documentation synchronization
 - **`legacy_reference_cleanup.py`** - Identifies legacy code references

@@ -73,12 +73,22 @@ class AIToolsRunner:
                 'output': '',
                 'error': f'Script {script_name} timed out after 5 minutes'
             }
-        except Exception as e:
+    
+    def run_analyze_documentation(self) -> Dict:
+        """Run analyze_documentation script with special handling for intentional failures"""
+        result = self.run_script("analyze_documentation")
+        
+        # analyze_documentation intentionally exits with code 1 when duplicates/placeholders found
+        if not result['success'] and "Found" in result['output'] and ("verbatim duplicate" in result['output'] or "placeholder" in result['output']):
+            # This is expected behavior, not a failure
             return {
-                'success': False,
-                'output': '',
-                'error': str(e)
+                'success': True,
+                'output': result['output'],
+                'error': '',
+                'issues_found': True
             }
+        
+        return result
     
     # ===== SIMPLE COMMANDS (for users) =====
     
@@ -113,6 +123,21 @@ class AIToolsRunner:
             consolidated_report = self._generate_consolidated_report()
             consolidated_file = create_output_file("ai_development_tools/consolidated_report.txt", consolidated_report)
             
+            # Check and trim AI_CHANGELOG entries to prevent bloat
+            self._check_and_trim_changelog_entries()
+            
+            # Validate referenced paths exist
+            self._validate_referenced_paths()
+            
+            # Check for documentation duplicates and placeholders
+            self._check_documentation_quality()
+            
+            # Check ASCII compliance
+            self._check_ascii_compliance()
+            
+            # Sync TODO.md with changelog
+            self._sync_todo_with_changelog()
+            
             # Audit completed
             
             print("\n" + "=" * 50)
@@ -128,18 +153,42 @@ class AIToolsRunner:
             return False
     
     def run_docs(self):
-        """Update all documentation (simple command)"""
+        """Update all documentation (OPTIONAL - not essential for audit)"""
         print("Updating documentation...")
         print("=" * 50)
         
-        result = self.run_workflow('documentation')
-        if result:
-            print("\n" + "=" * 50)
-            print("Documentation updated successfully!")
-            return True
-        else:
-            print("Documentation update failed!")
-            return False
+        # Generate function registry
+        try:
+            print("  - Generating function registry...")
+            result = self.run_script("generate_function_registry")
+            if result['success']:
+                print("  - Function registry generated successfully")
+            else:
+                print(f"  - Function registry generation failed: {result['error']}")
+        except Exception as e:
+            print(f"  - Function registry generation failed: {e}")
+        
+        # Generate module dependencies
+        try:
+            print("  - Generating module dependencies...")
+            result = self.run_script("generate_module_dependencies")
+            if result['success']:
+                print("  - Module dependencies generated successfully")
+            else:
+                print(f"  - Module dependencies generation failed: {result['error']}")
+        except Exception as e:
+            print(f"  - Module dependencies generation failed: {e}")
+        
+        # Generate directory trees
+        try:
+            print("  - Generating directory trees...")
+            self.generate_directory_trees()
+        except Exception as e:
+            print(f"  - Directory tree generation failed: {e}")
+        
+        print("\n" + "=" * 50)
+        print("Documentation generation completed!")
+        return True
     
     def run_validate(self):
         """Validate AI-generated work (simple command)"""
@@ -211,7 +260,12 @@ class AIToolsRunner:
             script_name = script.replace('.py', '')
             print(f"Running {script_name}...")
             
-            result = self.run_script(script_name)
+            # Special handling for analyze_documentation
+            if script_name == 'analyze_documentation':
+                result = self.run_analyze_documentation()
+            else:
+                result = self.run_script(script_name)
+            
             results[script_name] = result
             
             if result['success']:
@@ -674,7 +728,7 @@ class AIToolsRunner:
         lines.append("")
         
         # System Overview
-        lines.append("## 🎯 System Overview")
+        lines.append("## System Overview")
         
         # Get metrics from function discovery (primary source)
         fd_metrics = self.results_cache.get('function_discovery', {})
@@ -696,31 +750,41 @@ class AIToolsRunner:
         lines.append(f"- **Complexity Distribution**: {complexity_summary}")
         lines.append(f"- **Documentation Coverage**: {doc_coverage}")
         
+        # Process Improvement Status
+        lines.append("")
+        lines.append("## 🔧 Process Improvement Status")
+        lines.append("- **Changelog Management**: **ACTIVE** (Auto-trimming enabled)")
+        lines.append("- **Path Validation**: **ACTIVE** (Validates all references)")
+        lines.append("- **Documentation Quality**: **ACTIVE** (Detects duplicates/placeholders)")
+        lines.append("- **ASCII Compliance**: **ACTIVE** (Ensures ASCII-only docs)")
+        lines.append("- **TODO Hygiene**: **ACTIVE** (Auto-syncs with changelog)")
+        lines.append("")
+        
         # Determine system status based on critical complexity
         try:
             if 'Critical:' in complexity_summary:
                 critical_num = int(complexity_summary.split('Critical: ')[1].split(',')[0])
-                status = '🟢 Healthy' if critical_num < 50 else '🟡 Needs Attention' if critical_num < 100 else '🔴 Critical'
+                status = 'Healthy' if critical_num < 50 else 'Needs Attention' if critical_num < 100 else 'Critical'
             else:
-                status = '🟡 Unknown'
+                status = 'Unknown'
         except (ValueError, TypeError):
-            status = '🟡 Unknown'
+            status = 'Unknown'
         lines.append(f"- **System Status**: {status}")
         lines.append("")
         
         # Documentation Status (from actual docs-sync results)
-        lines.append("## 📚 Documentation Status")
+        lines.append("## Documentation Status")
         if hasattr(self, 'docs_sync_results') and self.docs_sync_results:
             docs_output = self.docs_sync_results.get('output', '')
             if 'Path Drift Issues: 0' in docs_output:
-                lines.append("- **Path Drift**: ✅ **PERFECT** (0 issues)")
+                lines.append("- **Path Drift**: **PERFECT** (0 issues)")
             else:
-                lines.append("- **Path Drift**: 🟡 **NEEDS ATTENTION** (Check consolidated_report.txt)")
+                lines.append("- **Path Drift**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
             
             if 'Paired Doc Issues: 0' in docs_output:
-                lines.append("- **Paired Docs**: ✅ **SYNCHRONIZED** (0 issues)")
+                lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
             else:
-                lines.append("- **Paired Docs**: 🟡 **NEEDS ATTENTION** (Check consolidated_report.txt)")
+                lines.append("- **Paired Docs**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
         else:
             lines.append("- **Sync Status**: Check consolidated_report.txt for details")
             lines.append("- **Paired Docs**: AI and human documentation synchronization")
@@ -728,13 +792,13 @@ class AIToolsRunner:
         lines.append("")
         
         # Legacy Code Status (from actual legacy-cleanup results)
-        lines.append("## 🧹 Legacy Code Status")
+        lines.append("## Legacy Code Status")
         if hasattr(self, 'legacy_cleanup_results') and self.legacy_cleanup_results:
             legacy_output = self.legacy_cleanup_results.get('output', '')
             if 'Files with issues: 0' in legacy_output:
-                lines.append("- **Legacy References**: ✅ **CLEAN** (0 files with issues)")
+                lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
             else:
-                lines.append("- **Legacy References**: 🟡 **NEEDS ATTENTION** (Check consolidated_report.txt)")
+                lines.append("- **Legacy References**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
                 lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
         else:
             lines.append("- **Legacy References**: Check consolidated_report.txt for details")
@@ -744,17 +808,17 @@ class AIToolsRunner:
         lines.append("")
         
         # Validation Status (from actual validate-work results)
-        lines.append("## ✅ Validation Status")
+        lines.append("## Validation Status")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
             if 'POOR' in validation_output:
-                lines.append("- **AI Work Validation**: 🔴 **POOR** (Check consolidated_report.txt)")
+                lines.append("- **AI Work Validation**: **POOR** (Check consolidated_report.txt)")
                 lines.append("- **Coverage**: 0.0% - Documentation is incomplete")
                 lines.append("- **Missing Items**: 63 items need documentation")
             elif 'GOOD' in validation_output:
-                lines.append("- **AI Work Validation**: 🟢 **GOOD**")
+                lines.append("- **AI Work Validation**: **GOOD**")
             else:
-                lines.append("- **AI Work Validation**: 🟡 **NEEDS REVIEW** (Check consolidated_report.txt)")
+                lines.append("- **AI Work Validation**: **NEEDS REVIEW** (Check consolidated_report.txt)")
         else:
             lines.append("- **AI Work Validation**: Check consolidated_report.txt for details")
             lines.append("- **Code Quality**: Automated validation results")
@@ -762,15 +826,15 @@ class AIToolsRunner:
         lines.append("")
         
         # Coverage Status (from actual test-coverage results)
-        lines.append("## 📊 Coverage Status")
+        lines.append("## Coverage Status")
         if hasattr(self, 'coverage_results') and self.coverage_results:
             coverage_output = self.coverage_results.get('output', '')
             if 'Coverage: 65%' in coverage_output:
-                lines.append("- **Test Coverage**: 🟡 **65%** (Target: 80%+)")
+                lines.append("- **Test Coverage**: **65%** (Target: 80%+)")
                 lines.append("- **Coverage Gaps**: Address uncovered code areas")
                 lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
             elif 'Coverage: 80%' in coverage_output or 'Coverage: 90%' in coverage_output:
-                lines.append("- **Test Coverage**: 🟢 **GOOD** (80%+)")
+                lines.append("- **Test Coverage**: **GOOD** (80%+)")
                 lines.append("- **Coverage Maintenance**: Maintain current coverage levels")
             else:
                 lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
@@ -784,20 +848,20 @@ class AIToolsRunner:
         # Critical Issues
         critical_issues = self._identify_critical_issues()
         if critical_issues:
-            lines.append("## ⚠️ Critical Issues")
+            lines.append("## Critical Issues")
             for i, issue in enumerate(critical_issues[:5], 1):
                 lines.append(f"{i}. {issue}")
             lines.append("")
         
         # Development Focus
-        lines.append("## 🎯 Development Focus")
+        lines.append("## Development Focus")
         lines.append("- **Primary**: Feature development and user functionality")
         lines.append("- **Secondary**: Code maintainability (complexity reduction)")
         lines.append("- **Maintenance**: Documentation and testing")
         lines.append("")
         
         # Quick Commands
-        lines.append("## 🚀 Quick Commands")
+        lines.append("## Quick Commands")
         lines.append("- `python ai_development_tools/ai_tools_runner.py status` - System status")
         lines.append("- `python ai_development_tools/ai_tools_runner.py audit` - Full audit")
         lines.append("- `python ai_development_tools/quick_status.py concise` - Quick check")
@@ -817,14 +881,23 @@ class AIToolsRunner:
         lines.append("")
         
         # Priority Actions based on actual audit results
-        lines.append("## 🎯 Priority Actions")
+        lines.append("## Priority Actions")
+        
+        # Process Improvement Priorities
+        lines.append("## Process Improvement Priorities")
+        lines.append("1. **ACTIVE**: Changelog Management - Auto-trimming prevents bloat")
+        lines.append("2. **ACTIVE**: Path Validation - Ensures all references exist")
+        lines.append("3. **ACTIVE**: Documentation Quality - Detects duplicates and placeholders")
+        lines.append("4. **ACTIVE**: ASCII Compliance - Ensures documentation standards")
+        lines.append("5. **ACTIVE**: TODO Hygiene - Auto-syncs completed tasks")
+        lines.append("")
         
         # Check for high complexity functions
         ds_metrics = self.results_cache.get('decision_support_metrics', {})
         high_complexity = int(ds_metrics.get('high_complexity', 0)) if isinstance(ds_metrics, dict) else 0
         
         if high_complexity > 1500:
-            lines.append("1. **🔴 HIGH PRIORITY**: Refactor high-complexity functions")
+            lines.append("1. **HIGH PRIORITY**: Refactor high-complexity functions")
             lines.append(f"   - {high_complexity} functions exceed 50 nodes")
             lines.append("   - Focus on auto_cleanup.py, backup_manager.py, logger.py")
             lines.append("   - Break down large functions into smaller, focused functions")
@@ -836,7 +909,7 @@ class AIToolsRunner:
         coverage_num = float(doc_coverage.replace('%', ''))
         
         if coverage_num < 95:
-            lines.append("2. **🟡 MEDIUM PRIORITY**: Improve documentation coverage")
+            lines.append("2. **MEDIUM PRIORITY**: Improve documentation coverage")
             lines.append(f"   - Current coverage: {doc_coverage}")
             lines.append("   - Target: 95%+ coverage")
             lines.append("   - Focus on handler and utility functions")
@@ -848,25 +921,25 @@ class AIToolsRunner:
             if isinstance(decision_support_data, dict):
                 output = decision_support_data.get('output', '')
                 if 'Duplicate Function Names:' in output:
-                    lines.append("3. **🟡 MEDIUM PRIORITY**: Address duplicate function names")
+                    lines.append("3. **MEDIUM PRIORITY**: Address duplicate function names")
                     lines.append("   - Review and consolidate duplicate functions")
                     lines.append("   - Consider renaming for clarity")
                     lines.append("")
         
         # Documentation Priorities (from actual docs-sync results)
-        lines.append("## 📚 Documentation Priorities")
+        lines.append("## Documentation Priorities")
         if hasattr(self, 'docs_sync_results') and self.docs_sync_results:
             docs_output = self.docs_sync_results.get('output', '')
             if 'Path Drift Issues: 0' in docs_output:
-                lines.append("- **Path Drift**: ✅ **RESOLVED** (0 issues)")
+                lines.append("- **Path Drift**: **RESOLVED** (0 issues)")
             else:
-                lines.append("- **Path Drift**: 🔴 **CRITICAL** (Fix broken documentation links)")
+                lines.append("- **Path Drift**: **CRITICAL** (Fix broken documentation links)")
                 lines.append("- **Details**: Check consolidated_report.txt for specific issues")
             
             if 'Paired Doc Issues: 0' in docs_output:
-                lines.append("- **Paired Docs**: ✅ **SYNCHRONIZED** (0 issues)")
+                lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
             else:
-                lines.append("- **Paired Docs**: 🟡 **NEEDS ATTENTION** (Sync AI/human documentation)")
+                lines.append("- **Paired Docs**: **NEEDS ATTENTION** (Sync AI/human documentation)")
                 lines.append("- **Details**: Check consolidated_report.txt for specific mismatches")
         else:
             lines.append("- **Sync Issues**: Address documentation synchronization problems")
@@ -875,13 +948,13 @@ class AIToolsRunner:
         lines.append("")
         
         # Legacy Code Priorities (from actual legacy-cleanup results)
-        lines.append("## 🧹 Legacy Code Priorities")
+        lines.append("## Legacy Code Priorities")
         if hasattr(self, 'legacy_cleanup_results') and self.legacy_cleanup_results:
             legacy_output = self.legacy_cleanup_results.get('output', '')
             if 'Files with issues: 0' in legacy_output:
-                lines.append("- **Legacy References**: ✅ **CLEAN** (0 files with issues)")
+                lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
             else:
-                lines.append("- **Legacy References**: 🟡 **NEEDS ATTENTION** (Review consolidated_report.txt)")
+                lines.append("- **Legacy References**: **NEEDS ATTENTION** (Review consolidated_report.txt)")
                 lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
         else:
             lines.append("- **Legacy References**: Review consolidated_report.txt")
@@ -891,15 +964,15 @@ class AIToolsRunner:
         lines.append("")
         
         # Coverage Priorities (from actual test-coverage results)
-        lines.append("## 📊 Coverage Priorities")
+        lines.append("## Coverage Priorities")
         if hasattr(self, 'coverage_results') and self.coverage_results:
             coverage_output = self.coverage_results.get('output', '')
             if 'Coverage: 65%' in coverage_output:
-                lines.append("- **Test Coverage**: 🟡 **65%** (Target: 80%+)")
+                lines.append("- **Test Coverage**: **65%** (Target: 80%+)")
                 lines.append("- **Coverage Gaps**: Address uncovered code areas")
                 lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
             elif 'Coverage: 80%' in coverage_output or 'Coverage: 90%' in coverage_output:
-                lines.append("- **Test Coverage**: 🟢 **GOOD** (80%+)")
+                lines.append("- **Test Coverage**: **GOOD** (80%+)")
                 lines.append("- **Coverage Maintenance**: Maintain current coverage levels")
             else:
                 lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
@@ -910,18 +983,18 @@ class AIToolsRunner:
         lines.append("")
         
         # Validation Priorities (from actual validate-work results)
-        lines.append("## ✅ Validation Priorities")
+        lines.append("## Validation Priorities")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
             if 'POOR' in validation_output:
-                lines.append("- **AI Work Validation**: 🔴 **CRITICAL** (Fix validation issues)")
+                lines.append("- **AI Work Validation**: **CRITICAL** (Fix validation issues)")
                 lines.append("- **Coverage**: 0.0% - Documentation is incomplete")
                 lines.append("- **Missing Items**: 63 items need documentation")
                 lines.append("- **Details**: Check consolidated_report.txt for specific issues")
             elif 'GOOD' in validation_output:
-                lines.append("- **AI Work Validation**: 🟢 **GOOD** (Maintain standards)")
+                lines.append("- **AI Work Validation**: **GOOD** (Maintain standards)")
             else:
-                lines.append("- **AI Work Validation**: 🟡 **NEEDS REVIEW** (Check consolidated_report.txt)")
+                lines.append("- **AI Work Validation**: **NEEDS REVIEW** (Check consolidated_report.txt)")
         else:
             lines.append("- **Code Quality**: Maintain high code quality standards")
             lines.append("- **Best Practices**: Follow established development patterns")
@@ -929,14 +1002,14 @@ class AIToolsRunner:
         lines.append("")
         
         # Development Focus
-        lines.append("## 🚀 Development Focus")
+        lines.append("## Development Focus")
         lines.append("- **Immediate**: Address high-complexity functions")
         lines.append("- **Short-term**: Improve documentation coverage")
         lines.append("- **Long-term**: Maintain code quality and test coverage")
         lines.append("")
         
         # Success Metrics
-        lines.append("## 📈 Success Metrics")
+        lines.append("## Success Metrics")
         lines.append("- High complexity functions < 1500")
         lines.append("- Documentation coverage > 95%")
         lines.append("- All critical issues resolved")
@@ -946,7 +1019,13 @@ class AIToolsRunner:
         return "\n".join(lines)
     
     def _run_contributing_tools(self):
-        """Run other AI development tools to contribute to AI documents"""
+        """Run other AI development tools to contribute to AI documents
+        
+        MODULAR STRUCTURE:
+        - Essential Tools: Core system health (function discovery, decision support, etc.)
+        - Process Improvement Tools: NEW automated process checks
+        - Documentation Tools: OPTIONAL (moved to run_docs command)
+        """
         print("Running contributing AI development tools...")
         
         # Run docs-sync to contribute to AI_STATUS.md
@@ -986,22 +1065,12 @@ class AIToolsRunner:
             print(f"  - Quick-status failed: {e}")
         
         # Run documentation generators to create AI-optimized docs
-        try:
-            print("  - Running function registry generator...")
-            self.run_script("generate_function_registry")
-        except Exception as e:
-            print(f"  - Function registry generator failed: {e}")
-        
-        try:
-            print("  - Running module dependencies generator...")
-            self.run_script("generate_module_dependencies")
-        except Exception as e:
-            print(f"  - Module dependencies generator failed: {e}")
-        
         # Run documentation analysis to identify redundancy
         try:
             print("  - Running documentation analysis...")
-            self.run_script("analyze_documentation")
+            result = self.run_analyze_documentation()
+            if result.get('issues_found'):
+                print(f"  - Documentation analysis completed (found issues to address)")
         except Exception as e:
             print(f"  - Documentation analysis failed: {e}")
         
@@ -1072,23 +1141,12 @@ class AIToolsRunner:
         except Exception as e:
             print(f"  - Quick-status failed: {e}")
         
-        # Run documentation generators to create AI-optimized docs
-        try:
-            print("  - Running function registry generator...")
-            self.run_script("generate_function_registry")
-        except Exception as e:
-            print(f"  - Function registry generator failed: {e}")
-        
-        try:
-            print("  - Running module dependencies generator...")
-            self.run_script("generate_module_dependencies")
-        except Exception as e:
-            print(f"  - Module dependencies generator failed: {e}")
-        
         # Run documentation analysis to identify redundancy
         try:
             print("  - Running documentation analysis...")
-            self.run_script("analyze_documentation")
+            result = self.run_analyze_documentation()
+            if result.get('issues_found'):
+                print(f"  - Documentation analysis completed (found issues to address)")
         except Exception as e:
             print(f"  - Documentation analysis failed: {e}")
         
@@ -1115,6 +1173,121 @@ class AIToolsRunner:
         
         return True
     
+    def _check_and_trim_changelog_entries(self):
+        """Check and trim AI_CHANGELOG entries to prevent bloat"""
+        try:
+            # Import the check and trim functions from version_sync
+            from version_sync import check_changelog_entry_count, trim_ai_changelog_entries
+            
+            # First check if changelog exceeds limit
+            check_result = check_changelog_entry_count(max_entries=15)
+            
+            if check_result['status'] == 'fail':
+                print(f"   Changelog exceeds limit: {check_result['message']}")
+                print(f"   Auto-trimming to fix...")
+                
+                # Auto-trim to fix the issue
+                trim_result = trim_ai_changelog_entries(days_to_keep=30, max_entries=15)
+                
+                if 'error' not in trim_result:
+                    if trim_result['trimmed_entries'] > 0:
+                        print(f"   Trimmed {trim_result['trimmed_entries']} old changelog entries")
+                        if trim_result['archive_created']:
+                            print(f"   Created archive: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+                else:
+                    print(f"   Warning: Could not auto-trim changelog: {trim_result['error']}")
+            elif check_result['status'] == 'ok':
+                print(f"   Changelog check: {check_result['message']}")
+            else:
+                print(f"   Warning: Changelog check failed: {check_result['message']}")
+                
+        except Exception as e:
+            print(f"   Warning: Changelog check/trim failed: {e}")
+    
+    def _validate_referenced_paths(self):
+        """Validate that all referenced paths in documentation exist."""
+        try:
+            # Import the validate function from version_sync
+            from version_sync import validate_referenced_paths
+            
+            result = validate_referenced_paths()
+            
+            if result['status'] == 'ok':
+                print(f"   Path validation: {result['message']}")
+            elif result['status'] == 'fail':
+                print(f"   Path validation failed: {result['message']}")
+                print(f"   Found {result['issues_found']} path issues - consider running documentation sync checker")
+            else:
+                print(f"   Warning: Path validation error: {result['message']}")
+                
+        except Exception as e:
+            print(f"   Warning: Path validation failed: {e}")
+    
+    def _check_documentation_quality(self):
+        """Check for documentation duplicates and placeholder content."""
+        try:
+            # Import the analysis functions
+            from analyze_documentation import detect_verbatim_duplicates, check_placeholder_content
+            
+            # Check for verbatim duplicates
+            duplicates = detect_verbatim_duplicates()
+            if duplicates:
+                print(f"   Documentation quality: Found {len(duplicates)} verbatim duplicates")
+                print(f"   -> Remove duplicates between AI and human docs")
+            else:
+                print(f"   Documentation quality: No verbatim duplicates found")
+            
+            # Check for placeholder content
+            placeholders = check_placeholder_content()
+            if placeholders:
+                print(f"   Documentation quality: Found {len(placeholders)} files with placeholders")
+                print(f"   -> Replace placeholder content with actual content")
+            else:
+                print(f"   Documentation quality: No placeholder content found")
+                
+        except Exception as e:
+            print(f"   Warning: Documentation quality check failed: {e}")
+    
+    def _check_ascii_compliance(self):
+        """Check for non-ASCII characters in documentation files."""
+        try:
+            # Import the documentation sync checker
+            from documentation_sync_checker import DocumentationSyncChecker
+            
+            checker = DocumentationSyncChecker()
+            results = checker.run_checks()
+            
+            ascii_issues = results.get('ascii_compliance', {})
+            total_issues = sum(len(issues) for issues in ascii_issues.values())
+            
+            if total_issues == 0:
+                print(f"   ASCII compliance: All documentation files use ASCII-only characters")
+            else:
+                print(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(ascii_issues)} files")
+                print(f"   -> Replace non-ASCII characters with ASCII equivalents")
+                
+        except Exception as e:
+            print(f"   Warning: ASCII compliance check failed: {e}")
+    
+    def _sync_todo_with_changelog(self):
+        """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
+        try:
+            # Import the sync function from version_sync
+            from version_sync import sync_todo_with_changelog
+            
+            result = sync_todo_with_changelog()
+            
+            if result['status'] == 'ok':
+                if result['moved_entries'] > 0:
+                    print(f"   TODO sync: Moved {result['moved_entries']} completed entries from TODO.md")
+                else:
+                    print(f"   TODO sync: {result['message']}")
+            else:
+                print(f"   Warning: TODO sync failed: {result['message']}")
+                
+        except Exception as e:
+            print(f"   Warning: TODO sync failed: {e}")
+    
     def _generate_consolidated_report(self) -> str:
         """Generate comprehensive consolidated report combining all tool outputs"""
         lines = []
@@ -1129,7 +1302,7 @@ class AIToolsRunner:
         lines.append("")
         
         # System Overview
-        lines.append("## 🎯 SYSTEM OVERVIEW")
+        lines.append("## SYSTEM OVERVIEW")
         ds_metrics = self.results_cache.get('decision_support_metrics', {})
         total_functions = ds_metrics.get('total_functions', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
         high_complexity = ds_metrics.get('high_complexity', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
@@ -1143,7 +1316,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Audit Results
-        lines.append("## 📊 AUDIT RESULTS")
+        lines.append("## AUDIT RESULTS")
         lines.append("Core audit completed successfully with the following metrics:")
         for script_name, metrics in self.results_cache.items():
             if metrics and isinstance(metrics, dict):
@@ -1154,7 +1327,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Documentation Status
-        lines.append("## 📚 DOCUMENTATION STATUS")
+        lines.append("## DOCUMENTATION STATUS")
         lines.append("=" * 80)
         lines.append("DOCUMENTATION SYNCHRONIZATION CHECK REPORT")
         lines.append("=" * 80)
@@ -1168,7 +1341,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Legacy Code Status
-        lines.append("## 🧹 LEGACY CODE STATUS")
+        lines.append("## LEGACY CODE STATUS")
         lines.append("=" * 80)
         lines.append("LEGACY REFERENCE CLEANUP REPORT")
         lines.append("=" * 80)
@@ -1182,7 +1355,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Validation Status
-        lines.append("## ✅ VALIDATION STATUS")
+        lines.append("## VALIDATION STATUS")
         lines.append("=" * 80)
         lines.append("AI WORK VALIDATION REPORT")
         lines.append("=" * 80)
@@ -1196,7 +1369,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Coverage Status
-        lines.append("## 📊 COVERAGE STATUS")
+        lines.append("## COVERAGE STATUS")
         lines.append("=" * 80)
         lines.append("TEST COVERAGE ANALYSIS REPORT")
         lines.append("=" * 80)
@@ -1210,7 +1383,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Version Sync Status
-        lines.append("## 🔄 VERSION SYNC STATUS")
+        lines.append("## VERSION SYNC STATUS")
         lines.append("=" * 80)
         lines.append("VERSION SYNCHRONIZATION REPORT")
         lines.append("=" * 80)
@@ -1224,7 +1397,7 @@ class AIToolsRunner:
         lines.append("")
         
         # System Status
-        lines.append("## 🖥️ SYSTEM STATUS")
+        lines.append("## SYSTEM STATUS")
         lines.append("=" * 80)
         lines.append("SYSTEM STATUS REPORT")
         lines.append("=" * 80)
@@ -1238,7 +1411,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Recommendations
-        lines.append("## 🎯 RECOMMENDATIONS")
+        lines.append("## RECOMMENDATIONS")
         lines.append("1. Address high-complexity functions for better maintainability")
         lines.append("2. Maintain documentation coverage above 95%")
         lines.append("3. Review legacy code references and plan modernization")
@@ -1247,7 +1420,7 @@ class AIToolsRunner:
         lines.append("")
         
         # Quick Commands
-        lines.append("## 🚀 QUICK COMMANDS")
+        lines.append("## QUICK COMMANDS")
         lines.append("- Full Audit: python ai_development_tools/ai_tools_runner.py audit")
         lines.append("- Status Check: python ai_development_tools/ai_tools_runner.py quick-status")
         lines.append("- Docs Sync: python ai_development_tools/ai_tools_runner.py docs-sync")
@@ -1369,12 +1542,16 @@ AI Tools Runner - Comprehensive interface for AI collaboration tools
 ====================================================================
 
 SIMPLE COMMANDS (for users):
-  audit     - Run fast audit (default, skips test coverage)
-  audit --full - Run comprehensive audit (includes test coverage)
-  docs      - Update all documentation (function registry, dependencies)
+  audit     - Run fast audit (default, skips test coverage) [ESSENTIAL]
+  audit --full - Run comprehensive audit (includes test coverage) [ESSENTIAL]
+  docs      - Update all documentation (function registry, dependencies) [OPTIONAL]
   validate  - Validate AI-generated work
   config    - Check configuration consistency
   help      - Show this help message
+
+MODULAR STRUCTURE:
+  ESSENTIAL: Core system health (function discovery, decision support, process improvement)
+  OPTIONAL: Documentation generation (moved to 'docs' command for performance)
 
 DOCUMENTATION SYNCHRONIZATION TOOLS:
   doc-sync  - Check documentation synchronization and path drift

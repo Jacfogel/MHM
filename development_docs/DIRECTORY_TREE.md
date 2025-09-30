@@ -5,12 +5,11 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coveragerc
 |   .env
 |   .gitattributes
 |   .gitignore
-|   .last_cache_cleanup
 |   ARCHITECTURE.md
+|   coverage.ini
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
 |   HOW_TO_RUN.md
@@ -26,13 +25,11 @@ C:.
 +---.cursor
 |   +---commands
 |   |       audit.md
-|   |       docs-sync.md
-|   |       legacy-cleanup.md
-|   |       quick-status.md
+|   |       docs.md
 |   |       README.md
-|   |       test-coverage.md
-|   |       validate-work.md
-|   |       version-sync.md
+|   |       review.md
+|   |       status.md
+|   |       test.md
 |   |       
 |   \---rules
 |           audit.mdc
@@ -58,6 +55,7 @@ C:.
 +---ai_development_docs
 |       AI_ARCHITECTURE.md
 |       AI_CHANGELOG.md
+|       AI_CHANGELOG_ARCHIVE.md
 |       AI_DEVELOPMENT_WORKFLOW.md
 |       AI_DOCUMENTATION_GUIDE.md
 |       AI_FUNCTION_REGISTRY.md
@@ -80,17 +78,16 @@ C:.
 |   |   consolidated_report.txt
 |   |   coverage.json
 |   |   decision_support.py
-|   |   docs_sync_report.txt
 |   |   documentation_sync_checker.py
 |   |   file_rotation.py
 |   |   function_discovery.py
 |   |   generate_function_registry.py
 |   |   generate_module_dependencies.py
-|   |   legacy_cleanup_report.txt
 |   |   legacy_reference_cleanup.py
 |   |   quick_status.py
 |   |   README.md
 |   |   regenerate_coverage_metrics.py
+|   |   standard_exclusions.py
 |   |   tool_guide.py
 |   |   validate_ai_work.py
 |   |   version_sync.py
@@ -157,6 +154,7 @@ C:.
 |       TEST_COVERAGE_EXPANSION_PLAN.md
 |       
 +---logs
+|   |   .last_cache_cleanup
 |   |   ai.log
 |   |   app.log
 |   |   backup.log
@@ -193,6 +191,7 @@ C:.
 |           
 +---scripts
 |   |   audit_legacy_channels.py
+|   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
 |   |   focused_legacy_audit.py
 |   |   migrate_load_user_functions.py
@@ -298,6 +297,7 @@ C:.
 |   |   debug_file_paths.py
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   README.md
+|   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
 |   +---behavior
@@ -348,6 +348,7 @@ C:.
 |   |   \---__pycache__
     (Python cache files)
 +---ui
+|   |   generate_ui_files.py
 |   |   README.md
 |   |   ui_app_qt.py
 |   |   

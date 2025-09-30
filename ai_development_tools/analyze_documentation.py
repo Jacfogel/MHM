@@ -120,6 +120,111 @@ def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict]:
     
     return purposes
 
+def detect_verbatim_duplicates():
+    """Detect verbatim duplicates between AI and human documentation pairs."""
+    import config
+    project_root = config.get_project_root()
+    
+    # Define paired documentation files
+    paired_docs = {
+        'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+        'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
+        'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+        'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
+    }
+    
+    duplicates_found = []
+    
+    for human_doc, ai_doc in paired_docs.items():
+        human_path = project_root / human_doc
+        ai_path = project_root / ai_doc
+        
+        if not human_path.exists() or not ai_path.exists():
+            continue
+            
+        try:
+            with open(human_path, 'r', encoding='utf-8') as f:
+                human_content = f.read()
+            with open(ai_path, 'r', encoding='utf-8') as f:
+                ai_content = f.read()
+            
+            # Extract sections from both files
+            human_sections = extract_sections(human_content)
+            ai_sections = extract_sections(ai_content)
+            
+            # Check for verbatim duplicates
+            for section_name, section_content in human_sections.items():
+                if section_name in ai_sections:
+                    ai_section_content = ai_sections[section_name]
+                    
+                    # Normalize content for comparison (remove whitespace differences)
+                    human_normalized = re.sub(r'\s+', ' ', section_content.strip())
+                    ai_normalized = re.sub(r'\s+', ' ', ai_section_content.strip())
+                    
+                    # Check if content is verbatim duplicate (allowing for minor whitespace differences)
+                    if human_normalized == ai_normalized and len(human_normalized) > 50:  # Only flag substantial duplicates
+                        duplicates_found.append({
+                            'human_file': human_doc,
+                            'ai_file': ai_doc,
+                            'section': section_name,
+                            'content_length': len(human_normalized)
+                        })
+            
+        except Exception as e:
+            print(f"Error comparing {human_doc} and {ai_doc}: {e}")
+    
+    return duplicates_found
+
+def check_placeholder_content():
+    """Check for placeholder content in documentation."""
+    import config
+    project_root = config.get_project_root()
+    
+    # Define files to check
+    files_to_check = [
+        'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+        'ai_development_docs/AI_ARCHITECTURE.md',
+        'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+        'ai_development_docs/AI_CHANGELOG.md',
+    ]
+    
+    placeholder_patterns = [
+        r'\[Main Content Sections\]',
+        r'\[Content\]',
+        r'\[TODO\]',
+        r'\[PLACEHOLDER\]',
+        r'\[INSERT.*\]',
+        r'\[.*Content.*\]',
+        r'\[.*Section.*\]',
+        r'\[.*TODO.*\]',
+        r'\[.*PLACEHOLDER.*\]',
+    ]
+    
+    placeholders_found = []
+    
+    for file_path in files_to_check:
+        full_path = project_root / file_path
+        if not full_path.exists():
+            continue
+            
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            for pattern in placeholder_patterns:
+                matches = re.findall(pattern, content, re.IGNORECASE)
+                if matches:
+                    placeholders_found.append({
+                        'file': file_path,
+                        'pattern': pattern,
+                        'matches': matches
+                    })
+                    
+        except Exception as e:
+            print(f"Error checking {file_path}: {e}")
+    
+    return placeholders_found
+
 def generate_consolidation_report():
     """Generate a report on documentation consolidation opportunities."""
     print("[DOC] Analyzing documentation files...")
@@ -201,6 +306,34 @@ def generate_consolidation_report():
     print(f"   [FILE] API.md - Function registry and module dependencies")
     print(f"   [FILE] CHANGELOG.md - Version history and changes")
     print(f"   [FILE] TODO.md - Current priorities and planned work")
+    
+    # Check for verbatim duplicates
+    print(f"\n[DUPLICATE] CHECKING FOR VERBATIM DUPLICATES:")
+    duplicates = detect_verbatim_duplicates()
+    if duplicates:
+        print(f"   Found {len(duplicates)} verbatim duplicate sections:")
+        for dup in duplicates:
+            print(f"      - {dup['human_file']} <-> {dup['ai_file']}: '{dup['section']}' ({dup['content_length']} chars)")
+        print(f"   -> FAIL: Remove verbatim duplicates between AI and human docs")
+        return False
+    else:
+        print(f"   No verbatim duplicates found")
+    
+    # Check for placeholder content
+    print(f"\n[PLACEHOLDER] CHECKING FOR PLACEHOLDER CONTENT:")
+    placeholders = check_placeholder_content()
+    if placeholders:
+        print(f"   Found {len(placeholders)} files with placeholder content:")
+        for placeholder in placeholders:
+            print(f"      - {placeholder['file']}: {placeholder['matches']}")
+        print(f"   -> FAIL: Replace placeholder content with actual content")
+        return False
+    else:
+        print(f"   No placeholder content found")
+    
+    return True
 
 if __name__ == "__main__":
-    generate_consolidation_report() 
+    success = generate_consolidation_report()
+    if not success:
+        exit(1) 

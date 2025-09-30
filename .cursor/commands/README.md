@@ -8,7 +8,8 @@ This directory contains Cursor commands that provide structured instructions for
 - **Purpose**: Run thorough analysis of entire codebase to identify issues and assess health
 - **When to use**: Before major changes, weekly maintenance, debugging complex issues
 - **Instructions**: Execute AI development tools, analyze results, provide actionable insights
-- **Focus**: System health, code quality, documentation, legacy code, test coverage
+- **Focus**: System health, code quality, documentation, legacy code, test coverage, process improvements
+- **Process Tools**: Changelog management, path validation, documentation quality, ASCII compliance, TODO hygiene
 
 ### ⚡ **status** - Rapid System Overview
 - **Purpose**: Get fast system health check and immediate action items

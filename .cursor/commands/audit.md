@@ -45,13 +45,20 @@ python ai_development_tools/ai_tools_runner.py status
 - `ai_development_tools/consolidated_report.txt` - **Main summary and Priority issues**
 - `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
 
-**Key Metrics to Extract and Report:**
+**Core System Metrics:**
 - **Function Complexity**: Count by level (Moderate: 50-99, High: 100-199, Critical: 200+ nodes)
 - **Documentation Coverage**: Current coverage percentage
 - **Legacy Code**: Number of legacy references found
 - **Test Coverage**: Current coverage percentages by module
 - **Documentation Sync**: Number of sync issues found
 - **System Health**: Overall status (Healthy/Issues/Critical)
+
+**Process Improvement Metrics (NEW):**
+- **Changelog Management**: Entry count, trim status, archive creation
+- **Path Validation**: Number of broken references found
+- **Documentation Quality**: Duplicate sections, placeholder content detected
+- **ASCII Compliance**: Non-ASCII characters found in documentation
+- **TODO Hygiene**: Completed entries automatically synced with changelog
 
 ### 4. **Provide Structured Report**
 **ALWAYS provide this format in your response:**
@@ -71,6 +78,7 @@ python ai_development_tools/ai_tools_runner.py status
 - Test Coverage: [percentage by module]
 - Legacy References: [number found]
 - Documentation Sync: [number of issues]
+- **Process Improvement**: [changelog status, path validation, documentation quality, ASCII compliance, TODO sync]
 
 #### **Immediate Action Items**
 1. [Priority 1 - from critical issues]

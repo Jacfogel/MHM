@@ -180,6 +180,371 @@ def update_version_info(content, new_version, new_date):
     
     return content
 
+def get_key_directories():
+    """Get single source of truth for key directories in the project."""
+    return {
+        'ai_development_tools': 'ai_development_tools/',
+        'ai_development_docs': 'ai_development_docs/',
+        'development_docs': 'development_docs/',
+        'core': 'core/',
+        'communication': 'communication/',
+        'ui': 'ui/',
+        'tests': 'tests/',
+        'logs': 'logs/',
+        'scripts': 'scripts/',
+        'data': 'data/',
+        'resources': 'resources/',
+        'styles': 'styles/',
+        'tasks': 'tasks/',
+        'user': 'user/',
+        'ai': 'ai/'
+    }
+
+def validate_referenced_paths():
+    """Validate that all referenced paths in documentation exist."""
+    try:
+        # Import the documentation sync checker
+        from documentation_sync_checker import DocumentationSyncChecker
+        
+        checker = DocumentationSyncChecker()
+        results = checker.run_checks()
+        
+        # Check if there are any path drift issues
+        path_issues = results.get('path_drift', {})
+        total_issues = sum(len(issues) for issues in path_issues.values())
+        
+        if total_issues == 0:
+            return {
+                'status': 'ok',
+                'message': 'All referenced paths are valid',
+                'issues_found': 0
+            }
+        else:
+            return {
+                'status': 'fail',
+                'message': f'Found {total_issues} path validation issues',
+                'issues_found': total_issues,
+                'details': path_issues
+            }
+            
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f'Path validation failed: {e}',
+            'issues_found': 0
+        }
+
+def sync_todo_with_changelog():
+    """Automatically move completed entries from TODO.md when AI_CHANGELOG gains new items."""
+    todo_path = "TODO.md"
+    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
+    
+    if not os.path.exists(todo_path) or not os.path.exists(changelog_path):
+        return {'status': 'ok', 'message': 'TODO.md or AI_CHANGELOG.md not found', 'moved_entries': 0}
+    
+    try:
+        # Read TODO.md
+        with open(todo_path, 'r', encoding='utf-8') as f:
+            todo_content = f.read()
+        
+        # Read AI_CHANGELOG.md
+        with open(changelog_path, 'r', encoding='utf-8') as f:
+            changelog_content = f.read()
+        
+        # Extract recent changelog entries (last 5 entries)
+        lines = changelog_content.split('\n')
+        recent_entries = []
+        in_recent_section = False
+        entry_count = 0
+        
+        for line in lines:
+            if "## Recent Changes (Most Recent First)" in line:
+                in_recent_section = True
+                continue
+            elif in_recent_section and line.startswith('### '):
+                if entry_count >= 5:  # Only check last 5 entries
+                    break
+                recent_entries.append(line)
+                entry_count += 1
+            elif in_recent_section and line.startswith('##') and not line.startswith('###'):
+                break
+        
+        # Extract TODO entries
+        todo_lines = todo_content.split('\n')
+        todo_entries = []
+        current_entry = []
+        
+        for line in todo_lines:
+            if line.strip().startswith('- **') or line.strip().startswith('* **'):
+                if current_entry:
+                    todo_entries.append('\n'.join(current_entry))
+                current_entry = [line]
+            elif current_entry and (line.strip().startswith('- ') or line.strip().startswith('* ') or line.strip() == ''):
+                current_entry.append(line)
+            elif current_entry and line.strip():
+                current_entry.append(line)
+            else:
+                if current_entry:
+                    todo_entries.append('\n'.join(current_entry))
+                current_entry = []
+        
+        if current_entry:
+            todo_entries.append('\n'.join(current_entry))
+        
+        # Check for matches between changelog entries and TODO entries
+        moved_entries = []
+        remaining_todo_entries = []
+        
+        for todo_entry in todo_entries:
+            todo_text = todo_entry.lower()
+            is_completed = False
+            
+            # Check if this TODO entry matches any recent changelog entry
+            for changelog_entry in recent_entries:
+                changelog_text = changelog_entry.lower()
+                
+                # Extract key words from both entries for comparison
+                todo_words = set(re.findall(r'\b\w+\b', todo_text))
+                changelog_words = set(re.findall(r'\b\w+\b', changelog_text))
+                
+                # Check for significant overlap (at least 3 common words)
+                common_words = todo_words.intersection(changelog_words)
+                if len(common_words) >= 3:
+                    is_completed = True
+                    break
+            
+            if is_completed:
+                moved_entries.append(todo_entry)
+            else:
+                remaining_todo_entries.append(todo_entry)
+        
+        # Update TODO.md if entries were moved
+        if moved_entries:
+            # Rebuild TODO.md content
+            new_todo_content = []
+            in_todo_section = False
+            
+            for line in todo_lines:
+                if line.strip().startswith('## TODO') or line.strip().startswith('# TODO'):
+                    in_todo_section = True
+                    new_todo_content.append(line)
+                elif in_todo_section and line.strip().startswith('##') and not line.strip().startswith('###'):
+                    # End of TODO section
+                    new_todo_content.append(line)
+                    in_todo_section = False
+                elif in_todo_section:
+                    # Skip lines that are part of moved entries
+                    skip_line = False
+                    for moved_entry in moved_entries:
+                        if line in moved_entry:
+                            skip_line = True
+                            break
+                    if not skip_line:
+                        new_todo_content.append(line)
+                else:
+                    new_todo_content.append(line)
+            
+            # Write updated TODO.md
+            with open(todo_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(new_todo_content))
+            
+            return {
+                'status': 'ok',
+                'message': f'Moved {len(moved_entries)} completed entries from TODO.md',
+                'moved_entries': len(moved_entries)
+            }
+        else:
+            return {
+                'status': 'ok',
+                'message': 'No completed entries found to move',
+                'moved_entries': 0
+            }
+            
+    except Exception as e:
+        return {
+            'status': 'error',
+            'message': f'Error syncing TODO with changelog: {e}',
+            'moved_entries': 0
+        }
+
+def check_changelog_entry_count(max_entries=15):
+    """Check if AI_CHANGELOG.md has too many entries and should be trimmed."""
+    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
+    
+    if not os.path.exists(changelog_path):
+        return {'status': 'ok', 'count': 0, 'message': 'Changelog not found'}
+    
+    try:
+        with open(changelog_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Find the "Recent Changes" section
+        lines = content.split('\n')
+        recent_section_start = None
+        for i, line in enumerate(lines):
+            if "## Recent Changes (Most Recent First)" in line:
+                recent_section_start = i
+                break
+        
+        if recent_section_start is None:
+            return {'status': 'ok', 'count': 0, 'message': 'No recent changes section found'}
+        
+        # Count entries (everything after the header until the next major section or end)
+        entry_count = 0
+        
+        for i in range(recent_section_start + 1, len(lines)):
+            line = lines[i]
+            
+            # Check if we hit the next major section (starts with ##)
+            if line.startswith('##') and not line.startswith('###'):
+                break
+            
+            # Count entries (starts with ###)
+            if line.startswith('### '):
+                entry_count += 1
+        
+        if entry_count > max_entries:
+            return {
+                'status': 'fail',
+                'count': entry_count,
+                'max_allowed': max_entries,
+                'message': f'Changelog has {entry_count} entries, exceeds limit of {max_entries}. Run trim command to fix.'
+            }
+        else:
+            return {
+                'status': 'ok',
+                'count': entry_count,
+                'max_allowed': max_entries,
+                'message': f'Changelog has {entry_count} entries, within limit of {max_entries}'
+            }
+            
+    except Exception as e:
+        return {'status': 'error', 'count': 0, 'message': f'Error reading changelog: {e}'}
+
+def trim_ai_changelog_entries(days_to_keep=30, max_entries=15):
+    """Trim AI_CHANGELOG.md entries older than N days and limit total entries."""
+    changelog_path = "ai_development_docs/AI_CHANGELOG.md"
+    archive_path = "ai_development_tools/archive/AI_CHANGELOG_ARCHIVE.md"
+    
+    if not os.path.exists(changelog_path):
+        return []
+    
+    try:
+        # Ensure archive directory exists
+        archive_dir = os.path.dirname(archive_path)
+        os.makedirs(archive_dir, exist_ok=True)
+        
+        with open(changelog_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        
+        # Find the "Recent Changes" section
+        lines = content.split('\n')
+        recent_section_start = None
+        for i, line in enumerate(lines):
+            if "## Recent Changes (Most Recent First)" in line:
+                recent_section_start = i
+                break
+        
+        if recent_section_start is None:
+            return []
+        
+        # Extract entries (everything after the header until the next major section or end)
+        entries = []
+        current_entry = []
+        in_entry = False
+        
+        for i in range(recent_section_start + 1, len(lines)):
+            line = lines[i]
+            
+            # Check if we hit the next major section (starts with ##)
+            if line.startswith('##') and not line.startswith('###'):
+                break
+            
+            # Check if this is a new entry (starts with ###)
+            if line.startswith('### '):
+                if current_entry and in_entry:
+                    entries.append('\n'.join(current_entry))
+                current_entry = [line]
+                in_entry = True
+            elif in_entry:
+                current_entry.append(line)
+        
+        # Add the last entry if we were in one
+        if current_entry and in_entry:
+            entries.append('\n'.join(current_entry))
+        
+        # Filter entries by date and limit count
+        cutoff_date = datetime.now() - timedelta(days=days_to_keep)
+        filtered_entries = []
+        archived_entries = []
+        
+        for entry in entries:
+            # Extract date from entry (format: ### YYYY-MM-DD - Title)
+            date_match = re.search(r'### (\d{4}-\d{2}-\d{2})', entry)
+            if date_match:
+                entry_date = datetime.strptime(date_match.group(1), '%Y-%m-%d')
+                if entry_date >= cutoff_date:
+                    filtered_entries.append(entry)
+                else:
+                    archived_entries.append(entry)
+            else:
+                # If no date found, keep the entry (shouldn't happen with proper format)
+                filtered_entries.append(entry)
+        
+        # Limit to max_entries
+        if len(filtered_entries) > max_entries:
+            excess_entries = filtered_entries[max_entries:]
+            archived_entries.extend(excess_entries)
+            filtered_entries = filtered_entries[:max_entries]
+        
+        # If we have entries to archive, create/update archive file
+        if archived_entries:
+            archive_content = [
+                "# AI Changelog Archive",
+                "",
+                "> **Purpose**: Archived entries from AI_CHANGELOG.md",
+                "> **Generated**: Auto-archived by version_sync.py",
+                "",
+                "## Archived Entries",
+                ""
+            ]
+            archive_content.extend(archived_entries)
+            
+            with open(archive_path, 'w', encoding='utf-8') as f:
+                f.write('\n'.join(archive_content))
+        
+        # Rebuild the changelog with filtered entries
+        new_content = lines[:recent_section_start + 1]
+        new_content.append("")
+        new_content.extend(filtered_entries)
+        
+        # Add the rest of the file after the recent changes section
+        # (find where the recent changes section ends)
+        section_end = recent_section_start + 1
+        for i in range(recent_section_start + 1, len(lines)):
+            if lines[i].startswith('##') and not lines[i].startswith('###'):
+                section_end = i
+                break
+        else:
+            section_end = len(lines)
+        
+        # Add any content after the recent changes section
+        if section_end < len(lines):
+            new_content.extend(lines[section_end:])
+        
+        # Write the updated changelog
+        with open(changelog_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(new_content))
+        
+        return {
+            'trimmed_entries': len(archived_entries),
+            'kept_entries': len(filtered_entries),
+            'archive_created': len(archived_entries) > 0
+        }
+        
+    except Exception as e:
+        return {'error': str(e)}
+
 def sync_versions(target_version=None, force_date_update=False, scope="ai_docs"):
     """Synchronize versions across files based on scope"""
     if target_version is None:
@@ -362,6 +727,44 @@ if __name__ == "__main__":
                 if arg.startswith("--scope="):
                     scope = arg.split("=")[1]
             sync_versions(target_version, force_update, scope)
+        elif command == "trim":
+            days_to_keep = 30
+            max_entries = 15
+            for arg in sys.argv:
+                if arg.startswith("--days="):
+                    days_to_keep = int(arg.split("=")[1])
+                elif arg.startswith("--max="):
+                    max_entries = int(arg.split("=")[1])
+            result = trim_ai_changelog_entries(days_to_keep, max_entries)
+            if 'error' in result:
+                print(f"Error trimming changelog: {result['error']}")
+            else:
+                print(f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept")
+                if result['archive_created']:
+                    print(f"Archive created: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+        elif command == "check":
+            max_entries = 15
+            for arg in sys.argv:
+                if arg.startswith("--max="):
+                    max_entries = int(arg.split("=")[1])
+            result = check_changelog_entry_count(max_entries)
+            print(f"Changelog check: {result['message']}")
+            if result['status'] == 'fail':
+                sys.exit(1)  # Exit with error code to fail audit
+        elif command == "validate":
+            result = validate_referenced_paths()
+            print(f"Path validation: {result['message']}")
+            if result['status'] == 'fail':
+                print(f"Found {result['issues_found']} path issues")
+                sys.exit(1)  # Exit with error code to fail audit
+            elif result['status'] == 'error':
+                print(f"Path validation error: {result['message']}")
+                sys.exit(1)  # Exit with error code to fail audit
+        elif command == "sync-todo":
+            result = sync_todo_with_changelog()
+            print(f"TODO sync: {result['message']}")
+            if result['moved_entries'] > 0:
+                print(f"Moved {result['moved_entries']} completed entries from TODO.md")
         else:
             print("Usage:")
             print("  python ai_development_tools/version_sync.py show                    # Show AI doc versions")
@@ -374,6 +777,12 @@ if __name__ == "__main__":
             print("  python ai_development_tools/version_sync.py sync --scope=core       # Sync core system files")
             print("  python ai_development_tools/version_sync.py sync 1.1.0              # Sync to specific version")
             print("  python ai_development_tools/version_sync.py sync --force            # Force update all dates")
+            print("  python ai_development_tools/version_sync.py trim                     # Trim AI_CHANGELOG entries (30 days, max 15)")
+            print("  python ai_development_tools/version_sync.py trim --days=60 --max=20 # Custom trim settings")
+            print("  python ai_development_tools/version_sync.py check                   # Check if changelog exceeds entry limit")
+            print("  python ai_development_tools/version_sync.py check --max=20          # Check with custom limit")
+            print("  python ai_development_tools/version_sync.py validate                 # Validate all referenced paths exist")
+            print("  python ai_development_tools/version_sync.py sync-todo                # Sync TODO.md with AI_CHANGELOG.md")
     else:
         # Default: show current versions
         show_current_versions()

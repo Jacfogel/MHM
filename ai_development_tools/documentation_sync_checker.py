@@ -402,6 +402,60 @@ class DocumentationSyncChecker:
             logger.info(f"Directory tree generated: {output_path}")
         return str(output_path)
     
+    def check_ascii_compliance(self) -> Dict[str, List[str]]:
+        """Check for non-ASCII characters in documentation files."""
+        ascii_issues = defaultdict(list)
+        
+        # Files to check for ASCII compliance
+        files_to_check = [
+            'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+            'ai_development_docs/AI_ARCHITECTURE.md',
+            'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+            'ai_development_docs/AI_CHANGELOG.md',
+            'DEVELOPMENT_WORKFLOW.md',
+            'ARCHITECTURE.md',
+            'DOCUMENTATION_GUIDE.md',
+            'development_docs/CHANGELOG_DETAIL.md',
+        ]
+        
+        for file_path in files_to_check:
+            full_path = self.project_root / file_path
+            if not full_path.exists():
+                continue
+                
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Check for non-ASCII characters
+                non_ascii_chars = []
+                for i, char in enumerate(content):
+                    if ord(char) > 127:  # Non-ASCII character
+                        non_ascii_chars.append({
+                            'char': char,
+                            'position': i,
+                            'codepoint': ord(char)
+                        })
+                
+                if non_ascii_chars:
+                    # Group by character type for better reporting
+                    char_types = {}
+                    for char_info in non_ascii_chars:
+                        char = char_info['char']
+                        if char not in char_types:
+                            char_types[char] = []
+                        char_types[char].append(char_info['position'])
+                    
+                    for char, positions in char_types.items():
+                        ascii_issues[file_path].append(
+                            f"Non-ASCII character '{char}' (U+{ord(char):04X}) at positions: {positions[:5]}{'...' if len(positions) > 5 else ''}"
+                        )
+                        
+            except Exception as e:
+                ascii_issues[file_path].append(f"Error reading file: {e}")
+        
+        return ascii_issues
+
     def run_checks(self) -> Dict[str, any]:
         """Run all documentation synchronization checks."""
         if logger:
@@ -410,17 +464,20 @@ class DocumentationSyncChecker:
         results = {
             'paired_docs': self.check_paired_documentation(),
             'path_drift': self.check_path_drift(),
+            'ascii_compliance': self.check_ascii_compliance(),
             'summary': {}
         }
         
         # Generate summary
         total_issues = sum(len(issues) for issues in results['paired_docs'].values())
         total_issues += sum(len(issues) for issues in results['path_drift'].values())
+        total_issues += sum(len(issues) for issues in results['ascii_compliance'].values())
         
         results['summary'] = {
             'total_issues': total_issues,
             'paired_doc_issues': len(results['paired_docs']),
             'path_drift_issues': len(results['path_drift']),
+            'ascii_compliance_issues': len(results['ascii_compliance']),
             'status': 'PASS' if total_issues == 0 else 'FAIL'
         }
         
@@ -440,6 +497,7 @@ class DocumentationSyncChecker:
         print(f"   Total Issues: {summary['total_issues']}")
         print(f"   Paired Doc Issues: {summary['paired_doc_issues']}")
         print(f"   Path Drift Issues: {summary['path_drift_issues']}")
+        print(f"   ASCII Compliance Issues: {summary['ascii_compliance_issues']}")
         
         # Paired Documentation Issues
         if results['paired_docs']:
@@ -461,6 +519,21 @@ class DocumentationSyncChecker:
             sorted_files = sorted(results['path_drift'].items(), key=lambda x: len(x[1]), reverse=True)
             for doc_file, issues in sorted_files[:5]:
                 print(f"     {doc_file}: {len(issues)} issues")
+        
+        # ASCII Compliance Issues
+        if results['ascii_compliance']:
+            print(f"\nASCII COMPLIANCE ISSUES:")
+            print(f"   Total files with non-ASCII characters: {len(results['ascii_compliance'])}")
+            print(f"   Total issues found: {sum(len(issues) for issues in results['ascii_compliance'].values())}")
+            print(f"   Files with non-ASCII characters:")
+            for doc_file, issues in results['ascii_compliance'].items():
+                print(f"     {doc_file}: {len(issues)} issues")
+                for issue in issues[:3]:  # Show first 3 issues per file
+                    # Clean Unicode characters that cause encoding issues
+                    clean_issue = issue.encode('ascii', 'ignore').decode('ascii')
+                    print(f"       - {clean_issue}")
+                if len(issues) > 3:
+                    print(f"       ... and {len(issues) - 3} more issues")
         
         if summary['total_issues'] == 0:
             print(f"\nAll documentation synchronization checks passed!")
