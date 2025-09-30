@@ -1,105 +1,50 @@
 # Run Comprehensive System Audit
 
 ## Overview
-Conduct a thorough analysis of the MHM codebase to identify issues, assess system health, and provide actionable insights for development.
+Execute the audit toolchain to capture current health metrics before making significant changes.
 
-## Instructions for AI Assistant
+## Steps
+1. Run the fast audit (skips coverage by default).
+   ```powershell
+   python ai_development_tools/ai_tools_runner.py audit
+   if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
+   ```
+2. If you need coverage data, rerun with the full option.
+   ```powershell
+   python ai_development_tools/ai_tools_runner.py audit --full
+   if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red }
+   ```
+3. Review the generated outputs:
+   - `ai_development_tools/AI_STATUS.md`
+   - `ai_development_tools/AI_PRIORITIES.md`
+   - `ai_development_tools/consolidated_report.txt`
+   - `ai_development_tools/ai_audit_detailed_results.json`
+   - `development_docs/LEGACY_REFERENCE_REPORT.md` (if regenerated)
 
-### 1. **Execute Audit (Fast Mode Default)**
-Run the audit suite using PowerShell syntax (fast mode is now default, skips test coverage for speed):
-```powershell
-# Run fast audit (~30 seconds) - DEFAULT MODE
-python ai_development_tools/ai_tools_runner.py audit
+Use the detailed report for evidence and rely on the summary files for quick context. Cross-check any concerns with `ai_development_docs/AI_REFERENCE.md` when diagnosing issues.
 
-# Check exit code
-if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
-```
+## Response Template
+Use this structure when reporting audit results:
 
-**For Full Audit (includes test coverage):**
-```powershell
-# Run full audit (~3-4 minutes)
-python ai_development_tools/ai_tools_runner.py audit --full
+#### System Overview
+- Total Functions: ...
+- Complexity Distribution: ...
+- Documentation Coverage: ...
+- System Health: ...
 
-# Check exit code
-if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
-```
+#### Critical Issues
+- ...
 
-### 2. **Run Additional Analysis Tools**
-Execute supporting analysis tools:
-```powershell
-# Documentation sync check
-python ai_development_tools/ai_tools_runner.py doc-sync
+#### Key Metrics
+- Function Complexity: ...
+- Test Coverage: ...
+- Legacy References: ...
+- Documentation Sync: ...
 
-# Legacy code scan
-python ai_development_tools/ai_tools_runner.py legacy
+#### Immediate Action Items
+1. ...
+2. ...
+3. ...
 
-# Configuration validation
-python ai_development_tools/ai_tools_runner.py config
-
-# System status check
-python ai_development_tools/ai_tools_runner.py status
-```
-
-### 3. **Analyze and Report Results**
-**CRITICAL**: Always read and analyze these files:
-- `ai_development_tools/consolidated_report.txt` - **Main summary and Priority issues**
-- `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
-
-**Core System Metrics:**
-- **Function Complexity**: Count by level (Moderate: 50-99, High: 100-199, Critical: 200+ nodes)
-- **Documentation Coverage**: Current coverage percentage
-- **Legacy Code**: Number of legacy references found
-- **Test Coverage**: Current coverage percentages by module
-- **Documentation Sync**: Number of sync issues found
-- **System Health**: Overall status (Healthy/Issues/Critical)
-
-**Process Improvement Metrics (NEW):**
-- **Changelog Management**: Entry count, trim status, archive creation
-- **Path Validation**: Number of broken references found
-- **Documentation Quality**: Duplicate sections, placeholder content detected
-- **ASCII Compliance**: Non-ASCII characters found in documentation
-- **TODO Hygiene**: Completed entries automatically synced with changelog
-
-### 4. **Provide Structured Report**
-**ALWAYS provide this format in your response:**
-
-#### **System Overview**
-- Total Functions: [number]
-- Complexity Distribution: [Moderate: X, High: Y, Critical: Z]
-- Documentation Coverage: [percentage]
-- System Health: [Healthy/Issues/Critical]
-
-#### **Critical Issues**
-- [List top 3-5 critical issues from consolidated_report.txt]
-- [Include specific file paths and descriptions]
-
-#### **Key Metrics**
-- Function Complexity: [distribution]
-- Test Coverage: [percentage by module]
-- Legacy References: [number found]
-- Documentation Sync: [number of issues]
-- **Process Improvement**: [changelog status, path validation, documentation quality, ASCII compliance, TODO sync]
-
-#### **Immediate Action Items**
-1. [Priority 1 - from critical issues]
-2. [Priority 2 - from critical issues]
-3. [Priority 3 - from critical issues]
-
-#### **Next Steps**
-- [Specific recommendations based on findings]
-- [Suggested follow-up actions]
-- [Timeline for addressing issues]
-
-## Success Criteria
-- All audit tools complete successfully
-- Critical issues identified and prioritized
-- Actionable recommendations provided
-- System health status determined
-- Next steps clearly defined
-
-## Output Files to Always Check
-- `ai_development_tools/consolidated_report.txt` - **Main summary and Priority issues**
-- `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
-- `development_docs/LEGACY_REFERENCE_REPORT.md` - **Legacy cleanup**
-- `ai_development_tools/AI_STATUS.md` - **System status**
-- `ai_development_tools/AI_PRIORITIES.md` - **Action priorities**
+#### Next Steps
+- ...

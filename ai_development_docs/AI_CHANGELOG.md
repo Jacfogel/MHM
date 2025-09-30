@@ -4,7 +4,7 @@
 > **Audience**: AI Assistant (Cursor, Codex, etc.)  
 > **Status**: **ACTIVE** - Always include this in new sessions  
 > **Version**: --scope - AI Collaboration System Active  
-> **Last Updated**: 2025-09-29  
+> **Last Updated**: 2025-09-30
 > **Style**: Concise, essential-only, scannable
 
 ## Overview
@@ -29,6 +29,12 @@ Guidelines:
 
 ------------------------------------------------------------------------------------------
 ## Recent Changes (Most Recent First)
+
+### 2025-09-30 - AI Tooling Service Refactor **COMPLETED**
+- Split ai_tools_runner.py into a lightweight CLI and moved command implementations into ai_development_tools/services/operations.py.
+- Added shared helpers in ai_development_tools/services/common.py to normalise JSON execution, ASCII-safe summaries, and audit metrics extraction.
+- Rebuilt analyze_documentation.py and audit_function_registry.py to emit structured JSON and accurate summaries, fixing audit false positives.
+- Updated Cursor command checklists and ai_development_tools/README.md to describe the streamlined workflow.
 
 ### 2025-09-29 - Process Improvement Tools Implementation ✅ **COMPLETED**
 - Implemented comprehensive process improvement tools to prevent recurring issues and maintain system quality
@@ -115,62 +121,3 @@ Guidelines:
 - Implemented proper file rotation, backup, and archiving for all tool outputs
 - AI development tools now provide accurate, comprehensive analysis with consistent file management and realistic metrics
 
-### 2025-09-27 - High Complexity Function Refactoring and Legacy Code Cleanup ✅ **COMPLETED**
-- Completed Phase 3 of high complexity function refactoring with dramatic complexity reduction
-- Reduced complexity in critical functions across core modules
-- Maintained 100% test coverage during refactoring
-- Achieved 78% reduction in legacy compatibility markers (from 9 to 2 files)
-- Removed unused legacy functions and updated all callers to modern equivalents
-- Enhanced legacy reference cleanup tool with better patterns and exclusions
-- Major reduction in legacy code, improved code clarity, maintained full backward compatibility
-
-### 2025-09-27 - Test System Improvements and AI Response Quality ✅ **COMPLETED**
-- Enhanced warning filters for Discord.py and aiohttp warnings, reduced test warnings from 4 to 1-2
-- Added `_cleanup_aiohttp_sessions()` method to prevent orphaned sessions
-- Enhanced Discord bot test fixtures with better cleanup and exception handling
-- Implemented `TestContextFormatter` that automatically prepends test names to log messages
-- Added `SessionLogRotationManager` with 10MB threshold and automatic rotation
-- Implemented mode-specific caching (no cache for chat, cache for commands) and configurable temperature settings
-- Fixed missing chat interaction storage - added store_chat_interaction calls to main generate_response method for chat mode
-- Added environment variables for AI_CHAT_TEMPERATURE=0.7, AI_COMMAND_TEMPERATURE=0.0, AI_CLARIFICATION_TEMPERATURE=0.1
-
-### 2025-09-27 - Scheduler Job Management and One-Time Jobs ✅ **COMPLETED**
-- Fixed `cleanup_old_tasks` method to only remove specific jobs, reduced active jobs from 28 to 13
-- Created `run_full_daily_scheduler` method for complete daily initialization
-- Enhanced logging to distinguish between daily scheduler jobs and individual message jobs
-- Implemented jobs that remove themselves after execution instead of recurring daily
-- Added breakdown showing job types (system, message, task) instead of just total count
-- Dynamic job count now decreases throughout day as messages are sent (was always 15)
-- Logging now shows "X total jobs (Y system, Z message, W task)" for better debugging
-
-### 2025-09-25 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
-- Resolved `cleanup_old_tasks` method that was clearing ALL jobs and failing to re-add them properly
-- Changed cleanup logic to only remove jobs for specific user/category instead of clearing all jobs
-- Created `run_full_daily_scheduler` method for complete daily initialization including checkins and task reminders
-- Fixed issue where each user's cleanup was destroying jobs from previous users during daily scheduling
-- Reduced active jobs from 28 to 13 (54% reduction) - now properly maintains expected job count
-- Updated failing test to match new implementation - all tests now pass
-
-### 2025-09-24 - Channel Settings Dialog Fixes and Scheduler Job Management ✅ **COMPLETED**
-- Fixed `'Ui_Form_channel_selection' object has no attribute 'lineEdit_phone'` error by removing non-existent phone field references
-- Fixed Discord ID field not populating (now correctly loads `670723025439555615`)
-- Fixed Discord/Email radio buttons not being set correctly (Discord button now properly selected)
-- Removed phone field validation from save method since field doesn't exist in UI
-- Fixed scheduler job accumulation causing 35+ messages/day instead of expected 10
-- Updated `is_job_for_category` function to properly identify daily scheduler jobs for cleanup
-- Added `clear_all_accumulated_jobs` method to prevent future job accumulation
-- Reduced active jobs from 72 to 5 user/category combinations
-- All 1480 tests passing, 1 skipped, only expected Discord library warnings
-
-### 2025-09-17 - Legacy Code Cleanup and Test Artifact Cleanup ✅ **COMPLETED**
-- Removed redundant `enabled_features` and `channel` field preservation code from `core/user_data_handlers.py`
-- Removed unused `store_checkin_response()` function and updated all import statements
-- Removed never-triggered nested 'enabled' flags detection from preferences
-- Removed legacy `_get_active_schedules()` methods and updated tests to use modern `core.schedule_utilities.get_active_schedules()`
-- Moved email field preservation from legacy function to main data handling logic
-- Removed unused legacy `get_available_channels()` and `is_channel_ready()` methods from CommunicationManager
-- Removed legacy `start()`, `stop()`, and `is_initialized()` methods from Discord and Email bots
-- Updated Communication Manager to use `shutdown()` instead of `stop()` for channel cleanup
-- Removed leftover `.test_tracker` file and test user directories from real data directory
-- Fixed `mock_user_data` fixture in `tests/conftest.py` to use `test_data_dir` instead of real user directory
-- All tests pass, reduced legacy compatibility markers from 9 to 2 files (78% reduction)

@@ -1,339 +1,218 @@
 #!/usr/bin/env python3
-"""
-Analyze documentation overlap and redundancy to help consolidate files.
-"""
+"""Analyze documentation overlap, duplicates, and placeholder content."""
+from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import Dict, List, Set
+import argparse
+import json
 import re
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, Iterable, Iterator, List, Sequence, Tuple
 
-def get_documentation_files() -> Dict[str, str]:
-    """Get all documentation files and their content."""
-    import config
-    project_root = config.get_project_root()
-    docs = {}
-    
-    # Documentation files to analyze
-    doc_files = [
-        'ARCHITECTURE.md',
-        'CHANGELOG_DETAIL.md', 
-        'DEVELOPMENT_WORKFLOW.md',
-        'DOCUMENTATION_GUIDE.md',
-        'development_docs/FUNCTION_REGISTRY_DETAIL.md',
-        'HOW_TO_RUN.md',
-        'QUICK_REFERENCE.md',
-        'UI_MIGRATION_PLAN_DETAIL.md',
-        'TODO.md',
-        'DEVELOPMENT_GUIDELINES.md',
-        'development_docs/MODULE_DEPENDENCIES_DETAIL.md'
-    ]
-    
-    for doc_file in doc_files:
-        file_path = project_root / doc_file
-        if file_path.exists():
-            with open(file_path, 'r', encoding='utf-8') as f:
-                docs[doc_file] = f.read()
-    
-    return docs
+import sys
+
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from ai_development_tools.services.common import (
+    ProjectPaths,
+    ensure_ascii,
+    iter_markdown_files,
+    load_text,
+    run_cli,
+    summary_block,
+)
+
+PATHS = ProjectPaths()
+DEFAULT_DOCS: Tuple[str, ...] = (
+    'README.md',
+    'HOW_TO_RUN.md',
+    'DOCUMENTATION_GUIDE.md',
+    'DEVELOPMENT_WORKFLOW.md',
+    'ARCHITECTURE.md',
+    'QUICK_REFERENCE.md',
+    'TODO.md',
+    'development_docs/FUNCTION_REGISTRY_DETAIL.md',
+    'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
+    'ai_development_docs/AI_SESSION_STARTER.md',
+    'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+    'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+    'ai_development_docs/AI_CHANGELOG.md',
+    'ai_development_docs/AI_REFERENCE.md',
+)
+
+PAIRED_DOCS = {
+    'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+    'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
+    'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+    'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
+}
+
+PLACEHOLDER_PATTERNS = (
+    re.compile(r'TBD', re.IGNORECASE),
+    re.compile(r'TODO'),
+    re.compile(r'to be filled', re.IGNORECASE),
+    re.compile(r'\[insert[^\]]*\]', re.IGNORECASE),
+)
+
 
 def extract_sections(content: str) -> Dict[str, str]:
-    """Extract sections from markdown content."""
-    sections = {}
-    
-    # Split by headers (## or ###)
-    lines = content.split('\n')
-    current_section = "Introduction"
-    current_content = []
-    
-    for line in lines:
-        if line.startswith('## ') or line.startswith('### '):
-            # Save previous section
-            if current_content:
-                sections[current_section] = '\n'.join(current_content).strip()
-            
-            # Start new section
-            current_section = line.strip('#').strip()
-            current_content = []
+    sections: Dict[str, str] = {}
+    current = 'Introduction'
+    buffer: List[str] = []
+    for line in content.splitlines():
+        if line.startswith('## '):
+            sections[current] = "\n".join(buffer).strip()
+            current = line[3:].strip()
+            buffer = []
+        elif line.startswith('### '):
+            sections[current] = "\n".join(buffer).strip()
+            current = line[4:].strip()
+            buffer = []
         else:
-            current_content.append(line)
-    
-    # Save last section
-    if current_content:
-        sections[current_section] = '\n'.join(current_content).strip()
-    
+            buffer.append(line)
+    sections[current] = "\n".join(buffer).strip()
     return sections
 
-def find_common_topics(docs: Dict[str, str]) -> Dict[str, List[str]]:
-    """Find common topics across documentation files."""
-    common_topics = {
-        'setup_installation': [],
-        'development_workflow': [],
-        'testing': [],
-        'ui_migration': [],
-        'architecture': [],
-        'troubleshooting': [],
-        'code_quality': [],
-        'project_structure': []
-    }
-    
-    topic_keywords = {
-        'setup_installation': ['install', 'setup', 'run', 'start', 'virtual environment', 'requirements'],
-        'development_workflow': ['workflow', 'development', 'git', 'commit', 'branch', 'merge'],
-        'testing': ['test', 'testing', 'coverage', 'pytest', 'unit test'],
-        'ui_migration': ['ui', 'migration', 'pyside', 'tkinter', 'qt'],
-        'architecture': ['architecture', 'structure', 'modules', 'dependencies'],
-        'troubleshooting': ['troubleshoot', 'error', 'fix', 'debug', 'problem'],
-        'code_quality': ['quality', 'style', 'lint', 'format', 'best practice'],
-        'project_structure': ['structure', 'directory', 'file', 'organization']
-    }
-    
-    for filename, content in docs.items():
-        content_lower = content.lower()
-        for topic, keywords in topic_keywords.items():
-            if any(keyword in content_lower for keyword in keywords):
-                common_topics[topic].append(filename)
-    
-    return common_topics
-
-def analyze_file_purposes(docs: Dict[str, str]) -> Dict[str, Dict]:
-    """Analyze the purpose and content of each documentation file."""
-    purposes = {}
-    
-    for filename, content in docs.items():
-        # Extract first few lines to understand purpose
-        lines = content.split('\n')[:20]
-        header_info = '\n'.join(lines)
-        
-        # Count sections
-        sections = extract_sections(content)
-        
-        # Estimate content length
-        content_length = len(content)
-        
-        purposes[filename] = {
-            'header_info': header_info,
-            'section_count': len(sections),
-            'content_length': content_length,
-            'sections': list(sections.keys())
-        }
-    
-    return purposes
-
-def detect_verbatim_duplicates():
-    """Detect verbatim duplicates between AI and human documentation pairs."""
-    import config
-    project_root = config.get_project_root()
-    
-    # Define paired documentation files
-    paired_docs = {
-        'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-        'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
-        'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-        'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
-    }
-    
-    duplicates_found = []
-    
-    for human_doc, ai_doc in paired_docs.items():
-        human_path = project_root / human_doc
-        ai_path = project_root / ai_doc
-        
-        if not human_path.exists() or not ai_path.exists():
+def load_documents(paths: Sequence[str]) -> Tuple[Dict[str, str], List[str]]:
+    docs: Dict[str, str] = {}
+    missing: List[str] = []
+    for rel in paths:
+        absolute = (PATHS.root / rel).resolve()
+        if not absolute.exists():
+            missing.append(rel)
             continue
-            
-        try:
-            with open(human_path, 'r', encoding='utf-8') as f:
-                human_content = f.read()
-            with open(ai_path, 'r', encoding='utf-8') as f:
-                ai_content = f.read()
-            
-            # Extract sections from both files
-            human_sections = extract_sections(human_content)
-            ai_sections = extract_sections(ai_content)
-            
-            # Check for verbatim duplicates
-            for section_name, section_content in human_sections.items():
-                if section_name in ai_sections:
-                    ai_section_content = ai_sections[section_name]
-                    
-                    # Normalize content for comparison (remove whitespace differences)
-                    human_normalized = re.sub(r'\s+', ' ', section_content.strip())
-                    ai_normalized = re.sub(r'\s+', ' ', ai_section_content.strip())
-                    
-                    # Check if content is verbatim duplicate (allowing for minor whitespace differences)
-                    if human_normalized == ai_normalized and len(human_normalized) > 50:  # Only flag substantial duplicates
-                        duplicates_found.append({
-                            'human_file': human_doc,
-                            'ai_file': ai_doc,
-                            'section': section_name,
-                            'content_length': len(human_normalized)
-                        })
-            
-        except Exception as e:
-            print(f"Error comparing {human_doc} and {ai_doc}: {e}")
-    
-    return duplicates_found
+        docs[rel] = load_text(absolute)
+    return docs, missing
 
-def check_placeholder_content():
-    """Check for placeholder content in documentation."""
-    import config
-    project_root = config.get_project_root()
-    
-    # Define files to check
-    files_to_check = [
-        'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-        'ai_development_docs/AI_ARCHITECTURE.md',
-        'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-        'ai_development_docs/AI_CHANGELOG.md',
-    ]
-    
-    placeholder_patterns = [
-        r'\[Main Content Sections\]',
-        r'\[Content\]',
-        r'\[TODO\]',
-        r'\[PLACEHOLDER\]',
-        r'\[INSERT.*\]',
-        r'\[.*Content.*\]',
-        r'\[.*Section.*\]',
-        r'\[.*TODO.*\]',
-        r'\[.*PLACEHOLDER.*\]',
-    ]
-    
-    placeholders_found = []
-    
-    for file_path in files_to_check:
-        full_path = project_root / file_path
-        if not full_path.exists():
+
+def analyse_topics(docs: Dict[str, str]) -> Dict[str, List[str]]:
+    topics = defaultdict(list)
+    keyword_map = {
+        'Setup & Installation': ['install', 'setup', 'environment', 'run'],
+        'Development Workflow': ['workflow', 'develop', 'commit', 'merge', 'refactor'],
+        'Testing': ['test', 'pytest', 'coverage', 'suite'],
+        'Architecture': ['architecture', 'module', 'dependency', 'structure'],
+        'Troubleshooting': ['error', 'issue', 'debug', 'fail', 'failure'],
+        'Code Quality': ['quality', 'lint', 'style', 'pattern'],
+        'Project Structure': ['directory', 'structure', 'tree'],
+    }
+    for name, content in docs.items():
+        lower = content.lower()
+        for label, keywords in keyword_map.items():
+            if any(keyword in lower for keyword in keywords):
+                topics[label].append(name)
+    return dict(topics)
+
+
+def detect_duplicates(docs: Dict[str, str]) -> List[Dict[str, object]]:
+    duplicates: List[Dict[str, object]] = []
+    for human_path, ai_path in PAIRED_DOCS.items():
+        human_text = docs.get(human_path)
+        ai_text = docs.get(ai_path)
+        if not human_text or not ai_text:
             continue
-            
-        try:
-            with open(full_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            
-            for pattern in placeholder_patterns:
-                matches = re.findall(pattern, content, re.IGNORECASE)
-                if matches:
-                    placeholders_found.append({
-                        'file': file_path,
-                        'pattern': pattern,
-                        'matches': matches
-                    })
-                    
-        except Exception as e:
-            print(f"Error checking {file_path}: {e}")
-    
-    return placeholders_found
+        human_sections = extract_sections(human_text)
+        ai_sections = extract_sections(ai_text)
+        for section, human_content in human_sections.items():
+            ai_content = ai_sections.get(section)
+            if not ai_content:
+                continue
+            human_normalised = re.sub(r'\s+', ' ', human_content.strip())
+            ai_normalised = re.sub(r'\s+', ' ', ai_content.strip())
+            if human_normalised and human_normalised == ai_normalised:
+                duplicates.append({
+                    'section': section,
+                    'human_file': human_path,
+                    'ai_file': ai_path,
+                    'content_length': len(human_content),
+                })
+    return duplicates
 
-def generate_consolidation_report():
-    """Generate a report on documentation consolidation opportunities."""
-    print("[DOC] Analyzing documentation files...")
-    docs = get_documentation_files()
-    
-    print(f"\n[STATS] DOCUMENTATION ANALYSIS REPORT")
-    print("="*60)
-    
-    print(f"\n[FILES] Files Found: {len(docs)}")
-    for filename in sorted(docs.keys()):
-        print(f"   - {filename}")
-    
-    # Analyze purposes
-    purposes = analyze_file_purposes(docs)
-    
-    print(f"\n[INFO] FILE PURPOSES & CONTENT:")
-    for filename, info in sorted(purposes.items()):
-        print(f"\n[FILE] {filename}")
-        print(f"   Length: {info['content_length']:,} characters")
-        print(f"   Sections: {info['section_count']}")
-        # Replace non-ASCII characters in section names
-        safe_sections = [s.encode('ascii', 'replace').decode('ascii') for s in info['sections'][:5]]
-        print(f"   Main sections: {', '.join(safe_sections)}")
-    
-    # Find common topics
-    common_topics = find_common_topics(docs)
-    
-    print(f"\n[DIR] COMMON TOPICS ACROSS FILES:")
-    for topic, files in common_topics.items():
-        if files:
-            print(f"\n   {topic.replace('_', ' ').title()}:")
-            for file in files:
-                print(f"      - {file}")
-    
-    # Identify consolidation opportunities
-    print(f"\n[IDEA] CONSOLIDATION RECOMMENDATIONS:")
-    
-    # Group by purpose
-    setup_files = [f for f in docs.keys() if 'setup' in f.lower() or 'run' in f.lower()]
-    if len(setup_files) > 1:
-        print(f"\n   [SETUP] Setup/Installation Files ({len(setup_files)} files):")
-        for file in setup_files:
-            print(f"      - {file}")
-        print(f"      -> Consolidate into single 'SETUP.md'")
-    
-    workflow_files = [f for f in docs.keys() if 'workflow' in f.lower() or 'development' in f.lower()]
-    if len(workflow_files) > 1:
-        print(f"\n   [WORKFLOW] Workflow Files ({len(workflow_files)} files):")
-        for file in workflow_files:
-            print(f"      - {file}")
-        print(f"      -> Consolidate into single 'DEVELOPMENT.md'")
-    
-    # Identify redundant information
-    print(f"\n[REDUNDANT] REDUNDANT INFORMATION:")
-    
-    # Check for duplicate sections
-    all_sections = set()
-    duplicate_sections = set()
-    
-    for filename, content in docs.items():
+
+def detect_placeholders(docs: Dict[str, str]) -> List[Dict[str, object]]:
+    matches: List[Dict[str, object]] = []
+    for name, content in docs.items():
+        hits = []
+        for pattern in PLACEHOLDER_PATTERNS:
+            found = pattern.findall(content)
+            if found:
+                hits.extend(found)
+        if hits:
+            matches.append({'file': name, 'matches': sorted(set(hits))})
+    return matches
+
+
+def document_profiles(docs: Dict[str, str]) -> List[str]:
+    lines: List[str] = []
+    for name, content in sorted(docs.items()):
         sections = extract_sections(content)
-        for section in sections.keys():
-            if section in all_sections:
-                duplicate_sections.add(section)
-            all_sections.add(section)
-    
-    if duplicate_sections:
-        print(f"   Sections appearing in multiple files:")
-        for section in sorted(duplicate_sections):
-            safe_section = section.encode('ascii', 'replace').decode('ascii')
-            print(f"      - {safe_section}")
-    
-    # Recommend new structure
-    print(f"\n[STRUCTURE] RECOMMENDED NEW STRUCTURE:")
-    print(f"   [FILE] README.md - Project overview and quick start")
-    print(f"   [FILE] SETUP.md - Installation and setup instructions")
-    print(f"   [FILE] DEVELOPMENT.md - Development workflow and guidelines")
-    print(f"   [FILE] ARCHITECTURE.md - System architecture and design")
-    print(f"   [FILE] API.md - Function registry and module dependencies")
-    print(f"   [FILE] CHANGELOG.md - Version history and changes")
-    print(f"   [FILE] TODO.md - Current priorities and planned work")
-    
-    # Check for verbatim duplicates
-    print(f"\n[DUPLICATE] CHECKING FOR VERBATIM DUPLICATES:")
-    duplicates = detect_verbatim_duplicates()
+        preview = ', '.join(sections.keys())
+        lines.append(f"{name}: {len(sections)} sections, {len(content)} chars")
+        if preview:
+            lines.append(f"  Sections: {preview[:120]}")
+    return lines
+
+
+def format_summary(docs: Dict[str, str], missing: List[str], duplicates: List[Dict[str, object]], placeholders: List[Dict[str, object]]) -> str:
+    blocks: List[str] = []
+    blocks.append(summary_block('Files Analysed', [f"{len(docs)} files", *sorted(docs.keys())]))
+    if missing:
+        blocks.append(summary_block('Missing Files', sorted(missing)))
+    topics = analyse_topics(docs)
+    if topics:
+        topic_lines = []
+        for label, files in sorted(topics.items()):
+            topic_lines.append(f"{label} ({len(files)} files)")
+            topic_lines.extend(f"  - {file}" for file in sorted(files))
+        blocks.append(summary_block('Common Topics', topic_lines))
+    profiles = document_profiles(docs)
+    if profiles:
+        blocks.append(summary_block('Document Profiles', profiles))
     if duplicates:
-        print(f"   Found {len(duplicates)} verbatim duplicate sections:")
-        for dup in duplicates:
-            print(f"      - {dup['human_file']} <-> {dup['ai_file']}: '{dup['section']}' ({dup['content_length']} chars)")
-        print(f"   -> FAIL: Remove verbatim duplicates between AI and human docs")
-        return False
-    else:
-        print(f"   No verbatim duplicates found")
-    
-    # Check for placeholder content
-    print(f"\n[PLACEHOLDER] CHECKING FOR PLACEHOLDER CONTENT:")
-    placeholders = check_placeholder_content()
+        dup_lines = [
+            f"{item['section']} -> {item['human_file']} <-> {item['ai_file']} ({item['content_length']} chars)"
+            for item in duplicates
+        ]
+        blocks.append(summary_block('Verbatim Duplicates', dup_lines))
     if placeholders:
-        print(f"   Found {len(placeholders)} files with placeholder content:")
-        for placeholder in placeholders:
-            print(f"      - {placeholder['file']}: {placeholder['matches']}")
-        print(f"   -> FAIL: Replace placeholder content with actual content")
-        return False
-    else:
-        print(f"   No placeholder content found")
-    
-    return True
+        placeholder_lines = [f"{entry['file']}: {', '.join(entry['matches'])}" for entry in placeholders]
+        blocks.append(summary_block('Placeholder Content', placeholder_lines))
+    return "\n".join(blocks)
 
-if __name__ == "__main__":
-    success = generate_consolidation_report()
-    if not success:
-        exit(1) 
+
+
+def execute(args: argparse.Namespace):
+    targets = args.files or DEFAULT_DOCS
+    docs, missing = load_documents(targets)
+    duplicates = detect_duplicates(docs)
+    placeholders = detect_placeholders(docs)
+    summary = format_summary(docs, missing, duplicates, placeholders)
+    payload = {
+        'documents': sorted(docs.keys()),
+        'missing': sorted(missing),
+        'duplicates': duplicates,
+        'placeholders': placeholders,
+    }
+    exit_code = 0
+    if duplicates or placeholders:
+        exit_code = 1
+    return exit_code, ensure_ascii(summary), payload
+
+
+def main() -> int:
+    argument_spec = [(
+        ('--files',),
+        {
+            'nargs': '+',
+            'metavar': 'REL_PATH',
+            'help': 'Specific documentation files to analyze (relative to project root).',
+        },
+    )]
+    return run_cli(execute, description='Analyze documentation overlap and quality.', arguments=argument_spec)
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

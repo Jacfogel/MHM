@@ -1,137 +1,81 @@
 # AI Development Tools
 
-> **Audience**: AI assistants and developers using MHM development tools  
-> **Purpose**: Tools optimized for AI-assisted development collaboration and codebase analysis  
+> **Audience**: AI assistants and developers using the MHM toolchain  
+> **Purpose**: Provide audit, documentation, and validation utilities for collaborative development  
 > **Style**: Technical, reference-oriented, tool-focused
 
-> **See [README.md](../README.md) for complete navigation and project overview**  
+> **See [README.md](../README.md) for the overall project view**  
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 > **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
 
-## 🚀 Quick Reference
-
-### **Main Tool**
+## Quick Reference
 ```powershell
-# Run AI development tools
+# General form
 python ai_development_tools/ai_tools_runner.py <command>
 
-# Available commands
+# List commands
 python ai_development_tools/ai_tools_runner.py help
 ```
 
-### **Common Commands**
-- `audit` - Comprehensive system audit
-- `status` - Quick system status
-- `docs` - Documentation updates
-- `legacy` - Legacy code cleanup
-- `coverage` - Test coverage analysis
+### Common Commands
+- `audit` - run the comprehensive audit (fast by default)
+- `audit --full` - rerun with coverage and full test suite
+- `status` - print a concise status snapshot
+- `docs` - regenerate documentation artefacts
+- `legacy` - scan for legacy references
+- `coverage` - refresh coverage metrics
 
-This directory contains tools optimized for AI-assisted development collaboration and codebase analysis.
+## Main Entry Point
+### `ai_tools_runner.py`
+- **Role**: Command dispatcher for all AI development tooling
+- **Usage**: `python ai_development_tools/ai_tools_runner.py <command>`
 
-## 🎯 Primary Tool
+Available sub-commands include:
+- `audit` / `audit --full`
+- `quick-audit`
+- `status`
+- `docs`
+- `doc-sync`
+- `validate`
+- `legacy`
+- `version-sync <scope>`
+- `coverage`
+- `workflow <task_type>`
+- `trees`
 
-### `ai_tools_runner.py` ⭐ **MAIN ENTRY POINT**
-**Purpose**: Comprehensive interface for all AI development tools
-**Usage**: `python ai_development_tools/ai_tools_runner.py <command>`
+Run any command with `--help` to see command-specific options.
 
-**Available Commands:**
-- `audit` - Fast audit (default, skips test coverage, ~30 seconds)
-- `audit --full` - Full audit (includes test coverage, ~3-4 minutes)
-- `doc-sync` - Documentation synchronization check
-- `legacy` - Legacy code reference cleanup
-- `status` - System status overview
-- `validate` - AI work validation
-- `coverage` - Test coverage regeneration
-- `version-sync` - Version synchronization
+## Fast Mode vs Full Mode
+- **Fast mode** (`audit`): skips coverage regeneration; finishes in roughly 30 seconds.
+- **Full mode** (`audit --full`): runs coverage and the full test suite; budget 3-4 minutes.
 
-## ⚡ Fast Mode vs Full Mode
+## Generated Outputs
+The audit workflow produces:
+- `ai_development_tools/AI_STATUS.md`
+- `ai_development_tools/AI_PRIORITIES.md`
+- `ai_development_tools/consolidated_report.txt`
+- `ai_development_tools/ai_audit_detailed_results.json`
 
-### **Fast Mode** (`audit` - DEFAULT)
-- **Time**: ~30 seconds
-- **Includes**: All tools except test coverage regeneration
-- **Use for**: Daily development, quick status checks
-- **Skips**: Test suite execution (1,480+ tests)
+## Key Scripts
+- `function_discovery.py`, `decision_support.py`, `audit_function_registry.py`, `audit_module_dependencies.py`
+- `generate_function_registry.py`, `generate_module_dependencies.py`, `analyze_documentation.py`
+- `documentation_sync_checker.py`, `legacy_reference_cleanup.py`, `validate_ai_work.py`, `config_validator.py`
+- `quick_status.py`, `regenerate_coverage_metrics.py`, `version_sync.py`
 
-### **Full Mode** (`audit --full`)
-- **Time**: ~3-4 minutes  
-- **Includes**: All tools including test coverage
-- **Use for**: Weekly analysis, before major changes, CI/CD
-- **Includes**: Complete test suite with coverage analysis
+## File Organization
+- Rotated outputs: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, archives under `ai_development_tools/archive/`
+- Static assets: helper scripts in `ai_development_tools/`, configuration in `config.py`
 
-## 📊 AI-Optimized Outputs
+## Quick Start
+1. `python ai_development_tools/ai_tools_runner.py audit`
+2. `python ai_development_tools/ai_tools_runner.py status`
+3. `python ai_development_tools/ai_tools_runner.py doc-sync`
 
-The audit command creates AI-optimized documents:
-- **`AI_STATUS.md`** - Current codebase state with actionable insights
-- **`AI_PRIORITIES.md`** - Immediate next steps and focus areas
-- **`consolidated_report.txt`** - Human-readable detailed report
-- **`ai_audit_detailed_results.json`** - Raw audit data (rotated)
+## File Rotation
+All generated files rotate through `ai_development_tools/archive/` with a seven-version retention policy.
 
-## 🔧 Core Audit Tools
-
-### Function Analysis
-- **`function_discovery.py`** - Discovers and categorizes all functions
-- **`decision_support.py`** - AI decision support dashboard
-- **`audit_function_registry.py`** - Audits function registry completeness
-- **`audit_module_dependencies.py`** - Audits module dependencies
-
-### Documentation Tools
-- **`generate_function_registry.py`** - Creates AI_FUNCTION_REGISTRY.md
-- **`generate_module_dependencies.py`** - Creates AI_MODULE_DEPENDENCIES.md
-- **`analyze_documentation.py`** - Analyzes documentation redundancy
-
-### Process Improvement Tools
-- **`version_sync.py`** - Changelog management, path validation, TODO sync
-- **`documentation_sync_checker.py`** - ASCII compliance, documentation quality
-- **Integrated in audit workflow** - Automatic process improvement checks
-
-### Validation Tools
-- **`documentation_sync_checker.py`** - Checks documentation synchronization
-- **`legacy_reference_cleanup.py`** - Identifies legacy code references
-- **`validate_ai_work.py`** - Validates AI-generated work
-- **`config_validator.py`** - Validates tool configuration consistency
-
-### Status Tools
-- **`quick_status.py`** - Quick system status
-- **`regenerate_coverage_metrics.py`** - Coverage analysis
-- **`version_sync.py`** - Version synchronization
-
-## 📁 File Organization
-
-### Rotating Files (with automatic backup/archive)
-- **AI Documents**: `AI_STATUS.md`, `AI_PRIORITIES.md`
-- **Reports**: `consolidated_report.txt`, `docs_sync_report.txt`, `legacy_cleanup_report.txt`, etc.
-- **Data**: `ai_audit_detailed_results.json`, `coverage.json`
-
-### Static Files
-- **Tool Scripts**: All `.py` files
-- **Configuration**: `config.py`, `.coveragerc`
-- **Documentation**: `README.md`
-
-## 🚀 Quick Start
-
-1. **Run Full Audit**: `python ai_development_tools/ai_tools_runner.py audit`
-2. **Check Status**: `python ai_development_tools/ai_tools_runner.py status`
-3. **Sync Docs**: `python ai_development_tools/ai_tools_runner.py doc-sync`
-
-## 📈 File Rotation
-
-All output files are automatically rotated with:
-- **Backup**: Previous versions moved to `archive/` with timestamps
-- **History**: Execution history maintained
-- **Cleanup**: Old versions automatically removed (7-day retention)
-
-## 🤖 AI Collaboration
-
-These tools are specifically designed for AI assistants to:
-- **Understand** current codebase state
-- **Identify** priorities and next steps
-- **Track** progress and changes
-- **Maintain** documentation consistency
-- **Validate** work quality
-
-## 📚 Generated Documentation
-
-The tools create comprehensive documentation in:
-- **`ai_development_docs/`** - AI-optimized static documentation
-- **`development_docs/`** - Human-readable detailed documentation
-- **`ai_development_tools/`** - Real-time status and priorities
+## Collaboration Notes
+These tools support the expectations documented in the AI-facing guides:
+- Maintain accuracy and completeness (see `ai_development_docs/AI_REFERENCE.md`).
+- Avoid shortcuts and duplication; prefer end-to-end fixes.
+- Keep documentation paired and up to date after every change.

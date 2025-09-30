@@ -3,12 +3,34 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-09-14  
+> **Last Updated**: 2025-09-30  
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
 
 ## 📋 **Current Active Plans**
+
+### **Documentation Alignment and Audit Cleanup** **IN PROGRESS**
+
+**Status**: **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Medium  
+**Date**: 2025-09-30
+
+**Objective**: Resolve the outstanding documentation quality findings from the latest audit (duplicate section, path drift, and non-ASCII characters).
+
+**Background**: The 2025-09-30 full audit reported one duplicated "Core Safety Rules" section between human and AI workflow guides, two broken documentation paths, and 71 non-ASCII characters across eight files.
+
+**Implementation Plan**:
+- [ ] Remove or rephrase the duplicated "Core Safety Rules" content so each guide serves its audience independently.
+- [ ] Investigate the doc-sync path validation report and repair or restore the referenced files.
+- [ ] Replace the remaining non-ASCII characters with ASCII equivalents in the affected documents.
+
+**Success Criteria**:
+- [ ] python ai_development_tools/analyze_documentation.py --json reports zero duplicates.
+- [ ] python ai_development_tools/ai_tools_runner.py doc-sync reports zero path drift issues.
+- [ ] Fast audit passes with no ASCII compliance warnings.
+
 
 ### **Process Improvement Tools Implementation** ✅ **COMPLETED**
 

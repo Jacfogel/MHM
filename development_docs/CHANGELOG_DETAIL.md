@@ -3,12 +3,41 @@
 > **Audience**: Developers & contributors  
 > **Purpose**: Complete detailed changelog history  
 > **Style**: Chronological, detailed, reference-oriented  
-> **Last Updated**: 2025-09-27
+> **Last Updated**: 2025-09-30
 
 This is the complete detailed changelog. 
 **See [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for brief summaries for AI context**
 
 ## 🗓️ Recent Changes (Most Recent First)
+
+### 2025-09-30 - AI Tooling Service Refactor and Documentation Updates **COMPLETED**
+
+**Background**: The previous i_tools_runner.py contained the entire workflow logic, making it difficult to reuse commands programmatically and causing the audit to misinterpret script exits. Documentation describing the commands had fallen out of sync with the new architecture.
+
+**Goals**:
+- Move reusable workflows into a service layer while keeping the CLI lightweight.
+- Ensure documentation analysis and registry audits emit structured JSON so metrics stay accurate.
+- Align Cursor command checklists and README instructions with the streamlined workflow.
+
+**Technical Changes**:
+- Added i_development_tools/services/common.py with shared helpers for project paths, ASCII-safe output, JSON CLI handling, and iteration utilities.
+- Added i_development_tools/services/operations.py and refactored i_tools_runner.py into a thin argparse front-end that dispatches through a command registry.
+- Converted nalyze_documentation.py to support --json, ASCII summaries, configurable file lists, and structured duplicate/placeholder detection.
+- Rebuilt udit_function_registry.py around dataclass-driven inventory collection with bounded JSON payloads, actionable metrics, and section regeneration for missing documentation.
+- Normalised audit result saving to i_development_tools/ and cached structured metrics for summarised output.
+
+**Documentation Updates**:
+- Updated .cursor/commands/*.md, including new session workflow helpers and refreshed audit/docs/status/test instructions.
+- Simplified i_development_tools/README.md to highlight the command dispatcher and generated outputs.
+- Added package __init__.py files to make the services importable.
+
+**Testing**:
+- python ai_development_tools/ai_tools_runner.py audit
+- python ai_development_tools/ai_tools_runner.py audit --full
+- python run_tests.py
+- python -m compileall ai_development_tools
+
+**Result**: Audits now parse JSON-first outputs without treating expected findings as failures, command documentation is accurate, and the service layer can be reused by other tooling.
 
 ### 2025-09-29 - Process Improvement Tools Implementation ✅ **COMPLETED**
 

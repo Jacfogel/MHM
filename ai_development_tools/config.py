@@ -109,8 +109,8 @@ QUICK_AUDIT = {
     'run_documentation_audit': True,
     'run_validation': True,
     'save_results': True,
-    'results_file': 'ai_tools/ai_audit_detailed_results.json',
-    'issues_file': 'ai_tools/critical_issues.txt',
+    'results_file': 'ai_development_tools/ai_audit_detailed_results.json',
+    'issues_file': 'ai_development_tools/critical_issues.txt',
     'audit_scripts': [
         'function_discovery.py',
         'decision_support.py',

@@ -1,84 +1,44 @@
----
-description: "Audit rules for documentation and analysis - mandatory audit-first protocol"
+﻿---
+description: "Audit rules for documentation and analysis"
 globs: *.md,*.txt,*.mdc
 alwaysApply: false
 priority: 3
 version: "--scope=docs"
-lastUpdated: "2025-07-21"
-relatedFiles: ["ai_development_tools/README.md", "AI_REFERENCE.md"]
+lastUpdated: "2025-09-30"
+relatedFiles: ["ai_development_tools/README.md", "ai_development_docs/AI_REFERENCE.md"]
 ---
 # Audit Rules - Documentation & Analysis
 
-## Audit-First Protocol (CRITICAL)
+## Audit-First Protocol (Critical)
+- ALWAYS run `python ai_development_tools/ai_tools_runner.py audit` before creating documentation or broad analysis.
+- Use `--full` when you need fresh coverage and test results.
+- Share audit findings with the user and secure approval before continuing.
+- Base summaries on real data; do not rely on assumptions or stale context.
 
-### **BEFORE** creating any documentation, function registry, or comprehensive analysis:
-1. **ALWAYS** run `python ai_development_tools/ai_tools_runner.py audit` first
-2. **ALWAYS** show audit results to user with statistics
-3. **NEVER** create documentation from partial information
-4. **NEVER** assume patterns apply everywhere
-5. **ALWAYS** ask for user approval before proceeding
+## When to Trigger an Audit
+- Any request mentioning "complete", "comprehensive", "accuracy", or "systematic".
+- Generating or updating documentation, registries, dependency maps, or status dashboards.
+- Concerns about trustworthiness, reliability, or missing context.
 
-## Universal Triggers (Stop and Audit)
+## Required Tooling
+- `python ai_development_tools/ai_tools_runner.py audit [--full]`
+- `python ai_development_tools/ai_tools_runner.py status`
+- `python ai_development_tools/ai_tools_runner.py doc-sync`
+- `python ai_development_tools/ai_tools_runner.py legacy`
 
-### **Red Flags - Stop and Audit**
-- User asks for "complete" documentation
-- User mentions "accuracy" or "completeness"
-- User wants "function registry" or "dependency map"
-- User mentions "systematic" or "comprehensive"
-- User expresses concern about trust or reliability
-- User asks for "support system" or "best practices"
-- User requests any new documentation file
-- User asks for "how to" or "what works" for collaboration
-- User mentions "research" or "what others have done"
-- User asks for any kind of system or framework
-
-### **Universal Trigger - ANY Documentation Request**
-- **ANY** request for documentation, guides, systems, frameworks, or best practices
-- **ANY** request for "how to" or "what works" 
-- **ANY** request for new files or comprehensive information
-- **ANY** request that could result in creating documentation
-- **WHEN IN DOUBT, AUDIT FIRST**
-
-### **When User Requests Documentation**
-- **NEVER** create documentation immediately
-- **ALWAYS** say: "Let me run an audit first to get accurate information"
-- **ALWAYS** show audit results before creating anything
-- **ALWAYS** ask: "Should I proceed with this data?"
-
-## Required Audit Scripts
-- `python ai_development_tools/ai_tools_runner.py audit` - For comprehensive overview
-- `python ai_development_tools/function_discovery.py` - For function analysis
-- `python ai_development_tools/audit_function_registry.py` - For function documentation
-- `python ai_development_tools/audit_module_dependencies.py` - For dependency maps
-- `python ai_development_tools/analyze_documentation.py` - For documentation consolidation
-
-## Audit-First Workflow
-1. **Run audit script** to get actual data
-2. **Show results** to user with statistics
-3. **Ask for approval** before proceeding
-4. **Use audit data** as foundation for documentation
-5. **Verify completeness** before presenting
-
-## Success Criteria
-- Audit results shown before any documentation
-- User approves data before proceeding
-- Documentation based on actual code, not assumptions
-- Completeness statistics provided
-- User trusts the process
-
-## Failure Prevention
-- If no audit script exists, create one first
-- If audit shows gaps, acknowledge them
-- If user questions accuracy, run audit
-- If documentation seems incomplete, run audit
+## Recommended Workflow
+1. Run the audit in fast mode, then re-run with `--full` if the situation demands coverage data.
+2. Review `ai_development_tools/consolidated_report.txt` for statistics and issues.
+3. Capture highlights from `AI_STATUS.md` and `AI_PRIORITIES.md` before summarising.
+4. Confirm next actions with the user and document any open questions.
 
 ## Documentation Guidelines
-- Add new information to existing md files when possible
-- Only create new md files in subdirectories that don't already have one
-- Keep documentation concise and scannable
+- Prefer updating existing markdown files; only add new files when a location does not already exist.
+- Keep summaries concise and scannable; link to detailed references when needed.
+- Maintain pairing between human-facing docs and AI-facing counterparts.
 
-## Scripts Organization
-- Place testing, migration, debug, and utility scripts in `scripts/` directory
-- Use descriptive filenames and include comments
-- Remove obsolete scripts when no longer needed
-- Document significant scripts in `CHANGELOG.md`
+## Script Organization
+- Place testing, migration, debug, and utility scripts in the `scripts/` directory.
+- Use descriptive filenames and inline comments where necessary.
+- Remove obsolete scripts promptly and record significant utilities in the changelog.
+

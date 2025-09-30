@@ -30,6 +30,35 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
+
+**Documentation Duplication Cleanup - Core Safety Rules** - Ensure human and AI workflow guides no longer share verbatim content
+- *What it means*: Remove or rewrite the duplicated Core Safety Rules section between DEVELOPMENT_WORKFLOW.md and ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md so each document serves its audience.
+- *Why it helps*: Keeps paired documentation authoritative and stops repeated audit failures.
+- *Estimated effort*: Small
+- Next steps:
+  - [ ] Decide whether to centralize the canonical section or tailor separate summaries per audience.
+  - [ ] Update both documents and re-run the documentation analysis tool to confirm no duplicates remain.
+  - [ ] Run the fast audit to verify the documentation quality check passes.
+
+**Documentation Path Drift Fixes** - Investigate and resolve the two path validation warnings from the audit.
+- *What it means*: Locate the missing or misreferenced files reported by documentation_sync_checker and update the affected Markdown links.
+- *Why it helps*: Prevents broken references in docs and clears audit warnings.
+- *Estimated effort*: Medium
+- Next steps:
+  - [ ] Run the doc-sync command and capture the path issue details.
+  - [ ] Correct or restore each referenced resource.
+  - [ ] Re-run the fast audit to ensure path validation reports zero issues.
+
+**ASCII Compliance Cleanup** - Eliminate the remaining non-ASCII characters flagged by the audit.
+- *What it means*: Replace smart quotes, dashes, or symbols with ASCII equivalents in the eight files highlighted by documentation_sync_checker.
+- *Why it helps*: Keeps documentation portable across environments and keeps the ASCII compliance gate green.
+- *Estimated effort*: Small
+- Next steps:
+  - [ ] Use the audit output to list affected files and characters.
+  - [ ] Replace each non-ASCII character with an ASCII-safe equivalent.
+  - [ ] Run the fast audit to confirm the ASCII compliance check passes.
+
+
 **Process Improvement Tools Integration** ✅ **COMPLETED**
 - *What it means*: Implemented comprehensive process improvement tools to prevent recurring issues and maintain system quality
 - *Why it helps*: Prevents changelog bloat, validates file references, detects documentation quality issues, ensures ASCII compliance, and automates TODO hygiene

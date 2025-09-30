@@ -1,371 +1,580 @@
-#!/usr/bin/env python3
-"""
-Audit script to verify FUNCTION_REGISTRY_DETAIL.md completeness and accuracy.
-Scans all .py files and extracts function information for comparison.
-"""
+﻿#!/usr/bin/env python3
+"""Audit script to verify FUNCTION_REGISTRY_DETAIL.md coverage."""
 
-import os
+from __future__ import annotations
+
+import argparse
 import ast
-import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-import json
+from typing import Dict, List, Tuple, Set
+
 import sys
 
-# Import standard exclusions
-sys.path.insert(0, str(Path(__file__).parent))
-from standard_exclusions import should_exclude_file
+CURRENT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = CURRENT_DIR.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-def extract_functions_from_file(file_path: str) -> List[Dict]:
-    """Extract all function definitions from a Python file."""
-    functions = []
-    
+from ai_development_tools import config
+from ai_development_tools.services.common import (
+    ProjectPaths,
+    ensure_ascii,
+    iter_python_sources,
+    run_cli,
+)
+
+PATHS = ProjectPaths()
+REGISTRY_PATH = PATHS.dev_docs / "FUNCTION_REGISTRY_DETAIL.md"
+
+FUNCTION_CFG = config.get_function_discovery_config()
+HANDLER_KEYWORDS = tuple(keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", []))
+
+HIGH_COMPLEXITY_MIN = 50
+TOP_COMPLEXITY = 10
+TOP_UNDOCUMENTED = 5
+TOP_DUPLICATES = 5
+ERROR_SAMPLE_LIMIT = 5
+MAX_COMPLEXITY_JSON = 200
+MAX_UNDOCUMENTED_JSON = 200
+MAX_DUPLICATES_JSON = 200
+
+
+@dataclass(frozen=True)
+class FunctionRecord:
+    name: str
+    line: int
+    args: Tuple[str, ...]
+    decorators: Tuple[str, ...]
+    docstring: str
+    is_test: bool
+    is_main: bool
+    is_handler: bool
+    has_docstring: bool
+    complexity: int
+
+
+@dataclass(frozen=True)
+class ClassRecord:
+    name: str
+    line: int
+    docstring: str
+    methods: Tuple[str, ...]
+
+
+def decorator_names(node: ast.AST) -> Tuple[str, ...]:
+    names: List[str] = []
+    for decorator in getattr(node, "decorator_list", []):
+        if isinstance(decorator, ast.Name):
+            names.append(decorator.id)
+        elif isinstance(decorator, ast.Attribute):
+            names.append(decorator.attr)
+        elif isinstance(decorator, ast.Call):
+            func = decorator.func
+            if isinstance(func, ast.Name):
+                names.append(func.id)
+            elif isinstance(func, ast.Attribute):
+                names.append(func.attr)
+    return tuple(names)
+
+
+def function_arguments(node: ast.FunctionDef) -> Tuple[str, ...]:
+    parts: List[str] = []
+    for arg in getattr(node.args, "posonlyargs", []):
+        parts.append(arg.arg)
+    for arg in node.args.args:
+        parts.append(arg.arg)
+    if node.args.vararg:
+        parts.append(f"*{node.args.vararg.arg}")
+    for arg in node.args.kwonlyargs:
+        parts.append(arg.arg)
+    if node.args.kwarg:
+        parts.append(f"**{node.args.kwarg.arg}")
+    return tuple(parts)
+
+
+def node_complexity(node: ast.AST) -> int:
+    return sum(1 for _ in ast.walk(node))
+
+
+def extract_functions_and_classes(path: Path, errors: List[str]) -> Tuple[List[FunctionRecord], List[ClassRecord]]:
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        tree = ast.parse(content)
-        
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                # Get function signature
-                args = []
-                for arg in node.args.args:
-                    args.append(arg.arg)
-                
-                # Get decorators
-                decorators = []
-                for decorator in node.decorator_list:
-                    if isinstance(decorator, ast.Name):
-                        decorators.append(decorator.id)
-                    elif isinstance(decorator, ast.Call):
-                        if isinstance(decorator.func, ast.Name):
-                            decorators.append(decorator.func.id)
-                
-                # Get docstring
-                docstring = ast.get_docstring(node) or ""
-                
-                # Check if it's a test function
-                is_test = node.name.startswith('test_') or 'test' in node.name.lower()
-                
-                # Check if it's a main function
-                is_main = node.name == 'main' or node.name == '__main__'
-                
-                # Get function complexity (rough estimate)
-                complexity = len(list(ast.walk(node)))
-                
-                # Check if it's a handler/utility function
-                is_handler = any(keyword in node.name.lower() for keyword in ['handle', 'process', 'validate', 'check', 'get', 'set', 'save', 'load'])
-                
-                functions.append({
-                    'name': node.name,
-                    'line': node.lineno,
-                    'args': args,
-                    'decorators': decorators,
-                    'docstring': docstring,
-                    'is_test': is_test,
-                    'is_main': is_main,
-                    'complexity': complexity,
-                    'has_docstring': bool(docstring.strip()),
-                    'is_handler': is_handler,
-                    'arg_count': len(args)
-                })
-                
-    except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
-    
-    return functions
-
-def extract_classes_from_file(file_path: str) -> List[Dict]:
-    """Extract all class definitions from a Python file."""
-    classes = []
-    
+        source = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        errors.append(f"Read error {path}: {exc}")
+        return [], []
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        tree = ast.parse(content)
-        
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ClassDef):
-                # Get class methods
-                methods = []
-                for child in node.body:
-                    if isinstance(child, ast.FunctionDef):
-                        methods.append({
-                            'name': child.name,
-                            'line': child.lineno,
-                            'args': [arg.arg for arg in child.args.args],
-                            'decorators': [d.id if isinstance(d, ast.Name) else 
-                                         d.func.id if isinstance(d, ast.Call) and isinstance(d.func, ast.Name) else str(d)
-                                         for d in child.decorator_list],
-                            'docstring': ast.get_docstring(child)
-                        })
-                
-                classes.append({
-                    'name': node.name,
-                    'line': node.lineno,
-                    'methods': methods,
-                    'docstring': ast.get_docstring(node)
-                })
-                
-    except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
-    
-    return classes
+        tree = ast.parse(source, filename=str(path))
+    except SyntaxError as exc:
+        errors.append(f"Syntax error {path}: line {exc.lineno}: {exc.msg}")
+        return [], []
 
-def scan_all_python_files() -> Dict[str, Dict]:
-    """Scan all Python files in the project and extract function/class information."""
-    import config
-    project_root = config.get_project_root()
-    results = {}
-    
-    # Directories to scan from configuration
-    scan_dirs = config.get_scan_directories()
-    
-    for scan_dir in scan_dirs:
-        dir_path = project_root / scan_dir
-        if not dir_path.exists():
+    functions: List[FunctionRecord] = []
+    classes: List[ClassRecord] = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            name = node.name
+            docstring = ast.get_docstring(node, clean=False) or ""
+            functions.append(
+                FunctionRecord(
+                    name=name,
+                    line=node.lineno,
+                    args=function_arguments(node),
+                    decorators=decorator_names(node),
+                    docstring=docstring,
+                    is_test=name.startswith("test_") or "test" in name.lower(),
+                    is_main=name in {"main", "__main__"},
+                    is_handler=any(keyword in name.lower() for keyword in HANDLER_KEYWORDS),
+                    has_docstring=bool(docstring.strip()),
+                    complexity=node_complexity(node),
+                )
+            )
+        elif isinstance(node, ast.ClassDef):
+            docstring = ast.get_docstring(node, clean=False) or ""
+            method_names = tuple(
+                child.name for child in node.body if isinstance(child, ast.FunctionDef)
+            )
+            classes.append(
+                ClassRecord(
+                    name=node.name,
+                    line=node.lineno,
+                    docstring=docstring,
+                    methods=method_names,
+                )
+            )
+    return functions, classes
+
+
+def collect_project_inventory(errors: List[str]) -> Dict[str, Dict[str, object]]:
+    inventory: Dict[str, Dict[str, object]] = {}
+    seen: Set[Path] = set()
+
+    for source_path in iter_python_sources(config.get_scan_directories()):
+        resolved = source_path.resolve()
+        seen.add(resolved)
+        try:
+            relative = resolved.relative_to(PATHS.root)
+            key = str(relative).replace("\\", "/")
+        except ValueError:
+            key = str(resolved)
+        functions, classes = extract_functions_and_classes(resolved, errors)
+        inventory[key] = {
+            "functions": functions,
+            "classes": classes,
+            "total_functions": len(functions),
+            "total_classes": len(classes),
+        }
+
+    for source_path in PATHS.root.glob("*.py"):
+        resolved = source_path.resolve()
+        if resolved in seen or resolved == (CURRENT_DIR / "audit_function_registry.py"):
             continue
-            
-        for py_file in dir_path.rglob('*.py'):
-            # Use standard exclusions to filter files
-            if not should_exclude_file(str(py_file), 'analysis', 'development'):
-                relative_path = py_file.relative_to(project_root)
-                file_key = str(relative_path).replace('\\', '/')
-                
-                functions = extract_functions_from_file(str(py_file))
-                classes = extract_classes_from_file(str(py_file))
-                
-                results[file_key] = {
-                    'functions': functions,
-                    'classes': classes,
-                    'total_functions': len(functions),
-                    'total_classes': len(classes)
-                }
-    
-    # Also scan root directory for .py files
-    for py_file in project_root.glob('*.py'):
-        if py_file.name != 'audit_function_registry.py':  # Skip this script
-            file_key = py_file.name
-            
-            functions = extract_functions_from_file(str(py_file))
-            classes = extract_classes_from_file(str(py_file))
-            
-            results[file_key] = {
-                'functions': functions,
-                'classes': classes,
-                'total_functions': len(functions),
-                'total_classes': len(classes)
-            }
-    
-    return results
+        functions, classes = extract_functions_and_classes(resolved, errors)
+        inventory[source_path.name] = {
+            "functions": functions,
+            "classes": classes,
+            "total_functions": len(functions),
+            "total_classes": len(classes),
+        }
 
-def parse_function_registry() -> Dict[str, List[str]]:
-    """Parse the existing FUNCTION_REGISTRY_DETAIL.md to extract documented functions."""
-    registry_path = Path(__file__).parent.parent / 'development_docs' / 'FUNCTION_REGISTRY_DETAIL.md'
-    documented = {}
-    
-    try:
-        with open(registry_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-        
-        # Extract file sections and their functions (new format)
-        # Pattern: #### `filename.py` followed by functions section
-        sections = re.findall(r'#### `([^`]+)`\n(.*?)(?=#### `|$)', content, re.DOTALL)
-        
-        for file_path, section_content in sections:
-            # Extract function names from the functions section
-            # Look for the "Functions:" section and extract function names
-            funcs_section = re.search(r'\*\*Functions:\*\*\n(.*?)(?=\*\*Classes:\*\*|$)', section_content, re.DOTALL)
-            if funcs_section:
-                # Extract function names (lines starting with "- ✅" or "- ❌" followed by function name)
-                function_matches = re.findall(r'- [✅❌] `([^`]+)\([^)]*\)`', funcs_section.group(1))
-                documented[file_path] = function_matches
-            else:
-                documented[file_path] = []
-            
-    except Exception as e:
-        print(f"Error parsing FUNCTION_REGISTRY_DETAIL.md: {e}")
-    
-    return documented
+    return inventory
 
-def generate_audit_report():
-    """Generate a comprehensive audit report."""
-    print("[SCAN] Scanning all Python files...")
-    actual_functions = scan_all_python_files()
-    
-    print("[DOC] Parsing FUNCTION_REGISTRY_DETAIL.md...")
-    documented_functions = parse_function_registry()
-    
-    print("\n" + "="*80)
-    print("FUNCTION REGISTRY AUDIT REPORT")
-    print("="*80)
-    
-    # Statistics
-    total_files = len(actual_functions)
-    total_actual_functions = sum(data['total_functions'] for data in actual_functions.values())
-    total_actual_classes = sum(data['total_classes'] for data in actual_functions.values())
-    total_documented_functions = sum(len(funcs) for funcs in documented_functions.values())
-    
-    print(f"\n[STATS] OVERALL STATISTICS:")
-    print(f"   Files scanned: {total_files}")
-    print(f"   Functions found: {total_actual_functions}")
-    print(f"   Classes found: {total_actual_classes}")
-    print(f"   Functions documented: {total_documented_functions}")
-    coverage_percent = (total_documented_functions/total_actual_functions*100) if total_actual_functions > 0 else 0
-    print(f"   Coverage: {coverage_percent:.1f}%")
-    print(f"coverage: {coverage_percent:.1f}%")
-    
-    # Missing functions
-    print(f"\n[MISS] MISSING FROM REGISTRY:")
+
+def extract_documented_name(line: str) -> str | None:
+    if "`" not in line:
+        return None
+    start = line.index("`") + 1
+    end = line.find("`", start)
+    if end == -1:
+        return None
+    signature = line[start:end]
+    if not signature:
+        return None
+    if "(" in signature:
+        signature = signature.split("(", 1)[0]
+    if "." in signature:
+        signature = signature.split(".")[-1]
+    return signature.strip()
+
+
+def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
+    if not path.exists():
+        return {}
+    mapping: Dict[str, Set[str]] = {}
+    current_file: str | None = None
+    in_functions = False
+
+    for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        line = raw_line.strip()
+        if line.startswith("#### `") and line.endswith("`"):
+            current_file = line[5:-1]
+            mapping.setdefault(current_file, set())
+            in_functions = False
+            continue
+        if line.lower() == "**functions:**":
+            in_functions = current_file is not None
+            continue
+        if line.lower().startswith("**classes:**"):
+            in_functions = False
+            continue
+        if in_functions and line.startswith("-"):
+            name = extract_documented_name(line)
+            if name:
+                mapping[current_file].add(name)
+    return mapping
+
+
+def build_metrics(inventory: Dict[str, Dict[str, object]], registry: Dict[str, Set[str]]) -> Dict[str, object]:
+    missing_by_file: Dict[str, List[str]] = {}
+    missing_files: List[str] = []
     missing_count = 0
-    for file_path, data in actual_functions.items():
-        if file_path not in documented_functions:
-            print(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
-            missing_count += data['total_functions']
-        else:
-            documented_funcs = set(documented_functions[file_path])
-            actual_funcs = {f['name'] for f in data['functions']}
-            missing_funcs = actual_funcs - documented_funcs
-            
-            if missing_funcs:
-                print(f"   [FILE] {file_path}:")
-                for func in sorted(missing_funcs):
-                    print(f"      - {func}")
-                    missing_count += 1
-    
-    print(f"\n   Total missing functions: {missing_count}")
-    print(f"missing items: {missing_count}")
-    
-    # Extra functions (documented but not found)
-    print(f"\n[EXTRA] EXTRA IN REGISTRY (not found in files):")
-    extra_count = 0
-    for file_path, documented_funcs in documented_functions.items():
-        if file_path not in actual_functions:
-            print(f"   [FILE] {file_path} - FILE NOT FOUND")
-            extra_count += len(documented_funcs)
-        else:
-            documented_funcs_set = set(documented_funcs)
-            actual_funcs = {f['name'] for f in actual_functions[file_path]['functions']}
-            extra_funcs = documented_funcs_set - actual_funcs
-            
-            if extra_funcs:
-                print(f"   [FILE] {file_path}:")
-                for func in sorted(extra_funcs):
-                    print(f"      - {func}")
-                    extra_count += 1
-    
-    print(f"\n   Total extra functions: {extra_count}")
-    
-    # Function analysis for decision-making
-    print(f"\n[ANALYSIS] FUNCTION ANALYSIS FOR DECISION-MAKING:")
-    
-    # Find complex functions that might need attention
-    complex_functions = []
-    for file_path, data in actual_functions.items():
-        for func in data['functions']:
-            # Skip auto-generated code and tests
-            if (func['complexity'] > 50 and 
-                not func['is_test'] and 
-                not ('generated' in file_path and '_pyqt.py' in file_path) and
-                not func['name'] in ['setupUi', 'retranslateUi']):
-                complex_functions.append({
-                    'file': file_path,
-                    'name': func['name'],
-                    'complexity': func['complexity'],
-                    'has_docstring': func['has_docstring']
-                })
-    
-    if complex_functions:
-        print(f"   [WARN] HIGH COMPLEXITY FUNCTIONS (may need refactoring):")
-        for func in sorted(complex_functions, key=lambda x: x['complexity'], reverse=True)[:10]:
-            doc_status = "[DOC]" if func['has_docstring'] else "[NO DOC]"
-            print(f"      {doc_status} {func['file']}::{func['name']} (complexity: {func['complexity']})")
-    
-    # Find functions without docstrings
-    undocumented_functions = []
-    for file_path, data in actual_functions.items():
-        for func in data['functions']:
-            if not func['has_docstring'] and not func['is_test'] and not func['is_main']:
-                undocumented_functions.append({
-                    'file': file_path,
-                    'name': func['name'],
-                    'is_handler': func['is_handler']
-                })
-    
-    if undocumented_functions:
-        print(f"   [DOC] UNDOCUMENTED FUNCTIONS (need docstrings):")
-        handlers = [f for f in undocumented_functions if f['is_handler']]
-        others = [f for f in undocumented_functions if not f['is_handler']]
-        
-        if handlers:
-            print(f"      [HANDLER] Handlers/Utilities ({len(handlers)}):")
-            for func in sorted(handlers, key=lambda x: x['name'])[:5]:
-                print(f"         - {func['file']}::{func['name']}")
-        
-        if others:
-            print(f"      [OTHER] Other functions ({len(others)}):")
-            for func in sorted(others, key=lambda x: x['name'])[:5]:
-                print(f"         - {func['file']}::{func['name']}")
-    
-    # Find potential duplicate functions
-    function_names = {}
-    for file_path, data in actual_functions.items():
-        for func in data['functions']:
-            if func['name'] not in function_names:
-                function_names[func['name']] = []
-            function_names[func['name']].append(file_path)
-    
-    duplicates = {name: files for name, files in function_names.items() if len(files) > 1}
-    if duplicates:
-        print(f"   [DUPE] POTENTIAL DUPLICATE FUNCTION NAMES:")
-        for name, files in sorted(duplicates.items())[:5]:
-            print(f"      '{name}' found in: {', '.join(files)}")
-    
-    # Detailed breakdown by directory
-    print(f"\n[DIR] BREAKDOWN BY DIRECTORY:")
-    dir_stats = {}
-    for file_path, data in actual_functions.items():
-        dir_name = file_path.split('/')[-2] if '/' in file_path else 'root'
-        if dir_name not in dir_stats:
-            dir_stats[dir_name] = {'files': 0, 'functions': 0, 'classes': 0}
-        dir_stats[dir_name]['files'] += 1
-        dir_stats[dir_name]['functions'] += data['total_functions']
-        dir_stats[dir_name]['classes'] += data['total_classes']
-    
-    for dir_name, stats in sorted(dir_stats.items()):
-        print(f"   {dir_name}/: {stats['files']} files, {stats['functions']} functions, {stats['classes']} classes")
-    
-    # Generate updated registry content
-    print(f"\n[GEN] GENERATING UPDATED REGISTRY SECTIONS...")
-    generate_updated_registry_sections(actual_functions)
 
-def generate_updated_registry_sections(actual_functions: Dict[str, Dict]):
-    """Generate updated registry sections for missing files."""
-    print("\n" + "="*80)
-    print("UPDATED REGISTRY SECTIONS TO ADD:")
-    print("="*80)
-    
-    for file_path, data in sorted(actual_functions.items()):
-        if data['functions'] or data['classes']:
-            print(f"\n### {file_path}")
-            
-            # Functions
-            if data['functions']:
-                print("**Functions:**")
-                for func in data['functions']:
-                    args_str = ', '.join(func['args'])
-                    print(f"- `{func['name']}({args_str})` - {func['docstring'] or 'No description'}")
-            
-            # Classes
-            if data['classes']:
-                print("**Classes:**")
-                for cls in data['classes']:
-                    print(f"- `{cls['name']}` - {cls['docstring'] or 'No description'}")
-                    for method in cls['methods']:
-                        args_str = ', '.join(method['args'])
-                        print(f"  - `{cls['name']}.{method['name']}({args_str})` - {method['docstring'] or 'No description'}")
+    for file_path, data in inventory.items():
+        actual = {record.name for record in data["functions"]}
+        documented = registry.get(file_path, set())
+        if file_path not in registry and actual:
+            missing_files.append(file_path)
+        missing = sorted(actual - documented)
+        if missing:
+            missing_by_file[file_path] = missing
+            missing_count += len(missing)
+
+    extra_by_file: Dict[str, List[str]] = {}
+    extra_count = 0
+    for file_path, documented in registry.items():
+        actual = {record.name for record in inventory.get(file_path, {}).get("functions", [])}
+        extras = sorted(name for name in documented if name not in actual)
+        if extras:
+            extra_by_file[file_path] = extras
+            extra_count += len(extras)
+
+    totals = {
+        "files_scanned": len(inventory),
+        "functions_found": sum(data["total_functions"] for data in inventory.values()),
+        "classes_found": sum(data["total_classes"] for data in inventory.values()),
+        "functions_documented": sum(len(names) for names in registry.values()),
+    }
+    coverage = 0.0
+    if totals["functions_found"]:
+        coverage = (totals["functions_documented"] / totals["functions_found"]) * 100.0
+
+    return {
+        "totals": totals,
+        "coverage": coverage,
+        "missing_by_file": missing_by_file,
+        "missing_files": sorted(missing_files),
+        "missing_count": missing_count,
+        "extra_by_file": extra_by_file,
+        "extra_count": extra_count,
+    }
+
+
+def build_analysis(inventory: Dict[str, Dict[str, object]]) -> Dict[str, object]:
+    high_complexity: List[Dict[str, object]] = []
+    undocumented_handlers: List[Dict[str, str]] = []
+    undocumented_other: List[Dict[str, str]] = []
+    occurrences: Dict[str, Set[str]] = {}
+
+    for file_path, data in inventory.items():
+        for record in data["functions"]:
+            occurrences.setdefault(record.name, set()).add(file_path)
+            if (
+                record.complexity > HIGH_COMPLEXITY_MIN
+                and not record.is_test
+                and not ("generated" in file_path and "_pyqt.py" in file_path)
+                and record.name not in {"setupUi", "retranslateUi"}
+            ):
+                high_complexity.append(
+                    {
+                        "file": file_path,
+                        "name": record.name,
+                        "complexity": record.complexity,
+                        "has_docstring": record.has_docstring,
+                    }
+                )
+            if not record.has_docstring and not record.is_test and not record.is_main:
+                target = undocumented_handlers if record.is_handler else undocumented_other
+                target.append({"file": file_path, "name": record.name})
+
+    high_complexity.sort(key=lambda item: item["complexity"], reverse=True)
+    undocumented_handlers.sort(key=lambda item: (item["file"], item["name"]))
+    undocumented_other.sort(key=lambda item: (item["file"], item["name"]))
+
+    high_total = len(high_complexity)
+    if high_total > MAX_COMPLEXITY_JSON:
+        high_complexity = high_complexity[:MAX_COMPLEXITY_JSON]
+
+    handlers_total = len(undocumented_handlers)
+    if handlers_total > MAX_UNDOCUMENTED_JSON:
+        undocumented_handlers = undocumented_handlers[:MAX_UNDOCUMENTED_JSON]
+
+    others_total = len(undocumented_other)
+    if others_total > MAX_UNDOCUMENTED_JSON:
+        undocumented_other = undocumented_other[:MAX_UNDOCUMENTED_JSON]
+
+    duplicates = {
+        name: sorted(files)
+        for name, files in occurrences.items()
+        if len(files) > 1
+    }
+    duplicate_count = len(duplicates)
+    duplicates_limited = {
+        name: duplicates[name]
+        for name in sorted(duplicates)[:MAX_DUPLICATES_JSON]
+    }
+
+    duplicate_sample = [
+        {"name": name, "files": duplicates[name]}
+        for name in sorted(duplicates)[:TOP_DUPLICATES]
+    ]
+
+    return {
+        "high_complexity": high_complexity,
+        "high_complexity_total": high_total,
+        "undocumented_handlers": undocumented_handlers,
+        "undocumented_handlers_total": handlers_total,
+        "undocumented_other": undocumented_other,
+        "undocumented_other_total": others_total,
+        "duplicates": duplicates_limited,
+        "duplicate_count": duplicate_count,
+        "duplicate_sample": duplicate_sample,
+    }
+
+
+def build_registry_sections(inventory: Dict[str, Dict[str, object]], metrics: Dict[str, object]) -> Dict[str, Dict[str, object]]:
+    sections: Dict[str, Dict[str, object]] = {}
+
+    for file_path, missing_names in metrics["missing_by_file"].items():
+        data = inventory.get(file_path)
+        if not data:
+            continue
+        sections[file_path] = {
+            "functions": [
+                {
+                    "name": func.name,
+                    "args": list(func.args),
+                    "docstring": func.docstring.strip(),
+                }
+                for func in data["functions"]
+                if func.name in missing_names
+            ],
+            "classes": [
+                {
+                    "name": cls.name,
+                    "docstring": cls.docstring.strip(),
+                    "methods": list(cls.methods),
+                }
+                for cls in data["classes"]
+            ],
+        }
+
+    for file_path in metrics["missing_files"]:
+        if file_path in sections:
+            continue
+        data = inventory.get(file_path)
+        if not data:
+            continue
+        sections[file_path] = {
+            "functions": [
+                {
+                    "name": func.name,
+                    "args": list(func.args),
+                    "docstring": func.docstring.strip(),
+                }
+                for func in data["functions"]
+            ],
+            "classes": [
+                {
+                    "name": cls.name,
+                    "docstring": cls.docstring.strip(),
+                    "methods": list(cls.methods),
+                }
+                for cls in data["classes"]
+            ],
+        }
+
+    return sections
+
+
+def summarise_audit(
+    inventory: Dict[str, Dict[str, object]],
+    metrics: Dict[str, object],
+    analysis: Dict[str, object],
+    errors: List[str],
+) -> str:
+    lines: List[str] = []
+    lines.append("[SCAN] Scanning all Python files...")
+    lines.append("[DOC] Parsing FUNCTION_REGISTRY_DETAIL.md...")
+    lines.append("")
+    lines.append("=" * 80)
+    lines.append("FUNCTION REGISTRY AUDIT REPORT")
+    lines.append("=" * 80)
+    lines.append("")
+    totals = metrics["totals"]
+    lines.append("[STATS] OVERALL STATISTICS:")
+    lines.append(f"   Files scanned: {totals['files_scanned']}")
+    lines.append(f"   Functions found: {totals['functions_found']}")
+    lines.append(f"   Classes found: {totals['classes_found']}")
+    lines.append(f"   Functions documented: {totals['functions_documented']}")
+    lines.append(f"   Coverage: {metrics['coverage']:.1f}%")
+    lines.append(f"coverage: {metrics['coverage']:.1f}%")
+    lines.append("")
+
+    lines.append("[MISS] MISSING FROM REGISTRY:")
+    if metrics["missing_count"] == 0:
+        lines.append("   None")
+    else:
+        for file_path in sorted(metrics["missing_by_file"]):
+            missing = metrics["missing_by_file"][file_path]
+            lines.append(f"   [FILE] {file_path}:")
+            for name in missing[:TOP_UNDOCUMENTED]:
+                lines.append(f"      - {name}")
+            remaining = max(len(missing) - TOP_UNDOCUMENTED, 0)
+            if remaining > 0:
+                lines.append(f"      ... +{remaining} more")
+        for file_path in metrics["missing_files"]:
+            lines.append(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
+    lines.append("")
+    lines.append(f"   Total missing functions: {metrics['missing_count']}")
+    lines.append(f"missing items: {metrics['missing_count']}")
+    lines.append("")
+
+    lines.append("[EXTRA] EXTRA IN REGISTRY (not found in files):")
+    if metrics["extra_count"] == 0:
+        lines.append("   None")
+    else:
+        for file_path in sorted(metrics["extra_by_file"]):
+            extras = metrics["extra_by_file"][file_path]
+            lines.append(f"   [FILE] {file_path}:")
+            for name in extras[:TOP_UNDOCUMENTED]:
+                lines.append(f"      - {name}")
+            remaining = max(len(extras) - TOP_UNDOCUMENTED, 0)
+            if remaining > 0:
+                lines.append(f"      ... +{remaining} more")
+    lines.append("")
+    lines.append(f"   Total extra functions: {metrics['extra_count']}")
+    lines.append("")
+
+    lines.append("[ANALYSIS] FUNCTION ANALYSIS FOR DECISION-MAKING:")
+    high_complexity = analysis["high_complexity"]
+    high_total = analysis["high_complexity_total"]
+    if high_total:
+        lines.append("   [WARN] HIGH COMPLEXITY FUNCTIONS (may need refactoring):")
+        for item in high_complexity[:TOP_COMPLEXITY]:
+            status = "[DOC]" if item["has_docstring"] else "[NO DOC]"
+            lines.append(f"      {status} {item['file']}::{item['name']} (complexity: {item['complexity']})")
+        leftover = max(high_total - TOP_COMPLEXITY, 0)
+        if leftover > 0:
+            lines.append(f"      ... +{leftover} more")
+    else:
+        lines.append("   [WARN] HIGH COMPLEXITY FUNCTIONS (may need refactoring): None")
+
+    handlers = analysis["undocumented_handlers"]
+    handlers_total = analysis["undocumented_handlers_total"]
+    others = analysis["undocumented_other"]
+    others_total = analysis["undocumented_other_total"]
+    if handlers_total or others_total:
+        lines.append("   [DOC] UNDOCUMENTED FUNCTIONS (need docstrings):")
+        if handlers_total:
+            lines.append(f"      [HANDLER] Handlers/Utilities ({handlers_total}):")
+            for item in handlers[:TOP_UNDOCUMENTED]:
+                lines.append(f"         - {item['file']}::{item['name']}")
+            leftover = max(handlers_total - TOP_UNDOCUMENTED, 0)
+            if leftover > 0:
+                lines.append(f"         ... +{leftover} more")
+        if others_total:
+            lines.append(f"      [OTHER] Other functions ({others_total}):")
+            for item in others[:TOP_UNDOCUMENTED]:
+                lines.append(f"         - {item['file']}::{item['name']}")
+            leftover = max(others_total - TOP_UNDOCUMENTED, 0)
+            if leftover > 0:
+                lines.append(f"         ... +{leftover} more")
+    else:
+        lines.append("   [DOC] UNDOCUMENTED FUNCTIONS (need docstrings): None")
+
+    duplicate_sample = analysis["duplicate_sample"]
+    duplicate_total = analysis["duplicate_count"]
+    if duplicate_total:
+        lines.append("")
+        lines.append("[DUPE] POTENTIAL DUPLICATE FUNCTION NAMES:")
+        for item in duplicate_sample:
+            lines.append(f"   '{item['name']}' found in: {', '.join(item['files'])}")
+        leftover = max(duplicate_total - len(duplicate_sample), 0)
+        if leftover > 0:
+            lines.append(f"   ... +{leftover} more")
+
+    dir_stats: Dict[str, Dict[str, int]] = {}
+    for file_path, data in inventory.items():
+        dir_name = file_path.rsplit("/", 1)[0] if "/" in file_path else "root"
+        stats = dir_stats.setdefault(dir_name, {"files": 0, "functions": 0, "classes": 0})
+        stats["files"] += 1
+        stats["functions"] += data["total_functions"]
+        stats["classes"] += data["total_classes"]
+    lines.append("")
+    lines.append("[DIR] BREAKDOWN BY DIRECTORY:")
+    for dir_name in sorted(dir_stats):
+        stats = dir_stats[dir_name]
+        lines.append(f"   {dir_name}/: {stats['files']} files, {stats['functions']} functions, {stats['classes']} classes")
+
+    if errors:
+        lines.append("")
+        lines.append("[ERROR] Issues encountered while scanning:")
+        for err in errors[:ERROR_SAMPLE_LIMIT]:
+            lines.append(f"   - {err}")
+        if len(errors) > ERROR_SAMPLE_LIMIT:
+            lines.append(f"   ... +{len(errors) - ERROR_SAMPLE_LIMIT} more")
+
+    if metrics["missing_count"]:
+        lines.append("")
+        lines.append("[GEN] Missing registry sections available via --json (registry_sections).")
+
+    return "\n".join(lines)
+
+
+def execute(args: argparse.Namespace):
+    errors: List[str] = []
+    inventory = collect_project_inventory(errors)
+    registry = parse_registry_document()
+    metrics = build_metrics(inventory, registry)
+    analysis = build_analysis(inventory)
+    sections = build_registry_sections(inventory, metrics)
+    summary = summarise_audit(inventory, metrics, analysis, errors)
+    payload = {
+        "totals": metrics["totals"],
+        "coverage": round(metrics["coverage"], 2),
+        "missing": {
+            "count": metrics["missing_count"],
+            "files": metrics["missing_by_file"],
+            "missing_files": metrics["missing_files"],
+        },
+        "extra": {
+            "count": metrics["extra_count"],
+            "files": metrics["extra_by_file"],
+        },
+        "analysis": {
+            "high_complexity": analysis["high_complexity"],
+            "high_complexity_total": analysis["high_complexity_total"],
+            "undocumented_handlers": analysis["undocumented_handlers"],
+            "undocumented_handlers_total": analysis["undocumented_handlers_total"],
+            "undocumented_other": analysis["undocumented_other"],
+            "undocumented_other_total": analysis["undocumented_other_total"],
+            "duplicates": analysis["duplicates"],
+            "duplicate_count": analysis["duplicate_count"],
+            "duplicate_sample": analysis["duplicate_sample"],
+        },
+        "registry_sections": sections,
+        "errors": errors,
+    }
+    exit_code = 0
+    if metrics["missing_count"] or metrics["extra_count"] or errors:
+        exit_code = 1
+    return exit_code, ensure_ascii(summary), payload
+
+
+def main() -> int:
+    return run_cli(execute, description="Audit function registry against codebase.")
+
 
 if __name__ == "__main__":
-    generate_audit_report() 
+    raise SystemExit(main())
