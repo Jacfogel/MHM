@@ -215,7 +215,7 @@ def show_tool_guide(tool_name=None):
         for tool_name, tool_info in TOOL_GUIDE.items():
             print(f"📋 {tool_name}")
             print(f"   Purpose: {tool_info['purpose']}")
-            print(f"   Command: python ai_tools/{tool_name}")
+            print(f"   Command: python ai_development_tools/{tool_name}")
             print()
             
             print("   When to use:")
@@ -257,12 +257,12 @@ def show_recommendations(scenario):
             priority_icon = "🔴" if rec['priority'] == 'high' else "🟡"
             print(f"{priority_icon} {i}. {rec['tool']}")
             print(f"   Reason: {rec['reason']}")
-            print(f"   Command: python ai_tools/{rec['tool']}")
+            print(f"   Command: python ai_development_tools/{rec['tool']}")
             print()
     else:
         print("❌ No specific tool recommendations found.")
         print("💡 Try running the general audit first:")
-        print("   python ai_tools/ai_tools_runner.py audit")
+        print("   python ai_development_tools/ai_tools_runner.py audit")
 
 def run_tool_with_guidance(tool_name):
     """Run a tool and provide guidance on interpreting results"""
@@ -284,7 +284,7 @@ def run_tool_with_guidance(tool_name):
     
     # Run the tool
     try:
-        result = subprocess.run([sys.executable, f"ai_tools/{tool_name}"], 
+        result = subprocess.run([sys.executable, f"ai_development_tools/{tool_name}"], 
                               capture_output=True, text=True, timeout=60)
         
         print("📋 Tool Output:")
@@ -320,13 +320,13 @@ if __name__ == "__main__":
             run_tool_with_guidance(tool_name)
         else:
             print("Usage:")
-            print("  python ai_tools/tool_guide.py guide                    # Show all tools")
-            print("  python ai_tools/tool_guide.py guide ai_tools_runner.py     # Show specific tool")
-            print("  python ai_tools/tool_guide.py recommend 'documentation' # Get recommendations")
-            print("  python ai_tools/tool_guide.py run ai_tools_runner.py       # Run with guidance")
+            print("  python ai_development_tools/tool_guide.py guide                    # Show all tools")
+            print("  python ai_development_tools/tool_guide.py guide ai_tools_runner.py     # Show specific tool")
+            print("  python ai_development_tools/tool_guide.py recommend 'documentation' # Get recommendations")
+            print("  python ai_development_tools/tool_guide.py run ai_tools_runner.py       # Run with guidance")
     else:
         # Default: show all tools
         show_tool_guide()
         print("💡 For specific guidance:")
-        print("   python ai_tools/tool_guide.py guide <tool_name>")
-        print("   python ai_tools/tool_guide.py recommend 'your scenario'") 
+        print("   python ai_development_tools/tool_guide.py guide <tool_name>")
+        print("   python ai_development_tools/tool_guide.py recommend 'your scenario'") 

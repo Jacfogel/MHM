@@ -12,7 +12,7 @@
 **Important**: Always use a virtual environment to keep your system Python clean and avoid dependency conflicts.
 
 ### Step 1: Set up Virtual Environment
-```bash
+```powershell
 # Create a virtual environment
 python -m venv venv
 
@@ -24,23 +24,23 @@ source venv/bin/activate
 ```
 
 ### Step 2: Install Dependencies
-```bash
+```powershell
 # Make sure your virtual environment is activated (you should see (venv) in your prompt)
 pip install -r requirements.txt
 ```
 
 ### Step 3: Configure Environment (Optional)
 The system uses sensible defaults, but you can customize settings in `.env`:
-```bash
+```powershell
 # Copy the example configuration (if it exists)
-cp .env.example .env
+Copy-Item .env.example .env
 # Edit .env with your preferred settings
 ```
 
 **Note**: The `.env` file is in `.cursorignore` for security (contains API keys and passwords).
 
 ### Step 4: Launch the Application
-```bash
+```powershell
 python run_mhm.py
 ```
 This opens the admin panel so you can manage users and start the background service.
@@ -48,7 +48,7 @@ This opens the admin panel so you can manage users and start the background serv
 ## 🔧 Alternative Commands
 
 Once your virtual environment is set up and activated:
-```bash
+```powershell
 python core/service.py  # run service only (no UI)
 python ui/ui_app_qt.py     # admin panel only (PySide6/Qt)
 ```
@@ -72,13 +72,13 @@ Make sure your virtual environment is activated. You should see `(venv)` at the 
 
 ### Import errors
 Try reinstalling dependencies in your virtual environment:
-```bash
+```powershell
 pip install -r requirements.txt --force-reinstall
 ```
 
 ### Permission errors on Windows
 Run PowerShell as Administrator, or use:
-```bash
+```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
@@ -92,7 +92,7 @@ If you see two Python processes when running the app (one with venv Python, one 
 
 ### **Q: What if I see "(venv)" but the app still doesn't work?**
 **A**: Try deactivating and reactivating your virtual environment:
-```bash
+```powershell
 deactivate
 venv\Scripts\activate
 pip install -r requirements.txt

@@ -12,7 +12,7 @@ P25-09-29
 ## 🚀 Quick Reference
 
 ### **Current Status**
-- **Overall Coverage**: 72% ✅ **MAINTAINED WITH IMPROVEMENTS**
+- **Overall Coverage**: 65% ✅ **MAINTAINED WITH IMPROVEMENTS**
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 - **Progress**: Significantly above original 54% baseline
 
@@ -21,17 +21,7 @@ P25-09-29
 - ✅ **Interaction Handlers**: 32% → 60% coverage (+28% improvement)  
 - ✅ **UI Dialog Testing**: All channel management dialog tests passing
 
-## 📊 **Current Status**
-
-### **Overall Coverage: 0%**
-- **Total Statements**: 0
-- **Covered Statements**: 0
-- **Uncovered Statements**: 0
-- **Goal**: Expand to **80%+ coverage** for comprehensive reliability
-
-### **Coverage Summary by Category**
-
-### **Detailed Module Coverage**
+## 📊 **Coverage Summary by Category**
 ## 🎯 **Priority 1: Complete Remaining Targets (57-70% range)**
 
 ### **1. Core Backup Manager (0% → 81%) ✅ COMPLETED**
@@ -317,7 +307,7 @@ P25-09-29
 ## 📊 **Success Metrics**
 
 ### **Coverage Targets**
-- **Overall Coverage**: 80%+ (up from 54%) - **CURRENT: 72%** ✅ **MAJOR PROGRESS**
+- **Overall Coverage**: 80%+ (up from 54%) - **CURRENT: 65%** ✅ **MAJOR PROGRESS**
 - **Critical Modules**: 70%+ coverage - **MOST ACHIEVED** ✅
 - **UI Layer**: 70%+ coverage - **ACHIEVED** ✅
 - **Core Infrastructure**: 80%+ coverage - **IN PROGRESS** ⚠️

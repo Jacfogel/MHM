@@ -48,7 +48,7 @@ class QuickStatus:
             health['core_files'][file_path] = 'OK' if full_path.exists() else 'MISSING'
         
         # Check key directories
-        key_dirs = ['core', 'bot', 'ui', 'tests', 'ai_tools']
+        key_dirs = ['core', 'ui', 'tests', 'ai_development_tools']
         for dir_path in key_dirs:
             full_path = self.project_root / dir_path
             health['key_directories'][dir_path] = 'OK' if full_path.exists() else 'MISSING'
@@ -242,9 +242,9 @@ class QuickStatus:
         
         # Quick Recommendations
         print("[QUICK COMMANDS]")
-        print("  Status: python ai_tools/ai_tools_runner.py status")
-        print("  Full audit: python ai_tools/ai_tools_runner.py audit")
-        print("  Quick check: python ai_tools/quick_status.py concise")
+        print("  Status: python ai_development_tools/ai_tools_runner.py status")
+        print("  Full audit: python ai_development_tools/ai_tools_runner.py audit")
+        print("  Quick check: python ai_development_tools/quick_status.py concise")
     
     def print_json_status(self):
         """Print status as JSON for programmatic consumption"""

@@ -10,7 +10,7 @@ relatedFiles: ["AI_REFERENCE.md", "AI_SESSION_STARTER.md"]
 
 # Critical Rules - Always Apply
 
-## 🎯 Core Context
+## Core Context
 
 ### **User Profile**
 - **Beginner programmer** with ADHD/depression
@@ -29,7 +29,7 @@ Building a personal mental health assistant that helps manage executive function
 - **No Required User UI**: Admin interface exists for management, but users never need separate UI
 - **Channel-Agnostic Architecture**: Features work across all communication channels
 
-## 🛡️ Core Development Rules
+## Core Development Rules
 
 ### **Safety First**
 - **Test**: `python run_mhm.py` must work after changes
@@ -54,7 +54,7 @@ Building a personal mental health assistant that helps manage executive function
 4. **Test after each change**
 5. **Update documentation**: `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` 
 
-## 💬 Communication Guidelines
+## Communication Guidelines
 
 ### **Response Style**
 - **Simple explanations** - focus on one concept at a time
@@ -80,7 +80,7 @@ Building a personal mental health assistant that helps manage executive function
 - "Have you considered [potential issue]?"
 - "Would you like me to explain [concept]?"
 
-## 🎯 Development Approach
+## Development Approach
 
 ### **Thoroughness**
 - Always be thorough and check for consistency
@@ -128,10 +128,10 @@ Building a personal mental health assistant that helps manage executive function
 - Explain the reasoning behind suggestions
 - Prioritize reliability over cleverness
 
-## 🔄 Flexibility
+## Flexibility
 You can always ask if you think deviating from a rule would be a better option.
 
-## 🚫 Legacy Code Standards
+## Legacy Code Standards
 
 ### **User's Legacy Code Preferences**
 The user has **strong preferences** about legacy and backward compatibility code:
@@ -185,5 +185,4 @@ The user has **strong preferences** about legacy and backward compatibility code
 - **During Code Review**: Check for proper legacy code documentation
 - **Monthly**: Review legacy code usage and plan removals
 
-**TESTING**: If you can see this rule, please confirm by saying "I can see the critical.mdc rule"
 

@@ -9,41 +9,41 @@ relatedFiles: ["AI_REFERENCE.md", "AI_SESSION_STARTER.md"]
 ---
 # Context Rules - Development Work
 
-## 🔧 PowerShell Critical Rules
+## PowerShell Critical Rules
 - **ALWAYS check exit codes**: `$LASTEXITCODE` after commands
 - **Use PowerShell syntax**: `;` for chaining, `-and`/`-or` for logic, `$env:VARIABLE` for environment variables
 - **Never assume success**: Check both exit codes and error patterns in output
 - **Handle boolean returns**: Many PowerShell cmdlets return True/False without printing
 
-## ❌ Common Mistakes to Avoid
-- ❌ `command1 && command2` (bash syntax)
-- ✅ `command1; command2` (PowerShell syntax)
-- ❌ `$PATH` (bash syntax)
-- ✅ `$env:PATH` (PowerShell syntax)
-- ❌ Assuming empty output means failure
-- ✅ Check `$LASTEXITCODE` for actual success/failure
+## Common Mistakes to Avoid
+- NO `command1 && command2` (bash syntax)
+- OK `command1; command2` (PowerShell syntax)
+- NO `$PATH` (bash syntax)
+- OK `$env:PATH` (PowerShell syntax)
+- NO Assuming empty output means failure
+- OK Check `$LASTEXITCODE` for actual success/failure
 
-## 📊 Code Analysis Priority
+## Code Analysis Priority
 1. Check file existence before operations
 2. Validate configuration at startup
 3. Handle missing data gracefully
 4. Log errors appropriately
 5. Test changes incrementally
 
-## ⚠️ Common Pitfalls to Avoid
+## Common Pitfalls to Avoid
 - Don't assume files exist
 - Don't make multiple changes without testing
 - Don't forget to update documentation
 - Don't ignore error conditions
 
-## 🔍 Efficient Problem Solving
+## Efficient Problem Solving
 1. Identify the specific issue
 2. Check related files and functions
 3. Make minimal changes
 4. Test the fix
 5. Document the solution
 
-## 💻 Code Patterns
+## Code Patterns
 
 ### Error Handling Pattern
 ```python
@@ -96,7 +96,7 @@ def test_changes():
         return False
 ```
 
-## 🔄 Common Development Tasks
+## Common Development Tasks
 
 ### Adding New Feature
 1. Plan the feature
@@ -131,7 +131,7 @@ def test_changes():
 3. Update documentation if needed
 4. Test affected features
 
-## 📝 Response Guidelines
+## Response Guidelines
 - Keep explanations simple and clear
 - Focus on one concept at a time
 - Provide step-by-step instructions
@@ -140,7 +140,7 @@ def test_changes():
 - Break complex tasks into steps
 - Acknowledge progress and successes
 
-## 💻 PowerShell Examples
+## PowerShell Examples
 
 ### File Operations
 ```powershell
@@ -192,10 +192,9 @@ Stop-Process "processname" -Force
 Start-Process "command"
 ```
 
-## 🔍 Error Detection
+## Error Detection
 - Always check `$LASTEXITCODE` after commands
 - Look for error keywords: "error", "exception", "failed", "not found"
 - Don't assume success from empty output
 - Handle PowerShell exceptions with try-catch
 
-**TESTING**: If you can see this rule, please confirm by saying "I can see the context.mdc rule"

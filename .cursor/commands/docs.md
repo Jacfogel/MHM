@@ -86,11 +86,11 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Documentation sync check failed" -Foregro
 - `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 
-### **Core Documentation**
-- `README.md`
-- `ARCHITECTURE.md`
-- `DEVELOPMENT_WORKFLOW.md`
-- `DOCUMENTATION_GUIDE.md`
+### **Core Documentation** (Manual - Not Auto-Generated)
+- `README.md` - Manual updates required
+- `ARCHITECTURE.md` - Manual updates required  
+- `DEVELOPMENT_WORKFLOW.md` - Manual updates required
+- `DOCUMENTATION_GUIDE.md` - Manual updates required
 
 ### 5. **Analyze and Report Results**
 **CRITICAL**: Always check these files for updates:
@@ -101,19 +101,19 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Documentation sync check failed" -Foregro
 ### 6. **Provide Structured Report**
 **ALWAYS provide this format in your response:**
 
-#### **📚 Documentation Updates**
+#### **Documentation Updates**
 - Function Registry: [Updated/No changes]
 - Module Dependencies: [Updated/No changes]
 - Directory Tree: [Generated/Updated]
 - Version Sync: [Completed/Failed]
 
-#### **📊 Key Metrics**
+#### **Key Metrics**
 - Functions Documented: [number]
 - Modules Mapped: [number]
 - Version Sync Status: [Success/Failed]
 - Documentation Sync: [In sync/Issues found]
 
-#### **✅ Success Status**
+#### **Success Status**
 - All Updates: [Completed/Failed]
 - Version Sync: [Success/Failed]
 - Documentation Sync: [In sync/Issues]

@@ -3,23 +3,23 @@
 > **Purpose**: Essential documentation navigation for AI collaborators  
 > **For details**: See [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md)
 
-## 🚀 Document Selection
+## Document Selection
 
 ### **Quick Decision Tree**
-1. **New to project?** → `../README.md`
-2. **Setting up?** → `../HOW_TO_RUN.md`
-3. **Developing?** → `../DEVELOPMENT_WORKFLOW.md`
-4. **Need commands?** → `../QUICK_REFERENCE.md`
-5. **Understanding system?** → `../ARCHITECTURE.md`
-6. **AI collaboration?** → `AI_*` files
-7. **Current status?** → `AI_CHANGELOG.md`, `../TODO.md`
+1. **New to project?** - `../README.md`
+2. **Setting up?** - `../HOW_TO_RUN.md`
+3. **Developing?** - `../DEVELOPMENT_WORKFLOW.md`
+4. **Need commands?** - `../QUICK_REFERENCE.md`
+5. **Understanding system?** - `../ARCHITECTURE.md`
+6. **AI collaboration?** - `AI_*` files
+7. **Current status?** - `AI_CHANGELOG.md`, `../TODO.md`
 
 ### **Document Categories**
 - **Human-Facing**: `../README.md`, `../DEVELOPMENT_WORKFLOW.md`, `../ARCHITECTURE.md`
 - **AI-Facing**: `AI_*` files, `.cursor/rules/`
 - **Status/History**: `CHANGELOG_*.md`, `../TODO.md`, `development_docs/PLANS.md`
 
-## 📋 AI Documentation
+## AI Documentation
 
 ### **Core AI Files**
 - **`AI_SESSION_STARTER.md`** - Essential context for new sessions
@@ -34,7 +34,7 @@
 - **`.cursor/rules/context.mdc`** - Context rules
 - **`.cursor/rules/critical.mdc`** - Critical rules
 
-## 🔄 Maintenance
+## Maintenance
 
 ### **Paired Document Updates**
 **CRITICAL**: When updating human-facing documents, check AI-facing counterparts:

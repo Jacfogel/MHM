@@ -7,14 +7,14 @@
 > **Last Updated**: 2025-09-27
 > **Style**: Concise, essential-only, scannable
 
-## 🎯 **USER PROFILE (CRITICAL)**
+## USER PROFILE (CRITICAL)
 - **Beginner programmer** with ADHD/depression
 - **Windows 11** environment, PowerShell syntax required
 - **Personal project** - building mental health assistant for own use
 - **Values learning and efficiency** over being right
 - **Prefers correction** over inefficient approaches
 
-## 🚨 **CRITICAL RULES (Always Apply)**
+## CRITICAL RULES (Always Apply)
 
 ### **Safety First**
 - **Test**: `python run_mhm.py` must work after changes
@@ -41,7 +41,7 @@
 - **DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
 - **CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
 
-## 🏗️ **PROJECT OVERVIEW**
+## PROJECT OVERVIEW
 
 ### **What We're Building**
 Personal mental health assistant that helps manage executive functioning deficits and health needs, staying connected to life priorities and goals, providing motivation and hope for the future.
@@ -61,14 +61,14 @@ Personal mental health assistant that helps manage executive functioning deficit
 - `communication/` - Communication channel implementations
 - `data/users/` - User data
 
-## 📊 **CURRENT SYSTEM STATUS**
+## CURRENT SYSTEM STATUS
 
 ### **Quick Status Check**
 - **Check `AI_CHANGELOG.md`** for recent changes and activity
 - **Check `../TODO.md`** for current priorities and tasks
 - **Run `python ai_development_tools/ai_tools_runner.py status`** for comprehensive status
 
-## 🔧 **QUICK COMMANDS**
+## QUICK COMMANDS
 
 ### **Essential Commands**
 ```powershell
@@ -92,7 +92,7 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 4. **Test After**: `python run_mhm.py`
 5. **Update CHANGELOGs**: Document changes fully in `../development_docs/CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
 
-## 💬 **COMMUNICATION GUIDELINES**
+## COMMUNICATION GUIDELINES
 
 ### **Response Style**
 - **Simple explanations** - focus on one concept at a time

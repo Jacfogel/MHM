@@ -35,8 +35,8 @@ This directory contains tools optimized for AI-assisted development collaboratio
 **Usage**: `python ai_development_tools/ai_tools_runner.py <command>`
 
 **Available Commands:**
-- `audit` - Comprehensive audit with AI-optimized outputs
-- `audit --fast` - Fast audit (skips test coverage, ~30 seconds vs 3-4 minutes)
+- `audit` - Fast audit (default, skips test coverage, ~30 seconds)
+- `audit --full` - Full audit (includes test coverage, ~3-4 minutes)
 - `doc-sync` - Documentation synchronization check
 - `legacy` - Legacy code reference cleanup
 - `status` - System status overview
@@ -46,13 +46,13 @@ This directory contains tools optimized for AI-assisted development collaboratio
 
 ## ⚡ Fast Mode vs Full Mode
 
-### **Fast Mode** (`audit --fast`)
+### **Fast Mode** (`audit` - DEFAULT)
 - **Time**: ~30 seconds
 - **Includes**: All tools except test coverage regeneration
 - **Use for**: Daily development, quick status checks
 - **Skips**: Test suite execution (1,480+ tests)
 
-### **Full Mode** (`audit`)
+### **Full Mode** (`audit --full`)
 - **Time**: ~3-4 minutes  
 - **Includes**: All tools including test coverage
 - **Use for**: Weekly analysis, before major changes, CI/CD

@@ -68,24 +68,24 @@ python -m pytest --cov=core tests/ -v
 ### 4. **Provide Structured Test Report**
 **ALWAYS provide this format in your response:**
 
-#### **🧪 Test Results**
+#### **Test Results**
 - Test Status: [All Passed/Failed/Partial]
 - Total Tests: [number]
 - Passed: [number]
 - Failed: [number]
 - Skipped: [number]
 
-#### **🚨 Test Failures (if any)**
+#### **Test Failures (if any)**
 - [List specific test failures]
 - [Include error messages and file paths]
 - [Categorize by type: flaky, broken, new]
 
-#### **🔧 Fixes Applied**
+#### **Fixes Applied**
 - [List fixes made]
 - [Include specific changes]
 - [Note any regressions introduced]
 
-#### **✅ Final Status**
+#### **Final Status**
 - All Tests: [Passed/Failed]
 - Test Pollution: [None/Issues found]
 - Coverage: [Meets standards/Needs improvement]

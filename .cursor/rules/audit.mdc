@@ -5,20 +5,20 @@ alwaysApply: false
 priority: 3
 version: "--scope=docs"
 lastUpdated: "2025-07-21"
-relatedFiles: ["ai_tools/README.md", "AI_REFERENCE.md"]
+relatedFiles: ["ai_development_tools/README.md", "AI_REFERENCE.md"]
 ---
 # Audit Rules - Documentation & Analysis
 
-## 🚨 Audit-First Protocol (CRITICAL)
+## Audit-First Protocol (CRITICAL)
 
 ### **BEFORE** creating any documentation, function registry, or comprehensive analysis:
-1. **ALWAYS** run `python ai_tools/ai_tools_runner.py audit` first
+1. **ALWAYS** run `python ai_development_tools/ai_tools_runner.py audit` first
 2. **ALWAYS** show audit results to user with statistics
 3. **NEVER** create documentation from partial information
 4. **NEVER** assume patterns apply everywhere
 5. **ALWAYS** ask for user approval before proceeding
 
-## 🔍 Universal Triggers (Stop and Audit)
+## Universal Triggers (Stop and Audit)
 
 ### **Red Flags - Stop and Audit**
 - User asks for "complete" documentation
@@ -45,50 +45,40 @@ relatedFiles: ["ai_tools/README.md", "AI_REFERENCE.md"]
 - **ALWAYS** show audit results before creating anything
 - **ALWAYS** ask: "Should I proceed with this data?"
 
-## 🛠️ Required Audit Scripts
+## Required Audit Scripts
 - `python ai_development_tools/ai_tools_runner.py audit` - For comprehensive overview
 - `python ai_development_tools/function_discovery.py` - For function analysis
 - `python ai_development_tools/audit_function_registry.py` - For function documentation
 - `python ai_development_tools/audit_module_dependencies.py` - For dependency maps
 - `python ai_development_tools/analyze_documentation.py` - For documentation consolidation
 
-## 🔄 Audit-First Workflow
+## Audit-First Workflow
 1. **Run audit script** to get actual data
 2. **Show results** to user with statistics
 3. **Ask for approval** before proceeding
 4. **Use audit data** as foundation for documentation
 5. **Verify completeness** before presenting
 
-## ✅ Success Criteria
+## Success Criteria
 - Audit results shown before any documentation
 - User approves data before proceeding
 - Documentation based on actual code, not assumptions
 - Completeness statistics provided
 - User trusts the process
 
-## 🛡️ Failure Prevention
+## Failure Prevention
 - If no audit script exists, create one first
 - If audit shows gaps, acknowledge them
 - If user questions accuracy, run audit
 - If documentation seems incomplete, run audit
 
-## 📝 Documentation Guidelines
+## Documentation Guidelines
 - Add new information to existing md files when possible
 - Only create new md files in subdirectories that don't already have one
 - Keep documentation concise and scannable
 
-## 📁 Scripts Organization
+## Scripts Organization
 - Place testing, migration, debug, and utility scripts in `scripts/` directory
 - Use descriptive filenames and include comments
 - Remove obsolete scripts when no longer needed
 - Document significant scripts in `CHANGELOG.md`
-
-**TESTING**: If you can see this rule, please confirm by saying "I can see the audit.mdc rule"
-
-## 📁 Scripts Organization
-- Place testing, migration, debug, and utility scripts in `scripts/` directory
-- Use descriptive filenames and include comments
-- Remove obsolete scripts when no longer needed
-- Document significant scripts in `CHANGELOG.md`
-
-**TESTING**: If you can see this rule, please confirm by saying "I can see the audit.mdc rule"

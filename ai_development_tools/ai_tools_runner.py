@@ -5,7 +5,8 @@ AI Tools Runner - Comprehensive interface for AI collaboration tools
 Optimized for AI assistants to get concise, actionable information about the codebase.
 
 Simple Commands (for users):
-    python ai_tools_runner.py audit          # Run full audit with concise summary
+    python ai_tools_runner.py audit          # Run fast audit (default, skips test coverage)
+    python ai_tools_runner.py audit --full   # Run comprehensive audit (includes test coverage)
     python ai_tools_runner.py docs           # Update documentation
     python ai_tools_runner.py validate       # Validate AI work
     python ai_tools_runner.py config         # Check configuration
@@ -81,7 +82,7 @@ class AIToolsRunner:
     
     # ===== SIMPLE COMMANDS (for users) =====
     
-    def run_audit(self, fast: bool = False):
+    def run_audit(self, fast: bool = True):
         """Run the full audit workflow with concise summary"""
         if fast:
             print("Running FAST audit (core only)...")
@@ -1368,7 +1369,8 @@ AI Tools Runner - Comprehensive interface for AI collaboration tools
 ====================================================================
 
 SIMPLE COMMANDS (for users):
-  audit     - Run full audit with concise summary
+  audit     - Run fast audit (default, skips test coverage)
+  audit --full - Run comprehensive audit (includes test coverage)
   docs      - Update all documentation (function registry, dependencies)
   validate  - Validate AI-generated work
   config    - Check configuration consistency
@@ -1428,7 +1430,8 @@ def main():
     runner = AIToolsRunner()
     
     if command == 'audit':
-        fast_mode = '--fast' in sys.argv
+        # Default to fast mode (skip test coverage), use --full for comprehensive audit
+        fast_mode = '--full' not in sys.argv
         success = runner.run_audit(fast=fast_mode)
     elif command == 'docs':
         success = runner.run_docs()

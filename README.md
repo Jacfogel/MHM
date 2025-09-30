@@ -29,16 +29,16 @@ MHM is a simple personal assistant created by and for a single beginner programm
 
 ## Quick Start
 1. Clone the repo
-   ```bash
+   ```powershell
    git clone https://github.com/Jacfogel/MHM.git
    cd MHM
    ```
 2. Install requirements
-   ```bash
+   ```powershell
    pip install -r requirements.txt
    ```
 3. Launch the app
-   ```bash
+   ```powershell
    python run_mhm.py
    ```
 See **HOW_TO_RUN.md** for more details.
@@ -52,6 +52,7 @@ See **HOW_TO_RUN.md** for more details.
 - **development_docs/PLANS.md** - Development plans and strategies
 - **ai_development_docs/AI_CHANGELOG.md** - Brief summary of recent changes
 - **development_docs/CHANGELOG_DETAIL.md** - Complete detailed change history
+- **ai_development_tools/README.md** - AI development tools overview
 - **TODO.md** - Current development priorities
 - **DOCUMENTATION_GUIDE.md** - Documentation organization and standards
 
@@ -82,22 +83,22 @@ If LM Studio is installed with a compatible model, MHM can provide local AI chat
 ## Project Structure
 ```
 MHM/
-├── ai/          # AI assistant components
-├── ai_tools/    # AI collaboration tools and audit scripts
-├── communication/ # Messaging channels and orchestration
-├── core/        # Backend service (refactored into focused modules)
-├── ai/          # Local AI chat integration
-├── data/        # User data (gitignored)
-├── resources/   # Application resources and presets
+├── ai/                    # AI assistant components
+├── ai_development_docs/   # AI documentation and guides
+├── ai_development_tools/  # AI collaboration tools and audit scripts
+├── communication/         # Messaging channels and orchestration
+├── core/                  # Backend service (refactored into focused modules)
+├── data/                  # User data (gitignored)
+├── development_docs/      # Development documentation
+├── logs/                  # Application logs
+├── resources/             # Application resources and presets
 │   └── default_messages/
-├── scripts/     # Utilities and tools
-├── styles/      # QSS theme files
-├── tasks/       # Task/reminder framework
-├── tests/logs/  # Test execution logs
-├── tests/       # Testing framework
-├── ui/          # Admin panel (PySide6/Qt)
-├── user/        # User preferences
-└── run_mhm.py   # Entry point
+├── styles/                # QSS theme files
+├── tasks/                 # Task/reminder framework
+├── tests/                 # Testing framework
+├── ui/                    # Admin panel (PySide6/Qt)
+├── user/                  # User preferences
+└── run_mhm.py             # Entry point
 ```
 
 ## License

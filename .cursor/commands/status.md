@@ -27,7 +27,8 @@ if ($LASTEXITCODE -ne 0) { Write-Host "System startup failed" -ForegroundColor R
 
 ### 3. **Analyze and Report Results**
 **CRITICAL**: Always read and analyze these files:
-- `ai_development_tools/AI_STATUS.md` - **Current status**
+- `ai_development_tools/consolidated_report.txt` - **Primary source for accurate metrics**
+- `ai_development_tools/AI_STATUS.md` - **Current status (use consolidated_report.txt for metrics)**
 - `ai_development_tools/AI_PRIORITIES.md` - **Action priorities**
 
 **Key Information to Extract and Report:**
@@ -39,21 +40,21 @@ if ($LASTEXITCODE -ne 0) { Write-Host "System startup failed" -ForegroundColor R
 ### 4. **Provide Structured Report**
 **ALWAYS provide this format in your response:**
 
-#### **⚡ System Status**
+#### **System Status**
 - Overall Health: [Healthy/Issues/Critical]
 - Recent Activity: [summary of recent changes]
 - Critical Issues: [number] issues found
 
-#### **🚨 Critical Issues (if any)**
+#### **Critical Issues (if any)**
 - [List any critical issues found]
 - [Include specific descriptions]
 
-#### **📋 Immediate Action Items**
+#### **Immediate Action Items**
 1. [Priority 1 - if any]
 2. [Priority 2 - if any]
 3. [Priority 3 - if any]
 
-#### **✅ System Health**
+#### **System Health**
 - Status: [Healthy/Issues/Critical]
 - Startup Test: [Passed/Failed/Not tested]
 - Recent Activity: [Normal/Unusual]

@@ -38,6 +38,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
+                        print(f"DEBUG: Found stdlib import: {module_name}")
                     elif is_local_import(module_name):
                         imports['local'].append(import_info)
                     else:
@@ -62,6 +63,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
+                        print(f"DEBUG: Found stdlib import: {module_name}")
                     elif is_local_import(module_name):
                         imports['local'].append(import_info)
                     else:
@@ -74,21 +76,44 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
 
 def is_standard_library(module_name: str) -> bool:
     """Check if a module is part of the Python standard library."""
+    import sys
+    
+    # Get the base module name (first part before any dots)
+    base_module = module_name.split('.')[0]
+    
+    # Simple and reliable approach: use a comprehensive list of standard library modules
     standard_lib_modules = {
         'os', 'sys', 'json', 'time', 'datetime', 'pathlib', 'typing', 're', 'uuid',
-        'shutil', 'zipfile', 'threading', 'asyncio', 'socket', 'psutil', 'requests',
-        'logging', 'warnings', 'subprocess', 'signal', 'atexit', 'random', 'hashlib',
-        'email', 'smtplib', 'urllib', 'http', 'ssl', 'pytz', 'calendar', 'math',
-        'statistics', 'collections', 'itertools', 'functools', 'contextlib'
+        'shutil', 'zipfile', 'threading', 'asyncio', 'socket', 'logging', 'warnings', 
+        'subprocess', 'signal', 'atexit', 'random', 'hashlib', 'email', 'smtplib', 
+        'urllib', 'http', 'ssl', 'calendar', 'math', 'statistics', 'collections', 
+        'itertools', 'functools', 'contextlib', 'ast', 'argparse', 'configparser',
+        'csv', 'sqlite3', 'tempfile', 'glob', 'fnmatch', 'pickle', 'copy', 'weakref',
+        'gc', 'traceback', 'inspect', 'pdb', 'profile', 'pstats', 'cProfile',
+        'multiprocessing', 'queue', 'concurrent', 'select', 'selectors',
+        'mmap', 'array', 'struct', 'binascii', 'base64', 'quopri', 'uu', 'codecs',
+        'locale', 'gettext', 'unicodedata', 'stringprep', 'difflib', 'textwrap',
+        'string', 'io', 'fileinput', 'linecache', 'keyword', 'token',
+        'tokenize', 'tabnanny', 'pyclbr', 'py_compile', 'compileall', 'dis',
+        'pickletools', 'distutils', 'ensurepip', 'venv', 'zipapp', 'runpy',
+        'importlib', 'pkgutil', 'modulefinder', 'pydoc', 'doctest', 'unittest',
+        'test', 'bdb', 'faulthandler', 'timeit', 'trace', 'tracemalloc', 'cmd', 'shlex',
+        'tkinter', 'turtle', 'curses', 'platform', 'errno', 'ctypes', 'winsound', 
+        'msilib', 'msvcrt', 'winreg', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile',
+        'zipfile', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile', 'gzip',
+        'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile', 'gzip', 'zlib', 'bz2', 'lzma',
+        'tarfile', 'zipfile', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile'
     }
     
     # Check if it's a standard library module
-    if module_name in standard_lib_modules:
+    if base_module in standard_lib_modules:
         return True
     
-    # Check if it starts with common standard library prefixes
-    std_prefixes = ['os.', 'sys.', 'json.', 'time.', 'datetime.', 'pathlib.', 'typing.']
-    return any(module_name.startswith(prefix) for prefix in std_prefixes)
+    # Check if it's a built-in module
+    if base_module in sys.builtin_module_names:
+        return True
+    
+    return False
 
 def is_local_import(module_name: str) -> bool:
     """Check if a module is a local import (part of our project)."""

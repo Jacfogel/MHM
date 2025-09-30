@@ -76,25 +76,25 @@ Review Categories
 ### 3. **Provide Structured Review Report**
 **ALWAYS provide this format in your response:**
 
-#### **✅ Review Summary**
+#### **Review Summary**
 - Overall Quality: [Excellent/Good/Needs Improvement]
 - Security Status: [Secure/Issues Found]
 - MHM Standards: [Compliant/Issues Found]
 - Documentation: [Complete/Needs Updates]
 
-#### **🔍 Detailed Findings**
+#### **Detailed Findings**
 - **Functionality**: [Issues found or "No issues"]
 - **Code Quality**: [Issues found or "No issues"]
 - **Security**: [Issues found or "No issues"]
 - **Testing**: [Issues found or "No issues"]
 - **Documentation**: [Issues found or "No issues"]
 
-#### **🎯 Action Items**
+#### **Action Items**
 1. [Priority 1 - if any]
 2. [Priority 2 - if any]
 3. [Priority 3 - if any]
 
-#### **✅ Approval Status**
+#### **Approval Status**
 - **Approved**: [Yes/No]
 - **Blocking Issues**: [List any blocking issues]
 - **Recommendations**: [Specific improvement suggestions]

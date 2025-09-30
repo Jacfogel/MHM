@@ -5,11 +5,11 @@ Conduct a thorough analysis of the MHM codebase to identify issues, assess syste
 
 ## Instructions for AI Assistant
 
-### 1. **Execute Fast Audit (Recommended)**
-Run the fast audit suite using PowerShell syntax (skips test coverage for speed):
+### 1. **Execute Audit (Fast Mode Default)**
+Run the audit suite using PowerShell syntax (fast mode is now default, skips test coverage for speed):
 ```powershell
-# Run fast audit (~30 seconds)
-python ai_development_tools/ai_tools_runner.py audit --fast
+# Run fast audit (~30 seconds) - DEFAULT MODE
+python ai_development_tools/ai_tools_runner.py audit
 
 # Check exit code
 if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
@@ -18,7 +18,7 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
 **For Full Audit (includes test coverage):**
 ```powershell
 # Run full audit (~3-4 minutes)
-python ai_development_tools/ai_tools_runner.py audit
+python ai_development_tools/ai_tools_runner.py audit --full
 
 # Check exit code
 if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
@@ -42,8 +42,7 @@ python ai_development_tools/ai_tools_runner.py status
 
 ### 3. **Analyze and Report Results**
 **CRITICAL**: Always read and analyze these files:
-- `ai_development_tools/consolidated_report.txt` - **Main summary**
-- `ai_development_tools/critical_issues.txt` - **Priority issues**
+- `ai_development_tools/consolidated_report.txt` - **Main summary and Priority issues**
 - `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
 
 **Key Metrics to Extract and Report:**
@@ -57,28 +56,28 @@ python ai_development_tools/ai_tools_runner.py status
 ### 4. **Provide Structured Report**
 **ALWAYS provide this format in your response:**
 
-#### **📊 System Overview**
+#### **System Overview**
 - Total Functions: [number]
 - Complexity Distribution: [Moderate: X, High: Y, Critical: Z]
 - Documentation Coverage: [percentage]
 - System Health: [Healthy/Issues/Critical]
 
-#### **🚨 Critical Issues**
-- [List top 3-5 critical issues from critical_issues.txt]
+#### **Critical Issues**
+- [List top 3-5 critical issues from consolidated_report.txt]
 - [Include specific file paths and descriptions]
 
-#### **📈 Key Metrics**
+#### **Key Metrics**
 - Function Complexity: [distribution]
 - Test Coverage: [percentage by module]
 - Legacy References: [number found]
 - Documentation Sync: [number of issues]
 
-#### **🎯 Immediate Action Items**
+#### **Immediate Action Items**
 1. [Priority 1 - from critical issues]
 2. [Priority 2 - from critical issues]
 3. [Priority 3 - from critical issues]
 
-#### **📋 Next Steps**
+#### **Next Steps**
 - [Specific recommendations based on findings]
 - [Suggested follow-up actions]
 - [Timeline for addressing issues]
@@ -91,8 +90,7 @@ python ai_development_tools/ai_tools_runner.py status
 - Next steps clearly defined
 
 ## Output Files to Always Check
-- `ai_development_tools/consolidated_report.txt` - **Main summary**
-- `ai_development_tools/critical_issues.txt` - **Priority issues**
+- `ai_development_tools/consolidated_report.txt` - **Main summary and Priority issues**
 - `ai_development_tools/ai_audit_detailed_results.json` - **Detailed data**
 - `development_docs/LEGACY_REFERENCE_REPORT.md` - **Legacy cleanup**
 - `ai_development_tools/AI_STATUS.md` - **System status**

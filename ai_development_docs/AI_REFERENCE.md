@@ -78,7 +78,7 @@
 
 ---
 
-**Remember**: Run audits for accuracy, fix incrementally, maintain user trust. 
+**Remember**: Run audits for accuracy unless the user explicitly says they already ran it, fix incrementally, maintain user trust. 
 
 ---
 
