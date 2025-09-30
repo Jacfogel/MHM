@@ -7,7 +7,7 @@ Execute the full test suite, investigate failures, and record follow-up actions.
 1. Run the complete test suite.
    ```powershell
    python run_tests.py
-   if ($LASTEXITCODE -ne 0) { Write-Host "Tests failed" -ForegroundColor Red }
+   if ($LASTEXITCODE -ne 0) { Write-Host "Tests failed" -ForegroundColor Red; exit 1 }
    ```
 2. For failing runs, capture output, categorise the failures (flaky, broken, new), and re-run targeted tests as needed.
 3. Confirm that no artefacts are written outside the test data directories.

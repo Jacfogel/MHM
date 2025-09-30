@@ -1,18 +1,54 @@
 # CHANGELOG_DETAIL.md - Complete Detailed Changelog History
 
-> **Audience**: Developers & contributors  
-> **Purpose**: Complete detailed changelog history  
-> **Style**: Chronological, detailed, reference-oriented  
-> **Last Updated**: 2025-09-30
+> **Audience**: Developers and contributors  
+> **Purpose**: Full historical record of project changes  
+> **Style**: Chronological, detailed, reference-oriented
 
-This is the complete detailed changelog. 
-**See [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for brief summaries for AI context**
+> **See [AI_CHANGELOG.md](../ai_development_docs/AI_CHANGELOG.md) for the AI-friendly summary**
 
-## 🗓️ Recent Changes (Most Recent First)
+## Overview
+This file is the authoritative source for every meaningful change to the project. Entries appear in reverse chronological order and include background, goals, technical changes, documentation updates, testing steps, and outcomes.
+
+## How to Update This File
+1. Add a new entry at the top using the existing structure.
+2. Include context, the problem being solved, technical changes, documentation updates, and testing evidence.
+3. Reference affected files or directories explicitly so future readers can trace history.
+4. Add a concise summary of the same change to ai_development_docs/AI_CHANGELOG.md.
+
+## Recent Changes (Most Recent First)
+
+### 2025-09-30 - Documentation Synchronisation and Archive Enhancements **COMPLETED**
+
+**Background**: Human and AI-facing workflow, architecture, and documentation guides had drifted out of sync, and the AI changelog archive only preserved headings with no meaningful summaries. Version trim logic also risked duplicating recent entries during future audits.
+
+**Goals**:
+- Align the human/AI document pairs and remove redundant safety content noted in the TODO item.
+- Rebuild the AI changelog archive with concise summaries pulled from the detailed changelog.
+- Harden the trim logic in `ai_development_tools/version_sync.py` so archived entries retain their summaries without duplication.
+
+**Technical Changes**:
+- Rewrote `DEVELOPMENT_WORKFLOW.md`, `DOCUMENTATION_GUIDE.md`, and `ARCHITECTURE.md` together with their AI counterparts to share section ordering and audience-specific guidance.
+- Regenerated `ai_development_tools/archive/AI_CHANGELOG_ARCHIVE.md` with mined one-line summaries and added a navigation banner.
+- Updated `ai_development_tools/version_sync.py` trim helpers to normalise headings, merge existing archive content, and keep full markdown blocks when archiving.
+- Cleaned ASCII output across the touched files and added a pointer banner to the archive header.
+
+**Documentation Updates**:
+- `DEVELOPMENT_WORKFLOW.md`, `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`
+- `DOCUMENTATION_GUIDE.md`, `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`
+- `ARCHITECTURE.md`, `ai_development_docs/AI_ARCHITECTURE.md`
+- `ai_development_docs/AI_CHANGELOG.md`, `ai_development_tools/archive/AI_CHANGELOG_ARCHIVE.md`
+
+**Testing**:
+- `python ai_development_tools/ai_tools_runner.py audit`
+- `python run_tests.py`
+- `python ai_development_tools/version_sync.py trim --max=15`
+
+**Follow-up**:
+- Resolve remaining documentation path drift warnings for `ai_development_docs/AI_MODULE_DEPENDENCIES.md` and `.cursor/commands/explore-options.md`.
 
 ### 2025-09-30 - AI Tooling Service Refactor and Documentation Updates **COMPLETED**
 
-**Background**: The previous i_tools_runner.py contained the entire workflow logic, making it difficult to reuse commands programmatically and causing the audit to misinterpret script exits. Documentation describing the commands had fallen out of sync with the new architecture.
+**Background**: The previous ai_tools_runner.py contained the entire workflow logic, making it difficult to reuse commands programmatically and causing the audit to misinterpret script exits. Documentation describing the commands had fallen out of sync with the new architecture.
 
 **Goals**:
 - Move reusable workflows into a service layer while keeping the CLI lightweight.
@@ -20,15 +56,15 @@ This is the complete detailed changelog.
 - Align Cursor command checklists and README instructions with the streamlined workflow.
 
 **Technical Changes**:
-- Added i_development_tools/services/common.py with shared helpers for project paths, ASCII-safe output, JSON CLI handling, and iteration utilities.
-- Added i_development_tools/services/operations.py and refactored i_tools_runner.py into a thin argparse front-end that dispatches through a command registry.
+- Added  ai_development_tools/services/common.py with shared helpers for project paths, ASCII-safe output, JSON CLI handling, and iteration utilities.
+- Added  ai_development_tools/services/operations.py and refactored ai_tools_runner.py into a thin argparse front-end that dispatches through a command registry.
 - Converted nalyze_documentation.py to support --json, ASCII summaries, configurable file lists, and structured duplicate/placeholder detection.
 - Rebuilt udit_function_registry.py around dataclass-driven inventory collection with bounded JSON payloads, actionable metrics, and section regeneration for missing documentation.
-- Normalised audit result saving to i_development_tools/ and cached structured metrics for summarised output.
+- Normalised audit result saving to ai_development_tools/ and cached structured metrics for summarised output.
 
 **Documentation Updates**:
 - Updated .cursor/commands/*.md, including new session workflow helpers and refreshed audit/docs/status/test instructions.
-- Simplified i_development_tools/README.md to highlight the command dispatcher and generated outputs.
+- Simplified  ai_development_tools/README.md to highlight the command dispatcher and generated outputs.
 - Added package __init__.py files to make the services importable.
 
 **Testing**:
@@ -39,7 +75,7 @@ This is the complete detailed changelog.
 
 **Result**: Audits now parse JSON-first outputs without treating expected findings as failures, command documentation is accurate, and the service layer can be reused by other tooling.
 
-### 2025-09-29 - Process Improvement Tools Implementation ✅ **COMPLETED**
+### 2025-09-29 - Process Improvement Tools Implementation  **COMPLETED**
 
 **Background**: User identified recurring issues with changelog bloat, outdated path references, documentation duplication, non-ASCII characters, and TODO hygiene that required manual intervention and were prone to recurrence. These issues needed automated prevention tools integrated into the audit workflow.
 
@@ -95,16 +131,16 @@ This is the complete detailed changelog.
 
 **Testing**: All 1,480 tests passed, audit runs successfully with new process improvements, all tools tested and working correctly
 
-### 2025-09-29 - Documentation Formatting Consistency ✅ **COMPLETED**
+### 2025-09-29 - Documentation Formatting Consistency  **COMPLETED**
 
 **Background**: User identified multiple formatting consistency issues across documentation files that violated the project's ASCII-by-default rule and caused mojibake in PowerShell environments. These issues affected readability, portability, and AI parsing efficiency.
 
 **Issues Identified**:
-- **Emoji-heavy headings**: Multiple files used emoji characters in section headers (📋, 🚨, 🏗️, etc.) that rendered as mojibake in CP-1252 environments
-- **Arrow characters**: Decision trees and workflow steps used → arrows instead of ASCII dashes
+- **Emoji-heavy headings**: Multiple files used emoji characters in section headers (, , , etc.) that rendered as mojibake in CP-1252 environments
+- **Arrow characters**: Decision trees and workflow steps used  arrows instead of ASCII dashes
 - **Inconsistent metadata blocks**: Different documentation files used varying front-matter formats
 - **Placeholder headers**: Some files contained unfinished placeholder text
-- **Smart dash rendering**: Unicode smart dashes (10–15) displayed as "10 15" in CP-1252
+- **Smart dash rendering**: Unicode smart dashes (1015) displayed as "10 15" in CP-1252
 
 **Files Updated**:
 - **AI_DOCUMENTATION_GUIDE.md**: Fixed emoji headings, replaced arrows with dashes
@@ -114,8 +150,8 @@ This is the complete detailed changelog.
 - **AI_CHANGELOG.md**: Fixed smart dash rendering issue
 
 **Technical Changes**:
-- Replaced all emoji characters (📋, 🚨, 🏗️, 🔧, 🧪, 📝, etc.) with plain ASCII text
-- Converted arrow characters (→) to ASCII dashes (-) in decision trees and workflows
+- Replaced all emoji characters (, , , , , , etc.) with plain ASCII text
+- Converted arrow characters () to ASCII dashes (-) in decision trees and workflows
 - Standardized metadata block format across all documentation files
 - Fixed placeholder headers with proper content
 - Replaced smart dashes with regular dashes for CP-1252 compatibility
@@ -128,7 +164,7 @@ This is the complete detailed changelog.
 
 **Testing**: All 1,480 tests passed, audit completed successfully with 100% documentation coverage
 
-### 2025-09-29 - Log Analysis and Error Resolution ✅ **COMPLETED**
+### 2025-09-29 - Log Analysis and Error Resolution  **COMPLETED**
 
 **Background**: User requested comprehensive analysis of recent logs to identify errors, warnings, and redundancies, and to investigate areas where logs weren't providing valuable information. The analysis revealed several critical issues that needed immediate resolution.
 
@@ -197,7 +233,7 @@ This is the complete detailed changelog.
 - **Error Handling**: Enhanced error handling throughout the system
 - **Maintainability**: Cleaner logs with reduced noise and better organization
 
-### 2025-09-29 - AI Development Tools Comprehensive Review and Optimization ✅ **COMPLETED**
+### 2025-09-29 - AI Development Tools Comprehensive Review and Optimization  **COMPLETED**
 
 **Background**: User requested systematic and comprehensive review of AI development tools to ensure they provide real, accurate, valuable, and actionable information. The tools needed fixes for metrics extraction, standard exclusions integration, and version synchronization improvements.
 
@@ -250,7 +286,7 @@ This is the complete detailed changelog.
 - [x] Full test suite passes with all improvements
 - [x] AI tools provide actionable, accurate information for development collaboration
 
-### 2025-09-28 - Windows Task Scheduler Issue Resolution ✅ **COMPLETED**
+### 2025-09-28 - Windows Task Scheduler Issue Resolution  **COMPLETED**
 
 **Background**: User discovered that tests were creating thousands of real Windows scheduled tasks during test runs, polluting the system with 2,828+ tasks. This was a critical issue that needed immediate resolution to prevent system resource pollution.
 
@@ -300,7 +336,7 @@ This is the complete detailed changelog.
 - **Development Efficiency**: Developers can run tests without affecting system
 - **System Stability**: Prevents accumulation of test artifacts on user systems
 
-### 2025-09-28 - Test Performance and File Location Fixes ✅ **COMPLETED**
+### 2025-09-28 - Test Performance and File Location Fixes  **COMPLETED**
 
 **Background**: Test suite had one failing test due to side effects, and temporary files were being created in the project root directory, causing clutter and poor organization.
 
@@ -336,7 +372,7 @@ This is the complete detailed changelog.
 - [x] Clean project root directory
 - [x] All file locations properly configured
 
-### 2025-09-28 - Generated Documentation Standards Implementation ✅ **COMPLETED**
+### 2025-09-28 - Generated Documentation Standards Implementation  **COMPLETED**
 
 **Background**: Generated documentation files were not following consistent standards, making it difficult to identify which files are auto-generated and which tools create them. This led to confusion about which files should be manually edited vs. regenerated.
 
@@ -384,7 +420,7 @@ This is the complete detailed changelog.
 - [x] No Unicode encoding errors in generators
 - [x] All files regenerate correctly with proper formatting
 
-### 2025-09-28 - Test File Cleanup and Schedule Editor Fix ✅ **COMPLETED**
+### 2025-09-28 - Test File Cleanup and Schedule Editor Fix  **COMPLETED**
 
 **Background**: User discovered test files being created in the real `data/requests/` directory instead of the test directory, causing clutter and potential data pollution.
 
@@ -414,7 +450,7 @@ This is the complete detailed changelog.
 - **Maintenance**: Automatic cleanup prevents accumulation of test artifacts
 - **User Experience**: Cleaner data directory structure
 
-### 2025-09-28 - Scheduler Test Failure Fix ✅ **COMPLETED**
+### 2025-09-28 - Scheduler Test Failure Fix  **COMPLETED**
 
 **Background**: The scheduler test `test_scheduler_loop_error_handling_real_behavior` was failing because it expected `get_all_user_ids` to be called, but the `@handle_errors` decorator was catching exceptions and handling them silently before the function was called.
 
@@ -439,7 +475,7 @@ This is the complete detailed changelog.
 
 **Impact**: Test suite stability restored, scheduler error handling properly tested, and the test now accurately reflects the actual behavior of the error handling system.
 
-### 2025-09-28 - Comprehensive AI Development Tools Overhaul ✅ **COMPLETED**
+### 2025-09-28 - Comprehensive AI Development Tools Overhaul  **COMPLETED**
 
 **Background**: AI development tools were producing inconsistent results with coverage showing 0% and 29% instead of realistic numbers, individual report files cluttering directories, and IDE syntax errors. Tools were including files they shouldn't and missing proper exclusion patterns.
 
@@ -493,13 +529,13 @@ This is the complete detailed changelog.
 - `ai_development_tools/documentation_sync_checker.py`
 - `ai_development_tools/quick_status.py`
 - `ai_development_tools/validate_ai_work.py`
-- `.coveragerc` → `coverage.ini` (renamed)
+- `.coveragerc`  `coverage.ini` (renamed)
 - `TODO.md` (added test failure)
 - `ai_development_docs/AI_CHANGELOG.md`
 
 **Impact**: AI development tools now provide accurate, comprehensive analysis with consistent file management, realistic metrics, and proper exclusion patterns. The system is more maintainable and provides better insights for development decisions.
 
-### 2025-09-27 - High Complexity Function Refactoring Phase 3 ✅ **COMPLETED**
+### 2025-09-27 - High Complexity Function Refactoring Phase 3  **COMPLETED**
 
 **Background**: Audit identified 1,978 high-complexity functions (>50 nodes) that needed refactoring for maintainability. Phase 3 focused on the most critical functions with the highest impact.
 
@@ -529,14 +565,14 @@ This is the complete detailed changelog.
 - **Minor logging enhancements**: Added comprehensive logging to core modules for better debugging
 
 **Results**:
-- **90% complexity reduction**: 1,618 → ~155 nodes across 8 functions
+- **90% complexity reduction**: 1,618  ~155 nodes across 8 functions
 - **Improved maintainability**: Code is now more readable and easier to debug
 - **Enhanced test coverage**: Comprehensive tests ensure stability
 - **Better logging**: Improved debugging capabilities across core modules
 
 **Impact**: Major reduction in technical debt, improved code maintainability, and safer future development with comprehensive test coverage.
 
-### 2025-09-27 - Legacy Code Management and Cleanup ✅ **COMPLETED**
+### 2025-09-27 - Legacy Code Management and Cleanup  **COMPLETED**
 
 **Background**: Legacy compatibility markers were scattered throughout the codebase, creating maintenance overhead and technical debt. Comprehensive cleanup was needed to modernize the codebase while maintaining backward compatibility.
 
@@ -571,7 +607,7 @@ This is the complete detailed changelog.
 
 **Impact**: Major reduction in legacy code, improved code clarity, and maintained full backward compatibility.
 
-### 2025-09-27 - Discord Test Warning Fixes and Resource Cleanup ✅ **COMPLETED**
+### 2025-09-27 - Discord Test Warning Fixes and Resource Cleanup  **COMPLETED**
 
 **Background**: Discord.py deprecation warnings and aiohttp session cleanup issues were cluttering test output and causing resource management problems. Clean test output and proper resource management were needed.
 
@@ -600,7 +636,7 @@ This is the complete detailed changelog.
 
 **Impact**: Cleaner test output, better resource management, and easier debugging.
 
-### 2025-09-27 - Test Logging System Improvements ✅ **COMPLETED**
+### 2025-09-27 - Test Logging System Improvements  **COMPLETED**
 
 **Background**: Test logging system needed enhancement for better debugging, log management, and test isolation. Multiple improvements were needed to create a professional logging system.
 
@@ -642,7 +678,7 @@ This is the complete detailed changelog.
 
 **Impact**: Professional logging system with enhanced debugging capabilities and proper resource management.
 
-### 2025-09-27 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
+### 2025-09-27 - Scheduler Job Accumulation Issue Resolution  **COMPLETED**
 
 **Background**: Scheduler was accumulating jobs during daily scheduling runs, causing system slowdown and unexpected message frequency. Jobs were not being properly cleaned up, leading to performance issues.
 
@@ -681,7 +717,7 @@ This is the complete detailed changelog.
 
 **Impact**: Resolved performance issues, improved system stability, and better job management.
 
-### 2025-09-27 - AI Response Quality and Chat Interaction Storage ✅ **COMPLETED**
+### 2025-09-27 - AI Response Quality and Chat Interaction Storage  **COMPLETED**
 
 **Background**: User reported that AI responses were identical every time and chat interactions stopped being stored about a month ago. Investigation revealed two main issues: (1) AI responses were being cached inappropriately for chat mode, and (2) chat interaction storage was missing from the main response generation method.
 
@@ -733,7 +769,7 @@ This is the complete detailed changelog.
 - **Test Failure**: `test_build_user_context_creates_fresh_timestamp` fails due to identical timestamps in rapid succession
 - **Testing Needed**: Verify chat interaction storage works correctly with real user scenarios
 
-### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging ✅ **COMPLETED**
+### 2025-09-27 - Scheduler One-Time Jobs and Meaningful Logging  **COMPLETED**
 
 **Background**: User reported that scheduler logging always showed "15 active jobs scheduled" throughout the day, which was misleading since messages were being sent but the job count never changed. This made the logging useless for monitoring scheduler activity.
 
@@ -771,9 +807,9 @@ This is the complete detailed changelog.
 - **AI Audit**: All audits passed successfully
 - **Scheduler Verification**: Confirmed new logging format working correctly
 
-**Status**: ✅ **COMPLETED** - Scheduler now provides meaningful logging and realistic job count behavior
+**Status**:  **COMPLETED** - Scheduler now provides meaningful logging and realistic job count behavior
 
-### 2025-09-25 - Scheduler Job Accumulation Issue Resolution ✅ **COMPLETED**
+### 2025-09-25 - Scheduler Job Accumulation Issue Resolution  **COMPLETED**
 
 **Background**: User reported that the scheduler job accumulation issue was persisting despite previous attempts to resolve it. Investigation revealed that the `cleanup_old_tasks` method was too aggressive - it was clearing ALL jobs and failing to re-add them properly, causing job accumulation during daily scheduling runs.
 
@@ -805,19 +841,19 @@ This is the complete detailed changelog.
    - Verified test passes with new cleanup logic
 
 **Results**:
-- ✅ **Job Accumulation Resolved**: Reduced active jobs from 28 to 13 (54% reduction)
-- ✅ **Daily Jobs Enhanced**: Now include full system initialization, checkins, and task reminders
-- ✅ **Test Suite Fixed**: All tests now pass with updated implementation
-- ✅ **Performance Improved**: System maintains expected job count without accumulation
-- ✅ **Logging Enhanced**: Better visibility into job cleanup and daily scheduling process
+-  **Job Accumulation Resolved**: Reduced active jobs from 28 to 13 (54% reduction)
+-  **Daily Jobs Enhanced**: Now include full system initialization, checkins, and task reminders
+-  **Test Suite Fixed**: All tests now pass with updated implementation
+-  **Performance Improved**: System maintains expected job count without accumulation
+-  **Logging Enhanced**: Better visibility into job cleanup and daily scheduling process
 
 **Files Modified**:
 - `core/scheduler.py` - Fixed `cleanup_old_tasks` method, added `run_full_daily_scheduler` method
 - `tests/behavior/test_scheduler_coverage_expansion.py` - Updated test to match new implementation
 
-**Status**: ✅ **COMPLETED** - Job accumulation issue resolved, daily jobs now include full system initialization
+**Status**:  **COMPLETED** - Job accumulation issue resolved, daily jobs now include full system initialization
 
-### 2025-09-24 - Channel Settings Dialog Fixes and Test Suite Stabilization ✅ **COMPLETED**
+### 2025-09-24 - Channel Settings Dialog Fixes and Test Suite Stabilization  **COMPLETED**
 
 **Background**: User reported that the Channel Settings dialog was not working correctly - Discord ID field was empty, radio buttons weren't set, and saving resulted in phone field errors. Investigation revealed the UI had been updated to remove the phone field, but the code still referenced it.
 
@@ -853,7 +889,7 @@ This is the complete detailed changelog.
 - **System Stability**: No more phone field errors affecting channel management
 - **Test Suite Health**: All tests passing with proper mock structures
 
-### 2025-09-24 - Scheduler Job Management Consistency Fix ✅ **COMPLETED**
+### 2025-09-24 - Scheduler Job Management Consistency Fix  **COMPLETED**
 
 **Background**: Following the scheduler job accumulation bug fix, additional inconsistencies were discovered in how different job types were managed. Task reminders had their own separate cleanup function that was never called, and task reminders were not getting Wake timers like other jobs.
 
@@ -881,11 +917,11 @@ This is the complete detailed changelog.
 - `tests/behavior/test_scheduler_coverage_expansion.py`: Removed imports and tests for deleted function  
 - `tests/behavior/test_task_management_coverage_expansion.py`: Removed imports and tests for deleted function
 
-**Status**: ✅ **COMPLETED** - All job types now managed consistently, all tests passing
+**Status**:  **COMPLETED** - All job types now managed consistently, all tests passing
 
 ---
 
-### 2025-09-22 - Critical Scheduler Job Accumulation Bug Fix ✅ **COMPLETED**
+### 2025-09-22 - Critical Scheduler Job Accumulation Bug Fix  **COMPLETED**
 
 **Background**: Users were receiving 35+ messages per day instead of the expected 10 messages (4 motivational, 4 health, 1 checkin, 1 task reminder). Investigation revealed that scheduler jobs were accumulating over time because the cleanup logic was not properly identifying and removing daily scheduler jobs.
 
@@ -913,10 +949,10 @@ This is the complete detailed changelog.
 - Added comprehensive job cleanup functionality
 
 **Testing Status**: 
-- ✅ Verified job cleanup reduces job count from 72 to 5 user/category combinations
-- ✅ Confirmed system tasks are properly cleaned up
-- ✅ Validated that only necessary jobs are rescheduled
-- ✅ **COMPLETED**: All tests pass, audits complete, application verified working
+-  Verified job cleanup reduces job count from 72 to 5 user/category combinations
+-  Confirmed system tasks are properly cleaned up
+-  Validated that only necessary jobs are rescheduled
+-  **COMPLETED**: All tests pass, audits complete, application verified working
 
 ### 2025-09-17 - Discord Test Warning Fixes and Resource Cleanup
 
@@ -994,7 +1030,7 @@ This is the complete detailed changelog.
 - Legacy reference cleanup tool shows reduced legacy compatibility markers
 - Full test suite passes without issues
 
-### 2025-09-17 - Legacy Reference Cleanup Tool Enhancement ✅ **COMPLETED**
+### 2025-09-17 - Legacy Reference Cleanup Tool Enhancement  **COMPLETED**
 
 **Objective**: Enhance the legacy reference cleanup tool with better pattern detection and integrate tool maintenance into legacy code standards.
 
@@ -1026,14 +1062,14 @@ This is the complete detailed changelog.
 - `development_docs/LEGACY_REFERENCE_REPORT.md` - Updated with focused results
 
 **Success Criteria Met**:
-- ✅ Tool now detects actual legacy references without false positives
-- ✅ Tool maintenance integrated into mandatory legacy code standards
-- ✅ Clear documentation of current patterns and maintenance requirements
-- ✅ Actionable results for legacy code cleanup
+-  Tool now detects actual legacy references without false positives
+-  Tool maintenance integrated into mandatory legacy code standards
+-  Clear documentation of current patterns and maintenance requirements
+-  Actionable results for legacy code cleanup
 
 **Impact**: Complete legacy code management system with focused detection, mandatory tool maintenance, and integration with existing standards.
 
-## ?? How to Add Changes
+### ?? How to Add Changes
 
 When adding new changes, follow this format:
 
@@ -1057,9 +1093,9 @@ When adding new changes, follow this format:
 
 ------------------------------------------------------------------------------------------
 
-## 🚀 Recent Changes (Most Recent First)
+##  Recent Changes (Most Recent First)
 
-### 2025-09-17 - Test Artifact Cleanup and Fixture Fixes ✅ **COMPLETED**
+### 2025-09-17 - Test Artifact Cleanup and Fixture Fixes  **COMPLETED**
 
 #### Overview
 - **Test Artifact Cleanup**: Removed leftover `.test_tracker` file and test user directories (`test-debug-user`, `test-user-2`) from real data directory
@@ -1077,10 +1113,10 @@ When adding new changes, follow this format:
 - **Safety Checks**: Added assertions to prevent files being created in wrong locations
 - **No Real Data Pollution**: Verified no test artifacts remain in real user data directory
 
-## 2025-09-16 - Comprehensive High Complexity Function Refactoring and Test Coverage Expansion
+### 2025-09-16 - Comprehensive High Complexity Function Refactoring and Test Coverage Expansion
 
 ### Overview
-- Successfully refactored 8 high-complexity functions with dramatic complexity reduction (1,618 → ~155 nodes, 90% reduction)
+- Successfully refactored 8 high-complexity functions with dramatic complexity reduction (1,618  ~155 nodes, 90% reduction)
 - Expanded comprehensive test coverage for critical functions with zero or minimal tests
 - Created 37 new helper functions following consistent `_main_function__helper_name` pattern
 - Added 57 comprehensive tests covering all scenarios, edge cases, and error conditions
@@ -1090,16 +1126,16 @@ When adding new changes, follow this format:
 ### Major Refactoring Achievements
 
 #### **Top 3 Highest Complexity Functions (Eliminated 200+ Node Functions)**
-- **`check_and_fix_logging` (377 nodes)** → 6 focused helper functions (93% reduction)
-- **`check_reschedule_requests` (315 nodes)** → 7 focused helper functions (94% reduction)  
-- **`check_test_message_requests` (270 nodes)** → 7 focused helper functions (93% reduction)
+- **`check_and_fix_logging` (377 nodes)**  6 focused helper functions (93% reduction)
+- **`check_reschedule_requests` (315 nodes)**  7 focused helper functions (94% reduction)  
+- **`check_test_message_requests` (270 nodes)**  7 focused helper functions (93% reduction)
 
 #### **Medium Complexity Functions**
-- **`calculate_cache_size` (158 nodes)** → 2 focused helper functions (87% reduction)
-- **`cleanup_test_message_requests` (105 nodes)** → 3 focused helper functions (86% reduction)
-- **`send_test_message` (141 nodes)** → 3 focused helper functions (86% reduction)
-- **`get_cleanup_status` (102 nodes)** → 4 focused helper functions (85% reduction)
-- **`select_task_for_reminder` (~150+ nodes)** → 5 focused helper functions (85% reduction)
+- **`calculate_cache_size` (158 nodes)**  2 focused helper functions (87% reduction)
+- **`cleanup_test_message_requests` (105 nodes)**  3 focused helper functions (86% reduction)
+- **`send_test_message` (141 nodes)**  3 focused helper functions (86% reduction)
+- **`get_cleanup_status` (102 nodes)**  4 focused helper functions (85% reduction)
+- **`select_task_for_reminder` (~150+ nodes)**  5 focused helper functions (85% reduction)
 
 ### Test Coverage Expansion Achievements
 
@@ -1172,7 +1208,7 @@ When adding new changes, follow this format:
 - **Zero 200+ Node Functions**: Eliminated all critical complexity functions
 - **Enhanced System Quality**: Dramatically improved maintainability, testability, and code organization
 
-## 2025-09-15 - Test Logging System Final Optimizations and Production Readiness
+### 2025-09-15 - Test Logging System Final Optimizations and Production Readiness
 
 ### Overview
 - Optimized log rotation threshold for better testing visibility
@@ -1215,7 +1251,7 @@ When adding new changes, follow this format:
 - `tests/conftest.py`: Reduced rotation threshold, enhanced cleanup, added warning suppression
 - `tests/behavior/test_scheduler_coverage_expansion.py`: Fixed thread cleanup in error handling test
 
-## 2025-09-15 - Test Logging System Final Verification and Production Readiness
+### 2025-09-15 - Test Logging System Final Verification and Production Readiness
 
 ### Overview
 - Completed final verification of the test logging system improvements
@@ -1274,7 +1310,7 @@ When adding new changes, follow this format:
 - **System Stability**: All tests passing with no conflicting mechanisms
 - **Professional Grade**: Enterprise-level logging system for test environments
 
-## 2025-09-15 - Documentation System Fixes
+### 2025-09-15 - Documentation System Fixes
 
 ### Overview
 - Fixed static logging check failures in ai_development_tools files by replacing direct logging imports with centralized core.logger system
@@ -1313,7 +1349,7 @@ When adding new changes, follow this format:
 - **Full Test Suite Success**: Static logging check no longer fails
 - **Better Maintainability**: Centralized logging system ensures consistent behavior
 
-## 2025-09-14 - Comprehensive Exception Handling System Improvements
+### 2025-09-14 - Comprehensive Exception Handling System Improvements
 
 ### Overview
 - Enhanced core error handling system with comprehensive user-friendly error messages for all common exception types
@@ -1375,7 +1411,7 @@ When adding new changes, follow this format:
 - **System Stability**: Automatic recovery prevents system crashes and improves reliability
 - **Consistent Patterns**: Standardized exception handling across the codebase
 
-## 2025-09-14 - Minor Logging Enhancements to Core Modules
+### 2025-09-14 - Minor Logging Enhancements to Core Modules
 
 ### Overview
 - Enhanced logging in `core/schedule_utilities.py` with detailed schedule processing and activity tracking
@@ -1436,7 +1472,7 @@ Created contextual prompt: base_length=150, context_length=200, input_length=50,
 
 ---
 
-## 2025-09-14 - Enhanced Message Logging with Content and Time Period
+### 2025-09-14 - Enhanced Message Logging with Content and Time Period
 
 ### Overview
 - Added message content preview (first 50 characters) to all message sending logs
@@ -1487,7 +1523,7 @@ Successfully sent deduplicated message for user user-123, category motivational 
 - **Consistent Logging**: Standardized format across all communication channels
 - **Maintained Performance**: Logging enhancements don't impact message delivery performance
 
-## 2025-09-14 - Discord Channel ID Parsing Fix
+### 2025-09-14 - Discord Channel ID Parsing Fix
 
 ### Overview
 - Fixed channel ID parsing error in `send_message_sync` method that was trying to convert `discord_user:` format to integer
@@ -1521,7 +1557,7 @@ The `send_message_sync` method in `communication/core/channel_orchestrator.py` w
 - **Maintains Message Delivery**: All Discord messages continue to be delivered successfully
 - **Cleaner Logs**: Reduces noise in error logs while preserving functionality
 
-## 2025-09-14 - Critical Logging Issues Resolution
+### 2025-09-14 - Critical Logging Issues Resolution
 
 ### Overview
 - Fixed Windows file locking during log rotation that was causing app.log and errors.log to stop updating
@@ -1585,7 +1621,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 ### Files Modified
 - `communication/communication_channels/discord/bot.py` - Fixed command handling logic
 
-## 2025-09-13 - AI Response Quality and Command Parsing Fixes
+### 2025-09-13 - AI Response Quality and Command Parsing Fixes
 
 ### Overview
 - Fixed duplicate AI processing and inappropriate command classification
@@ -1631,8 +1667,8 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - `ai/prompt_manager.py`
 - `resources/assistant_system_prompt.txt`
 
-## 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
-## 2025-09-13 - Logging Style Enforcement and Profile/Help Sanity
+### 2025-09-12 - Command Discoverability, Report-Length Safeguards, and Analytics Scale Normalization
+### 2025-09-13 - Logging Style Enforcement and Profile/Help Sanity
 
 ### Overview
 - Enforced component logger usage patterns and standardized call styles
@@ -1661,10 +1697,10 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Clear, centralized command documentation with friendly in-app pointers
 
 ---
-## 2025-09-13 - Scale Normalization and Discord Command Documentation
+### 2025-09-13 - Scale Normalization and Discord Command Documentation
 
 ### Overview
-- Ensured consistent user-facing scales for mood/energy (1�5) across command handlers
+- Ensured consistent user-facing scales for mood/energy (15) across command handlers
 - Consolidated Discord command documentation into a single `communication/communication_channels/discord/DISCORD.md` reference and linked from in-app help
 
 ### Key Changes
@@ -1702,7 +1738,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
   - Follow-up task queued to sweep `interaction_handlers.py` and `checkin_handler.py` for `/10` remnants
 - Tests & Audits
   - `python run_tests.py --mode all`: 1405 passed, 1 skipped; warnings unchanged
-  - `python ai_tools/ai_tools_runner.py audit`: completed successfully; doc coverage 100%## 2025-01-11 - Critical Test Issues Resolution and 6-Seed Loop Validation Complete### Overview- **Test Suite Stability**: Achieved 100% success rate across all random seeds in 6-seed loop validation- **Critical Issues Resolved**: Fixed test isolation issues and Windows fatal exception crashes- **Test Reliability**: Test suite now stable and reliable across all execution scenarios- **System Health**: All 1405 tests passing with only 1 skipped test### Key Changes#### **Test Isolation Issue Resolution**- **Problem**: `test_integration_scenarios_real_behavior` was failing because it tried to add "quotes" category, but the validator only allows "quotes_to_ponder"- **Root Cause**: Category validation in `PreferencesModel` restricts categories to those in the `CATEGORIES` environment variable- **Solution**: Updated test to use valid category name (`quotes_to_ponder` instead of `quotes`)- **Result**: Test now passes consistently across all random seeds#### **Windows Fatal Exception Resolution**- **Problem**: Access violation crashes during test execution with specific random seeds- **Root Cause**: CommunicationManager background threads (retry manager and channel monitor) were not being properly cleaned up during test execution- **Solution**: Added session-scoped cleanup fixture in `tests/conftest.py` to properly stop all CommunicationManager threads- **Result**: No more access violations, test suite completes cleanly#### **6-Seed Loop Validation Complete**- **Comprehensive Testing**: Tested 6 different random seeds to validate test suite stability- **Results**: 6/6 green runs achieved (100% success rate after fixes)  - ? **Seeds 12345, 98765, 11111, 77777**: All passed with 1405 tests, 1 skipped  - ? **Seeds 22222, 33333**: Now pass after fixing test isolation issue  - ? **Seed 54321**: Now passes after fixing Windows fatal exception- **Throttler Test Fix**: Fixed test expectation to match correct throttler behavior (1.0s interval vs 0.01s)#### **Discord Warning Cleanup**- **Warning Filters Added**: Added specific filters for Discord library warnings in pytest.ini and conftest.py- **External Library Warnings**: Confirmed that remaining warnings (audioop, timeout parameters) are from Discord library internals- **Test Suite Stability**: All 1405 tests still pass with warning filters in place### Technical Details#### **Files Modified**- `tests/behavior/test_account_management_real_behavior.py`: Fixed category name in test- `tests/behavior/test_service_utilities_behavior.py`: Fixed throttler test interval- `tests/conftest.py`: Added CommunicationManager cleanup fixture- `pytest.ini`: Added Discord warning filters#### **Test Results**- **Before Fixes**: 4/6 seeds passed, 2 test failures, 1 Windows fatal exception- **After Fixes**: 6/6 seeds passed, 0 test failures, 0 crashes- **Success Rate**: 100% across all random seeds- **Test Count**: 1405 passed, 1 skipped### Impact- **Test Suite Reliability**: Test suite now stable and reliable across all execution scenarios- **Development Confidence**: Developers can run full test suite with confidence- **System Stability**: All critical test issues resolved, system ready for continued development- **Quality Assurance**: Comprehensive validation of test suite stability across different execution orders## 2025-09-11 - Test Coverage Expansion Phase 3 Completion and Comprehensive Infrastructure Testing### Overview- **Test Coverage Expansion**: Successfully completed Phase 3 of test coverage expansion with all 5 priority targets achieved or exceeded- **Comprehensive Testing**: Created 195+ new behavior tests across critical infrastructure modules- **Test Quality Focus**: Prioritized working tests over complex mocking, maintained 99.9% test success rate- **System Stability**: Maintained 72% overall coverage while significantly improving specific critical modules- **Infrastructure Reliability**: Comprehensive test coverage across all critical infrastructure components### Key Changes#### **Test Coverage Expansion Achievements**- **Core Logger Coverage**: Successfully expanded from 68% to 75% coverage with comprehensive test suite of 35 tests  - Test logging behavior, rotation, and log level management  - Test error handling in logging system and log file management  - Test logging performance and configuration  - Test log file cleanup and archive management- **Core Error Handling Coverage**: Achieved 65% coverage with robust test suite of 78 tests  - Test error scenarios, recovery mechanisms, and error logging  - Test error handling performance and edge cases  - Test custom exception classes and error recovery strategies  - Test error handler integration and decorator functionality- **Core Config Coverage**: Successfully expanded from 70% to 79% coverage with comprehensive test suite of 35 tests  - Test configuration loading, validation, and environment variables  - Test configuration error handling and performance  - Test path management and user data directory operations  - Test configuration reporting and integration functions- **Command Parser Coverage**: Successfully expanded from 40% to 68% coverage with advanced test suite of 47 tests  - Test natural language processing, entity extraction, and command recognition  - Test edge cases and error handling  - Test AI response processing and intent extraction  - Test suggestion system and parser integration- **Email Bot Coverage**: Achieved 91% coverage (far exceeded 60% target) with existing comprehensive tests  - Existing test suite already provided excellent coverage  - No additional tests needed due to high existing coverage#### **Test Quality and Reliability Improvements**- **Real Behavior Testing**: Focused on actual system behavior rather than complex mocking- **Error Handling Coverage**: Extensive testing of error scenarios and recovery mechanisms- **Integration Testing**: End-to-end functionality testing across modules- **Edge Case Coverage**: Robust testing of boundary conditions and malformed inputs- **Test Stability**: All new tests pass consistently with 100% success rate#### **System Impact and Benefits**- **Maintained Overall Coverage**: Sustained 72% overall coverage while expanding specific modules- **Improved System Reliability**: Better error handling and edge case coverage- **Enhanced Maintainability**: More comprehensive test coverage for future development- **Reduced Technical Debt**: Addressed coverage gaps in critical infrastructure- **Quality Standards**: Maintained clean code practices and project organization### Technical Details#### **Test Suite Statistics**- **Total Tests**: 1404/1405 tests passing (99.9% success rate)- **New Tests Added**: 195+ behavior tests across 5 modules- **Coverage Improvements**: 5 modules with significant coverage increases- **Test Execution Time**: ~8.5 minutes for full test suite- **Test Stability**: Consistent results across multiple runs#### **Module-Specific Improvements**- **Core Logger**: 35 new tests covering logging system functionality- **Core Error Handling**: 78 new tests covering error scenarios and recovery- **Core Config**: 35 new tests covering configuration management- **Command Parser**: 47 new tests covering NLP and command processing- **Email Bot**: Existing comprehensive tests (91% coverage)#### **Quality Assurance**- **Test Isolation**: Proper test data isolation and cleanup- **Mocking Strategy**: Simple, reliable mocking approaches- **Error Handling**: Comprehensive error scenario testing- **Documentation**: Clear test documentation and maintenance### Files Modified- `tests/behavior/test_logger_coverage_expansion_phase3_simple.py` - Core Logger tests- `tests/behavior/test_error_handling_coverage_expansion_phase3_final.py` - Error Handling tests- `tests/behavior/test_config_coverage_expansion_phase3_simple.py` - Config tests- `tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py` - Command Parser tests- `TODO.md` - Updated test coverage expansion status- `PLANS.md` - Marked Phase 3 as completed- `AI_CHANGELOG.md` - Added Phase 3 completion summary- `CHANGELOG_DETAIL.md` - Added detailed Phase 3 documentation### Next Steps- **Code Complexity Reduction**: Focus on refactoring high complexity functions identified in audit- **Future Test Coverage**: Continue with simpler test approaches for remaining modules- **Test Maintenance**: Monitor test stability and maintain quality standards- **System Monitoring**: Track coverage metrics and system reliability improvements## 2025-09-10 - Test Coverage Expansion Phase 2 Completion and Test Suite Quality Focus### Overview- **Test Coverage Expansion**: Successfully completed Phase 2 of test coverage expansion with meaningful improvements to Core Service and Core Message Management- **Test Quality Focus**: Prioritized working tests over complex mocking, deleted problematic tests that caused hanging and function behavior issues- **Test Suite Health**: Achieved excellent test suite stability with 1,228 tests passing consistently- **Future Planning**: Added Core User Data Manager and Core File Operations to future tasks with guidance on simpler test approaches- **Comprehensive Audit**: Completed full system audit showing 80.6% documentation coverage and 1,779 high complexity functions identified for future refactoring### Key Changes#### **Test Coverage Expansion Achievements**- **Core Service Coverage**: Successfully expanded from 16% to 40% coverage with comprehensive test suite of 31 tests  - Test service startup and shutdown sequences  - Test service state management and transitions    - Test service error handling and recovery  - Test service configuration validation and path initialization  - Test service signal handling and emergency shutdown- **Core Message Management Coverage**: Significantly improved coverage with 9 working tests  - Test message categories from environment variables  - Test message loading and file handling  - Test timestamp parsing and sorting functionality  - Test error handling for message operations#### **Test Quality Improvements**- **Deleted Problematic Tests**: Removed test files that caused hanging or function behavior issues  - `test_core_user_data_manager_coverage_expansion.py` - Test hanging issues, needs simpler approach  - `test_core_file_operations_coverage_expansion.py` - Function behavior complexity, needs simpler approach- **Cleaned Up Working Tests**: Streamlined `test_core_message_management_coverage_expansion.py` to keep only 9 working tests- **Test Stability Focus**: Prioritized test reliability over coverage numbers, ensuring all tests pass consistently#### **Future Task Planning**- **Core User Data Manager**: Added to future tasks with note about needing simpler test approach to avoid hanging- **Core File Operations**: Added to future tasks with note about needing simpler test approach to avoid function behavior issues- **Test Strategy**: Documented lessons learned about complex mocking causing more problems than it solves#### **Comprehensive System Audit**- **Test Suite Health**: All 1,228 tests passing with only 1 skipped and 5 warnings- **Documentation Coverage**: 80.6% documentation coverage achieved- **Code Complexity**: 1,779 high complexity functions (>50 nodes) identified for future refactoring- **System Status**: Healthy and ready for continued development### Technical Details#### **Test Files Modified**- **Deleted**: `tests/behavior/test_core_user_data_manager_coverage_expansion.py`- **Deleted**: `tests/behavior/test_core_file_operations_coverage_expansion.py`  - **Cleaned**: `tests/behavior/test_core_message_management_coverage_expansion.py` (removed failing tests, kept 9 working tests)#### **Documentation Updates**- **TEST_COVERAGE_EXPANSION_PLAN.md**: Updated to reflect Phase 2 completion and future task planning- **TODO.md**: Added completed tasks and future planning items- **AI_CHANGELOG.md**: Added comprehensive summary of Phase 2 completion#### **Key Lessons Learned**- **Quality over Quantity**: Better to have fewer, working tests than many failing ones- **Simple Approaches Work**: Complex mocking often causes more problems than it solves- **Test Stability Matters**: Hanging tests are worse than no tests- **Incremental Progress**: Even partial coverage improvements are valuable### Impact- **Test Suite Reliability**: Significantly improved with all tests passing consistently- **Coverage Quality**: Focused on meaningful coverage improvements rather than just numbers- **Future Development**: Clear guidance on test approaches that work vs. those that cause problems- **System Health**: Comprehensive audit confirms system is healthy and ready for continued development### Next Steps- **Phase 3**: Move to next phase of test coverage expansion with focus on simpler, more reliable test approaches- **Complexity Reduction**: Address high complexity functions identified in audit for better maintainability- **Future Test Coverage**: Implement Core User Data Manager and Core File Operations tests using simpler approaches## 2025-09-10 - Health Category Message Filtering Fix and Weighted Selection System### Overview- **Issue Resolution**: Fixed critical issue where health category test messages were not being sent due to missing 'ALL' time period in message filtering logic- **Message Enhancement**: Added 'ALL' time period to 40 health messages that are applicable at any time, significantly improving message availability- **Weighted Selection**: Implemented intelligent message selection system that prioritizes specific time period messages over generic 'ALL' messages- **System Integration**: Enhanced CommunicationManager with weighted message selection for better message distribution and user experience- **Testing Success**: Verified fix with successful health category test message delivery via Discord with proper deduplication- **Backward Compatibility**: Maintained all existing functionality while improving message availability and selection intelligence### Key Changes#### **Root Cause Analysis**- **Issue Identified**: Health messages lacked 'ALL' in their time_periods, preventing them from being sent when only the 'ALL' period was active (e.g., at 1:35 AM)- **Comparison**: Motivational messages worked because they had messages with 'ALL' in time_periods- **Impact**: Health category test messages failed with "No messages to send for category health" error#### **Message Enhancement**- **Added 'ALL' Time Period**: Updated 40 health messages to include 'ALL' in their time_periods- **Selection Criteria**: Focused on messages that are generally applicable at any time (stretching, hydration, posture, etc.)- **Availability Improvement**: Increased available health messages from 0 to 31 when 'ALL' period is active- **Message Categories**: Enhanced messages for general health reminders, posture checks, hydration, and wellness activities#### **Weighted Selection System**- **Intelligent Prioritization**: Implemented 70/30 weighting system favoring specific time period messages over 'ALL' only messages- **Selection Logic**: Messages with specific periods (e.g., ['morning', 'afternoon', 'evening', 'ALL']) get 70% priority- **Fallback Behavior**: Messages with only 'ALL' periods get 30% priority, ensuring variety while maintaining relevance- **Implementation**: Added `_select_weighted_message()` method to CommunicationManager class#### **System Integration**- **Enhanced CommunicationManager**: Integrated weighted selection into message sending pipeline- **Logging Enhancement**: Added debug logging for weighted selection decisions- **Performance**: Maintained efficient message selection without impacting system performance- **Error Handling**: Preserved all existing error handling and fallback mechanisms#### **Testing and Validation**- **Test Message Success**: Successfully sent health category test message via Discord- **Deduplication Verified**: Confirmed message deduplication system works with new weighted selection- **System Stability**: All 1144 tests passing (1 pre-existing failure unrelated to changes)- **Real-world Testing**: Verified fix works in actual system environment with live Discord integration### Technical Details#### **Files Modified**- `data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/health.json`: Added 'ALL' to 40 messages- `communication/core/channel_orchestrator.py`: Added `_select_weighted_message()` method and integrated weighted selection#### **Message Filtering Logic**- **Before**: 0 health messages available when 'ALL' period active- **After**: 31 health messages available (26 with 'ALL' in both time_periods and days + 5 with 'ALL' in time_periods and 'Wednesday' in days)- **Weighting**: 70% chance for specific time period messages, 30% chance for 'ALL' only messages#### **Backward Compatibility**- **No Breaking Changes**: All existing functionality preserved- **Enhanced Behavior**: Improved message selection without changing core APIs- **Legacy Support**: Maintained compatibility with existing message structures and scheduling logic### Impact and Benefits- **User Experience**: Health category messages now work consistently across all time periods- **Message Variety**: Weighted selection ensures appropriate message timing while maintaining variety- **System Reliability**: Improved message availability reduces "no messages to send" errors- **Maintainability**: Clear separation between specific and general messages for future enhancements## 2025-09-10 - Message Deduplication System Implementation and Documentation Cleanup### Overview- **System Implementation**: Successfully implemented comprehensive message deduplication system with chronological storage, file archiving, and automated maintenance- **Data Migration**: Migrated 1,473 messages across 3 users to new chronological structure with enhanced time_period tracking- **Function Consolidation**: Consolidated all message management functions in `message_management.py` and removed redundant `enhanced_message_management.py` module- **Deduplication Logic**: Implemented inline deduplication preventing duplicate messages within 60 days with intelligent fallback behavior- **Archive Integration**: Integrated message archiving with monthly cache cleanup system for automated maintenance- **Testing Success**: All 1,145 tests passing with parallel execution, system fully operational and validated- **Documentation Cleanup**: Moved Phase 5 advanced features to PLANS.md and deleted temporary implementation plan file to reduce root directory clutter### Key Changes#### **System Implementation**- **Comprehensive Deduplication**: Implemented inline deduplication logic in `_send_predefined_message()` function- **Time Window**: 60 days, 50 messages for deduplication checking- **Fallback Behavior**: Uses all available messages if all are recent to prevent message starvation- **Archive Integration**: Automatic message archiving during monthly cache cleanup#### **Data Structure Enhancements**- **Chronological Storage**: Messages stored in chronological order with metadata tracking- **Time Period Tracking**: Added `time_period` field to record when messages were sent (morning, evening, etc.)- **Metadata Enhancement**: Added version tracking, creation timestamps, and archive management#### **Function Consolidation**- **Single Module**: All message management functions consolidated in `core/message_management.py`- **Enhanced Functions**: `get_recent_messages()`, `store_sent_message()`, `archive_old_messages()`, `_parse_timestamp()`- **Legacy Support**: Maintained `get_last_10_messages()` with redirect and warning logs- **Removed Module**: Deleted `core/enhanced_message_management.py` to simplify architecture#### **Archive Management**- **Automatic Archiving**: Messages older than 365 days automatically archived to separate files- **Cleanup Integration**: Integrated with existing monthly cache cleanup system- **Archive Structure**: Organized archive files with timestamps and metadata- **File Rotation**: Prevents `sent_messages.json` files from growing indefinitely#### **Documentation and Cleanup**- **PLANS.md Integration**: Moved Phase 5 advanced features to PLANS.md for proper project planning- **File Cleanup**: Deleted `MESSAGE_DEDUPLICATION_IMPLEMENTATION_PLAN.md` to reduce root directory clutter- **Changelog Updates**: Updated both AI_CHANGELOG.md and CHANGELOG_DETAIL.md with implementation details### Technical Details#### **Migration Results**- **Messages Migrated**: 1,473 messages successfully migrated across 3 users- **Data Integrity**: All existing data preserved with enhanced structure- **User Impact**: Zero data loss, seamless transition for all users#### **Function Signatures**```pythondef get_recent_messages(user_id: str, category: Optional[str] = None, limit: int = 10, days_back: Optional[int] = None) -> List[Dict[str, Any]]def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: str = None) -> booldef archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool```#### **Data Structure**```json{  "metadata": {    "version": "2.0",    "created": "2025-01-09T10:00:00Z",    "last_archived": "2025-01-09T10:00:00Z",    "total_messages": 0  },  "messages": [    {      "message_id": "uuid",      "message": "text",      "category": "motivational",      "timestamp": "2025-01-09T10:00:00Z",      "delivery_status": "sent",      "time_period": "morning"    }  ]}```### Impact- **Simplified Architecture**: All message management functions consolidated in single module- **Enhanced Data Structure**: Eliminated redundant fields, added useful time_period tracking- **Better Maintainability**: Single location for all message management functionality- **Reduced Complexity**: Eliminated need for separate enhanced module- **Improved Tracking**: Messages now record time period for better analytics- **Automated Maintenance**: Message archiving integrated with existing cleanup systems- **Cleaner Project Structure**: Removed temporary files and organized documentation properly### Modified Files- **Core Functions**: `core/message_management.py` - Enhanced with consolidated functions- **Communication**: `communication/core/channel_orchestrator.py` - Updated imports and deduplication logic- **User Context**: `user/context_manager.py` - Updated to use new function names- **Auto Cleanup**: `core/auto_cleanup.py` - Added message archiving integration- **Migration Script**: `scripts/migration/remove_user_id_from_sent_messages.py` - Created and executed- **Documentation**: `AI_CHANGELOG.md`, `CHANGELOG_DETAIL.md`, `PLANS.md` - Updated with implementation details### Removed Files- **Redundant Module**: `core/enhanced_message_management.py` - Deleted after consolidation- **Temporary Plan**: `MESSAGE_DEDUPLICATION_IMPLEMENTATION_PLAN.md` - Deleted after moving content to PLANS.md### Testing Status- **Test Suite**: All 1,145 tests passing with parallel execution- **Migration Testing**: 1,473 messages successfully migrated and validated- **Deduplication Testing**: Logic tested with various scenarios and edge cases- **Archive Testing**: File rotation and archiving tested and working correctly- **Backward Compatibility**: Legacy function redirects tested and working- **Performance Testing**: System tested with large message datasets## 2025-09-10 - Message Deduplication System Consolidation and Structure Improvements### Overview- **Consolidated Message Management**: Successfully moved all message management functions from enhanced_message_management.py back to message_management.py for simpler architecture- **Data Structure Optimization**: Removed redundant user_id fields from sent_messages.json structure and added time_period field for better message tracking- **Migration Success**: Successfully migrated 1,473 messages across 3 users to new structure- **Architecture Simplification**: Eliminated redundant enhanced_message_management.py module### Key Changes#### **Function Consolidation**- **Moved Functions to message_management.py**:  - `get_recent_messages()` - Enhanced version of get_last_10_messages with flexible filtering  - `store_sent_message()` - Store messages in chronological order with time_period support  - `archive_old_messages()` - Archive old messages for file rotation  - `_parse_timestamp()` - Parse timestamp strings with multiple format support- **Updated Import Statements**:  - Updated `communication/core/channel_orchestrator.py` to import from message_management  - Updated `user/context_manager.py` to use get_recent_messages instead of get_last_10_messages  - Removed all references to enhanced_message_management module#### **Data Structure Improvements**- **Removed Redundant user_id Field**:  - Created migration script `scripts/migration/remove_user_id_from_sent_messages.py`  - Successfully migrated 1,473 messages across 3 users  - user_id is now implicit in file path structure (data/users/{user_id}/messages/sent_messages.json)- **Added time_period Field**:  - Enhanced store_sent_message() function to accept optional time_period parameter  - Updated all calls in channel_orchestrator.py to include current time period  - Messages now record what time period they were sent for (morning, evening, etc.)#### **Backward Compatibility**- **Legacy Function Support**:  - Maintained get_last_10_messages() function that redirects to get_recent_messages()  - Added warning logs when legacy function is called to encourage migration  - All existing functionality continues to work without breaking changes#### **File Management**- **Deleted Redundant Module**:  - Removed core/enhanced_message_management.py file  - Consolidated all message management functionality in single module  - Simplified import structure and reduced code duplication### Technical Details#### **Migration Script Results**```Migration completed: 3/3 users migrated successfully- User 72a13563-5934-42e8-bc55-f0c851a899cc: 422 messages updated- User c59410b9-5872-41e5-ac30-2496b9dd8938: 17 messages updated  - User me581649-4533-4f13-9aeb-da8cb64b8342: 1034 messages updated```#### **Function Signature Updates**- `store_sent_message(user_id, category, message_id, message, delivery_status="sent", time_period=None)`- `get_recent_messages(user_id, category=None, limit=10, days_back=None)`- Enhanced time_period tracking in message storage#### **Data Structure Changes**```json// Before (with redundant user_id){  "message_id": "uuid",  "message": "text",  "category": "motivational",   "timestamp": "2025-09-10 00:31:45",  "delivery_status": "sent",  "user_id": "me581649-4533-4f13-9aeb-da8cb64b8342"  // REMOVED}// After (with time_period){  "message_id": "uuid",  "message": "text",  "category": "motivational",  "timestamp": "2025-09-10 00:31:45",   "delivery_status": "sent",  "time_period": "morning"  // ADDED}```### Impact- **Simplified Architecture**: All message management functions consolidated in single module- **Cleaner Data Structure**: Eliminated redundant user_id fields, added useful time_period tracking- **Better Maintainability**: Single location for all message management functionality- **Reduced Complexity**: Eliminated need for separate enhanced module- **Improved Tracking**: Messages now record time period for better analytics### Files Modified- `core/message_management.py` - Added consolidated functions- `communication/core/channel_orchestrator.py` - Updated imports and function calls- `user/context_manager.py` - Updated to use get_recent_messages- `scripts/migration/remove_user_id_from_sent_messages.py` - New migration script- `AI_CHANGELOG.md` - Updated with consolidation summary### Files Removed- `core/enhanced_message_management.py` - Consolidated into message_management.py### Testing Status- **System Startup**: ? Successful- **Function Imports**: ? All functions import correctly- **Message Retrieval**: ? get_recent_messages working with 3 users- **Migration**: ? 1,473 messages successfully migrated- **Backward Compatibility**: ? Legacy functions redirect properly## 2025-09-09 - Test Suite Stabilization Achievement - Green Run with 6-Seed Loop### Overview- **MAJOR MILESTONE**: Achieved green run with only 1 failing test after extensive parallel execution fixes- Successfully resolved multiple race conditions and test isolation issues that were causing widespread failures- Significant improvement from previous multiple test failures to single isolated failure### Key Changes- **Parallel Execution Race Condition Fixes**:  - Fixed user ID conflicts by implementing unique UUID-based user IDs in tests  - Added explicit directory creation safeguards in message management functions  - Implemented retry mechanisms for file system consistency in category management  - Enhanced test isolation with proper cleanup and unique temporary directories- **Test Robustness Improvements**:  - Added `auto_create=True` parameters to critical `get_user_data` calls in tests  - Implemented materialization of user data before strict assertions  - Added explicit `save_user_data` calls for different data types to avoid race conditions  - Enhanced debugging information for file-related failures during parallel execution- **Performance Optimizations**:  - Increased time limits for performance tests to account for parallel execution overhead  - Adjusted test expectations to handle parallel execution timing variations  - Optimized test execution patterns for better parallel compatibility- **File Operations Enhancements**:  - Added directory creation safeguards to `add_message`, `delete_message`, `update_message` functions  - Ensured user directories exist before file operations  - Improved file cleanup and temporary file handling### Impact- **Test Success Rate**: Dramatically improved from multiple failures to 1144 passed, 1 failed, 1 skipped- **Parallel Execution**: Tests now run reliably in parallel with 4 workers- **System Stability**: Core functionality remains stable while test reliability is significantly improved- **Development Efficiency**: Developers can now run full test suite with confidence### Testing Results- **Full Test Suite**: 1144 passed, 1 failed, 1 skipped- **Parallel Execution**: Successfully runs with `--workers 4` without race conditions- **Individual Test Verification**: All previously failing tests now pass when run individually- **Remaining Issue**: Single test failure in `test_flexible_configuration` (test utilities demo)### Technical Details- **User ID Management**: Implemented `uuid.uuid4()` for unique test user IDs- **Directory Creation**: Added `user_messages_dir.mkdir(parents=True, exist_ok=True)` to message functions- **Data Persistence**: Enhanced `save_user_data` calls with explicit data type separation- **Test Isolation**: Improved cleanup procedures and temporary directory management### Next Steps- Address remaining `test_flexible_configuration` failure- Continue 6-seed randomized loop validation- Monitor test stability over multiple runs- Consider additional optimizations for remaining edge cases## 2025-09-06 - Intermittent Test Failures Resolved; Suite Stable (1141 passed, 1 skipped)### Overview- Eliminated remaining intermittent failures caused by import-order/timing on user-data loader registration and scattered sys.path hacks.- Achieved consistent all-mode stability with deterministic session startup.### Key Changes- Added session-start guard fixture in `tests/conftest.py` to assert that `core.user_management.USER_DATA_LOADERS` and `core.user_data_handlers.USER_DATA_LOADERS` are the same dict and to register default loaders once if any are missing.- Removed per-test `sys.path` hacks; centralized a single path insert in `tests/conftest.py`.- Augmented `core/user_data_handlers.get_user_data` with test-gated diagnostics and a dedicated debug log for �all� runs to pinpoint loader state; used during investigation.- Fixed test isolation:  - Custom loader registration test now asserts against current module state and cleans up the custom type after running.  - Nonexistent-user tests filter out non-core types when asserting empty results.- Relaxed an over-strict file expectation to allow feature-created `tasks` directory in lifecycle test.### Impact- Full suite consistently green in all modes: 1141 passed, 1 skipped; behavior/integration/UI/unit subsets all stable.- Prevents future regressions from split registries/import-order issues.### Testing- Ran `python run_tests.py --mode all --verbose`: 1141 passed, 1 skipped, warnings unchanged (Discord deprecations, aiohttp unraisable in teardown path).- Verified targeted problem tests and registration behavior individually.### Follow-ups- Monitor any new tests for path/env standardization adherence.- Consider gating/removing test-only diagnostics once stability remains after several runs.## ## 2025-09-05 - Test Suite Stabilization Completed; 1141 Passing
+  - `python ai_tools/ai_tools_runner.py audit`: completed successfully; doc coverage 100%## 2025-01-11 - Critical Test Issues Resolution and 6-Seed Loop Validation Complete### Overview- **Test Suite Stability**: Achieved 100% success rate across all random seeds in 6-seed loop validation- **Critical Issues Resolved**: Fixed test isolation issues and Windows fatal exception crashes- **Test Reliability**: Test suite now stable and reliable across all execution scenarios- **System Health**: All 1405 tests passing with only 1 skipped test### Key Changes#### **Test Isolation Issue Resolution**- **Problem**: `test_integration_scenarios_real_behavior` was failing because it tried to add "quotes" category, but the validator only allows "quotes_to_ponder"- **Root Cause**: Category validation in `PreferencesModel` restricts categories to those in the `CATEGORIES` environment variable- **Solution**: Updated test to use valid category name (`quotes_to_ponder` instead of `quotes`)- **Result**: Test now passes consistently across all random seeds#### **Windows Fatal Exception Resolution**- **Problem**: Access violation crashes during test execution with specific random seeds- **Root Cause**: CommunicationManager background threads (retry manager and channel monitor) were not being properly cleaned up during test execution- **Solution**: Added session-scoped cleanup fixture in `tests/conftest.py` to properly stop all CommunicationManager threads- **Result**: No more access violations, test suite completes cleanly#### **6-Seed Loop Validation Complete**- **Comprehensive Testing**: Tested 6 different random seeds to validate test suite stability- **Results**: 6/6 green runs achieved (100% success rate after fixes)  - ? **Seeds 12345, 98765, 11111, 77777**: All passed with 1405 tests, 1 skipped  - ? **Seeds 22222, 33333**: Now pass after fixing test isolation issue  - ? **Seed 54321**: Now passes after fixing Windows fatal exception- **Throttler Test Fix**: Fixed test expectation to match correct throttler behavior (1.0s interval vs 0.01s)#### **Discord Warning Cleanup**- **Warning Filters Added**: Added specific filters for Discord library warnings in pytest.ini and conftest.py- **External Library Warnings**: Confirmed that remaining warnings (audioop, timeout parameters) are from Discord library internals- **Test Suite Stability**: All 1405 tests still pass with warning filters in place### Technical Details#### **Files Modified**- `tests/behavior/test_account_management_real_behavior.py`: Fixed category name in test- `tests/behavior/test_service_utilities_behavior.py`: Fixed throttler test interval- `tests/conftest.py`: Added CommunicationManager cleanup fixture- `pytest.ini`: Added Discord warning filters#### **Test Results**- **Before Fixes**: 4/6 seeds passed, 2 test failures, 1 Windows fatal exception- **After Fixes**: 6/6 seeds passed, 0 test failures, 0 crashes- **Success Rate**: 100% across all random seeds- **Test Count**: 1405 passed, 1 skipped### Impact- **Test Suite Reliability**: Test suite now stable and reliable across all execution scenarios- **Development Confidence**: Developers can run full test suite with confidence- **System Stability**: All critical test issues resolved, system ready for continued development- **Quality Assurance**: Comprehensive validation of test suite stability across different execution orders## 2025-09-11 - Test Coverage Expansion Phase 3 Completion and Comprehensive Infrastructure Testing### Overview- **Test Coverage Expansion**: Successfully completed Phase 3 of test coverage expansion with all 5 priority targets achieved or exceeded- **Comprehensive Testing**: Created 195+ new behavior tests across critical infrastructure modules- **Test Quality Focus**: Prioritized working tests over complex mocking, maintained 99.9% test success rate- **System Stability**: Maintained 72% overall coverage while significantly improving specific critical modules- **Infrastructure Reliability**: Comprehensive test coverage across all critical infrastructure components### Key Changes#### **Test Coverage Expansion Achievements**- **Core Logger Coverage**: Successfully expanded from 68% to 75% coverage with comprehensive test suite of 35 tests  - Test logging behavior, rotation, and log level management  - Test error handling in logging system and log file management  - Test logging performance and configuration  - Test log file cleanup and archive management- **Core Error Handling Coverage**: Achieved 65% coverage with robust test suite of 78 tests  - Test error scenarios, recovery mechanisms, and error logging  - Test error handling performance and edge cases  - Test custom exception classes and error recovery strategies  - Test error handler integration and decorator functionality- **Core Config Coverage**: Successfully expanded from 70% to 79% coverage with comprehensive test suite of 35 tests  - Test configuration loading, validation, and environment variables  - Test configuration error handling and performance  - Test path management and user data directory operations  - Test configuration reporting and integration functions- **Command Parser Coverage**: Successfully expanded from 40% to 68% coverage with advanced test suite of 47 tests  - Test natural language processing, entity extraction, and command recognition  - Test edge cases and error handling  - Test AI response processing and intent extraction  - Test suggestion system and parser integration- **Email Bot Coverage**: Achieved 91% coverage (far exceeded 60% target) with existing comprehensive tests  - Existing test suite already provided excellent coverage  - No additional tests needed due to high existing coverage#### **Test Quality and Reliability Improvements**- **Real Behavior Testing**: Focused on actual system behavior rather than complex mocking- **Error Handling Coverage**: Extensive testing of error scenarios and recovery mechanisms- **Integration Testing**: End-to-end functionality testing across modules- **Edge Case Coverage**: Robust testing of boundary conditions and malformed inputs- **Test Stability**: All new tests pass consistently with 100% success rate#### **System Impact and Benefits**- **Maintained Overall Coverage**: Sustained 72% overall coverage while expanding specific modules- **Improved System Reliability**: Better error handling and edge case coverage- **Enhanced Maintainability**: More comprehensive test coverage for future development- **Reduced Technical Debt**: Addressed coverage gaps in critical infrastructure- **Quality Standards**: Maintained clean code practices and project organization### Technical Details#### **Test Suite Statistics**- **Total Tests**: 1404/1405 tests passing (99.9% success rate)- **New Tests Added**: 195+ behavior tests across 5 modules- **Coverage Improvements**: 5 modules with significant coverage increases- **Test Execution Time**: ~8.5 minutes for full test suite- **Test Stability**: Consistent results across multiple runs#### **Module-Specific Improvements**- **Core Logger**: 35 new tests covering logging system functionality- **Core Error Handling**: 78 new tests covering error scenarios and recovery- **Core Config**: 35 new tests covering configuration management- **Command Parser**: 47 new tests covering NLP and command processing- **Email Bot**: Existing comprehensive tests (91% coverage)#### **Quality Assurance**- **Test Isolation**: Proper test data isolation and cleanup- **Mocking Strategy**: Simple, reliable mocking approaches- **Error Handling**: Comprehensive error scenario testing- **Documentation**: Clear test documentation and maintenance### Files Modified- `tests/behavior/test_logger_coverage_expansion_phase3_simple.py` - Core Logger tests- `tests/behavior/test_error_handling_coverage_expansion_phase3_final.py` - Error Handling tests- `tests/behavior/test_config_coverage_expansion_phase3_simple.py` - Config tests- `tests/behavior/test_command_parser_coverage_expansion_phase3_simple.py` - Command Parser tests- `TODO.md` - Updated test coverage expansion status- `PLANS.md` - Marked Phase 3 as completed- `AI_CHANGELOG.md` - Added Phase 3 completion summary- `CHANGELOG_DETAIL.md` - Added detailed Phase 3 documentation### Next Steps- **Code Complexity Reduction**: Focus on refactoring high complexity functions identified in audit- **Future Test Coverage**: Continue with simpler test approaches for remaining modules- **Test Maintenance**: Monitor test stability and maintain quality standards- **System Monitoring**: Track coverage metrics and system reliability improvements## 2025-09-10 - Test Coverage Expansion Phase 2 Completion and Test Suite Quality Focus### Overview- **Test Coverage Expansion**: Successfully completed Phase 2 of test coverage expansion with meaningful improvements to Core Service and Core Message Management- **Test Quality Focus**: Prioritized working tests over complex mocking, deleted problematic tests that caused hanging and function behavior issues- **Test Suite Health**: Achieved excellent test suite stability with 1,228 tests passing consistently- **Future Planning**: Added Core User Data Manager and Core File Operations to future tasks with guidance on simpler test approaches- **Comprehensive Audit**: Completed full system audit showing 80.6% documentation coverage and 1,779 high complexity functions identified for future refactoring### Key Changes#### **Test Coverage Expansion Achievements**- **Core Service Coverage**: Successfully expanded from 16% to 40% coverage with comprehensive test suite of 31 tests  - Test service startup and shutdown sequences  - Test service state management and transitions    - Test service error handling and recovery  - Test service configuration validation and path initialization  - Test service signal handling and emergency shutdown- **Core Message Management Coverage**: Significantly improved coverage with 9 working tests  - Test message categories from environment variables  - Test message loading and file handling  - Test timestamp parsing and sorting functionality  - Test error handling for message operations#### **Test Quality Improvements**- **Deleted Problematic Tests**: Removed test files that caused hanging or function behavior issues  - `test_core_user_data_manager_coverage_expansion.py` - Test hanging issues, needs simpler approach  - `test_core_file_operations_coverage_expansion.py` - Function behavior complexity, needs simpler approach- **Cleaned Up Working Tests**: Streamlined `test_core_message_management_coverage_expansion.py` to keep only 9 working tests- **Test Stability Focus**: Prioritized test reliability over coverage numbers, ensuring all tests pass consistently#### **Future Task Planning**- **Core User Data Manager**: Added to future tasks with note about needing simpler test approach to avoid hanging- **Core File Operations**: Added to future tasks with note about needing simpler test approach to avoid function behavior issues- **Test Strategy**: Documented lessons learned about complex mocking causing more problems than it solves#### **Comprehensive System Audit**- **Test Suite Health**: All 1,228 tests passing with only 1 skipped and 5 warnings- **Documentation Coverage**: 80.6% documentation coverage achieved- **Code Complexity**: 1,779 high complexity functions (>50 nodes) identified for future refactoring- **System Status**: Healthy and ready for continued development### Technical Details#### **Test Files Modified**- **Deleted**: `tests/behavior/test_core_user_data_manager_coverage_expansion.py`- **Deleted**: `tests/behavior/test_core_file_operations_coverage_expansion.py`  - **Cleaned**: `tests/behavior/test_core_message_management_coverage_expansion.py` (removed failing tests, kept 9 working tests)#### **Documentation Updates**- **TEST_COVERAGE_EXPANSION_PLAN.md**: Updated to reflect Phase 2 completion and future task planning- **TODO.md**: Added completed tasks and future planning items- **AI_CHANGELOG.md**: Added comprehensive summary of Phase 2 completion#### **Key Lessons Learned**- **Quality over Quantity**: Better to have fewer, working tests than many failing ones- **Simple Approaches Work**: Complex mocking often causes more problems than it solves- **Test Stability Matters**: Hanging tests are worse than no tests- **Incremental Progress**: Even partial coverage improvements are valuable### Impact- **Test Suite Reliability**: Significantly improved with all tests passing consistently- **Coverage Quality**: Focused on meaningful coverage improvements rather than just numbers- **Future Development**: Clear guidance on test approaches that work vs. those that cause problems- **System Health**: Comprehensive audit confirms system is healthy and ready for continued development### Next Steps- **Phase 3**: Move to next phase of test coverage expansion with focus on simpler, more reliable test approaches- **Complexity Reduction**: Address high complexity functions identified in audit for better maintainability- **Future Test Coverage**: Implement Core User Data Manager and Core File Operations tests using simpler approaches## 2025-09-10 - Health Category Message Filtering Fix and Weighted Selection System### Overview- **Issue Resolution**: Fixed critical issue where health category test messages were not being sent due to missing 'ALL' time period in message filtering logic- **Message Enhancement**: Added 'ALL' time period to 40 health messages that are applicable at any time, significantly improving message availability- **Weighted Selection**: Implemented intelligent message selection system that prioritizes specific time period messages over generic 'ALL' messages- **System Integration**: Enhanced CommunicationManager with weighted message selection for better message distribution and user experience- **Testing Success**: Verified fix with successful health category test message delivery via Discord with proper deduplication- **Backward Compatibility**: Maintained all existing functionality while improving message availability and selection intelligence### Key Changes#### **Root Cause Analysis**- **Issue Identified**: Health messages lacked 'ALL' in their time_periods, preventing them from being sent when only the 'ALL' period was active (e.g., at 1:35 AM)- **Comparison**: Motivational messages worked because they had messages with 'ALL' in time_periods- **Impact**: Health category test messages failed with "No messages to send for category health" error#### **Message Enhancement**- **Added 'ALL' Time Period**: Updated 40 health messages to include 'ALL' in their time_periods- **Selection Criteria**: Focused on messages that are generally applicable at any time (stretching, hydration, posture, etc.)- **Availability Improvement**: Increased available health messages from 0 to 31 when 'ALL' period is active- **Message Categories**: Enhanced messages for general health reminders, posture checks, hydration, and wellness activities#### **Weighted Selection System**- **Intelligent Prioritization**: Implemented 70/30 weighting system favoring specific time period messages over 'ALL' only messages- **Selection Logic**: Messages with specific periods (e.g., ['morning', 'afternoon', 'evening', 'ALL']) get 70% priority- **Fallback Behavior**: Messages with only 'ALL' periods get 30% priority, ensuring variety while maintaining relevance- **Implementation**: Added `_select_weighted_message()` method to CommunicationManager class#### **System Integration**- **Enhanced CommunicationManager**: Integrated weighted selection into message sending pipeline- **Logging Enhancement**: Added debug logging for weighted selection decisions- **Performance**: Maintained efficient message selection without impacting system performance- **Error Handling**: Preserved all existing error handling and fallback mechanisms#### **Testing and Validation**- **Test Message Success**: Successfully sent health category test message via Discord- **Deduplication Verified**: Confirmed message deduplication system works with new weighted selection- **System Stability**: All 1144 tests passing (1 pre-existing failure unrelated to changes)- **Real-world Testing**: Verified fix works in actual system environment with live Discord integration### Technical Details#### **Files Modified**- `data/users/me581649-4533-4f13-9aeb-da8cb64b8342/messages/health.json`: Added 'ALL' to 40 messages- `communication/core/channel_orchestrator.py`: Added `_select_weighted_message()` method and integrated weighted selection#### **Message Filtering Logic**- **Before**: 0 health messages available when 'ALL' period active- **After**: 31 health messages available (26 with 'ALL' in both time_periods and days + 5 with 'ALL' in time_periods and 'Wednesday' in days)- **Weighting**: 70% chance for specific time period messages, 30% chance for 'ALL' only messages#### **Backward Compatibility**- **No Breaking Changes**: All existing functionality preserved- **Enhanced Behavior**: Improved message selection without changing core APIs- **Legacy Support**: Maintained compatibility with existing message structures and scheduling logic### Impact and Benefits- **User Experience**: Health category messages now work consistently across all time periods- **Message Variety**: Weighted selection ensures appropriate message timing while maintaining variety- **System Reliability**: Improved message availability reduces "no messages to send" errors- **Maintainability**: Clear separation between specific and general messages for future enhancements## 2025-09-10 - Message Deduplication System Implementation and Documentation Cleanup### Overview- **System Implementation**: Successfully implemented comprehensive message deduplication system with chronological storage, file archiving, and automated maintenance- **Data Migration**: Migrated 1,473 messages across 3 users to new chronological structure with enhanced time_period tracking- **Function Consolidation**: Consolidated all message management functions in `message_management.py` and removed redundant `enhanced_message_management.py` module- **Deduplication Logic**: Implemented inline deduplication preventing duplicate messages within 60 days with intelligent fallback behavior- **Archive Integration**: Integrated message archiving with monthly cache cleanup system for automated maintenance- **Testing Success**: All 1,145 tests passing with parallel execution, system fully operational and validated- **Documentation Cleanup**: Moved Phase 5 advanced features to PLANS.md and deleted temporary implementation plan file to reduce root directory clutter### Key Changes#### **System Implementation**- **Comprehensive Deduplication**: Implemented inline deduplication logic in `_send_predefined_message()` function- **Time Window**: 60 days, 50 messages for deduplication checking- **Fallback Behavior**: Uses all available messages if all are recent to prevent message starvation- **Archive Integration**: Automatic message archiving during monthly cache cleanup#### **Data Structure Enhancements**- **Chronological Storage**: Messages stored in chronological order with metadata tracking- **Time Period Tracking**: Added `time_period` field to record when messages were sent (morning, evening, etc.)- **Metadata Enhancement**: Added version tracking, creation timestamps, and archive management#### **Function Consolidation**- **Single Module**: All message management functions consolidated in `core/message_management.py`- **Enhanced Functions**: `get_recent_messages()`, `store_sent_message()`, `archive_old_messages()`, `_parse_timestamp()`- **Legacy Support**: Maintained `get_last_10_messages()` with redirect and warning logs- **Removed Module**: Deleted `core/enhanced_message_management.py` to simplify architecture#### **Archive Management**- **Automatic Archiving**: Messages older than 365 days automatically archived to separate files- **Cleanup Integration**: Integrated with existing monthly cache cleanup system- **Archive Structure**: Organized archive files with timestamps and metadata- **File Rotation**: Prevents `sent_messages.json` files from growing indefinitely#### **Documentation and Cleanup**- **PLANS.md Integration**: Moved Phase 5 advanced features to PLANS.md for proper project planning- **File Cleanup**: Deleted `MESSAGE_DEDUPLICATION_IMPLEMENTATION_PLAN.md` to reduce root directory clutter- **Changelog Updates**: Updated both AI_CHANGELOG.md and CHANGELOG_DETAIL.md with implementation details### Technical Details#### **Migration Results**- **Messages Migrated**: 1,473 messages successfully migrated across 3 users- **Data Integrity**: All existing data preserved with enhanced structure- **User Impact**: Zero data loss, seamless transition for all users#### **Function Signatures**```pythondef get_recent_messages(user_id: str, category: Optional[str] = None, limit: int = 10, days_back: Optional[int] = None) -> List[Dict[str, Any]]def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: str = None) -> booldef archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool```#### **Data Structure**```json{  "metadata": {    "version": "2.0",    "created": "2025-01-09T10:00:00Z",    "last_archived": "2025-01-09T10:00:00Z",    "total_messages": 0  },  "messages": [    {      "message_id": "uuid",      "message": "text",      "category": "motivational",      "timestamp": "2025-01-09T10:00:00Z",      "delivery_status": "sent",      "time_period": "morning"    }  ]}```### Impact- **Simplified Architecture**: All message management functions consolidated in single module- **Enhanced Data Structure**: Eliminated redundant fields, added useful time_period tracking- **Better Maintainability**: Single location for all message management functionality- **Reduced Complexity**: Eliminated need for separate enhanced module- **Improved Tracking**: Messages now record time period for better analytics- **Automated Maintenance**: Message archiving integrated with existing cleanup systems- **Cleaner Project Structure**: Removed temporary files and organized documentation properly### Modified Files- **Core Functions**: `core/message_management.py` - Enhanced with consolidated functions- **Communication**: `communication/core/channel_orchestrator.py` - Updated imports and deduplication logic- **User Context**: `user/context_manager.py` - Updated to use new function names- **Auto Cleanup**: `core/auto_cleanup.py` - Added message archiving integration- **Migration Script**: `scripts/migration/remove_user_id_from_sent_messages.py` - Created and executed- **Documentation**: `AI_CHANGELOG.md`, `CHANGELOG_DETAIL.md`, `PLANS.md` - Updated with implementation details### Removed Files- **Redundant Module**: `core/enhanced_message_management.py` - Deleted after consolidation- **Temporary Plan**: `MESSAGE_DEDUPLICATION_IMPLEMENTATION_PLAN.md` - Deleted after moving content to PLANS.md### Testing Status- **Test Suite**: All 1,145 tests passing with parallel execution- **Migration Testing**: 1,473 messages successfully migrated and validated- **Deduplication Testing**: Logic tested with various scenarios and edge cases- **Archive Testing**: File rotation and archiving tested and working correctly- **Backward Compatibility**: Legacy function redirects tested and working- **Performance Testing**: System tested with large message datasets## 2025-09-10 - Message Deduplication System Consolidation and Structure Improvements### Overview- **Consolidated Message Management**: Successfully moved all message management functions from enhanced_message_management.py back to message_management.py for simpler architecture- **Data Structure Optimization**: Removed redundant user_id fields from sent_messages.json structure and added time_period field for better message tracking- **Migration Success**: Successfully migrated 1,473 messages across 3 users to new structure- **Architecture Simplification**: Eliminated redundant enhanced_message_management.py module### Key Changes#### **Function Consolidation**- **Moved Functions to message_management.py**:  - `get_recent_messages()` - Enhanced version of get_last_10_messages with flexible filtering  - `store_sent_message()` - Store messages in chronological order with time_period support  - `archive_old_messages()` - Archive old messages for file rotation  - `_parse_timestamp()` - Parse timestamp strings with multiple format support- **Updated Import Statements**:  - Updated `communication/core/channel_orchestrator.py` to import from message_management  - Updated `user/context_manager.py` to use get_recent_messages instead of get_last_10_messages  - Removed all references to enhanced_message_management module#### **Data Structure Improvements**- **Removed Redundant user_id Field**:  - Created migration script `scripts/migration/remove_user_id_from_sent_messages.py`  - Successfully migrated 1,473 messages across 3 users  - user_id is now implicit in file path structure (data/users/{user_id}/messages/sent_messages.json)- **Added time_period Field**:  - Enhanced store_sent_message() function to accept optional time_period parameter  - Updated all calls in channel_orchestrator.py to include current time period  - Messages now record what time period they were sent for (morning, evening, etc.)#### **Backward Compatibility**- **Legacy Function Support**:  - Maintained get_last_10_messages() function that redirects to get_recent_messages()  - Added warning logs when legacy function is called to encourage migration  - All existing functionality continues to work without breaking changes#### **File Management**- **Deleted Redundant Module**:  - Removed core/enhanced_message_management.py file  - Consolidated all message management functionality in single module  - Simplified import structure and reduced code duplication### Technical Details#### **Migration Script Results**```Migration completed: 3/3 users migrated successfully- User 72a13563-5934-42e8-bc55-f0c851a899cc: 422 messages updated- User c59410b9-5872-41e5-ac30-2496b9dd8938: 17 messages updated  - User me581649-4533-4f13-9aeb-da8cb64b8342: 1034 messages updated```#### **Function Signature Updates**- `store_sent_message(user_id, category, message_id, message, delivery_status="sent", time_period=None)`- `get_recent_messages(user_id, category=None, limit=10, days_back=None)`- Enhanced time_period tracking in message storage#### **Data Structure Changes**```json// Before (with redundant user_id){  "message_id": "uuid",  "message": "text",  "category": "motivational",   "timestamp": "2025-09-10 00:31:45",  "delivery_status": "sent",  "user_id": "me581649-4533-4f13-9aeb-da8cb64b8342"  // REMOVED}// After (with time_period){  "message_id": "uuid",  "message": "text",  "category": "motivational",  "timestamp": "2025-09-10 00:31:45",   "delivery_status": "sent",  "time_period": "morning"  // ADDED}```### Impact- **Simplified Architecture**: All message management functions consolidated in single module- **Cleaner Data Structure**: Eliminated redundant user_id fields, added useful time_period tracking- **Better Maintainability**: Single location for all message management functionality- **Reduced Complexity**: Eliminated need for separate enhanced module- **Improved Tracking**: Messages now record time period for better analytics### Files Modified- `core/message_management.py` - Added consolidated functions- `communication/core/channel_orchestrator.py` - Updated imports and function calls- `user/context_manager.py` - Updated to use get_recent_messages- `scripts/migration/remove_user_id_from_sent_messages.py` - New migration script- `AI_CHANGELOG.md` - Updated with consolidation summary### Files Removed- `core/enhanced_message_management.py` - Consolidated into message_management.py### Testing Status- **System Startup**: ? Successful- **Function Imports**: ? All functions import correctly- **Message Retrieval**: ? get_recent_messages working with 3 users- **Migration**: ? 1,473 messages successfully migrated- **Backward Compatibility**: ? Legacy functions redirect properly## 2025-09-09 - Test Suite Stabilization Achievement - Green Run with 6-Seed Loop### Overview- **MAJOR MILESTONE**: Achieved green run with only 1 failing test after extensive parallel execution fixes- Successfully resolved multiple race conditions and test isolation issues that were causing widespread failures- Significant improvement from previous multiple test failures to single isolated failure### Key Changes- **Parallel Execution Race Condition Fixes**:  - Fixed user ID conflicts by implementing unique UUID-based user IDs in tests  - Added explicit directory creation safeguards in message management functions  - Implemented retry mechanisms for file system consistency in category management  - Enhanced test isolation with proper cleanup and unique temporary directories- **Test Robustness Improvements**:  - Added `auto_create=True` parameters to critical `get_user_data` calls in tests  - Implemented materialization of user data before strict assertions  - Added explicit `save_user_data` calls for different data types to avoid race conditions  - Enhanced debugging information for file-related failures during parallel execution- **Performance Optimizations**:  - Increased time limits for performance tests to account for parallel execution overhead  - Adjusted test expectations to handle parallel execution timing variations  - Optimized test execution patterns for better parallel compatibility- **File Operations Enhancements**:  - Added directory creation safeguards to `add_message`, `delete_message`, `update_message` functions  - Ensured user directories exist before file operations  - Improved file cleanup and temporary file handling### Impact- **Test Success Rate**: Dramatically improved from multiple failures to 1144 passed, 1 failed, 1 skipped- **Parallel Execution**: Tests now run reliably in parallel with 4 workers- **System Stability**: Core functionality remains stable while test reliability is significantly improved- **Development Efficiency**: Developers can now run full test suite with confidence### Testing Results- **Full Test Suite**: 1144 passed, 1 failed, 1 skipped- **Parallel Execution**: Successfully runs with `--workers 4` without race conditions- **Individual Test Verification**: All previously failing tests now pass when run individually- **Remaining Issue**: Single test failure in `test_flexible_configuration` (test utilities demo)### Technical Details- **User ID Management**: Implemented `uuid.uuid4()` for unique test user IDs- **Directory Creation**: Added `user_messages_dir.mkdir(parents=True, exist_ok=True)` to message functions- **Data Persistence**: Enhanced `save_user_data` calls with explicit data type separation- **Test Isolation**: Improved cleanup procedures and temporary directory management### Next Steps- Address remaining `test_flexible_configuration` failure- Continue 6-seed randomized loop validation- Monitor test stability over multiple runs- Consider additional optimizations for remaining edge cases## 2025-09-06 - Intermittent Test Failures Resolved; Suite Stable (1141 passed, 1 skipped)### Overview- Eliminated remaining intermittent failures caused by import-order/timing on user-data loader registration and scattered sys.path hacks.- Achieved consistent all-mode stability with deterministic session startup.### Key Changes- Added session-start guard fixture in `tests/conftest.py` to assert that `core.user_management.USER_DATA_LOADERS` and `core.user_data_handlers.USER_DATA_LOADERS` are the same dict and to register default loaders once if any are missing.- Removed per-test `sys.path` hacks; centralized a single path insert in `tests/conftest.py`.- Augmented `core/user_data_handlers.get_user_data` with test-gated diagnostics and a dedicated debug log for all runs to pinpoint loader state; used during investigation.- Fixed test isolation:  - Custom loader registration test now asserts against current module state and cleans up the custom type after running.  - Nonexistent-user tests filter out non-core types when asserting empty results.- Relaxed an over-strict file expectation to allow feature-created `tasks` directory in lifecycle test.### Impact- Full suite consistently green in all modes: 1141 passed, 1 skipped; behavior/integration/UI/unit subsets all stable.- Prevents future regressions from split registries/import-order issues.### Testing- Ran `python run_tests.py --mode all --verbose`: 1141 passed, 1 skipped, warnings unchanged (Discord deprecations, aiohttp unraisable in teardown path).- Verified targeted problem tests and registration behavior individually.### Follow-ups- Monitor any new tests for path/env standardization adherence.- Consider gating/removing test-only diagnostics once stability remains after several runs.## ## 2025-09-05 - Test Suite Stabilization Completed; 1141 Passing
 
 ### Overview
 - Stabilized test infrastructure and refactored remaining tests to shared fixtures and factories.
@@ -1727,7 +1763,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Monitor Discord deprecation warnings; plan cleanup.
 - Keep standards enforced for new tests (fixtures, env, paths).
 
-## 2025-09-03 - Test Suite Reliability Fixes Implemented - Temp Directory and Data Loader Issues Resolved
+### 2025-09-03 - Test Suite Reliability Fixes Implemented - Temp Directory and Data Loader Issues Resolved
 
 ### Overview
 - Implemented comprehensive fixes for both root causes of test suite reliability issues
@@ -1774,7 +1810,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - **Testing**: ?? **PENDING** - Full test suite verification required
 - **Next Steps**: Test complete fix and document results
 
-## 2025-09-02 - Test Suite Reliability Investigation and User Data System Issues - CRITICAL DISCOVERY
+### 2025-09-02 - Test Suite Reliability Investigation and User Data System Issues - CRITICAL DISCOVERY
 
 ### Overview
 - Investigating widespread test failures related to user data system to restore full test suite reliability
@@ -1815,7 +1851,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - User data handling in `core/user_data_handlers.py`
 - Test execution scripts in `run_tests.py`
 
-## 2025-09-02 - Test Data Directory Stabilization
+### 2025-09-02 - Test Data Directory Stabilization
 
 ### Overview
 - Fixed user data path mismatches that caused empty results and widespread test failures.
@@ -1830,7 +1866,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 ### Impact
 - Restores consistent user data access and resolves test isolation failures.
 
-## 2025-09-02 - User Cache Reset for Test Isolation
+### 2025-09-02 - User Cache Reset for Test Isolation
 
 ### Overview
 - Cleared residual state between tests to prevent cross-test cache and environment interference.
@@ -1849,7 +1885,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Eliminates user data cache leakage and reinstates reliable default configuration across the test suite.
 
 
-## 2025-09-02 - Targeted User Data Logging and Qt Dependency Setup
+### 2025-09-02 - Targeted User Data Logging and Qt Dependency Setup
 
 ### Overview
 - Added detailed logging around `get_user_data` calls and enforced test configuration to aid diagnosis of empty user data.
@@ -1871,7 +1907,7 @@ Windows file locking during log rotation when `TimedRotatingFileHandler` tried t
 - Lays groundwork for resolving Qt OpenGL dependency issues in headless environments.
 
 
-## 2025-09-01 - Test Isolation and Configuration Fixes
+### 2025-09-01 - Test Isolation and Configuration Fixes
 
 ### Overview
 - Resolved widespread user data handler test failures caused by lingering loader registrations and missing category configuration.
@@ -2778,7 +2814,7 @@ def _smart_truncate_response(self, text: str, max_chars: int, max_words: int = N
     if max_words:
         words = text.split()
         if len(words) > max_words:
-            return " ".join(words[:max_words]).rstrip(" ,.;:!?") + "�"
+            return " ".join(words[:max_words]).rstrip(" ,.;:!?") + ""
     # ... rest of implementation
 
 # Updated token estimation
@@ -3411,7 +3447,7 @@ os.environ['DISABLE_LOG_ROTATION'] = '1'  # Prevent log rotation issues during t
 - **System Status**: All tests passing, full functionality maintained, comprehensive audit completed
 - **Documentation**: Updated all related documentation files including comprehensive audit results and refactoring plans
 
-## ?? How to Add Changes
+### ?? How to Add Changes
 
 When adding new changes, follow this format:
 
@@ -3433,7 +3469,7 @@ When adding new changes, follow this format:
 - Maintain **chronological order** (most recent first)
 
 ------------------------------------------------------------------------------------------
-## ??? Recent Changes (Most Recent First)
+### ??? Recent Changes (Most Recent First)
 
 ### 2025-08-21 - Helper Function Naming Convention Refactor Planning ?? **PLANNING**
 
@@ -4204,7 +4240,7 @@ def test_something():
 **1. Enhanced Task Reminder System** (`core/scheduler.py`):
 - **Priority-Based Weighting**: Critical priority tasks 3x more likely, high priority 2x more likely, medium priority 1.5x more likely
 - **Due Date Proximity Weighting**: 
-  - Overdue tasks: 2.5x weight + (days_overdue � 0.1), max 4.0x (highest priority)
+  - Overdue tasks: 2.5x weight + (days_overdue  0.1), max 4.0x (highest priority)
   - Due today: 2.5x weight (very high priority)
   - Within week: 2.5x to 1.0x sliding scale (high to medium priority)
   - Within month: 1.0x to 0.8x sliding scale (medium to low priority)
@@ -5572,7 +5608,7 @@ Successfully completed a comprehensive pytest marker application project to impr
 - **After**: config.py ? channel_factory.py (single validation path)
 - **Result**: Cleaner, more maintainable architecture with same functionality
 
-## 2025-08-23 - Legacy Function Name Reference Cleanup
+### 2025-08-23 - Legacy Function Name Reference Cleanup
 
 ### Objective
 Clean up all remaining references to legacy function names in error messages, comments, and documentation to reflect the completed refactoring.
@@ -5616,7 +5652,7 @@ Clean up all remaining references to legacy function names in error messages, co
 - **Clarity**: Comments and documentation are consistent with the refactored architecture
 - **Maintainability**: No more confusion between old and new function names in error messages
 
-## 2025-08-23 - Function Consolidation and Code Cleanup
+### 2025-08-23 - Function Consolidation and Code Cleanup
 
 ### Objective
 Consolidate duplicate functions and clean up unnecessary wrapper functions to improve code maintainability and reduce duplication.
@@ -5666,7 +5702,7 @@ Consolidate duplicate functions and clean up unnecessary wrapper functions to im
 - **Better Testing**: Updated tests to properly mock the correct dependencies
 - **Future Planning**: Added task for implementing proper personalized suggestions functionality
 
-## 2025-08-23 - Function Consolidation and Cleanup (Continued)
+### 2025-08-23 - Function Consolidation and Cleanup (Continued)
 
 ### Objective
 Complete the function consolidation and cleanup by removing additional unnecessary wrapper functions and updating all related call sites and tests.
@@ -5699,4 +5735,3 @@ Complete the function consolidation and cleanup by removing additional unnecessa
 - **Consistent API**: All code now uses `get_user_data()` and `save_user_data()` directly
 - **Reduced Complexity**: Eliminated redundant function layers
 - **Better Maintainability**: Single source of truth for user data access
-

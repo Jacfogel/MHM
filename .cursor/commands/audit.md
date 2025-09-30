@@ -7,7 +7,7 @@ Execute the audit toolchain to capture current health metrics before making sign
 1. Run the fast audit (skips coverage by default).
    ```powershell
    python ai_development_tools/ai_tools_runner.py audit
-   if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
+   if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red; exit 1 }
    ```
 2. If you need coverage data, rerun with the full option.
    ```powershell

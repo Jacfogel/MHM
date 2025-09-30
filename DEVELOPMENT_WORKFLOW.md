@@ -1,290 +1,229 @@
 # Development Workflow Guide
 
-> **Audience**: Human Developer (Beginner Programmer)  
-> **Purpose**: Safe development practices and procedures  
+> **Audience**: Human developer (beginner programmer)  
+> **Purpose**: Safe development practices and day-to-day procedures  
 > **Style**: Comprehensive, step-by-step, supportive
 
 > **See [README.md](README.md) for complete navigation and project overview**  
 > **See [AI_DEVELOPMENT_WORKFLOW.md](ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md) for AI-optimized quick reference**
 
-## 🚀 Quick Reference
+## Quick Reference
 
-### **Essential Commands**
+### Essential Commands
 ```powershell
 # Activate environment
 venv\Scripts\activate
 
-# Test system
+# Run the application
 python run_mhm.py
 
-# Create backup
-Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse
+# Create a timestamped backup
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-### **Development Decision Tree**
-1. **Making Changes?** → Create backup first
-2. **Adding Features?** → Test incrementally
-3. **Fixing Bugs?** → Reproduce, fix, test
-4. **Need Help?** → Ask specific questions
-5. **Documenting?** → Update CHANGELOG files
+### Decision Guide
+1. **Planning the next step?** Review the "Development Process" section.
+2. **About to code?** Walk through "Safety First" and the pre-change checklist.
+3. **Need to test?** Follow the "Testing Strategy" section.
+4. **Writing documentation?** Update both changelog files and any affected guides.
+5. **Feeling stuck?** Check "Emergency Procedures" and ask for help early.
 
-## 🛡️ Safety First
+## Safety First
 
-### **Core Safety Rules**
-1. **Always use virtual environments** - Never install packages globally
-2. **Create backups before major changes** - Use PowerShell backup command
-3. **Test incrementally** - Make small changes and test after each one
-4. **Document everything** - Update CHANGELOG_DETAIL.md for all changes, AI_CHANGELOG.md for AI context
-5. **Ask for help early** - Don't get stuck, ask specific questions
-6. **Use the Audit-First Protocol** - Run audit tools before creating documentation
+### Core Safety Rules
+1. **Work inside the virtual environment** to avoid polluting the global Python install.
+2. **Create a backup before major edits** using the PowerShell command above.
+3. **Test incrementally** after each small change to catch regressions early.
+4. **Document every meaningful change** in `development_docs/CHANGELOG_DETAIL.md` and summarise it in `ai_development_docs/AI_CHANGELOG.md`.
+5. **Ask questions early** with concrete examples of what is confusing.
+6. **Use the Audit-First Protocol** before producing documentation so automated quality checks guide your updates.
 
-### **Before Making Changes**
-1. **Ensure your virtual environment is activated**
-   ```powershell
-   # You should see (venv) at the start of your command prompt
-   # If not, activate it:
-   venv\Scripts\activate
-   ```
+### Pre-Change Checklist
+1. Confirm the virtual environment prompt shows `(venv)`. If not, run `venv\Scripts\activate`.
+2. Run `python run_mhm.py` to make sure the current state is healthy.
+3. Create a timestamped backup of the repository.
+4. Outline what you plan to change, how you'll test it, and which files might be affected.
 
-2. **Create a backup** of your working code
-   ```powershell
-   # Create a backup folder with timestamp
-   $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-   Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
-   ```
+## Virtual Environment Best Practices
 
-3. **Test the current state** to make sure everything works
-   ```powershell
-   python run_mhm.py
-   ```
+### Why It Matters
+- Keeps the system Python installation clean and conflict free.
+- Makes dependency management explicit through `requirements.txt`.
+- Avoids permission issues on Windows.
+- Ensures collaborators can reproduce the environment exactly.
 
-4. **Make small changes** - don't try to fix everything at once
-
-## 🔧 Virtual Environment Best Practices
-
-### **Why Use a Virtual Environment?**
-- **Keeps your system Python clean** - no conflicts with other projects
-- **Makes dependencies explicit** - all requirements are listed in `requirements.txt`
-- **Prevents permission issues** - no need to install packages globally
-- **Makes the project portable** - anyone can recreate the exact same environment
-
-### **Virtual Environment Commands**
+### Common Commands
 ```powershell
-# Create virtual environment (only needed once)
+# Create the environment (once)
 python -m venv venv
 
-# Activate virtual environment (needed every time you work on the project)
+# Activate the environment (each session)
 venv\Scripts\activate
 
-# Install dependencies (after activation)
+# Install dependencies after activation
 pip install -r requirements.txt
 
-# Add new dependencies
+# Add a new dependency
 pip install package_name
 pip freeze > requirements.txt
 
-# Deactivate when done
+# Leave the environment
 deactivate
 ```
 
-### **Common Virtual Environment Issues**
-- **"Command not found"**: Make sure virtual environment is activated
-- **Import errors**: Try `pip install -r requirements.txt --force-reinstall`
-- **Permission errors**: Run PowerShell as Administrator or adjust execution policy
+### Troubleshooting
+- **Command not found**: Make sure `(venv)` appears in the prompt.
+- **Import errors**: Reinstall requirements with `pip install -r requirements.txt --force-reinstall`.
+- **Permission issues**: Reopen PowerShell as Administrator or adjust execution policy.
 
-## 🔄 Development Process
+## Development Process
 
-### **Step 1: Plan**
-- What are you trying to accomplish?
-- What could go wrong?
-- How will you test it?
-- **For new features**: How will users interact with this through communication channels?
+### Step 1: Plan
+- Define the goal in plain language.
+- Identify risks and edge cases.
+- Decide how you will verify success.
+- Note any user communication requirements.
 
-### **Step 2: Implement**
-- Make the smallest change possible
-- Test immediately
-- If it works, move to the next small change
-- If it breaks, fix it before continuing
-- **Remember**: All user-facing features must work through communication channels
-- **User Data Access**: All user data access must use the unified `get_user_data()` handler. Legacy user data functions are no longer present in the codebase.
+### Step 2: Implement
+- Work in the smallest safe increments.
+- Run quick tests after each change.
+- Confirm user-facing features continue to work through every communication channel.
+- Keep functions focused and remove unnecessary wrappers.
+- All user data access must go through `get_user_data()` and related helpers.
 
-### **Step 3: Test**
-- Test the specific feature you changed
-- Test related features that might be affected
-- Test the full application workflow
-- **Test communication channels**: Verify features work through communication channels, especially Discord
+### Step 3: Test
+- Test the feature you just touched.
+- Exercise related areas that might be impacted.
+- Run `python run_mhm.py` and verify communication flows, especially Discord.
 
-### **Step 4: Document**
-- Update `development_docs/CHANGELOG_DETAIL.md` with what you changed
-- Update `ai_development_docs/AI_CHANGELOG.md` with brief summary for AI context
-- Update any relevant documentation
-- Note any new dependencies in `requirements.txt`
-- **Update communication docs**: Document how users interact with new features
+### Step 4: Document
+- Record the change in `development_docs/CHANGELOG_DETAIL.md`.
+- Add a concise summary to `ai_development_docs/AI_CHANGELOG.md`.
+- Update any affected guides and note new dependencies.
 
-## 🧪 Testing Strategy
+## Testing Strategy
 
-### **Manual Testing Checklist**
-- [ ] Does the UI launch without errors?
-- [ ] Can you create a new user with feature-based account creation?
-- [ ] Can you edit user settings and personalization?
-- [ ] Can you manage message categories and schedules?
-- [ ] Does the service start and stop properly?
-- [ ] Do messages send correctly through Discord/other channels?
+### Incremental Testing
+- Test after every meaningful change.
+- Start with unit-level checks, then integration, then behavior.
+- Confirm UI workflows, communication channels, and scheduler tasks.
 
-### **Error Testing**
-- [ ] What happens with invalid input?
-- [ ] What happens if files are missing?
-- [ ] What happens if the network is down?
-- [ ] What happens if AI service is unavailable?
+### Test Categories
+- **Unit tests**: Individual functions and small modules.
+- **Integration tests**: Multiple components working together.
+- **Behavior tests**: End-to-end scenarios mirroring real usage.
+- **UI tests**: PySide6 dialogs and widgets.
 
-## 📝 Communication with AI Assistant
+### Tips
+- Use `print()` or logging when debugging.
+- Rerun failing tests immediately to confirm fixes.
+- Keep notes on test coverage gaps you notice.
 
-### **When Asking for Help**
-1. **Be specific** about what you're trying to do
-2. **Describe the problem** clearly
-3. **Share error messages** if any
-4. **Tell me what you've already tried**
+## Common Tasks
 
-### **Example Good Questions**
-- "I'm trying to add a new message category called 'meditation'. I added it to the UI but it's not showing up in the dropdown. Here's the error message: [paste error]"
-- "The app crashes when I try to save a schedule. I think it might be related to the time format. Can you help me debug this?"
+### Adding a New Feature
+1. Plan the feature and consider user touchpoints.
+2. Back up the project and ensure `(venv)` is active.
+3. Implement in small, testable slices.
+4. Test after each slice and at the end-to-end level.
+5. Document the new behavior and any configuration changes.
 
-### **Example Less Helpful Questions**
-- "The app is broken" (too vague)
-- "Fix everything" (too broad)
-- "Why doesn't this work?" (without context)
+### Fixing a Bug
+1. Reproduce the bug reliably.
+2. Trace the root cause using logs, breakpoints, or print statements.
+3. Apply the smallest fix that solves the issue.
+4. Test the fix plus nearby functionality.
+5. Update documentation to describe the resolution.
 
-## 🛠️ Common Tasks
+### Refactoring Code
+1. Understand the existing behavior before moving code.
+2. Break refactorings into clear, reversible steps.
+3. Keep functions purposeful-remove redundant wrappers.
+4. Run targeted and regression tests after each step.
+5. Update imports, references, and docs to match the new structure.
 
-### **Adding a New Feature**
-1. Plan the feature in detail
-2. Break it into small steps
-3. Implement one step at a time
-4. Test after each step
-5. Document the changes
+## Emergency Procedures
 
-### **Fixing a Bug**
-1. Reproduce the bug consistently
-2. Identify what's causing it
-3. Make the smallest fix possible
-4. Test that the fix works
-5. Test that you didn't break anything else
+### If Something Breaks Badly
+1. Pause and avoid making additional changes.
+2. Restore the backup you created before starting.
+3. Capture errors or stack traces for later analysis.
+4. Ask for help with a brief summary and the error output.
 
-### **Refactoring Code**
-1. Understand what the code does
-2. Plan the refactoring step by step
-3. Make one small change at a time
-4. Test after each change
-5. Update all references to the changed code
+### If You Are Stuck
+1. Take a short break and reset.
+2. Write down what you know, what you tried, and what failed.
+3. Formulate a specific question with context and code snippets.
+4. Explore an alternate approach or pair with another developer.
 
-## 🚨 Emergency Procedures
+## Learning Resources
 
-### **If Something Breaks Badly**
-1. **Don't panic** - we can always restore from backup
-2. **Stop making changes** - don't make it worse
-3. **Restore from backup** if needed
-4. **Ask for help** - describe what happened
-
-### **If You're Stuck**
-1. **Take a break** - sometimes stepping away helps
-2. **Write down what you know** - organize your thoughts
-3. **Ask specific questions** - the more specific, the better
-4. **Consider a different approach** - maybe there's an easier way
-
-## 📚 Learning Resources
-
-### **Python Basics**
 - [Python Official Tutorial](https://docs.python.org/3/tutorial/)
-- [Real Python](https://realpython.com/) - Excellent tutorials
+- [Real Python](https://realpython.com/)
+- Project documentation in `development_docs/` and `.cursor/rules/`
+- Team meeting notes or prior changelog entries for historical context
 
-### **Debugging**
-- Use `print()` statements to see what's happening
-- Use the debugger in your IDE
-- Check the log files in the `data/` directory
+## Success Tips
 
-### **Best Practices**
-- Write clear, descriptive variable names
-- Add comments to explain complex logic
-- Keep functions small and focused
-- Test your code frequently
+1. Start with small improvements to build confidence.
+2. Test often to catch regressions early.
+3. Keep communication open and questions specific.
+4. Celebrate progress and document lessons learned.
+5. Be patient-steady progress matters more than speed.
 
-## 🎯 Success Tips
+## Git Workflow (PowerShell-Safe)
 
-1. **Start small** - don't try to build everything at once
-2. **Test often** - catch problems early
-3. **Ask questions** - there's no such thing as a stupid question
-4. **Celebrate progress** - every small improvement counts
-5. **Be patient** - learning takes time, and that's okay
+### Avoid Terminal Freezes
+Do **not** run bare `git log`, `git show`, or `git diff` commands in PowerShell-they invoke a pager that hangs the terminal.
 
-Remember: You're building something important for your mental health. It's worth taking the time to do it right, and it's okay to ask for help along the way.
-
-## 🔄 Git Workflow (PowerShell-Safe)
-
-### **Critical: Avoid Git Paging Issues**
-Git commands like `git log`, `git show`, and `git diff` can open in a pager that hangs the terminal. **Always use these PowerShell-safe alternatives:**
-
-#### **❌ Commands That Hang (Avoid These)**
+### Safe Alternatives
 ```powershell
-git log                    # Hangs - opens pager
-git show <commit>          # Hangs - opens pager  
-git diff <commit>          # Hangs - opens pager
-```
-
-#### **✅ PowerShell-Safe Alternatives**
-```powershell
-# View commit history
+# View recent commits
 git log --oneline -5 | Out-String
 
-# View specific commit changes
+# Show a commit summary
 git show --name-only <commit> | Out-String
 
-# View file differences
-git diff --name-only <commit1>..<commit2> | Out-String
+# Compare with remote
+git diff --name-only HEAD..origin/main | Out-String
 
-# View status
+# Check current status
 git status --porcelain | Out-String
 ```
 
-### **Standard Git Workflow**
+### Standard Git Cycle
 ```powershell
-# 1. Check status (safe)
+# 1. Review current changes
 git status --porcelain | Out-String
 
-# 2. Add changes
+# 2. Stage updates
 git add .
 
-# 3. Commit changes
-git commit -m "Descriptive commit message"
+# 3. Commit with a descriptive message
+git commit -m "Describe the change"
 
-# 4. Pull remote updates (safe)
+# 4. Pull remote updates
 git fetch origin
 git diff --name-only HEAD..origin/main | Out-String
-
-# 5. Merge/pull (if needed)
 git pull origin main
 
-# 6. Push changes
+# 5. Push your work
 git push origin main
 ```
 
-### **Handling Merge Conflicts**
+### Handling Merge Conflicts
 ```powershell
-# If merge conflicts occur:
+# Identify conflicting files
 git status --porcelain | Out-String
 
-# Resolve conflicts in files, then:
+# After resolving conflicts
 git add .
 git commit -m "Resolve merge conflicts"
 git push origin main
 ```
 
-### **Why This Matters**
-- **Terminal Hanging**: Git pager commands freeze PowerShell and require manual cancellation
-- **Productivity**: Safe commands complete immediately and show results
-- **Consistency**: Same workflow works every time without surprises
-- **Team Collaboration**: Reliable Git operations for smooth development
-
-**Remember**: Always use `| Out-String` with Git commands that might produce long output to avoid paging issues. 
+Always pair Git operations with the backup and testing practices described earlier to keep the repository healthy.

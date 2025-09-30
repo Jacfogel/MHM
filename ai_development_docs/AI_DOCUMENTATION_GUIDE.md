@@ -1,95 +1,105 @@
 # AI Documentation Guide - Quick Reference
 
-> **Purpose**: Essential documentation navigation for AI collaborators  
+> **Purpose**: Fast navigation of documentation assets for AI collaborators  
+> **Style**: Concise, pattern-focused, actionable  
 > **For details**: See [DOCUMENTATION_GUIDE.md](../DOCUMENTATION_GUIDE.md)
 
-## Document Selection
+## Quick Reference
 
-### **Quick Decision Tree**
-1. **New to project?** - `../README.md`
-2. **Setting up?** - `../HOW_TO_RUN.md`
-3. **Developing?** - `../DEVELOPMENT_WORKFLOW.md`
-4. **Need commands?** - `../QUICK_REFERENCE.md`
-5. **Understanding system?** - `../ARCHITECTURE.md`
-6. **AI collaboration?** - `AI_*` files
-7. **Current status?** - `AI_CHANGELOG.md`, `../TODO.md`
+### Document Selection Decision Tree
+1. Orientation -> `../README.md`
+2. Setup/usage -> `../HOW_TO_RUN.md`
+3. Safe workflow -> `../DEVELOPMENT_WORKFLOW.md`
+4. Architecture -> `../ARCHITECTURE.md`
+5. AI collaboration -> `AI_SESSION_STARTER.md`
+6. Status snapshot -> `AI_CHANGELOG.md`, `../TODO.md`
+7. Full history -> `../development_docs/CHANGELOG_DETAIL.md`
 
-### **Document Categories**
-- **Human-Facing**: `../README.md`, `../DEVELOPMENT_WORKFLOW.md`, `../ARCHITECTURE.md`
-- **AI-Facing**: `AI_*` files, `.cursor/rules/`
-- **Status/History**: `CHANGELOG_*.md`, `../TODO.md`, `development_docs/PLANS.md`
+### Key Navigation Links
+- Human overview: `../README.md`
+- Safe practices: `../DEVELOPMENT_WORKFLOW.md`
+- Architecture: `../ARCHITECTURE.md`
+- AI rules: `.cursor/rules/*.mdc`
+- Change tracking: `AI_CHANGELOG.md`
 
-## AI Documentation
+## Documentation Categories
 
-### **Core AI Files**
-- **`AI_SESSION_STARTER.md`** - Essential context for new sessions
-- **`AI_REFERENCE.md`** - Troubleshooting and system understanding
-- **`AI_CHANGELOG.md`** - Brief summaries for AI context
-- **`AI_DEVELOPMENT_WORKFLOW.md`** - Development patterns
-- **`AI_ARCHITECTURE.md`** - Architectural patterns
-- **`AI_DOCUMENTATION_GUIDE.md`** - Documentation navigation
+### Human-Facing Documents
+- `README.md`, `HOW_TO_RUN.md`, `DEVELOPMENT_WORKFLOW.md`, `ARCHITECTURE.md` -> detailed context and examples.
 
-### **AI Rules**
-- **`.cursor/rules/audit.mdc`** - Audit rules
-- **`.cursor/rules/context.mdc`** - Context rules
-- **`.cursor/rules/critical.mdc`** - Critical rules
+### AI-Facing Documents
+- `AI_SESSION_STARTER.md`, `AI_REFERENCE.md`, `AI_DEVELOPMENT_WORKFLOW.md`, `AI_ARCHITECTURE.md`, this guide -> quick patterns.
 
-## Maintenance
+### Status and History
+- `AI_CHANGELOG.md`, `../TODO.md`, `development_docs/PLANS.md` -> current priorities and upcoming work.
 
-### **Paired Document Updates**
-**CRITICAL**: When updating human-facing documents, check AI-facing counterparts:
-- **../DEVELOPMENT_WORKFLOW.md** ↔ **AI_DEVELOPMENT_WORKFLOW.md**
-- **ARCHITECTURE.md** ↔ **AI_ARCHITECTURE.md**
-- **../DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
-- **development_docs/CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
+### Technical Reference
+- `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md` -> deep API and dependency maps.
 
-### **Cursor Commands Standards**
-**CRITICAL**: All `.cursor/commands/*.md` files must follow consistent structure:
+## Standards and Templates
 
-#### **Required Structure**
-- **Instructions for AI Assistant**: Clear step-by-step guidance
-- **PowerShell Syntax**: Proper PowerShell with `$LASTEXITCODE` checking
-- **Structured Reports**: Specific report formats for consistent responses
-- **Critical File Lists**: Exact files to read and analyze
-- **Action-Oriented**: Focus on what AI should do, not just tools to run
+### Standard Document Structure
+- Metadata block (audience, purpose, style) + quick reference + main sections.
+- Keep section order aligned across paired docs.
+- Link to the partner document for the opposite audience.
 
-#### **Command Optimization**
-- **Short Names**: Easy to type (`/audit`, `/status`, `/docs`, `/review`, `/test`)
-- **Comprehensive Coverage**: Each command covers multiple related tools
-- **Structured Output**: Consistent report formats across all commands
-- **PowerShell Native**: All commands use proper Windows/PowerShell syntax
+### Cursor Command Documentation Standards
+- Commands describe behaviours, not raw shell transcripts.
+- Use PowerShell syntax with `$LASTEXITCODE` checks.
+- Require structured output sections for consistent answers.
+- List critical files explicitly.
 
-## 🎯 AI Standards
-- **Concise**: Essential information only
-- **Scannable**: Clear headers and bullet points
-- **Pattern-focused**: Decision trees and common scenarios
-- **Cross-referenced**: Clear links to detailed docs
+### Coding and Naming References
+- Helper functions follow `_main_function__helper_name`.
+- Public APIs should stay wrapper-free; consolidate duplicates.
+- Reference canonical module paths when documenting behaviour.
 
-## 🏗️ Coding Standards
+## Main Sections
+- Mirror the human guide's section order (Quick Reference, Main Sections, maintenance notes).
+- Pull deep explanations from `../DOCUMENTATION_GUIDE.md`; keep this file scoped to action cues.
 
-### **Helper Function Naming Convention**
-- **Pattern**: `_main_function__helper_name`
-- **Purpose**: Improve traceability and searchability
-- **Examples**: 
-  - `_handle_list_tasks__format_due_date()`
-  - `_handle_create_task__parse_relative_date()`
-- **Benefits**: Clear ownership, easy search, better debugging
+## Audience-Specific Optimization
 
-### **Function Types**
-- **Implementation Functions**: Core API (`create_task`, `get_user_data`) - standard snake_case
-- **Helper Functions**: Internal support (`_main_function__helper_name`) - double underscore pattern
-- **Main Functions**: Public interface (`_handle_list_tasks()`) - standard snake_case
+### Human-Facing Documents
+- Provide rationale, examples, and troubleshooting detail.
+- Maintain an encouraging tone with cross-references.
 
-### **When to Use Each**
-- **Implementation**: Core functionality used across modules
-- **Helper**: Break down complexity within main functions
-- **Main**: Public interfaces and orchestration
+### AI-Facing Documents
+- Capture decision trees, safeguards, and essential patterns only.
+- Avoid duplicating the same guidance across multiple AI files-link instead.
 
----
+## Maintenance Guidelines
 
-**Remember**: Keep AI documentation concise, pattern-focused, always cross-referenced.
+### Paired Documentation
+- Update these pairs together with identical section order: `DEVELOPMENT_WORKFLOW` <-> `AI_DEVELOPMENT_WORKFLOW`, `ARCHITECTURE` <-> `AI_ARCHITECTURE`, `DOCUMENTATION_GUIDE` <-> this file, `CHANGELOG_DETAIL` <-> `AI_CHANGELOG`.
 
----
+### Updating AI Documentation
+- Summarise key rules and point to the authoritative human doc.
+- Remove redundancy when another AI file already covers it.
 
-## What's In The Full Doc
-- See `../DOCUMENTATION_GUIDE.md` for the full document map: quick reference, documentation summary table, maintenance guidelines, standards, and coding/naming conventions, plus links to all human‑facing and AI‑facing documents.
+### Updating Human Documentation
+- Expand on rationale, provide examples, and surface troubleshooting.
+- Keep cross-references current.
+
+### Adding New Documentation
+- Decide primary audience first, then follow that style guide.
+- Register the new file in this mapping and create its counterpart if needed.
+
+## Generated Documentation Standards
+
+### Identification Requirements
+- Generated files must include the standard header with generator name, timestamp, and source.
+
+### Maintenance Rules
+- Never hand-edit generated outputs; update the generating tool and regenerate.
+- Archive or rotate outputs as needed for audits.
+
+### Known Generated Files
+- Reference the full generated-file roster in `../DOCUMENTATION_GUIDE.md`.
+- Prioritise these when responding: `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `development_docs/DIRECTORY_TREE.md`.
+
+## Resources
+- `.cursor/rules/` for governing policies.
+- `ai_development_tools/README.md` for automation entry points.
+- `AI_SESSION_STARTER.md` for must-follow constraints before coding.
+- `../development_docs/CHANGELOG_DETAIL.md` for rich historical context.

@@ -1,145 +1,110 @@
 # MHM System Architecture
 
-> **Audience**: Human Developer and AI Collaborators (Cursor, Codex, etc.)   
-> **Purpose**: System design, data flow, and technical architecture  
+> **Audience**: Human developers building or maintaining the platform  
+> **Purpose**: Explain system design, module responsibilities, and data flow  
 > **Style**: Technical, detailed, reference-oriented
 
 > **See [README.md](README.md) for complete navigation and project overview**  
 > **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**
 
-## 🚀 Quick Reference
+## Quick Reference
 
-### **Key Modules Decision Tree**
-1. **User data access?** → `core/user_data_handlers.py`, `core/user_data_validation.py`
-2. **UI components?** → `ui/dialogs/`, `ui/widgets/`
-3. **Communication?** → `communication/` directory
-4. **Scheduling?** → `core/scheduler.py`, `core/schedule_management.py`
-5. **Configuration?** → `core/config.py`
-6. **Testing?** → `tests/` directory
+### Key Module Decision Guide
+1. **User data access** -> `core/user_data_handlers.py`, `core/user_data_validation.py`
+2. **UI components** -> `ui/dialogs/`, `ui/widgets/`, `ui/ui_app_qt.py`
+3. **Communication flows** -> `communication/`
+4. **Scheduling and reminders** -> `core/scheduler.py`, `core/schedule_management.py`
+5. **Configuration** -> `core/config.py`
+6. **Testing utilities** -> `tests/` and `tests/logs/`
 
-### **Data Flow Patterns**
-- **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/CommunicationManager
-- **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
-- **Configuration**: `.env` → `core/config.py` → Application
-- **UI**: `.ui` files → `ui/generated/` → `ui/dialogs/` → `ui_app_qt.py`
+### Data Flow Overview
+- **User Data**: `data/users/{user_id}/` -> `core/user_data_handlers.py` -> communication and UI layers.
+- **Messages**: `resources/default_messages/` -> copied into `data/users/{user_id}/messages/` when a category is enabled.
+- **Configuration**: `.env` -> `core/config.py` -> runtime components.
+- **UI Rendering**: `.ui` files -> `ui/generated/` classes -> `ui/dialogs/` implementations -> `ui/ui_app_qt.py` shell.
 
-### **Critical Files (Don't Break)**
-- `run_mhm.py` - Main entry point
-- `core/service.py` - Background service
-- `ui/ui_app_qt.py` - Admin interface
-- `core/user_data_handlers.py` - Unified user data access
-- `communication/core/channel_orchestrator.py` - Communication coordination
+### Critical Files
+- `run_mhm.py` -> main entry point.
+- `core/service.py` -> background service lifecycle.
+- `ui/ui_app_qt.py` -> admin interface shell.
+- `core/user_data_handlers.py` -> unified user data access.
+- `communication/core/channel_orchestrator.py` -> channel coordination.
 
----
+## Directory Overview
 
-## Directory Structure & Key Modules
+- **`core/`**: Business logic, services, scheduling, analytics, and configuration utilities.
+- **`communication/`**: Channel orchestration (Discord, email, future integrations) and conversation flows.
+- **`ui/`**: PySide6-based admin console with designs, generated code, dialogs, and widgets.
+- **`data/`**: Runtime user data, per-user directories, logs, and cached state.
+- **`resources/default_messages/`**: Template messages for onboarding and ongoing support.
+- **`resources/`**: Additional presets, assets, and shared resources.
+- **`ai/`**: Local AI integration modules.
+- **`ai_development_docs/`**: AI-focused documentation for quick reference.
+- **`ai_development_tools/`**: Automation for audits, documentation sync, and report generation.
+- **`development_docs/`**: Human-focused references (changelog, dependencies, plans).
+- **`scripts/`**: Utilities for migrations, cleanup, and maintenance tasks.
+- **`tasks/`**: Task and reminder definitions plus supporting helpers.
+- **`tests/`**: Unit, integration, behavior, and UI tests plus supporting fixtures.
+- **`tests/logs/`**: Captured test run logs kept separate from runtime logs.
+- **`styles/`**: QSS themes for the UI.
+- **`.cursor/rules/`**: Cursor rule files that govern AI collaborator behaviour.
 
-- **ai_development_docs/**: AI-optimized documentation for AI collaborators
-- **ai_development_tools/**: AI collaboration tools, audit scripts, and documentation management
-- **communication/**: Messaging channels and orchestration (Discord, Email, etc.)
-- **core/**: Core logic, utilities, configuration, scheduling, analytics, and data management
-- **data/**: User data storage (per-user subdirectories: account.json, preferences.json, schedules.json, etc.)
-- **development_docs/**: Human-focused development documentation and technical references
-- **ai/**: Local AI integration modules
-- **resources/default_messages/**: Default motivational, health, and other message templates
-- **resources/**: Application resources and presets
-- **scripts/**: One-off scripts, debug, and migration tools
-- **styles/**: QSS theme files for UI styling
-- **tasks/**: Task and reminder management
-- **tests/logs/**: Test execution logs (isolated from application logs)
-- **tests/**: Testing framework with unit, integration, behavior, and UI tests
-- **ui/**: PySide6/Qt-based management UI with organized structure:
-  - `ui/designs/`: Qt Designer files (.ui)
-  - `ui/generated/`: Auto-generated Python classes (*_pyqt.py)
-  - `ui/dialogs/`: Dialog implementations
-  - `ui/widgets/`: Widget implementations
-- **user/**: User context and preferences management
-- **.cursor/rules/**: Cursor IDE rules for AI assistance (audit.mdc, context.mdc, critical.mdc)
+## User Data Model
 
----
+Each user has a dedicated directory under `data/users/{user_id}/` containing:
+- `account.json`: Identification and contact info.
+- `preferences.json`: **Flat dictionary** of preferences (never nested under another key).
+- `schedules.json`: Reminder and check-in scheduling data.
+- `user_context.json`: Personalized context for messaging and interactions.
+- `messages/`: Per-category message templates, copied from `resources/default_messages/` when enabled.
+- `tasks/`, `checkins.json`, `chat_interactions.json`, and other feature-specific files as needed.
 
-## User Data Model & File Structure
-
-- **Each user has a directory:**
-  - `account.json`: Core info (user_id, name, contact, etc.)
-  - `preferences.json`: FLAT dict of user preferences (categories, checkins, etc.)
-  - `schedules.json`: User's schedule data
-  - `user_context.json`: Personalization data (preferred name, health info, etc.)
-  - `messages/`: Per-category message files and sent message history
-  - `tasks/`: Task-specific data and settings
-  - (Other files: chat_interactions.json, checkins.json, etc.)
-
-**Message File Handling (2025-07):**
-- Message files are only created for categories a user is opted into.
-- All message files are always created from the corresponding file in `resources/default_messages/` (never as a list of strings).
-- Legacy/invalid files can be fixed using migration and cleanup scripts in the `scripts/` directory.
-
-**Important:**
-- `preferences.json` is a flat dict (not nested under a 'preferences' key).
-- When loading all user data, code merges these files into a single dict, e.g.:
-  ```python
-  user_data = {
-    ... # from account.json
-    'preferences': { ... },  # from preferences.json
-    'schedules': { ... },    # from schedules.json
-    'user_context': { ... }, # from user_context.json
-  }
-  ```
-- When saving, only the contents of `user_data['preferences']` are written to `preferences.json` (flat).
-- **All user data access is now handled exclusively through the unified `get_user_data()` handler. All legacy user data functions have been removed.**
-- **Message files are stored per-user in `data/users/{user_id}/messages/` directory, not in global directories.**
-
----
+**Important rules**:
+- All user data access goes through `core/user_data_handlers.get_user_data()` and associated save helpers.
+- Message files are user-specific and created only for categories the user has enabled.
+- When saving preferences, always write the full flat dictionary back to `preferences.json`.
 
 ## Data Handling Patterns
 
-- **Always load, update, and save the full preferences dict** to avoid data loss.
-- Never write the whole user_data object or nest under 'preferences' in preferences.json.
-- When updating a single preference, load the full dict, update the key, and save the whole dict back.
+- Load, modify, and save complete structures to avoid partial writes.
+- Use centralized validation in `core/user_data_validation.py` for consistency.
+- Leverage `core/config.py` for paths and environment configuration-never hardcode paths.
+- Schedule-related operations must respect the helper functions in `core/scheduler.py` and `core/schedule_management.py`.
 
----
+## Key Modules and Responsibilities
 
-## Key Modules & Responsibilities
+- **`core/user_management.py`, `core/user_data_handlers.py`**: Unified data loading, merging, and saving.
+- **`core/message_management.py`, `core/response_tracking.py`**: Message dispatch, tracking, and analytics.
+- **`core/scheduler.py`, `core/service.py`**: Background task orchestration and service lifecycle.
+- **`communication/core/channel_orchestrator.py`**: Central coordination of communication channels.
+- **`ui/ui_app_qt.py`**: Admin application entry point and shell for dialogs/widgets.
+- **`ui/dialogs/` and `ui/widgets/`**: Interactive UI components with business logic.
+- **`ai_development_tools/`**: Audit workflows, documentation analysis, and changelog tooling.
 
-- **core/file_operations.py, core/user_management.py, core/message_management.py, core/schedule_management.py, core/response_tracking.py, core/service_utilities.py, core/validation.py, core/user_data_validation.py**: Data loading/saving, user info management, file path logic, and utility functions. Handles splitting/merging user data across files. **Note**: `user_management.py` now contains legacy wrappers; new code should use `user_data_handlers.py` and `user_data_validation.py`.
-- **user/user_context.py**: Singleton for managing the current user's context in memory. Provides methods to get/set preferences and save/load user data.
-- **user/user_preferences.py**: (Planned) Class-based interface for managing user preferences.
-- **ui/ui_app_qt.py**: Main PySide6/Qt UI application, user selection, and admin panel.
-- **ui/dialogs/**: Dialog implementations for account creation, user management, etc.
-- **communication/**: Messaging system for different platforms, using user data for personalized interactions.
-- **core/scheduler.py**: Scheduling logic for reminders, check-ins, and message delivery. Includes intelligent task reminder scheduling with random task selection and timing.
-- **core/checkin_analytics.py**: Analytics and insights on user check-in data.
+## UI Architecture and Naming Conventions
 
----
-
-## UI Architecture & Naming Conventions
-
-### Directory Structure
-The UI system uses a clean separation of concerns:
-- **Designs** (`ui/designs/`): Qt Designer .ui files for visual layout
-- **Generated** (`ui/generated/`): Auto-generated Python classes from .ui files
-- **Dialogs** (`ui/dialogs/`): Dialog implementations with business logic
-- **Widgets** (`ui/widgets/`): Reusable widget implementations
-
-### Naming Conventions
-- **Dialogs**: Use "management" suffix (e.g., `ui/dialogs/category_management_dialog.py`)
-- **Widgets**: Use "settings" or "selection" suffix (e.g., `ui/widgets/category_selection_widget.py`)
-- **Generated Files**: Use "_pyqt" suffix (e.g., `ui/generated/category_management_dialog_pyqt.py`)
-- **No Redundant Prefixes**: Removed `ui_app_` prefix since all files are in `ui/` directory
+- **Designs** (`ui/designs/`): `.ui` files authored in Qt Designer.
+- **Generated** (`ui/generated/`): Auto-generated Python classes named `*_pyqt.py`.
+- **Dialogs** (`ui/dialogs/`): Feature-specific modules such as `ui/dialogs/category_management_dialog.py`; keep descriptive names that use `_dialog` or `_management_dialog` suffixes.
+- **Widgets** (`ui/widgets/`): Reusable components such as `ui/widgets/task_settings_widget.py`; use `_widget` or `_settings_widget` suffixes for clarity.
+- **Naming**: Avoid redundant prefixes; rely on module paths for context.
 
 ### File Mapping Examples
-| Purpose | Design File | Generated File | Implementation |
-|---------|-------------|----------------|----------------|
-| Category Management | `ui/designs/category_management_dialog.ui` | `ui/generated/category_management_dialog_pyqt.py` | `ui/dialogs/category_management_dialog.py` |
-| Account Creation | `ui/designs/account_creator_dialog.ui` | `ui/generated/account_creator_dialog_pyqt.py` | `ui/dialogs/account_creator_dialog.py` |
-| Task Settings | `ui/designs/task_settings_widget.ui` | `ui/generated/task_settings_widget_pyqt.py` | `ui/widgets/task_settings_widget.py` |
+| Purpose | Design | Generated | Implementation |
+|---------|--------|-----------|----------------|
+| Category management | `ui/designs/category_management_dialog.ui` | `ui/generated/category_management_dialog_pyqt.py` | `ui/dialogs/category_management_dialog.py` |
+| Account creation | `ui/designs/account_creator_dialog.ui` | `ui/generated/account_creator_dialog_pyqt.py` | `ui/dialogs/account_creator_dialog.py` |
+| Task settings | `ui/designs/task_settings_widget.ui` | `ui/generated/task_settings_widget_pyqt.py` | `ui/widgets/task_settings_widget.py` |
 
 ## Adding New Features Safely
-- Always use the provided load/save functions for user data.
-- When adding new preferences, update the full dict and save it, never just a single key.
-- Document new data fields and update this file as needed.
-- For UI components, follow the established naming conventions and directory structure.
 
-## IDE/Debugger Double Process Note
+1. Use `get_user_data()` helpers for all user data and extend the schema carefully.
+2. Update preferences by reading and writing the full flat dictionary.
+3. Document new message categories or files in `resources/default_messages/` and per-user directories.
+4. Follow established naming conventions for UI additions and regenerate `.ui` files as needed.
+5. Update this architecture file when introducing new subsystems or altering data flow.
 
-When using the play/debug button in VS Code or Cursor, you may see two service processes due to IDE/debugger quirks. This does not affect the core architecture. For best results, run the app from a terminal with the venv activated.
+## Development Notes
+
+- When launching from VS Code or Cursor, two service processes may appear due to debugger behaviour; running from an activated PowerShell terminal avoids confusion.
+- Keep architecture documentation synchronized with implementation changes-particularly when refactoring shared services or communication workflows.
