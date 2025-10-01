@@ -24,7 +24,7 @@ from core.scheduler import (
     process_user_schedules,
     process_category_schedule
 )
-from tests.test_isolation import TestIsolationManager
+from tests.test_isolation import IsolationManager
 from core.error_handling import SchedulerError
 
 @pytest.fixture

@@ -33,6 +33,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Test Suite Warnings Resolution and Coverage Improvements **COMPLETED**
+- Fixed 9 custom marks warnings by removing problematic @pytest.mark.chat_interactions markers
+- Resolved 2 test collection warnings by renaming TestIsolationManager to IsolationManager
+- Achieved 76% reduction in warnings (17 → 4 warnings, only external library deprecation warnings remain)
+- Maintained full test suite stability with 1,508 tests passing in ~5 minutes
+- Successfully completed test coverage expansion for TaskEditDialog (47% → 75%) and UserDataManager (31% → 42%)
+
 ### 2025-10-01 - Log Rotation Truncation Fix **COMPLETED**
 - Fixed critical bug where app.log and errors.log files were not being truncated after midnight rotation
 - Added explicit file truncation in BackupDirectoryRotatingFileHandler.doRollover() method

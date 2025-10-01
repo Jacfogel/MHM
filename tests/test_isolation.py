@@ -132,7 +132,7 @@ def verify_no_real_tasks_created():
         return True  # Assume OK if we can't check
 
 # Context manager for test isolation
-class TestIsolationManager:
+class IsolationManager:
     """Context manager to ensure test isolation."""
     
     def __init__(self):

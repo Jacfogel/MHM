@@ -23,7 +23,6 @@ class TestChatInteractionStorageRealScenarios:
     """Test chat interaction storage with realistic user scenarios."""
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     @pytest.mark.critical
     def test_real_user_conversation_flow_storage(self, test_data_dir, fix_user_data_loaders):
@@ -88,7 +87,6 @@ class TestChatInteractionStorageRealScenarios:
         assert all(interaction["context_used"] for interaction in stored_data), "All interactions should have context_used=True"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_context_building_integration(self, test_data_dir, fix_user_data_loaders):
         """Test that chat interactions are properly used for AI context building."""
@@ -117,7 +115,6 @@ class TestChatInteractionStorageRealScenarios:
         assert all(chat["context_used"] for chat in recent_chats), "All chats should have context_used=True"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_mixed_message_types_storage(self, test_data_dir, fix_user_data_loaders):
         """Test storing different types of user messages and responses."""
@@ -176,7 +173,6 @@ class TestChatInteractionStorageRealScenarios:
         assert context_used_flags == [False, True, True, False], "Context usage should vary by message type"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_timestamp_ordering(self, test_data_dir, fix_user_data_loaders):
         """Test that chat interactions are properly ordered by timestamp."""
@@ -215,7 +211,6 @@ class TestChatInteractionStorageRealScenarios:
             assert timestamp.count(":") == 2, "Time part should have 2 colons"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_fallback_response_storage(self, test_data_dir):
         """Test storing fallback responses when AI context is not available."""
@@ -271,7 +266,6 @@ class TestChatInteractionStorageRealScenarios:
         assert "help" in stored_data[2]["ai_response"].lower(), "Third response should show normal help"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_performance_with_large_history(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage performance with large conversation history."""
@@ -325,7 +319,6 @@ class TestChatInteractionStorageRealScenarios:
         assert any(not flag for flag in context_usage), "Should have some False context usage flags"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_error_handling_and_recovery(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage error handling and recovery."""
@@ -367,7 +360,6 @@ class TestChatInteractionStorageRealScenarios:
         assert stored_data[2]["message_length"] == len(special_message), "Special characters should have correct length"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.integration
     def test_chat_interaction_integration_with_conversation_history(self, test_data_dir, fix_user_data_loaders):
         """Test integration between chat interaction storage and conversation history system."""
@@ -410,7 +402,6 @@ class TestChatInteractionStorageEdgeCases:
     """Test edge cases and error scenarios for chat interaction storage."""
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_storage_with_missing_user_data(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage when user data is missing."""
@@ -434,7 +425,6 @@ class TestChatInteractionStorageEdgeCases:
         assert stored_data[0]["ai_response"] == "Hi there!", "Should store AI response"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_storage_with_corrupted_file(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage with corrupted existing file."""
@@ -468,7 +458,6 @@ class TestChatInteractionStorageEdgeCases:
             assert "data" in stored_data or "created" in stored_data, "Should have valid structure"
     
     @pytest.mark.behavior
-    @pytest.mark.chat_interactions
     @pytest.mark.file_io
     def test_chat_interaction_storage_concurrent_access(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage with concurrent access."""

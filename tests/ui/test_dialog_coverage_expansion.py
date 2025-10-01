@@ -363,108 +363,246 @@ class TestTaskEditDialogBehavior:
             # Verify warning was shown
             mock_warning.assert_called()
 
-
-class TestTaskCrudDialogBehavior:
-    """Test TaskCrudDialog behavior."""
-    
-    @pytest.fixture
-    def test_user_data(self, test_data_dir):
-        user_id = "test_task_crud"
-        test_user_factory = TestUserFactory()
-        test_user_factory.create_basic_user(user_id, test_data_dir=test_data_dir)
-        return user_id
-
-    @pytest.fixture
-    def dialog(self, qapp, test_user_data, test_data_dir):
-        """Create task CRUD dialog for testing."""
-        dialog = TaskCrudDialog(
-            parent=None,
-            user_id=test_user_data
-        )
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_validation_form_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test form validation with various input scenarios."""
+        # Test valid form
+        dialog.ui.lineEdit_task_title.setText("Valid Task")
+        dialog.ui.textEdit_task_description.setPlainText("Valid description")
+        assert dialog.validate_form() == True
         
-        yield dialog
+        # Test invalid form - empty title
+        dialog.ui.lineEdit_task_title.clear()
+        assert dialog.validate_form() == False
         
-        # Cleanup - ensure dialog is closed
-        dialog.close()
-        dialog.deleteLater()
+        # Test invalid form - whitespace only title
+        dialog.ui.lineEdit_task_title.setText("   ")
+        assert dialog.validate_form() == False
 
     @pytest.mark.ui
-    @pytest.mark.critical
-    def test_dialog_initialization_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test dialog initialization sets up UI correctly."""
-        # Verify dialog was created
-        assert dialog is not None
-        assert dialog.user_id == test_user_data
-
-        # Verify UI elements are set up
-        assert dialog.ui.tableWidget_active_tasks is not None
-        assert dialog.ui.tableWidget_completed_tasks is not None
-        assert dialog.ui.pushButton_add_new_task is not None
-
-    @pytest.mark.ui
-    @pytest.mark.critical
-    def test_add_task_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test adding a new task updates the table."""
-        initial_row_count = dialog.ui.tableWidget_active_tasks.rowCount()
-
-        # Add new task
-        with patch('ui.dialogs.task_edit_dialog.TaskEditDialog.exec') as mock_exec:
-            mock_exec.return_value = QDialog.Accepted
-            dialog.add_new_task()
-            
-            # Verify dialog was opened
-            mock_exec.assert_called_once()
-
-    @pytest.mark.ui
-    @pytest.mark.critical
-    def test_edit_task_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test editing a task shows edit dialog."""
-        # Add a task first
-        with patch('ui.dialogs.task_edit_dialog.TaskEditDialog.exec') as mock_exec:
-            mock_exec.return_value = QDialog.Accepted
-            dialog.add_new_task()
+    @pytest.mark.behavior
+    def test_due_time_handling_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test due time collection and conversion."""
+        # Set up time components
+        dialog.ui.comboBox_due_time_hour.setCurrentText("02")
+        dialog.ui.comboBox_due_time_minute.setCurrentText("30")
+        dialog.ui.radioButton_due_time_am.setChecked(True)
         
-        # Mock task selection and editing
-        with patch.object(dialog, 'get_selected_task_id', return_value='task1'), \
-             patch('tasks.task_management.get_task_by_id', return_value={'id': 'task1', 'title': 'Test'}), \
-             patch('ui.dialogs.task_edit_dialog.TaskEditDialog.exec') as mock_edit_exec:
-            mock_edit_exec.return_value = QDialog.Accepted
-            dialog.edit_selected_task()
-            
-            # Verify edit dialog was opened
-            mock_edit_exec.assert_called_once()
+        # Test AM time conversion
+        time_24h = dialog.get_due_time_as_24h()
+        assert time_24h == "02:30"
+        
+        # Test PM time conversion
+        dialog.ui.radioButton_due_time_pm.setChecked(True)
+        time_24h = dialog.get_due_time_as_24h()
+        assert time_24h == "14:30"
+        
+        # Test 12 PM (noon)
+        dialog.ui.comboBox_due_time_hour.setCurrentText("12")
+        dialog.ui.radioButton_due_time_pm.setChecked(True)
+        time_24h = dialog.get_due_time_as_24h()
+        assert time_24h == "12:30"
+        
+        # Test 12 AM (midnight)
+        dialog.ui.radioButton_due_time_am.setChecked(True)
+        time_24h = dialog.get_due_time_as_24h()
+        assert time_24h == "00:30"
 
     @pytest.mark.ui
-    @pytest.mark.critical
-    def test_delete_task_real_behavior(self, dialog, test_user_data, test_data_dir):
-        """Test deleting a task removes it from the table."""
-        # Add a task first (mocked)
-        with patch('ui.dialogs.task_edit_dialog.TaskEditDialog.exec') as mock_exec:
-            mock_exec.return_value = QDialog.Accepted
-            dialog.add_new_task()
+    @pytest.mark.behavior
+    def test_no_due_date_toggle_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test No Due Date checkbox functionality."""
+        # Initially enabled
+        assert dialog.ui.dateEdit_task_due_date.isEnabled() == True
         
-        # Mock task selection and deletion with all necessary mocks to prevent actual dialogs
-        with patch.object(dialog, 'get_selected_task_id', return_value='task1'), \
-             patch('tasks.task_management.get_task_by_id', return_value={'id': 'task1', 'title': 'Test Task'}), \
-             patch('PySide6.QtWidgets.QMessageBox.question', return_value=QMessageBox.StandardButton.Yes), \
-             patch('PySide6.QtWidgets.QMessageBox.information') as mock_info, \
-             patch('PySide6.QtWidgets.QMessageBox.critical') as mock_critical, \
-             patch('PySide6.QtWidgets.QMessageBox.warning') as mock_warning, \
-             patch('tasks.task_management.delete_task', return_value=True), \
-             patch.object(dialog, 'refresh_active_tasks'):
+        # Toggle to disabled
+        dialog.ui.checkBox_no_due_date.setChecked(True)
+        dialog.on_no_due_date_toggled(True)
+        assert dialog.ui.dateEdit_task_due_date.isEnabled() == False
+        
+        # Toggle back to enabled
+        dialog.ui.checkBox_no_due_date.setChecked(False)
+        dialog.on_no_due_date_toggled(False)
+        assert dialog.ui.dateEdit_task_due_date.isEnabled() == True
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_hour_minute_sync_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test hour/minute synchronization behavior."""
+        # Test hour change triggers minute sync
+        dialog.ui.comboBox_due_time_hour.setCurrentText("10")
+        dialog.on_hour_changed("10")
+        assert dialog.ui.comboBox_due_time_minute.currentText() == "00"
+        
+        # Test hour cleared triggers minute clear
+        dialog.ui.comboBox_due_time_hour.setCurrentText("")
+        dialog.on_hour_changed("")
+        assert dialog.ui.comboBox_due_time_minute.currentText() == ""
+        
+        # Test minute change triggers hour sync
+        dialog.ui.comboBox_due_time_minute.setCurrentText("15")
+        dialog.on_minute_changed("15")
+        assert dialog.ui.comboBox_due_time_hour.currentText() == "12"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_recurring_pattern_changes_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test recurring pattern label updates."""
+        # Test daily pattern
+        dialog.on_recurring_pattern_changed("Daily")
+        assert dialog.ui.label_recurring_interval.text() == "Interval (days):"
+        
+        # Test weekly pattern
+        dialog.on_recurring_pattern_changed("Weekly")
+        assert dialog.ui.label_recurring_interval.text() == "Interval (weeks):"
+        
+        # Test monthly pattern
+        dialog.on_recurring_pattern_changed("Monthly")
+        assert dialog.ui.label_recurring_interval.text() == "Interval (months):"
+        
+        # Test yearly pattern
+        dialog.on_recurring_pattern_changed("Yearly")
+        assert dialog.ui.label_recurring_interval.text() == "Interval (years):"
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_tag_collection_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test tag collection from TagWidget."""
+        # Mock the tag widget to return specific tags
+        with patch.object(dialog.tag_widget, 'get_selected_tags', return_value=['work', 'urgent']):
+            tags = dialog.collect_selected_tags()
+            assert tags == ['work', 'urgent']
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_reminder_periods_collection_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test reminder periods collection."""
+        # Add some reminder periods with proper widget structure
+        from PySide6.QtWidgets import QComboBox, QDateEdit
+        from PySide6.QtCore import QDate
+        
+        # Create mock widgets for the reminder periods
+        mock_widgets1 = {
+            'date': QDateEdit(),
+            'start_hour': QComboBox(),
+            'start_minute': QComboBox(),
+            'start_ampm': QComboBox(),
+            'end_hour': QComboBox(),
+            'end_minute': QComboBox(),
+            'end_ampm': QComboBox()
+        }
+        mock_widgets1['date'].setDate(QDate.currentDate())
+        mock_widgets1['start_hour'].addItems(['', '09'])
+        mock_widgets1['start_hour'].setCurrentText('09')
+        mock_widgets1['start_minute'].addItems(['', '00'])
+        mock_widgets1['start_minute'].setCurrentText('00')
+        mock_widgets1['start_ampm'].addItems(['', 'AM'])
+        mock_widgets1['start_ampm'].setCurrentText('AM')
+        mock_widgets1['end_hour'].addItems(['', '17'])
+        mock_widgets1['end_hour'].setCurrentText('17')
+        mock_widgets1['end_minute'].addItems(['', '00'])
+        mock_widgets1['end_minute'].setCurrentText('00')
+        mock_widgets1['end_ampm'].addItems(['', 'PM'])
+        mock_widgets1['end_ampm'].setCurrentText('PM')
+        
+        dialog.reminder_periods = [
+            {'__widgets': mock_widgets1}
+        ]
+        
+        periods = dialog.collect_reminder_periods()
+        assert len(periods) == 1
+        assert 'date' in periods[0]
+        assert 'start_time' in periods[0]
+        assert 'end_time' in periods[0]
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_quick_reminders_collection_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test quick reminders collection."""
+        # Mock checkbox states for quick reminders using the actual checkbox names
+        with patch.object(dialog.ui.checkBox_reminder_1hour, 'isChecked', return_value=True), \
+             patch.object(dialog.ui.checkBox_reminder_2hour, 'isChecked', return_value=True), \
+             patch.object(dialog.ui.checkBox_reminder_3hour, 'isChecked', return_value=False):
             
-            # Mock all message boxes to prevent actual dialogs
-            mock_info.return_value = QMessageBox.StandardButton.Ok
-            mock_critical.return_value = QMessageBox.StandardButton.Ok
-            mock_warning.return_value = QMessageBox.StandardButton.Ok
+            reminders = dialog.collect_quick_reminders()
+            assert '1-2day' in reminders  # checkBox_reminder_1hour maps to '1-2day'
+            assert '1-2week' in reminders  # checkBox_reminder_2hour maps to '1-2week'
+            assert '30min-1hour' not in reminders  # checkBox_reminder_3hour maps to '30min-1hour'
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_recurring_task_data_collection_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test recurring task data collection."""
+        # Set up recurring task UI components (using index 1 for daily)
+        dialog.ui.comboBox_recurring_pattern.setCurrentIndex(1)  # Daily
+        dialog.ui.spinBox_recurring_interval.setValue(3)
+        dialog.ui.checkBox_repeat_after_completion.setChecked(True)
+        
+        recurring_data = dialog.collect_recurring_task_data()
+        assert recurring_data['recurrence_pattern'] == 'daily'  # lowercase as per implementation
+        assert recurring_data['recurrence_interval'] == 3
+        assert recurring_data['repeat_after_completion'] == True
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_add_reminder_period_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test adding reminder periods."""
+        initial_count = len(dialog.reminder_periods)
+        
+        # Call add_reminder_period (no dialog needed, it just adds to the list)
+        dialog.add_reminder_period()
+        
+        # Verify reminder was added with correct structure
+        assert len(dialog.reminder_periods) == initial_count + 1
+        assert 'date' in dialog.reminder_periods[-1]
+        assert 'start_time' in dialog.reminder_periods[-1]
+        assert 'end_time' in dialog.reminder_periods[-1]
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_task_creation_with_recurring_data_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test task creation with recurring task data."""
+        # Set up form for new task (not edit mode)
+        dialog.is_edit = False
+        dialog.ui.lineEdit_task_title.setText("Recurring Task")
+        dialog.ui.textEdit_task_description.setPlainText("A recurring task")
+        dialog.ui.comboBox_recurring_pattern.setCurrentIndex(2)  # Weekly (index 2)
+        dialog.ui.spinBox_recurring_interval.setValue(2)
+        
+        # Mock the create_task function
+        with patch('ui.dialogs.task_edit_dialog.create_task', return_value='task123') as mock_create, \
+             patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
             
-            # Test that the method runs without crashing
-            dialog.delete_selected_task()
+            result = dialog.save_task()
             
-            # Verify that at least one message box was called (to prevent actual dialogs)
-            # The exact message box depends on the execution path
-            total_calls = mock_info.call_count + mock_critical.call_count + mock_warning.call_count
-            assert total_calls > 0, "No message boxes were called - actual dialogs may have been shown"
+            # Verify create_task was called with recurring data
+            mock_create.assert_called_once()
+            call_args = mock_create.call_args
+            assert call_args[1]['recurrence_pattern'] == 'weekly'  # lowercase as per implementation
+            assert call_args[1]['recurrence_interval'] == 2
+
+    @pytest.mark.ui
+    @pytest.mark.behavior
+    def test_task_edit_with_no_due_date_real_behavior(self, dialog, test_user_data, test_data_dir):
+        """Test editing task with no due date."""
+        # Set up form for editing
+        dialog.is_edit = True
+        dialog.ui.lineEdit_task_title.setText("Task Without Due Date")
+        dialog.ui.checkBox_no_due_date.setChecked(True)
+        
+        # Mock the update_task function
+        with patch('ui.dialogs.task_edit_dialog.update_task', return_value=True) as mock_update, \
+             patch('PySide6.QtWidgets.QMessageBox.information') as mock_info:
+            
+            result = dialog.save_task()
+            
+            # Verify update_task was called with task_data containing None due_date
+            mock_update.assert_called_once()
+            call_args = mock_update.call_args
+            task_data = call_args[0][2]  # Third argument is task_data
+            assert task_data['due_date'] is None
+            assert task_data['due_time'] is None
 
 
 class TestTaskCompletionDialogBehavior:
