@@ -28,32 +28,6 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
-## High Priority
-
-**Chat Interaction Storage Testing** - Verify real user scenarios
-- *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building
-- *Why it helps*: Ensures AI can reference previous conversations for better continuity
-- *Estimated effort*: Small
-- *Next steps*:
-  - [ ] Test chat interaction storage with various user message types
-  - [ ] Verify context building works correctly with stored interactions
-  - [ ] Test fallback response storage scenarios
-
-**Quantitative Check-in Analytics Expansion** - Include all opted‑in quantitative questions
-- *What it means*: Users can enable multiple preset check‑in questions; analytics should aggregate all quantitative ones (mood, stress, energy, sleep quality, anxiety, etc.) based on what the user has opted into.
-- *Why it helps*: Richer insights that reflect the user’s selected tracking fields
-- *Estimated effort*: Medium
-- Subtasks:
-  - [ ] Inventory quantitative check‑in fields in `conversation_flow_manager.py`
-  - [ ] Design aggregation outputs (per-field averages, distributions, trends)
-  - [ ] Implement analytics pull that respects per‑user enabled questions
-  - [ ] Add behavior tests for each enabled field with sample data
-  - [ ] Update `/analytics` and subcommands to surface these summaries
-  - [ ] Integrate per-field summaries into "show analytics" response
-  - [ ] Add behavior tests validating per-field section in analytics overview
-
-
-
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
@@ -137,7 +111,6 @@ When adding new tasks, follow this format:
   - [ ] Simulate Discord disconnect during a scheduled check-in; confirm message queues and retries post-reconnect
   - [ ] Confirm single "User check-in started" entry after successful send
 
-
 **Legacy Preferences Flag Monitoring and Removal Plan**
 - *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
 - *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
@@ -146,8 +119,6 @@ When adding new tasks, follow this format:
   - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
   - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
   - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
-
-
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
@@ -290,13 +261,6 @@ When adding new tasks, follow this format:
 
 ## Low Priority
 
-**Audit Complexity Tracking and Refactor Targets**
-- *What it means*: Use audit decision support (1466 high-complexity functions) to pick top refactor targets.
-- *Why it helps*: Reduce maintenance risk.
-- *Estimated effort*: Medium
-- Subtasks:
-  - [ ] Export top-50 complex functions from audit details and triage into refactor tickets
-  - [ ] Add acceptance criteria per function (reduced branches, extracted helpers, increased test coverage)
 
 ### Documentation
 
@@ -321,12 +285,6 @@ When adding new tasks, follow this format:
 - *What it means*: Expand behavior and integration coverage for under-tested modules
 - *Why it helps*: Increases reliability and change safety
 - *Estimated effort*: Large
-
-**Improve Test Coverage** ✅ **COMPLETED**
-- *What it means*: Systematically raise coverage by adding targeted unit tests
-- *Why it helps*: Catches regressions earlier
-- *Estimated effort*: Medium
-- *Completed*: Successfully improved TaskEditDialog coverage (47% → 75%) and UserDataManager coverage (31% → 42%), resolved all test warnings (76% reduction), achieved full test suite stability with 1,508 tests passing
 
 **Add Integration Tests**
 - *What it means*: Add cross-module workflow tests (user lifecycle, scheduling, messaging)
@@ -381,11 +339,5 @@ When adding new tasks, follow this format:
 - *Why it helps*: Consistency and clarity, especially when collaborating with AI tools
 - *Estimated effort*: Small
 
-**Monitor Remaining Test Warnings** - **LOW PRIORITY**
-- *What it means*: Monitor and address remaining pytest warnings that appear during test runs
-- *Why it helps*: Maintains clean test output and identifies potential issues early
-- *Current status*: Discord library warnings suppressed, scheduler thread exception fixed, scheduler test fixed
-- *Remaining*: Monitor for any new warnings that may appear in future test runs
-- *Estimated effort*: Small
 
 

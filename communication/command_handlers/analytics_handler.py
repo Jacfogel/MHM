@@ -148,9 +148,11 @@ class AnalyticsHandler(InteractionHandler):
                 prefs = get_user_data(user_id, 'preferences') or {}
                 checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
                 if isinstance(checkin_settings, dict):
-                    ef = checkin_settings.get('enabled_fields')
-                    if isinstance(ef, list):
-                        enabled_fields = [str(x) for x in ef]
+                    # Get enabled fields from questions configuration
+                    questions = checkin_settings.get('questions', {})
+                    enabled_fields = [key for key, config in questions.items() 
+                                    if config.get('enabled', False) and 
+                                    config.get('type') in ['scale_1_5', 'number', 'yes_no']]
             except Exception:
                 enabled_fields = None
 

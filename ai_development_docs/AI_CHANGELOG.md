@@ -33,6 +33,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Comprehensive Quantitative Analytics Expansion **COMPLETED**
+- Expanded quantitative analytics to include ALL 13 quantitative questions from questions.json
+- Added support for scale_1_5 (6 questions), number (1 question), and yes_no (6 questions) types
+- Implemented intelligent yes/no to 0/1 conversion for analytics processing
+- Created comprehensive test coverage with 8 test scenarios validating all question types
+- Updated existing tests to use new questions configuration format
+- All 1516 tests passing with full backward compatibility
+
 ### 2025-10-01 - Test Suite Warnings Resolution and Coverage Improvements **COMPLETED**
 - Fixed 9 custom marks warnings by removing problematic @pytest.mark.chat_interactions markers
 - Resolved 2 test collection warnings by renaming TestIsolationManager to IsolationManager
@@ -113,13 +121,3 @@ Guidelines:
 - Adjusted scheduler error-handling expectations so resilience tests no longer fail intermittently.
 - Hardened behaviour tests against noisy log output and race conditions.
 - Re-ran the suite to confirm stability.
-
-### 2025-09-28 - Comprehensive AI Development Tools Overhaul **COMPLETED**
-- Introduced shared exclusion logic, realistic coverage reporting, and consolidated audit reports.
-- Renamed `.coveragerc` to `coverage.ini` and streamlined AI tool outputs for clarity.
-- Implemented rotational handling for generated files and verification artefacts.
-
-### 2025-09-27 - High Complexity Function Refactoring Phase 3 **COMPLETED**
-- Completed the refactor of remaining critical-complexity functions with improved helper structure.
-- Documented interface changes and updated tests to match the new APIs.
-- Reduced blocker backlog associated with high-complexity hotspots.

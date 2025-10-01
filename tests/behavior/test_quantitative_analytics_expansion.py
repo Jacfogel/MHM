@@ -1,0 +1,407 @@
+"""
+Behavior tests for Quantitative Check-in Analytics Expansion.
+Tests that all opted-in quantitative questions are included in analytics.
+"""
+
+import pytest
+import json
+import os
+from datetime import datetime, timedelta
+from unittest.mock import patch, MagicMock
+from core.checkin_analytics import CheckinAnalytics
+from core.user_data_handlers import get_user_data, save_user_data
+from tests.test_utilities import TestUserFactory
+
+
+class TestQuantitativeAnalyticsExpansion:
+    """Test that quantitative analytics include all opted-in quantitative questions."""
+    
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    @pytest.mark.critical
+    def test_quantitative_analytics_includes_all_enabled_fields(self, test_data_dir, fix_user_data_loaders):
+        """Test that analytics include all enabled quantitative fields."""
+        user_id = "test-user-analytics"
+        
+        # Arrange - Create user with comprehensive check-in settings
+        test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Enable multiple quantitative fields
+        checkin_settings = {
+            "questions": {
+                "mood": {"enabled": True, "type": "scale_1_5"},
+                "energy": {"enabled": True, "type": "scale_1_5"},
+                "stress_level": {"enabled": True, "type": "scale_1_5"},
+                "sleep_quality": {"enabled": True, "type": "scale_1_5"},
+                "anxiety_level": {"enabled": True, "type": "scale_1_5"},
+                "focus_level": {"enabled": True, "type": "scale_1_5"},
+                "sleep_hours": {"enabled": True, "type": "number"},
+                # Non-quantitative fields should be ignored
+                "ate_breakfast": {"enabled": True, "type": "yes_no"},
+                "exercise": {"enabled": True, "type": "yes_no"}
+            }
+        }
+        
+        # Save user preferences
+        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data['preferences'] = {'checkin_settings': checkin_settings}
+        save_user_data(user_id, 'preferences', user_data)
+        
+        # Create sample check-in data with all quantitative fields
+        sample_checkins = [
+            {
+                "timestamp": "2025-10-01 08:00:00",
+                "mood": 4,
+                "energy": 3,
+                "stress_level": 2,
+                "sleep_quality": 4,
+                "anxiety_level": 1,
+                "focus_level": 4,
+                "sleep_hours": 7.5,
+                "ate_breakfast": "yes",
+                "exercise": "no"
+            },
+            {
+                "timestamp": "2025-10-02 08:00:00", 
+                "mood": 3,
+                "energy": 4,
+                "stress_level": 3,
+                "sleep_quality": 3,
+                "anxiety_level": 2,
+                "focus_level": 3,
+                "sleep_hours": 6.0,
+                "ate_breakfast": "no",
+                "exercise": "yes"
+            },
+            {
+                "timestamp": "2025-10-03 08:00:00",
+                "mood": 5,
+                "energy": 5,
+                "stress_level": 1,
+                "sleep_quality": 5,
+                "anxiety_level": 1,
+                "focus_level": 5,
+                "sleep_hours": 8.0,
+                "ate_breakfast": "yes",
+                "exercise": "yes"
+            }
+        ]
+        
+        # Store check-in data
+        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
+        with open(checkin_file, 'w', encoding='utf-8') as f:
+            json.dump(sample_checkins, f, indent=2)
+        
+        # Act - Get quantitative summaries with explicit enabled fields
+        analytics = CheckinAnalytics()
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        
+        # Assert - Verify all quantitative fields are included
+        assert "error" not in summaries, f"Should not have error: {summaries}"
+        
+        # Check that all quantitative fields are present
+        expected_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        for field in expected_fields:
+            assert field in summaries, f"Should include {field} in analytics"
+            
+            # Verify field has proper structure
+            field_stats = summaries[field]
+            assert 'average' in field_stats, f"{field} should have average"
+            assert 'min' in field_stats, f"{field} should have min"
+            assert 'max' in field_stats, f"{field} should have max"
+            assert 'count' in field_stats, f"{field} should have count"
+            assert field_stats['count'] == 3, f"{field} should have count of 3"
+        
+        # Verify yes/no questions are converted to 0/1 values
+        assert summaries['ate_breakfast']['average'] == 0.67, "Breakfast average should be 0.67 (2 yes, 1 no)"
+        assert summaries['exercise']['average'] == 0.67, "Exercise average should be 0.67 (2 yes, 1 no)"
+        
+        # Verify specific calculations
+        assert summaries['mood']['average'] == 4.0, "Mood average should be 4.0"
+        assert summaries['mood']['min'] == 3, "Mood min should be 3"
+        assert summaries['mood']['max'] == 5, "Mood max should be 5"
+        
+        assert summaries['sleep_hours']['average'] == 7.17, "Sleep hours average should be ~7.17"
+        assert summaries['sleep_hours']['min'] == 6.0, "Sleep hours min should be 6.0"
+        assert summaries['sleep_hours']['max'] == 8.0, "Sleep hours max should be 8.0"
+    
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    def test_quantitative_analytics_respects_user_enabled_fields(self, test_data_dir, fix_user_data_loaders):
+        """Test that analytics only include fields the user has enabled."""
+        user_id = "test-user-selective"
+        
+        # Arrange - Create user with selective check-in settings
+        test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Enable only some quantitative fields
+        checkin_settings = {
+            "questions": {
+                "mood": {"enabled": True, "type": "scale_1_5"},
+                "energy": {"enabled": False, "type": "scale_1_5"},  # Disabled
+                "stress_level": {"enabled": True, "type": "scale_1_5"},
+                "sleep_quality": {"enabled": False, "type": "scale_1_5"},  # Disabled
+                "anxiety_level": {"enabled": True, "type": "scale_1_5"},
+                "focus_level": {"enabled": False, "type": "scale_1_5"},  # Disabled
+                "sleep_hours": {"enabled": True, "type": "number"}
+            }
+        }
+        
+        # Save user preferences
+        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data['preferences'] = {'checkin_settings': checkin_settings}
+        save_user_data(user_id, 'preferences', user_data)
+        
+        # Create sample check-in data
+        sample_checkins = [
+            {
+                "timestamp": "2025-10-01 08:00:00",
+                "mood": 4,
+                "energy": 3,  # Should be ignored
+                "stress_level": 2,
+                "sleep_quality": 4,  # Should be ignored
+                "anxiety_level": 1,
+                "focus_level": 4,  # Should be ignored
+                "sleep_hours": 7.5
+            }
+        ]
+        
+        # Store check-in data
+        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
+        with open(checkin_file, 'w', encoding='utf-8') as f:
+            json.dump(sample_checkins, f, indent=2)
+        
+        # Act - Get quantitative summaries with explicit enabled fields
+        analytics = CheckinAnalytics()
+        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_hours']
+        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        
+        # Assert - Verify only enabled fields are included
+        assert "error" not in summaries, f"Should not have error: {summaries}"
+        
+        # Check enabled fields are present
+        enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_hours']
+        for field in enabled_fields:
+            assert field in summaries, f"Should include enabled field {field}"
+        
+        # Check disabled fields are not present
+        disabled_fields = ['energy', 'sleep_quality', 'focus_level']
+        for field in disabled_fields:
+            assert field not in summaries, f"Should not include disabled field {field}"
+    
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    def test_quantitative_analytics_handles_missing_fields_gracefully(self, test_data_dir, fix_user_data_loaders):
+        """Test that analytics handle missing fields gracefully."""
+        user_id = "test-user-missing-fields"
+        
+        # Arrange - Create user with check-in data missing some fields
+        test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Enable all quantitative fields
+        checkin_settings = {
+            "questions": {
+                "mood": {"enabled": True, "type": "scale_1_5"},
+                "energy": {"enabled": True, "type": "scale_1_5"},
+                "stress_level": {"enabled": True, "type": "scale_1_5"},
+                "sleep_quality": {"enabled": True, "type": "scale_1_5"},
+                "anxiety_level": {"enabled": True, "type": "scale_1_5"},
+                "focus_level": {"enabled": True, "type": "scale_1_5"},
+                "sleep_hours": {"enabled": True, "type": "number"}
+            }
+        }
+        
+        # Save user preferences
+        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data['preferences'] = {'checkin_settings': checkin_settings}
+        save_user_data(user_id, 'preferences', user_data)
+        
+        # Create check-in data with missing fields
+        sample_checkins = [
+            {
+                "timestamp": "2025-10-01 08:00:00",
+                "mood": 4,
+                "energy": 3,
+                # Missing: stress_level, sleep_quality, anxiety_level, focus_level, sleep_hours
+            },
+            {
+                "timestamp": "2025-10-02 08:00:00",
+                "mood": 3,
+                "stress_level": 2,
+                "sleep_quality": 4,
+                # Missing: energy, anxiety_level, focus_level, sleep_hours
+            }
+        ]
+        
+        # Store check-in data
+        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
+        with open(checkin_file, 'w', encoding='utf-8') as f:
+            json.dump(sample_checkins, f, indent=2)
+        
+        # Act - Get quantitative summaries with explicit enabled fields
+        analytics = CheckinAnalytics()
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        
+        # Assert - Verify only fields with data are included
+        assert "error" not in summaries, f"Should not have error: {summaries}"
+        
+        # Check fields with data are present
+        assert 'mood' in summaries, "Should include mood (has data in both check-ins)"
+        assert 'energy' in summaries, "Should include energy (has data in first check-in)"
+        assert 'stress_level' in summaries, "Should include stress_level (has data in second check-in)"
+        assert 'sleep_quality' in summaries, "Should include sleep_quality (has data in second check-in)"
+        
+        # Check fields without data are not included
+        assert 'anxiety_level' not in summaries, "Should not include anxiety_level (no data)"
+        assert 'focus_level' not in summaries, "Should not include focus_level (no data)"
+        assert 'sleep_hours' not in summaries, "Should not include sleep_hours (no data)"
+        
+        # Verify counts are correct
+        assert summaries['mood']['count'] == 2, "Mood should have count of 2"
+        assert summaries['energy']['count'] == 1, "Energy should have count of 1"
+        assert summaries['stress_level']['count'] == 1, "Stress level should have count of 1"
+    
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    def test_quantitative_analytics_handles_responses_dict_format(self, test_data_dir, fix_user_data_loaders):
+        """Test that analytics handle check-in data in responses dict format."""
+        user_id = "test-user-responses-dict"
+        
+        # Arrange - Create user with check-in data in responses dict format
+        test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Enable quantitative fields
+        checkin_settings = {
+            "questions": {
+                "mood": {"enabled": True, "type": "scale_1_5"},
+                "energy": {"enabled": True, "type": "scale_1_5"},
+                "stress_level": {"enabled": True, "type": "scale_1_5"}
+            }
+        }
+        
+        # Save user preferences
+        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data['preferences'] = {'checkin_settings': checkin_settings}
+        save_user_data(user_id, 'preferences', user_data)
+        
+        # Create check-in data with responses dict format
+        sample_checkins = [
+            {
+                "timestamp": "2025-10-01 08:00:00",
+                "responses": {
+                    "mood": "4",
+                    "energy": "3",
+                    "stress_level": "2"
+                }
+            },
+            {
+                "timestamp": "2025-10-02 08:00:00",
+                "responses": {
+                    "mood": "3",
+                    "energy": "4",
+                    "stress_level": "3"
+                }
+            }
+        ]
+        
+        # Store check-in data
+        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
+        with open(checkin_file, 'w', encoding='utf-8') as f:
+            json.dump(sample_checkins, f, indent=2)
+        
+        # Act - Get quantitative summaries with explicit enabled fields
+        analytics = CheckinAnalytics()
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        
+        # Assert - Verify fields are processed correctly
+        assert "error" not in summaries, f"Should not have error: {summaries}"
+        
+        # Check all fields are present
+        assert 'mood' in summaries, "Should include mood from responses dict"
+        assert 'energy' in summaries, "Should include energy from responses dict"
+        assert 'stress_level' in summaries, "Should include stress_level from responses dict"
+        
+        # Verify calculations are correct
+        assert summaries['mood']['count'] == 2, "Mood should have count of 2"
+        assert summaries['mood']['average'] == 3.5, "Mood average should be 3.5"
+        assert summaries['mood']['min'] == 3, "Mood min should be 3"
+        assert summaries['mood']['max'] == 4, "Mood max should be 4"
+    
+    @pytest.mark.behavior
+    @pytest.mark.analytics
+    @pytest.mark.file_io
+    def test_quantitative_analytics_error_handling(self, test_data_dir, fix_user_data_loaders):
+        """Test that analytics handle errors gracefully."""
+        user_id = "test-user-error-handling"
+        
+        # Arrange - Create user with invalid data
+        test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Enable quantitative fields
+        checkin_settings = {
+            "questions": {
+                "mood": {"enabled": True, "type": "scale_1_5"},
+                "energy": {"enabled": True, "type": "scale_1_5"}
+            }
+        }
+        
+        # Save user preferences
+        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data['preferences'] = {'checkin_settings': checkin_settings}
+        save_user_data(user_id, 'preferences', user_data)
+        
+        # Create check-in data with invalid values
+        sample_checkins = [
+            {
+                "timestamp": "2025-10-01 08:00:00",
+                "mood": "invalid",  # Invalid value
+                "energy": 3
+            },
+            {
+                "timestamp": "2025-10-02 08:00:00",
+                "mood": 4,
+                "energy": "not_a_number"  # Invalid value
+            },
+            {
+                "timestamp": "2025-10-03 08:00:00",
+                "mood": 5,
+                "energy": 4
+            }
+        ]
+        
+        # Store check-in data
+        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
+        with open(checkin_file, 'w', encoding='utf-8') as f:
+            json.dump(sample_checkins, f, indent=2)
+        
+        # Act - Get quantitative summaries with explicit enabled fields
+        analytics = CheckinAnalytics()
+        enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
+        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        
+        # Assert - Verify only valid data is processed
+        assert "error" not in summaries, f"Should not have error: {summaries}"
+        
+        # Check that only valid data is included
+        assert 'mood' in summaries, "Should include mood with valid data"
+        assert 'energy' in summaries, "Should include energy with valid data"
+        
+        # Verify counts reflect only valid data
+        assert summaries['mood']['count'] == 2, "Mood should have count of 2 (valid entries only)"
+        assert summaries['energy']['count'] == 2, "Energy should have count of 2 (valid entries only)"
+        
+        # Verify calculations are correct for valid data
+        assert summaries['mood']['average'] == 4.5, "Mood average should be 4.5 (4 and 5)"
+        assert summaries['energy']['average'] == 3.5, "Energy average should be 3.5 (3 and 4)"

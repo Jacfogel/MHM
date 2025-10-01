@@ -17,6 +17,39 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Comprehensive Quantitative Analytics Expansion **COMPLETED**
+
+**Context**: User requested expansion of quantitative check-in analytics to include ALL quantitative questions from `resources/default_checkin/questions.json`, noting that there are multiple types of responses (1-5 scale, yes/no, and number between 0-24).
+
+**Problem**: The quantitative analytics system only supported a limited set of fields and did not dynamically include all quantitative questions from the questions configuration file.
+
+**Solution**: 
+- Expanded `core/checkin_analytics.py` to include all 13 quantitative questions from questions.json
+- Added support for three question types: `scale_1_5` (6 questions), `number` (1 question), and `yes_no` (6 questions)
+- Implemented intelligent yes/no to 0/1 conversion for analytics processing
+- Updated analytics handlers to dynamically detect enabled fields from user preferences
+- Created comprehensive test coverage with 8 test scenarios
+
+**Technical Changes**:
+- **core/checkin_analytics.py**: Expanded `candidate_fields` to include all quantitative questions, added yes/no conversion logic
+- **communication/command_handlers/interaction_handlers.py**: Updated to include `yes_no` in enabled field detection
+- **communication/command_handlers/analytics_handler.py**: Updated to include `yes_no` in enabled field detection
+- **tests/behavior/test_quantitative_analytics_expansion.py**: Created comprehensive test suite
+- **tests/behavior/test_comprehensive_quantitative_analytics.py**: Created additional test scenarios
+- **tests/behavior/test_interaction_handlers_coverage_expansion.py**: Updated to use new questions configuration format
+
+**Documentation Updates**:
+- Updated `ai_development_docs/AI_CHANGELOG.md` with completion summary
+- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical changes
+
+**Testing Evidence**:
+- All 1516 tests passing (1516 passed, 1 skipped, 4 warnings)
+- 8 comprehensive test scenarios covering all question types
+- Verified backward compatibility with existing functionality
+- Tested various input formats for yes/no questions ("yes", "y", "true", "1", etc.)
+
+**Outcome**: Complete quantitative analytics coverage for all 13 questions from questions.json with intelligent type handling and comprehensive test coverage.
+
 ### 2025-10-01 - Test Suite Warnings Resolution and Coverage Improvements **COMPLETED**
 
 **Problem**: The test suite had accumulated 17 warnings during test coverage expansion work, including 9 custom marks warnings, 2 test collection warnings, and 4 external library deprecation warnings. These warnings were cluttering test output and needed to be resolved to maintain clean test execution.

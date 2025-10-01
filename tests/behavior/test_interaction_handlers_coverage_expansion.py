@@ -826,11 +826,17 @@ class TestAnalyticsHandlerCoverage:
             {"timestamp": "2025-01-11 09:00:00", "mood": 5, "energy": 4, "stress": 2},
         ])
 
-        # Enable only mood and energy
+        # Enable only mood and energy using new questions format
         from core import user_data_handlers as udh
         def _mock_get_user_data(uid, section):
             if section == 'preferences':
-                return {"preferences": {"checkin_settings": {"enabled_fields": ["mood", "energy"]}}}
+                return {"preferences": {"checkin_settings": {
+                    "questions": {
+                        "mood": {"enabled": True, "type": "scale_1_5"},
+                        "energy": {"enabled": True, "type": "scale_1_5"},
+                        "stress": {"enabled": False, "type": "scale_1_5"}
+                    }
+                }}}
             return {}
         monkeypatch.setattr(udh, "get_user_data", _mock_get_user_data)
 

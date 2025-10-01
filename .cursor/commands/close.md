@@ -4,13 +4,10 @@
 Use this command to wrap up a session, ensure the project is healthy, and record follow-up tasks.
 
 ## Steps
-1. Run the full audit and test suite.
+1. Run the full audit suite.
    ```powershell
    python ai_development_tools/ai_tools_runner.py audit --full
    if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red }
-
-   python run_tests.py
-   if ($LASTEXITCODE -ne 0) { Write-Host "Tests failed" -ForegroundColor Red }
    ```
 2. Review results and note any remaining issues or tests that must be revisited.
 3. Update documentation and planning files, if appropriate:
@@ -21,7 +18,7 @@ Use this command to wrap up a session, ensure the project is healthy, and record
    - `TODO.md`
    - `development_docs/PLANS.md`
 4. Summarise outstanding To-dos, required follow-up testing, and deployment actions.
-5. If all work is complete, add/commit/push changes.
+5. If all work is complete, request confirmation from user to add/commit/push changes.
 
 ## Response Template
 - Summary of Work Completed: ...

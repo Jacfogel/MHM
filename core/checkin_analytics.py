@@ -259,9 +259,32 @@ class CheckinAnalytics:
         if not checkins:
             return {"error": "No check-in data"}
 
+        # If enabled_fields is not provided, get it from user preferences
+        if enabled_fields is None:
+            try:
+                from core.user_data_handlers import get_user_data
+                prefs = get_user_data(user_id, 'preferences') or {}
+                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
+                if isinstance(checkin_settings, dict):
+                    # Get enabled fields from questions configuration
+                    questions = checkin_settings.get('questions', {})
+                    enabled_fields = [key for key, config in questions.items() 
+                                    if config.get('enabled', False) and 
+                                    config.get('type') in ['scale_1_5', 'number', 'yes_no']]
+            except Exception:
+                enabled_fields = None
+
         # Candidate fields available directly on checkin dicts
+        # Include all quantitative fields from questions.json
         candidate_fields = [
-            'mood', 'energy', 'stress', 'sleep_quality', 'anxiety'
+            # Scale 1-5 questions
+            'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 
+            'focus_level',
+            # Number questions  
+            'sleep_hours',
+            # Yes/No questions (converted to 0/1 for analytics)
+            'ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 
+            'hydration', 'social_interaction'
         ]
 
         if enabled_fields is not None:
@@ -275,7 +298,18 @@ class CheckinAnalytics:
             for c in checkins:
                 if field in c:
                     try:
-                        v = float(c[field])
+                        v_raw = c[field]
+                        # Handle yes/no questions by converting to 0/1
+                        if isinstance(v_raw, str):
+                            v_raw_lower = v_raw.lower().strip()
+                            if v_raw_lower in ['yes', 'y', 'true', '1']:
+                                v = 1.0
+                            elif v_raw_lower in ['no', 'n', 'false', '0']:
+                                v = 0.0
+                            else:
+                                v = float(v_raw)
+                        else:
+                            v = float(v_raw)
                         values.append(v)
                     except Exception:
                         continue
@@ -283,7 +317,17 @@ class CheckinAnalytics:
                 elif isinstance(c.get('responses'), dict) and field in c['responses']:
                     try:
                         v_raw = c['responses'][field]
-                        v = float(v_raw)
+                        # Handle yes/no questions by converting to 0/1
+                        if isinstance(v_raw, str):
+                            v_raw_lower = v_raw.lower().strip()
+                            if v_raw_lower in ['yes', 'y', 'true', '1']:
+                                v = 1.0
+                            elif v_raw_lower in ['no', 'n', 'false', '0']:
+                                v = 0.0
+                            else:
+                                v = float(v_raw)
+                        else:
+                            v = float(v_raw)
                         values.append(v)
                     except Exception:
                         continue
