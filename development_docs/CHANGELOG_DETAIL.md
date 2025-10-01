@@ -17,6 +17,32 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Downstream AI Tooling Metrics & Doc Sync Cleanup **COMPLETED**
+
+**Background**: Recent audits reported conflicting function totals across AI_STATUS/AI_PRIORITIES/consolidated_report, and doc-sync kept flagging two broken paths even after repeated auto-fix attempts. The quick status command also only provided a human-readable summary, limiting reuse in generated reports.
+
+**Goals**:
+- Drive every AI-facing document off a single set of canonical metrics and JSON summaries.
+- Preserve structured results from doc-sync and legacy cleanup so reports highlight counts and hotspot files.
+- Resolve the outstanding documentation path drift warnings.
+
+**Technical Changes**:
+- Initialised structured caches inside `ai_development_tools/services/operations.py` and rewrote downstream helpers to parse doc-sync, legacy cleanup, and quick-status JSON results.
+- Updated `_generate_ai_status_document`, `_generate_ai_priorities_document`, and `_generate_consolidated_report` to surface canonical metrics, issue counts, drift hotspots, and system signals.
+- Realigned `.cursor/commands/explore-options.md` and `ai_development_docs/AI_MODULE_DEPENDENCIES.md` references, replacing the missing `core/validation.py` link and correcting relative paths.
+
+**Documentation Updates**:
+- `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `ai_development_tools/consolidated_report.txt` (auto-regenerated).
+- `.cursor/commands/explore-options.md`, `ai_development_docs/AI_MODULE_DEPENDENCIES.md`.
+
+**Testing**:
+- `python ai_development_tools/ai_tools_runner.py audit --full`
+- `python run_tests.py`
+- `python ai_development_tools/documentation_sync_checker.py --check`
+
+**Follow-up**:
+- Review the legacy compatibility markers called out in `development_docs/LEGACY_REFERENCE_REPORT.md` and decide when to retire them.
+
 ### 2025-09-30 - Documentation Synchronisation and Archive Enhancements **COMPLETED**
 
 **Background**: Human and AI-facing workflow, architecture, and documentation guides had drifted out of sync, and the AI changelog archive only preserved headings with no meaningful summaries. Version trim logic also risked duplicating recent entries during future audits.
@@ -58,8 +84,8 @@ This file is the authoritative source for every meaningful change to the project
 **Technical Changes**:
 - Added  ai_development_tools/services/common.py with shared helpers for project paths, ASCII-safe output, JSON CLI handling, and iteration utilities.
 - Added  ai_development_tools/services/operations.py and refactored ai_tools_runner.py into a thin argparse front-end that dispatches through a command registry.
-- Converted nalyze_documentation.py to support --json, ASCII summaries, configurable file lists, and structured duplicate/placeholder detection.
-- Rebuilt udit_function_registry.py around dataclass-driven inventory collection with bounded JSON payloads, actionable metrics, and section regeneration for missing documentation.
+- Converted analyze_documentation.py to support --json, ASCII summaries, configurable file lists, and structured duplicate/placeholder detection.
+- Rebuilt audit_function_registry.py around dataclass-driven inventory collection with bounded JSON payloads, actionable metrics, and section regeneration for missing documentation.
 - Normalised audit result saving to ai_development_tools/ and cached structured metrics for summarised output.
 
 **Documentation Updates**:

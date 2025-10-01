@@ -94,7 +94,7 @@ UI Dependencies:
 **Examples**:
 - `ui/dialogs/` → `core/user_data_handlers.py`
 - `ui/ui_app_qt.py` → `core/config.py`
-- `ui/widgets/` → `core/validation.py`
+- `ui/widgets/` → `core/user_data_validation.py`
 
 **Why Important**: UI needs access to user data and system configuration
 
@@ -177,5 +177,5 @@ UI Dependencies:
 - `user/` - User context (depends on core)
 - `tasks/` - Task management (depends on core)
 
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
+> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](../development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
 > **Last Updated**: 2025-09-29 19:37:00

@@ -33,6 +33,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Downstream Metrics Alignment & Doc Sync Fix **COMPLETED**
+- Unified AI status, priorities, and consolidated report on the canonical audit metrics and quick-status JSON feed.
+- Parsed doc-sync and legacy cleanup outputs in the service layer so summaries surface counts and hotspot files automatically.
+- Corrected stale documentation links and reran doc-sync until it passed cleanly.
+
 ### 2025-09-30 - Documentation Alignment & Archive Fix **COMPLETED**
 - Aligned human and AI workflow, documentation, and architecture guides so each pair shares section order and audience-specific guidance.
 - Rebuilt the AI changelog archive with mined summaries and updated `version_sync.py` to keep full entries without duplication.
@@ -107,8 +112,3 @@ Guidelines:
 - Eliminated noisy Discord test warnings and cleaned up residual test artefacts.
 - Improved log output to highlight actionable issues only.
 - Maintained pass status across interaction-related tests.
-
-### 2025-09-27 - Test Logging System Improvements **COMPLETED**
-- Standardised logging around the test runner with clearer modes and progress indicators.
-- Documented new CLI options for selective test execution.
-- Ensured improved output supports both local and CI workflows.

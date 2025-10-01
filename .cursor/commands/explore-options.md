@@ -4,7 +4,7 @@
 Help the user decide what to work on when priorities are unclear.
 
 ## Steps
-1. Scan `TODO.md`, `development_docs/PLANS.md`, and `ai_development_docs/AI_PRIORITIES.md` for open items.
+1. Scan `../../TODO.md`, `../../development_docs/PLANS.md`, and `../../ai_development_tools/AI_PRIORITIES.md` for open items.
 2. Categorise opportunities (bug fixes, refactors, documentation, automation).
 3. Estimate effort and prerequisites for each option.
 4. Highlight dependencies or audits that should run first.

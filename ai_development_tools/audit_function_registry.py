@@ -208,7 +208,7 @@ def parse_registry_document(path: Path = REGISTRY_PATH) -> Dict[str, Set[str]]:
     for raw_line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         line = raw_line.strip()
         if line.startswith("#### `") and line.endswith("`"):
-            current_file = line[5:-1]
+            current_file = line[5:-1].strip("`")
             mapping.setdefault(current_file, set())
             in_functions = False
             continue
@@ -578,3 +578,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

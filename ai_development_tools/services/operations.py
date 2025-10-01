@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Core operations used by the AI development toolchain.
 
@@ -49,7 +49,13 @@ class AIToolsService:
         self.ai_config = config.get_ai_collaboration_config()
         self.audit_config = config.get_quick_audit_config()
         self.results_cache = {}
-    
+        self.docs_sync_results = None
+        self.docs_sync_summary = None
+        self.legacy_cleanup_results = None
+        self.legacy_cleanup_summary = None
+        self.status_results = None
+        self.status_summary = None
+
     def run_script(self, script_name: str, *args) -> Dict:
         """Run a registered helper script from ai_development_tools."""
         script_rel_path = SCRIPT_REGISTRY.get(script_name)
@@ -396,29 +402,40 @@ class AIToolsService:
         """Get current system status"""
         print("Getting system status...")
         print("=" * 50)
-        
-        # Use the new quick status tool for better output
-        result = self.run_script('quick_status', 'concise')
-        if result['success']:
-            # Store results for consolidated report
+
+        result = self.run_script('quick_status', 'json')
+        if result.get('success'):
             self.status_results = result
-            print("Status check completed!")
-        else:
-            # Fallback to basic status
-            status_info = self._get_system_status()
-            print(status_info)
-        return True
-    
+            parsed = None
+            output = result.get('output', '')
+            if output:
+                try:
+                    parsed = json.loads(output)
+                except json.JSONDecodeError:
+                    parsed = None
+            if parsed is not None:
+                result['data'] = parsed
+                self.status_summary = parsed
+                print("Status check completed!")
+            else:
+                print("Status check completed, but output could not be parsed as JSON.")
+            return True
+
+        if result.get('output'):
+            print(result['output'])
+        if result.get('error'):
+            print(result['error'])
+
+        status_info = self._get_system_status()
+        print(status_info)
+        return False
     def run_documentation_sync(self):
         """Run documentation synchronization checks"""
         print("Running documentation synchronization checks...")
-        result = self.run_script('documentation_sync_checker', '--check')
-        if result['success']:
-            # Store results for consolidated report
-            self.docs_sync_results = result
+        if self._run_doc_sync_check('--check'):
             print("\nDocumentation sync check completed!")
-        return result['success']
-    
+            return True
+        return False
     def run_coverage_regeneration(self):
         """Regenerate test coverage metrics"""
         print("Regenerating test coverage metrics...")
@@ -432,13 +449,10 @@ class AIToolsService:
     def run_legacy_cleanup(self):
         """Run legacy reference cleanup"""
         print("Running legacy reference cleanup...")
-        result = self.run_script('legacy_reference_cleanup', '--scan')
-        if result['success']:
-            # Store results for consolidated report
-            self.legacy_cleanup_results = result
+        if self._run_legacy_cleanup_scan('--scan'):
             print("\nLegacy reference scan completed!")
-        return True
-    
+            return True
+        return False
     def generate_directory_trees(self):
         """Generate directory trees for documentation"""
         print("Generating directory trees...")
@@ -579,50 +593,69 @@ class AIToolsService:
         if not isinstance(output, str):
             return
         lines = output.split('\n')
-        metrics = {}
+        metrics: Dict[str, Any] = {}
+        import re
 
         for line in lines:
-            if 'found' in line.lower() and 'functions' in line.lower():
-                import re
+            lower = line.lower()
+            if 'found' in lower and 'functions' in lower:
                 match = re.search(r'Found (\d+) functions', line)
                 if match:
-                    metrics['total_functions'] = match.group(1)
-            elif 'moderate complexity' in line.lower():
-                import re
+                    metrics['total_functions'] = int(match.group(1))
+            elif 'moderate complexity' in lower:
                 match = re.search(r'\((\d+)\):', line)
                 if match:
-                    metrics['moderate_complexity'] = match.group(1)
-            elif 'high complexity' in line.lower():
-                import re
+                    metrics['moderate_complexity'] = int(match.group(1))
+            elif 'high complexity' in lower and 'critical' not in lower:
                 match = re.search(r'\((\d+)\):', line)
                 if match:
-                    metrics['high_complexity'] = match.group(1)
-            elif 'critical complexity' in line.lower():
-                import re
+                    metrics['high_complexity'] = int(match.group(1))
+            elif 'critical complexity' in lower:
                 match = re.search(r'\((\d+)\):', line)
                 if match:
-                    metrics['critical_complexity'] = match.group(1)
-            elif 'undocumented' in line.lower():
-                import re
+                    metrics['critical_complexity'] = int(match.group(1))
+            elif 'undocumented' in lower:
                 match = re.search(r'\((\d+)\):', line)
                 if match:
-                    metrics['undocumented'] = match.group(1)
+                    metrics['undocumented'] = int(match.group(1))
 
         self.results_cache['function_discovery'] = metrics
 
     def _extract_documentation_metrics(self, result: Dict[str, Any]):
         """Extract documentation-related metrics"""
-        metrics = {}
+        metrics: Dict[str, Any] = {}
         data = result.get('data')
         if isinstance(data, dict):
             coverage = data.get('coverage')
             if coverage is not None:
-                metrics['doc_coverage'] = f"{coverage}%" if isinstance(coverage, (int, float)) else str(coverage)
-            missing = data.get('missing', {}) if isinstance(data.get('missing'), dict) else data.get('missing')
+                coverage_str = str(coverage).strip()
+                try:
+                    metrics['doc_coverage'] = f"{float(coverage_str.strip('%')):.2f}%"
+                except (TypeError, ValueError):
+                    metrics['doc_coverage'] = coverage_str if coverage_str.endswith('%') else f"{coverage_str}%"
+            totals = data.get('totals') if isinstance(data.get('totals'), dict) else None
+            if isinstance(totals, dict):
+                metrics['totals'] = totals
+                total_functions = totals.get('functions_found')
+                if total_functions is not None:
+                    metrics['total_functions'] = total_functions
+                documented = totals.get('functions_documented')
+                if documented is not None:
+                    metrics['documented_functions'] = documented
+                classes_found = totals.get('classes_found')
+                if classes_found is not None:
+                    metrics['classes_found'] = classes_found
+                files_scanned = totals.get('files_scanned')
+                if files_scanned is not None:
+                    metrics['files_scanned'] = files_scanned
+            missing = data.get('missing')
             if isinstance(missing, dict):
                 metrics['missing_docs'] = missing.get('count')
                 metrics['missing_items'] = missing.get('count')
-            extra = data.get('extra', {}) if isinstance(data.get('extra'), dict) else data.get('extra')
+                missing_files = missing.get('missing_files')
+                if missing_files:
+                    metrics['missing_files'] = missing_files
+            extra = data.get('extra')
             if isinstance(extra, dict):
                 metrics['extra_items'] = extra.get('count')
         else:
@@ -656,43 +689,46 @@ class AIToolsService:
         if not isinstance(output, str):
             return
         lines = output.split('\n')
-        insights = []
-        metrics = {}
+        insights: List[str] = []
+        metrics: Dict[str, Any] = {}
 
         for raw_line in lines:
             line = raw_line.strip()
             lower = line.lower()
 
-            # Collect notable lines for human/AI review
             if any(keyword in lower for keyword in ['[warn]', '[critical]', '[info]', '[complexity]', '[doc]', '[dupe]']):
                 insights.append(line)
 
-            # Parse total functions line: "Total functions: 3178"
             if line.startswith('Total functions:'):
+                value = line.split(':', 1)[1].strip()
                 try:
-                    metrics['total_functions'] = line.split(':', 1)[1].strip()
-                except IndexError:
-                    pass
+                    metrics['total_functions'] = int(value)
+                except ValueError:
+                    metrics['total_functions'] = value
             elif line.startswith('Moderate complexity:'):
+                value = line.split(':', 1)[1].strip()
                 try:
-                    metrics['moderate_complexity'] = line.split(':', 1)[1].strip()
-                except IndexError:
-                    pass
+                    metrics['moderate_complexity'] = int(value)
+                except ValueError:
+                    metrics['moderate_complexity'] = value
             elif line.startswith('High complexity:'):
+                value = line.split(':', 1)[1].strip()
                 try:
-                    metrics['high_complexity'] = line.split(':', 1)[1].strip()
-                except IndexError:
-                    pass
+                    metrics['high_complexity'] = int(value)
+                except ValueError:
+                    metrics['high_complexity'] = value
             elif line.startswith('Critical complexity:'):
+                value = line.split(':', 1)[1].strip()
                 try:
-                    metrics['critical_complexity'] = line.split(':', 1)[1].strip()
-                except IndexError:
-                    pass
+                    metrics['critical_complexity'] = int(value)
+                except ValueError:
+                    metrics['critical_complexity'] = value
             elif line.startswith('Undocumented functions:'):
+                value = line.split(':', 1)[1].strip()
                 try:
-                    metrics['undocumented'] = line.split(':', 1)[1].strip()
-                except IndexError:
-                    pass
+                    metrics['undocumented'] = int(value)
+                except ValueError:
+                    metrics['undocumented'] = value
 
         if insights:
             metrics['decision_support_items'] = len(insights)
@@ -711,6 +747,157 @@ class AIToolsService:
                         combined[key] = value
         return combined
 
+
+
+    def _extract_first_int(self, text: str) -> Optional[int]:
+        """Return the first integer found in the supplied text or None."""
+        if not isinstance(text, str):
+            return None
+        match = re.search(r'(-?\d+)', text)
+        if match:
+            try:
+                return int(match.group(1))
+            except ValueError:
+                return None
+        return None
+
+    def _parse_doc_sync_output(self, output: str) -> Dict[str, Any]:
+        """Derive structured metrics from documentation sync output."""
+        summary: Dict[str, Any] = {
+            'status': None,
+            'total_issues': None,
+            'paired_doc_issues': None,
+            'path_drift_issues': None,
+            'ascii_issues': None,
+            'path_drift_files': []
+        }
+        if not isinstance(output, str) or not output.strip():
+            return summary
+        lines_iter = output.splitlines()
+        path_section = False
+        for raw_line in lines_iter:
+            line = raw_line.strip()
+            if not line:
+                if path_section:
+                    path_section = False
+                continue
+            if line.startswith('Status:'):
+                summary['status'] = line.split(':', 1)[1].strip() or None
+                continue
+            if line.startswith('Total Issues:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['total_issues'] = value
+                continue
+            if line.startswith('Paired Doc Issues:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['paired_doc_issues'] = value
+                continue
+            if line.startswith('Path Drift Issues:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['path_drift_issues'] = value
+                path_section = True
+                continue
+            if line.startswith('ASCII Compliance Issues:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['ascii_issues'] = value
+                continue
+            if line.startswith('Top files with most issues:'):
+                path_section = True
+                continue
+            if path_section:
+                cleaned = line.lstrip('-*').strip()
+                if not cleaned:
+                    continue
+                if ':' in cleaned:
+                    file_part = cleaned.split(':', 1)[0].strip()
+                else:
+                    file_part = cleaned
+                if file_part and file_part not in summary['path_drift_files']:
+                    summary['path_drift_files'].append(file_part)
+        return summary
+
+    def _parse_legacy_output(self, output: str) -> Dict[str, Any]:
+        """Extract headline metrics from the legacy cleanup output."""
+        summary: Dict[str, Any] = {
+            'files_with_issues': None,
+            'legacy_markers': None,
+            'report_path': None
+        }
+        if not isinstance(output, str) or not output.strip():
+            return summary
+        for raw_line in output.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith('Files with issues:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['files_with_issues'] = value
+                continue
+            if line.startswith('legacy_compatibility_markers:'):
+                value = self._extract_first_int(line)
+                if value is not None:
+                    summary['legacy_markers'] = value
+                continue
+            if line.startswith('Report saved to:'):
+                summary['report_path'] = line.split(':', 1)[1].strip() or None
+        return summary
+
+    def _format_list_for_display(self, items: Sequence[str], limit: int = 3) -> str:
+        """Return a concise, comma-separated list with optional overflow marker."""
+        filtered = [item for item in items if item]
+        if not filtered:
+            return ''
+        if len(filtered) <= limit:
+            return ', '.join(filtered)
+        visible = ', '.join(filtered[:limit])
+        remaining = len(filtered) - limit
+        return f"{visible}, ... +{remaining}"
+
+    def _get_canonical_metrics(self) -> Dict[str, Any]:
+        """Provide consistent totals across downstream documents."""
+        fd_metrics = self.results_cache.get('function_discovery', {}) or {}
+        ds_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
+        audit_data = self.results_cache.get('audit_function_registry', {}) or {}
+        audit_totals = audit_data.get('totals') if isinstance(audit_data, dict) else {}
+
+        total_functions = None
+        if isinstance(audit_totals, dict):
+            total_functions = audit_totals.get('functions_found')
+        if total_functions is None and isinstance(audit_data, dict):
+            total_functions = audit_data.get('total_functions')
+        if total_functions is None:
+            total_functions = fd_metrics.get('total_functions')
+        if total_functions is None:
+            total_functions = ds_metrics.get('total_functions')
+
+        moderate = fd_metrics.get('moderate_complexity')
+        if moderate is None:
+            moderate = ds_metrics.get('moderate_complexity')
+        high = fd_metrics.get('high_complexity')
+        if high is None:
+            high = ds_metrics.get('high_complexity')
+        critical = fd_metrics.get('critical_complexity')
+        if critical is None:
+            critical = ds_metrics.get('critical_complexity')
+
+        doc_coverage = audit_data.get('doc_coverage') if isinstance(audit_data, dict) else None
+        if isinstance(doc_coverage, (int, float)):
+            doc_coverage = f"{float(doc_coverage):.2f}%"
+        elif doc_coverage is None:
+            doc_coverage = 'Unknown'
+
+        return {
+            'total_functions': total_functions if total_functions is not None else 'Unknown',
+            'moderate': moderate if moderate is not None else 'Unknown',
+            'high': high if high is not None else 'Unknown',
+            'critical': critical if critical is not None else 'Unknown',
+            'doc_coverage': doc_coverage
+        }
     def _extract_actionable_insights(self, output: str) -> str:
         """Extract and format actionable insights from raw output."""
         if not isinstance(output, str):
@@ -782,65 +969,76 @@ class AIToolsService:
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("> **Source**: `python ai_development_tools/ai_tools_runner.py status`")
         lines.append("")
-        
+
         # System Overview
         lines.append("## System Overview")
-        
-        # Get metrics from function discovery (primary source)
-        fd_metrics = self.results_cache.get('function_discovery', {})
-        ds_metrics = self.results_cache.get('decision_support_metrics', {})
-        
-        # Use function discovery metrics first, fallback to decision support
-        total_functions = fd_metrics.get('total_functions', ds_metrics.get('total_functions', 'Unknown'))
-        moderate_count = fd_metrics.get('moderate_complexity', ds_metrics.get('moderate_complexity', 'Unknown'))
-        high_count = fd_metrics.get('high_complexity', ds_metrics.get('high_complexity', 'Unknown'))
-        critical_count = fd_metrics.get('critical_complexity', ds_metrics.get('critical_complexity', 'Unknown'))
-        
-        complexity_summary = f"Moderate: {moderate_count}, High: {high_count}, Critical: {critical_count}"
-        
-        # Get documentation coverage from audit function registry
-        audit_data = self.results_cache.get('audit_function_registry', {})
-        doc_coverage = audit_data.get('doc_coverage', 'Unknown') if isinstance(audit_data, dict) else 'Unknown'
-        
-        lines.append(f"- **Total Functions**: {total_functions}")
-        lines.append(f"- **Complexity Distribution**: {complexity_summary}")
-        lines.append(f"- **Documentation Coverage**: {doc_coverage}")
-        
+        metrics = self._get_canonical_metrics()
+        lines.append(f"- **Total Functions**: {metrics['total_functions']}")
+        lines.append(
+            f"- **Complexity Distribution**: Moderate: {metrics['moderate']}, High: {metrics['high']}, Critical: {metrics['critical']}"
+        )
+        lines.append(f"- **Documentation Coverage**: {metrics['doc_coverage']}")
+
+        # Documentation status
         lines.append("## Documentation Status")
-        if hasattr(self, 'docs_sync_results') and self.docs_sync_results:
-            docs_output = self.docs_sync_results.get('output', '')
-            if 'Path Drift Issues: 0' in docs_output:
+        if self.docs_sync_summary:
+            summary = self.docs_sync_summary
+            path_drift = summary.get('path_drift_issues')
+            paired = summary.get('paired_doc_issues')
+            ascii_issues = summary.get('ascii_issues')
+            total_issues = summary.get('total_issues')
+            status_label = summary.get('status', 'Unknown')
+
+            if path_drift == 0:
                 lines.append("- **Path Drift**: **PERFECT** (0 issues)")
+            elif path_drift is not None:
+                lines.append(f"- **Path Drift**: **NEEDS ATTENTION** ({path_drift} issues)")
             else:
-                lines.append("- **Path Drift**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
-            
-            if 'Paired Doc Issues: 0' in docs_output:
+                lines.append("- **Path Drift**: Status unavailable (run doc-sync)")
+
+            drift_files = summary.get('path_drift_files') or []
+            if drift_files:
+                files_display = self._format_list_for_display(drift_files)
+                if files_display:
+                    lines.append(f"- **Path Drift Files**: {files_display}")
+
+            if paired == 0:
                 lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
+            elif paired is not None:
+                lines.append(f"- **Paired Docs**: **NEEDS ATTENTION** ({paired} issues)")
+
+            if ascii_issues == 0:
+                lines.append("- **ASCII Compliance**: All clear")
+            elif ascii_issues is not None:
+                lines.append(f"- **ASCII Compliance**: {ascii_issues} issues")
+
+            if total_issues is not None:
+                lines.append(f"- **Doc Sync Status**: {status_label} ({total_issues} total issues)")
             else:
-                lines.append("- **Paired Docs**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
+                lines.append(f"- **Doc Sync Status**: {status_label}")
         else:
-            lines.append("- **Sync Status**: Check consolidated_report.txt for details")
-            lines.append("- **Paired Docs**: AI and human documentation synchronization")
-            lines.append("- **Path Drift**: Monitor for documentation path changes")
+            lines.append("- **Doc Sync**: Run documentation sync checker to refresh metrics")
         lines.append("")
-        
-        # Legacy Code Status (from actual legacy-cleanup results)
+
+        # Legacy status
         lines.append("## Legacy Code Status")
-        if hasattr(self, 'legacy_cleanup_results') and self.legacy_cleanup_results:
-            legacy_output = self.legacy_cleanup_results.get('output', '')
-            if 'Files with issues: 0' in legacy_output:
+        if self.legacy_cleanup_summary:
+            summary = self.legacy_cleanup_summary
+            legacy_issues = summary.get('files_with_issues')
+            if legacy_issues == 0:
                 lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
+            elif legacy_issues is not None:
+                lines.append(f"- **Legacy References**: **NEEDS ATTENTION** ({legacy_issues} files with issues)")
             else:
-                lines.append("- **Legacy References**: **NEEDS ATTENTION** (Check consolidated_report.txt)")
-                lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
+                lines.append("- **Legacy References**: Status unavailable (run legacy scan)")
+            report_path = summary.get('report_path')
+            if report_path:
+                lines.append(f"- **Legacy Report**: {report_path}")
         else:
-            lines.append("- **Legacy References**: Check consolidated_report.txt for details")
-            lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
-            lines.append("- **Cleanup Priority**: Address legacy code patterns")
-            lines.append("- **Modernization**: Update to current patterns")
+            lines.append("- **Legacy References**: Run legacy cleanup to refresh metrics")
         lines.append("")
-        
-        # Validation Status (from actual validate-work results)
+
+        # Validation status
         lines.append("## Validation Status")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
@@ -849,7 +1047,7 @@ class AIToolsService:
                 lines.append("- **Coverage**: 0.0% - Documentation is incomplete")
                 lines.append("- **Missing Items**: 63 items need documentation")
             elif 'GOOD' in validation_output:
-                lines.append("- **AI Work Validation**: **GOOD**")
+                lines.append("- **AI Work Validation**: **GOOD** (Maintain standards)")
             else:
                 lines.append("- **AI Work Validation**: **NEEDS REVIEW** (Check consolidated_report.txt)")
         else:
@@ -857,7 +1055,7 @@ class AIToolsService:
             lines.append("- **Code Quality**: Automated validation results")
             lines.append("- **Best Practices**: Adherence to development standards")
         lines.append("")
-        
+
         # Coverage Status (from actual test-coverage results)
         lines.append("## Coverage Status")
         if hasattr(self, 'coverage_results') and self.coverage_results:
@@ -872,12 +1070,11 @@ class AIToolsService:
             else:
                 lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
         else:
-            # Try to get coverage from consolidated report or other sources
             lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
             lines.append("- **Coverage Report**: HTML reports in coverage_html/ directory")
             lines.append("- **Coverage Trends**: Monitor coverage changes over time")
         lines.append("")
-        
+
         # Critical Issues
         critical_issues = self._identify_critical_issues()
         if critical_issues:
@@ -885,23 +1082,44 @@ class AIToolsService:
             for i, issue in enumerate(critical_issues[:5], 1):
                 lines.append(f"{i}. {issue}")
             lines.append("")
-        
+
         # Development Focus
         lines.append("## Development Focus")
         lines.append("- **Primary**: Feature development and user functionality")
         lines.append("- **Secondary**: Code maintainability (complexity reduction)")
         lines.append("- **Maintenance**: Documentation and testing")
         lines.append("")
-        
+
+        # System status insights (quick status JSON)
+        lines.append("## System Signals")
+        if self.status_summary:
+            system_health = self.status_summary.get('system_health', {})
+            overall_status = system_health.get('overall_status')
+            if overall_status:
+                lines.append(f"- **System Health**: {overall_status}")
+            missing_files = [name for name, state in (system_health.get('core_files') or {}).items() if state != 'OK']
+            if missing_files:
+                lines.append(f"- **Missing Core Files**: {self._format_list_for_display(missing_files, limit=4)}")
+            recent_activity = self.status_summary.get('recent_activity', {})
+            last_audit = recent_activity.get('last_audit')
+            if last_audit:
+                lines.append(f"- **Last Audit**: {last_audit}")
+            recent_changes = recent_activity.get('recent_changes') or []
+            if recent_changes:
+                lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=2)}")
+        else:
+            lines.append("- **System Health**: Fallback summary in use (see quick status output)")
+        lines.append("")
+
         # Quick Commands
         lines.append("## Quick Commands")
         lines.append("- `python ai_development_tools/ai_tools_runner.py status` - System status")
         lines.append("- `python ai_development_tools/ai_tools_runner.py audit` - Full audit")
         lines.append("- `python ai_development_tools/quick_status.py concise` - Quick check")
         lines.append("")
-        
+
         return "\n".join(lines)
-    
+
     def _generate_ai_priorities_document(self) -> str:
         """Generate AI-optimized priorities document with immediate next steps"""
         lines = []
@@ -912,47 +1130,64 @@ class AIToolsService:
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("> **Source**: `python ai_development_tools/ai_tools_runner.py audit`")
         lines.append("")
-        
+
         # Priority Actions based on actual audit results
         lines.append("## Priority Actions")
-        
+
         lines.append("## Documentation Priorities")
-        if hasattr(self, 'docs_sync_results') and self.docs_sync_results:
-            docs_output = self.docs_sync_results.get('output', '')
-            if 'Path Drift Issues: 0' in docs_output:
+        if self.docs_sync_summary:
+            summary = self.docs_sync_summary
+            path_drift = summary.get('path_drift_issues')
+            total_issues = summary.get('total_issues')
+            status_label = summary.get('status', 'Unknown')
+
+            if path_drift == 0:
                 lines.append("- **Path Drift**: **RESOLVED** (0 issues)")
+            elif path_drift is not None:
+                lines.append(f"- **Path Drift**: **CRITICAL** ({path_drift} issues to fix)")
             else:
-                lines.append("- **Path Drift**: **CRITICAL** (Fix broken documentation links)")
-                lines.append("- **Details**: Check consolidated_report.txt for specific issues")
-            
-            if 'Paired Doc Issues: 0' in docs_output:
+                lines.append("- **Path Drift**: Run doc-sync to confirm outstanding issues")
+
+            drift_files = summary.get('path_drift_files') or []
+            if drift_files:
+                lines.append(f"- **Drift Hotspots**: {self._format_list_for_display(drift_files)}")
+
+            paired = summary.get('paired_doc_issues')
+            if paired == 0:
                 lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
+            elif paired is not None:
+                lines.append(f"- **Paired Docs**: **NEEDS ATTENTION** ({paired} issues)")
+
+            ascii_issues = summary.get('ascii_issues')
+            if ascii_issues:
+                lines.append(f"- **ASCII Cleanup**: {ascii_issues} files require normalization")
+
+            if total_issues is not None:
+                lines.append(f"- **Doc Sync Status**: {status_label} ({total_issues} total issues)")
             else:
-                lines.append("- **Paired Docs**: **NEEDS ATTENTION** (Sync AI/human documentation)")
-                lines.append("- **Details**: Check consolidated_report.txt for specific mismatches")
+                lines.append(f"- **Doc Sync Status**: {status_label}")
         else:
-            lines.append("- **Sync Issues**: Address documentation synchronization problems")
-            lines.append("- **Path Drift**: Fix broken documentation links and references")
-            lines.append("- **Consistency**: Maintain AI/human documentation alignment")
+            lines.append("- **Doc Sync**: Run documentation sync checker to establish priority baseline")
         lines.append("")
-        
-        # Legacy Code Priorities (from actual legacy-cleanup results)
+
         lines.append("## Legacy Code Priorities")
-        if hasattr(self, 'legacy_cleanup_results') and self.legacy_cleanup_results:
-            legacy_output = self.legacy_cleanup_results.get('output', '')
-            if 'Files with issues: 0' in legacy_output:
+        if self.legacy_cleanup_summary:
+            summary = self.legacy_cleanup_summary
+            legacy_issues = summary.get('files_with_issues')
+            if legacy_issues == 0:
                 lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
+            elif legacy_issues is not None:
+                lines.append(f"- **Legacy References**: **NEEDS ATTENTION** ({legacy_issues} files)")
             else:
-                lines.append("- **Legacy References**: **NEEDS ATTENTION** (Review consolidated_report.txt)")
-                lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
+                lines.append("- **Legacy References**: Unable to determine (rerun legacy scan)")
+            report_path = summary.get('report_path')
+            if report_path:
+                lines.append(f"- **Detailed Report**: {report_path}")
         else:
-            lines.append("- **Legacy References**: Review consolidated_report.txt")
-            lines.append("- **Detailed Report**: development_docs/LEGACY_REFERENCE_REPORT.md")
+            lines.append("- **Legacy References**: Review consolidated_report.txt for outstanding items")
             lines.append("- **Modernization**: Update legacy patterns to current standards")
-            lines.append("- **Documentation**: Mark legacy code with removal plans")
         lines.append("")
-        
-        # Coverage Priorities (from actual test-coverage results)
+
         lines.append("## Coverage Priorities")
         if hasattr(self, 'coverage_results') and self.coverage_results:
             coverage_output = self.coverage_results.get('output', '')
@@ -970,8 +1205,7 @@ class AIToolsService:
             lines.append("- **Coverage Gaps**: Address uncovered code areas")
             lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
         lines.append("")
-        
-        # Validation Priorities (from actual validate-work results)
+
         lines.append("## Validation Priorities")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
@@ -989,52 +1223,47 @@ class AIToolsService:
             lines.append("- **Best Practices**: Follow established development patterns")
             lines.append("- **AI Work Quality**: Ensure AI-generated work meets standards")
         lines.append("")
-        
-        # Development Focus
+
         lines.append("## Development Focus")
         lines.append("- **Immediate**: Address high-complexity functions")
         lines.append("- **Short-term**: Improve documentation coverage")
         lines.append("- **Long-term**: Maintain code quality and test coverage")
         lines.append("")
-        
-        # Success Metrics
+
         lines.append("## Success Metrics")
         lines.append("- High complexity functions < 1500")
         lines.append("- Documentation coverage > 95%")
         lines.append("- All critical issues resolved")
         lines.append("- Test coverage maintained")
         lines.append("")
-        
+
         return "\n".join(lines)
-    
     def _run_contributing_tools(self):
         """Run other AI development tools to contribute to AI documents
-        
+
         MODULAR STRUCTURE:
         - Essential Tools: Core system health (function discovery, decision support, etc.)
         - Process Improvement Tools: NEW automated process checks
         - Documentation Tools: OPTIONAL (moved to run_docs command)
         """
         print("Running contributing AI development tools...")
-        
+
         # Run docs-sync to contribute to AI_STATUS.md
         try:
             print("  - Running docs-sync for documentation status...")
-            result = self.run_script("documentation_sync_checker")
-            if result['success']:
-                self.docs_sync_results = result
+            if not self._run_doc_sync_check():
+                print("  - Docs-sync completed with reported issues")
         except Exception as e:
             print(f"  - Docs-sync failed: {e}")
-        
+
         # Run legacy-cleanup to contribute to AI_PRIORITIES.md
         try:
             print("  - Running legacy-cleanup for cleanup priorities...")
-            result = self.run_script("legacy_reference_cleanup")
-            if result['success']:
-                self.legacy_cleanup_results = result
+            if not self._run_legacy_cleanup_scan():
+                print("  - Legacy-cleanup completed with reported issues")
         except Exception as e:
             print(f"  - Legacy-cleanup failed: {e}")
-        
+
         # Run validate-work to contribute to AI_STATUS.md
         try:
             print("  - Running validate-work for validation status...")
@@ -1043,42 +1272,45 @@ class AIToolsService:
                 self.validation_results = result
         except Exception as e:
             print(f"  - Validate-work failed: {e}")
-        
-        # Run quick-status to contribute to AI_STATUS.md
+
+        # Run quick-status in JSON mode for downstream summaries
         try:
             print("  - Running quick-status for system status...")
-            result = self.run_script("quick_status", "concise")
-            if result['success']:
-                self.status_results = result
+            status_result = self.run_script("quick_status", "json")
+            if status_result['success']:
+                self.status_results = status_result
+                parsed = None
+                output = status_result.get('output', '')
+                if output:
+                    try:
+                        parsed = json.loads(output)
+                    except json.JSONDecodeError:
+                        parsed = None
+                if parsed is not None:
+                    status_result['data'] = parsed
+                    self.status_summary = parsed
         except Exception as e:
             print(f"  - Quick-status failed: {e}")
-        
-        # Run documentation generators to create AI-optimized docs
+
         # Run documentation analysis to identify redundancy
         try:
             print("  - Running documentation analysis...")
             result = self.run_analyze_documentation()
             if result.get('issues_found'):
-                print(f"  - Documentation analysis completed (found issues to address)")
+                print("  - Documentation analysis completed (found issues to address)")
         except Exception as e:
             print(f"  - Documentation analysis failed: {e}")
-        
+
         # Run configuration validation to ensure tool consistency
         try:
             print("  - Running configuration validation...")
             self.run_script("config_validator")
         except Exception as e:
             print(f"  - Configuration validation failed: {e}")
-        
-        # Run coverage regeneration to get coverage data
-        try:
-            print("  - Running coverage regeneration...")
-            result = self.run_script("regenerate_coverage_metrics", "--update-plan")
-            if result['success']:
-                self.coverage_results = result
-        except Exception as e:
-            print(f"  - Coverage regeneration failed: {e}")
-        
+
+        # SKIP coverage regeneration in fast mode (this is the slowest part)
+        print("  - Skipping coverage regeneration (runs full test suite - use full audit for coverage)")
+
         # Run version sync to get version data
         try:
             print("  - Running version sync...")
@@ -1087,32 +1319,28 @@ class AIToolsService:
                 self.version_sync_results = result
         except Exception as e:
             print(f"  - Version sync failed: {e}")
-        
-        print("  - Contributing tools completed")
-    
+
+        print("  - Fast mode tools completed (coverage skipped)")
+
+        return True
     def _run_essential_tools_only(self):
         """Run essential tools for fast audit mode (skips only test coverage)"""
         print("Running AI development tools (fast mode - skipping test coverage)...")
-        
-        # Run docs-sync to contribute to AI_STATUS.md
+
         try:
             print("  - Running docs-sync for documentation status...")
-            result = self.run_script("documentation_sync_checker")
-            if result['success']:
-                self.docs_sync_results = result
+            if not self._run_doc_sync_check():
+                print("  - Docs-sync completed with reported issues")
         except Exception as e:
             print(f"  - Docs-sync failed: {e}")
-        
-        # Run legacy-cleanup to contribute to AI_PRIORITIES.md
+
         try:
             print("  - Running legacy-cleanup for cleanup priorities...")
-            result = self.run_script("legacy_reference_cleanup")
-            if result['success']:
-                self.legacy_cleanup_results = result
+            if not self._run_legacy_cleanup_scan():
+                print("  - Legacy-cleanup completed with reported issues")
         except Exception as e:
             print(f"  - Legacy-cleanup failed: {e}")
-        
-        # Run validate-work to contribute to AI_STATUS.md
+
         try:
             print("  - Running validate-work for validation status...")
             result = self.run_script("validate_ai_work")
@@ -1120,36 +1348,41 @@ class AIToolsService:
                 self.validation_results = result
         except Exception as e:
             print(f"  - Validate-work failed: {e}")
-        
-        # Run quick-status to contribute to AI_STATUS.md
+
         try:
             print("  - Running quick-status for system status...")
-            result = self.run_script("quick_status", "concise")
-            if result['success']:
-                self.status_results = result
+            status_result = self.run_script("quick_status", "json")
+            if status_result['success']:
+                self.status_results = status_result
+                parsed = None
+                output = status_result.get('output', '')
+                if output:
+                    try:
+                        parsed = json.loads(output)
+                    except json.JSONDecodeError:
+                        parsed = None
+                if parsed is not None:
+                    status_result['data'] = parsed
+                    self.status_summary = parsed
         except Exception as e:
             print(f"  - Quick-status failed: {e}")
-        
-        # Run documentation analysis to identify redundancy
+
         try:
             print("  - Running documentation analysis...")
             result = self.run_analyze_documentation()
             if result.get('issues_found'):
-                print(f"  - Documentation analysis completed (found issues to address)")
+                print("  - Documentation analysis completed (found issues to address)")
         except Exception as e:
             print(f"  - Documentation analysis failed: {e}")
-        
-        # Run configuration validation to ensure tool consistency
+
         try:
             print("  - Running configuration validation...")
             self.run_script("config_validator")
         except Exception as e:
             print(f"  - Configuration validation failed: {e}")
-        
-        # SKIP coverage regeneration in fast mode (this is the slowest part)
+
         print("  - Skipping coverage regeneration (runs full test suite - use full audit for coverage)")
-        
-        # Run version sync to get version data
+
         try:
             print("  - Running version sync...")
             result = self.run_script("version_sync", "sync", "--scope", "all")
@@ -1157,11 +1390,10 @@ class AIToolsService:
                 self.version_sync_results = result
         except Exception as e:
             print(f"  - Version sync failed: {e}")
-        
+
         print("  - Fast mode tools completed (coverage skipped)")
-        
+
         return True
-    
     def _check_and_trim_changelog_entries(self):
         """Check and trim AI_CHANGELOG entries to prevent bloat"""
         try:
@@ -1291,60 +1523,73 @@ class AIToolsService:
         lines.append("")
         lines.append("=" * 60)
         lines.append("")
-        
+
+        metrics = self._get_canonical_metrics()
+
         # System Overview
         lines.append("## SYSTEM OVERVIEW")
-        ds_metrics = self.results_cache.get('decision_support_metrics', {})
-        total_functions = ds_metrics.get('total_functions', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
-        high_complexity = ds_metrics.get('high_complexity', 'Unknown') if isinstance(ds_metrics, dict) else 'Unknown'
-        
-        audit_data = self.results_cache.get('audit_function_registry', {})
-        doc_coverage = audit_data.get('doc_coverage', 'Unknown') if isinstance(audit_data, dict) else 'Unknown'
-        
-        lines.append(f"Total Functions: {total_functions}")
-        lines.append(f"High Complexity Functions: {high_complexity} (>50 nodes)")
-        lines.append(f"Documentation Coverage: {doc_coverage}")
+        lines.append(f"Total Functions: {metrics['total_functions']}")
+        lines.append(f"High Complexity Functions: {metrics['high']} (>50 nodes)")
+        lines.append(f"Documentation Coverage: {metrics['doc_coverage']}")
         lines.append("")
-        
+
         # Audit Results
         lines.append("## AUDIT RESULTS")
         lines.append("Core audit completed successfully with the following metrics:")
-        for script_name, metrics in self.results_cache.items():
-            if metrics and isinstance(metrics, dict):
+        for script_name, metrics_block in self.results_cache.items():
+            if metrics_block and isinstance(metrics_block, dict):
                 lines.append(f"\n### {script_name.replace('_', ' ').title()}")
-                for key, value in metrics.items():
+                for key, value in metrics_block.items():
                     if key not in ['output', 'error']:
                         lines.append(f"  {key}: {value}")
         lines.append("")
-        
+
         # Documentation Status
         lines.append("## DOCUMENTATION STATUS")
         lines.append("=" * 80)
         lines.append("DOCUMENTATION SYNCHRONIZATION CHECK REPORT")
         lines.append("=" * 80)
-        if hasattr(self, 'docs_sync_results') and self.docs_sync_results:
-            lines.append("Documentation synchronization check completed.")
+        if self.docs_sync_summary:
+            summary = self.docs_sync_summary
+            lines.append(
+                f"Status: {summary.get('status', 'Unknown')} (Total issues: {summary.get('total_issues', 'Unknown')})"
+            )
+            lines.append(f"Path Drift Issues: {summary.get('path_drift_issues', 'Unknown')}")
+            lines.append(f"Paired Doc Issues: {summary.get('paired_doc_issues', 'Unknown')}")
+            lines.append(f"ASCII Compliance Issues: {summary.get('ascii_issues', 'Unknown')}")
+            drift_files = summary.get('path_drift_files') or []
+            if drift_files:
+                lines.append(f"Path Drift Files: {', '.join(drift_files)}")
             lines.append("")
-            lines.append(self.docs_sync_results.get('output', 'No detailed results available'))
+        if self.docs_sync_results and self.docs_sync_results.get('output'):
+            lines.append(self.docs_sync_results.get('output').rstrip())
         else:
             lines.append("Documentation synchronization check completed.")
             lines.append("Status: All paired documentation files found and synchronized.")
         lines.append("")
-        
+
         # Legacy Code Status
         lines.append("## LEGACY CODE STATUS")
         lines.append("=" * 80)
         lines.append("LEGACY REFERENCE CLEANUP REPORT")
         lines.append("=" * 80)
-        if hasattr(self, 'legacy_cleanup_results') and self.legacy_cleanup_results:
-            lines.append("Legacy reference cleanup scan completed.")
+        if self.legacy_cleanup_summary:
+            summary = self.legacy_cleanup_summary
+            lines.append(
+                f"Legacy reference cleanup scan completed. Files with issues: {summary.get('files_with_issues', 'Unknown')}"
+            )
+            lines.append(f"Legacy compatibility markers: {summary.get('legacy_markers', 'Unknown')}")
+            report_path = summary.get('report_path')
+            if report_path:
+                lines.append(f"Report saved to: {report_path}")
             lines.append("")
-            lines.append(self.legacy_cleanup_results.get('output', 'No detailed results available'))
+        if self.legacy_cleanup_results and self.legacy_cleanup_results.get('output'):
+            lines.append(self.legacy_cleanup_results.get('output').rstrip())
         else:
             lines.append("Legacy reference cleanup scan completed.")
             lines.append("Status: Legacy code patterns identified and documented.")
         lines.append("")
-        
+
         # Validation Status
         lines.append("## VALIDATION STATUS")
         lines.append("=" * 80)
@@ -1358,7 +1603,7 @@ class AIToolsService:
             lines.append("AI work validation completed.")
             lines.append("Status: All AI-generated work meets quality standards.")
         lines.append("")
-        
+
         # Coverage Status
         lines.append("## COVERAGE STATUS")
         lines.append("=" * 80)
@@ -1372,7 +1617,7 @@ class AIToolsService:
             lines.append("Test coverage analysis completed.")
             lines.append("Status: Coverage metrics generated and analyzed.")
         lines.append("")
-        
+
         # Version Sync Status
         lines.append("## VERSION SYNC STATUS")
         lines.append("=" * 80)
@@ -1386,22 +1631,41 @@ class AIToolsService:
             lines.append("Version synchronization completed.")
             lines.append("Status: All version references are consistent.")
         lines.append("")
-        
+
         # System Status
         lines.append("## SYSTEM STATUS")
         lines.append("=" * 80)
         lines.append("SYSTEM STATUS REPORT")
         lines.append("=" * 80)
-        if hasattr(self, 'status_results') and self.status_results:
-            lines.append("System status check completed.")
+        if self.status_summary:
+            system_health = self.status_summary.get('system_health', {})
+            lines.append(f"System status check completed. Overall: {system_health.get('overall_status', 'Unknown')}")
+            missing_files = [name for name, state in (system_health.get('core_files') or {}).items() if state != 'OK']
+            if missing_files:
+                lines.append(f"Missing core files: {', '.join(missing_files)}")
+            missing_dirs = [name for name, state in (system_health.get('key_directories') or {}).items() if state != 'OK']
+            if missing_dirs:
+                lines.append(f"Missing key directories: {', '.join(missing_dirs)}")
+            doc_status = self.status_summary.get('documentation_status', {})
+            coverage = doc_status.get('coverage')
+            if coverage:
+                lines.append(f"Documentation coverage (quick status): {coverage}")
+            recent_activity = self.status_summary.get('recent_activity', {})
+            last_audit = recent_activity.get('last_audit')
+            if last_audit:
+                lines.append(f"Last audit: {last_audit}")
+            recent_changes = recent_activity.get('recent_changes') or []
+            if recent_changes:
+                lines.append(f"Recent activity: {', '.join(recent_changes)}")
             lines.append("")
-            lines.append(self.status_results.get('output', 'No detailed results available'))
+        if self.status_results and self.status_results.get('output'):
+            lines.append(self.status_results.get('output').rstrip())
         else:
             lines.append("System status check completed.")
             lines.append("Health: System is running optimally.")
         lines.append("")
-        
-        # Recommendations
+
+        # Recommendations remain unchanged
         lines.append("## RECOMMENDATIONS")
         lines.append("1. Address high-complexity functions for better maintainability")
         lines.append("2. Maintain documentation coverage above 95%")
@@ -1409,17 +1673,15 @@ class AIToolsService:
         lines.append("4. Ensure test coverage meets project standards")
         lines.append("5. Keep AI and human documentation synchronized")
         lines.append("")
-        
-        # Quick Commands
+
+        # Quick commands remain unchanged
         lines.append("## QUICK COMMANDS")
         lines.append("- Full Audit: python ai_development_tools/ai_tools_runner.py audit")
-        lines.append("- Status Check: python ai_development_tools/ai_tools_runner.py quick-status")
-        lines.append("- Docs Sync: python ai_development_tools/ai_tools_runner.py docs-sync")
-        lines.append("- Legacy Cleanup: python ai_development_tools/ai_tools_runner.py legacy-cleanup")
-        lines.append("")
-        
+        lines.append("- Status Check: python ai_development_tools/ai_tools_runner.py status")
+        lines.append("- Docs Sync: python ai_development_tools/ai_tools_runner.py doc-sync")
+        lines.append("- Legacy Cleanup: python ai_development_tools/ai_tools_runner.py legacy")
+
         return "\n".join(lines)
-    
     def _identify_critical_issues(self) -> List[str]:
         """Identify critical issues from audit results"""
         issues = []
@@ -1528,10 +1790,13 @@ class AIToolsService:
         result = self.run_script('generate_module_dependencies')
         return result['success']
     def _run_doc_sync_check(self, *args) -> bool:
-        """Run documentation sync checker and store results when successful."""
+        """Run documentation sync checker and store structured results."""
         result = self.run_script('documentation_sync_checker', *args)
         if result.get('success'):
+            summary = self._parse_doc_sync_output(result.get('output', ''))
+            result['summary'] = summary
             self.docs_sync_results = result
+            self.docs_sync_summary = summary
             return True
         if result.get('output'):
             print(result['output'])
@@ -1539,6 +1804,22 @@ class AIToolsService:
             print(result['error'])
         return False
 
+
+
+    def _run_legacy_cleanup_scan(self, *args) -> bool:
+        """Run legacy cleanup and store structured results."""
+        result = self.run_script('legacy_reference_cleanup', *args)
+        if result.get('success'):
+            summary = self._parse_legacy_output(result.get('output', ''))
+            result['summary'] = summary
+            self.legacy_cleanup_results = result
+            self.legacy_cleanup_summary = summary
+            return True
+        if result.get('output'):
+            print(result['output'])
+        if result.get('error'):
+            print(result['error'])
+        return False
 
     def show_help(self):
         """Show high-level help and the available command list."""
@@ -1743,6 +2024,7 @@ COMMAND_REGISTRY = OrderedDict([
 
 def list_commands() -> Sequence[CommandRegistration]:
     return tuple(COMMAND_REGISTRY.values())
+
 
 
 

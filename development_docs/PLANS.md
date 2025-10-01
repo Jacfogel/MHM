@@ -3,7 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-09-30  
+> **Last Updated**: 2025-10-01  
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
@@ -23,13 +23,13 @@
 
 **Implementation Plan**:
 - [ ] Remove or rephrase the duplicated "Core Safety Rules" content so each guide serves its audience independently.
-- [ ] Investigate the doc-sync path validation report and repair or restore the referenced files.
-- [ ] Replace the remaining non-ASCII characters with ASCII equivalents in the affected documents.
+- [x] Investigate the doc-sync path validation report and repair or restore the referenced files.
+- [x] Replace the remaining non-ASCII characters with ASCII equivalents in the affected documents.
 
 **Success Criteria**:
 - [ ] python ai_development_tools/analyze_documentation.py --json reports zero duplicates.
-- [ ] python ai_development_tools/ai_tools_runner.py doc-sync reports zero path drift issues.
-- [ ] Fast audit passes with no ASCII compliance warnings.
+- [x] python ai_development_tools/ai_tools_runner.py doc-sync reports zero path drift issues.
+- [x] Fast audit passes with no ASCII compliance warnings.
 
 
 ### **Process Improvement Tools Implementation** ✅ **COMPLETED**

@@ -40,24 +40,6 @@ When adding new tasks, follow this format:
   - [ ] Update both documents and re-run the documentation analysis tool to confirm no duplicates remain.
   - [ ] Run the fast audit to verify the documentation quality check passes.
 
-**Documentation Path Drift Fixes** - Investigate and resolve the two path validation warnings from the audit.
-- *What it means*: Locate the missing or misreferenced files reported by documentation_sync_checker and update the affected Markdown links.
-- *Why it helps*: Prevents broken references in docs and clears audit warnings.
-- *Estimated effort*: Medium
-- Next steps:
-  - [ ] Run the doc-sync command and capture the path issue details.
-  - [ ] Correct or restore each referenced resource.
-  - [ ] Re-run the fast audit to ensure path validation reports zero issues.
-
-**ASCII Compliance Cleanup** - Eliminate the remaining non-ASCII characters flagged by the audit.
-- *What it means*: Replace smart quotes, dashes, or symbols with ASCII equivalents in the eight files highlighted by documentation_sync_checker.
-- *Why it helps*: Keeps documentation portable across environments and keeps the ASCII compliance gate green.
-- *Estimated effort*: Small
-- Next steps:
-  - [ ] Use the audit output to list affected files and characters.
-  - [ ] Replace each non-ASCII character with an ASCII-safe equivalent.
-  - [ ] Run the fast audit to confirm the ASCII compliance check passes.
-
 
 **Process Improvement Tools Integration** ✅ **COMPLETED**
 - *What it means*: Implemented comprehensive process improvement tools to prevent recurring issues and maintain system quality
@@ -282,6 +264,15 @@ When adding new tasks, follow this format:
   - [ ] Add behavior test for flow expiration after unrelated outbound message
 
 ## Medium Priority
+
+**Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
+- *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.
+- *Why it helps*: Reduces long-term maintenance burden while keeping compatibility decisions intentional.
+- *Estimated effort*: Medium
+- Next steps:
+  - [ ] Confirm no active clients rely on the legacy fields.
+  - [ ] Replace markers with clear TODO notes or remove them entirely.
+  - [ ] Update the legacy report and changelog once resolved.
 
 **Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions
 - *What it means*: Review the current `get_user_suggestions()` function and implement proper personalized suggestion functionality
