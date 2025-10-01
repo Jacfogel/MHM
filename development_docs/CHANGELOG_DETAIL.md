@@ -17,6 +17,41 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Log Rotation Truncation Fix **COMPLETED**
+
+**Problem**: The `app.log` and `errors.log` files were growing indefinitely despite having daily rotation configured. While backup files were being created correctly in `logs/backups/`, the original log files were not being truncated after rotation, causing them to accumulate entries spanning multiple days (September 10th through October 1st).
+
+**Root Cause**: The `BackupDirectoryRotatingFileHandler.doRollover()` method had a critical flaw in its Windows-safe error handling. When encountering `PermissionError` (common on Windows with file locking), the code would copy the file to backup directory but never truncate the original file, causing it to continue growing.
+
+**Technical Changes**:
+- **File**: `core/logger.py` - Enhanced `doRollover()` method in `BackupDirectoryRotatingFileHandler` class
+- **Added explicit file truncation** after successful backup operations in both "move" and "copy" code paths
+- **Added proper error handling** for truncation operations with informative logging
+- **Maintained existing rotation logic** for time-based (midnight) and size-based (5MB) triggers
+
+**Key Code Changes**:
+```python
+# CRITICAL: Truncate the original file after successful backup
+try:
+    with open(self.baseFilename, 'w', encoding='utf-8') as f:
+        f.truncate(0)  # Truncate to 0 bytes
+    print(f"Info: Successfully truncated original log file: {self.baseFilename}")
+except Exception as truncate_error:
+    print(f"Warning: Could not truncate original log file: {truncate_error}")
+```
+
+**Testing Evidence**:
+- Created comprehensive test suite to verify rotation logic works correctly
+- Manual rotation tests confirmed files are properly truncated from 1151 bytes to 0 bytes
+- Size-based rotation tests confirmed immediate truncation when size limits exceeded
+- Verified both `app.log` and `errors.log` rotation scenarios work identically
+
+**Documentation Updates**:
+- Updated `ai_development_docs/AI_CHANGELOG.md` with fix summary
+- Updated `development_docs/CHANGELOG_DETAIL.md` with detailed technical record
+
+**Outcome**: Log rotation now works correctly with proper file truncation. At midnight tonight, `app.log` and `errors.log` will be properly backed up and truncated, preventing future multi-day accumulation.
+
 ### 2025-10-01 - Chat Interaction Storage Testing Implementation **COMPLETED**
 
 **Context**: User requested comprehensive testing for chat interaction storage with real user scenarios to ensure the system works reliably across all user interaction patterns.

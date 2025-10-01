@@ -8,6 +8,7 @@ import time
 import json
 import gzip
 import sys
+import datetime
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
@@ -337,6 +338,13 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 # Now move to backup directory
                 try:
                     shutil.move(dfn, backup_path)
+                    # After successful move, the original file should be empty/truncated
+                    # But let's ensure it's properly reset by truncating it
+                    try:
+                        with open(self.baseFilename, 'w', encoding='utf-8') as f:
+                            f.truncate(0)  # Ensure file is properly reset
+                    except Exception as truncate_error:
+                        print(f"Warning: Could not truncate original log file after move: {truncate_error}")
                 except (PermissionError, OSError) as move_error:
                     # If move to backup fails, at least we have the rotated file
                     print(f"Warning: Could not move rotated log to backup directory: {move_error}")
@@ -346,8 +354,18 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 try:
                     # Try to copy the file instead of moving it
                     shutil.copy2(self.baseFilename, backup_path)
-                    # Don't try to delete the original - let it be overwritten
                     print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
+                    
+                    # CRITICAL: Truncate the original file after successful backup
+                    # This ensures the log file is properly reset for the new day
+                    try:
+                        with open(self.baseFilename, 'w', encoding='utf-8') as f:
+                            f.truncate(0)  # Truncate to 0 bytes
+                        print(f"Info: Successfully truncated original log file: {self.baseFilename}")
+                    except Exception as truncate_error:
+                        print(f"Warning: Could not truncate original log file: {truncate_error}")
+                        # Continue anyway - the backup was successful
+                        
                 except (PermissionError, OSError) as copy_error:
                     # Even copy failed, skip rollover for this time
                     print(f"Warning: Could not backup log file {self.baseFilename}: {copy_error}")
@@ -604,6 +622,8 @@ def setup_logging():
         log_paths['backup_dir'],
         maxBytes=config.LOG_MAX_BYTES,
         backupCount=config.LOG_BACKUP_COUNT,
+        when='midnight',
+        interval=1,
         encoding='utf-8'
     )
     file_handler.setFormatter(log_formatter)
@@ -652,6 +672,8 @@ def setup_third_party_error_logging():
             log_paths['backup_dir'],
             maxBytes=config.LOG_MAX_BYTES,
             backupCount=config.LOG_BACKUP_COUNT,
+            when='midnight',
+            interval=1,
             encoding='utf-8'
         )
         error_handler.setFormatter(error_formatter)

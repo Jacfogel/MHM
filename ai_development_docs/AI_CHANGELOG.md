@@ -33,6 +33,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Log Rotation Truncation Fix **COMPLETED**
+- Fixed critical bug where app.log and errors.log files were not being truncated after midnight rotation
+- Added explicit file truncation in BackupDirectoryRotatingFileHandler.doRollover() method
+- Ensured both time-based (midnight) and size-based (5MB) rotation properly clear original files
+- Tested rotation logic with manual tests confirming files are truncated to 0 bytes after backup
+- **Impact**: Log files will now properly reset daily instead of accumulating multi-day entries
+
 ### 2025-10-01 - Chat Interaction Storage Testing Implementation **COMPLETED**
 - **New Test Suite**: Created comprehensive chat interaction storage tests with 11 real user scenarios
 - **Testing Standards Compliance**: Added proper fixtures (`fix_user_data_loaders`) and test isolation
@@ -109,8 +116,3 @@ Guidelines:
 - Completed the refactor of remaining critical-complexity functions with improved helper structure.
 - Documented interface changes and updated tests to match the new APIs.
 - Reduced blocker backlog associated with high-complexity hotspots.
-
-### 2025-09-27 - Legacy Code Management and Cleanup **COMPLETED**
-- Removed obsolete modules and aligned error messaging with the unified helper naming convention.
-- Scrubbed lingering references to legacy functions across docs and comments.
-- Kept regression risk low by exercising the behaviour suite.
