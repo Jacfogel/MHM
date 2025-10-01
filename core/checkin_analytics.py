@@ -266,11 +266,17 @@ class CheckinAnalytics:
                 prefs = get_user_data(user_id, 'preferences') or {}
                 checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
                 if isinstance(checkin_settings, dict):
-                    # Get enabled fields from questions configuration
-                    questions = checkin_settings.get('questions', {})
-                    enabled_fields = [key for key, config in questions.items() 
-                                    if config.get('enabled', False) and 
-                                    config.get('type') in ['scale_1_5', 'number', 'yes_no']]
+                    # LEGACY COMPATIBILITY: Support old enabled_fields format
+                    if 'enabled_fields' in checkin_settings:
+                        logger.warning(f"LEGACY COMPATIBILITY: User {user_id} using old enabled_fields format - consider migrating to questions format")
+                        enabled_fields = checkin_settings.get('enabled_fields', [])
+                        logger.debug(f"LEGACY: Found enabled_fields: {enabled_fields}")
+                    else:
+                        # Get enabled fields from new questions configuration
+                        questions = checkin_settings.get('questions', {})
+                        enabled_fields = [key for key, config in questions.items() 
+                                        if config.get('enabled', False) and 
+                                        config.get('type') in ['scale_1_5', 'number', 'yes_no']]
             except Exception:
                 enabled_fields = None
 
@@ -288,7 +294,24 @@ class CheckinAnalytics:
         ]
 
         if enabled_fields is not None:
-            fields = [f for f in candidate_fields if f in enabled_fields]
+            # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
+            # For new questions format, only include fields that are in candidate_fields
+            try:
+                from core.user_data_handlers import get_user_data
+                prefs = get_user_data(user_id, 'preferences') or {}
+                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
+                is_legacy_format = isinstance(checkin_settings, dict) and 'enabled_fields' in checkin_settings
+            except Exception:
+                is_legacy_format = False
+                
+            if is_legacy_format:
+                # Legacy format: include any field that's in enabled_fields and has data
+                fields = enabled_fields
+                logger.debug(f"LEGACY: Using fields directly: {fields}")
+            else:
+                # New format: only include fields that are in candidate_fields
+                fields = [f for f in candidate_fields if f in enabled_fields]
+                logger.debug(f"NEW: Filtered fields: {fields}")
         else:
             fields = candidate_fields
 
