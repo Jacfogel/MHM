@@ -30,30 +30,6 @@ When adding new tasks, follow this format:
 
 ## High Priority
 
-
-**Documentation Duplication Cleanup - Core Safety Rules** - Ensure human and AI workflow guides no longer share verbatim content
-- *What it means*: Remove or rewrite the duplicated Core Safety Rules section between DEVELOPMENT_WORKFLOW.md and ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md so each document serves its audience.
-- *Why it helps*: Keeps paired documentation authoritative and stops repeated audit failures.
-- *Estimated effort*: Small
-- Next steps:
-  - [ ] Decide whether to centralize the canonical section or tailor separate summaries per audience.
-  - [ ] Update both documents and re-run the documentation analysis tool to confirm no duplicates remain.
-  - [ ] Run the fast audit to verify the documentation quality check passes.
-
-
-**Process Improvement Tools Integration** ✅ **COMPLETED**
-- *What it means*: Implemented comprehensive process improvement tools to prevent recurring issues and maintain system quality
-- *Why it helps*: Prevents changelog bloat, validates file references, detects documentation quality issues, ensures ASCII compliance, and automates TODO hygiene
-- *Estimated effort*: Large
-- *Status*: ✅ **COMPLETED** - All 5 process improvement tools implemented and integrated into audit workflow
-- *Results*:
-  - **Changelog Management**: Auto-trimming prevents bloat, enforces entry limits, creates archives
-  - **Path Validation**: Validates all referenced paths exist and are correct
-  - **Documentation Quality**: Detects verbatim duplicates and placeholder content
-  - **ASCII Compliance**: Ensures documentation uses ASCII-only characters
-  - **TODO Hygiene**: Automatically syncs completed tasks with changelog
-- *Testing*: All tools tested and working correctly, audit runs successfully with new process improvements
-
 **Chat Interaction Storage Testing** - Verify real user scenarios
 - *What it means*: Test chat interaction storage with real user scenarios to ensure proper context building
 - *Why it helps*: Ensures AI can reference previous conversations for better continuity
@@ -77,23 +53,6 @@ When adding new tasks, follow this format:
   - [ ] Add behavior tests validating per-field section in analytics overview
 
 
-**High Complexity Function Refactoring - Phase 4** ⚠️ **HIGH PRIORITY**
-- *What it means*: Continue refactoring high complexity functions identified in latest audit (1,980 functions >50 nodes)
-- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
-- *Estimated effort*: Large
-- *Current Status*: Ready to begin with comprehensive test coverage approach established
-- *Audit Results*: 1,980 high complexity functions identified, focus on auto_cleanup.py, backup_manager.py, logger.py
-- *Next Priority Targets*:
-  - `get_user_data` in `core/user_data_handlers.py` (likely high complexity, used extensively)
-  - `save_user_data` in `core/user_data_handlers.py` (critical for data persistence)
-  - `cleanup_old_tasks` in `core/scheduler.py` (complex job management)
-  - `cleanup_task_reminders` in `core/scheduler.py` (similar to above)
-- *Subtasks*:
-  - [ ] **Analyze Next Priority Functions** - Identify highest impact functions from audit results
-  - [ ] **Expand Test Coverage** - Add comprehensive tests before refactoring
-  - [ ] **Refactor with Helper Functions** - Extract helpers using `_main_function__helper_name` pattern
-  - [ ] **Validate Changes** - Run full test suite and verify no regressions
-  - [ ] **Monitor Progress** - Track complexity reduction metrics
 
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
@@ -169,21 +128,6 @@ When adding new tasks, follow this format:
     - [ ] Ensure help system surfaces core commands and examples
     - [ ] Test all commands to ensure they work properly
 
-**Refactor High Complexity Core Functions** ⚠️ **NEW PRIORITY**
-- *What it means*: Continue refactoring high complexity functions identified in audit, starting with `save_user_data` and other core functions
-- *Why it helps*: Reduces maintenance risk, improves code readability, and makes future development safer
-- *Estimated effort*: Large
-- *Subtasks*:
-  - [ ] **Refactor save_user_data Function**
-    - [ ] Analyze current complexity and identify refactoring opportunities
-    - [ ] Extract helper functions to reduce complexity
-    - [ ] Improve error handling and validation
-    - [ ] Test refactored function thoroughly
-  - [ ] **Continue with Other High Complexity Functions**
-    - [ ] Identify next priority functions from audit results
-    - [ ] Apply same refactoring approach (extract helpers, reduce nesting)
-    - [ ] Maintain functionality while reducing complexity
-    - [ ] Update tests and documentation
 
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
@@ -245,13 +189,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
 
-**High Complexity Function Refactoring** - Address audit findings for maintainability
-- *What it means*: 1462 out of 1907 functions have high complexity (>50 nodes), which may impact maintainability
-- *Why it helps*: Improves code maintainability, reduces cognitive load, makes debugging easier
-- *Estimated effort*: Large
-- *Status*: 📊 **MONITORING** — Identified by audit, not blocking development
-- *Action*: Prioritize refactoring during feature development, focus on most complex functions first
-- *Testing Needed*: Ensure refactoring doesn't break functionality
 
 **Check-in Flow Behavior & Stability**
 - *What it means*: Ensure active check-ins expire correctly and legacy shims are not used in live flows
