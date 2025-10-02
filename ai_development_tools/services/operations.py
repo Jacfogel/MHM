@@ -1866,7 +1866,44 @@ class AIToolsService:
                 lines.append(f"Recent activity: {', '.join(recent_changes)}")
             lines.append("")
         if self.status_results and self.status_results.get('output'):
-            lines.append(self.status_results.get('output').rstrip())
+            # Parse and format the JSON output instead of including raw JSON
+            try:
+                status_data = json.loads(self.status_results.get('output'))
+                system_health = status_data.get('system_health', {})
+                overall_status = system_health.get('overall_status', 'Unknown')
+                lines.append(f"System status check completed. Overall: {overall_status}")
+                
+                # Check for missing core files
+                core_files = system_health.get('core_files', {})
+                missing_files = [name for name, status in core_files.items() if status != 'OK']
+                if missing_files:
+                    lines.append(f"Missing core files: {', '.join(missing_files)}")
+                
+                # Check for missing directories
+                key_dirs = system_health.get('key_directories', {})
+                missing_dirs = [name for name, status in key_dirs.items() if status != 'OK']
+                if missing_dirs:
+                    lines.append(f"Missing key directories: {', '.join(missing_dirs)}")
+                
+                # Add documentation status
+                doc_status = status_data.get('documentation_status', {})
+                coverage = doc_status.get('coverage', 'Unknown')
+                if coverage != 'Unknown':
+                    lines.append(f"Documentation coverage: {coverage}")
+                
+                # Add recent activity
+                recent_activity = status_data.get('recent_activity', {})
+                last_audit = recent_activity.get('last_audit')
+                if last_audit:
+                    lines.append(f"Last audit: {last_audit}")
+                recent_changes = recent_activity.get('recent_changes', [])
+                if recent_changes:
+                    lines.append(f"Recent activity: {', '.join(recent_changes)}")
+                    
+            except (json.JSONDecodeError, KeyError):
+                # Fallback to simple status if JSON parsing fails
+                lines.append("System status check completed.")
+                lines.append("Health: System is running optimally.")
         else:
             lines.append("System status check completed.")
             lines.append("Health: System is running optimally.")

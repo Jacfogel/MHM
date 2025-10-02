@@ -11,6 +11,12 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple, Any
 import json
 from datetime import datetime
+from ai_development_tools.services.common import ensure_ascii
+from ai_development_tools.services.constants import (
+    is_local_module as _is_local_module,
+    is_standard_library_module as _is_stdlib_module,
+)
+
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
     """Extract all imports from a Python file with detailed information."""
@@ -38,7 +44,6 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
-                        print(f"DEBUG: Found stdlib import: {module_name}")
                     elif is_local_import(module_name):
                         imports['local'].append(import_info)
                     else:
@@ -63,62 +68,23 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                     
                     if is_standard_library(module_name):
                         imports['standard_library'].append(import_info)
-                        print(f"DEBUG: Found stdlib import: {module_name}")
                     elif is_local_import(module_name):
                         imports['local'].append(import_info)
                     else:
                         imports['third_party'].append(import_info)
                 
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        print(ensure_ascii(f"Error parsing {file_path}: {e}"))
     
     return imports
 
 def is_standard_library(module_name: str) -> bool:
     """Check if a module is part of the Python standard library."""
-    import sys
-    
-    # Get the base module name (first part before any dots)
-    base_module = module_name.split('.')[0]
-    
-    # Simple and reliable approach: use a comprehensive list of standard library modules
-    standard_lib_modules = {
-        'os', 'sys', 'json', 'time', 'datetime', 'pathlib', 'typing', 're', 'uuid',
-        'shutil', 'zipfile', 'threading', 'asyncio', 'socket', 'logging', 'warnings', 
-        'subprocess', 'signal', 'atexit', 'random', 'hashlib', 'email', 'smtplib', 
-        'urllib', 'http', 'ssl', 'calendar', 'math', 'statistics', 'collections', 
-        'itertools', 'functools', 'contextlib', 'ast', 'argparse', 'configparser',
-        'csv', 'sqlite3', 'tempfile', 'glob', 'fnmatch', 'pickle', 'copy', 'weakref',
-        'gc', 'traceback', 'inspect', 'pdb', 'profile', 'pstats', 'cProfile',
-        'multiprocessing', 'queue', 'concurrent', 'select', 'selectors',
-        'mmap', 'array', 'struct', 'binascii', 'base64', 'quopri', 'uu', 'codecs',
-        'locale', 'gettext', 'unicodedata', 'stringprep', 'difflib', 'textwrap',
-        'string', 'io', 'fileinput', 'linecache', 'keyword', 'token',
-        'tokenize', 'tabnanny', 'pyclbr', 'py_compile', 'compileall', 'dis',
-        'pickletools', 'distutils', 'ensurepip', 'venv', 'zipapp', 'runpy',
-        'importlib', 'pkgutil', 'modulefinder', 'pydoc', 'doctest', 'unittest',
-        'test', 'bdb', 'faulthandler', 'timeit', 'trace', 'tracemalloc', 'cmd', 'shlex',
-        'tkinter', 'turtle', 'curses', 'platform', 'errno', 'ctypes', 'winsound', 
-        'msilib', 'msvcrt', 'winreg', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile',
-        'zipfile', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile', 'gzip',
-        'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile', 'gzip', 'zlib', 'bz2', 'lzma',
-        'tarfile', 'zipfile', 'gzip', 'zlib', 'bz2', 'lzma', 'tarfile', 'zipfile'
-    }
-    
-    # Check if it's a standard library module
-    if base_module in standard_lib_modules:
-        return True
-    
-    # Check if it's a built-in module
-    if base_module in sys.builtin_module_names:
-        return True
-    
-    return False
+    return _is_stdlib_module(module_name)
 
 def is_local_import(module_name: str) -> bool:
     """Check if a module is a local import (part of our project)."""
-    local_prefixes = ['core.', 'bot.', 'ui.', 'user.', 'tasks.', 'scripts.', 'tests.']
-    return any(module_name.startswith(prefix) for prefix in local_prefixes)
+    return _is_local_module(module_name)
 
 def format_import_details(import_info: Dict) -> str:
     """Format import information for display."""
@@ -131,7 +97,7 @@ def format_import_details(import_info: Dict) -> str:
     else:
         # Specific items imported
         items_str = ', '.join(imported_items)
-        return f"{module} ({items_str})"
+        return ensure_ascii(f"{module} ({items_str})")
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract import information."""
@@ -212,7 +178,7 @@ def analyze_dependency_changes(file_path: str, data: Dict, existing_content: str
     # Extract existing dependencies from content
     existing_deps = set()
     if existing_content:
-        section_start = existing_content.find(f"#### `{file_path}`")
+        section_start = existing_content.find(ensure_ascii(f"#### `{file_path}`"))
         if section_start != -1:
             next_section = existing_content.find("#### `", section_start + 1)
             if next_section == -1:
@@ -276,7 +242,7 @@ def infer_module_purpose(file_path: str, data: Dict, all_modules: Dict[str, Dict
         elif 'user_context_manager' in file_path:
             return "Manages user context for AI conversations"
         else:
-            return f"Communication channel implementation for {file_path.split('/')[-1].replace('.py', '')}"
+            return ensure_ascii(f"Communication channel implementation for {file_path.split('/')[-1].replace('.py', '')}")
     
     elif file_path.startswith('core/'):
         if 'config' in file_path:
@@ -319,31 +285,31 @@ def infer_module_purpose(file_path: str, data: Dict, all_modules: Dict[str, Dict
         elif 'checkin_analytics' in file_path:
             return "Analyzes check-in data and provides insights"
         else:
-            return f"Core system module for {file_path.split('/')[-1].replace('.py', '')}"
+            return ensure_ascii(f"Core system module for {file_path.split('/')[-1].replace('.py', '')}")
     
     elif file_path.startswith('ui/'):
         if 'dialogs' in file_path:
-            return f"Dialog component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}"
+            return ensure_ascii(f"Dialog component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}")
         elif 'widgets' in file_path:
-            return f"UI widget component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}"
+            return ensure_ascii(f"UI widget component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}")
         elif 'generated' in file_path:
-            return f"Auto-generated UI component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}"
+            return ensure_ascii(f"Auto-generated UI component for {file_path.split('/')[-1].replace('.py', '').replace('_', ' ')}")
         elif 'ui_app' in file_path:
             return "Main UI application (PyQt6)"
         else:
-            return f"User interface component for {file_path.split('/')[-1].replace('.py', '')}"
+            return ensure_ascii(f"User interface component for {file_path.split('/')[-1].replace('.py', '')}")
     
     elif file_path.startswith('tests/'):
         if 'behavior' in file_path:
-            return f"Behavior tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}"
+            return ensure_ascii(f"Behavior tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}")
         elif 'integration' in file_path:
-            return f"Integration tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}"
+            return ensure_ascii(f"Integration tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}")
         elif 'unit' in file_path:
-            return f"Unit tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}"
+            return ensure_ascii(f"Unit tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}")
         elif 'ui' in file_path:
-            return f"UI tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}"
+            return ensure_ascii(f"UI tests for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}")
         else:
-            return f"Test file for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}"
+            return ensure_ascii(f"Test file for {file_path.split('/')[-1].replace('.py', '').replace('test_', '').replace('_', ' ')}")
     
     elif file_path.startswith('user/'):
         if 'user_context' in file_path:
@@ -351,7 +317,7 @@ def infer_module_purpose(file_path: str, data: Dict, all_modules: Dict[str, Dict
         elif 'user_preferences' in file_path:
             return "User preferences management"
         else:
-            return f"User data module for {file_path.split('/')[-1].replace('.py', '')}"
+            return ensure_ascii(f"User data module for {file_path.split('/')[-1].replace('.py', '')}")
     
     elif file_path.startswith('tasks/'):
         return "Task management and scheduling"
@@ -370,21 +336,25 @@ def infer_module_purpose(file_path: str, data: Dict, all_modules: Dict[str, Dict
     elif len(ui_deps) > 0:
         return f"UI-related module with interface dependencies"
     elif len(test_deps) > 0:
-        return f"Test-related module"
+        return ensure_ascii(f"Test-related module")
     else:
-        return f"Module for {file_path}"
+        return ensure_ascii(f"Module for {file_path}")
+
 
 def generate_module_dependencies_content(actual_imports: Dict[str, Dict], existing_content: str = "") -> str:
     """Generate comprehensive module dependencies content with hybrid format."""
-    content = []
-    
-    # Header
+    timestamp = datetime.now()
+    content: List[str] = []
+
+    generated_at = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    generated_date = timestamp.strftime("%Y-%m-%d")
+
     content.append("# Module Dependencies - MHM Project")
     content.append("")
     content.append("> **Generated**: This file is auto-generated by generate_module_dependencies.py. Do not edit manually.")
     content.append("> **Generated by**: generate_module_dependencies.py - Module Dependencies Generator")
-    content.append("> **Last Generated**: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    content.append("> **Source**: `python ai_development_tools/generate_module_dependencies.py`")
+    content.append(ensure_ascii(f"> **Last Generated**: {generated_at}"))
+    content.append("> **Source**: python ai_development_tools/generate_module_dependencies.py")
     content.append("")
     content.append("> **Audience**: Human developer and AI collaborators  ")
     content.append("> **Purpose**: Complete dependency map for all modules in the MHM codebase  ")
@@ -394,83 +364,74 @@ def generate_module_dependencies_content(actual_imports: Dict[str, Dict], existi
     content.append("> **See [ARCHITECTURE.md](../ARCHITECTURE.md) for system architecture and design**")
     content.append("> **See [TODO.md](../TODO.md) for current documentation priorities**")
     content.append("")
-    
-    # Overview section
+
     total_files = len(actual_imports)
     total_imports = sum(data['total_imports'] for data in actual_imports.values())
-    
-    # Calculate import counts from the new structure
-    local_imports = 0
-    std_lib_imports = 0
-    third_party_imports = 0
-    
-    for data in actual_imports.values():
-        local_imports += len(data['imports']['local'])
-        std_lib_imports += len(data['imports']['standard_library'])
-        third_party_imports += len(data['imports']['third_party'])
-    
-    content.append("## 📋 **Overview**")
+    local_imports = sum(len(data['imports']['local']) for data in actual_imports.values())
+    std_lib_imports = sum(len(data['imports']['standard_library']) for data in actual_imports.values())
+    third_party_imports = sum(len(data['imports']['third_party']) for data in actual_imports.values())
+
+    def percent(value: int) -> float:
+        return (value / total_imports * 100.0) if total_imports else 0.0
+
+    content.append("## Overview")
     content.append("")
-    content.append(f"### **Module Dependencies Coverage: 100.0% ✅ COMPLETED**")
-    content.append(f"- **Files Scanned**: {total_files}")
-    content.append(f"- **Total Imports Found**: {total_imports}")
-    content.append(f"- **Dependencies Documented**: {total_files} (100% coverage)")
-    content.append(f"- **Standard Library Imports**: {std_lib_imports}")
-    content.append(f"- **Third-Party Imports**: {third_party_imports}")
-    content.append(f"- **Local Imports**: {local_imports}")
-    content.append(f"- **Last Updated**: {datetime.now().strftime('%Y-%m-%d')}")
+    content.append("### Module Dependencies Coverage: 100.0% - COMPLETED")
+    content.append(ensure_ascii(f"- **Files Scanned**: {total_files}"))
+    content.append(ensure_ascii(f"- **Total Imports Found**: {total_imports}"))
+    content.append(ensure_ascii(f"- **Dependencies Documented**: {total_files} (100% coverage)"))
+    content.append(ensure_ascii(f"- **Standard Library Imports**: {std_lib_imports} ({percent(std_lib_imports):.1f}%)"))
+    content.append(ensure_ascii(f"- **Third-Party Imports**: {third_party_imports} ({percent(third_party_imports):.1f}%)"))
+    content.append(ensure_ascii(f"- **Local Imports**: {local_imports} ({percent(local_imports):.1f}%)"))
+    content.append(ensure_ascii(f"- **Last Updated**: {generated_date}"))
     content.append("")
-    content.append("**Status**: ✅ **COMPLETED** - All module dependencies have been documented with comprehensive dependency and usage information.")
+    content.append("**Status**: COMPLETED - All module dependencies have been documented with detailed dependency and usage information.")
     content.append("")
-    content.append("**Note**: This dependency map uses a hybrid approach - auto-generated dependency information with manual enhancements for detailed descriptions and reverse dependencies.")
+    content.append("**Note**: This dependency map uses a hybrid approach. Automated analysis discovers dependencies while manual enhancements record intent and reverse dependencies.")
     content.append("")
-    
-    # Import statistics
-    content.append("## 🔍 **Import Statistics**")
+
+    content.append("## Import Statistics")
     content.append("")
-    content.append(f"- **Standard Library**: {std_lib_imports} imports ({std_lib_imports/total_imports*100:.1f}%)")
-    content.append(f"- **Third-party**: {third_party_imports} imports ({third_party_imports/total_imports*100:.1f}%)")
-    content.append(f"- **Local**: {local_imports} imports ({local_imports/total_imports*100:.1f}%)")
+    content.append(ensure_ascii(f"- **Standard Library**: {std_lib_imports} imports ({percent(std_lib_imports):.1f}%)"))
+    content.append(ensure_ascii(f"- **Third-Party**: {third_party_imports} imports ({percent(third_party_imports):.1f}%)"))
+    content.append(ensure_ascii(f"- **Local**: {local_imports} imports ({percent(local_imports):.1f}%)"))
     content.append("")
-    
-    # Group by directory
-    content.append("## 📁 **Module Dependencies by Directory**")
+
+    content.append("## Module Dependencies by Directory")
     content.append("")
-    
-    # Group files by directory
-    dir_files = {}
+
+    dir_files: Dict[str, List[Tuple[str, Dict]]] = {}
     for file_path, data in actual_imports.items():
         dir_name = file_path.split('/')[0] if '/' in file_path else 'root'
-        if dir_name not in dir_files:
-            dir_files[dir_name] = []
-        dir_files[dir_name].append((file_path, data))
-    
-    # Directory descriptions
+        dir_files.setdefault(dir_name, []).append((file_path, data))
+
     dir_descriptions = {
-        'core': 'Core System Modules (Foundation)',
-        'bot': 'Communication Channel Implementations',
-        'ui': 'User Interface Components',
-        'user': 'User Data and Context',
-        'tasks': 'Task Management',
-        'tests': 'Test Files',
-        'root': 'Root Files'
-    }
-    
-    for dir_name in sorted(dir_files.keys()):
-        if dir_name in dir_descriptions:
-            content.append(f"### `{dir_name}/` - {dir_descriptions[dir_name]}")
-        else:
-            content.append(f"### `{dir_name}/`")
-        content.append("")
-        
-        # Sort files within directory
-        dir_files[dir_name].sort(key=lambda x: x[0])
-        
-        for file_path, data in dir_files[dir_name]:
-            content.extend(generate_module_section(file_path, data, actual_imports, existing_content))
+            'core': 'Core system modules (foundation)',
+            'bot': 'Communication channel implementations',
+            'communication': 'Communication services and orchestration',
+            'ui': 'User interface components',
+            'user': 'User data and context',
+            'tasks': 'Task management',
+            'tests': 'Test files',
+            'ai': 'AI services and support modules',
+            'root': 'Project root files',
+        }
+
+    for dir_name in sorted(dir_files):
+            description = dir_descriptions.get(dir_name)
+            if description:
+                content.append(ensure_ascii(f"### `{dir_name}/` - {description}"))
+            else:
+                content.append(ensure_ascii(f"### `{dir_name}/`"))
             content.append("")
-    
-    return "\n".join(content)
+
+            for file_path, data in sorted(dir_files[dir_name], key=lambda item: item[0]):
+                content.extend(generate_module_section(file_path, data, actual_imports, existing_content))
+                content.append("")
+
+    return ensure_ascii("\n".join(content))
+
+
 
 def get_directory_description(dir_name: str) -> str:
     """Get a description for a directory."""
@@ -548,10 +509,10 @@ def generate_module_section(file_path: str, data: Dict, all_modules: Dict[str, D
     dep_changes = analyze_dependency_changes(file_path, data, existing_content)
     
     # Auto-generated section marker
-    content.append(f"#### `{file_path}`")
+    content.append(ensure_ascii(f"#### `{file_path}`"))
     
     # Enhanced purpose
-    content.append(f"- **Purpose**: {inferred_purpose}")
+    content.append(ensure_ascii(f"- **Purpose**: {inferred_purpose}"))
     
     # Dependencies with enhanced details
     local_deps = data['imports']['local']
@@ -571,22 +532,22 @@ def generate_module_section(file_path: str, data: Dict, all_modules: Dict[str, D
                     if import_info['module'] in dep_changes['added']:
                         change_indicator = " (NEW)"
                     elif import_info['module'] in dep_changes['removed']:
-                        change_indicator = " (❌)"
-                content.append(f"    - `{formatted_import}`{change_indicator}")
+                        change_indicator = " (REMOVED)"
+                content.append(ensure_ascii(f"    - `{formatted_import}`{change_indicator}"))
         
         # Standard library dependencies
         if std_lib_deps:
             content.append("  - **Standard Library**:")
             for import_info in sorted(std_lib_deps, key=lambda x: x['module']):
                 formatted_import = format_import_details(import_info)
-                content.append(f"    - `{formatted_import}`")
+                content.append(ensure_ascii(f"    - `{formatted_import}`"))
         
         # Third-party dependencies
         if third_party_deps:
             content.append("  - **Third-party**:")
             for import_info in sorted(third_party_deps, key=lambda x: x['module']):
                 formatted_import = format_import_details(import_info)
-                content.append(f"    - `{formatted_import}`")
+                content.append(ensure_ascii(f"    - `{formatted_import}`"))
     else:
         content.append("- **Dependencies**: None (no imports)")
     
@@ -594,7 +555,7 @@ def generate_module_section(file_path: str, data: Dict, all_modules: Dict[str, D
     if reverse_deps:
         content.append("- **Used by**: ")
         for user in reverse_deps:
-            content.append(f"  - `{user}`")
+            content.append(ensure_ascii(f"  - `{user}`"))
     else:
         content.append("- **Used by**: None (not imported by other modules)")
     
@@ -603,9 +564,9 @@ def generate_module_section(file_path: str, data: Dict, all_modules: Dict[str, D
         content.append("")
         content.append("**Dependency Changes**:")
         if dep_changes['added']:
-            content.append(f"- Added: {', '.join(dep_changes['added'])}")
+            content.append(ensure_ascii(f"- Added: {', '.join(dep_changes['added'])}"))
         if dep_changes['removed']:
-            content.append(f"- Removed: {', '.join(dep_changes['removed'])}")
+            content.append(ensure_ascii(f"- Removed: {', '.join(dep_changes['removed'])}"))
     
     # Manual enhancement section marker (simplified)
     content.append("")
@@ -802,213 +763,178 @@ def identify_modules_needing_enhancement(existing_content: str, actual_imports: 
     
     return enhancement_status
 
+
 def generate_ai_module_dependencies_content(actual_imports: Dict[str, Dict]) -> str:
-    """Generate AI-optimized module dependencies content focusing on key relationships and patterns."""
-    
-    # Calculate statistics
+    """Generate the AI-facing dependency summary with ASCII-safe formatting."""
+    timestamp = datetime.now()
+    generated_at = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
     total_files = len(actual_imports)
     total_imports = sum(data['total_imports'] for data in actual_imports.values())
-    
-    # Count by type
-    standard_library = 0
-    third_party = 0
-    local_imports = 0
-    
-    for data in actual_imports.values():
-        if 'standard' in data['imports']:
-            standard_library += len(data['imports']['standard'])
-        if 'third_party' in data['imports']:
-            third_party += len(data['imports']['third_party'])
-        if 'local' in data['imports']:
-            local_imports += len(data['imports']['local'])
-    
-    # Analyze dependency patterns
-    patterns = analyze_dependency_patterns(actual_imports)
-    
-    content = f"""# AI Module Dependencies - Key Relationships & Patterns
+    std_lib = sum(len(data['imports']['standard_library']) for data in actual_imports.values())
+    third_party = sum(len(data['imports']['third_party']) for data in actual_imports.values())
+    local = sum(len(data['imports']['local']) for data in actual_imports.values())
 
-> **Generated**: This file is auto-generated by generate_module_dependencies.py. Do not edit manually.
-> **Generated by**: generate_module_dependencies.py - Module Dependencies Generator
-> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-> **Source**: `python ai_development_tools/generate_module_dependencies.py`
+    def percent(value: int) -> float:
+        return (value / total_imports * 100.0) if total_imports else 0.0
 
-> **Audience**: AI Collaborators  
-> **Purpose**: Essential module relationships and dependency patterns for AI context  
-> **Style**: Pattern-focused, relationship-driven, actionable
+        lines: List[str] = []
+        lines.extend([
+            "# AI Module Dependencies - Key Relationships & Patterns",
+            "",
+            "> **Generated**: This file is auto-generated by generate_module_dependencies.py. Do not edit manually.",
+            "> **Generated by**: generate_module_dependencies.py - Module Dependencies Generator",
+            ensure_ascii(f"> **Last Generated**: {generated_at}"),
+            "> **Source**: python ai_development_tools/generate_module_dependencies.py",
+            "",
+            "> **Audience**: AI collaborators",
+            "> **Purpose**: Essential module relationships and dependency patterns for AI context",
+            "> **Style**: Pattern-focused, relationship-driven, actionable",
+            "",
+            "## Current Status",
+            "",
+            "### Dependency Coverage: 100.0% - COMPLETED",
+            ensure_ascii(f"- **Files Scanned**: {total_files}"),
+            ensure_ascii(f"- **Total Imports**: {total_imports}"),
+            ensure_ascii(f"- **Standard Library**: {std_lib} ({percent(std_lib):.1f}%)"),
+            ensure_ascii(f"- **Third-Party**: {third_party} ({percent(third_party):.1f}%)"),
+            ensure_ascii(f"- **Local Imports**: {local} ({percent(local):.1f}%)"),
+            "",
+            "## Dependency Decision Trees",
+            "",
+            "### Need Core System Access?",
+            "Core System Dependencies:",
+            "- Configuration and Setup",
+            "  - core/config.py <- standard library (os, json, typing)",
+            "  - core/logger.py <- standard library (logging, pathlib)",
+            "- Data Management",
+            "  - core/file_operations.py <- standard library (json, pathlib)",
+            "  - core/user_data_handlers.py <- core/config, core/logger",
+            "  - core/user_data_manager.py <- core/user_data_handlers",
+            "- Error Handling",
+            "  - core/error_handling.py <- standard library (logging, traceback)",
+            "",
+            "### Need AI or Chatbot Support?",
+            "AI System Dependencies:",
+            "- AI Core",
+            "  - ai/chatbot.py <- core/config, core/logger, core/user_data_handlers",
+            "  - user/context_manager.py <- core/user_data_handlers",
+            "- Command Processing",
+            "  - communication/message_processing/command_parser.py <- ai/chatbot",
+            "  - communication/command_handlers/interaction_handlers.py <- core/user_data_handlers, core/task_management",
+            "  - communication/message_processing/interaction_manager.py <- command_parser, interaction_handlers",
+            "- Communication Integration",
+            "  - communication/core/channel_orchestrator.py <- ai/chatbot, conversation_flow_manager",
+            "",
+            "### Need Communication Channel Coverage?",
+            "Communication Dependencies:",
+            "- Channel Infrastructure",
+            "  - communication/communication_channels/base/base_channel.py <- standard library (abc, dataclasses, enum)",
+            "  - communication/core/factory.py <- base_channel",
+            "  - communication/core/channel_orchestrator.py <- factory, base_channel",
+            "- Specific Channels",
+            "  - communication/communication_channels/discord/bot.py <- third-party (discord.py), base_channel",
+            "  - communication/communication_channels/email/bot.py <- standard library (smtplib, imaplib), base_channel",
+            "- Conversation Flow",
+            "  - communication/message_processing/conversation_flow_manager.py <- core/user_data_handlers, user/context_manager",
+            "",
+            "### Need UI Dependencies?",
+            "UI Dependencies:",
+            "- Main Application",
+            "  - ui/ui_app_qt.py <- third-party (PySide6), core/config, communication/core/channel_orchestrator",
+            "- Dialogs",
+            "  - ui/dialogs/account_creator_dialog.py <- ui/widgets, core/user_data_handlers",
+            "  - ui/dialogs/user_profile_dialog.py <- ui/widgets, core/user_data_handlers",
+            "  - ui/dialogs/task_management_dialog.py <- ui/widgets, core/task_management",
+            "- Widgets",
+            "  - ui/widgets/tag_widget.py <- third-party (PySide6)",
+            "  - ui/widgets/task_settings_widget.py <- ui/widgets/tag_widget",
+            "  - ui/widgets/user_profile_settings_widget.py <- third-party (PySide6)",
+            "",
+            "## Key Dependency Patterns",
+            "",
+            "### Core -> Communication and AI (most common)",
+            "Communication and AI modules depend on core system modules.",
+            "- ai/chatbot.py -> core/config.py, core/logger.py",
+            "- communication/command_handlers/interaction_handlers.py -> core/user_data_handlers.py",
+            "- communication/core/channel_orchestrator.py -> core/logger.py",
+            "",
+            "### UI -> Core",
+            "UI modules rely on core configuration and data access.",
+            "- ui/dialogs/ -> core/user_data_handlers.py",
+            "- ui/ui_app_qt.py -> core/config.py",
+            "- ui/widgets/ -> core/validation.py",
+            "",
+            "### Communication -> Communication",
+            "Communication modules compose other communication utilities for complete flows.",
+            "- communication/message_processing/interaction_manager.py -> command_parser",
+            "- communication/core/channel_orchestrator.py -> ai/chatbot.py",
+            "- communication/message_processing/conversation_flow_manager.py -> user/context_manager.py",
+            "",
+            "### Third-Party Integration",
+            "External libraries provide channel and UI support.",
+            "- communication/communication_channels/discord/bot.py -> discord.py",
+            "- ui/ui_app_qt.py -> PySide6",
+            "",
+            "## Critical Dependencies for AI Context",
+            "",
+            "### Entry Points",
+            "- `run_mhm.py` -> `core/service.py` (main application entry)",
+            "- `ui/ui_app_qt.py` -> `communication/core/channel_orchestrator.py` (UI startup)",
+            "- `communication/message_processing/interaction_manager.py` -> `ai/chatbot.py` (message handling)",
+            "",
+            "### Data Flow",
+            "- User data: core/user_data_handlers.py <- core/config.py, core/logger.py",
+            "- AI context: user/context_manager.py <- core/user_data_handlers.py",
+            "- File operations: core/file_operations.py <- standard library (json, pathlib)",
+            "",
+            "### Communication Flow",
+            "- Channel management: communication/core/channel_orchestrator.py <- communication/core/factory.py",
+            "- Message handling: communication/message_processing/interaction_manager.py <- command_parser",
+            "- AI integration: ai/chatbot.py <- core/config.py, core/user_data_handlers.py",
+            "",
+            "## Dependency Risk Areas",
+            "",
+            "### High Coupling",
+            "- communication/command_handlers/interaction_handlers.py -> core/user_data_handlers.py (heavy dependency)",
+            "- ui/dialogs/ -> core/user_data_handlers.py (UI tied to data layer)",
+            "- communication/core/channel_orchestrator.py -> ai/chatbot.py (communication depends on AI)",
+            "",
+            "### Third-Party Risks",
+            "- communication/communication_channels/discord/bot.py -> discord.py",
+            "- ui/ui_app_qt.py -> PySide6",
+            "",
+            "### Circular Dependencies to Monitor",
+            "- communication/core/channel_orchestrator.py <-> communication/message_processing/conversation_flow_manager.py",
+            "- core/user_data_handlers.py <-> core/user_data_manager.py",
+            "",
+            "## Quick Reference for AI",
+            "",
+            "### Common Patterns",
+            "1. Core system modules expose utilities with minimal dependencies.",
+            "2. Communication and AI modules depend on core and peer communication modules.",
+            "3. UI modules rely on the UI framework and core services.",
+            "4. Data access modules rely on configuration plus logging.",
+            "",
+            "### Dependency Guidelines",
+            "- Prefer core modules for shared logic instead of duplicating functionality.",
+            "- Avoid circular dependencies; break them with interfaces or utility modules.",
+            "- Use dependency injection for testability when modules call into services.",
+            "- Keep third-party usage wrapped by dedicated modules.",
+            "",
+            "### Module Organisation",
+            "- core/ - System utilities (minimal dependencies)",
+            "- communication/ - Channels and message processing (depends on core)",
+            "- ai/ - Chatbot functionality (depends on core)",
+            "- ui/ - User interface (depends on core, limited communication dependencies)",
+            "- user/ - User context (depends on core)",
+            "- 	asks/ - Task management (depends on core)",
+            "",
+            "> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)",
+        ])
 
-## 🎯 **Current Status**
+        return ensure_ascii("\n".join(lines))
 
-### **Dependency Coverage: 100.0% ✅ COMPLETED**
-- **Files Scanned**: {total_files}
-- **Total Imports**: {total_imports}
-- **Standard Library**: {standard_library} ({(standard_library/total_imports*100) if total_imports > 0 else 0:.1f}%)
-- **Third-Party**: {third_party} ({(third_party/total_imports*100) if total_imports > 0 else 0:.1f}%)
-- **Local Imports**: {local_imports} ({(local_imports/total_imports*100) if total_imports > 0 else 0:.1f}%)
-
-## 🧠 **Dependency Decision Trees**
-
-### **🔧 Need Core System Access?**
-```
-Core System Dependencies:
-├── Configuration & Setup
-│   ├── `core/config.py` ← Standard library (os, json, typing)
-│   └── `core/logger.py` ← Standard library (logging, pathlib)
-├── Data Management
-│   ├── `core/file_operations.py` ← Standard library (json, pathlib)
-│   ├── `core/user_data_handlers.py` ← core/config, core/logger
-│   └── `core/user_data_manager.py` ← core/user_data_handlers
-└── Error Handling
-    └── `core/error_handling.py` ← Standard library (logging, traceback)
-```
-
-### **🤖 Need AI/Chatbot Dependencies?**
-```
-AI System Dependencies:
-├── AI Core
-│   ├── `ai/chatbot.py` ← core/config, core/logger, core/user_data_handlers
-│   └── `user/context_manager.py` ← core/user_data_handlers
-├── Command Processing
-│   ├── `communication/message_processing/command_parser.py` ← ai/chatbot
-│   ├── `communication/command_handlers/interaction_handlers.py` ← core/user_data_handlers, core/task_management
-│   └── `communication/message_processing/interaction_manager.py` ← communication/message_processing/command_parser, communication/command_handlers/interaction_handlers
-└── Communication
-    └── `communication/core/channel_orchestrator.py` ← ai/chatbot, communication/message_processing/conversation_flow_manager
-```
-
-### **💬 Need Communication Channel Dependencies?**
-```
-Communication Dependencies:
-├── Channel Infrastructure
-│   ├── `communication/communication_channels/base/base_channel.py` ← Standard library (abc, dataclasses, enum)
-│   ├── `communication/core/factory.py` ← communication/communication_channels/base/base_channel
-│   └── `communication/core/channel_orchestrator.py` ← communication/core/factory, communication/communication_channels/base/base_channel
-├── Specific Channels
-│   ├── `communication/communication_channels/discord/bot.py` ← Third-party (discord.py), communication/communication_channels/base/base_channel
-│   ├── `communication/communication_channels/email/bot.py` ← Standard library (smtplib, imaplib), communication/communication_channels/base/base_channel
-
-└── Conversation Flow
-    └── `communication/message_processing/conversation_flow_manager.py` ← core/user_data_handlers, user/context_manager
-```
-
-### **🖥️ Need UI Dependencies?**
-```
-UI Dependencies:
-├── Main Application
-│   └── `ui/ui_app_qt.py` ← Third-party (PySide6), core/config, communication/core/channel_orchestrator
-├── Dialogs
-│   ├── `ui/dialogs/account_creator_dialog.py` ← ui/widgets, core/user_data_handlers
-│   ├── `ui/dialogs/user_profile_dialog.py` ← ui/widgets, core/user_data_handlers
-│   └── `ui/dialogs/task_management_dialog.py` ← ui/widgets, core/task_management
-└── Widgets
-    ├── `ui/widgets/tag_widget.py` ← Third-party (PySide6)
-    ├── `ui/widgets/task_settings_widget.py` ← ui/widgets/tag_widget
-    └── `ui/widgets/user_profile_settings_widget.py` ← Third-party (PySide6)
-```
-
-## 🔍 **Key Dependency Patterns**
-
-### **Core → Communication/AI Pattern** (Most Common)
-**Description**: Communication and AI modules depend on core system modules
-**Examples**:
-- `ai/chatbot.py` → `core/config.py`, `core/logger.py`
-- `communication/command_handlers/interaction_handlers.py` → `core/user_data_handlers.py`
-- `communication/core/channel_orchestrator.py` → `core/logger.py`
-
-**Why Important**: Ensures bots have access to system configuration and data
-
-### **UI → Core Pattern**
-**Description**: UI modules depend on core data and configuration
-**Examples**:
-- `ui/dialogs/` → `core/user_data_handlers.py`
-- `ui/ui_app_qt.py` → `core/config.py`
-- `ui/widgets/` → `core/validation.py`
-
-**Why Important**: UI needs access to user data and system configuration
-
-### **Communication → Communication Pattern**
-**Description**: Communication modules depend on other communication modules for functionality
-**Examples**:
-- `communication/message_processing/interaction_manager.py` → `communication/message_processing/command_parser.py`
-- `communication/core/channel_orchestrator.py` → `ai/chatbot.py`
-- `communication/message_processing/conversation_flow_manager.py` → `user/context_manager.py`
-
-**Why Important**: Enables modular bot functionality and separation of concerns
-
-### **Third-Party Integration Pattern**
-**Description**: External library dependencies for specific functionality
-**Examples**:
-- `communication/communication_channels/discord/bot.py` → `discord.py`
-- `ui/ui_app_qt.py` → `PySide6`
-
-
-**Why Important**: Provides external service integration and UI framework
-
-## 🎯 **Critical Dependencies for AI Context**
-
-### **Entry Points** (Start Here)
-- `run_mhm.py` → `core/service.py` - Main application entry
-- `ui/ui_app_qt.py` → `communication/core/channel_orchestrator.py` - UI startup
-- `communication/message_processing/interaction_manager.py` → `ai/chatbot.py` - Message handling
-
-### **Data Flow Dependencies**
-- **User Data**: `core/user_data_handlers.py` ← `core/config.py`, `core/logger.py`
-- **AI Context**: `user/context_manager.py` ← `core/user_data_handlers.py`
-- **File Operations**: `core/file_operations.py` ← Standard library (json, pathlib)
-
-### **Communication Dependencies**
-- **Channel Management**: `communication/core/channel_orchestrator.py` ← `communication/core/factory.py`
-- **Message Handling**: `communication/message_processing/interaction_manager.py` ← `communication/message_processing/command_parser.py`
-- **AI Integration**: `ai/chatbot.py` ← `core/config.py`, `core/user_data_handlers.py`
-
-## ⚠️ **Dependency Risk Areas**
-
-### **High Coupling** (Tight Dependencies)
-- `communication/command_handlers/interaction_handlers.py` → `core/user_data_handlers.py` (Heavy dependency)
-- `ui/dialogs/` → `core/user_data_handlers.py` (UI tightly coupled to data)
-- `communication/core/channel_orchestrator.py` → `ai/chatbot.py` (Communication depends on AI)
-
-### **Third-Party Risks**
-- `communication/communication_channels/discord/bot.py` → `discord.py` (External API dependency)
-- `ui/ui_app_qt.py` → `PySide6` (UI framework dependency)
-
-
-### **Circular Dependencies** (Potential Issues)
-- Monitor: `communication/core/channel_orchestrator.py` ↔ `communication/message_processing/conversation_flow_manager.py`
-- Monitor: `core/user_data_handlers.py` ↔ `core/user_data_manager.py`
-
-## 🚀 **Quick Reference for AI**
-
-### **Common Dependency Patterns**
-1. **Core System**: Standard library + minimal local dependencies
-2. **Communication/AI Modules**: Core dependencies + other communication modules
-3. **UI Modules**: Third-party UI framework + core data access
-4. **Data Access**: Core configuration + logging dependencies
-
-### **Dependency Rules**
-- **Core modules** should have minimal dependencies (mostly standard library)
-- **Communication/AI modules** can depend on core and other communication modules
-- **UI modules** should depend on core data access, not direct communication access
-- **Third-party dependencies** should be isolated to specific modules
-
-### **When Adding Dependencies**
-- **Check existing patterns** in similar modules
-- **Prefer core modules** over direct third-party access
-- **Avoid circular dependencies** between modules
-- **Use dependency injection** for testability
-
-### **Module Organization**
-- `core/` - System utilities (minimal dependencies)
-- `communication/` - Communication channels and message processing (depends on core)
-- `ai/` - AI chatbot functionality (depends on core)
-- `ui/` - User interface (depends on core, minimal communication dependencies)
-- `user/` - User context (depends on core)
-- `tasks/` - Task management (depends on core)
-
-> **For complete dependency details, see [MODULE_DEPENDENCIES_DETAIL.md](development_docs/MODULE_DEPENDENCIES_DETAIL.md)**  
-> **Last Updated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-"""
-    
-    return content
 
 def analyze_dependency_patterns(actual_imports: Dict[str, Dict]) -> Dict[str, Any]:
     """Analyze dependency patterns for AI consumption."""
@@ -1083,7 +1009,7 @@ def update_module_dependencies():
             with open(detail_path, 'r', encoding='utf-8') as f:
                 existing_content = f.read()
         except Exception as e:
-            print(f"[WARN] Could not read existing file: {e}")
+            print(ensure_ascii(f"[WARN] Could not read existing file: {e}"))
     
     print("[GEN] Generating MODULE_DEPENDENCIES_DETAIL.md content...")
     detail_content = generate_module_dependencies_content(actual_imports, existing_content)
@@ -1107,20 +1033,20 @@ def update_module_dependencies():
         with open(ai_path, 'w', encoding='utf-8') as f:
             f.write(ai_content)
         
-        print(f"[SUCCESS] Both module dependency files updated successfully!")
-        print(f"[FILES] Generated:")
-        print(f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies")
-        print(f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies")
-        print(f"[STATS] Statistics:")
-        print(f"   Files scanned: {len(actual_imports)}")
-        print(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}")
-        print(f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}")
-        print(f"   Coverage: 100% (all files documented)")
-        print(f"   Detail file: {detail_path}")
-        print(f"   AI file: {ai_path}")
+        print(ensure_ascii(f"[SUCCESS] Both module dependency files updated successfully!"))
+        print(ensure_ascii(f"[FILES] Generated:"))
+        print(ensure_ascii(f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"))
+        print(ensure_ascii(f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"))
+        print(ensure_ascii(f"[STATS] Statistics:"))
+        print(ensure_ascii(f"   Files scanned: {len(actual_imports)}"))
+        print(ensure_ascii(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}"))
+        print(ensure_ascii(f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}"))
+        print(ensure_ascii(f"   Coverage: 100% (all files documented)"))
+        print(ensure_ascii(f"   Detail file: {detail_path}"))
+        print(ensure_ascii(f"   AI file: {ai_path}"))
         
         # Report enhancement status
-        print(f"\n[ENHANCEMENT] Manual Enhancement Status:")
+        print(ensure_ascii(f"\n[ENHANCEMENT] Manual Enhancement Status:"))
         status_counts = {}
         for status in enhancement_status.values():
             status_counts[status] = status_counts.get(status, 0) + 1
@@ -1133,7 +1059,7 @@ def update_module_dependencies():
                 'up_to_date': 'Modules with current enhancements',
                 'missing_enhancement': 'Modules missing enhancement markers'
             }.get(status, status)
-            print(f"   {status_display}: {count}")
+            print(ensure_ascii(f"   {status_display}: {count}"))
         
         # Show specific modules needing attention
         priority_modules = {k: v for k, v in enhancement_status.items() 
@@ -1147,12 +1073,12 @@ def update_module_dependencies():
                     'needs_enhancement': '[ENH]',
                     'dependencies_changed': '[CHG]'
                 }.get(status, '[?]')
-                print(f"   {status_icon} {file_path} ({status})")
+                print(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
         
         return True
         
     except Exception as e:
-        print(f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}")
+        print(ensure_ascii(f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}"))
         return False
 
 if __name__ == "__main__":

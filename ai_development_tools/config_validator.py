@@ -20,7 +20,8 @@ class ConfigValidator:
     """Validates configuration usage across all AI tools."""
     
     def __init__(self):
-        self.project_root = config.get_project_root()
+        # Use the current config schema
+        self.project_root = Path(__file__).parent.parent
         self.ai_tools_dir = self.project_root / 'ai_development_tools'
         self.validation_results = {
             'config_usage': {},
@@ -64,10 +65,14 @@ class ConfigValidator:
             
             # Check for config function usage
             config_functions = [
-                'get_project_root', 'get_scan_directories', 'get_function_discovery_config',
-                'get_validation_config', 'get_audit_config', 'get_output_config',
-                'get_workflow_config', 'get_documentation_config', 'get_auto_document_config',
-                'get_ai_validation_config'
+                'get_available_channels', 'get_channel_class_mapping', 'get_user_data_dir',
+                'get_backups_dir', 'get_user_file_path', 'validate_core_paths',
+                'validate_ai_configuration', 'validate_communication_channels',
+                'validate_logging_configuration', 'validate_scheduler_configuration',
+                'validate_file_organization_settings', 'validate_environment_variables',
+                'validate_all_configuration', 'validate_and_raise_if_invalid',
+                'print_configuration_report', 'ensure_user_directory',
+                'validate_email_config', 'validate_discord_config', 'validate_minimum_config'
             ]
             
             for func in config_functions:
@@ -77,11 +82,12 @@ class ConfigValidator:
             
             # Check for hardcoded values that should use config
             hardcoded_patterns = [
-                (r"project_root\s*=\s*Path\(__file__\)\.parent\.parent", "Should use config.get_project_root()"),
-                (r"scan_dirs\s*=\s*\[.*?\]", "Should use config.get_scan_directories()"),
-                (r"max_complexity\s*=\s*\d+", "Should use config.FUNCTION_DISCOVERY['max_complexity_threshold']"),
-                (r"handler_keywords\s*=\s*\[.*?\]", "Should use config.FUNCTION_DISCOVERY['handler_keywords']"),
-                (r"min_docstring_length\s*=\s*\d+", "Should use config.FUNCTION_DISCOVERY['min_docstring_length']")
+                (r"BASE_DATA_DIR\s*=\s*['\"].*?['\"]", "Should use config.BASE_DATA_DIR"),
+                (r"USER_INFO_DIR_PATH\s*=\s*['\"].*?['\"]", "Should use config.USER_INFO_DIR_PATH"),
+                (r"data_dir\s*=\s*['\"].*?['\"]", "Should use config.BASE_DATA_DIR"),
+                (r"users_dir\s*=\s*['\"].*?['\"]", "Should use config.USER_INFO_DIR_PATH"),
+                (r"backups_dir\s*=\s*['\"].*?['\"]", "Should use config.get_backups_dir()"),
+                (r"user_data_dir\s*=\s*['\"].*?['\"]", "Should use config.get_user_data_dir()")
             ]
             
             for pattern, message in hardcoded_patterns:
@@ -158,7 +164,14 @@ class ConfigValidator:
         
         # Check FUNCTION_DISCOVERY
         func_discovery = config.get_function_discovery_config()
-        required_func_fields = ['max_complexity_threshold', 'min_docstring_length', 'handler_keywords', 'test_keywords']
+        required_func_fields = [
+            'moderate_complexity_threshold',
+            'high_complexity_threshold',
+            'critical_complexity_threshold',
+            'min_docstring_length',
+            'handler_keywords',
+            'test_keywords',
+        ]
         for field in required_func_fields:
             if field not in func_discovery:
                 completeness['sections_complete'] = False
@@ -166,7 +179,15 @@ class ConfigValidator:
         
         # Check VALIDATION
         validation_config = config.get_validation_config()
-        required_validation_fields = ['documentation_coverage_threshold', 'complexity_warning_threshold']
+        required_validation_fields = [
+            'documentation_coverage_threshold',
+            'moderate_complexity_warning',
+            'high_complexity_warning',
+            'critical_complexity_warning',
+            'duplicate_function_warning',
+            'missing_docstring_warning',
+            'critical_issues_first',
+        ]
         for field in required_validation_fields:
             if field not in validation_config:
                 completeness['sections_complete'] = False
@@ -177,7 +198,22 @@ class ConfigValidator:
         if 'audit_scripts' not in quick_audit:
             completeness['sections_complete'] = False
             completeness['missing_fields'].append("QUICK_AUDIT.audit_scripts")
-        
+
+        ai_validation = config.get_ai_validation_config()
+        required_ai_fields = [
+            'completeness_threshold',
+            'accuracy_threshold',
+            'consistency_threshold',
+            'actionable_threshold',
+            'critical_issues_weight',
+            'warning_issues_weight',
+            'info_issues_weight',
+        ]
+        for field in required_ai_fields:
+            if field not in ai_validation:
+                completeness['sections_complete'] = False
+                completeness['missing_fields'].append(f"AI_VALIDATION.{field}")
+
         return completeness
     
     def generate_recommendations(self, tools_analysis: Dict, config_validation: Dict, completeness: Dict) -> List[str]:

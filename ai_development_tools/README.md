@@ -62,6 +62,21 @@ The audit workflow produces:
 - `documentation_sync_checker.py`, `legacy_reference_cleanup.py`, `validate_ai_work.py`, `config_validator.py`
 - `quick_status.py`, `regenerate_coverage_metrics.py`, `version_sync.py`, `error_handling_coverage.py`
 
+## Core Infrastructure
+- **`standard_exclusions.py`**: Centralized exclusion patterns for consistent file filtering across all tools
+- **`services/constants.py`**: Shared constants for paired docs, default doc sets, and standard-library names
+- **`services/operations.py`**: Core service operations and report generation
+- **`config.py`**: Configuration settings for scan directories, complexity thresholds, and tool behavior
+
+## Standard Exclusions System
+All tools use `standard_exclusions.py` for consistent file filtering:
+- **Universal Exclusions**: Python cache, virtual environments, IDE files, generated files
+- **Context-Based Exclusions**: 
+  - `production`: Excludes development tools, tests, documentation, scripts
+  - `development`: Includes most files, excludes sensitive data
+  - `testing`: Excludes generated files and data directories
+- **Usage**: `should_exclude_file(file_path, tool_type, context)` ensures consistent filtering
+
 ## Error Handling Coverage Analysis
 The audit includes comprehensive error handling coverage analysis that:
 - Analyzes every function for error handling patterns (try-except, decorators, custom error types)
@@ -69,6 +84,14 @@ The audit includes comprehensive error handling coverage analysis that:
 - Provides quality assessment (excellent/good/basic/none) and actionable recommendations
 - Tracks error handling patterns and coverage metrics in audit summaries
 - Helps maintain robust error handling standards across the codebase
+
+## Configuration and Context
+Tools operate in different contexts for different purposes:
+- **Production Context**: Used by audit tools to analyze only production code (excludes dev tools, tests, docs)
+- **Development Context**: Used by development tools to include all relevant files
+- **Testing Context**: Used by test tools to focus on test-relevant files
+
+All tools respect the context-based exclusion system to ensure consistent and accurate analysis.
 
 ## File Organization
 - Rotated outputs: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, archives under `ai_development_tools/archive/`

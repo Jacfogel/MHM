@@ -24,31 +24,13 @@ from ai_development_tools.services.common import (
     run_cli,
     summary_block,
 )
-
-PATHS = ProjectPaths()
-DEFAULT_DOCS: Tuple[str, ...] = (
-    'README.md',
-    'HOW_TO_RUN.md',
-    'DOCUMENTATION_GUIDE.md',
-    'DEVELOPMENT_WORKFLOW.md',
-    'ARCHITECTURE.md',
-    'QUICK_REFERENCE.md',
-    'TODO.md',
-    'development_docs/FUNCTION_REGISTRY_DETAIL.md',
-    'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
-    'ai_development_docs/AI_SESSION_STARTER.md',
-    'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-    'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-    'ai_development_docs/AI_CHANGELOG.md',
-    'ai_development_docs/AI_REFERENCE.md',
+from ai_development_tools.services.constants import (
+    CORRUPTED_ARTIFACT_PATTERNS,
+    DEFAULT_DOCS,
+    PAIRED_DOCS,
 )
 
-PAIRED_DOCS = {
-    'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-    'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
-    'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-    'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
-}
+PATHS = ProjectPaths()
 
 PLACEHOLDER_PATTERNS = (
     re.compile(r'TBD', re.IGNORECASE),
@@ -145,6 +127,22 @@ def detect_placeholders(docs: Dict[str, str]) -> List[Dict[str, object]]:
     return matches
 
 
+def detect_corrupted_artifacts(docs: Dict[str, str]) -> List[Dict[str, object]]:
+    issues: List[Dict[str, object]] = []
+    for name, content in docs.items():
+        for idx, line in enumerate(content.splitlines(), 1):
+            for label, pattern in CORRUPTED_ARTIFACT_PATTERNS:
+                if pattern.search(line):
+                    issues.append({
+                        'file': name,
+                        'line': idx,
+                        'pattern': label,
+                        'snippet': line.strip(),
+                    })
+                    break
+    return issues
+
+
 def document_profiles(docs: Dict[str, str]) -> List[str]:
     lines: List[str] = []
     for name, content in sorted(docs.items()):
@@ -156,7 +154,13 @@ def document_profiles(docs: Dict[str, str]) -> List[str]:
     return lines
 
 
-def format_summary(docs: Dict[str, str], missing: List[str], duplicates: List[Dict[str, object]], placeholders: List[Dict[str, object]]) -> str:
+def format_summary(
+    docs: Dict[str, str],
+    missing: List[str],
+    duplicates: List[Dict[str, object]],
+    placeholders: List[Dict[str, object]],
+    artifacts: List[Dict[str, object]],
+) -> str:
     blocks: List[str] = []
     blocks.append(summary_block('Files Analysed', [f"{len(docs)} files", *sorted(docs.keys())]))
     if missing:
@@ -180,6 +184,12 @@ def format_summary(docs: Dict[str, str], missing: List[str], duplicates: List[Di
     if placeholders:
         placeholder_lines = [f"{entry['file']}: {', '.join(entry['matches'])}" for entry in placeholders]
         blocks.append(summary_block('Placeholder Content', placeholder_lines))
+    if artifacts:
+        artifact_lines = [
+            f"{entry['file']}:{entry['line']} [{entry['pattern']}] {entry['snippet'][:120]}"
+            for entry in artifacts
+        ]
+        blocks.append(summary_block('Corrupted Artifacts', artifact_lines))
     return "\n".join(blocks)
 
 
@@ -189,15 +199,17 @@ def execute(args: argparse.Namespace):
     docs, missing = load_documents(targets)
     duplicates = detect_duplicates(docs)
     placeholders = detect_placeholders(docs)
-    summary = format_summary(docs, missing, duplicates, placeholders)
+    artifacts = detect_corrupted_artifacts(docs)
+    summary = format_summary(docs, missing, duplicates, placeholders, artifacts)
     payload = {
         'documents': sorted(docs.keys()),
         'missing': sorted(missing),
         'duplicates': duplicates,
         'placeholders': placeholders,
+        'artifacts': artifacts,
     }
     exit_code = 0
-    if duplicates or placeholders:
+    if duplicates or placeholders or artifacts:
         exit_code = 1
     return exit_code, ensure_ascii(summary), payload
 

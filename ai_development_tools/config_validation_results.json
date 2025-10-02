@@ -1,6 +1,6 @@
 {
   "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-10-01 23:24:31",
+  "last_generated": "2025-10-02 01:28:10",
   "source": "python ai_development_tools/config_validator.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
@@ -25,38 +25,23 @@
       },
       "audit_function_registry.py": {
         "imports_config": true,
-        "uses_config_functions": true,
+        "uses_config_functions": false,
         "hardcoded_values": [],
-        "config_functions_used": [
-          "get_scan_directories",
-          "get_function_discovery_config"
-        ],
+        "config_functions_used": [],
         "issues": []
       },
       "audit_module_dependencies.py": {
         "imports_config": true,
-        "uses_config_functions": true,
+        "uses_config_functions": false,
         "hardcoded_values": [],
-        "config_functions_used": [
-          "get_project_root",
-          "get_scan_directories"
-        ],
+        "config_functions_used": [],
         "issues": []
       },
       "auto_document_functions.py": {
         "imports_config": true,
-        "uses_config_functions": true,
-        "hardcoded_values": [
-          {
-            "pattern": "project_root\\s*=\\s*Path\\(__file__\\)\\.parent\\.parent",
-            "message": "Should use config.get_project_root()",
-            "matches": 1
-          }
-        ],
-        "config_functions_used": [
-          "get_project_root",
-          "get_scan_directories"
-        ],
+        "uses_config_functions": false,
+        "hardcoded_values": [],
+        "config_functions_used": [],
         "issues": []
       },
       "decision_support.py": {
@@ -69,17 +54,10 @@
       "documentation_sync_checker.py": {
         "imports_config": false,
         "uses_config_functions": false,
-        "hardcoded_values": [
-          {
-            "pattern": "project_root\\s*=\\s*Path\\(__file__\\)\\.parent\\.parent",
-            "message": "Should use config.get_project_root()",
-            "matches": 1
-          }
-        ],
+        "hardcoded_values": [],
         "config_functions_used": [],
         "issues": [
-          "Does not import config module",
-          "Has hardcoded values but doesn't use config functions"
+          "Does not import config module"
         ]
       },
       "error_handling_coverage.py": {
@@ -94,17 +72,10 @@
       "file_rotation.py": {
         "imports_config": false,
         "uses_config_functions": false,
-        "hardcoded_values": [
-          {
-            "pattern": "project_root\\s*=\\s*Path\\(__file__\\)\\.parent\\.parent",
-            "message": "Should use config.get_project_root()",
-            "matches": 1
-          }
-        ],
+        "hardcoded_values": [],
         "config_functions_used": [],
         "issues": [
-          "Does not import config module",
-          "Has hardcoded values but doesn't use config functions"
+          "Does not import config module"
         ]
       },
       "function_discovery.py": {
@@ -116,63 +87,41 @@
       },
       "generate_function_registry.py": {
         "imports_config": true,
-        "uses_config_functions": true,
+        "uses_config_functions": false,
         "hardcoded_values": [],
-        "config_functions_used": [
-          "get_project_root",
-          "get_scan_directories"
-        ],
+        "config_functions_used": [],
         "issues": []
       },
       "generate_module_dependencies.py": {
         "imports_config": true,
-        "uses_config_functions": true,
+        "uses_config_functions": false,
         "hardcoded_values": [],
-        "config_functions_used": [
-          "get_project_root",
-          "get_scan_directories"
-        ],
+        "config_functions_used": [],
         "issues": []
       },
       "legacy_reference_cleanup.py": {
         "imports_config": false,
         "uses_config_functions": false,
-        "hardcoded_values": [
-          {
-            "pattern": "project_root\\s*=\\s*Path\\(__file__\\)\\.parent\\.parent",
-            "message": "Should use config.get_project_root()",
-            "matches": 1
-          }
-        ],
+        "hardcoded_values": [],
         "config_functions_used": [],
         "issues": [
-          "Does not import config module",
-          "Has hardcoded values but doesn't use config functions"
+          "Does not import config module"
         ]
       },
       "quick_status.py": {
         "imports_config": true,
-        "uses_config_functions": true,
+        "uses_config_functions": false,
         "hardcoded_values": [],
-        "config_functions_used": [
-          "get_project_root"
-        ],
+        "config_functions_used": [],
         "issues": []
       },
       "regenerate_coverage_metrics.py": {
         "imports_config": false,
         "uses_config_functions": false,
-        "hardcoded_values": [
-          {
-            "pattern": "project_root\\s*=\\s*Path\\(__file__\\)\\.parent\\.parent",
-            "message": "Should use config.get_project_root()",
-            "matches": 1
-          }
-        ],
+        "hardcoded_values": [],
         "config_functions_used": [],
         "issues": [
-          "Does not import config module",
-          "Has hardcoded values but doesn't use config functions"
+          "Does not import config module"
         ]
       },
       "standard_exclusions.py": {
@@ -230,11 +179,8 @@
       "issues": []
     },
     "completeness": {
-      "sections_complete": false,
-      "missing_fields": [
-        "FUNCTION_DISCOVERY.max_complexity_threshold",
-        "VALIDATION.complexity_warning_threshold"
-      ],
+      "sections_complete": true,
+      "missing_fields": [],
       "recommendations": []
     },
     "recommendations": [
@@ -242,33 +188,27 @@
       "Fix issues in ai_tools_runner.py: Does not import config module",
       "Update analyze_documentation.py to import config module",
       "Fix issues in analyze_documentation.py: Does not import config module",
-      "Replace hardcoded values in auto_document_functions.py with config functions",
       "Update documentation_sync_checker.py to import config module",
-      "Replace hardcoded values in documentation_sync_checker.py with config functions",
-      "Fix issues in documentation_sync_checker.py: Does not import config module, Has hardcoded values but doesn't use config functions",
+      "Fix issues in documentation_sync_checker.py: Does not import config module",
       "Update error_handling_coverage.py to import config module",
       "Fix issues in error_handling_coverage.py: Does not import config module",
       "Update file_rotation.py to import config module",
-      "Replace hardcoded values in file_rotation.py with config functions",
-      "Fix issues in file_rotation.py: Does not import config module, Has hardcoded values but doesn't use config functions",
+      "Fix issues in file_rotation.py: Does not import config module",
       "Update legacy_reference_cleanup.py to import config module",
-      "Replace hardcoded values in legacy_reference_cleanup.py with config functions",
-      "Fix issues in legacy_reference_cleanup.py: Does not import config module, Has hardcoded values but doesn't use config functions",
+      "Fix issues in legacy_reference_cleanup.py: Does not import config module",
       "Update regenerate_coverage_metrics.py to import config module",
-      "Replace hardcoded values in regenerate_coverage_metrics.py with config functions",
-      "Fix issues in regenerate_coverage_metrics.py: Does not import config module, Has hardcoded values but doesn't use config functions",
+      "Fix issues in regenerate_coverage_metrics.py: Does not import config module",
       "Update standard_exclusions.py to import config module",
       "Fix issues in standard_exclusions.py: Does not import config module",
       "Update __init__.py to import config module",
-      "Fix issues in __init__.py: Does not import config module",
-      "Add missing configuration fields: FUNCTION_DISCOVERY.max_complexity_threshold, VALIDATION.complexity_warning_threshold"
+      "Fix issues in __init__.py: Does not import config module"
     ],
     "summary": {
       "tools_using_config": 11,
       "total_tools": 20,
       "config_valid": true,
-      "config_complete": false,
-      "total_recommendations": 24
+      "config_complete": true,
+      "total_recommendations": 18
     }
   }
 }

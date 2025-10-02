@@ -228,6 +228,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract function/class information."""
     import config
+    from standard_exclusions import should_exclude_file
     project_root = config.get_project_root()
     results = {}
     
@@ -240,6 +241,10 @@ def scan_all_python_files() -> Dict[str, Dict]:
             continue
             
         for py_file in dir_path.rglob('*.py'):
+            # Use production context exclusions to match audit behavior
+            if should_exclude_file(str(py_file), 'analysis', 'production'):
+                continue
+                
             relative_path = py_file.relative_to(project_root)
             file_key = str(relative_path).replace('\\', '/')
             
@@ -255,6 +260,9 @@ def scan_all_python_files() -> Dict[str, Dict]:
     
     # Also scan root directory for .py files
     for py_file in project_root.glob('*.py'):
+        # Use production context exclusions to match audit behavior
+        if should_exclude_file(str(py_file), 'analysis', 'production'):
+            continue
         if py_file.name not in ['generate_function_registry.py', 'generate_module_dependencies.py']:
             file_key = py_file.name
             

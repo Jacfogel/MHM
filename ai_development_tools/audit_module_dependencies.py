@@ -12,6 +12,10 @@ from typing import Dict, List, Set, Tuple
 import json
 import config
 from standard_exclusions import should_exclude_file
+from services.constants import (
+    is_local_module as _is_local_module,
+    is_standard_library_module as _is_stdlib_module,
+)
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
     """Extract all imports from a Python file."""
@@ -55,26 +59,11 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
 
 def is_standard_library(module_name: str) -> bool:
     """Check if a module is part of the Python standard library."""
-    standard_lib_modules = {
-        'os', 'sys', 'json', 'time', 'datetime', 'pathlib', 'typing', 're', 'uuid',
-        'shutil', 'zipfile', 'threading', 'asyncio', 'socket', 'psutil', 'requests',
-        'logging', 'warnings', 'subprocess', 'signal', 'atexit', 'random', 'hashlib',
-        'email', 'smtplib', 'urllib', 'http', 'ssl', 'pytz', 'calendar', 'math',
-        'statistics', 'collections', 'itertools', 'functools', 'contextlib'
-    }
-    
-    # Check if it's a standard library module
-    if module_name in standard_lib_modules:
-        return True
-    
-    # Check if it starts with common standard library prefixes
-    std_prefixes = ['os.', 'sys.', 'json.', 'time.', 'datetime.', 'pathlib.', 'typing.']
-    return any(module_name.startswith(prefix) for prefix in std_prefixes)
+    return _is_stdlib_module(module_name)
 
 def is_local_import(module_name: str) -> bool:
     """Check if a module is a local import (part of our project)."""
-    local_prefixes = ['core.', 'bot.', 'ui.', 'user.', 'tasks.', 'scripts.', 'tests.']
-    return any(module_name.startswith(prefix) for prefix in local_prefixes)
+    return _is_local_module(module_name)
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract import information."""

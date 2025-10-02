@@ -42,17 +42,22 @@ except ImportError:
     def get_documentation_exclusions() -> list:
         return []
 
+try:
+    from ai_development_tools.services.constants import PAIRED_DOCS
+except ImportError:
+    PAIRED_DOCS = {
+        'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+        'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
+        'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+        'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
+    }
+
 class DocumentationSyncChecker:
     """Checks and maintains documentation synchronization."""
     
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
-        self.paired_docs = {
-            'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-            'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
-            'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-            'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
-        }
+        self.paired_docs = dict(PAIRED_DOCS)
         
         # Common path patterns that might drift
         self.path_patterns = [

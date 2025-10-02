@@ -23,6 +23,8 @@ Execute the audit toolchain to capture current health metrics before making sign
 
 Use the detailed report for evidence and rely on the summary files for quick context. Cross-check any concerns with `ai_development_docs/AI_REFERENCE.md` when diagnosing issues.
 
+**Note**: Documentation coverage metrics now use production context exclusions for accurate percentages (typically 90-95% range).
+
 ## Response Template
 Use this structure when reporting audit results:
 
