@@ -437,6 +437,7 @@ class AccountCreatorDialog(QDialog):
     
     # Removed populate_timezones as timezone is now handled by channel widget
     
+    @handle_errors("validating input", default_return=(False, "Validation failed"))
     def validate_input(self) -> tuple[bool, str]:
         """Validate the input and return (is_valid, error_message)."""
         logger.info("validate_input() called - starting validation")
@@ -669,6 +670,7 @@ class AccountCreatorDialog(QDialog):
         success_dialog.setModal(True)
         success_dialog.exec()
     
+    @handle_errors("validating and accepting dialog", default_return=False)
     def validate_and_accept(self):
         """Validate input and accept the dialog."""
         logger.info("validate_and_accept() called - starting account creation process")
@@ -736,6 +738,7 @@ class AccountCreatorDialog(QDialog):
         self._validate_and_accept__show_success_dialog(username)
         self.close_dialog()
     
+    @handle_errors("creating account", default_return=False)
     def create_account(self, account_data: Dict[str, Any]) -> bool:
         """Create the user account."""
         try:

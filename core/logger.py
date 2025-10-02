@@ -11,6 +11,7 @@ import sys
 import datetime
 from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
+from core.error_handling import handle_errors
 
 def _is_testing_environment():
     """Check if we're running in a testing environment."""
@@ -899,6 +900,7 @@ def get_log_file_info():
         return None
 
 
+@handle_errors("cleaning up old logs", default_return=False)
 def cleanup_old_logs(max_total_size_mb=50):
     """
     Clean up old log files if total size exceeds the limit.
@@ -962,6 +964,7 @@ def cleanup_old_logs(max_total_size_mb=50):
         return False
 
 
+@handle_errors("compressing old logs", default_return=0)
 def compress_old_logs():
     """
     Compress log files older than 7 days and move them to archive directory.
@@ -1024,6 +1027,7 @@ def compress_old_logs():
         return 0
 
 
+@handle_errors("cleaning up old archives", default_return=0)
 def cleanup_old_archives(max_days=30):
     """
     Remove archived log files older than specified days.
@@ -1067,6 +1071,7 @@ def cleanup_old_archives(max_days=30):
         return 0
 
 
+@handle_errors("restarting logging system", default_return=False)
 def force_restart_logging():
     """
     Force restart the logging system by clearing all handlers and reinitializing.
@@ -1127,6 +1132,7 @@ def force_restart_logging():
         return False
 
 
+@handle_errors("clearing log file locks", default_return=False)
 def clear_log_file_locks():
     """
     Clear any file locks that might be preventing log rotation.
@@ -1149,7 +1155,7 @@ def clear_log_file_locks():
             if hasattr(handler, 'stream') and handler.stream:
                 try:
                     handler.stream.close()
-                except:
+                except Exception:
                     pass
             handler.close()
         
@@ -1159,7 +1165,7 @@ def clear_log_file_locks():
                 if hasattr(handler, 'stream') and handler.stream:
                     try:
                         handler.stream.close()
-                    except:
+                    except Exception:
                         pass
                 handler.close()
         

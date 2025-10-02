@@ -28,6 +28,7 @@ from typing import Dict, Set, Optional, List
 try:
     # Avoid heavy imports during tests; logger provides component loggers
     from core.logger import get_component_logger
+    from core.error_handling import handle_errors
     _logger = get_component_logger('file_ops')
 except Exception:
     # Fallback to a no-op logger to satisfy static logging checks
@@ -45,12 +46,14 @@ except Exception:
     _logger = _DummyLogger()
 
 
+@handle_errors("splitting environment list", default_return=[])
 def _split_env_list(value: Optional[str]) -> List[str]:
     if not value:
         return []
     return [item.strip() for item in value.split(',') if item.strip()]
 
 
+@handle_errors("classifying file path", default_return="other")
 def _classify_path(path: str) -> str:
     lower = path.replace('\\', '/').lower()
     if '/tests/' in lower or lower.startswith('tests/'):
@@ -91,10 +94,12 @@ class FileAuditor:
                 
             return default_dirs
     
+    @handle_errors("starting file auditor", default_return=False)
     def start(self):
         """Start the file auditor (no-op for now)."""
         return True
     
+    @handle_errors("stopping file auditor", default_return=False)
     def stop(self):
         """Stop the file auditor (no-op for now)."""
         return True
@@ -104,14 +109,17 @@ class FileAuditor:
 _auditor = FileAuditor()
 
 
+@handle_errors("starting file auditor", default_return=False)
 def start_auditor():
     return _auditor.start()
 
 
+@handle_errors("stopping file auditor", default_return=False)
 def stop_auditor():
     return _auditor.stop()
 
 
+@handle_errors("recording file creation", default_return=None)
 def record_created(path: str, reason: str = "api", extra: Optional[Dict] = None):
     """Programmatically record a file creation event.
 

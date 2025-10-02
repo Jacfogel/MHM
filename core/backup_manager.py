@@ -51,7 +51,7 @@ class BackupManager:
             logger.error(f"Failed to create backup directory: {e}")
             return False
     
-    @handle_errors("setting up backup parameters", default_return=(None, None))
+    @handle_errors("setting up backup parameters", default_return=("", ""))
     def _create_backup__setup_backup(self, backup_name: Optional[str]) -> Tuple[str, str]:
         """Setup backup name and path parameters."""
         if not backup_name:

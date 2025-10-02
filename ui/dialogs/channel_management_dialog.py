@@ -9,6 +9,7 @@ from core.user_data_handlers import (
     update_channel_preferences,
     update_user_account,
 )
+from core.error_handling import handle_errors
 
 class ChannelManagementDialog(QDialog):
     user_changed = Signal()
@@ -63,6 +64,7 @@ class ChannelManagementDialog(QDialog):
         self.ui.buttonBox_save_cancel.accepted.connect(self.save_channel_settings)
         self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
 
+    @handle_errors("saving channel settings", default_return=False)
     def save_channel_settings(self):
         if not self.user_id:
             self.accept()

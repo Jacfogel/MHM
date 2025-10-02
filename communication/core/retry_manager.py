@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 
 # Route retry logs to communication component
 retry_logger = get_component_logger('retry_manager')
@@ -36,6 +37,7 @@ class RetryManager:
         self._retry_thread = None
         self._retry_running = False
         
+    @handle_errors("queueing failed message", default_return=None)
     def queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
         """Queue a failed message for retry"""
         queued_message = QueuedMessage(
@@ -49,6 +51,7 @@ class RetryManager:
         self._failed_message_queue.put(queued_message)
         logger.info(f"Queued failed message for user {user_id}, category {category} for retry")
 
+    @handle_errors("starting retry thread", default_return=None)
     def start_retry_thread(self):
         """Start the retry thread for failed messages"""
         if self._retry_thread and self._retry_thread.is_alive():
@@ -59,6 +62,7 @@ class RetryManager:
         self._retry_thread.start()
         logger.info("Started message retry thread")
 
+    @handle_errors("stopping retry thread", default_return=None)
     def stop_retry_thread(self):
         """Stop the retry thread"""
         if self._retry_thread and self._retry_thread.is_alive():
@@ -66,6 +70,7 @@ class RetryManager:
             self._retry_thread.join(timeout=5)
             logger.debug("Retry thread stopped")
 
+    @handle_errors("running retry loop", default_return=None)
     def _retry_loop(self):
         """Main retry loop that processes failed messages"""
         while self._retry_running:
@@ -76,6 +81,7 @@ class RetryManager:
                 logger.error(f"Error in retry loop: {e}")
                 time.sleep(60)  # Continue after error
 
+    @handle_errors("processing retry queue", default_return=None)
     def _process_retry_queue(self):
         """Process the retry queue and attempt to resend failed messages"""
         try:
@@ -114,10 +120,12 @@ class RetryManager:
         except Exception as e:
             logger.error(f"Error processing retry queue: {e}")
 
+    @handle_errors("getting queue size", default_return=0)
     def get_queue_size(self) -> int:
         """Get the current size of the retry queue"""
         return self._failed_message_queue.qsize()
 
+    @handle_errors("clearing retry queue", default_return=None)
     def clear_queue(self):
         """Clear all queued messages (use with caution)"""
         while not self._failed_message_queue.empty():

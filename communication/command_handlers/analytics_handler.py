@@ -47,6 +47,7 @@ class AnalyticsHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that analytics command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("showing analytics overview", default_return=InteractionResponse("I'm having trouble showing your analytics. Please try again.", True))
     def _handle_show_analytics(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show comprehensive analytics overview"""
         days = entities.get('days', 30)
@@ -95,9 +96,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing analytics for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing analytics", user_id)
             return InteractionResponse("I'm having trouble showing your analytics right now. Please try again.", True)
     
+    @handle_errors("showing mood trends", default_return=InteractionResponse("I'm having trouble showing mood trends. Please try again.", True))
     def _handle_mood_trends(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show mood trends analysis"""
         days = entities.get('days', 30)
@@ -132,9 +135,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing mood trends for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing mood trends", user_id)
             return InteractionResponse("I'm having trouble showing your mood trends right now. Please try again.", True)
 
+    @handle_errors("showing quantitative summary", default_return=InteractionResponse("I'm having trouble showing quantitative summary. Please try again.", True))
     def _handle_quant_summary(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show per-field quantitative summaries for opted-in fields."""
         days = entities.get('days', 30)
@@ -170,9 +175,11 @@ class AnalyticsHandler(InteractionHandler):
                 response += f"• {field.title()}: avg {stats['average']} (min {stats['min']}, max {stats['max']}) over {int(stats['count'])} days\n"
             return InteractionResponse(response, True)
         except Exception as e:
-            logger.error(f"Error computing quantitative summaries for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "computing quantitative summaries", user_id)
             return InteractionResponse("I'm having trouble computing your quantitative summaries right now. Please try again.", True)
     
+    @handle_errors("showing habit analysis", default_return=InteractionResponse("I'm having trouble showing habit analysis. Please try again.", True))
     def _handle_habit_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show habit analysis"""
         days = entities.get('days', 30)
@@ -209,9 +216,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing habit analysis for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing habit analysis", user_id)
             return InteractionResponse("I'm having trouble showing your habit analysis right now. Please try again.", True)
     
+    @handle_errors("showing sleep analysis", default_return=InteractionResponse("I'm having trouble showing sleep analysis. Please try again.", True))
     def _handle_sleep_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show sleep analysis"""
         days = entities.get('days', 30)
@@ -244,9 +253,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing sleep analysis for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing sleep analysis", user_id)
             return InteractionResponse("I'm having trouble showing your sleep analysis right now. Please try again.", True)
     
+    @handle_errors("showing wellness score", default_return=InteractionResponse("I'm having trouble showing wellness score. Please try again.", True))
     def _handle_wellness_score(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show wellness score"""
         days = entities.get('days', 30)
@@ -281,9 +292,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing wellness score for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "calculating wellness score", user_id)
             return InteractionResponse("I'm having trouble calculating your wellness score right now. Please try again.", True)
     
+    @handle_errors("showing check-in history", default_return=InteractionResponse("I'm having trouble showing check-in history. Please try again.", True))
     def _handle_checkin_history(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show check-in history"""
         days = entities.get('days', 30)
@@ -323,9 +336,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing check-in history for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing check-in history", user_id)
             return InteractionResponse("I'm having trouble showing your check-in history right now. Please try again.", True)
     
+    @handle_errors("showing check-in analysis", default_return=InteractionResponse("I'm having trouble showing check-in analysis. Please try again.", True))
     def _handle_checkin_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show comprehensive check-in response analysis"""
         days = entities.get('days', 30)
@@ -406,9 +421,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error analyzing check-ins for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "analyzing check-ins", user_id)
             return InteractionResponse("I'm having trouble analyzing your check-ins right now. Please try again.", True)
     
+    @handle_errors("showing completion rate", default_return=InteractionResponse("I'm having trouble showing completion rate. Please try again.", True))
     def _handle_completion_rate(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show completion rate"""
         days = entities.get('days', 30)
@@ -430,9 +447,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing completion rate for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "calculating completion rate", user_id)
             return InteractionResponse("I'm having trouble calculating your completion rate right now. Please try again.", True)
     
+    @handle_errors("showing task analytics", default_return=InteractionResponse("I'm having trouble showing task analytics. Please try again.", True))
     def _handle_task_analytics(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show comprehensive task analytics and insights"""
         days = entities.get('days', 30)
@@ -503,9 +522,11 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing task analytics for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing task analytics", user_id)
             return InteractionResponse("I'm having trouble showing your task analytics right now. Please try again.", True)
     
+    @handle_errors("showing task statistics", default_return=InteractionResponse("I'm having trouble showing task statistics. Please try again.", True))
     def _handle_task_stats(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show detailed task statistics"""
         days = entities.get('days', 30)
@@ -561,7 +582,8 @@ class AnalyticsHandler(InteractionHandler):
             return InteractionResponse(response, True)
             
         except Exception as e:
-            logger.error(f"Error showing task stats for user {user_id}: {e}")
+            from core.error_handling import handle_ai_error
+            handle_ai_error(e, "showing task statistics", user_id)
             return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
     def get_help(self) -> str:

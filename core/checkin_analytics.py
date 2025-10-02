@@ -415,6 +415,7 @@ class CheckinAnalytics:
         
         return task_stats
     
+    @handle_errors("calculating mood distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
     def _get_mood_distribution(self, moods: List[int]) -> Dict:
         """Calculate distribution of mood scores"""
         distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
@@ -423,6 +424,7 @@ class CheckinAnalytics:
                 distribution[mood] += 1
         return distribution
     
+    @handle_errors("calculating habit streak", default_return={"current": 0, "best": 0})
     def _calculate_streak(self, checkins: List[Dict], habit_key: str) -> Dict:
         """Calculate current and best streaks for a habit"""
         current_streak = 0
@@ -448,6 +450,7 @@ class CheckinAnalytics:
             "best": best_streak
         }
     
+    @handle_errors("determining habit status", default_return="unknown")
     def _get_habit_status(self, completion_rate: float) -> str:
         """Get status description for habit completion rate"""
         if completion_rate >= 90:
@@ -459,6 +462,7 @@ class CheckinAnalytics:
         else:
             return "Needs Improvement"
     
+    @handle_errors("calculating overall completion", default_return=0.0)
     def _calculate_overall_completion(self, habit_stats: Dict) -> float:
         """Calculate overall habit completion rate"""
         if not habit_stats:
@@ -467,6 +471,7 @@ class CheckinAnalytics:
         total_rate = sum(habit['completion_rate'] for habit in habit_stats.values())
         return round(total_rate / len(habit_stats), 1)
     
+    @handle_errors("calculating sleep consistency", default_return=0.0)
     def _calculate_sleep_consistency(self, hours: List[float]) -> float:
         """Calculate sleep consistency (lower variance = more consistent)"""
         if len(hours) < 2:
@@ -477,6 +482,7 @@ class CheckinAnalytics:
         consistency = max(0, 100 - (variance * 10))
         return round(consistency, 1)
     
+    @handle_errors("generating sleep recommendations", default_return=[])
     def _get_sleep_recommendations(self, avg_hours: float, avg_quality: float, poor_days: int) -> List[str]:
         """Generate sleep recommendations"""
         recommendations = []
@@ -497,6 +503,7 @@ class CheckinAnalytics:
         
         return recommendations
     
+    @handle_errors("calculating mood score", default_return=50.0)
     def _calculate_mood_score(self, checkins: List[Dict]) -> float:
         """Calculate mood score (0-100)"""
         moods = [c.get('mood', 3) for c in checkins if 'mood' in c]
@@ -507,6 +514,7 @@ class CheckinAnalytics:
         avg_mood = statistics.mean(moods)
         return (avg_mood - 1) * 25
     
+    @handle_errors("calculating habit score", default_return=50.0)
     def _calculate_habit_score(self, checkins: List[Dict]) -> float:
         """Calculate habit score (0-100)"""
         habits = ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration']
@@ -525,6 +533,7 @@ class CheckinAnalytics:
         
         return (total_completion / total_possible) * 100
     
+    @handle_errors("calculating sleep score", default_return=50.0)
     def _calculate_sleep_score(self, checkins: List[Dict]) -> float:
         """Calculate sleep score (0-100)"""
         sleep_records = []
@@ -552,6 +561,7 @@ class CheckinAnalytics:
         
         return statistics.mean(sleep_records)
     
+    @handle_errors("determining score level", default_return="unknown")
     def _get_score_level(self, score: float) -> str:
         """Get wellness score level description"""
         if score >= 80:
@@ -563,6 +573,7 @@ class CheckinAnalytics:
         else:
             return "Needs Attention"
     
+    @handle_errors("generating wellness recommendations", default_return=[])
     def _get_wellness_recommendations(self, mood_score: float, habit_score: float, sleep_score: float) -> List[str]:
         """Generate wellness recommendations based on component scores"""
         recommendations = []

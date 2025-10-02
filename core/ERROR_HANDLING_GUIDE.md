@@ -124,6 +124,12 @@ with safe_file_operation("path/to/file.json", "loading user data", user_id="123"
         data = json.load(f)
 ```
 
+**Benefits:**
+- Automatic error handling for all file operations within the context
+- Proper error logging with file path and operation context
+- Automatic recovery for common file errors (missing files, permission issues)
+- User-friendly error messages when operations fail
+
 ### **4. Direct Error Handler Usage**
 
 **For complex scenarios:**
@@ -208,6 +214,13 @@ All errors are logged with:
 - User ID (when available)
 - File paths (when relevant)
 - Timestamp and error type
+
+### **Component Logger Integration**
+The error handling system integrates with the MHM component logging system:
+- **Main Logger**: General application errors go to `app.log`
+- **Error Logger**: Structured error information goes to `errors.log`
+- **Component Loggers**: Errors are also logged to relevant component logs (e.g., Discord errors to `discord.log`)
+- **Structured Data**: Error context is logged with structured metadata for analysis
 
 ## 🔧 **Configuration**
 

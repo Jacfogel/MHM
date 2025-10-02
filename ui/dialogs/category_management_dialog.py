@@ -40,6 +40,7 @@ class CategoryManagementDialog(QDialog):
         # Load user's current categories
         self.load_user_category_data()
 
+    @handle_errors("loading user category data", default_return=None)
     def load_user_category_data(self):
         """Load user's current category settings"""
         try:
@@ -72,6 +73,7 @@ class CategoryManagementDialog(QDialog):
         # Enable/disable the category selection group box
         self.ui.groupBox_select_categories.setEnabled(checked)
 
+    @handle_errors("saving category settings", default_return=False)
     def save_category_settings(self):
         """Save the selected categories back to user preferences"""
         if not self.user_id:

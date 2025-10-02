@@ -55,6 +55,7 @@ class DynamicCheckinManager:
             logger.error(f"Error loading checkin data: {e}")
             return False
     
+    @handle_errors("getting question definition", default_return=None)
     def get_question_definition(self, question_key: str) -> Optional[Dict[str, Any]]:
         """Get the definition for a specific question."""
         if not self.questions_data:
@@ -62,6 +63,7 @@ class DynamicCheckinManager:
         
         return self.questions_data.get('questions', {}).get(question_key)
     
+    @handle_errors("getting all questions", default_return={})
     def get_all_questions(self) -> Dict[str, Dict[str, Any]]:
         """Get all question definitions."""
         if not self.questions_data:
@@ -69,6 +71,7 @@ class DynamicCheckinManager:
         
         return self.questions_data.get('questions', {})
     
+    @handle_errors("getting question text", default_return="")
     def get_question_text(self, question_key: str) -> str:
         """Get the question text for a specific question."""
         question_def = self.get_question_definition(question_key)
@@ -76,6 +79,7 @@ class DynamicCheckinManager:
             return question_def.get('question_text', f"Please answer this question: {question_key}")
         return f"Please answer this question: {question_key}"
     
+    @handle_errors("getting question type", default_return="text")
     def get_question_type(self, question_key: str) -> str:
         """Get the type of a specific question."""
         question_def = self.get_question_definition(question_key)
@@ -83,6 +87,7 @@ class DynamicCheckinManager:
             return question_def.get('type', 'unknown')
         return 'unknown'
     
+    @handle_errors("getting question validation", default_return={})
     def get_question_validation(self, question_key: str) -> Dict[str, Any]:
         """Get validation rules for a specific question."""
         question_def = self.get_question_definition(question_key)
@@ -90,6 +95,7 @@ class DynamicCheckinManager:
             return question_def.get('validation', {})
         return {}
     
+    @handle_errors("getting response statement", default_return=None)
     def get_response_statement(self, question_key: str, answer_value: Any) -> Optional[str]:
         """Get a random response statement for a question answer."""
         if not self.responses_data:
@@ -111,6 +117,7 @@ class DynamicCheckinManager:
         
         return None
     
+    @handle_errors("getting transition phrase", default_return="Great! Let's continue.")
     def get_transition_phrase(self) -> str:
         """Get a random transition phrase."""
         if not self.responses_data:
@@ -119,6 +126,7 @@ class DynamicCheckinManager:
         transition_phrases = self.responses_data.get('transition_phrases', ["Next question:"])
         return random.choice(transition_phrases)
     
+    @handle_errors("building next question with response", default_return="Please answer this question:")
     def build_next_question_with_response(self, question_key: str, previous_question_key: str, 
                                         previous_answer: Any) -> str:
         """Build the next question text with a response statement from the previous answer."""
@@ -135,6 +143,7 @@ class DynamicCheckinManager:
         else:
             return question_text
     
+    @handle_errors("validating answer", default_return=(False, None, "Validation failed"))
     def validate_answer(self, question_key: str, answer: str) -> Tuple[bool, Any, Optional[str]]:
         """Validate an answer for a specific question."""
         question_def = self.get_question_definition(question_key)
@@ -182,6 +191,7 @@ class DynamicCheckinManager:
         else:
             return False, None, f"Unknown question type: {question_type}"
     
+    @handle_errors("getting enabled questions for UI", default_return={})
     def get_enabled_questions_for_ui(self) -> Dict[str, Dict[str, Any]]:
         """Get questions formatted for UI display with enabled_by_default status."""
         questions = self.get_all_questions()
@@ -197,6 +207,7 @@ class DynamicCheckinManager:
         
         return ui_questions
     
+    @handle_errors("getting categories", default_return={})
     def get_categories(self) -> Dict[str, Dict[str, str]]:
         """Get all question categories."""
         if not self.questions_data:

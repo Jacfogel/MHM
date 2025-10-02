@@ -18,6 +18,7 @@ from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_
 # Import core functionality
 from core.user_management import get_timezone_options
 from core.logger import setup_logging, get_logger, get_component_logger
+from core.error_handling import handle_errors
 
 setup_logging()
 logger = get_component_logger('ui')
@@ -155,6 +156,7 @@ class UserProfileSettingsWidget(QWidget):
     
 
     
+    @handle_errors("loading existing data", default_return=None)
     def load_existing_data(self):
         """Load existing personalization data into the form."""
         try:
@@ -289,6 +291,7 @@ class UserProfileSettingsWidget(QWidget):
     
 
     
+    @handle_errors("getting personalization data", default_return={})
     def get_personalization_data(self) -> Dict[str, Any]:
         """Get all personalization data from the form, preserving existing data structure."""
         try:
@@ -433,10 +436,12 @@ class UserProfileSettingsWidget(QWidget):
             if field not in data:
                 data[field] = default_value
 
+    @handle_errors("getting settings", default_return={})
     def get_settings(self):
         """Get the current user profile settings."""
         return self.get_personalization_data()
     
+    @handle_errors("setting settings", default_return=False)
     def set_settings(self, settings):
         """Set the user profile settings."""
         self.existing_data = settings

@@ -275,6 +275,7 @@ def delete_message(user_id, category, message_id):
     
     logger.info(f"Deleted message with ID {message_id} in category {category} for user {user_id}.")
 
+@handle_errors("getting recent messages", default_return=[])
 def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int = 10, days_back: Optional[int] = None) -> List[Dict[str, Any]]:
     """
     Get recent messages with flexible filtering.
@@ -343,6 +344,7 @@ def get_recent_messages(user_id: str, category: Optional[str] = None, limit: int
         logger.error(f"Error getting recent messages for user {user_id}: {e}")
         return []
 
+@handle_errors("storing sent message", default_return=False)
 def store_sent_message(user_id: str, category: str, message_id: str, message: str, delivery_status: str = "sent", time_period: str = None) -> bool:
     """
     Store sent message in chronological order.
@@ -417,6 +419,7 @@ def store_sent_message(user_id: str, category: str, message_id: str, message: st
         logger.error(f"Error storing sent message for user {user_id}: {e}")
         return False
 
+@handle_errors("archiving old messages", default_return=False)
 def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
     """
     Archive messages older than specified days.
@@ -501,6 +504,7 @@ def archive_old_messages(user_id: str, days_to_keep: int = 365) -> bool:
         logger.error(f"Error archiving old messages for user {user_id}: {e}")
         return False
 
+@handle_errors("parsing timestamp", default_return=datetime.now())
 def _parse_timestamp(timestamp_str: str) -> datetime:
     """
     Parse timestamp string to datetime object.
@@ -679,6 +683,7 @@ def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
         }
 
 
+@handle_errors("getting timestamp for sorting", default_return=datetime.now())
 def get_timestamp_for_sorting(item):
     """
     Convert timestamp to float for consistent sorting.

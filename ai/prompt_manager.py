@@ -113,6 +113,7 @@ class PromptManager:
         except Exception as e:
             logger.error(f"Error loading custom system prompt: {e}")
     
+    @handle_errors("getting prompt", default_return="You are a supportive wellness assistant. Keep responses helpful, encouraging, and conversational.")
     def get_prompt(self, prompt_type: str = 'wellness') -> str:
         """
         Get the appropriate prompt for the given type
@@ -140,6 +141,7 @@ class PromptManager:
         logger.debug(f"Prompt type '{prompt_type}' not found, using default wellness prompt")
         return self._fallback_prompts['wellness'].content
     
+    @handle_errors("getting prompt template", default_return=None)
     def get_prompt_template(self, prompt_type: str) -> Optional[PromptTemplate]:
         """
         Get the full prompt template for the given type
@@ -157,6 +159,7 @@ class PromptManager:
         # Check fallback templates
         return self._fallback_prompts.get(prompt_type)
     
+    @handle_errors("adding prompt template", default_return=False)
     def add_prompt_template(self, template: PromptTemplate):
         """
         Add a custom prompt template
@@ -167,6 +170,7 @@ class PromptManager:
         self._prompt_templates[template.name] = template
         logger.info(f"Added custom prompt template: {template.name} (content_length={len(template.content)}, max_tokens={template.max_tokens})")
     
+    @handle_errors("removing prompt template", default_return=False)
     def remove_prompt_template(self, prompt_type: str) -> bool:
         """
         Remove a custom prompt template
@@ -183,6 +187,7 @@ class PromptManager:
             return True
         return False
     
+    @handle_errors("reloading custom prompt", default_return=False)
     def reload_custom_prompt(self):
         """Reload the custom prompt from file (useful for development)"""
         self._load_custom_prompt()
@@ -200,6 +205,7 @@ class PromptManager:
         """Get the keys of available fallback prompts."""
         return list(self._fallback_prompts.keys()) if isinstance(self._fallback_prompts, dict) else []
     
+    @handle_errors("getting available prompts", default_return={})
     def get_available_prompts(self) -> Dict[str, str]:
         """
         Get all available prompt types and their descriptions
@@ -219,6 +225,7 @@ class PromptManager:
         
         return prompts
     
+    @handle_errors("creating contextual prompt", default_return="")
     def create_contextual_prompt(self, base_prompt: str, context: str, user_input: str) -> str:
         """
         Create a contextual prompt by combining base prompt, context, and user input
@@ -235,6 +242,7 @@ class PromptManager:
         logger.debug(f"Created contextual prompt: base_length={len(base_prompt)}, context_length={len(context)}, input_length={len(user_input)}, total_length={len(contextual_prompt)}")
         return contextual_prompt
     
+    @handle_errors("creating task prompt", default_return="")
     def create_task_prompt(self, task_description: str, user_context: str = "") -> str:
         """
         Create a task-specific prompt
@@ -255,6 +263,7 @@ class PromptManager:
         
         return self.create_contextual_prompt(base_prompt, context, "Help me with this task")
     
+    @handle_errors("creating checkin prompt", default_return="")
     def create_checkin_prompt(self, checkin_type: str = "daily", user_context: str = "") -> str:
         """
         Create a check-in specific prompt

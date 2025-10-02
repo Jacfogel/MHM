@@ -131,28 +131,34 @@ class CommunicationManager:
             # Use current loop
             return self._main_loop.run_until_complete(coro)
 
+    @handle_errors("setting scheduler manager", default_return=None)
     def set_scheduler_manager(self, scheduler_manager):
         """Set the scheduler manager for the communication manager."""
         self.scheduler_manager = scheduler_manager
         logger.debug("Scheduler manager set in CommunicationManager.")
 
+    @handle_errors("queueing failed message", default_return=None)
     def send_message_sync__queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
         """Queue a failed message for retry"""
         self.retry_manager.queue_failed_message(user_id, category, message, recipient, channel_name)
 
+    @handle_errors("starting retry thread", default_return=None)
     def start_all__start_retry_thread(self):
         """Start the retry thread for failed messages"""
         self.retry_manager.start_retry_thread()
 
+    @handle_errors("stopping retry thread", default_return=None)
     def stop_all__stop_retry_thread(self):
         """Stop the retry thread"""
         self.retry_manager.stop_retry_thread()
 
+    @handle_errors("starting restart monitor", default_return=None)
     def start_all__start_restart_monitor(self):
         """Start the automatic restart monitor thread"""
         self.channel_monitor.set_channels(self._channels_dict)
         self.channel_monitor.start_restart_monitor()
 
+    @handle_errors("stopping restart monitor", default_return=None)
     def stop_all__stop_restart_monitor(self):
         """Stop the automatic restart monitor thread"""
         self.channel_monitor.stop_restart_monitor()
@@ -160,6 +166,7 @@ class CommunicationManager:
     # Old restart monitor methods removed - now handled by ChannelMonitor
     # Old retry loop methods removed - now handled by RetryManager
 
+    @handle_errors("initializing channels from config", default_return=False)
     def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
         """Initialize channels from configuration"""
         if channel_configs is None:
@@ -287,6 +294,7 @@ class CommunicationManager:
         
         return configs
 
+    @handle_errors("starting all channels", default_return=False)
     def start_all(self):
         """Start all communication channels"""
         logger.debug("Starting all communication channels.")
@@ -718,6 +726,7 @@ class CommunicationManager:
         
         self._channels_dict.clear()
 
+    @handle_errors("stopping all channels", default_return=False)
     def stop_all(self):
         """Stop all communication channels"""
         logger.debug("Stopping all communication channels.")

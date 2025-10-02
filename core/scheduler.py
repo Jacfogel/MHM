@@ -117,7 +117,7 @@ class SchedulerManager:
         # Update last run time after successful scheduling
         self.last_run_time = time.time()
 
-    @handle_errors("stopping scheduler")
+    @handle_errors("stopping scheduler", default_return=None)
     def stop_scheduler(self):
         """Stops the scheduler thread."""
         if self.scheduler_thread is not None and self.scheduler_thread.is_alive():
@@ -199,7 +199,7 @@ class SchedulerManager:
                 return True
             return False
     
-    @handle_errors("scheduling all users immediately")
+    @handle_errors("scheduling all users immediately", default_return=None)
     def schedule_all_users_immediately(self):
         """Schedule daily messages immediately for all users"""
         user_ids = get_all_user_ids()
@@ -275,7 +275,7 @@ class SchedulerManager:
             job_type_summary = ", ".join([f"{count} {name}" for name, count in job_types.items()])
             logger.info(f"Job breakdown: {job_type_summary}")
 
-    @handle_errors("scheduling new user")
+    @handle_errors("scheduling new user", default_return=None)
     def schedule_new_user(self, user_id: str):
         """
         Schedule a newly created user immediately.

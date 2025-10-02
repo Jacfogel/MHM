@@ -75,6 +75,7 @@ class CheckinManagementDialog(QDialog):
             logger.info("Check-ins enabled with no periods - creating default period")
             self.checkin_widget.add_new_period()
     
+    @handle_errors("loading user checkin data", default_return=None)
     def load_user_checkin_data(self):
         """Load the user's current check-in settings"""
         if not self.user_id:
@@ -88,7 +89,7 @@ class CheckinManagementDialog(QDialog):
         except Exception as e:
             logger.error(f"Error loading check-in data for user {self.user_id}: {e}")
     
-    @handle_errors("saving check-in settings")
+    @handle_errors("saving checkin settings", default_return=False)
     def save_checkin_settings(self):
         """Save the check-in settings back to user preferences"""
         if not self.user_id:

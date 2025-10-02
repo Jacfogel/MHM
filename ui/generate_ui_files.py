@@ -11,7 +11,9 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
+from core.error_handling import handle_errors
 
+@handle_errors("generating UI file", default_return=False)
 def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
     """
     Generate a UI Python file from a .ui file with proper headers.
@@ -69,6 +71,7 @@ def generate_ui_file(ui_file_path: str, output_path: str) -> bool:
         print(f"Unexpected error: {e}")
         return False
 
+@handle_errors("generating all UI files", default_return=False)
 def generate_all_ui_files():
     """Generate all UI files in the project."""
     project_root = Path(__file__).parent.parent
@@ -102,6 +105,7 @@ def generate_all_ui_files():
     print(f"\nResults: {success_count}/{len(ui_files)} files generated successfully")
     return success_count == len(ui_files)
 
+@handle_errors("running UI file generator", default_return=1)
 def main():
     """Main function."""
     if len(sys.argv) > 1:
