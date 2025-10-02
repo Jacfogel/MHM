@@ -150,7 +150,7 @@ def collect_project_inventory(errors: List[str]) -> Dict[str, Dict[str, object]]
     inventory: Dict[str, Dict[str, object]] = {}
     seen: Set[Path] = set()
 
-    for source_path in iter_python_sources(config.get_scan_directories()):
+    for source_path in iter_python_sources(config.get_scan_directories(), context="production"):
         resolved = source_path.resolve()
         seen.add(resolved)
         try:

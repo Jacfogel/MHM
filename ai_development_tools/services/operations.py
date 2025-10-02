@@ -27,6 +27,7 @@ SCRIPT_REGISTRY = {
     'config_validator': 'config_validator.py',
     'decision_support': 'decision_support.py',
     'documentation_sync_checker': 'documentation_sync_checker.py',
+    'error_handling_coverage': 'error_handling_coverage.py',
     'function_discovery': 'function_discovery.py',
     'generate_function_registry': 'generate_function_registry.py',
     'generate_module_dependencies': 'generate_module_dependencies.py',
@@ -50,11 +51,22 @@ class AIToolsService:
         self.audit_config = config.get_quick_audit_config()
         self.results_cache = {}
         self.docs_sync_results = None
+        self.exclusion_config = {
+            'include_tests': False,
+            'include_dev_tools': False
+        }
         self.docs_sync_summary = None
         self.legacy_cleanup_results = None
         self.legacy_cleanup_summary = None
         self.status_results = None
         self.status_summary = None
+    
+    def set_exclusion_config(self, include_tests: bool = False, include_dev_tools: bool = False):
+        """Set exclusion configuration for audit tools."""
+        self.exclusion_config = {
+            'include_tests': include_tests,
+            'include_dev_tools': include_dev_tools
+        }
 
     def run_script(self, script_name: str, *args) -> Dict:
         """Run a registered helper script from ai_development_tools."""
@@ -144,6 +156,76 @@ class AIToolsService:
         else:
             lowered = output.lower() if isinstance(output, str) else ''
             if 'missing from registry' in lowered or 'missing items' in lowered or 'extra functions' in lowered:
+                result['issues_found'] = True
+                result['success'] = True
+                result['error'] = ''
+        return result
+
+    def run_function_discovery(self) -> Dict:
+        """Run function_discovery with structured JSON handling."""
+        # Build command line arguments based on exclusion configuration
+        args = []
+        if self.exclusion_config.get('include_tests', False):
+            args.append("--include-tests")
+        if self.exclusion_config.get('include_dev_tools', False):
+            args.append("--include-dev-tools")
+        
+        result = self.run_script("function_discovery", *args)
+        return result
+
+    def run_decision_support(self) -> Dict:
+        """Run decision_support with structured JSON handling."""
+        # Build command line arguments based on exclusion configuration
+        args = []
+        if self.exclusion_config.get('include_tests', False):
+            args.append("--include-tests")
+        if self.exclusion_config.get('include_dev_tools', False):
+            args.append("--include-dev-tools")
+        
+        result = self.run_script("decision_support", *args)
+        return result
+
+    def run_error_handling_coverage(self) -> Dict:
+        """Run error_handling_coverage with structured JSON handling."""
+        # Build command line arguments based on exclusion configuration
+        args = ["--json"]
+        if self.exclusion_config.get('include_tests', False):
+            args.append("--include-tests")
+        if self.exclusion_config.get('include_dev_tools', False):
+            args.append("--include-dev-tools")
+        
+        result = self.run_script("error_handling_coverage", *args)
+        output = result.get('output', '')
+        data = None
+        if output:
+            try:
+                # Find the JSON part in the output (after the text)
+                lines = output.split('\n')
+                json_start = -1
+                for i, line in enumerate(lines):
+                    if line.strip().startswith('{'):
+                        json_start = i
+                        break
+                
+                if json_start >= 0:
+                    json_output = '\n'.join(lines[json_start:])
+                    data = json.loads(json_output)
+                else:
+                    # Fallback: try to parse the entire output
+                    data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result['data'] = data
+            # Check for issues in error handling coverage
+            coverage = data.get('error_handling_coverage', 0)
+            missing_count = data.get('functions_missing_error_handling', 0)
+            result['issues_found'] = coverage < 80 or missing_count > 0
+            result['success'] = True
+            result['error'] = ''
+        else:
+            lowered = output.lower() if isinstance(output, str) else ''
+            if 'missing error handling' in lowered or 'coverage' in lowered:
                 result['issues_found'] = True
                 result['success'] = True
                 result['error'] = ''
@@ -344,18 +426,32 @@ class AIToolsService:
                 result = self.run_analyze_documentation()
             elif script_name == 'audit_function_registry':
                 result = self.run_audit_function_registry()
+            elif script_name == 'error_handling_coverage':
+                result = self.run_error_handling_coverage()
+            elif script_name == 'function_discovery':
+                result = self.run_function_discovery()
+            elif script_name == 'decision_support':
+                result = self.run_decision_support()
             else:
                 result = self.run_script(script_name)
             
             results[script_name] = result
             
-            if result['success']:
+            # Handle both dict and bool return types
+            if isinstance(result, dict):
+                success = result.get('success', False)
+            else:
+                success = bool(result)
+            
+            if success:
                 successful.append(script_name)
-                # Extract key information for concise output
-                self._extract_key_info(script_name, result)
+                # Extract key information for concise output (only for dict results)
+                if isinstance(result, dict):
+                    self._extract_key_info(script_name, result)
             else:
                 failed.append(script_name)
-                print(f"  [ERROR] {script_name} failed: {result['error']}")
+                error_msg = result.get('error', 'Unknown error') if isinstance(result, dict) else str(result)
+                print(f"  [ERROR] {script_name} failed: {error_msg}")
         
         # Save detailed results
         if self.audit_config['save_results']:
@@ -586,6 +682,8 @@ class AIToolsService:
             self._extract_documentation_metrics(result)
         elif 'decision_support' in script_name:
             self._extract_decision_insights(result)
+        elif 'error_handling_coverage' in script_name:
+            self._extract_error_handling_metrics(result)
 
     def _extract_function_metrics(self, result: Dict[str, Any]):
         """Extract function-related metrics"""
@@ -736,10 +834,53 @@ class AIToolsService:
 
         self.results_cache['decision_support_metrics'] = metrics
 
+    def _extract_error_handling_metrics(self, result: Dict[str, Any]):
+        """Extract error handling coverage metrics"""
+        data = result.get('data')
+        if isinstance(data, dict):
+            metrics = {
+                'total_functions': data.get('total_functions', 0),
+                'functions_with_error_handling': data.get('functions_with_error_handling', 0),
+                'functions_missing_error_handling': data.get('functions_missing_error_handling', 0),
+                'error_handling_coverage': data.get('error_handling_coverage', 0),
+                'functions_with_decorators': data.get('functions_with_decorators', 0),
+                'error_handling_quality': data.get('error_handling_quality', {}),
+                'error_patterns': data.get('error_patterns', {}),
+                'recommendations': data.get('recommendations', []),
+                'worst_modules': data.get('worst_modules', [])
+            }
+        else:
+            # Fallback to parsing output text
+            output = result.get('output', '')
+            if not isinstance(output, str):
+                return
+            
+            metrics = {}
+            lines = output.split('\n')
+            for line in lines:
+                if 'Total Functions:' in line:
+                    match = re.search(r'Total Functions: (\d+)', line)
+                    if match:
+                        metrics['total_functions'] = int(match.group(1))
+                elif 'Functions with Error Handling:' in line:
+                    match = re.search(r'Functions with Error Handling: (\d+)', line)
+                    if match:
+                        metrics['functions_with_error_handling'] = int(match.group(1))
+                elif 'Functions Missing Error Handling:' in line:
+                    match = re.search(r'Functions Missing Error Handling: (\d+)', line)
+                    if match:
+                        metrics['functions_missing_error_handling'] = int(match.group(1))
+                elif 'Error Handling Coverage:' in line:
+                    match = re.search(r'Error Handling Coverage: ([\d.]+)%', line)
+                    if match:
+                        metrics['error_handling_coverage'] = float(match.group(1))
+        
+        self.results_cache['error_handling_coverage'] = metrics
+
     def _extract_key_metrics(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Collect combined metrics for audit summary output."""
         combined: Dict[str, Any] = {}
-        for cache_key in ('function_discovery', 'audit_function_registry', 'decision_support_metrics'):
+        for cache_key in ('function_discovery', 'audit_function_registry', 'decision_support_metrics', 'error_handling_coverage'):
             cache = self.results_cache.get(cache_key)
             if isinstance(cache, dict):
                 for key, value in cache.items():
@@ -978,6 +1119,28 @@ class AIToolsService:
             f"- **Complexity Distribution**: Moderate: {metrics['moderate']}, High: {metrics['high']}, Critical: {metrics['critical']}"
         )
         lines.append(f"- **Documentation Coverage**: {metrics['doc_coverage']}")
+        
+        # Error Handling Coverage Status
+        error_handling_metrics = self.results_cache.get('error_handling_coverage', {})
+        if error_handling_metrics:
+            coverage = error_handling_metrics.get('error_handling_coverage', 0)
+            missing = error_handling_metrics.get('functions_missing_error_handling', 0)
+            total = error_handling_metrics.get('total_functions', 0)
+            quality = error_handling_metrics.get('error_handling_quality', {})
+            
+            if coverage >= 80:
+                lines.append(f"- **Error Handling Coverage**: **GOOD** ({coverage:.1f}%)")
+            elif coverage >= 60:
+                lines.append(f"- **Error Handling Coverage**: **NEEDS IMPROVEMENT** ({coverage:.1f}%)")
+            else:
+                lines.append(f"- **Error Handling Coverage**: **CRITICAL** ({coverage:.1f}%)")
+            
+            if missing > 0:
+                lines.append(f"- **Functions Missing Error Handling**: {missing}")
+            
+            excellent = quality.get('excellent', 0)
+            if excellent > 0:
+                lines.append(f"- **High-Quality Error Handling**: {excellent} functions using @handle_errors decorator")
 
         # Documentation status
         lines.append("## Documentation Status")
@@ -1206,6 +1369,43 @@ class AIToolsService:
             lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
         lines.append("")
 
+        lines.append("## Error Handling Priorities")
+        error_handling_metrics = self.results_cache.get('error_handling_coverage', {})
+        if error_handling_metrics:
+            coverage = error_handling_metrics.get('error_handling_coverage', 0)
+            missing = error_handling_metrics.get('functions_missing_error_handling', 0)
+            quality = error_handling_metrics.get('error_handling_quality', {})
+            recommendations = error_handling_metrics.get('recommendations', [])
+            
+            if coverage >= 80:
+                lines.append("- **Error Handling Coverage**: **GOOD** (80%+)")
+                lines.append("- **Coverage Maintenance**: Maintain current error handling standards")
+            elif coverage >= 60:
+                lines.append(f"- **Error Handling Coverage**: **NEEDS IMPROVEMENT** ({coverage:.1f}%)")
+                lines.append(f"- **Missing Error Handling**: {missing} functions need error handling")
+            else:
+                lines.append(f"- **Error Handling Coverage**: **CRITICAL** ({coverage:.1f}%)")
+                lines.append(f"- **Missing Error Handling**: {missing} functions need error handling")
+                lines.append("- **Priority**: Add error handling to critical functions immediately")
+            
+            # Add top recommendation only (avoid repetition)
+            if recommendations:
+                lines.append(f"- **Action**: {recommendations[0]}")
+            
+            # Quality improvement suggestions (avoid repetition with missing count)
+            basic = quality.get('basic', 0)
+            none = quality.get('none', 0)
+            
+            if basic > 0:
+                lines.append(f"- **Quality Improvement**: Replace basic try-except with @handle_errors decorator in {basic} functions")
+            if none > 0 and none != missing:  # Only show if different from missing count
+                lines.append(f"- **Critical**: {none} functions have no error handling")
+        else:
+            lines.append("- **Error Handling Coverage**: Run audit to analyze error handling patterns")
+            lines.append("- **Error Handling Quality**: Ensure consistent error handling standards")
+            lines.append("- **Error Handling Patterns**: Use @handle_errors decorator for robust error handling")
+        lines.append("")
+
         lines.append("## Validation Priorities")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
@@ -1308,8 +1508,15 @@ class AIToolsService:
         except Exception as e:
             print(f"  - Configuration validation failed: {e}")
 
-        # SKIP coverage regeneration in fast mode (this is the slowest part)
-        print("  - Skipping coverage regeneration (runs full test suite - use full audit for coverage)")
+        # Run coverage regeneration for full audit (this is the slowest part)
+        try:
+            print("  - Running coverage regeneration (full test suite)...")
+            if self.run_coverage_regeneration():
+                print("  - Coverage regeneration completed successfully")
+            else:
+                print("  - Coverage regeneration completed with issues")
+        except Exception as e:
+            print(f"  - Coverage regeneration failed: {e}")
 
         # Run version sync to get version data
         try:
@@ -1320,7 +1527,7 @@ class AIToolsService:
         except Exception as e:
             print(f"  - Version sync failed: {e}")
 
-        print("  - Fast mode tools completed (coverage skipped)")
+        print("  - Full audit tools completed (including coverage)")
 
         return True
     def _run_essential_tools_only(self):
@@ -1853,6 +2060,9 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     parser = argparse.ArgumentParser(prog='audit', add_help=False)
     parser.add_argument('--full', action='store_true', help='Run comprehensive audit (includes coverage).')
     parser.add_argument('--fast', action='store_true', help='Force fast audit (skip coverage).')
+    parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis.')
+    parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis.')
+    parser.add_argument('--include-all', action='store_true', help='Include tests and dev tools (equivalent to --include-tests --include-dev-tools).')
     if any(arg in ('-h', '--help') for arg in argv):
         _print_command_help(parser)
         return 0
@@ -1860,6 +2070,12 @@ def _audit_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     fast_mode = not ns.full
     if ns.fast:
         fast_mode = True
+    
+    # Set exclusion configuration
+    service.set_exclusion_config(
+        include_tests=ns.include_tests or ns.include_all,
+        include_dev_tools=ns.include_dev_tools or ns.include_all
+    )
     success = service.run_audit(fast=fast_mode)
     return 0 if success else 1
 

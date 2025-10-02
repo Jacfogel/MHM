@@ -60,7 +60,15 @@ The audit workflow produces:
 - `function_discovery.py`, `decision_support.py`, `audit_function_registry.py`, `audit_module_dependencies.py`
 - `generate_function_registry.py`, `generate_module_dependencies.py`, `analyze_documentation.py`
 - `documentation_sync_checker.py`, `legacy_reference_cleanup.py`, `validate_ai_work.py`, `config_validator.py`
-- `quick_status.py`, `regenerate_coverage_metrics.py`, `version_sync.py`
+- `quick_status.py`, `regenerate_coverage_metrics.py`, `version_sync.py`, `error_handling_coverage.py`
+
+## Error Handling Coverage Analysis
+The audit includes comprehensive error handling coverage analysis that:
+- Analyzes every function for error handling patterns (try-except, decorators, custom error types)
+- Identifies functions missing error handling, especially critical operations
+- Provides quality assessment (excellent/good/basic/none) and actionable recommendations
+- Tracks error handling patterns and coverage metrics in audit summaries
+- Helps maintain robust error handling standards across the codebase
 
 ## File Organization
 - Rotated outputs: `AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`, archives under `ai_development_tools/archive/`

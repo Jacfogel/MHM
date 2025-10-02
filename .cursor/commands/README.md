@@ -10,7 +10,7 @@ These commands provide structured checklists for common collaboration workflows.
 - `close-session` - Wrap up a session, run checks, and document follow-up work.
 
 ## Tooling Commands
-- `audit` - Run the comprehensive system audit.
+- `audit` - Run the comprehensive system audit (includes error handling coverage analysis).
 - `status` - Retrieve quick project status.
 - `docs` - Regenerate documentation artefacts and verify sync.
 - `review` - Follow the detailed code review checklist.

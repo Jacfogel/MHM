@@ -64,106 +64,43 @@ UNIVERSAL_EXCLUSIONS = [
     'tests/data/',
     'tests/temp/',
     'tests/fixtures/',
+    
+    # Generated files (should be excluded everywhere)
+    '*/generated/*',
+    '*/ui/generated/*',
+    '*/pyscript*',
+    '*/shibokensupport/*',
+    '*/signature_bootstrap.py',
+    
+    # Entry points (should be excluded everywhere)
+    'run_mhm.py',
+    '*/run_mhm.py',
+    'run_tests.py',
+    '*/run_tests.py',
 ]
 
-# Tool-specific exclusions
+# Tool-specific exclusions (minimal - only truly tool-specific patterns)
 TOOL_EXCLUSIONS = {
-    'coverage': [
-        # Coverage tool should exclude test files
-        '*/tests/*',
-        '*/test_*',
-        '*/conftest.py',
-        '*/pytest.ini',
-        
-        # Exclude development tools from coverage
-        '*/ai_development_tools/*',
-        '*/ai_development_docs/*',
-        '*/development_docs/*',
-        
-        # Exclude generated files
-        '*/generated/*',
-        '*/ui/generated/*',
-        '*/pyscript*',
-        '*/shibokensupport/*',
-        '*/signature_bootstrap.py',
-        
-        # Exclude entry points
-        '*/run_mhm.py',
-        '*/run_tests.py',
-    ],
-    
-    'analysis': [
-        # Analysis tools should exclude generated files
-        '*/generated/*',
-        '*/ui/generated/*',
-        '*/pyscript*',
-        '*/shibokensupport/*',
-        
-        # Exclude development documentation from analysis
-        '*/ai_development_docs/*',
-        '*/development_docs/*',
-        '*/ai_development_tools/*',
-        
-        # Exclude test files from analysis
-        '*/tests/*',
-        '*/test_*',
-    ],
-    
-    'documentation': [
-        # Documentation tools should exclude generated files
-        '*/generated/*',
-        '*/ui/generated/*',
-        '*/pyscript*',
-        '*/shibokensupport/*',
-        
-        # Exclude test files from documentation
-        '*/tests/*',
-        '*/test_*',
-        
-        # Exclude data directories
-        '*/data/*',
-        '*/logs/*',
-    ],
-    
-    'version_sync': [
-        # Version sync should exclude generated files
-        '*/generated/*',
-        '*/ui/generated/*',
-        '*/pyscript*',
-        '*/shibokensupport/*',
-        
-        # Exclude data and logs
-        '*/data/*',
-        '*/logs/*',
-        
-        # Exclude test files
-        '*/tests/*',
-        '*/test_*',
-    ],
-    
-    'file_operations': [
-        # File operations should exclude sensitive data
-        '*/data/*',
-        '*/logs/*',
-        '*/backup*',
-        '*/backups/*',
-        
-        # Exclude generated files
-        '*/generated/*',
-        '*/ui/generated/*',
-    ]
+    # Most exclusions are now handled by UNIVERSAL_EXCLUSIONS and CONTEXT_EXCLUSIONS
+    # Only keep truly tool-specific exclusions here
 }
 
 # Context-specific exclusions
 CONTEXT_EXCLUSIONS = {
     'production': [
         # Production should exclude development files
+        'ai_development_tools/*',
         '*/ai_development_tools/*',
+        'ai_development_docs/*',
         '*/ai_development_docs/*',
+        'development_docs/*',
         '*/development_docs/*',
+        'tests/*',
         '*/tests/*',
         '*/test_*',
+        'scripts/*',
         '*/scripts/*',
+        'archive/*',
         '*/archive/*',
     ],
     
@@ -221,10 +158,12 @@ def should_exclude_file(file_path: str, tool_type: str = None, context: str = 'd
     Returns:
         True if file should be excluded
     """
+    import fnmatch
     exclusions = get_exclusions(tool_type, context)
     
     for pattern in exclusions:
-        if pattern in file_path:
+        # Handle wildcard patterns with fnmatch
+        if fnmatch.fnmatch(file_path, pattern) or pattern in file_path:
             return True
     
     return False

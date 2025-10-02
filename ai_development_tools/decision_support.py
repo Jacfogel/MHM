@@ -49,20 +49,34 @@ def extract_functions(file_path: str):
     return functions
 
 
-def scan_all_functions():
+def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False):
     all_functions = []
-    for scan_dir in SCAN_DIRECTORIES:
+    
+    # Determine context based on configuration
+    if include_tests and include_dev_tools:
+        context = 'development'  # Include everything
+    elif include_tests or include_dev_tools:
+        context = 'development'  # More permissive
+    else:
+        context = 'production'   # Exclude tests and dev tools
+    
+    # Use all directories and let context-based exclusions handle filtering
+    scan_dirs = list(SCAN_DIRECTORIES) + ['tests', 'ai_development_tools']
+    
+    for scan_dir in scan_dirs:
         dir_path = PROJECT_ROOT / scan_dir
         if not dir_path.exists():
             continue
         for py_file in dir_path.rglob('*.py'):
-            # Use standard exclusions to filter files
-            if not should_exclude_file(str(py_file), 'analysis', 'development'):
+            # Use context-based exclusions
+            if not should_exclude_file(str(py_file), 'analysis', context):
                 all_functions.extend(extract_functions(str(py_file)))
+    
     for py_file in PROJECT_ROOT.glob('*.py'):
-        # Use standard exclusions to filter files
-        if not should_exclude_file(str(py_file), 'analysis', 'development'):
+        # Use context-based exclusions
+        if not should_exclude_file(str(py_file), 'analysis', context):
             all_functions.extend(extract_functions(str(py_file)))
+    
     return all_functions
 
 
@@ -144,9 +158,22 @@ def print_dashboard(functions):
 
 
 def main():
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Generate decision support insights for AI collaboration')
+    parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
+    parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis')
+    args = parser.parse_args()
+    
     print("[SCAN] Gathering actionable insights for AI decision-making...")
-    functions = scan_all_functions()
+    functions = scan_all_functions(
+        include_tests=args.include_tests,
+        include_dev_tools=args.include_dev_tools
+    )
     print_dashboard(functions)
+    
+    # Return success status
+    return 0
 
 if __name__ == "__main__":
     main() 

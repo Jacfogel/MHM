@@ -58,8 +58,6 @@ def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "
         if not base_path.exists():
             continue
         for path in base_path.rglob("*.py"):
-            if any(pattern in str(path) for pattern in base_exclusions):
-                continue
             if should_exclude_file(str(path), tool_type=tool_type, context=context):
                 continue
             yield path

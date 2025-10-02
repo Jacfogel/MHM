@@ -220,22 +220,36 @@ def extract_functions(file_path: str) -> List[Dict]:
     return functions
 
 
-def scan_all_functions() -> List[Dict]:
+def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False) -> List[Dict]:
     """Scan all Python files in SCAN_DIRECTORIES and extract functions."""
     all_functions = []
-    for scan_dir in SCAN_DIRECTORIES:
+    
+    # Determine context based on configuration
+    if include_tests and include_dev_tools:
+        context = 'development'  # Include everything
+    elif include_tests or include_dev_tools:
+        context = 'development'  # More permissive
+    else:
+        context = 'production'   # Exclude tests and dev tools
+    
+    # Use all directories and let context-based exclusions handle filtering
+    scan_dirs = list(SCAN_DIRECTORIES) + ['tests', 'ai_development_tools']
+    
+    for scan_dir in scan_dirs:
         dir_path = PROJECT_ROOT / scan_dir
         if not dir_path.exists():
             continue
         for py_file in dir_path.rglob('*.py'):
-            # Use standard exclusions to filter files
-            if not should_exclude_file(str(py_file), 'analysis', 'development'):
+            # Use context-based exclusions
+            if not should_exclude_file(str(py_file), 'analysis', context):
                 all_functions.extend(extract_functions(str(py_file)))
+    
     # Also scan root directory
     for py_file in PROJECT_ROOT.glob('*.py'):
-        # Use standard exclusions to filter files
-        if not should_exclude_file(str(py_file), 'analysis', 'development'):
+        # Use context-based exclusions
+        if not should_exclude_file(str(py_file), 'analysis', context):
             all_functions.extend(extract_functions(str(py_file)))
+    
     return all_functions
 
 
@@ -350,8 +364,18 @@ def validate_results(categories: Dict[str, List[Dict]]) -> bool:
     return True
 
 def main():
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='Discover and categorize functions in the codebase')
+    parser.add_argument('--include-tests', action='store_true', help='Include test files in analysis')
+    parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis')
+    args = parser.parse_args()
+    
     print("[SCAN] Scanning for all functions...")
-    all_functions = scan_all_functions()
+    all_functions = scan_all_functions(
+        include_tests=args.include_tests,
+        include_dev_tools=args.include_dev_tools
+    )
     print(f"Found {len(all_functions)} functions.")
     categories = categorize_functions(all_functions)
     

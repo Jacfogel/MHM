@@ -33,6 +33,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Error Handling Coverage Analysis **COMPLETED**
+- Added comprehensive error handling coverage analysis to audit system
+- Created `error_handling_coverage.py` script that analyzes error handling patterns across codebase
+- Integrated error handling coverage into audit workflow with metrics and recommendations
+- Added error handling coverage metrics to audit summary and consolidated reports
+- Provides analysis of error handling quality, patterns, and missing coverage
+
 ### 2025-10-01 - Legacy Reporting Refresh **COMPLETED**
 - Rebuilt legacy_reference_cleanup generator to add actionable summaries and follow-up guidance
 - Regenerated legacy report and coverage plan docs with tiered priorities plus TODO updates aligned to new action items
@@ -114,13 +121,3 @@ Guidelines:
 - Patched scheduler tests to mock `set_wake_timer`, preventing thousands of real Windows tasks.
 - Added `scripts/cleanup_windows_tasks.py` to purge existing artefacts and guard future runs.
 - Verified zero task leakage with the complete test suite.
-
-### 2025-09-28 - Test Performance and File Location Fixes **COMPLETED**
-- Repaired user-data performance tests and aligned expectations after mocking side effects.
-- Relocated cache and coverage artefacts to dedicated directories for cleaner structure.
-- Confirmed stability with the full automated test run.
-
-### 2025-09-28 - Generated Documentation Standards Implementation **COMPLETED**
-- Added generated-file headers (tool name, timestamp, sources) across eight documentation outputs.
-- Consolidated command docs into action-oriented instructions with PowerShell-safe patterns.
-- Regenerated each artefact to comply with the new template.
