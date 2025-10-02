@@ -33,6 +33,11 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Legacy Reporting Refresh **COMPLETED**
+- Rebuilt legacy_reference_cleanup generator to add actionable summaries and follow-up guidance
+- Regenerated legacy report and coverage plan docs with tiered priorities plus TODO updates aligned to new action items
+- Tree state verified after rerunning `ai_tools_runner.py legacy`; next steps logged in central TODO
+
 ### 2025-10-01 - Comprehensive Error Handling Enhancement **COMPLETED**
 - Added @handle_errors decorators to 30 functions across 8 modules for robust error recovery
 - Enhanced core operations: file management, logging, scheduling, user data, service utilities
@@ -119,8 +124,3 @@ Guidelines:
 - Added generated-file headers (tool name, timestamp, sources) across eight documentation outputs.
 - Consolidated command docs into action-oriented instructions with PowerShell-safe patterns.
 - Regenerated each artefact to comply with the new template.
-
-### 2025-09-28 - Test File Cleanup and Schedule Editor Fix **COMPLETED**
-- Updated the schedule editor to respect patched data directories during tests.
-- Ensured temporary request files are cleaned automatically after test runs.
-- Brought the affected scheduler tests back to green.

@@ -1,4 +1,4 @@
-﻿# TODO.md - MHM Project Tasks
+# TODO.md - MHM Project Tasks
 
 > **Audience**: Human Developer (Beginner Programmer) and AI collaborators
 > **Purpose**: Current development priorities and planned improvements  
@@ -8,7 +8,7 @@
 > **See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe development practices**
 > **See [TEST_COVERAGE_EXPANSION_PLAN.md](development_docs/TEST_COVERAGE_EXPANSION_PLAN.md) for testing strategy**
 
-## 📝 How to Add New TODOs
+## ?? How to Add New TODOs
 
 When adding new tasks, follow this format:
 
@@ -24,7 +24,7 @@ When adding new tasks, follow this format:
 - Group tasks by priority (High/Medium/Low sections)
 - Use clear, action-oriented titles
 - Include estimated effort to help with planning
-- Add status indicators (⚠️ **IN PROGRESS**) when relevant
+- Add status indicators (?? **IN PROGRESS**) when relevant
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
@@ -33,7 +33,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
-**Headless Service Process Management** ⚠️ **NEW PRIORITY**
+**Headless Service Process Management** ?? **NEW PRIORITY**
 - *What it means*: Figure out how to run the service in headless mode (`python core/service.py`) without creating duplicate processes or causing the service to kill itself
 - *Why it helps*: Enables proper headless service operation for deployment and automation scenarios
 - *Estimated effort*: Medium
@@ -51,7 +51,7 @@ When adding new tasks, follow this format:
     - [ ] Investigate if UI restart logic can be shared with headless mode
     - [ ] Explore service daemon or system service approaches
 
-**Phase 1: Enhanced Task & Check-in Systems** 🔄 **IN PROGRESS**
+**Phase 1: Enhanced Task & Check-in Systems** ?? **IN PROGRESS**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
 - *Estimated effort*: Large (1-2 weeks)
@@ -74,7 +74,7 @@ When adding new tasks, follow this format:
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
 
-**AI Tools Improvement - Generated Documentation Quality** ⚠️ **NEW PRIORITY**
+**AI Tools Improvement - Generated Documentation Quality** ?? **NEW PRIORITY**
 - *What it means*: Improve the AI tools that generate `AI_FUNCTION_REGISTRY.md` and `AI_MODULE_DEPENDENCIES.md` to provide more valuable, concise information
 - *Why it helps*: Generated documentation should be truly AI-optimized with essential patterns and decision trees, not verbose listings
 - *Estimated effort*: Medium
@@ -86,7 +86,7 @@ When adding new tasks, follow this format:
   - [ ] Implement concise summary generation with cross-references to detailed docs
   - [ ] Test generated documentation usability for AI collaborators
 
-**Fix Profile Display and Document Discord Commands** ⚠️ **NEW PRIORITY**
+**Fix Profile Display and Document Discord Commands** ?? **NEW PRIORITY**
 - *What it means*: Fix the profile display formatting if any raw JSON paths remain and document all available Discord commands for user discovery
 - *Why it helps*: Users can properly view their profile information and discover all available commands
 - *Estimated effort*: Small
@@ -137,7 +137,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Behavior tests: edit task by name then change due date (natural language variations: "due date", "due")
   - [ ] Behavior tests: verify no generic suggestions accompany targeted "what would you like to update" prompts
-  - [ ] Behavior tests: list tasks → edit task flow ensures "which task" is asked when not specified
+  - [ ] Behavior tests: list tasks ? edit task flow ensures "which task" is asked when not specified
 
 **Channel-Agnostic Command Registry Follow-ups**
 - *What it means*: Finalize and monitor the new centralized command system and Discord integrations
@@ -155,7 +155,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensure `last_run` is set on first call so throttling works from initial invocation
 - *Estimated effort*: Small
 
-**Schedule Editor Validation – Prevent Dialog Closure**
+**Schedule Editor Validation � Prevent Dialog Closure**
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
@@ -168,7 +168,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
+  - [ ] Consider inactivity-based expiration (30�60 minutes) in addition to outbound-triggered expiry (optional)
   - [ ] Add behavior test for flow expiration after unrelated outbound message
 
 ## Medium Priority
@@ -180,6 +180,8 @@ When adding new tasks, follow this format:
 - Next steps:
   - [ ] Confirm no active clients rely on the legacy fields.
   - [ ] Replace markers with clear TODO notes or remove them entirely.
+  - [ ] Add regression tests covering analytics handler flows and user data migrations before deleting markers.
+  - [ ] Rerun `python ai_development_tools/ai_tools_runner.py legacy --clean --dry-run` until the report returns zero issues.
   - [ ] Update the legacy report and changelog once resolved.
 
 **Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions

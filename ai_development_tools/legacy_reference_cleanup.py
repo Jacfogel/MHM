@@ -207,35 +207,63 @@ class LegacyReferenceCleanup:
     def generate_cleanup_report(self, findings: Dict[str, List[Tuple[str, str, List[str]]]]) -> str:
         """Generate a report of all legacy references found."""
         report_lines = []
-        
+
         report_lines.append("# Legacy Reference Cleanup Report")
         report_lines.append("")
         report_lines.append(f"**Generated**: {self.get_current_timestamp()}")
-        report_lines.append("**Total Files with Issues**: " + str(sum(len(files) for files in findings.values())))
+
+        affected_files = {file_path for files in findings.values() for file_path, _, _ in files}
+        report_lines.append(f"**Total Files with Issues**: {len(affected_files)}")
+
+        total_markers = sum(len(matches) for files in findings.values() for _, _, matches in files)
+        report_lines.append(f"**Legacy Compatibility Markers Detected**: {total_markers}")
         report_lines.append("")
-        
-        for pattern_type, files in findings.items():
+
+        if affected_files:
+            report_lines.append("## Summary")
+            report_lines.append("- Scan mode only: no automated fixes were applied.")
+
+            legacy_entries = findings.get('legacy_compatibility_markers', [])
+            if legacy_entries:
+                legacy_marker_count = sum(len(matches) for _, _, matches in legacy_entries)
+                report_lines.append(f"- Legacy compatibility markers remain in {len(legacy_entries)} file(s) ({legacy_marker_count} total markers).")
+                enabled_fields_files = {file_path for file_path, _, matches in legacy_entries if any('enabled_fields' in (match['line_content'] or '') for match in matches)}
+                if enabled_fields_files:
+                    report_lines.append(f"- {len(enabled_fields_files)} file(s) still reference `enabled_fields`; confirm any clients still produce that payload.")
+                preference_files = {file_path for file_path, _, matches in legacy_entries if any('Preference' in (match['line_content'] or '') for match in matches)}
+                if preference_files:
+                    report_lines.append(f"- {len(preference_files)} file(s) rely on legacy preference delegation paths; decide whether to modernise or retire them.")
+            report_lines.append("")
+
+        report_lines.append("## Recommended Follow-Up")
+        report_lines.append("1. Confirm whether legacy `enabled_fields` payloads are still produced; if not, plan removal and data migration.")
+        report_lines.append("2. Add regression tests covering analytics handler flows and user data migrations before deleting markers.")
+        report_lines.append("3. Track the cleanup effort and rerun `python ai_development_tools/ai_tools_runner.py legacy --clean --dry-run` until this report returns zero issues.")
+        report_lines.append("")
+
+        for pattern_type in sorted(findings.keys()):
+            files = findings[pattern_type]
             if not files:
                 continue
-                
+
             report_lines.append(f"## {pattern_type.replace('_', ' ').title()}")
             report_lines.append(f"**Files Affected**: {len(files)}")
             report_lines.append("")
-            
-            for file_path, content, matches in files:
+
+            for file_path, content, matches in sorted(files, key=lambda item: item[0]):
                 report_lines.append(f"### {file_path}")
                 report_lines.append(f"**Issues Found**: {len(matches)}")
                 report_lines.append("")
-                
-                for match in matches:
+
+                for match in sorted(matches, key=lambda m: m['line']):
                     report_lines.append(f"- **Line {match['line']}**: `{match['match']}`")
                     report_lines.append(f"  ```")
                     report_lines.append(f"  {match['line_content']}")
                     report_lines.append(f"  ```")
                     report_lines.append("")
-        
+
         return '\n'.join(report_lines)
-    
+
     def cleanup_legacy_references(self, findings: Dict[str, List[Tuple[str, str, List[str]]]], 
                                  dry_run: bool = True) -> Dict[str, List[str]]:
         """Clean up legacy references in the codebase."""

@@ -17,6 +17,34 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-01 - Legacy Cleanup Reporting Overhaul **COMPLETED**
+
+**Context**: Legacy compatibility markers were still present across several modules, and the generated report lacked actionable guidance. Concurrent coverage documentation had become stale after recent audits.
+
+**Problem**: The legacy cleanup tool listed findings without summarising overall risk or next steps, making it easy to ignore recurring markers. The coverage expansion plan no longer highlighted module priorities, and TODOs were missing follow-up tasks for the legacy cleanup effort.
+
+**Solution**:
+- Refactored `legacy_reference_cleanup.py` to produce summary metrics, recommended actions, and sorted detail sections
+- Regenerated `LEGACY_REFERENCE_REPORT.md` so the published report mirrors the new structure
+- Rebuilt `TEST_COVERAGE_EXPANSION_PLAN.md` with tiered module backlogs (<50%, 50-59%, 60-69%) anchored to the latest coverage metrics
+- Added explicit follow-up items to `TODO.md` ensuring regression tests and recurring legacy scans are tracked
+
+**Technical Changes**:
+- **ai_development_tools/legacy_reference_cleanup.py**: rewrote `generate_cleanup_report` to compute affected-file counts, marker totals, summary bullets, and reusable follow-up checklist; kept detailed per-file listings sorted for consistency
+- **development_docs/LEGACY_REFERENCE_REPORT.md**: regenerated via tool to include new summary plus detailed sections for each compatibility marker
+- **development_docs/TEST_COVERAGE_EXPANSION_PLAN.md**: replaced outdated narrative with data-driven module tables (immediate attention, tier 2, tier 3) and action notes
+- **TODO.md**: appended regression-test and rerun tasks under "Legacy Compatibility Marker Audit" to keep cleanup momentum visible
+
+**Documentation Updates**:
+- Updated `ai_development_docs/AI_CHANGELOG.md` with high-level summary of the reporting refresh
+- Added this detailed entry to `development_docs/CHANGELOG_DETAIL.md`
+
+**Testing Evidence**:
+- Reran `python ai_development_tools/ai_tools_runner.py legacy` to regenerate the report and verify the new format end-to-end
+- No code execution changes required beyond report generation; existing test suite remains green (1519 passed, 1 skipped)
+
+**Outcome**: Legacy compatibility markers are now surfaced with clear remediation steps, coverage priorities are refreshed, and follow-up tasks are tracked centrally, reducing the risk of stale compatibility code lingering in the system.
+
 ### 2025-10-01 - Comprehensive Error Handling Enhancement **COMPLETED**
 
 **Context**: User requested systematic identification and addition of `@handle_errors` decorators to functions across the entire codebase that should have them but don't. This evolved from an initial query about specific files to a comprehensive, module-by-module review.
