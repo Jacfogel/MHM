@@ -908,6 +908,46 @@ class AccountCreatorDialog(QDialog):
     def validate_account_data(self):
         """Validate the account data."""
         return self.validate_input()
+    
+    @staticmethod
+    def validate_username_static(username):
+        """Static method to validate username without UI dependencies."""
+        if not username:
+            return False
+        
+        if len(username) < 1 or len(username) > 50:
+            return False
+        
+        # Check for invalid characters
+        invalid_chars = ['@', ' ', '.', '/', '\\', ':', ';', ',', '<', '>', '|', '?', '*']
+        for char in invalid_chars:
+            if char in username:
+                return False
+        
+        return True
+    
+    @staticmethod
+    def validate_preferred_name_static(name):
+        """Static method to validate preferred name without UI dependencies."""
+        if not name:
+            return False
+        
+        if len(name) < 1 or len(name) > 100:
+            return False
+        
+        # Check for invalid characters
+        invalid_chars = ['@', '/', '\\', ':', ';', '<', '>', '|', '?', '*']
+        for char in invalid_chars:
+            if char in name:
+                return False
+        
+        return True
+    
+    @staticmethod
+    def validate_all_fields_static(username, preferred_name):
+        """Static method to validate all fields without UI dependencies."""
+        return (AccountCreatorDialog.validate_username_static(username) and 
+                AccountCreatorDialog.validate_preferred_name_static(preferred_name))
 
 
 def create_account_dialog(parent=None, communication_manager=None):

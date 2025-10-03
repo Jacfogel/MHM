@@ -51,7 +51,7 @@ When adding new tasks, follow this format:
     - [ ] Investigate if UI restart logic can be shared with headless mode
     - [ ] Explore service daemon or system service approaches
 
-**Phase 1: Enhanced Task & Check-in Systems** ?? **IN PROGRESS**
+**Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
 - *Estimated effort*: Large (1-2 weeks)
@@ -155,7 +155,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensure `last_run` is set on first call so throttling works from initial invocation
 - *Estimated effort*: Small
 
-**Schedule Editor Validation – Prevent Dialog Closure**
+**Schedule Editor Validation ï¿½ Prevent Dialog Closure**
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
@@ -168,7 +168,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
+  - [ ] Consider inactivity-based expiration (30ï¿½60 minutes) in addition to outbound-triggered expiry (optional)
   - [ ] Add behavior test for flow expiration after unrelated outbound message
 
 ## Medium Priority
