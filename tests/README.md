@@ -121,6 +121,36 @@ To keep tests deterministic and isolated, follow these standards:
   - Prefer `TestUserFactory` and centralized `get_user_data()` over custom scaffolding.
   - `fix_user_data_loaders` ensures loaders are registered before each test.
 
+### **Critical Isolation Issues & Prevention (CRITICAL)**
+
+**Known Issues to Avoid:**
+- **Tests affecting each other**: Use proper fixtures and cleanup
+- **Tests affecting real system data**: Enforce test data directory isolation
+- **Creating real Windows tasks**: Mock external system calls
+- **Test logging isolation**: Use separate log files for tests
+- **UI windows hanging**: Use headless mode and proper cleanup
+
+**Prevention Strategies:**
+1. **Data Isolation**: All tests must use `tests/data/` directory only
+2. **Environment Isolation**: Use `monkeypatch.setenv()` for env vars
+3. **Mock External Systems**: Never create real Windows tasks or system resources
+4. **UI Testing**: Use headless mode, mock Qt applications
+5. **Logging Isolation**: Use test-specific log files and cleanup
+
+### **Critical Testing Methodology (CRITICAL)**
+**Always investigate the actual implementation first** - Read the source code before writing tests
+- **Understand the real behavior** - The actual implementation may import functions dynamically and have specific data structures
+- **Test what actually exists** - Instead of assuming functions exist, verify what's actually available in the codebase
+- **Start with basic functionality** - Begin with simple tests before attempting complex interaction tests
+- **Verify imports and dependencies** - Check what modules and functions are actually imported and used
+
+**UI Component Testing Requirements:**
+- **Button functionality**: Test all button clicks and responses
+- **Input validation**: Test all input fields and validation rules
+- **Dialog workflows**: Test complete dialog open/close/save cycles
+- **Widget interactions**: Test all widget combinations and states
+- **Error handling**: Test UI error states and recovery
+
 ### **Key Fixtures for Stability**
 
 - `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`.

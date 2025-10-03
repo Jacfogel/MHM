@@ -33,6 +33,17 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-02 - Test Coverage Expansion **COMPLETED**
+- **63 new tests added** across 4 major UI modules (ui/generate_ui_files.py, task_crud_dialog.py, ui_app_qt.py)
+- **ServiceManager tests** (15 tests) - comprehensive service management functionality coverage
+- **MHMManagerUI tests** (15 tests) - UI application functionality coverage  
+- **UI Generation tests** (14 tests) - 72% coverage improvement for UI file generation
+- **Task CRUD Dialog tests** (19 tests) - dialog functionality coverage
+- **Documentation updates** - TEST_COVERAGE_EXPANSION_PLAN.md and tests/README.md with testing challenges and prevention strategies
+- **UI Component Testing Strategy** - Created comprehensive strategy document
+- **Key lesson learned** - Always investigate actual implementation before writing tests
+- **All tests passing** (1582/1583, 1 skipped) - no regressions introduced
+
 ### 2025-10-02 - Test Suite Stabilization and Rollback **COMPLETED**
 - **Git rollback** performed to restore stable test suite state (from 56 failures to 0 failures)
 - **Timing test fix** resolved timestamp assertion issue in `test_ai_context_builder_behavior.py`
@@ -128,8 +139,3 @@ Guidelines:
 - Fixed Discord channel ID parsing, safe dictionary access, and changelog path references.
 - Improved log rotation so files truncate daily and route logs to dedicated channels.
 - Validated the fixes with the full 1,480-test suite.
-
-### 2025-09-29 - AI Development Tools Comprehensive Review and Optimization **COMPLETED**
-- Normalised metrics extraction by sharing `standard_exclusions.py` across discovery, decision support, and audits.
-- Corrected coverage calculations and refactored docs tooling for consistent percentages.
-- Completed full regression tests after the tooling overhaul.
