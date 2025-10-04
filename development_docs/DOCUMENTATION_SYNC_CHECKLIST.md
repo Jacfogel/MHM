@@ -18,6 +18,11 @@
 - [ ] **DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
 - [ ] **CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
 
+### **Specialized Technical Guide Pairs**
+- [ ] **logs/LOGGING_GUIDE.md** ↔ **AI_LOGGING_GUIDE.md**
+- [ ] **tests/TESTING_GUIDE.md** ↔ **AI_TESTING_GUIDE.md**
+- [ ] **core/ERROR_HANDLING_GUIDE.md** ↔ **AI_ERROR_HANDLING_GUIDE.md**
+
 ### **Generated Documentation**
 - [ ] **AI_FUNCTION_REGISTRY.md** (auto-generated - do not edit directly)
 - [ ] **AI_MODULE_DEPENDENCIES.md** (auto-generated - do not edit directly)

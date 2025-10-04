@@ -69,7 +69,7 @@ See **HOW_TO_RUN.md** for more details.
 See **DOCUMENTATION_GUIDE.md** for detailed organization and maintenance guidelines.
 
 ## Architecture
-The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app_qt.py`). `run_mhm.py` starts both together. All data stays on your local machine.
+The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app_qt.py`). `run_mhm.py` launches the admin UI only - the background service must be started manually. All data stays on your local machine.
 
 **Recent Improvements**:
 - **Error Handling**: Centralized error handling with automatic recovery across ALL modules

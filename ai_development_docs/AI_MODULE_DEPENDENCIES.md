@@ -56,7 +56,7 @@ Communication Dependencies:
 │   ├── `communication/core/factory.py` ← communication/communication_channels/base/base_channel
 │   └── `communication/core/channel_orchestrator.py` ← communication/core/factory, communication/communication_channels/base/base_channel
 ├── Specific Channels
-│   ├── `communication/communication_channels/discord/bot.py` ← Third-party (discord.py), communication/communication_channels/base/base_channel
+│   ├── `communication/communication_channels/discord/bot.py` ← Third-party (discord), communication/communication_channels/base/base_channel
 │   ├── `communication/communication_channels/email/bot.py` ← Standard library (smtplib, imaplib), communication/communication_channels/base/base_channel
 
 └── Conversation Flow
@@ -110,7 +110,7 @@ UI Dependencies:
 ### **Third-Party Integration Pattern**
 **Description**: External library dependencies for specific functionality
 **Examples**:
-- `communication/communication_channels/discord/bot.py` → `discord.py`
+- `communication/communication_channels/discord/bot.py` → `discord`
 - `ui/ui_app_qt.py` → `PySide6`
 
 
@@ -119,7 +119,7 @@ UI Dependencies:
 ## 🎯 **Critical Dependencies for AI Context**
 
 ### **Entry Points** (Start Here)
-- `run_mhm.py` → `core/service.py` - Main application entry
+- `run_mhm.py` → `ui/ui_app_qt.py` - Main UI entry (background service started separately)
 - `ui/ui_app_qt.py` → `communication/core/channel_orchestrator.py` - UI startup
 - `communication/message_processing/interaction_manager.py` → `ai/chatbot.py` - Message handling
 
@@ -141,7 +141,7 @@ UI Dependencies:
 - `communication/core/channel_orchestrator.py` → `ai/chatbot.py` (Communication depends on AI)
 
 ### **Third-Party Risks**
-- `communication/communication_channels/discord/bot.py` → `discord.py` (External API dependency)
+- `communication/communication_channels/discord/bot.py` → `discord` (External API dependency)
 - `ui/ui_app_qt.py` → `PySide6` (UI framework dependency)
 
 

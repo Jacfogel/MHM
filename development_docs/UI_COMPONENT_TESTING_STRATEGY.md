@@ -120,10 +120,10 @@ def ui_test_environment(qt_app, test_data_dir):
 @pytest.mark.ui
 def test_dialog_open_close(ui_test_environment):
     """Test dialog opening and closing."""
-    from ui.dialogs.task_crud_dialog import TaskCRUDDialog
+    from ui.dialogs.task_crud_dialog import TaskCrudDialog
     
     # Create dialog
-    dialog = TaskCRUDDialog()
+    dialog = TaskCrudDialog()
     
     try:
         # Test opening
@@ -144,9 +144,9 @@ def test_dialog_open_close(ui_test_environment):
 @pytest.mark.ui
 def test_button_functionality(ui_test_environment):
     """Test button clicks and responses."""
-    from ui.dialogs.task_crud_dialog import TaskCRUDDialog
+    from ui.dialogs.task_crud_dialog import TaskCrudDialog
     
-    dialog = TaskCRUDDialog()
+    dialog = TaskCrudDialog()
     
     try:
         # Test button states
@@ -169,9 +169,9 @@ def test_button_functionality(ui_test_environment):
 @pytest.mark.ui
 def test_input_validation(ui_test_environment):
     """Test input field validation."""
-    from ui.dialogs.task_crud_dialog import TaskCRUDDialog
+    from ui.dialogs.task_crud_dialog import TaskCrudDialog
     
-    dialog = TaskCRUDDialog()
+    dialog = TaskCrudDialog()
     
     try:
         # Test valid input

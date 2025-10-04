@@ -20,6 +20,9 @@ DEFAULT_DOCS: Tuple[str, ...] = (
     'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
     'ai_development_docs/AI_CHANGELOG.md',
     'ai_development_docs/AI_REFERENCE.md',
+    'ai_development_docs/AI_LOGGING_GUIDE.md',
+    'ai_development_docs/AI_TESTING_GUIDE.md',
+    'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
 )
 
 PAIRED_DOCS: Dict[str, str] = {
@@ -27,6 +30,9 @@ PAIRED_DOCS: Dict[str, str] = {
     'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
     'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
     'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
+    'logs/LOGGING_GUIDE.md': 'ai_development_docs/AI_LOGGING_GUIDE.md',
+    'tests/TESTING_GUIDE.md': 'ai_development_docs/AI_TESTING_GUIDE.md',
+    'core/ERROR_HANDLING_GUIDE.md': 'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
 }
 
 LOCAL_MODULE_PREFIXES: Tuple[str, ...] = (
@@ -128,6 +134,68 @@ CORRUPTED_ARTIFACT_PATTERNS = (
     ('triple_question_marks', re.compile(r'\?\?\?')),
 )
 
+# Path drift detection constants
+THIRD_PARTY_LIBRARIES: Tuple[str, ...] = (
+    'PyQt5', 'PyQt6', 'PySide6', 'discord', 'requests', 'aiohttp', 'pandas', 'numpy',
+    'matplotlib', 'seaborn', 'scipy', 'sklearn', 'tensorflow', 'torch', 'pytorch',
+    'flask', 'django', 'fastapi', 'sqlalchemy', 'alembic', 'psycopg2', 'pymongo',
+    'redis', 'celery', 'gunicorn', 'uvicorn', 'pytest', 'black', 'flake8', 'mypy'
+)
+
+COMMON_FUNCTION_NAMES: Tuple[str, ...] = (
+    'get_logger', 'handle_errors', 'safe_file_operation', 'error_handler', 
+    'get_component_logger', 'cleanup_old_logs', 'functions', 'statements',
+    'handle_file_error', 'handle_network_error', 'handle_communication_error',
+    'handle_configuration_error', 'handle_validation_error', 'handle_ai_error',
+    'TestUserFactory', 'TestDataFactory', 'TestPathFactory', 'TestConfigFactory'
+)
+
+COMMON_CLASS_NAMES: Tuple[str, ...] = (
+    'TestUserFactory', 'TestDataFactory', 'TestPathFactory', 'TestConfigFactory',
+    'BaseChannel', 'DiscordBot', 'EmailBot', 'TelegramBot', 'TaskManager',
+    'UserManager', 'ScheduleManager', 'CheckinManager', 'MessageRouter'
+)
+
+COMMON_VARIABLE_NAMES: Tuple[str, ...] = (
+    'task', 'and', 'statements', 'from', 'in', 'to', 'for', 'with', 'as', 'if',
+    'else', 'elif', 'while', 'for', 'def', 'class', 'import', 'from', 'return',
+    'yield', 'try', 'except', 'finally', 'with', 'as', 'pass', 'break', 'continue'
+)
+
+COMMON_CODE_PATTERNS: Tuple[str, ...] = (
+    'PyQt5.QtWidgets', 'PyQt5.QtCore', 'PyQt5.QtGui', 'PySide6.QtWidgets',
+    'ui.dialogs.task_crud_dialog', 'ui.dialogs.account_creator_dialog',
+    'ui.widgets.task_settings_widget', 'ui.widgets.channel_selection_widget',
+    'communication.discord.bot', 'communication.email.bot', 'core.logger',
+    'core.error_handling', 'core.config', 'core.scheduler', 'ai.chatbot'
+)
+
+# Common patterns that should be ignored in path drift detection
+IGNORED_PATH_PATTERNS: Tuple[str, ...] = (
+    'Python Official Tutorial', 'Real Python', 'Troubleshooting', 'README.md#troubleshooting',
+    'Navigation', 'Project Vision', 'Quick Start', 'Development Workflow', 
+    'Documentation Guide', 'Development Plans', 'Recent Changes', 'Recent Changes (Most Recent First)'
+)
+
+# Common command patterns that should be ignored
+COMMAND_PATTERNS: Tuple[str, ...] = (
+    'python ', 'pip ', 'git ', 'npm ', 'yarn ', 'docker ', 'kubectl '
+)
+
+# Common template patterns that should be ignored
+TEMPLATE_PATTERNS: Tuple[str, ...] = (
+    'test_<', '>.py', '{', '}', '*', '?'
+)
+
+# Common alternative directory paths for file resolution
+ALTERNATIVE_DIRECTORIES: Tuple[str, ...] = (
+    'ai_development_docs', 'development_docs', 'ai_development_tools',
+    'core', 'communication', 'ui', 'tests', 'tests/behavior', 'tests/unit',
+    'tests/integration', 'tests/ui', 'logs', 'scripts',
+    'communication/communication_channels', 'communication/command_handlers',
+    'communication/core', 'communication/message_processing'
+)
+
 def is_standard_library_module(module_name: str) -> bool:
     """Return True if *module_name* belongs to the Python standard library."""
     if not module_name:
@@ -150,12 +218,21 @@ def is_local_module(module_name: str) -> bool:
     return base in LOCAL_MODULE_PREFIXES
 
 __all__ = [
+    'ALTERNATIVE_DIRECTORIES',
+    'COMMAND_PATTERNS',
+    'COMMON_CLASS_NAMES',
+    'COMMON_CODE_PATTERNS',
+    'COMMON_FUNCTION_NAMES',
+    'COMMON_VARIABLE_NAMES',
     'CORRUPTED_ARTIFACT_PATTERNS',
     'DEFAULT_DOCS',
+    'IGNORED_PATH_PATTERNS',
     'LOCAL_MODULE_PREFIXES',
     'PAIRED_DOCS',
     'STANDARD_LIBRARY_MODULES',
     'STANDARD_LIBRARY_PREFIXES',
+    'TEMPLATE_PATTERNS',
+    'THIRD_PARTY_LIBRARIES',
     'is_local_module',
     'is_standard_library_module',
 ]

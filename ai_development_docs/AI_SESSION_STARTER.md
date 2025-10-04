@@ -17,7 +17,7 @@
 ## CRITICAL RULES (Always Apply)
 
 ### **Safety First**
-- **Test**: `python run_mhm.py` must work after changes
+- **Test**: `python run_mhm.py` must work after changes (launches UI only - background service started separately)
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
 - **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
@@ -40,6 +40,9 @@
 - **ARCHITECTURE.md** ↔ **AI_ARCHITECTURE.md**
 - **DOCUMENTATION_GUIDE.md** ↔ **AI_DOCUMENTATION_GUIDE.md**
 - **CHANGELOG_DETAIL.md** ↔ **AI_CHANGELOG.md**
+- **logs/LOGGING_GUIDE.md** ↔ **AI_LOGGING_GUIDE.md**
+- **tests/TESTING_GUIDE.md** ↔ **AI_TESTING_GUIDE.md**
+- **core/ERROR_HANDLING_GUIDE.md** ↔ **AI_ERROR_HANDLING_GUIDE.md**
 
 ## PROJECT OVERVIEW
 
@@ -86,10 +89,10 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 ```
 
 ### **Development Workflow**
-1. **Test Current**: `python run_mhm.py`
+1. **Test Current**: `python run_mhm.py` (launches UI only - background service started separately)
 2. **Create Backup**: PowerShell backup command
 3. **Make Small Changes**: Incremental approach
-4. **Test After**: `python run_mhm.py`
+4. **Test After**: `python run_mhm.py` (launches UI only - background service started separately)
 5. **Update CHANGELOGs**: Document changes fully in `../development_docs/CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
 
 ## COMMUNICATION GUIDELINES
@@ -124,6 +127,9 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 - **`AI_DEVELOPMENT_WORKFLOW.md`** - AI-optimized development patterns
 - **`AI_ARCHITECTURE.md`** - AI-optimized architectural patterns
 - **`AI_DOCUMENTATION_GUIDE.md`** - AI-optimized documentation navigation
+- **`AI_LOGGING_GUIDE.md`** - Fast logging patterns and troubleshooting
+- **`AI_TESTING_GUIDE.md`** - Fast testing patterns and procedures
+- **`AI_ERROR_HANDLING_GUIDE.md`** - Fast error handling patterns and recovery
 
 ---
 

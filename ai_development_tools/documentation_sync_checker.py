@@ -43,7 +43,19 @@ except ImportError:
         return []
 
 try:
-    from ai_development_tools.services.constants import PAIRED_DOCS
+    from ai_development_tools.services.constants import (
+    ALTERNATIVE_DIRECTORIES,
+    COMMAND_PATTERNS,
+    COMMON_CLASS_NAMES,
+    COMMON_CODE_PATTERNS,
+    COMMON_FUNCTION_NAMES,
+    COMMON_VARIABLE_NAMES,
+    IGNORED_PATH_PATTERNS,
+    PAIRED_DOCS,
+    STANDARD_LIBRARY_MODULES,
+    TEMPLATE_PATTERNS,
+    THIRD_PARTY_LIBRARIES,
+)
 except ImportError:
     PAIRED_DOCS = {
         'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
@@ -182,6 +194,9 @@ class DocumentationSyncChecker:
         
         drift_issues = defaultdict(list)
         
+        # Enhanced filtering patterns for false positives
+        self._setup_enhanced_filters()
+        
         # Check if documented paths exist
         for doc_file, paths in doc_paths.items():
             # Get the directory of the source file for relative path resolution
@@ -190,137 +205,175 @@ class DocumentationSyncChecker:
                 source_dir = source_dir.parent
             
             for path in paths:
-                # Skip URLs and anchors
-                if path.startswith(('http', '#', 'mailto')):
-                    continue
-                
-                # Skip external website references (not local modules)
-                if path in ['Python Official Tutorial', 'Real Python', 'Troubleshooting', 'README.md#troubleshooting']:
-                    continue
-                
-                # Skip markdown section headers (like "Navigation", "Project Vision", etc.)
-                if path in ['Navigation', 'Project Vision', 'Quick Start', 'Development Workflow', 'Documentation Guide', 'Development Plans', 'Recent Changes']:
-                    continue
-                
-                # Skip Python imports and modules (not files) - moved outside file extension check
-                if path in ['unittest.mock', 'pytest', 'os', 'json', 'patch', 'pdb', 'tests.test_utilities', 'TestUserFactory', 'TestDataFactory']:
-                    continue
-                
-                # Skip class names and function names (not files)
-                if path.startswith('Test') and path.endswith('Factory'):
-                    continue
-                
-                # Skip function names that are not files
-                if path in ['handle_errors', 'safe_file_operation', 'error_handler', 'get_component_logger', 'cleanup_old_logs', 'errors', 'error.', 'statement']:
-                    continue
-                
-                # Skip single words that are not file references
-                if path in ['task', 'and', 'statements', 'from', 'in']:
-                    continue
-                
-                # Skip third-party library references (not local files)
-                if path in ['discord.py', 'PySide6', 'pytest', 'unittest']:
-                    continue
-                
-                # Skip references to deleted files in historical documentation
-                if path in ['communication/core/channel_registry.py']:
-                    continue
-                
-                # Skip glob patterns and wildcards
-                if path in ['AI_*', 'ai_development_docs/AI_*.md', 'CHANGELOG_*.md']:
-                    continue
-                
-                # Skip command references and incomplete patterns
-                if path in ['pyside6-uic ui/designs/task_edit_dialog.ui -o ui/generated/task_edit_dialog_pyqt.py', 'Ui_']:
+                # Apply enhanced filtering
+                if self._should_skip_path(path, doc_file):
                     continue
                 
                 # Check if it's a markdown file reference
                 if path.endswith('.md') or path.endswith('.py'):
-                    # Skip obvious glob patterns (but allow specific patterns like AI_* that might be valid)
-                    if path.startswith('*') or path.endswith('*') or '/*' in path:
+                    if self._is_valid_file_reference(path, source_dir):
                         continue
-                    
-                    # Skip command references (not files)
-                    if path.startswith('python ') or path.startswith('pip ') or path.startswith('git '):
-                        continue
-                    
-                    # Skip template patterns
-                    if '{' in path and '}' in path:
-                        continue
-                    
-                    # Skip test template patterns
-                    if path.startswith('test_<') or path.endswith('>.py'):
-                        continue
-                    
-                    # Skip files that should be in ai_development_tools directory
-                    if path in ['ai_tools_runner.py', 'config_validator.py', 'generate_ui_files.py']:
-                        # Check if they exist in ai_development_tools directory
-                        ai_tools_path = self.project_root / 'ai_development_tools' / path
-                        if ai_tools_path.exists():
-                            continue
-                    
-                    # Skip relative paths that are clearly valid (like ../README.md)
-                    if path.startswith('../') and (path.endswith('.md') or path.endswith('.py')):
-                        # Check if the relative path exists from the source file's directory
-                        relative_path = source_dir / path
-                        if relative_path.exists():
-                            continue
-                    
-                    # Skip relative paths with multiple ../ (like ../../../README.md)
-                    if path.startswith('../../../') and (path.endswith('.md') or path.endswith('.py')):
-                        # Check if the relative path exists from the source file's directory
-                        relative_path = source_dir / path
-                        if relative_path.exists():
-                            continue
-                    
-                    # Check if the file actually exists
-                    file_path = self.project_root / path
-                    if not file_path.exists():
-                        # Try common alternative locations
-                        alternative_paths = [
-                            f"ai_development_docs/{path}",
-                            f"development_docs/{path}",
-                            f"ai_development_tools/{path}",
-                            f"core/{path}",
-                            f"communication/{path}",
-                            f"ui/{path}",
-                            f"tests/{path}",
-                            f"tests/behavior/{path}",
-                            f"tests/unit/{path}",
-                            f"tests/integration/{path}",
-                            f"tests/ui/{path}",
-                            f"logs/{path}",
-                            f"scripts/{path}",
-                            f"communication/communication_channels/{path}",
-                            f"communication/command_handlers/{path}",
-                            f"communication/core/{path}",
-                            f"communication/message_processing/{path}"
-                        ]
-                        
-                        found_alternative = False
-                        for alt_path in alternative_paths:
-                            alt_file = self.project_root / alt_path
-                            if alt_file.exists():
-                                found_alternative = True
-                                break
-                        
-                        if not found_alternative:
-                            drift_issues[doc_file].append(f"Missing file: {path}")
+                    else:
+                        drift_issues[doc_file].append(f"Missing file: {path}")
                 else:
                     # Check if it's a Python module reference
-                    normalized_path = path.replace('.', '/').replace('\\', '/')
-                    
-                    # Check if this path exists in the codebase
-                    path_exists = False
-                    for code_path in code_paths:
-                        if normalized_path in code_path or code_path in normalized_path:
-                            path_exists = True
-                            break
-                            
-                    if not path_exists:
+                    if self._is_valid_module_reference(path, code_paths):
+                        continue
+                    else:
                         drift_issues[doc_file].append(f"Potentially outdated module: {path}")
                     
         return drift_issues
+    
+    def _setup_enhanced_filters(self):
+        """Setup enhanced filtering patterns to reduce false positives."""
+        # Use centralized constants from services.constants
+        self.stdlib_modules = STANDARD_LIBRARY_MODULES
+        self.third_party_libs = set(THIRD_PARTY_LIBRARIES)
+        self.function_names = set(COMMON_FUNCTION_NAMES)
+        self.class_names = set(COMMON_CLASS_NAMES)
+        self.variable_names = set(COMMON_VARIABLE_NAMES)
+        self.code_patterns = set(COMMON_CODE_PATTERNS)
+        self.ignored_paths = set(IGNORED_PATH_PATTERNS)
+        self.command_patterns = set(COMMAND_PATTERNS)
+        self.template_patterns = set(TEMPLATE_PATTERNS)
+        self.alternative_dirs = ALTERNATIVE_DIRECTORIES
+    
+    def _should_skip_path(self, path: str, doc_file: str) -> bool:
+        """Enhanced path filtering to reduce false positives."""
+        # Skip URLs and anchors
+        if path.startswith(('http', '#', 'mailto')):
+            return True
+        
+        # Skip external website references and markdown section headers
+        if path in self.ignored_paths:
+            return True
+        
+        # Skip standard library modules
+        if path in self.stdlib_modules:
+            return True
+        
+        # Skip third-party libraries
+        if path in self.third_party_libs:
+            return True
+        
+        # Skip function names
+        if path in self.function_names:
+            return True
+        
+        # Skip class names
+        if path in self.class_names:
+            return True
+        
+        # Skip variable names and common words
+        if path in self.variable_names:
+            return True
+        
+        # Skip common code patterns
+        if path in self.code_patterns:
+            return True
+        
+        # Skip single words that are clearly not files
+        if len(path.split('.')) == 1 and path.isalpha() and len(path) < 10:
+            return True
+        
+        # Skip Python import patterns that are clearly not files
+        if '.' in path and not path.endswith(('.py', '.md')):
+            # Check if it's a valid Python module pattern
+            parts = path.split('.')
+            if all(part.isidentifier() for part in parts):
+                # This looks like a Python module, not a file
+                return True
+        
+        # Skip command references
+        if any(path.startswith(cmd) for cmd in self.command_patterns):
+            return True
+        
+        # Skip template patterns
+        if any(pattern in path for pattern in self.template_patterns):
+            return True
+        
+        # Skip glob patterns
+        if '*' in path or '?' in path:
+            return True
+        
+        # Skip incomplete patterns
+        if path.endswith('_') or path.startswith('_'):
+            return True
+        
+        return False
+    
+    def _is_valid_file_reference(self, path: str, source_dir: Path) -> bool:
+        """Check if a file reference is valid."""
+        # Skip obvious glob patterns
+        if path.startswith('*') or path.endswith('*') or '/*' in path:
+            return True
+        
+        # Skip command references
+        if path.startswith('python ') or path.startswith('pip ') or path.startswith('git '):
+            return True
+        
+        # Skip template patterns
+        if '{' in path and '}' in path:
+            return True
+        
+        # Skip test template patterns
+        if path.startswith('test_<') or path.endswith('>.py'):
+            return True
+        
+        # Check if the file exists
+        file_path = self.project_root / path
+        if file_path.exists():
+            return True
+        
+        # Check relative paths
+        if path.startswith('../'):
+            relative_path = source_dir / path
+            if relative_path.exists():
+                return True
+        
+        # Try common alternative locations using centralized constants
+        alternative_paths = [f"{dir}/{path}" for dir in self.alternative_dirs]
+        
+        for alt_path in alternative_paths:
+            alt_file = self.project_root / alt_path
+            if alt_file.exists():
+                return True
+        
+        return False
+    
+    def _is_valid_module_reference(self, path: str, code_paths: set) -> bool:
+        """Check if a module reference is valid."""
+        # Skip if it's a standard library module
+        if path in self.stdlib_modules:
+            return True
+        
+        # Skip if it's a third-party library
+        if path in self.third_party_libs:
+            return True
+        
+        # Skip if it's a function name
+        if path in self.function_names:
+            return True
+        
+        # Skip if it's a class name
+        if path in self.class_names:
+            return True
+        
+        # Skip if it's a variable name
+        if path in self.variable_names:
+            return True
+        
+        # Skip if it's a common code pattern
+        if path in self.code_patterns:
+            return True
+        
+        # Check if this path exists in the codebase
+        normalized_path = path.replace('.', '/').replace('\\', '/')
+        for code_path in code_paths:
+            if normalized_path in code_path or code_path in normalized_path:
+                return True
+        
+        return False
     
     def generate_directory_tree(self, output_file: str = "development_docs/DIRECTORY_TREE.md") -> str:
         """Generate a directory tree for documentation with placeholders for certain directories."""

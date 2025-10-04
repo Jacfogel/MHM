@@ -72,7 +72,7 @@ Tests are organized by real-world features and workflows, not just individual mo
 
 ```
 tests/
-├── conftest.py                           # Shared fixtures and configuration
+├── conftest.py                          # Shared fixtures and configuration
 ├── README.md                            # This file
 ├── unit/                                # Unit tests by module (core logic)
 │   ├── test_config.py                   # Configuration validation

@@ -184,7 +184,7 @@ VERSION_SYNC = {
     ],
     'tests_docs': [
         "tests/MANUAL_TESTING_GUIDE.md",
-        "tests/README.md"
+        "tests/TESTING_GUIDE.md"
     ],
     'core_system_files': [
         "run_mhm.py",

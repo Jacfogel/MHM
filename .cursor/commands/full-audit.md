@@ -1,17 +1,20 @@
-# Run Fast System Audit
+# Run Full System Audit
 
 ## Overview
-Execute the fast audit to capture current health metrics (skips coverage by default).
+Execute the comprehensive audit with test coverage to capture complete health metrics.
 
 ## Steps
-1. Run the fast audit (skips coverage by default).
+1. Run the full audit with test coverage.
    ```powershell
-   python ai_development_tools/ai_tools_runner.py audit
-   if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red; exit 1 }
+   python ai_development_tools/ai_tools_runner.py audit --full
+   if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red }
    ```
 2. Review the generated outputs:
    - `ai_development_tools/AI_STATUS.md`
    - `ai_development_tools/AI_PRIORITIES.md`
+   - `ai_development_tools/consolidated_report.txt`
+
+Use the detailed report for evidence and rely on the summary files for quick context. Cross-check any concerns with `ai_development_docs/AI_REFERENCE.md` when diagnosing issues.
 
 ## Response Template
 Use this structure when reporting audit results:
@@ -27,6 +30,7 @@ Use this structure when reporting audit results:
 
 #### Key Metrics
 - Function Complexity: ...
+- Test Coverage: ...
 - Error Handling Coverage: ...
 - Legacy References: ...
 - Documentation Sync: ...

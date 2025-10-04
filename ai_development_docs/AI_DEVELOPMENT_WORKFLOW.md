@@ -32,7 +32,7 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; Copy-Item . ../MHM_backup_$time
 
 ### Pre-Change Checklist
 - Confirm `(venv)` is active; activate if missing.
-- Run `python run_mhm.py` to confirm baseline health.
+- Run `python run_mhm.py` to confirm baseline health (launches UI only - background service started separately).
 - Create a backup folder using the command above.
 - Outline your plan, test approach, and touched files.
 
@@ -69,7 +69,7 @@ pip freeze > requirements.txt
 
 ### Step 3: Test
 - Target the change, then nearby surfaces.
-- Run the app via `python run_mhm.py` and verify comms flows.
+- Run the app via `python run_mhm.py` to launch the admin UI and verify comms flows. Note: The background service must be started manually.
 
 ### Step 4: Document
 - Update both changelog files (detailed vs summary).
@@ -111,6 +111,9 @@ pip freeze > requirements.txt
 ## Learning Resources
 - `DEVELOPMENT_WORKFLOW.md` for deep context.
 - `README.md`, `ARCHITECTURE.md`, and `DOCUMENTATION_GUIDE.md` for supporting detail.
+- `AI_LOGGING_GUIDE.md` for logging patterns and troubleshooting.
+- `AI_TESTING_GUIDE.md` for testing patterns and procedures.
+- `AI_ERROR_HANDLING_GUIDE.md` for error handling patterns and recovery.
 
 ## Success Tips
 - Prefer clarity over speed.

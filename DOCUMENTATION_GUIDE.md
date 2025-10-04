@@ -41,6 +41,9 @@
 - **`ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md`**: Condensed workflow guidance.
 - **`ai_development_docs/AI_ARCHITECTURE.md`**: High-level architecture cues and patterns.
 - **`ai_development_docs/AI_DOCUMENTATION_GUIDE.md`**: Navigation aid for the AI documentation set.
+- **`ai_development_docs/AI_LOGGING_GUIDE.md`**: Fast logging patterns and troubleshooting.
+- **`ai_development_docs/AI_TESTING_GUIDE.md`**: Fast testing patterns and troubleshooting.
+- **`ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`**: Fast error handling patterns and recovery.
 
 ### Status and History
 - **`development_docs/CHANGELOG_DETAIL.md`**: Authoritative audit trail of changes.
@@ -102,7 +105,7 @@ Maintain a consistent structure for readability and automation:
 ## Maintenance Guidelines
 
 ### Paired Documentation
-- Update human and AI counterparts together: `DEVELOPMENT_WORKFLOW.md` <-> `AI_DEVELOPMENT_WORKFLOW.md`, `ARCHITECTURE.md` <-> `AI_ARCHITECTURE.md`, `DOCUMENTATION_GUIDE.md` <-> `AI_DOCUMENTATION_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md` <-> `AI_CHANGELOG.md`.
+- Update human and AI counterparts together: `DEVELOPMENT_WORKFLOW.md` <-> `AI_DEVELOPMENT_WORKFLOW.md`, `ARCHITECTURE.md` <-> `AI_ARCHITECTURE.md`, `DOCUMENTATION_GUIDE.md` <-> `AI_DOCUMENTATION_GUIDE.md`, `development_docs/CHANGELOG_DETAIL.md` <-> `AI_CHANGELOG.md`, `logs/LOGGING_GUIDE.md` <-> `AI_LOGGING_GUIDE.md`, `tests/TESTING_GUIDE.md` <-> `AI_TESTING_GUIDE.md`, `core/ERROR_HANDLING_GUIDE.md` <-> `AI_ERROR_HANDLING_GUIDE.md`.
 - Keep the section order identical between paired files for predictable navigation.
 
 ### Updating AI Documentation

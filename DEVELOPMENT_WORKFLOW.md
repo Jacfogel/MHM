@@ -44,7 +44,7 @@ pip install -r requirements.txt
 
 ### Pre-Change Checklist
 1. Confirm the virtual environment prompt shows `(venv)`. If not, run `venv\Scripts\activate`.
-2. Run `python run_mhm.py` to make sure the current state is healthy.
+2. Run `python run_mhm.py` to make sure the current state is healthy (launches UI only - background service started separately).
 3. Create a timestamped backup of the repository.
 4. Outline what you plan to change, how you'll test it, and which files might be affected.
 
@@ -98,7 +98,7 @@ deactivate
 ### Step 3: Test
 - Test the feature you just touched.
 - Exercise related areas that might be impacted.
-- Run `python run_mhm.py` and verify communication flows, especially Discord.
+- Run `python run_mhm.py` to launch the admin UI and verify communication flows, especially Discord. Note: The background service must be started manually.
 
 ### Step 4: Document
 - Record the change in `development_docs/CHANGELOG_DETAIL.md`.

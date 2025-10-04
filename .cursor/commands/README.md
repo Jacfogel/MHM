@@ -2,18 +2,20 @@
 
 These commands provide structured checklists for common collaboration workflows. Type `/` in Cursor chat to access them.
 
-## Context Management
-- `start-session` - Prepare a new chat using up-to-date project context.
+## Core Workflow Commands
+- `start` - Prepare a new chat using up-to-date project context.
+- `audit` - Run fast system audit (skips coverage by default).
+- `full-audit` - Run comprehensive system audit with test coverage.
+- `test` - Execute the test suite, investigate failures and fix any failing tests.
+- `close` - Wrap up a session and record follow-up tasks.
+- `git` - Add, commit and push changes to git.
+
+## Additional Commands
 - `triage-issue` - Investigate failures or unexpected behaviour.
 - `improve-system` - Plan quality improvements or refactors.
 - `explore-options` - Brainstorm what to work on next when priorities are unclear.
-- `close-session` - Wrap up a session, run checks, and document follow-up work.
-
-## Tooling Commands
-- `audit` - Run the comprehensive system audit (includes error handling coverage analysis).
 - `status` - Retrieve quick project status.
 - `docs` - Regenerate documentation artefacts and verify sync.
 - `review` - Follow the detailed code review checklist.
-- `test` - Execute the test suite and resolve failures.
 
-Each command references the relevant sections of `ai_development_docs` so responses stay aligned with project standards.
+Each command is independent and can be used alone or combined as needed. All commands reference the relevant sections of `ai_development_docs` so responses stay aligned with project standards.

@@ -14,7 +14,7 @@
 
 ### **If Code Changes Break Something**
 1. **Check Error Handling** - Look for error messages
-2. **Run Tests** - `python run_mhm.py` to identify issues
+2. **Run Tests** - `python run_mhm.py` to identify issues (launches UI only - background service started separately)
 3. **Review Changes** - Check what was modified
 4. **Fix Incrementally** - Make small fixes and test
 5. **Document Issues** - Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
@@ -84,3 +84,8 @@
 
 ## What's In The Full Doc
 - For deeper explanations and the full troubleshooting playbook, see `../DOCUMENTATION_GUIDE.md`, `../ARCHITECTURE.md`, and `../DEVELOPMENT_WORKFLOW.md`. This AI quick reference mirrors those docs at a high level for fast, context‑aware assistance.
+
+## Specialized Technical Guides
+- **`AI_LOGGING_GUIDE.md`** - Logging patterns, troubleshooting, and log analysis
+- **`AI_TESTING_GUIDE.md`** - Testing patterns, test categories, and troubleshooting
+- **`AI_ERROR_HANDLING_GUIDE.md`** - Error handling patterns, recovery strategies, and prevention
