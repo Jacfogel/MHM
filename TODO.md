@@ -280,10 +280,16 @@ When adding new tasks, follow this format:
 
 ### Testing
 
-**Add More Comprehensive Tests**
-- *What it means*: Expand behavior and integration coverage for under-tested modules
-- *Why it helps*: Increases reliability and change safety
+**Continue Test Coverage Expansion**
+- *What it means*: Continue expanding test coverage for remaining low-coverage modules (scheduler.py, user_data_manager.py, logger.py)
+- *Why it helps*: Increases reliability and change safety for core system components
 - *Estimated effort*: Large
+- *Subtasks*:
+  - [ ] Expand coverage for `core/scheduler.py` (66% coverage, 276 missing lines)
+  - [ ] Expand coverage for `core/user_data_manager.py` (66% coverage, 186 missing lines)  
+  - [ ] Expand coverage for `core/logger.py` (67% coverage, 181 missing lines)
+  - [ ] Add comprehensive tests for remaining communication modules
+  - [ ] Focus on error handling and edge case coverage
 
 **Add Integration Tests**
 - *What it means*: Add cross-module workflow tests (user lifecycle, scheduling, messaging)

@@ -37,6 +37,8 @@ class TestAutoCleanupTimestampBehavior:
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
         tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        # Ensure parent directory exists
+        tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
         # Cleanup
         if tracker_path.exists():
@@ -110,6 +112,8 @@ class TestAutoCleanupLogicBehavior:
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
         tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        # Ensure parent directory exists
+        tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
         # Cleanup
         if tracker_path.exists():
@@ -508,6 +512,8 @@ class TestAutoCleanupStatusBehavior:
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
         tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        # Ensure parent directory exists
+        tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
         # Cleanup
         if tracker_path.exists():

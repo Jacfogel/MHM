@@ -10,7 +10,7 @@
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 > **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
 
-## 🚀 Quick Reference
+## Quick Reference
 
 ### **Test Execution**
 ```powershell
@@ -29,9 +29,9 @@ python run_tests.py --verbose
 - **Behavior Tests**: Real system behavior verification
 - **UI Tests**: User interface functionality
 
-This directory contains the comprehensive test suite for the Mental Health Management (MHM) system. The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
+The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
 
-## 🎯 **Testing Philosophy & Priorities**
+## Testing Philosophy & Priorities
 
 ### **Core Principles**
 1. **Real Behavior Testing**: Tests verify actual system changes, not just return values
@@ -46,153 +46,57 @@ This directory contains the comprehensive test suite for the Mental Health Manag
 - **Maintainability**: Tests are easy to understand and update
 - **Reliability**: Tests produce consistent, repeatable results
 
-### **est Data Cleanup Standards (Optional but Recommended)**
-- **Pre-run (session start)**:
-  - Remove `tests/data/pytest-of-Julie` if present
-  - Clear all children of `tests/data/tmp`
-  - Remove stray `tests/data/config` directory
-  - Remove root files `tests/data/.env` and `tests/data/requirements.txt`
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-- **Post-run (session end)**:
-  - Clear all children of `tests/data/tmp`
-  - Clear all children of `tests/data/flags`
-  - Remove `tests/data/config`, `tests/data/.env`, `tests/data/requirements.txt` if present
-  - Remove legacy `tests/data/resources` and `tests/data/nested` if present
-  - Remove test backup files from `tests/data/backups/` (user_backup_*.zip)
-  - Remove old test_run files from `tests/logs/` (test_run.log and test_run_*.log)
-- **Users directory policy**:
-  - All test users must reside under `tests/data/users/<id>`
-  - Fail if any `tests/data/test-user*` appears at the root or under `tests/data/tmp`
-  - Post-run: ensure `tests/data/users` has no lingering test users
+### **Test Data Cleanup Standards**
+- **Pre-run**: Remove `tests/data/pytest-of-Julie`, clear `tests/data/tmp`, remove stray config files
+- **Post-run**: Clear `tests/data/tmp` and `tests/data/flags`, remove test backups and logs
+- **Users directory**: All test users must reside under `tests/data/users/<id>`, fail if found elsewhere
 
-## 🏗️ **Test Organization Structure**
+## Test Organization Structure
 
-### **Primary Organization: By Feature/Workflow (Operational Grouping)**
-Tests are organized by real-world features and workflows, not just individual modules. This encourages integration testing and real behavior verification.
+Tests are organized by real-world features and workflows to encourage integration testing and real behavior verification.
 
 ```
 tests/
-├── conftest.py                          # Shared fixtures and configuration
-├── README.md                            # This file
-├── unit/                                # Unit tests by module (core logic)
-│   ├── test_config.py                   # Configuration validation
-│   ├── test_error_handling.py           # Error handling framework
-│   ├── test_file_operations.py          # File I/O operations
-│   └── test_validation.py               # Data validation functions
-├── integration/                         # Integration tests by feature
-│   ├── test_account_lifecycle.py        # Complete account creation/editing/deletion
-│   ├── test_user_preferences.py         # User preference management workflows
-│   ├── test_message_categories.py       # Message category management
-│   ├── test_schedule_periods.py         # Schedule period management
-│   ├── test_feature_enablement.py       # Feature enable/disable workflows
-│   └── test_dialog_integration.py       # UI dialog workflows
-├── behavior/                            # Real behavior tests by system
-│   ├── test_service_behavior.py         # Service startup/shutdown/restart
-│   ├── test_communication_behavior.py   # Message sending/receiving
-│   ├── test_task_behavior.py            # Task creation/management
-│   └── test_scheduler_behavior.py       # Scheduling and timing
-└── ui/                                  # UI-specific tests
-    ├── test_account_creation_ui.py      # Account creation dialog
-    ├── test_dialog_functionality.py     # General dialog testing
-    └── test_widget_integration.py       # Widget behavior and integration
+|-- conftest.py                          # Shared fixtures and configuration
+|-- unit/                                # Unit tests by module (core logic)
+|-- integration/                         # Integration tests by feature
+|-- behavior/                            # Real behavior tests by system
+`-- ui/                                  # UI-specific tests
 ```
 
-## 🛠️ **Test Utilities and Infrastructure**
+### **Test Categories**
+- **Unit Tests**: Individual function testing with mocked dependencies
+- **Integration Tests**: Cross-module workflows and component interactions
+- **Behavior Tests**: Real system behavior verification with side effects
+- **UI Tests**: User interface functionality and dialog testing
 
-### **Testing Standards (Stability & Isolation)**
+## Test Utilities and Infrastructure
 
-To keep tests deterministic and isolated, follow these standards:
+### **Critical Requirements**
+- **Data Isolation**: All tests must use `tests/data/` directory only
+- **Environment Isolation**: Use `monkeypatch.setenv()` for env vars, never `os.environ[...] = ...`
+- **Mock External Systems**: Never create real Windows tasks or system resources
+- **UI Testing**: Use headless mode, mock Qt applications
+- **User Data Access**: Use `TestUserFactory` and centralized `get_user_data()` over custom scaffolding
 
-- **Single Temp Directory Policy**
-  - All temp files/dirs must live under `tests/data`.
-  - Enforced by session-scoped `force_test_data_directory` and validated per-test by `path_sanitizer`.
-  - Avoid raw `tempfile.mkdtemp/TemporaryDirectory`; use `test_path_factory` for per-test paths (`tests/data/tmp/<uuid>`).
+### **Key Fixtures**
+- `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`
+- `env_guard_and_restore` (function, autouse): snapshots/restores critical env vars
+- `path_sanitizer` (function, autouse): asserts temp directory stays within `tests/data`
+- `test_path_factory` (function): creates per-test directory under `tests/data/tmp/<uuid>`
+- `fix_user_data_loaders` (function, autouse): ensures centralized loaders are registered
 
-- **Environment Variables**
-  - Do not assign with `os.environ[...] = ...` directly in tests.
-  - Use `monkeypatch.setenv()` when a test must set an env var.
-  - `env_guard_and_restore` snapshots and restores critical env vars after each test to prevent leakage.
-
-- **Global Config**
-  - Do not directly assign to `core.config.*` in tests.
-  - Use shared fixtures (`mock_config`, `ensure_mock_config_applied`).
-
-- **User Data Access**
-  - Prefer `TestUserFactory` and centralized `get_user_data()` over custom scaffolding.
-  - `fix_user_data_loaders` ensures loaders are registered before each test.
-
-### **Critical Isolation Issues & Prevention (CRITICAL)**
-
-**Known Issues to Avoid:**
-- **Tests affecting each other**: Use proper fixtures and cleanup
-- **Tests affecting real system data**: Enforce test data directory isolation
-- **Creating real Windows tasks**: Mock external system calls
-- **Test logging isolation**: Use separate log files for tests
-- **UI windows hanging**: Use headless mode and proper cleanup
-
-**Prevention Strategies:**
-1. **Data Isolation**: All tests must use `tests/data/` directory only
-2. **Environment Isolation**: Use `monkeypatch.setenv()` for env vars
-3. **Mock External Systems**: Never create real Windows tasks or system resources
-4. **UI Testing**: Use headless mode, mock Qt applications
-5. **Logging Isolation**: Use test-specific log files and cleanup
-
-### **Critical Testing Methodology (CRITICAL)**
-**Always investigate the actual implementation first** - Read the source code before writing tests
-- **Understand the real behavior** - The actual implementation may import functions dynamically and have specific data structures
-- **Test what actually exists** - Instead of assuming functions exist, verify what's actually available in the codebase
-- **Start with basic functionality** - Begin with simple tests before attempting complex interaction tests
-- **Verify imports and dependencies** - Check what modules and functions are actually imported and used
-
-**UI Component Testing Requirements:**
-- **Button functionality**: Test all button clicks and responses
-- **Input validation**: Test all input fields and validation rules
-- **Dialog workflows**: Test complete dialog open/close/save cycles
-- **Widget interactions**: Test all widget combinations and states
-- **Error handling**: Test UI error states and recovery
-
-### **Key Fixtures for Stability**
-
-- `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`.
-- `env_guard_and_restore` (function, autouse): snapshots/restores critical env vars.
-- `path_sanitizer` (function, autouse): asserts temp directory stays within `tests/data`.
-- `test_path_factory` (function): creates a per-test directory under `tests/data/tmp/<uuid>`.
-- `fix_user_data_loaders` (function, autouse): ensures centralized loaders are registered.
-
-### **Refactor Plan (Step-by-Step, Trackable)**
-
-1) Establish Guardrails (Done)
-   - Add fixtures: `force_test_data_directory`, `env_guard_and_restore`, `path_sanitizer`, `test_path_factory`.
-
-2) Replace Ad-hoc Temp Usage (In Progress)
-   - Search: `tempfile.mkdtemp|TemporaryDirectory|NamedTemporaryFile` under `tests/`.
-   - Refactor to `test_path_factory` where applicable.
-   - Track progress by file in TODO.md (checklist per file).
-
-3) Normalize Env Usage (Enforced)
-   - Direct `os.environ[...]` mutation in tests is disallowed.
-   - Use `monkeypatch.setenv()` for per-test env changes.
-   - Policy test `tests/unit/test_no_direct_env_mutation_policy.py` scans for violations.
-
-4) Standardize User Data Creation (Enforced)
-   - Require `TestUserFactory` for creating users (no ad-hoc user dirs).
-   - For read-only tests assuming files exist, use `ensure_user_materialized` helper.
-   - Prefer `get_user_data()` over direct file reads in tests.
-   
-5) Shim Controls (Stability)
-   - Global shim defaults to enabled; disable via `ENABLE_TEST_DATA_SHIM=0`.
-   - Per-test opt-out: `@pytest.mark.no_data_shim`.
-   - Long-term goal: keep tests green with shim disabled.
-
-5) Verification & Monitoring (Ongoing)
-   - Run targeted suites (user management, account lifecycle, UI) to confirm stability.
-   - Tag remaining intermittents with `@pytest.mark.flaky` and prioritize fixes.
-   - Keep progress updated in TODO.md.
+### **Critical Testing Methodology**
+**Always investigate the actual implementation first** - Read source code before writing tests
+- **Understand real behavior** - Implementation may import functions dynamically with specific data structures
+- **Test what actually exists** - Verify what's available in codebase, don't assume functions exist
+- **Start with basic functionality** - Begin simple before attempting complex interaction tests
+- **Verify imports and dependencies** - Check what modules and functions are actually imported
 
 ### **Centralized Test Utilities**
-The testing framework provides comprehensive utilities in `tests/test_utilities.py`:
+Comprehensive utilities in `tests/test_utilities.py`:
 
-#### **Test User Factory** - Comprehensive User Creation
+#### **Test User Factory**
 ```python
 from tests.test_utilities import TestUserFactory
 
@@ -200,37 +104,18 @@ from tests.test_utilities import TestUserFactory
 TestUserFactory.create_basic_user("user1")
 TestUserFactory.create_discord_user("discord_user")
 TestUserFactory.create_user_with_health_focus("health_user")
-TestUserFactory.create_user_with_disabilities("accessibility_user")
 ```
 
-#### **Available User Types** (12 comprehensive types):
+**Available User Types** (12 comprehensive types):
 - **Basic Types**: `basic_user`, `minimal_user`, `full_featured_user`
 - **Channel-Specific**: `discord_user`, `email_user`, `telegram_user`
 - **Feature-Focused**: `health_focus`, `task_focus`, `disabilities`
 - **Complex Configurations**: `complex_checkins`, `custom_fields`, `schedules`
 - **Edge Cases**: `limited_data`, `inconsistent_data`
 
-#### **Test Data Factory** - Advanced Data Creation
-```python
-from tests.test_utilities import TestDataFactory
+## Test Categories & Markers
 
-# Create test data for various scenarios
-TestDataFactory.create_corrupted_user_data()
-TestDataFactory.create_test_schedule_data()
-TestDataFactory.create_test_task_data()
-```
-
-#### **Benefits Achieved**:
-- **Reduced Code Duplication**: Single source of truth for user creation
-- **Comprehensive Coverage**: 12 user types covering real-world scenarios
-- **Consistent Data**: All tests use the same data structures
-- **Real User Patterns**: Based on actual user data patterns
-- **Edge Case Coverage**: Handles incomplete profiles, inconsistent data
-
-### **Test Categories & Markers**
-
-#### **Core Test Type Markers**
-
+### **Core Test Type Markers**
 | Marker | Purpose | Usage |
 |--------|---------|-------|
 | `@pytest.mark.unit` | Fast, isolated function tests | Individual function testing |
@@ -238,8 +123,7 @@ TestDataFactory.create_test_task_data()
 | `@pytest.mark.behavior` | Real system behavior tests | Side effect verification |
 | `@pytest.mark.ui` | UI component tests | Dialog and widget testing |
 
-#### **Performance & Resource Markers**
-
+### **Performance & Resource Markers**
 | Marker | Purpose | Usage |
 |--------|---------|-------|
 | `@pytest.mark.slow` | Slow-running tests | Tests taking >1 second |
@@ -249,8 +133,7 @@ TestDataFactory.create_test_task_data()
 | `@pytest.mark.external` | External service tests | Discord, email, Telegram |
 | `@pytest.mark.file_io` | Heavy file operations | File creation, reading, writing |
 
-#### **Feature-Specific Markers**
-
+### **Feature-Specific Markers**
 | Marker | Purpose | Usage |
 |--------|---------|-------|
 | `@pytest.mark.tasks` | Task management tests | Task CRUD operations |
@@ -261,27 +144,7 @@ TestDataFactory.create_test_task_data()
 | `@pytest.mark.user_management` | User account tests | Account management |
 | `@pytest.mark.channels` | Communication tests | Discord, email, Telegram |
 
-#### **Test Quality Markers**
-
-| Marker | Purpose | Usage |
-|--------|---------|-------|
-| `@pytest.mark.flaky` | Occasionally failing tests | Needs investigation |
-| `@pytest.mark.known_issue` | Known bug tests | Document limitations |
-| `@pytest.mark.regression` | Regression prevention | Catch recurring bugs |
-| `@pytest.mark.smoke` | Basic functionality tests | Quick validation |
-| `@pytest.mark.critical` | Essential path tests | Must always pass |
-
-#### **Development Workflow Markers**
-
-| Marker | Purpose | Usage |
-|--------|---------|-------|
-| `@pytest.mark.wip` | Work in progress | Still being developed |
-| `@pytest.mark.todo` | Not yet implemented | Placeholder tests |
-| `@pytest.mark.skip_ci` | Skip in CI/CD | Too slow or special setup |
-| `@pytest.mark.manual` | Manual intervention | Requires human input |
-| `@pytest.mark.debug` | Debug-specific | For troubleshooting |
-
-## 🚀 **Quick Start**
+## Quick Start
 
 ### **Install Testing Dependencies**
 ```bash
@@ -291,66 +154,6 @@ pip install -r requirements.txt
 ### **Run All Tests**
 ```bash
 python run_tests.py
-```
-
-### **Marker Usage Examples**
-
-#### **Basic Marker Usage**
-```python
-@pytest.mark.unit
-def test_config_validation():
-    """Unit test for configuration validation."""
-    assert validate_config({"key": "value"}) == True
-
-@pytest.mark.behavior
-def test_user_creation_creates_files():
-    """Behavior test verifying file creation."""
-    user_id = "test-user"
-    create_user(user_id, user_data)
-    assert os.path.exists(f"data/users/{user_id}/account.json")
-
-@pytest.mark.integration
-def test_account_lifecycle():
-    """Integration test for complete account workflow."""
-    # Test creation, modification, and deletion
-    pass
-```
-
-#### **Combining Multiple Markers**
-```python
-@pytest.mark.behavior
-@pytest.mark.tasks
-@pytest.mark.critical
-def test_critical_task_creation():
-    """Critical behavior test for task creation."""
-    # This test is critical, tests real behavior, and is task-related
-    pass
-
-@pytest.mark.integration
-@pytest.mark.external
-@pytest.mark.slow
-def test_discord_integration():
-    """Slow integration test with Discord."""
-    # Tests Discord integration, is slow, and requires external service
-    pass
-```
-
-#### **Running Tests by Marker**
-```bash
-# Run all unit tests (fastest)
-python -m pytest -m unit
-
-# Run all behavior tests
-python -m pytest -m behavior
-
-# Run all critical tests
-python -m pytest -m critical
-
-# Run all tests except slow ones
-python -m pytest -m "not slow"
-
-# Run critical behavior tests
-python -m pytest -m "critical and behavior"
 ```
 
 ### **Run Specific Test Categories**
@@ -389,10 +192,9 @@ pip install pytest-randomly
 # Run with randomized order to enforce determinism
 python -m pytest --randomly-seed=auto
 ```
-The suite should remain green under randomized order. Import-order guards and one-time
-loader registration in `tests/conftest.py` support this.
+The suite should remain green under randomized order. Import-order guards and one-time loader registration in `tests/conftest.py` support this.
 
-## 📋 **Test Commands**
+## Test Commands
 
 ### **Basic Commands**
 ```bash
@@ -440,13 +242,12 @@ python -m pytest -k "account"
 python -m pytest -m "integration"
 ```
 
-## 🏗️ **Test Architecture**
+## Test Architecture
 
 ### **Fixtures**
 The testing framework provides several shared fixtures in `conftest.py`:
 
 - `test_data_dir` - Temporary test data directory
-- `test_test_data_dir` - Temporary test data directory
 - `mock_user_data` - Mock user data for testing
 - `mock_config` - Mock configuration for testing
 - `mock_logger` - Mock logger for testing
@@ -491,39 +292,7 @@ def test_update_preferences_persists_changes(test_data_dir):
     assert loaded_data["preferences"]["timezone"] == "America/Los_Angeles", "Changes should persist"
 ```
 
-#### **Integration Scenario Testing**
-```python
-def test_account_lifecycle_complete_workflow(test_data_dir):
-    """Test complete account lifecycle: create, modify, disable, re-enable, delete."""
-    # Arrange
-    user_id = "test-user"
-    
-    # Act & Assert - Complete workflow
-    # 1. Create account
-    create_user(user_id, account_data)
-    assert user_exists(user_id), "User should be created"
-    
-    # 2. Enable features
-    enable_features(user_id, ["tasks", "checkins"])
-    user_data = get_user_data(user_id)
-    assert "tasks" in user_data["account"]["enabled_features"], "Tasks should be enabled"
-    
-    # 3. Disable features
-    disable_features(user_id, ["tasks"])
-    user_data = get_user_data(user_id)
-    assert "tasks" not in user_data["account"]["enabled_features"], "Tasks should be disabled"
-    
-    # 4. Re-enable features
-    enable_features(user_id, ["tasks"])
-    user_data = get_user_data(user_id)
-    assert "tasks" in user_data["account"]["enabled_features"], "Tasks should be re-enabled"
-    
-    # 5. Delete account
-    delete_user(user_id)
-    assert not user_exists(user_id), "User should be deleted"
-```
-
-## 📊 **Coverage Reports**
+## Coverage Reports
 
 When running tests with coverage, reports are generated in:
 
@@ -535,7 +304,7 @@ When running tests with coverage, reports are generated in:
 - **Target Coverage**: 80%+ for critical modules
 - **Current Coverage**: 29% of codebase (9 out of 31+ modules)
 
-## 🔧 **Writing Tests**
+## Writing Tests
 
 ### **Test Naming Convention**
 - Test files: `test_<feature_or_module>.py`
@@ -580,23 +349,6 @@ class TestAccountLifecycle:
         # Verify feature-specific files
         assert os.path.exists(os.path.join(user_dir, "tasks")), "Tasks directory should be created"
         assert os.path.exists(os.path.join(user_dir, "checkins.json")), "Check-ins file should be created"
-    
-    @pytest.mark.behavior
-    def test_enable_checkins_creates_files(self, test_data_dir):
-        """Test that enabling check-ins creates the required files."""
-        # Arrange
-        user_id = "test-user"
-        create_user(user_id, {"enabled_features": ["messages"]})
-        
-        # Act
-        enable_feature(user_id, "checkins")
-        
-        # Assert - Verify side effects
-        checkins_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
-        assert os.path.exists(checkins_file), "Check-ins file should be created"
-        
-        user_data = get_user_data(user_id)
-        assert "checkins" in user_data["account"]["enabled_features"], "Check-ins should be enabled"
 ```
 
 ### **Test Markers**
@@ -620,7 +372,7 @@ Use appropriate markers for test categorization:
 7. **Verify Data Persistence**: Ensure changes are actually saved and persist
 8. **Test Error Recovery**: Include tests for error conditions and recovery
 
-## 🐛 **Debugging Tests**
+## Debugging Tests
 
 ### **Running Single Tests**
 ```bash
@@ -650,30 +402,7 @@ def test_debug_example():
 3. **Path Issues**: Use `test_data_dir` fixture for file operations
 4. **Data Isolation**: Ensure tests don't interfere with each other
 
-## 📈 **Continuous Integration**
-
-The testing framework is designed to work with CI/CD pipelines:
-
-### **GitHub Actions Example**
-```yaml
-name: Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: --scope=docs
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run tests
-        run: python run_tests.py --coverage
-```
-
-## 🎯 **Test Priorities & Roadmap**
+## Test Priorities & Roadmap
 
 ### **Current Status**
 - **1,481 tests passing** with 95% success rate
@@ -699,7 +428,7 @@ jobs:
 3. **Performance Monitoring** - Automated performance regression testing
 4. **User Acceptance Testing** - End-to-end user workflow testing
 
-## 📝 **Maintenance Guidelines**
+## Maintenance Guidelines
 
 ### **When Adding New Features**
 1. **Write tests first** - Test-driven development approach
@@ -721,4 +450,4 @@ jobs:
 
 ---
 
-**Remember**: The goal is to have confidence that changes work correctly and don't break existing functionality. Real behavior testing and integration scenarios are key to achieving this goal. 
+**Remember**: The goal is to have confidence that changes work correctly and don't break existing functionality. Real behavior testing and integration scenarios are key to achieving this goal.

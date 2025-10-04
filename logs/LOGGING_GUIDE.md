@@ -8,7 +8,7 @@
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
 > **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
 
-## 🚀 Quick Reference
+## Quick Reference
 
 ### **Log Files**
 - `app.log` - Main application logs
@@ -35,30 +35,30 @@ The MHM logging system has been enhanced with component-based separation, struct
 
 ```
 logs/
-├── app.log                    # Main application logs (active)
-├── discord.log               # Discord bot specific logs (active)
-├── ai.log                    # AI interactions and processing (active)
-├── user_activity.log         # User actions and check-ins (active)
-├── errors.log                # Error and critical messages only (active)
-├── communication_manager.log # Communication orchestration (active)
-├── email.log                 # Email bot operations (active)
-├── file_ops.log              # File operations (active)
-├── scheduler.log             # Scheduler operations (active)
-├── ui.log                    # UI operations (active)
-├── message.log               # Message processing (active)
-├── backup.log                # Backup operations (active)
-├── schedule_utilities.log    # Schedule utilities (active)
-├── analytics.log             # Analytics operations (active)
-├── checkin_dynamic.log       # Dynamic check-in operations (active)
-├── ai_cache.log              # AI cache operations (active)
-├── ai_context.log            # AI context building (active)
-├── ai_conversation.log       # AI conversation management (active)
-├── ai_prompt.log             # AI prompt management (active)
-├── channel_orchestrator.log  # Channel orchestration (active)
-├── channel_monitor.log       # Channel monitoring (active)
-├── retry_manager.log         # Retry management (active)
-├── backups/                  # Rotated log files (daily rotation)
-└── archive/                  # Compressed old logs (>7 days old)
+|-- app.log                    # Main application logs (active)
+|-- discord.log               # Discord bot specific logs (active)
+|-- ai.log                    # AI interactions and processing (active)
+|-- user_activity.log         # User actions and check-ins (active)
+|-- errors.log                # Error and critical messages only (active)
+|-- communication_manager.log # Communication orchestration (active)
+|-- email.log                 # Email bot operations (active)
+|-- file_ops.log              # File operations (active)
+|-- scheduler.log             # Scheduler operations (active)
+|-- ui.log                    # UI operations (active)
+|-- message.log               # Message processing (active)
+|-- backup.log                # Backup operations (active)
+|-- schedule_utilities.log    # Schedule utilities (active)
+|-- analytics.log             # Analytics operations (active)
+|-- checkin_dynamic.log       # Dynamic check-in operations (active)
+|-- ai_cache.log              # AI cache operations (active)
+|-- ai_context.log            # AI context building (active)
+|-- ai_conversation.log       # AI conversation management (active)
+|-- ai_prompt.log             # AI prompt management (active)
+|-- channel_orchestrator.log  # Channel orchestration (active)
+|-- channel_monitor.log       # Channel monitoring (active)
+|-- retry_manager.log         # Retry management (active)
+|-- backups/                  # Rotated log files (daily rotation)
+`-- archive/                  # Compressed old logs (>7 days old)
 ```
 
 ### Directory Purposes
@@ -73,39 +73,30 @@ logs/
 
 The MHM system includes **23 component loggers** organized by functional area:
 
-#### **Core System Loggers (5)**
-- **`main`** → `app.log` - Main application operations
-- **`errors`** → `errors.log` - Error and critical messages
-- **`scheduler`** → `scheduler.log` - Scheduler operations and timing
-- **`file_ops`** → `file_ops.log` - File operations and I/O
-- **`user_activity`** → `user_activity.log` - User actions and check-ins
-
-#### **Communication Loggers (4)**
-- **`discord`** → `discord.log` - Discord bot operations
-- **`email`** → `email.log` - Email bot operations
-- **`communication_manager`** → `communication_manager.log` - Communication orchestration
-- **`message`** → `message.log` - Message processing and routing
-
-#### **AI System Loggers (4)**
-- **`ai`** → `ai.log` - AI system operations
-- **`ai_cache`** → `ai_cache.log` - AI cache operations
-- **`ai_context`** → `ai_context.log` - AI context building
-- **`ai_conversation`** → `ai_conversation.log` - AI conversation management
-- **`ai_prompt`** → `ai_prompt.log` - AI prompt management
-
-#### **UI and Management Loggers (3)**
-- **`ui`** → `ui.log` - UI operations and dialogs
-- **`backup`** → `backup.log` - Backup operations
-- **`schedule_utilities`** → `schedule_utilities.log` - Schedule utilities
-
-#### **Analytics and Check-in Loggers (2)**
-- **`analytics`** → `analytics.log` - Analytics operations
-- **`checkin_dynamic`** → `checkin_dynamic.log` - Dynamic check-in operations
-
-#### **Channel Management Loggers (3)**
-- **`channel_orchestrator`** → `channel_orchestrator.log` - Channel orchestration
-- **`channel_monitor`** → `channel_monitor.log` - Channel monitoring
-- **`retry_manager`** → `retry_manager.log` - Retry management
+| Category | Logger | File | Purpose |
+|----------|--------|------|---------|
+| **Core System** | `main` | `app.log` | Main application operations |
+| | `errors` | `errors.log` | Error and critical messages |
+| | `scheduler` | `scheduler.log` | Scheduler operations and timing |
+| | `file_ops` | `file_ops.log` | File operations and I/O |
+| | `user_activity` | `user_activity.log` | User actions and check-ins |
+| **Communication** | `discord` | `discord.log` | Discord bot operations |
+| | `email` | `email.log` | Email bot operations |
+| | `communication_manager` | `communication_manager.log` | Communication orchestration |
+| | `message` | `message.log` | Message processing and routing |
+| **AI System** | `ai` | `ai.log` | AI system operations |
+| | `ai_cache` | `ai_cache.log` | AI cache operations |
+| | `ai_context` | `ai_context.log` | AI context building |
+| | `ai_conversation` | `ai_conversation.log` | AI conversation management |
+| | `ai_prompt` | `ai_prompt.log` | AI prompt management |
+| **UI & Management** | `ui` | `ui.log` | UI operations and dialogs |
+| | `backup` | `backup.log` | Backup operations |
+| | `schedule_utilities` | `schedule_utilities.log` | Schedule utilities |
+| **Analytics** | `analytics` | `analytics.log` | Analytics operations |
+| | `checkin_dynamic` | `checkin_dynamic.log` | Dynamic check-in operations |
+| **Channel Management** | `channel_orchestrator` | `channel_orchestrator.log` | Channel orchestration |
+| | `channel_monitor` | `channel_monitor.log` | Channel monitoring |
+| | `retry_manager` | `retry_manager.log` | Retry management |
 
 ### Component Logger Creation Locations
 
@@ -116,12 +107,9 @@ Component loggers are created **decentrally** throughout the codebase using `get
 - `core/config.py`: `main`
 - `core/error_handling.py`: `main`, `errors`
 - `core/schedule_utilities.py`: `schedule_utilities`
-- `core/schemas.py`: `main`
 - `core/file_operations.py`: `file_ops`
 - `core/scheduler.py`: `scheduler`
 - `core/backup_manager.py`: `backup`
-- `core/checkin_analytics.py`: `analytics`
-- `core/checkin_dynamic_manager.py`: `checkin_dynamic`
 
 #### **Communication Modules**
 - `communication/core/channel_orchestrator.py`: `channel_orchestrator`, `user_activity`
@@ -129,8 +117,6 @@ Component loggers are created **decentrally** throughout the codebase using `get
 - `communication/communication_channels/email/bot.py`: `email`
 - `communication/message_processing/conversation_flow_manager.py`: `communication_manager`, `user_activity`
 - `communication/message_processing/message_router.py`: `message`
-- `communication/core/channel_monitor.py`: `channel_monitor`
-- `communication/core/retry_manager.py`: `retry_manager`
 
 #### **AI Modules**
 - `ai/context_builder.py`: `ai_context`
@@ -143,9 +129,6 @@ Component loggers are created **decentrally** throughout the codebase using `get
 - `ui/ui_app_qt.py`: `ui`
 - `ui/dialogs/*.py`: `ui`
 - `ui/widgets/*.py`: `ui`
-
-#### **Task Management**
-- `tasks/task_management.py`: `main`
 
 ### Basic Usage
 
@@ -193,19 +176,14 @@ logger.critical("Critical errors")
 
 **All 23 component loggers follow the same rotation system** using `BackupDirectoryRotatingFileHandler`:
 
-### Daily Rotation
 - **When**: All logs rotate at midnight
 - **Format**: `component.log.2025-08-07`, `component.log.2025-08-08`, etc.
 - **Location**: Rotated files moved to `logs/backups/` directory
-- **Handler**: `BackupDirectoryRotatingFileHandler` with `when='midnight'`
-
-### Backup Management
 - **Retention**: 7 days of rotated logs kept by default
-- **Location**: Rotated files stored in `logs/backups/` directory
-- **Naming**: `component.log.YYYY-MM-DD` format
 - **Windows-Safe**: Handles file locking issues with retry logic
 
 ### Archival Process
+
 - **Trigger**: Logs older than 7 days are automatically compressed
 - **Schedule**: Daily at 02:00 via the scheduler system
 - **Compression**: Gzip compression to save space
@@ -214,7 +192,7 @@ logger.critical("Critical errors")
 - **Naming**: `component.log.YYYY-MM-DD.gz` format
 - **Automatic**: No manual intervention required - runs via `SchedulerManager.perform_daily_log_archival()`
 
-### Example File Lifecycle (All Components)
+### Example File Lifecycle
 1. **Day 1**: `discord.log` (active)
 2. **Day 2**: `discord.log` (active) + `logs/backups/discord.log.2025-08-07` (rotated)
 3. **Day 8**: `logs/backups/discord.log.2025-08-07` gets compressed to `logs/archive/discord.log.2025-08-07.gz`
@@ -236,7 +214,7 @@ file_handler = BackupDirectoryRotatingFileHandler(
 
 ## Configuration
 
-### Environment Variables
+### Essential Environment Variables
 
 ```bash
 # Log level (WARNING, INFO, DEBUG, etc.)
@@ -247,7 +225,7 @@ LOGS_DIR=logs
 LOG_BACKUP_DIR=logs/backups
 LOG_ARCHIVE_DIR=logs/archive
 
-# Core system log files (optional, defaults shown)
+# Core system log files
 LOG_MAIN_FILE=logs/app.log
 LOG_ERRORS_FILE=logs/errors.log
 LOG_SCHEDULER_FILE=logs/scheduler.log
@@ -291,7 +269,7 @@ Each component logger can be configured independently:
 discord_logger = ComponentLogger('discord', LOG_DISCORD_FILE, level=logging.DEBUG)
 ```
 
-## Best Practices (final architecture)
+## Best Practices
 
 ### 1. Use Appropriate Components
 
@@ -306,27 +284,20 @@ discord_logger = ComponentLogger('discord', LOG_DISCORD_FILE, level=logging.DEBU
 - **Monitoring**: `channel_monitor`, `retry_manager`
 - **System**: `main`, `errors`
 
-### 2. BaseChannel pattern (standardized)
-- Subclasses do not set their own loggers.
-- `communication/communication_channels/base/base_channel.py` assigns `self.logger = get_component_logger(self.config.name)`.
-- Channel classes should ensure `config.name` matches the component (`discord`, `email`, `telegram`).
+### 2. BaseChannel Pattern (Standardized)
+- Subclasses do not set their own loggers
+- `communication/communication_channels/base/base_channel.py` assigns `self.logger = get_component_logger(self.config.name)`
+- Channel classes should ensure `config.name` matches the component (`discord`, `email`, `telegram`)
 
-### 3. Test isolation behavior
+### 3. Test Isolation Behavior
 - When `MHM_TESTING=1` and `TEST_VERBOSE_LOGS=1`:
-  - All component logs (including errors) are remapped under `tests/logs/`.
+  - All component logs (including errors) are remapped under `tests/logs/`
   - **TestContextFormatter** automatically prepends test names to all log messages
-  - Real logs are not written during tests.
+  - Real logs are not written during tests
 - When `MHM_TESTING=1` and `TEST_VERBOSE_LOGS` is not set:
-  - Component loggers are no-ops; tests remain quiet.
+  - Component loggers are no-ops; tests remain quiet
 
-### 4. TestContextFormatter (Automatic Test Context)
-- **Automatic**: All component loggers automatically include test context when in test mode
-- **Format**: `[test_name (call)]` or `[test_name (setup)]` prepended to log messages
-- **Detection**: Uses `PYTEST_CURRENT_TEST` environment variable
-- **Coverage**: Applied to all 23 component loggers during test execution
-- **No Configuration**: Works automatically without any setup required
-
-### 2. Include Relevant Context
+### 4. Include Relevant Context
 
 ```python
 # Good: Include relevant metadata
@@ -342,7 +313,7 @@ user_logger.info("User check-in completed",
                 random_data="unnecessary")
 ```
 
-### 4. Use Structured Data for Analysis
+### 5. Use Structured Data for Analysis
 
 ```python
 # Structured data makes logs easier to analyze
@@ -428,7 +399,7 @@ Log archival is now fully integrated with the MHM scheduler system:
 
 The system prefers component loggers. Replace module loggers in channel-related modules with `get_component_logger('<component>')`. Root logger remains simple (app.log + console). Discord library noise is suppressed (WARNING, propagate=False) with gateway heartbeat filter applied.
 
-### Legacy compatibility logging standard
+### Legacy Compatibility Logging Standard
 
 Use the following format for any temporary legacy paths:
 
@@ -443,9 +414,9 @@ logger.warning("LEGACY COMPATIBILITY: <what was called>; use <new path> instead"
 ```
 
 Guidelines:
-- Only add legacy paths when necessary to prevent breakage.
-- Always log usage at WARNING level to track and plan removal.
-- Add a clear removal condition and steps.
+- Only add legacy paths when necessary to prevent breakage
+- Always log usage at WARNING level to track and plan removal
+- Add a clear removal condition and steps
 
 ### Before (Old System)
 ```python
