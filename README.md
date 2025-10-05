@@ -39,7 +39,11 @@ MHM is a simple personal assistant created by and for a single beginner programm
    ```
 3. Launch the app
    ```powershell
+   # For human users (UI interface)
    python run_mhm.py
+   
+   # For AI collaborators (headless service)
+   python run_headless_service.py start
    ```
 See **HOW_TO_RUN.md** for more details.
 
@@ -69,7 +73,10 @@ See **HOW_TO_RUN.md** for more details.
 See **DOCUMENTATION_GUIDE.md** for detailed organization and maintenance guidelines.
 
 ## Architecture
-The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app_qt.py`). `run_mhm.py` launches the admin UI only - the background service must be started manually. All data stays on your local machine.
+The background service (`core/service.py`) runs independently of the admin UI (`ui/ui_app_qt.py`). 
+- `run_mhm.py` launches the admin UI only (for human users)
+- `run_headless_service.py` launches the service directly (for AI collaborators)
+All data stays on your local machine.
 
 **Recent Improvements**:
 - **Error Handling**: Centralized error handling with automatic recovery across ALL modules
@@ -98,7 +105,8 @@ MHM/
 ├── tests/                 # Testing framework
 ├── ui/                    # Admin panel (PySide6/Qt)
 ├── user/                  # User preferences
-└── run_mhm.py             # Entry point
+├── run_mhm.py             # UI entry point (human users)
+└── run_headless_service.py # Headless entry point (AI collaborators)
 ```
 
 ## License
@@ -140,7 +148,7 @@ If you see two service processes when using the play/debug button in VS Code or 
 #### **App Won't Start**
 1. Check if Python is installed: `python --version`
 2. Install dependencies: `pip install -r requirements.txt`
-3. Check for syntax errors: `python -m py_compile run_mhm.py`
+3. Check for syntax errors: `python -m py_compile run_mhm.py` or `python -m py_compile run_headless_service.py`
 4. Check log file: `Get-Content app.log -Tail 20`
 
 #### **Service Won't Start**

@@ -52,9 +52,9 @@ def main():
             shell=False,     # Explicitly prevent shell interpretation
             creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
-        # Wait for the process to complete
-        process.wait()
-        return process.returncode
+        # Don't wait - let the launcher exit and let the UI run independently
+        print("UI launched successfully. Launcher exiting.")
+        return 0
     except Exception as e:
         print(f"Error launching UI: {e}")
         return 1

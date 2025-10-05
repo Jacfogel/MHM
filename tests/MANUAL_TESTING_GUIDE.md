@@ -22,7 +22,7 @@
 7. **Account Creator Dialog** - Most complex, integration testing
 
 ### **Before Starting**
-- [ ] Run `python run_mhm.py` to ensure system starts
+- [ ] Run `python run_headless_service.py start` to ensure system starts
 - [ ] Have a test user ready (or create one)
 - [ ] Keep this guide open for notes
 
@@ -38,7 +38,7 @@
 7. **Account Creator Dialog** - Most complex, integration testing
 
 ### **Before Starting**
-- [ ] Run `python run_mhm.py` to ensure system starts
+- [ ] Run `python run_headless_service.py start` to ensure system starts
 - [ ] Have a test user ready (or create one)
 - [ ] Keep this guide open for notes
 

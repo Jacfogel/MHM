@@ -32,14 +32,15 @@ Building a personal mental health assistant that helps manage executive function
 ## Core Development Rules
 
 ### **Safety First**
-- **Test**: `python run_mhm.py` must work after changes
+- **Test**: `python run_headless_service.py start` must work after changes (for AI collaborators)
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
 - **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` for all changes
 - **Dependencies**: Update `requirements.txt` for new dependencies
 
 ### **Key Files**
-- `run_mhm.py` - Main entry point
+- `run_headless_service.py` - Main entry point for AI collaborators
+- `run_mhm.py` - UI entry point for human users
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
@@ -48,7 +49,7 @@ Building a personal mental health assistant that helps manage executive function
 - `data/users/` - User data
 
 ### **Development Workflow**
-1. **Test current state**: `python run_mhm.py`
+1. **Test current state**: `python run_headless_service.py start`
 2. **Create backup**: PowerShell backup command
 3. **Make incremental changes**
 4. **Test after each change**

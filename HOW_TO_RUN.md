@@ -41,9 +41,14 @@ Copy-Item .env.example .env
 
 ### Step 4: Launch the Application
 ```powershell
+# For human users (UI interface)
 python run_mhm.py
+
+# For AI collaborators (headless service)
+python run_headless_service.py start
 ```
-This opens the admin panel so you can manage users and start the background service.
+- `run_mhm.py` opens the admin panel so you can manage users and start the background service
+- `run_headless_service.py` launches the service directly for AI collaborators
 
 ## 🔧 Alternative Commands
 

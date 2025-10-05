@@ -14,7 +14,7 @@
 
 ### **If Code Changes Break Something**
 1. **Check Error Handling** - Look for error messages
-2. **Run Tests** - `python run_mhm.py` to identify issues (launches UI only - background service started separately)
+2. **Run Tests** - `python run_headless_service.py start` to identify issues (for AI collaborators - launches service directly)
 3. **Review Changes** - Check what was modified
 4. **Fix Incrementally** - Make small fixes and test
 5. **Document Issues** - Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
@@ -52,7 +52,8 @@
 ## 🎯 **System Understanding**
 
 ### **Critical Files (Don't Break)**
-- `run_mhm.py` - Main entry point
+- `run_headless_service.py` - Main entry point for AI collaborators
+- `run_mhm.py` - UI entry point for human users
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface
 - `core/user_data_handlers.py` - Unified user data access

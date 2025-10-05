@@ -151,6 +151,50 @@ def is_service_running():
     
     return False
 
+@handle_errors("checking service process details", default_return=[])
+def get_service_processes():
+    """Get detailed information about all MHM service processes"""
+    service_processes = []
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
+        try:
+            if not proc.info['name'] or 'python' not in proc.info['name'].lower():
+                continue
+            
+            cmdline = proc.info.get('cmdline', [])
+            if cmdline and any('service.py' in arg for arg in cmdline) and not any('run_headless_service.py' in arg for arg in cmdline):
+                if proc.is_running():
+                    # Determine if this is a UI-managed or headless service
+                    # UI-managed: has 'ui' in the path (launched by UI)
+                    # Headless: runs core/service.py directly without 'ui' in path
+                    full_cmdline = ' '.join(cmdline)
+                    is_ui_managed = 'ui' in full_cmdline and 'service.py' in full_cmdline
+                    is_headless = ('core/service.py' in full_cmdline or 'core\\service.py' in full_cmdline or full_cmdline.endswith('core/service.py') or full_cmdline.endswith('core\\service.py')) and not is_ui_managed
+                    
+                    service_processes.append({
+                        'pid': proc.info['pid'],
+                        'cmdline': cmdline,
+                        'create_time': proc.info['create_time'],
+                        'is_ui_managed': is_ui_managed,
+                        'is_headless': is_headless,
+                        'process_type': 'ui_managed' if is_ui_managed else 'headless' if is_headless else 'unknown'
+                    })
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    
+    return service_processes
+
+@handle_errors("checking if headless service is running", default_return=False)
+def is_headless_service_running():
+    """Check if a headless MHM service is currently running"""
+    processes = get_service_processes()
+    return any(proc['is_headless'] for proc in processes)
+
+@handle_errors("checking if UI service is running", default_return=False)
+def is_ui_service_running():
+    """Check if a UI-managed MHM service is currently running"""
+    processes = get_service_processes()
+    return any(proc['is_ui_managed'] for proc in processes)
+
 @handle_errors("waiting for network", default_return=False)
 def wait_for_network(timeout=60):
     """Wait for the network to be available, retrying every 5 seconds up to a timeout."""

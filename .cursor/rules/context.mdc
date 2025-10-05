@@ -88,7 +88,7 @@ def validate_config():
 # Always test after changes
 def test_changes():
     try:
-        subprocess.run([sys.executable, 'run_mhm.py'], 
+        subprocess.run([sys.executable, 'run_headless_service.py', 'start'], 
                       capture_output=True, timeout=30)
         return True
     except Exception as e:
@@ -102,7 +102,7 @@ def test_changes():
 1. Plan the feature
 2. Create backup: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 3. Implement incrementally
-4. Test: `python run_mhm.py`
+4. Test: `python run_headless_service.py start`
 5. Update `CHANGELOG.md`
 
 ### Fixing Bug

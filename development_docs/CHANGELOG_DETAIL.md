@@ -17,6 +17,64 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-04 - Headless Service Process Management and AI Collaborator Support **COMPLETED**
+
+**Context**: The MHM system needed comprehensive headless service management capabilities for AI collaborators who cannot operate the UI. The system required process monitoring, service operations, and clear separation between UI and headless workflows.
+
+**Problem**:
+- AI collaborators needed direct service access without UI dependencies
+- No process monitoring capabilities for service management
+- Documentation mixed UI and headless workflows without clear separation
+- No service operations (test messages, rescheduling) for headless mode
+- Process detection logic needed enhancement to distinguish service types
+
+**Technical Changes**:
+- **Created Headless Service CLI**: Implemented `run_headless_service.py` with start/stop/info/test/reschedule operations
+- **Built Process Watcher UI**: Created `ui/dialogs/process_watcher_dialog.py` with real-time Python process monitoring
+- **Enhanced Service Detection**: Updated `core/service_utilities.py` to distinguish between UI-managed and headless services
+- **Implemented Service Communication**: Added flag-based communication system for test messages and rescheduling
+- **Updated UI Integration**: Modified `ui/designs/admin_panel.ui` and `ui/generate_ui_files.py` for process watcher
+- **Fixed Launcher Behavior**: Updated `run_mhm.py` to exit cleanly after launching UI
+
+**Files Created/Modified**:
+- `run_headless_service.py` - New CLI for headless service management (137 lines)
+- `core/headless_service.py` - New headless service manager class (200+ lines)
+- `ui/dialogs/process_watcher_dialog.py` - New process watcher UI component (300+ lines)
+- `ui/designs/admin_panel.ui` - Updated with process watcher menu item
+- `ui/generate_ui_files.py` - Updated for UI generation with proper imports
+- `run_mhm.py` - Updated to exit cleanly after launching UI
+- `core/service_utilities.py` - Enhanced process detection logic
+- Multiple documentation files updated for AI collaborator support
+
+**Documentation Updates**:
+- **AI Documentation**: Updated 5 AI-focused files to use `run_headless_service.py` as primary entry point
+- **General Documentation**: Enhanced 4 user-facing files with dual entry points
+- **Cursor Commands**: Updated 3 `.cursor` directory files for AI workflows
+- **Testing Guides**: Updated 2 testing files with headless service options
+
+**Testing Results**:
+- ✅ **Headless Service Operations**: All operations working (start, stop, info, test, reschedule)
+- ✅ **Process Watcher**: Real-time process monitoring with color-coded process types
+- ✅ **Service Communication**: Test messages and rescheduling working via flag files
+- ✅ **System Stability**: All 1753 tests passing (0 failures)
+- ✅ **Documentation Consistency**: Clear separation between UI and headless workflows
+
+**Success Criteria**:
+- ✅ Complete headless service lifecycle management
+- ✅ Real-time process monitoring capabilities
+- ✅ Service operations for AI collaborators
+- ✅ Clear documentation separation
+- ✅ All tests passing with no regressions
+
+**Outcomes**:
+- **AI Collaborator Support**: Full headless service management for AI collaborators
+- **Process Monitoring**: Real-time visibility into Python processes and service status
+- **Service Operations**: Test message and reschedule capabilities for headless services
+- **Documentation Clarity**: Clear separation between UI (`run_mhm.py`) and headless (`run_headless_service.py`) entry points
+- **Workflow Enhancement**: All AI development workflows now use headless service as primary testing method
+
+**Next Steps**: Monitor headless service operations in production scenarios and continue process optimization.
+
 ### 2025-10-04 - Test Coverage Expansion and System Stability **COMPLETED**
 
 **Context**: The MHM system had several failing tests and low coverage in critical modules. The test suite had 16 failing auto cleanup tests, 3 failing UI tests, and several modules with coverage below 70%.

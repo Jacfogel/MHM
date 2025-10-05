@@ -382,6 +382,7 @@ class MHMManagerUI(QMainWindow):
         # Menu actions
         self.ui.actionToggle_Verbose_Logging.triggered.connect(self.toggle_logging_verbosity)
         self.ui.actionView_Log_File.triggered.connect(self.view_log_file)
+        self.ui.actionProcess_Watcher.triggered.connect(self.open_process_watcher)
         self.ui.actionView_Cache_Status.triggered.connect(self.view_cache_status)
         self.ui.actionForce_Clean_Cache.triggered.connect(self.force_clean_cache)
         self.ui.actionValidate_Configuration.triggered.connect(self.validate_configuration)
@@ -1142,6 +1143,18 @@ class MHMManagerUI(QMainWindow):
         import webbrowser
         from core.config import LOG_MAIN_FILE
         webbrowser.open(LOG_MAIN_FILE)
+    
+    @handle_errors("opening process watcher")
+    def open_process_watcher(self):
+        """Open the process watcher dialog."""
+        try:
+            from ui.dialogs.process_watcher_dialog import ProcessWatcherDialog
+            dialog = ProcessWatcherDialog(self)
+            dialog.show()
+            logger.debug("Process watcher dialog opened")
+        except Exception as e:
+            logger.error(f"Error opening process watcher: {e}")
+            QMessageBox.critical(self, "Error", f"Failed to open process watcher: {e}")
     
     @handle_errors("viewing cache status")
     def view_cache_status(self):

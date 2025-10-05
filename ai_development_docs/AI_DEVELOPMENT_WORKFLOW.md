@@ -9,7 +9,7 @@
 ### Essential Commands
 ```powershell
 venv\Scripts\activate
-python run_mhm.py
+python run_headless_service.py start
 pip install -r requirements.txt
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; Copy-Item . ../MHM_backup_$timestamp -Recurse
 ```
@@ -32,7 +32,7 @@ $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"; Copy-Item . ../MHM_backup_$time
 
 ### Pre-Change Checklist
 - Confirm `(venv)` is active; activate if missing.
-- Run `python run_mhm.py` to confirm baseline health (launches UI only - background service started separately).
+- Run `python run_headless_service.py start` to confirm baseline health (for AI collaborators - launches service directly).
 - Create a backup folder using the command above.
 - Outline your plan, test approach, and touched files.
 
@@ -69,7 +69,7 @@ pip freeze > requirements.txt
 
 ### Step 3: Test
 - Target the change, then nearby surfaces.
-- Run the app via `python run_mhm.py` to launch the admin UI and verify comms flows. Note: The background service must be started manually.
+- Run the app via `python run_headless_service.py start` to launch the service directly and verify comms flows 
 
 ### Step 4: Document
 - Update both changelog files (detailed vs summary).

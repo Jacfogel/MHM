@@ -109,7 +109,7 @@ test_config = {
 ## Manual Testing Procedures
 
 ### **Pre-Test Checklist**
-- [ ] Run `python run_mhm.py` to ensure system starts
+- [ ] Run `python run_headless_service.py start` to ensure system starts (for AI collaborators)
 - [ ] Have test user ready (or create one)
 - [ ] Check test data directories exist
 - [ ] Verify environment variables

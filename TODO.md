@@ -30,23 +30,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
-**Headless Service Process Management** ?? **NEW PRIORITY**
-- *What it means*: Figure out how to run the service in headless mode (`python core/service.py`) without creating duplicate processes or causing the service to kill itself
-- *Why it helps*: Enables proper headless service operation for deployment and automation scenarios
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] **Investigate Process Detection Logic**
-    - [ ] Analyze why service detection logic interferes with UI service management
-    - [ ] Identify safe ways to detect existing service processes
-    - [ ] Determine if separate detection methods are needed for UI vs headless modes
-  - [ ] **Implement Safe Headless Mode**
-    - [ ] Create headless-specific service detection that doesn't interfere with UI
-    - [ ] Ensure headless mode can properly restart existing services
-    - [ ] Test that UI service management remains unaffected
-  - [ ] **Alternative Approaches**
-    - [ ] Consider using different process management strategies for headless mode
-    - [ ] Investigate if UI restart logic can be shared with headless mode
-    - [ ] Explore service daemon or system service approaches
 
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision

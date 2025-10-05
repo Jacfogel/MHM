@@ -277,6 +277,7 @@
     </widget>
     <addaction name="actionToggle_Verbose_Logging"/>
     <addaction name="actionView_Log_File"/>
+    <addaction name="actionProcess_Watcher"/>
     <addaction name="menuCache_Management"/>
    </widget>
    <widget class="QMenu" name="menuAdmin">
@@ -324,6 +325,11 @@
   <action name="actionSystem_Health_Check">
    <property name="text">
     <string>System Health Check</string>
+   </property>
+  </action>
+  <action name="actionProcess_Watcher">
+   <property name="text">
+    <string>Process Watcher</string>
    </property>
   </action>
  </widget>

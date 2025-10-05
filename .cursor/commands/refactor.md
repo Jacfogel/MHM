@@ -13,10 +13,14 @@ Plan and execute code refactoring with comprehensive safety checks, following MH
    ```
 2. **If tests haven't been run this session - test current system**:
    ```powershell
-   python run_mhm.py
+   # For AI collaborators (headless service)
+   python run_headless_service.py start
    if ($LASTEXITCODE -ne 0) { Write-Host "System not healthy" -ForegroundColor Red; exit 1 }
+   
+   # For human users (UI interface)
+   # python run_mhm.py
    ```
-   **Note**: `run_mhm.py` launches the UI, not the background service. The background service must be started manually if needed.
+   **Note**: `run_headless_service.py` launches the service directly for AI collaborators. `run_mhm.py` launches the UI for human users.
 3. **Create backup**:
    ```powershell
    Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse
@@ -41,10 +45,14 @@ Plan and execute code refactoring with comprehensive safety checks, following MH
 1. **Make one change at a time**
 2. **Test after each change**:
    ```powershell
-   python run_mhm.py
+   # For AI collaborators (headless service)
+   python run_headless_service.py start
    if ($LASTEXITCODE -ne 0) { Write-Host "Refactoring broke system" -ForegroundColor Red; exit 1 }
+   
+   # For human users (UI interface)
+   # python run_mhm.py
    ```
-   **Note**: `run_mhm.py` launches the UI, not the background service. The background service must be started manually if needed.
+   **Note**: `run_headless_service.py` launches the service directly for AI collaborators. `run_mhm.py` launches the UI for human users.
 3. **Update all references**:
    - Check all imports and function calls
    - Update documentation
@@ -63,10 +71,14 @@ Plan and execute code refactoring with comprehensive safety checks, following MH
    ```
 2. **Verify system functionality**:
    ```powershell
-   python run_mhm.py
+   # For AI collaborators (headless service)
+   python run_headless_service.py start
    if ($LASTEXITCODE -ne 0) { Write-Host "System not working" -ForegroundColor Red; exit 1 }
+   
+   # For human users (UI interface)
+   # python run_mhm.py
    ```
-   **Note**: `run_mhm.py` launches the UI, not the background service. The background service must be started manually if needed.
+   **Note**: `run_headless_service.py` launches the service directly for AI collaborators. `run_mhm.py` launches the UI for human users.
 3. **Update documentation**:
    - Update any affected guides or READMEs
 
@@ -81,7 +93,7 @@ Plan and execute code refactoring with comprehensive safety checks, following MH
 ## Critical Rules
 
 ### **Safety First**
-- **ALWAYS** test `python run_mhm.py` after changes
+- **ALWAYS** test `python run_headless_service.py start` after changes (for AI collaborators)
 - **ALWAYS** create backup before starting
 - **ALWAYS** make incremental changes
 - **ALWAYS** update documentation
@@ -121,7 +133,7 @@ Plan and execute code refactoring with comprehensive safety checks, following MH
 - **Legacy Tool Updates**: New patterns added to `legacy_reference_cleanup.py`
 
 #### Validation Results
-- **System Health**: `python run_mhm.py` status
+- **System Health**: `python run_headless_service.py start` status
 - **Test Results**: Test suite outcomes
 - **Documentation Updates**: What was updated
 - **Consistency Check**: Cross-reference validation

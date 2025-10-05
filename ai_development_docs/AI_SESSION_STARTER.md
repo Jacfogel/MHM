@@ -17,7 +17,7 @@
 ## CRITICAL RULES (Always Apply)
 
 ### **Safety First**
-- **Test**: `python run_mhm.py` must work after changes (launches UI only - background service started separately)
+- **Test**: `python run_headless_service.py start` must work after changes (for AI collaborators - launches service directly)
 - **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
 - **Incremental**: Make small, tested changes
 - **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG.md`
@@ -56,7 +56,8 @@ Personal mental health assistant that helps manage executive functioning deficit
 - **Channel-Agnostic Architecture**: Features work across all communication channels
 
 ### **Key Files (Don't Break These)**
-- `run_mhm.py` - Main entry point
+- `run_headless_service.py` - Main entry point for AI collaborators
+- `run_mhm.py` - UI entry point (for human users)
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface (admin only)
 - `core/config.py` - Configuration
@@ -75,8 +76,9 @@ Personal mental health assistant that helps manage executive functioning deficit
 
 ### **Essential Commands**
 ```powershell
-# Test system
-python run_mhm.py
+# Test system (AI collaborators)
+python run_headless_service.py start
+python run_headless_service.py info
 
 # Get system status
 python ai_development_tools/ai_tools_runner.py status
@@ -89,10 +91,10 @@ Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss'
 ```
 
 ### **Development Workflow**
-1. **Test Current**: `python run_mhm.py` (launches UI only - background service started separately)
+1. **Test Current**: `python run_headless_service.py start`
 2. **Create Backup**: PowerShell backup command
 3. **Make Small Changes**: Incremental approach
-4. **Test After**: `python run_mhm.py` (launches UI only - background service started separately)
+4. **Test After**: `python run_headless_service.py start`
 5. **Update CHANGELOGs**: Document changes fully in `../development_docs/CHANGELOG_DETAIL.md` and concisely `AI_CHANGELOG.md`
 
 ## COMMUNICATION GUIDELINES

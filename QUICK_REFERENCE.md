@@ -12,8 +12,11 @@
 
 ### Running the App
 ```powershell
-# Main application (admin panel + service)
+# Main application (admin panel + service) - for human users
 python run_mhm.py
+
+# Headless service - for AI collaborators
+python run_headless_service.py start
 
 # Service only (background)
 python core/service.py
@@ -47,7 +50,8 @@ pip freeze > requirements.txt
 ## 📁 Key File Locations
 
 ### Core Application Files
-- `run_mhm.py` - Main entry point
+- `run_mhm.py` - UI entry point (human users)
+- `run_headless_service.py` - Headless entry point (AI collaborators)
 - `core/service.py` - Background service
 - `ui/ui_app_qt.py` - Admin interface (PySide6/Qt)
 - `core/config.py` - Configuration settings
@@ -116,7 +120,7 @@ Get-ChildItem -Path . -Recurse -Include "__pycache__" | Remove-Item -Recurse -Fo
 ### App Won't Start
 1. Check if Python is installed: `python --version`
 2. Install dependencies: `pip install -r requirements.txt`
-3. Check for syntax errors: `python -m py_compile run_mhm.py`
+3. Check for syntax errors: `python -m py_compile run_mhm.py` or `python -m py_compile run_headless_service.py`
 4. Check log file: `Get-Content app.log -Tail 20`
 
 ### Service Won't Start
