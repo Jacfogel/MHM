@@ -86,7 +86,7 @@ class ErrorHandlingAnalyzer:
             
             # Analyze AST nodes
             for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     func_analysis = self._analyze_function(node, content)
                     file_results['functions'].append(func_analysis)
                     
