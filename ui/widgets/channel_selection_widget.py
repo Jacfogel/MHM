@@ -10,6 +10,7 @@ import pytz
 
 # Set up logging
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 logger = get_component_logger('ui')
 
 class ChannelSelectionWidget(QWidget):
@@ -31,50 +32,46 @@ class ChannelSelectionWidget(QWidget):
         # Populate timezone options
         self.populate_timezones()
 
+    @handle_errors("populating timezone options")
     def populate_timezones(self):
         """Populate the timezone combo box with options."""
-        try:
-            if hasattr(self.ui, 'comboBox_timezone'):
-                self.ui.comboBox_timezone.clear()
-                timezone_options = get_timezone_options()
-                self.ui.comboBox_timezone.addItems(timezone_options)
-                logger.debug(f"Populated timezone combo box with {len(timezone_options)} options")
-                
-                # Set default to America/Regina
-                regina_idx = self.ui.comboBox_timezone.findText("America/Regina")
-                if regina_idx >= 0:
-                    self.ui.comboBox_timezone.setCurrentIndex(regina_idx)
-                    logger.debug("Set default timezone to America/Regina")
+        if hasattr(self.ui, 'comboBox_timezone'):
+            self.ui.comboBox_timezone.clear()
+            timezone_options = get_timezone_options()
+            self.ui.comboBox_timezone.addItems(timezone_options)
+            logger.debug(f"Populated timezone combo box with {len(timezone_options)} options")
+            
+            # Set default to America/Regina
+            regina_idx = self.ui.comboBox_timezone.findText("America/Regina")
+            if regina_idx >= 0:
+                self.ui.comboBox_timezone.setCurrentIndex(regina_idx)
+                logger.debug("Set default timezone to America/Regina")
+            else:
+                # Fallback to UTC if Regina not found
+                utc_idx = self.ui.comboBox_timezone.findText("UTC")
+                if utc_idx >= 0:
+                    self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
+                    logger.debug("Set default timezone to UTC (fallback)")
                 else:
-                    # Fallback to UTC if Regina not found
-                    utc_idx = self.ui.comboBox_timezone.findText("UTC")
-                    if utc_idx >= 0:
-                        self.ui.comboBox_timezone.setCurrentIndex(utc_idx)
-                        logger.debug("Set default timezone to UTC (fallback)")
-                    else:
-                        logger.warning("Could not find America/Regina or UTC in timezone options")
-            else:
-                logger.warning("Timezone combo box not found in UI")
-        except Exception as e:
-            logger.error(f"Error populating timezones: {e}")
+                    logger.warning("Could not find America/Regina or UTC in timezone options")
+        else:
+            logger.warning("Timezone combo box not found in UI")
 
+    @handle_errors("getting selected channel")
     def get_selected_channel(self):
-        try:
-            if self.ui.radioButton_Discord.isChecked():
-                discord_id = self.ui.lineEdit_discordID.text()
-                logger.debug(f"Selected Discord channel with ID: {discord_id}")
-                return 'Discord', discord_id
-            elif self.ui.radioButton_Email.isChecked():
-                email = self.ui.lineEdit_email.text()
-                logger.debug(f"Selected Email channel with address: {email}")
-                return 'Email', email
-            else:
-                logger.warning("No channel selected")
-                return None, None
-        except Exception as e:
-            logger.error(f"Error getting selected channel: {e}")
+        if self.ui.radioButton_Discord.isChecked():
+            discord_id = self.ui.lineEdit_discordID.text()
+            logger.debug(f"Selected Discord channel with ID: {discord_id}")
+            return 'Discord', discord_id
+        elif self.ui.radioButton_Email.isChecked():
+            email = self.ui.lineEdit_email.text()
+            logger.debug(f"Selected Email channel with address: {email}")
+            return 'Email', email
+        else:
+            logger.warning("No channel selected")
             return None, None
 
+    @handle_errors("getting all contact info")
     def get_all_contact_info(self):
         """Get all contact info fields from the widget."""
         return {
@@ -82,12 +79,14 @@ class ChannelSelectionWidget(QWidget):
             'discord_id': self.ui.lineEdit_discordID.text().strip()
         }
 
+    @handle_errors("getting timezone")
     def get_timezone(self):
         """Get the selected timezone."""
         if hasattr(self.ui, 'comboBox_timezone'):
             return self.ui.comboBox_timezone.currentText()
         return "America/Regina"
 
+    @handle_errors("setting selected channel")
     def set_selected_channel(self, channel, value):
         if channel == 'Discord':
             self.ui.radioButton_Discord.setChecked(True)
@@ -97,6 +96,7 @@ class ChannelSelectionWidget(QWidget):
             self.ui.lineEdit_email.setText(value)
 
 
+    @handle_errors("setting timezone")
     def set_timezone(self, timezone):
         """Set the timezone."""
         if hasattr(self.ui, 'comboBox_timezone') and timezone:

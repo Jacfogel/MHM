@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
 
+@handle_errors("checking testing environment")
 def _is_testing_environment():
     """Check if we're running in a testing environment."""
     return (os.getenv('MHM_TESTING') == '1' or 
@@ -24,6 +25,7 @@ def _is_testing_environment():
 class TestContextFormatter(logging.Formatter):
     """Custom formatter that automatically prepends test names to log messages."""
     
+    @handle_errors("formatting log record")
     def format(self, record):
         # Get test name from pytest's environment variable
         test_name = os.environ.get('PYTEST_CURRENT_TEST', '')
@@ -38,6 +40,7 @@ class TestContextFormatter(logging.Formatter):
         return super().format(record)
 
 
+@handle_errors("applying test context formatter")
 def apply_test_context_formatter_to_all_loggers():
     """Apply TestContextFormatter to all existing loggers when in test mode."""
     if not _is_testing_environment():
@@ -61,6 +64,7 @@ def apply_test_context_formatter_to_all_loggers():
     if count > 0:
         print(f"DEBUG: Applied TestContextFormatter to {count} handlers", file=sys.stderr)
 
+@handle_errors("getting log paths for environment")
 def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
     if _is_testing_environment():
@@ -149,6 +153,7 @@ class ComponentLogger:
     Each component gets its own log file with appropriate rotation and formatting.
     """
     
+    @handle_errors("initializing component logger")
     def __init__(self, component_name: str, log_file_path: str, level: int = logging.INFO):
         self.component_name = component_name
         self.log_file_path = log_file_path
@@ -239,26 +244,32 @@ class ComponentLogger:
             # Failsafe: don't break logging if errors handler can't be added
             pass
     
+    @handle_errors("logging debug message")
     def debug(self, message: str, **kwargs):
         """Log debug message with optional structured data."""
         self._log(logging.DEBUG, message, **kwargs)
     
+    @handle_errors("logging info message")
     def info(self, message: str, **kwargs):
         """Log info message with optional structured data."""
         self._log(logging.INFO, message, **kwargs)
     
+    @handle_errors("logging warning message")
     def warning(self, message: str, **kwargs):
         """Log warning message with optional structured data."""
         self._log(logging.WARNING, message, **kwargs)
     
+    @handle_errors("logging error message")
     def error(self, message: str, **kwargs):
         """Log error message with optional structured data."""
         self._log(logging.ERROR, message, **kwargs)
     
+    @handle_errors("logging critical message")
     def critical(self, message: str, **kwargs):
         """Log critical message with optional structured data."""
         self._log(logging.CRITICAL, message, **kwargs)
     
+    @handle_errors("internal logging method")
     def _log(self, level: int, message: str, **kwargs):
         """Internal logging method with structured data support."""
         if kwargs:
@@ -277,6 +288,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     Supports both time-based and size-based rotation.
     """
     
+    @handle_errors("initializing timed rotating file handler")
     def __init__(self, filename, backup_dir, maxBytes=0, backupCount=0, encoding=None, delay=False, when='midnight', interval=1):
         # TimedRotatingFileHandler expects: filename, when='h', interval=1, backupCount=0, encoding=None, delay=False, utc=False, atTime=None
         super().__init__(filename, when=when, interval=interval, backupCount=backupCount, encoding=encoding, delay=delay)
@@ -287,6 +299,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         # Ensure backup directory exists (even during tests, as tests may need it)
         os.makedirs(self.backup_dir, exist_ok=True)
     
+    @handle_errors("checking if rollover should occur")
     def shouldRollover(self, record):
         """
         Determine if rollover should occur based on both time and size.
@@ -305,6 +318,7 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                     pass
         return False
     
+    @handle_errors("performing log rollover")
     def doRollover(self):
         """
         Do a rollover, as described in __init__().
@@ -402,6 +416,7 @@ class HeartbeatWarningFilter(logging.Filter):
     - Logs a summary every hour with total count
     """
     
+    @handle_errors("initializing test context filter")
     def __init__(self):
         super().__init__()
         self.heartbeat_warnings = 0
@@ -477,6 +492,7 @@ _original_levels = {}
 _component_loggers = {}
 
 
+@handle_errors("getting log level from environment")
 def get_log_level_from_env():
     """
     Get log level from environment variable, default to WARNING for quiet mode.
@@ -488,6 +504,7 @@ def get_log_level_from_env():
     return getattr(logging, log_level, logging.WARNING)
 
 
+@handle_errors("ensuring logs directory exists")
 def ensure_logs_directory():
     """Ensure the logs directory structure exists."""
     log_paths = _get_log_paths_for_environment()
@@ -496,6 +513,7 @@ def ensure_logs_directory():
     os.makedirs(log_paths['archive_dir'], exist_ok=True)
 
 
+@handle_errors("getting component logger")
 def get_component_logger(component_name: str) -> ComponentLogger:
     """
     Get or create a component-specific logger.
@@ -583,6 +601,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     return _component_loggers[component_name]
 
 
+@handle_errors("setting up logging system")
 def setup_logging():
     """
     Set up logging with file and console handlers. Ensure it is called only once.
@@ -652,6 +671,7 @@ def setup_logging():
     logger.info("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
 
 
+@handle_errors("setting up third party error logging")
 def setup_third_party_error_logging():
     """
     Set up dedicated error logging for third-party libraries.
@@ -705,6 +725,7 @@ def setup_third_party_error_logging():
         logging.getLogger(__name__).warning(f"Failed to setup third-party error logging: {e}")
 
 
+@handle_errors("getting logger")
 def get_logger(name):
     """
     Get a logger with the specified name.
@@ -718,6 +739,7 @@ def get_logger(name):
     return logging.getLogger(name)
 
 
+@handle_errors("suppressing noisy logging")
 def suppress_noisy_logging():
     """
     Suppress excessive logging from third-party libraries.
@@ -747,6 +769,7 @@ def suppress_noisy_logging():
     logging.getLogger("schedule").setLevel(logging.WARNING)
 
 
+@handle_errors("setting console log level")
 def set_console_log_level(level):
     """
     Set the console logging level while keeping file logging at DEBUG.
@@ -765,6 +788,7 @@ def set_console_log_level(level):
             break
 
 
+@handle_errors("toggling verbose logging")
 def toggle_verbose_logging():
     """
     Toggle between verbose (DEBUG/INFO) and quiet (WARNING+) logging for console output.
@@ -793,6 +817,7 @@ def toggle_verbose_logging():
         return False
 
 
+@handle_errors("getting verbose mode")
 def get_verbose_mode():
     """
     Get current verbose mode status.
@@ -803,6 +828,7 @@ def get_verbose_mode():
     return _verbose_mode
 
 
+@handle_errors("setting verbose mode")
 def set_verbose_mode(enabled):
     """
     Explicitly set verbose mode.
@@ -821,6 +847,7 @@ def set_verbose_mode(enabled):
         logging.getLogger(__name__).info("Quiet logging enabled")
 
 
+@handle_errors("disabling module logging")
 def disable_module_logging(module_name):
     """
     Disable debug logging for a specific module.
@@ -834,6 +861,7 @@ def disable_module_logging(module_name):
         handler.setLevel(logging.WARNING)
 
 
+@handle_errors("getting log file info")
 def get_log_file_info():
     """
     Get information about current log files and their sizes.
@@ -1072,6 +1100,7 @@ def cleanup_old_archives(max_days=30):
 
 
 @handle_errors("restarting logging system", default_return=False)
+@handle_errors("forcing restart of logging")
 def force_restart_logging():
     """
     Force restart the logging system by clearing all handlers and reinitializing.
@@ -1133,6 +1162,7 @@ def force_restart_logging():
 
 
 @handle_errors("clearing log file locks", default_return=False)
+@handle_errors("clearing log file locks")
 def clear_log_file_locks():
     """
     Clear any file locks that might be preventing log rotation.

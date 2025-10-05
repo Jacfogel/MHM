@@ -21,6 +21,7 @@ class CommandDefinition:
     cooldown: float = 0.0
     enabled: bool = True
     
+    @handle_errors("post-initializing command definition")
     def __post_init__(self):
         """Post-initialization setup"""
         if self.aliases is None:
@@ -31,11 +32,13 @@ class CommandDefinition:
 class CommandRegistry(ABC):
     """Abstract base class for command registration utilities"""
     
+    @handle_errors("initializing command registry")
     def __init__(self):
         """Initialize the command registry"""
         self._commands: Dict[str, CommandDefinition] = {}
         self._aliases: Dict[str, str] = {}
     
+    @handle_errors("registering command")
     def register_command(self, command_def: CommandDefinition) -> bool:
         """Register a command definition"""
         try:
@@ -55,6 +58,7 @@ class CommandRegistry(ABC):
             logger.error(f"Failed to register command '{command_def.name}': {e}")
             return False
     
+    @handle_errors("unregistering command")
     def unregister_command(self, command_name: str) -> bool:
         """Unregister a command"""
         try:
@@ -78,6 +82,7 @@ class CommandRegistry(ABC):
             logger.error(f"Failed to unregister command '{command_name}': {e}")
             return False
     
+    @handle_errors("getting command")
     def get_command(self, command_name: str) -> Optional[CommandDefinition]:
         """Get a command by name or alias"""
         # Check main commands first
@@ -90,14 +95,17 @@ class CommandRegistry(ABC):
         
         return None
     
+    @handle_errors("getting all commands")
     def get_all_commands(self) -> List[CommandDefinition]:
         """Get all registered commands"""
         return list(self._commands.values())
     
+    @handle_errors("getting enabled commands")
     def get_enabled_commands(self) -> List[CommandDefinition]:
         """Get all enabled commands"""
         return [cmd for cmd in self._commands.values() if cmd.enabled]
     
+    @handle_errors("checking if command is registered")
     def is_command_registered(self, command_name: str) -> bool:
         """Check if a command is registered"""
         return command_name in self._commands or command_name in self._aliases
@@ -115,11 +123,13 @@ class CommandRegistry(ABC):
 class DiscordCommandRegistry(CommandRegistry):
     """Discord-specific command registry"""
     
+    @handle_errors("initializing Discord command registry")
     def __init__(self, bot=None):
         """Initialize Discord command registry"""
         super().__init__()
         self.bot = bot
     
+    @handle_errors("registering with Discord platform")
     def register_with_platform(self, command_def: CommandDefinition) -> bool:
         """Register command with Discord"""
         if not self.bot:
@@ -153,6 +163,7 @@ class DiscordCommandRegistry(CommandRegistry):
             logger.error(f"Failed to register Discord command '{command_def.name}': {e}")
             return False
     
+    @handle_errors("unregistering from Discord platform")
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from Discord"""
         if not self.bot:
@@ -175,6 +186,7 @@ class DiscordCommandRegistry(CommandRegistry):
 class EmailCommandRegistry(CommandRegistry):
     """Email-specific command registry"""
     
+    @handle_errors("registering with email platform")
     def register_with_platform(self, command_def: CommandDefinition) -> bool:
         """Register command with email system"""
         # Email commands are typically handled through message parsing
@@ -182,6 +194,7 @@ class EmailCommandRegistry(CommandRegistry):
         logger.debug(f"Email command '{command_def.name}' available for parsing")
         return True
     
+    @handle_errors("unregistering from email platform")
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from email system"""
         # Email commands are handled through parsing, so unregistration
@@ -190,6 +203,7 @@ class EmailCommandRegistry(CommandRegistry):
         return True
 
 # Factory function to get appropriate command registry
+@handle_errors("getting command registry")
 def get_command_registry(channel_type: str, platform_instance=None) -> CommandRegistry:
     """Get the appropriate command registry for a channel type"""
     if channel_type == 'discord':

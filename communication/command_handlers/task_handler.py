@@ -26,6 +26,7 @@ handlers_logger = logger
 class TaskManagementHandler(InteractionHandler):
     """Handler for task management interactions"""
     
+    @handle_errors("checking if can handle intent")
     def can_handle(self, intent: str) -> bool:
         return intent in ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
     
@@ -49,6 +50,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that task command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("handling task creation")
     def _handle_create_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task creation"""
         title = entities.get('title')
@@ -123,6 +125,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to create task. Please try again.", True)
     
+    @handle_errors("parsing relative date")
     def _handle_create_task__parse_relative_date(self, date_str: str) -> str:
         """Convert relative date strings to proper dates"""
         date_str_lower = date_str.lower().strip()
@@ -147,6 +150,7 @@ class TaskManagementHandler(InteractionHandler):
             # Return as-is if it's already a proper date or unknown format
             return date_str
     
+    @handle_errors("handling task listing")
     def _handle_list_tasks(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task listing with enhanced filtering and details"""
         tasks = load_active_tasks(user_id)
@@ -187,6 +191,7 @@ class TaskManagementHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None
         )
 
+    @handle_errors("applying task filters")
     def _handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
         """Apply filters to tasks and return filtered list."""
         filtered_tasks = tasks.copy()
@@ -210,6 +215,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return filtered_tasks
 
+    @handle_errors("handling no tasks response")
     def _handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter):
         """Get appropriate response when no tasks match filters."""
         if filter_type == 'due_soon':
@@ -225,6 +231,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("You have no active tasks. Great job staying on top of things! 🎉", True)
 
+    @handle_errors("sorting tasks")
     def _handle_list_tasks__sort_tasks(self, tasks):
         """Sort tasks by priority and due date."""
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
@@ -233,6 +240,7 @@ class TaskManagementHandler(InteractionHandler):
             x.get('due_date') or '9999-12-31'  # Handle None due_date properly
         ))
 
+    @handle_errors("formatting task list")
     def _handle_list_tasks__format_list(self, tasks):
         """Format task list with enhanced details."""
         task_list = []
@@ -264,6 +272,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return task_list
 
+    @handle_errors("formatting due date")
     def _handle_list_tasks__format_due_date(self, due_date):
         """Format due date with urgency indicator."""
         if not due_date:
@@ -277,6 +286,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return f" (due: {due_date})"
 
+    @handle_errors("building filter info")
     def _handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter):
         """Build filter information list."""
         filter_info = []
@@ -288,6 +298,7 @@ class TaskManagementHandler(InteractionHandler):
             filter_info.append(f"tag: {tag_filter}")
         return filter_info
 
+    @handle_errors("building response")
     def _handle_list_tasks__build_response(self, task_list, filter_info, total_tasks):
         """Build the main task list response."""
         response = "**Your Active Tasks"
@@ -300,6 +311,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return response
 
+    @handle_errors("generating suggestions")
     def _handle_list_tasks__generate_suggestions(self, tasks, filter_info):
         """Generate contextual suggestions based on current state."""
         suggestions = []
@@ -327,6 +339,7 @@ class TaskManagementHandler(InteractionHandler):
         # Limit to exactly 3 suggestions
         return suggestions[:3]
 
+    @handle_errors("getting suggestion")
     def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
         # Check for overdue tasks first
@@ -346,6 +359,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
 
+    @handle_errors("creating rich data")
     def _handle_list_tasks__create_rich_data(self, filter_info, tasks):
         """Create rich data for Discord embeds."""
         rich_data = {
@@ -385,6 +399,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return rich_data
     
+    @handle_errors("handling task completion")
     def _handle_complete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task completion"""
         task_identifier = entities.get('task_identifier')
@@ -407,6 +422,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to complete task. Please try again.", True)
     
+    @handle_errors("handling task deletion")
     def _handle_delete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task deletion"""
         task_identifier = entities.get('task_identifier')
@@ -429,6 +445,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to delete task. Please try again.", True)
     
+    @handle_errors("handling task update")
     def _handle_update_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task updates"""
         task_identifier = entities.get('task_identifier')
@@ -478,6 +495,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to update task. Please try again.", True)
     
+    @handle_errors("handling task statistics")
     def _handle_task_stats(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task statistics with dynamic time periods"""
         # Get time period information
@@ -539,6 +557,7 @@ class TaskManagementHandler(InteractionHandler):
             logger.error(f"Error showing task statistics for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
+    @handle_errors("finding task by identifier for completion")
     def _handle_complete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
         # Try as task_id first (UUID)
@@ -595,6 +614,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
     
+    @handle_errors("finding task by identifier for deletion")
     def _handle_delete_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
         # Try as task_id first (UUID)
@@ -651,6 +671,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
     
+    @handle_errors("finding task by identifier for update")
     def _handle_update_task__find_task_by_identifier(self, tasks: List[Dict], identifier: str) -> Optional[Dict]:
         """Find a task by number, name, or task_id"""
         # Try as task_id first (UUID)
@@ -707,9 +728,11 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
     
+    @handle_errors("getting help")
     def get_help(self) -> str:
         return "Help with task management - create, list, complete, delete, and update tasks"
     
+    @handle_errors("getting examples")
     def get_examples(self) -> List[str]:
         return [
             "create task 'Call mom tomorrow'",

@@ -16,6 +16,7 @@ logger = checkin_logger
 class CheckinHandler(InteractionHandler):
     """Handler for check-in interactions"""
     
+    @handle_errors("checking if can handle intent")
     def can_handle(self, intent: str) -> bool:
         return intent in ['start_checkin', 'continue_checkin', 'checkin_status']
     
@@ -33,6 +34,7 @@ class CheckinHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that check-in command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("handling start check-in")
     def _handle_start_checkin(self, user_id: str) -> InteractionResponse:
         """Handle starting a check-in by delegating to conversation manager"""
         if not is_user_checkins_enabled(user_id):
@@ -76,6 +78,7 @@ class CheckinHandler(InteractionHandler):
                 True
             )
     
+    @handle_errors("handling continue check-in")
     def _handle_continue_checkin(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle continuing a check-in"""
         # This would integrate with the existing conversation manager
@@ -85,6 +88,7 @@ class CheckinHandler(InteractionHandler):
             True
         )
     
+    @handle_errors("handling check-in status")
     def _handle_checkin_status(self, user_id: str) -> InteractionResponse:
         """Handle check-in status request"""
         if not is_user_checkins_enabled(user_id):
@@ -108,9 +112,11 @@ class CheckinHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
     
+    @handle_errors("getting help")
     def get_help(self) -> str:
         return "Help with check-ins - start check-ins and view your status"
     
+    @handle_errors("getting examples")
     def get_examples(self) -> List[str]:
         return [
             "start checkin",

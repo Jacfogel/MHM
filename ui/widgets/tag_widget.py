@@ -24,6 +24,7 @@ class TagWidget(QWidget):
     
     tags_changed = Signal()  # Signal emitted when tags are modified
     
+    @handle_errors("initializing tag widget")
     def __init__(self, parent=None, user_id=None, mode="management", selected_tags=None, title="Task Tags"):
         """Initialize the tag widget.
         
@@ -49,6 +50,7 @@ class TagWidget(QWidget):
         self.setup_connections()
         self.load_tags()
     
+    @handle_errors("setting up UI")
     def setup_ui(self):
         """Setup the UI components based on mode."""
         # Set the group box title
@@ -68,6 +70,7 @@ class TagWidget(QWidget):
             self.ui.pushButton_edit_tag.setVisible(False)
             self.ui.pushButton_delete_tag.setVisible(False)
     
+    @handle_errors("setting up connections")
     def setup_connections(self):
         """Setup signal connections."""
         # Connect tag management buttons
@@ -84,6 +87,7 @@ class TagWidget(QWidget):
             # Selection mode connections
             self.ui.listWidget_tags.itemChanged.connect(self.on_tag_selection_changed)
     
+    @handle_errors("loading tags")
     def load_tags(self):
         """Load the user's tags."""
         if not self.user_id:
@@ -100,6 +104,7 @@ class TagWidget(QWidget):
         except Exception as e:
             logger.error(f"Error loading tags for user {self.user_id}: {e}")
 
+    @handle_errors("refreshing tag list")
     def refresh_tag_list(self):
         """Refresh the tag list display."""
         self.ui.listWidget_tags.clear()
@@ -120,6 +125,7 @@ class TagWidget(QWidget):
             
             self.ui.listWidget_tags.addItem(item)
 
+    @handle_errors("updating button states")
     def update_button_states(self):
         """Update button enabled states based on selection (management mode only)."""
         if self.mode != "management":
@@ -133,6 +139,7 @@ class TagWidget(QWidget):
         has_deleted_tags = not self.user_id and len(self.deleted_tags) > 0
         self.ui.pushButton_undo_delete.setEnabled(has_deleted_tags)
 
+    @handle_errors("handling tag selection change")
     def on_tag_selection_changed(self, item):
         """Handle when a tag checkbox is changed (selection mode only)."""
         if self.mode != "selection":
@@ -297,26 +304,31 @@ class TagWidget(QWidget):
             logger.error(f"Error deleting tag '{tag_to_delete}' for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to delete tag: {e}")
 
+    @handle_errors("getting available tags")
     def get_available_tags(self):
         """Get the current list of available tags."""
         return self.available_tags.copy()
     
+    @handle_errors("getting selected tags")
     def get_selected_tags(self):
         """Get the currently selected tags (selection mode only)."""
         if self.mode == "selection":
             return self.selected_tags.copy()
         return []
     
+    @handle_errors("setting selected tags")
     def set_selected_tags(self, tags):
         """Set the selected tags (selection mode only)."""
         if self.mode == "selection":
             self.selected_tags = tags.copy()
             self.refresh_tag_list()
     
+    @handle_errors("refreshing tags")
     def refresh_tags(self):
         """Refresh the tags in the tag widget."""
         self.load_tags()
     
+    @handle_errors("undoing last tag delete")
     def undo_last_tag_delete(self):
         """Undo the last tag deletion (account creation mode only)."""
         if not self.user_id and self.deleted_tags:

@@ -34,6 +34,7 @@ class ProfileHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that profile command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("handling show profile")
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
         """Handle showing user profile with comprehensive personalization data"""
         # Load user data
@@ -220,6 +221,7 @@ class ProfileHandler(InteractionHandler):
             suggestions=["Update my name", "Add health conditions", "Update interests", "Show profile stats"]
         )
     
+    @handle_errors("handling profile update")
     def _handle_update_profile(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle comprehensive profile updates"""
         if not entities:
@@ -357,6 +359,7 @@ class ProfileHandler(InteractionHandler):
                 suggestions=["Update my name", "Add health conditions", "Update interests", "Add goals"]
             )
     
+    @handle_errors("handling profile statistics")
     def _handle_profile_stats(self, user_id: str) -> InteractionResponse:
         """Handle profile statistics"""
         # Get task stats

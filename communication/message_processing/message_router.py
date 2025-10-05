@@ -80,6 +80,7 @@ class MessageRouter:
         # Default to structured command parsing
         return RoutingResult(MessageType.STRUCTURED_COMMAND, should_continue_parsing=True)
     
+    @handle_errors("routing slash command")
     def _route_slash_command(self, message: str) -> RoutingResult:
         """Route a slash command"""
         lowered = message.lower()
@@ -124,6 +125,7 @@ class MessageRouter:
             should_continue_parsing=True
         )
     
+    @handle_errors("routing bang command")
     def _route_bang_command(self, message: str) -> RoutingResult:
         """Route a bang command"""
         lowered = message.lower()
@@ -158,6 +160,7 @@ class MessageRouter:
             should_continue_parsing=True
         )
     
+    @handle_errors("getting command definitions")
     def get_command_definitions(self) -> List[Dict[str, str]]:
         """Return canonical command definitions"""
         return [
@@ -165,19 +168,23 @@ class MessageRouter:
             for c in self._command_definitions
         ]
     
+    @handle_errors("getting slash command map")
     def get_slash_command_map(self) -> Dict[str, str]:
         """Get slash command mappings"""
         return {c['name']: c['mapped_message'] for c in self._command_definitions}
     
+    @handle_errors("getting bang command map")
     def get_bang_command_map(self) -> Dict[str, str]:
         """Get bang command mappings"""
         return {c['name']: c['mapped_message'] for c in self._command_definitions}
     
+    @handle_errors("checking if command is flow command")
     def is_flow_command(self, command_name: str) -> bool:
         """Check if a command is a flow command"""
         cmd_def = next((c for c in self._command_definitions if c['name'] == command_name), None)
         return cmd_def['is_flow'] if cmd_def else False
     
+    @handle_errors("getting command mapping")
     def get_command_mapping(self, command_name: str) -> Optional[str]:
         """Get the mapped message for a command"""
         cmd_def = next((c for c in self._command_definitions if c['name'] == command_name), None)

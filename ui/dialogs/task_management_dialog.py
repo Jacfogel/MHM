@@ -18,6 +18,7 @@ dialog_logger = logger
 
 class TaskManagementDialog(QDialog):
     user_changed = Signal()
+    @handle_errors("initializing task management dialog")
     def __init__(self, parent=None, user_id=None):
         """Initialize the object."""
         super().__init__(parent)
@@ -57,6 +58,7 @@ class TaskManagementDialog(QDialog):
         self.ui.groupBox_checkBox_enable_task_management.toggled.connect(self.on_enable_task_management_toggled)
         self.on_enable_task_management_toggled(self.ui.groupBox_checkBox_enable_task_management.isChecked())
 
+    @handle_errors("toggling task management enablement")
     def on_enable_task_management_toggled(self, checked):
         # Enable/disable all children except the groupbox itself
         for child in self.ui.groupBox_checkBox_enable_task_management.findChildren(QWidget):
@@ -141,5 +143,6 @@ class TaskManagementDialog(QDialog):
             logger.error(f"Error saving task settings for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save task settings: {str(e)}")
 
+    @handle_errors("getting task statistics")
     def get_statistics(self):
         return self.task_widget.get_statistics() 

@@ -31,6 +31,25 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 
 
+**Error Handling Coverage Expansion** ?? **IN PROGRESS**
+- *What it means*: Continue expanding error handling coverage from current 72.4% to 80%+ by adding @handle_errors decorators to remaining functions
+- *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
+- *Estimated effort*: Medium (ongoing)
+- *Current Status*: 72.4% coverage achieved (1011 functions protected)
+- *Next Steps*:
+  - [ ] **Continue with Worst-Performing Modules**
+    - [ ] Category Management Dialog (4 missing functions)
+    - [ ] Checkin Management Dialog (4 missing functions) 
+    - [ ] Rich Formatter (7 missing functions)
+    - [ ] Channel Monitor (7 missing functions)
+    - [ ] Dynamic List Container (7 missing functions)
+  - [ ] **Replace Basic Try-Except Blocks**
+    - [ ] Replace 168 basic try-except blocks with @handle_errors decorator
+    - [ ] Improve error handling quality from basic to excellent
+  - [ ] **Add Error Handling to Critical Functions**
+    - [ ] Add error handling to 397 critical functions with no error handling
+    - [ ] Focus on high-priority modules first
+
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs

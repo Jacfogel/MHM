@@ -49,6 +49,7 @@ class AccountCreatorDialog(QDialog):
     """Account creation dialog using existing UI files."""
     user_changed = Signal()
     
+    @handle_errors("initializing account creator dialog")
     def __init__(self, parent=None, communication_manager=None):
         """Initialize the account creator dialog."""
         super().__init__(parent)
@@ -82,6 +83,7 @@ class AccountCreatorDialog(QDialog):
         self.center_dialog()
         logger.info("AccountCreatorDialog initialization completed")
     
+    @handle_errors("setting up dialog")
     def setup_dialog(self):
         """Set up the dialog properties."""
         self.resize(900, 700)
@@ -97,6 +99,7 @@ class AccountCreatorDialog(QDialog):
         # Initialize tab visibility based on default feature settings
         self.update_tab_visibility()
     
+    @handle_errors("loading widgets")
     def load_widgets(self):
         """Load all the widget UI files into the placeholder widgets."""
         # Load the widget UI files into the placeholder widgets
@@ -105,6 +108,7 @@ class AccountCreatorDialog(QDialog):
         self.load_task_management_widget()
         self.load_checkin_settings_widget()
     
+    @handle_errors("loading category widget")
     def load_category_widget(self):
         """Load the category selection widget."""
         # Add the category selection widget to the placeholder
@@ -121,6 +125,7 @@ class AccountCreatorDialog(QDialog):
         # Add the category widget
         layout.addWidget(self.category_widget)
     
+    @handle_errors("loading message service widget")
     def load_message_service_widget(self):
         """Load the message service selection widget."""
         # Add the channel selection widget to the placeholder
@@ -143,6 +148,7 @@ class AccountCreatorDialog(QDialog):
         
         # Don't set default selection - let user choose
     
+    @handle_errors("loading task management widget")
     def load_task_management_widget(self):
         """Load the task management widget."""
         # Add the task settings widget to the placeholder
@@ -163,6 +169,7 @@ class AccountCreatorDialog(QDialog):
         self.task_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.ui.widget_placeholder_task_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     
+    @handle_errors("loading checkin settings widget")
     def load_checkin_settings_widget(self):
         """Load the check-in settings widget."""
         # Add the check-in settings widget to the placeholder
@@ -183,6 +190,7 @@ class AccountCreatorDialog(QDialog):
         self.checkin_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.ui.widget_placeholder_checkin_settings.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     
+    @handle_errors("setting up feature group boxes")
     def setup_feature_group_boxes(self):
         """Setup group boxes for task management and check-ins (no longer collapsible in tab structure)."""
         # Task management group (now in Tasks tab) - always visible
@@ -197,6 +205,7 @@ class AccountCreatorDialog(QDialog):
             # Make the group box expand to fill available space
             checkin_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     
+    @handle_errors("setting up profile button")
     def setup_profile_button(self):
         """Setup the profile button."""
         profile_button = self.ui.pushButton_profile
@@ -220,6 +229,7 @@ class AccountCreatorDialog(QDialog):
                 }
             """)
     
+    @handle_errors("centering dialog")
     def center_dialog(self):
         """Center the dialog on the parent window."""
         if self.parent:
@@ -228,16 +238,19 @@ class AccountCreatorDialog(QDialog):
             y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
             self.move(x, y)
     
+    @handle_errors("accepting dialog")
     def accept(self):
         """Override accept to prevent automatic dialog closing."""
         # Don't call super().accept() - this prevents the dialog from closing
         # The dialog will only close when we explicitly call self.accept() after successful account creation
         pass
     
+    @handle_errors("closing dialog")
     def close_dialog(self):
         """Close the dialog properly."""
         super().accept()
     
+    @handle_errors("setting up connections")
     def setup_connections(self):
         """Setup signal connections."""
         logger.info("setup_connections() called")
@@ -308,6 +321,7 @@ class AccountCreatorDialog(QDialog):
         # Override key events for large dialog
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         
+    @handle_errors("handling key press events")
     def keyPressEvent(self, event):
         """Handle key press events for the dialog."""
         if event.key() == Qt.Key.Key_Escape:
@@ -330,31 +344,41 @@ class AccountCreatorDialog(QDialog):
     
     def on_username_changed(self):
         """Handle username change."""
-        username_edit = self.ui.lineEdit_username
-        if username_edit:
-            self.username = username_edit.text().strip().lower()
+        try:
+            username_edit = self.ui.lineEdit_username
+            if username_edit:
+                self.username = username_edit.text().strip().lower()
+        except Exception as e:
+            logger.error(f"Error handling username change: {e}")
     
     def on_preferred_name_changed(self):
         """Handle preferred name change."""
-        preferred_name_edit = self.ui.lineEdit_prefered_name
-        if preferred_name_edit:
-            self.preferred_name = preferred_name_edit.text().strip()
+        try:
+            preferred_name_edit = self.ui.lineEdit_prefered_name
+            if preferred_name_edit:
+                self.preferred_name = preferred_name_edit.text().strip()
+        except Exception as e:
+            logger.error(f"Error handling preferred name change: {e}")
     
 
     
     def on_feature_toggled(self, checked):
         """Handle feature enablement checkbox toggles."""
-        # Get the sender checkbox to determine which feature was toggled
-        sender = self.sender()
-        if not sender:
-            logger.warning("on_feature_toggled called but no sender found")
-            return
-        
-        logger.info(f"Feature toggled: {sender.objectName()} = {checked}")
-        
-        # Update tab visibility based on feature enablement
-        self.update_tab_visibility()
+        try:
+            # Get the sender checkbox to determine which feature was toggled
+            sender = self.sender()
+            if not sender:
+                logger.warning("on_feature_toggled called but no sender found")
+                return
+            
+            logger.info(f"Feature toggled: {sender.objectName()} = {checked}")
+            
+            # Update tab visibility based on feature enablement
+            self.update_tab_visibility()
+        except Exception as e:
+            logger.error(f"Error handling feature toggle: {e}")
     
+    @handle_errors("updating tab visibility")
     def update_tab_visibility(self):
         """Update tab visibility based on feature enablement."""
         tab_widget = self.ui.tabWidget
@@ -389,6 +413,7 @@ class AccountCreatorDialog(QDialog):
             if tab_widget.currentIndex() == 4:
                 tab_widget.setCurrentIndex(0)
     
+    @handle_errors("opening personalization dialog")
     def open_personalization_dialog(self):
         """Open the personalization dialog."""
         # Generate a temporary user ID for the dialog
@@ -412,6 +437,7 @@ class AccountCreatorDialog(QDialog):
         from ui.dialogs.user_profile_dialog import open_personalization_dialog
         open_personalization_dialog(self, temp_user_id, on_personalization_save, self.personalization_data)
     
+    @handle_errors("updating profile button state")
     def update_profile_button_state(self):
         """Update the profile button to show if profile has been configured."""
         profile_button = self.ui.pushButton_profile
@@ -558,6 +584,7 @@ class AccountCreatorDialog(QDialog):
         logger.info("Validation successful.")
         return True, ""
     
+    @handle_errors("collecting basic user info")
     def _validate_and_accept__collect_basic_user_info(self) -> tuple[str, str]:
         """Collect basic user information from UI fields."""
         username_edit = self.ui.lineEdit_username
@@ -571,6 +598,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Collected basic info - username: '{self.username}', preferred_name: '{self.preferred_name}'")
         return self.username, self.preferred_name
     
+    @handle_errors("collecting feature settings")
     def _validate_and_accept__collect_feature_settings(self) -> tuple[bool, bool, bool]:
         """Collect feature enablement states from UI."""
         messages_enabled = self.ui.checkBox_enable_messages.isChecked()
@@ -579,6 +607,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Feature enablement - messages: {messages_enabled}, tasks: {tasks_enabled}, checkins: {checkins_enabled}")
         return messages_enabled, tasks_enabled, checkins_enabled
     
+    @handle_errors("collecting channel data")
     def _validate_and_accept__collect_channel_data(self) -> tuple[str, dict, dict]:
         """Collect channel and contact information from widgets."""
         # Get selected timezone from channel widget
@@ -611,6 +640,7 @@ class AccountCreatorDialog(QDialog):
         
         return timezone, channel_data, contact_info
     
+    @handle_errors("collecting widget data")
     def _validate_and_accept__collect_widget_data(self) -> tuple[list, dict, dict]:
         """Collect data from all widgets."""
         logger.info("About to collect category widget data")
@@ -625,6 +655,7 @@ class AccountCreatorDialog(QDialog):
         
         return categories, task_settings, checkin_settings
     
+    @handle_errors("building account data")
     def _validate_and_accept__build_account_data(self, username: str, preferred_name: str, timezone: str, 
                            channel_data: dict, contact_info: dict, categories: list,
                            task_settings: dict, checkin_settings: dict,
@@ -650,6 +681,7 @@ class AccountCreatorDialog(QDialog):
         logger.info(f"Account data built: {account_data}")
         return account_data
     
+    @handle_errors("showing error dialog")
     def _validate_and_accept__show_error_dialog(self, title: str, message: str):
         """Show an error dialog with the given title and message."""
         error_dialog = QMessageBox(self)
@@ -660,6 +692,7 @@ class AccountCreatorDialog(QDialog):
         error_dialog.setModal(True)
         error_dialog.exec()
     
+    @handle_errors("showing success dialog")
     def _validate_and_accept__show_success_dialog(self, username: str):
         """Show a success dialog for account creation."""
         success_dialog = QMessageBox(self)
@@ -692,6 +725,7 @@ class AccountCreatorDialog(QDialog):
             logger.error(f"Error during account creation: {e}")
             self._validate_and_accept__show_error_dialog("Account Creation Error", f"An error occurred while creating the account: {str(e)}")
     
+    @handle_errors("checking input errors")
     def _validate_and_accept__input_errors(self) -> bool:
         """Validate input and show error dialog if validation fails."""
         username, preferred_name = self._validate_and_accept__collect_basic_user_info()
@@ -707,6 +741,7 @@ class AccountCreatorDialog(QDialog):
         logger.info("Validation passed, proceeding with account creation")
         return True
     
+    @handle_errors("collecting data")
     def _validate_and_accept__collect_data(self) -> dict:
         """Collect all data from UI and build account data structure."""
         messages_enabled, tasks_enabled, checkins_enabled = self._validate_and_accept__collect_feature_settings()
@@ -721,6 +756,7 @@ class AccountCreatorDialog(QDialog):
             messages_enabled, tasks_enabled, checkins_enabled
         )
     
+    @handle_errors("creating account")
     def _validate_and_accept__create_account(self, account_data: dict) -> bool:
         """Create the account and set up all necessary components."""
         try:
@@ -732,6 +768,7 @@ class AccountCreatorDialog(QDialog):
             logger.error(f"Error during account creation: {e}")
             return False
     
+    @handle_errors("handling success")
     def _validate_and_accept__handle_success(self, username: str):
         """Handle successful account creation."""
         self.user_changed.emit()
@@ -760,6 +797,7 @@ class AccountCreatorDialog(QDialog):
             logger.error(f"Error creating account: {e}")
             return False
     
+    @handle_errors("building user preferences")
     def _validate_and_accept__build_user_preferences(self, account_data: Dict[str, Any]) -> Dict[str, Any]:
         """Build user preferences data structure."""
         contact_info = account_data['contact_info']
@@ -796,6 +834,7 @@ class AccountCreatorDialog(QDialog):
         
         return user_preferences
     
+    @handle_errors("determining chat ID")
     def _determine_chat_id(self, channel_type: str, email: str, phone: str, discord_user_id: str) -> str:
         """Determine chat_id based on channel type."""
         if channel_type == 'email':
@@ -805,6 +844,7 @@ class AccountCreatorDialog(QDialog):
             return discord_user_id
         return ''
     
+    @handle_errors("building features dictionary")
     def _build_features_dict(self, features_enabled: Dict[str, bool]) -> Dict[str, str]:
         """Build features dictionary in the correct format."""
         return {
@@ -813,6 +853,7 @@ class AccountCreatorDialog(QDialog):
             'task_management': 'enabled' if features_enabled.get('tasks', False) else 'disabled'
         }
     
+    @handle_errors("adding feature settings")
     def _validate_and_accept__add_feature_settings(self, user_preferences: Dict[str, Any], account_data: Dict[str, Any], features_enabled: Dict[str, bool]):
         """Add feature-specific settings to user preferences."""
         # Add task settings if tasks are enabled
@@ -829,6 +870,7 @@ class AccountCreatorDialog(QDialog):
                 del checkin_settings['enabled']
             user_preferences['checkin_settings'] = checkin_settings
     
+    @handle_errors("setting up task tags")
     def _validate_and_accept__setup_task_tags(self, user_id: str, account_data: Dict[str, Any]):
         """Set up task tags for the new user."""
         features_enabled = account_data.get('features_enabled', {})
@@ -850,6 +892,7 @@ class AccountCreatorDialog(QDialog):
             setup_default_task_tags(user_id)
             logger.info(f"Set up default task tags for new user {user_id}")
     
+    @handle_errors("updating user index")
     def _validate_and_accept__update_user_index(self, user_id: str):
         """Update user index for the new user."""
         try:
@@ -858,6 +901,7 @@ class AccountCreatorDialog(QDialog):
         except Exception as e:
             logger.warning(f"Failed to update user index for new user {user_id}: {e}")
     
+    @handle_errors("scheduling new user")
     def _validate_and_accept__schedule_new_user(self, user_id: str):
         """Schedule the new user in the scheduler."""
         try:
@@ -871,6 +915,7 @@ class AccountCreatorDialog(QDialog):
         except Exception as e:
             logger.warning(f"Failed to schedule new user {user_id} in scheduler: {e}")
     
+    @handle_errors("getting account data")
     def get_account_data(self):
         """Get the account data from the form."""
         # Collect data from widgets
@@ -905,11 +950,13 @@ class AccountCreatorDialog(QDialog):
         }
         return data
     
+    @handle_errors("validating account data")
     def validate_account_data(self):
         """Validate the account data."""
         return self.validate_input()
     
     @staticmethod
+    @handle_errors("validating username")
     def validate_username_static(username):
         """Static method to validate username without UI dependencies."""
         if not username:
@@ -927,6 +974,7 @@ class AccountCreatorDialog(QDialog):
         return True
     
     @staticmethod
+    @handle_errors("validating preferred name")
     def validate_preferred_name_static(name):
         """Static method to validate preferred name without UI dependencies."""
         if not name:
@@ -944,12 +992,14 @@ class AccountCreatorDialog(QDialog):
         return True
     
     @staticmethod
+    @handle_errors("validating all fields")
     def validate_all_fields_static(username, preferred_name):
         """Static method to validate all fields without UI dependencies."""
         return (AccountCreatorDialog.validate_username_static(username) and 
                 AccountCreatorDialog.validate_preferred_name_static(preferred_name))
 
 
+@handle_errors("creating account dialog")
 def create_account_dialog(parent=None, communication_manager=None):
     """Create and show the account creation dialog."""
     dialog = AccountCreatorDialog(parent, communication_manager)

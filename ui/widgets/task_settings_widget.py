@@ -31,6 +31,7 @@ logger = get_component_logger('ui')
 widget_logger = logger
 
 class TaskSettingsWidget(QWidget):
+    @handle_errors("initializing task settings widget")
     def __init__(self, parent=None, user_id=None):
         """Initialize the object."""
         super().__init__(parent)
@@ -50,12 +51,14 @@ class TaskSettingsWidget(QWidget):
         self.setup_connections()
         self.load_existing_data()
 
+    @handle_errors("setting up connections")
     def setup_connections(self):
         """Setup signal connections."""
         # Connect time period buttons
         self.ui.pushButton_task_reminder_add_new_period.clicked.connect(lambda: self.add_new_period())
         self.ui.pushButton_undo_last__task_reminder_time_period_delete.clicked.connect(self.undo_last_period_delete)
     
+    @handle_errors("loading existing data")
     def load_existing_data(self):
         if not self.user_id:
             logger.info("TaskSettingsWidget: No user_id provided - creating new user mode")
@@ -78,6 +81,7 @@ class TaskSettingsWidget(QWidget):
         except Exception as e:
             logger.error(f"Error loading task data for user {self.user_id}: {e}")
     
+    @handle_errors("handling show event")
     def showEvent(self, event):
         """
         Handle widget show event.
@@ -91,6 +95,7 @@ class TaskSettingsWidget(QWidget):
         """
         super().showEvent(event)
     
+    @handle_errors("finding lowest available period number")
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
         used_numbers = set()
@@ -113,6 +118,7 @@ class TaskSettingsWidget(QWidget):
         
         return number
     
+    @handle_errors("adding new period")
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
         logger.info(f"TaskSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}")
@@ -144,6 +150,7 @@ class TaskSettingsWidget(QWidget):
         self.period_widgets.append(period_widget)
         return period_widget
     
+    @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
         # Store the deleted period data for undo
@@ -167,6 +174,7 @@ class TaskSettingsWidget(QWidget):
         if row_widget in self.period_widgets:
             self.period_widgets.remove(row_widget)
     
+    @handle_errors("undoing last period delete")
     def undo_last_period_delete(self):
         """Undo the last time period deletion."""
         if not self.deleted_periods:
@@ -187,6 +195,7 @@ class TaskSettingsWidget(QWidget):
         # Add it back
         self.add_new_period(period_name=deleted_data['period_name'], period_data=period_data)
     
+    @handle_errors("getting task settings")
     def get_task_settings(self):
         """Get the current task settings."""
         # Use the new reusable function to collect period data
@@ -204,6 +213,7 @@ class TaskSettingsWidget(QWidget):
             'recurring_settings': recurring_settings
         }
     
+    @handle_errors("setting task settings")
     def set_task_settings(self, settings):
         """Set the task settings."""
         if not settings:
@@ -228,6 +238,7 @@ class TaskSettingsWidget(QWidget):
 
     # Removed set_statistics method; stats are now set in the dialog, not the widget.
 
+    @handle_errors("getting statistics")
     def get_statistics(self):
         """Get real task statistics for the user."""
         if not self.user_id:
@@ -244,18 +255,22 @@ class TaskSettingsWidget(QWidget):
             # Fallback to placeholder if there's an error
             return {'active': 0, 'completed': 0, 'total': 0}
 
+    @handle_errors("getting available tags")
     def get_available_tags(self):
         """Get the current list of available tags from the tag widget."""
         return self.tag_widget.get_available_tags()
 
+    @handle_errors("refreshing tags")
     def refresh_tags(self):
         """Refresh the tags in the tag widget."""
         self.tag_widget.refresh_tags()
     
+    @handle_errors("undoing last tag delete")
     def undo_last_tag_delete(self):
         """Undo the last tag deletion (account creation mode only)."""
         return self.tag_widget.undo_last_tag_delete()
 
+    @handle_errors("getting recurring task settings")
     def get_recurring_task_settings(self):
         """Get the current recurring task settings."""
         pattern_index = self.ui.comboBox_recurring_pattern.currentIndex()
@@ -273,6 +288,7 @@ class TaskSettingsWidget(QWidget):
             'default_repeat_after_completion': self.ui.checkBox_repeat_after_completion.isChecked()
         }
     
+    @handle_errors("setting recurring task settings")
     def set_recurring_task_settings(self, settings):
         """Set the recurring task settings."""
         if not settings:
@@ -298,6 +314,7 @@ class TaskSettingsWidget(QWidget):
         repeat_after = settings.get('default_repeat_after_completion', True)
         self.ui.checkBox_repeat_after_completion.setChecked(repeat_after)
     
+    @handle_errors("loading recurring task settings")
     def load_recurring_task_settings(self):
         """Load recurring task settings from user preferences."""
         if not self.user_id:
@@ -313,6 +330,7 @@ class TaskSettingsWidget(QWidget):
         except Exception as e:
             logger.error(f"Error loading recurring task settings for user {self.user_id}: {e}")
     
+    @handle_errors("saving recurring task settings")
     def save_recurring_task_settings(self):
         """Save recurring task settings to user preferences."""
         if not self.user_id:

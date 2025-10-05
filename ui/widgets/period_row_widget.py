@@ -36,6 +36,7 @@ class PeriodRowWidget(QWidget):
     # Signals
     delete_requested = Signal(object)  # Emits the widget instance
     
+    @handle_errors("initializing period row widget")
     def __init__(self, parent=None, period_name: str = "", period_data: Optional[Dict[str, Any]] = None):
         """Initialize the object."""
         super().__init__(parent)
@@ -95,6 +96,7 @@ class PeriodRowWidget(QWidget):
             # Now set read-only
             self.set_read_only(True)
     
+    @handle_errors("setting up period row widget functionality")
     def setup_functionality(self):
         """Setup the widget functionality and connect signals."""
         
@@ -134,6 +136,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.toggled.connect(self.on_individual_day_toggled)
     
+    @handle_errors("loading period data into widget")
     def load_period_data(self):
         """Load period data into the widget."""
         # Set period name - preserve user's original case for custom entries
@@ -172,6 +175,7 @@ class PeriodRowWidget(QWidget):
         days = self.period_data.get('days', ['ALL'])
         self.load_days(days)
     
+    @handle_errors("loading day selections")
     def load_days(self, days: List[str]):
         """Load day selections."""
         # Clear all checkboxes first
@@ -202,6 +206,7 @@ class PeriodRowWidget(QWidget):
                 if day in day_mapping:
                     day_mapping[day].setChecked(True)
     
+    @handle_errors("handling select all days toggle")
     def on_select_all_days_toggled(self, checked: bool):
         """Handle 'Select All Days' checkbox toggle."""
         day_checkboxes = [
@@ -218,6 +223,7 @@ class PeriodRowWidget(QWidget):
             cb.setChecked(checked)
             cb.blockSignals(False)
     
+    @handle_errors("handling individual day toggle")
     def on_individual_day_toggled(self, checked: bool):
         """Handle individual day checkbox toggle."""
         day_checkboxes = [
@@ -239,6 +245,7 @@ class PeriodRowWidget(QWidget):
             self.ui.checkBox_select_all_days.setChecked(False)
             self.ui.checkBox_select_all_days.blockSignals(False)
     
+    @handle_errors("getting period data from widget")
     def get_period_data(self) -> Dict[str, Any]:
         """Get the current period data from the widget."""
         
@@ -274,6 +281,7 @@ class PeriodRowWidget(QWidget):
             'days': days
         }
     
+    @handle_errors("getting selected days from widget")
     def get_selected_days(self) -> List[str]:
         """Get the currently selected days."""
         if self.ui.checkBox_select_all_days.isChecked():
@@ -297,19 +305,23 @@ class PeriodRowWidget(QWidget):
         # Return empty list if no days selected - let validation handle this
         return days
     
+    @handle_errors("requesting delete")
     def request_delete(self):
         """Request deletion of this period row."""
         self.delete_requested.emit(self)
     
+    @handle_errors("setting period name")
     def set_period_name(self, name: str):
         """Set the period name."""
         self.ui.lineEdit_time_period_name.setText(name)
         self.period_name = name
     
+    @handle_errors("getting period name")
     def get_period_name(self) -> str:
         """Get the current period name."""
         return self.ui.lineEdit_time_period_name.text().strip()
     
+    @handle_errors("validating period data")
     def is_valid(self) -> bool:
         """Check if the period data is valid."""
         try:
@@ -332,6 +344,7 @@ class PeriodRowWidget(QWidget):
             logger.error(f"Error validating period data: {e}")
             return False
     
+    @handle_errors("setting read only mode")
     def set_read_only(self, read_only: bool = True):
         """Set the widget to read-only mode."""
         self._set_read_only__time_inputs(read_only)
@@ -340,6 +353,7 @@ class PeriodRowWidget(QWidget):
         self._set_read_only__visual_styling(read_only)
         self._set_read_only__force_style_updates()
     
+    @handle_errors("setting read only time inputs")
     def _set_read_only__time_inputs(self, read_only: bool):
         """Set time input widgets to read-only mode."""
         self.ui.lineEdit_time_period_name.setReadOnly(read_only)
@@ -352,6 +366,7 @@ class PeriodRowWidget(QWidget):
         self.ui.radioButton_end_time_am.setEnabled(not read_only)
         self.ui.radioButton_end_time_pm.setEnabled(not read_only)
     
+    @handle_errors("setting read only checkbox states")
     def _set_read_only__checkbox_states(self, read_only: bool):
         """Set checkbox states based on read-only mode and period type."""
         if read_only and self.get_period_name().upper() == "ALL":
@@ -359,6 +374,7 @@ class PeriodRowWidget(QWidget):
         else:
             self._set_read_only__normal_checkbox_states(read_only)
     
+    @handle_errors("setting all period read only")
     def _set_read_only__all_period_read_only(self):
         """Set ALL period to read-only with all days selected."""
         # Ensure ALL period is active and has all days selected
@@ -373,6 +389,7 @@ class PeriodRowWidget(QWidget):
             checkbox.setChecked(True)
             checkbox.setEnabled(False)
     
+    @handle_errors("setting normal checkbox states")
     def _set_read_only__normal_checkbox_states(self, read_only: bool):
         """Set normal checkbox states for non-ALL periods."""
         self.ui.checkBox_active.setEnabled(not read_only)
@@ -382,6 +399,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setEnabled(not read_only)
     
+    @handle_errors("getting day checkboxes")
     def _get_day_checkboxes(self):
         """Get list of day checkboxes."""
         return [
@@ -390,10 +408,12 @@ class PeriodRowWidget(QWidget):
             self.ui.checkBox_saturday
         ]
     
+    @handle_errors("setting delete button visibility")
     def _set_read_only__delete_button_visibility(self, read_only: bool):
         """Set delete button visibility based on read-only state."""
         self.ui.pushButton_delete.setVisible(not read_only)
     
+    @handle_errors("setting visual styling")
     def _set_read_only__visual_styling(self, read_only: bool):
         """Apply visual styling for read-only state."""
         if read_only:
@@ -401,6 +421,7 @@ class PeriodRowWidget(QWidget):
         else:
             self._set_read_only__clear_read_only_styling()
     
+    @handle_errors("applying read only styling")
     def _set_read_only__apply_read_only_styling(self):
         """Apply read-only visual styling."""
         self.setStyleSheet("QWidget { background-color: #f0f0f0; }")
@@ -414,6 +435,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", True)
     
+    @handle_errors("clearing read only styling")
     def _set_read_only__clear_read_only_styling(self):
         """Clear read-only visual styling."""
         self.setStyleSheet("")
@@ -427,6 +449,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.setProperty("readonly", False)
     
+    @handle_errors("forcing style updates")
     def _set_read_only__force_style_updates(self):
         """Force style updates for all checkboxes."""
         self.ui.checkBox_active.style().unpolish(self.ui.checkBox_active)

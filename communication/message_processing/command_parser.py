@@ -344,6 +344,7 @@ class EnhancedCommandParser:
             0.0, "fallback"
         )
     
+    @handle_errors("parsing with rule-based patterns")
     def _rule_based_parse(self, message: str) -> ParsingResult:
         """Parse using rule-based patterns"""
         message_lower = message.lower().strip()
@@ -367,6 +368,7 @@ class EnhancedCommandParser:
             0.0, "rule_based"
         )
     
+    @handle_errors("parsing with AI enhancement")
     def _ai_enhanced_parse(self, message: str, user_id: str = None) -> ParsingResult:
         """Parse using AI chatbot capabilities"""
         try:
@@ -439,6 +441,7 @@ class EnhancedCommandParser:
             0.0, "ai_enhanced"
         )
     
+    @handle_errors("extracting entities from rule-based patterns")
     def _extract_entities_rule_based(self, intent: str, match: re.Match, message: str) -> Dict[str, Any]:
         """Extract entities using rule-based patterns"""
         entities = {}
@@ -680,6 +683,7 @@ class EnhancedCommandParser:
         
         return entities
     
+    @handle_errors("calculating confidence score")
     def _calculate_confidence(self, intent: str, match: re.Match, message: str) -> float:
         """Calculate confidence score for a parsed command"""
         base_confidence = 0.8
@@ -703,6 +707,7 @@ class EnhancedCommandParser:
         
         return min(1.0, base_confidence)
     
+    @handle_errors("checking if intent is valid")
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
         for handler in self.interaction_handlers.values():
@@ -710,6 +715,7 @@ class EnhancedCommandParser:
                 return True
         return False
     
+    @handle_errors("getting command suggestions")
     def get_suggestions(self, partial_message: str) -> List[str]:
         """Get command suggestions based on partial input"""
         suggestions = []

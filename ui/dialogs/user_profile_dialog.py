@@ -45,6 +45,7 @@ class UserProfileDialog(QDialog):
     """PySide6-based personalization dialog for user account creation and management."""
     user_changed = Signal()
 
+    @handle_errors("initializing user profile dialog")
     def __init__(self, parent, user_id: str, on_save: Optional[Callable] = None, existing_data: Optional[Dict[str, Any]] = None):
         """Initialize the object."""
         super().__init__(parent)
@@ -69,6 +70,7 @@ class UserProfileDialog(QDialog):
         # Center the dialog
         self.center_dialog()
     
+    @handle_errors("centering dialog")
     def center_dialog(self):
         """Center the dialog on the parent window."""
         if self.parent:
@@ -77,6 +79,7 @@ class UserProfileDialog(QDialog):
             y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
             self.move(x, y)
     
+    @handle_errors("setting up UI")
     def setup_ui(self):
         """Setup the user interface."""
         # Use generated UI class
@@ -96,6 +99,7 @@ class UserProfileDialog(QDialog):
         # Override key events for large dialog
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowStaysOnTopHint)
         
+    @handle_errors("handling key press events")
     def keyPressEvent(self, event):
         """Handle key press events for the dialog."""
         if event.key() == Qt.Key.Key_Escape:
@@ -116,6 +120,7 @@ class UserProfileDialog(QDialog):
         else:
             super().keyPressEvent(event)
     
+    @handle_errors("creating custom field list")
     def create_custom_field_list(self, parent_layout, predefined_values, existing_values, label_text):
         """Creates a multi-column list with preset items (checkbox + label) and custom fields (checkbox + entry + delete)."""
         def title_case(s):
@@ -183,6 +188,7 @@ class UserProfileDialog(QDialog):
         parent_layout.addWidget(group_box)
         return group_box
     
+    @handle_errors("adding custom field")
     def add_custom_field(self, parent_layout, field_type, value="", checked=False):
         """Add a custom field row with checkbox, entry, and delete button."""
         field_frame = QFrame()
@@ -208,11 +214,13 @@ class UserProfileDialog(QDialog):
         
         parent_layout.addWidget(field_frame)
     
+    @handle_errors("removing custom field")
     def remove_custom_field(self, field_frame):
         """Remove a custom field from the layout."""
         field_frame.setParent(None)
         field_frame.deleteLater()
     
+    @handle_errors("creating health section")
     def create_health_section(self):
         """
         Create the health section of the personalization dialog.
@@ -234,6 +242,7 @@ class UserProfileDialog(QDialog):
         
         return health_group
     
+    @handle_errors("creating loved ones section")
     def create_loved_ones_section(self):
         """
         Create the loved ones section of the personalization dialog.
@@ -259,6 +268,7 @@ class UserProfileDialog(QDialog):
         
         return loved_ones_group
     
+    @handle_errors("adding loved one widget")
     def add_loved_one_widget(self, parent_layout, loved_one_data=None):
         """
         Add a loved one widget to the layout.
@@ -322,6 +332,7 @@ class UserProfileDialog(QDialog):
         
         parent_layout.addWidget(frame)
     
+    @handle_errors("removing loved one widget")
     def remove_loved_one_widget(self, frame):
         """
         Remove a loved one widget from the layout.
@@ -332,6 +343,7 @@ class UserProfileDialog(QDialog):
         frame.setParent(None)
         frame.deleteLater()
     
+    @handle_errors("creating interests section")
     def create_interests_section(self):
         """
         Create the interests section of the personalization dialog.
@@ -353,6 +365,7 @@ class UserProfileDialog(QDialog):
         
         return interests_group
     
+    @handle_errors("creating notes section")
     def create_notes_section(self):
         """
         Create the notes section of the personalization dialog.
@@ -373,6 +386,7 @@ class UserProfileDialog(QDialog):
         
         return notes_group
     
+    @handle_errors("creating goals section")
     def create_goals_section(self):
         """
         Create the goals section of the personalization dialog.
@@ -394,6 +408,7 @@ class UserProfileDialog(QDialog):
         
         return goals_group
     
+    @handle_errors("collecting custom field data")
     def collect_custom_field_data(self, group_box):
         """
         Collect data from custom field checkboxes and entries.
@@ -422,6 +437,7 @@ class UserProfileDialog(QDialog):
         
         return selected_values
     
+    @handle_errors("collecting loved ones data")
     def collect_loved_ones_data(self):
         """
         Collect data from loved ones widgets.
@@ -484,6 +500,7 @@ class UserProfileDialog(QDialog):
             logger.error(f"Error saving personalization data: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save personalization data: {str(e)}")
     
+    @handle_errors("canceling dialog")
     def cancel(self):
         """
         Cancel the personalization dialog.
@@ -491,6 +508,7 @@ class UserProfileDialog(QDialog):
         self.reject()
 
 
+@handle_errors("opening personalization dialog")
 def open_personalization_dialog(parent, user_id: str, on_save: Optional[Callable] = None, existing_data: Optional[Dict[str, Any]] = None):
     """
     Open the personalization dialog.

@@ -9,6 +9,14 @@
 ## Overview
 Use this file to get fast orientation before assisting the user. Entries are ordered newest first and trimmed to keep context compact.
 
+### 2025-10-04 - Error Handling Coverage Expansion **IN PROGRESS**
+- **Massive coverage improvement**: Expanded error handling from 60.3% to 72.4% (1011 functions protected)
+- **88 new functions protected**: Added @handle_errors decorators to critical UI, communication, and core modules
+- **Signal handler compatibility fix**: Resolved Qt signal connection issues by using manual try-except for signal handlers
+- **Test suite validation**: All 1753 tests passing, no regressions introduced
+- **Modules enhanced**: user_profile_dialog.py, account_creator_dialog.py, task_management_dialog.py, task_edit_dialog.py, period_row_widget.py, tag_widget.py, task_settings_widget.py, checkin_settings_widget.py, channel_selection_widget.py, message_router.py, command_parser.py, checkin_handler.py, task_handler.py, profile_handler.py, logger.py, command_registry.py
+- **Next phase**: Continue with worst-performing modules to reach 80%+ coverage
+
 ### 2025-10-04 - Headless Service Process Management **COMPLETED**
 - **Headless service system**: Created comprehensive `run_headless_service.py` CLI with start/stop/info/test/reschedule operations for AI collaborators
 - **Process watcher UI**: Built process watcher dialog in admin panel debug menu with real-time Python process monitoring and color-coded process types

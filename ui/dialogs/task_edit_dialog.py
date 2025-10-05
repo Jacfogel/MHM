@@ -15,6 +15,7 @@ dialog_logger = logger
 class TaskEditDialog(QDialog):
     """Dialog for creating or editing tasks."""
     
+    @handle_errors("initializing task edit dialog")
     def __init__(self, parent=None, user_id=None, task_data=None):
         """Initialize the task edit dialog."""
         super().__init__(parent)
@@ -47,6 +48,7 @@ class TaskEditDialog(QDialog):
         self.setup_connections()
         self.load_task_data()
     
+    @handle_errors("setting up UI")
     def setup_ui(self):
         """Setup the UI components."""
         # Set dialog title
@@ -79,6 +81,7 @@ class TaskEditDialog(QDialog):
         # Setup recurring task components
         self.setup_recurring_task_components()
     
+    @handle_errors("setting up due time components")
     def setup_due_time_components(self):
         """Setup the due time input components."""
         # Populate hour combo box with blank option first, then 1-12
@@ -103,6 +106,7 @@ class TaskEditDialog(QDialog):
         self.ui.comboBox_due_time_hour.currentTextChanged.connect(self.on_hour_changed)
         self.ui.comboBox_due_time_minute.currentTextChanged.connect(self.on_minute_changed)
     
+    @handle_errors("setting up recurring task components")
     def setup_recurring_task_components(self):
         """Setup the recurring task input components."""
         # The combo box is already populated in the UI file
@@ -118,6 +122,7 @@ class TaskEditDialog(QDialog):
         # Connect pattern change to update interval label
         self.ui.comboBox_recurring_pattern.currentTextChanged.connect(self.on_recurring_pattern_changed)
     
+    @handle_errors("handling recurring pattern change")
     def on_recurring_pattern_changed(self, pattern_text):
         """Handle recurring pattern selection change."""
         # Update interval label based on pattern
@@ -132,6 +137,7 @@ class TaskEditDialog(QDialog):
         else:
             self.ui.label_recurring_interval.setText("Interval:")
     
+    @handle_errors("handling hour change")
     def on_hour_changed(self, hour_text):
         """Handle hour selection change."""
         if hour_text and not self.ui.comboBox_due_time_minute.currentText():
@@ -141,6 +147,7 @@ class TaskEditDialog(QDialog):
             # If hour is blank, set minute to blank too
             self.ui.comboBox_due_time_minute.setCurrentText("")
     
+    @handle_errors("handling minute change")
     def on_minute_changed(self, minute_text):
         """Handle minute selection change."""
         if minute_text and not self.ui.comboBox_due_time_hour.currentText():
@@ -148,6 +155,7 @@ class TaskEditDialog(QDialog):
             self.ui.comboBox_due_time_hour.setCurrentText("12")
         # Don't change hour when minute is set to blank
     
+    @handle_errors("handling no due date toggle")
     def on_no_due_date_toggled(self, checked):
         """Handle No Due Date checkbox toggle."""
         if checked:
@@ -157,6 +165,7 @@ class TaskEditDialog(QDialog):
             # Enable the date edit when "No Due Date" is unchecked
             self.ui.dateEdit_task_due_date.setEnabled(True)
     
+    @handle_errors("setting up connections")
     def setup_connections(self):
         """Setup signal connections."""
         # Connect checkbox to enable/disable reminder periods
@@ -173,6 +182,7 @@ class TaskEditDialog(QDialog):
     
 
     
+    @handle_errors("loading task data")
     def load_task_data(self):
         """Load existing task data into the form."""
         if not self.task_data:
@@ -244,6 +254,7 @@ class TaskEditDialog(QDialog):
         # Load recurring task settings
         self.load_recurring_task_data()
     
+    @handle_errors("loading recurring task data")
     def load_recurring_task_data(self):
         """Load recurring task data into the form."""
         if not self.task_data:
@@ -271,6 +282,7 @@ class TaskEditDialog(QDialog):
         repeat_after_completion = self.task_data.get('repeat_after_completion', True)
         self.ui.checkBox_repeat_after_completion.setChecked(repeat_after_completion)
     
+    @handle_errors("setting due time from 24h format")
     def set_due_time_from_24h(self, time):
         """Set due time components from 24-hour time."""
         hour = time.hour()
@@ -296,6 +308,7 @@ class TaskEditDialog(QDialog):
         self.ui.radioButton_due_time_am.setChecked(not is_pm)
         self.ui.radioButton_due_time_pm.setChecked(is_pm)
     
+    @handle_errors("getting due time as 24h format")
     def get_due_time_as_24h(self):
         """Get due time as 24-hour format string."""
         hour_text = self.ui.comboBox_due_time_hour.currentText()
@@ -320,6 +333,7 @@ class TaskEditDialog(QDialog):
         except ValueError:
             return None
     
+    @handle_errors("adding reminder period")
     def add_reminder_period(self):
         """Add a new reminder period."""
         self.reminder_periods.append({
@@ -329,6 +343,7 @@ class TaskEditDialog(QDialog):
         })
         self.render_reminder_periods()
     
+    @handle_errors("rendering reminder periods")
     def render_reminder_periods(self):
         """Render the reminder periods in the UI."""
         # Clear existing widgets
@@ -342,6 +357,7 @@ class TaskEditDialog(QDialog):
         for i, period in enumerate(self.reminder_periods):
             self.render_reminder_period_row(i, period)
     
+    @handle_errors("rendering reminder period row")
     def render_reminder_period_row(self, index, period):
         """Render a single reminder period row."""
         row_widget = QWidget()
@@ -432,12 +448,14 @@ class TaskEditDialog(QDialog):
         
         self.ui.verticalLayout_scrollAreaWidgetContents_reminder_periods.addWidget(row_widget)
     
+    @handle_errors("deleting reminder period")
     def delete_reminder_period(self, index):
         """Delete a reminder period."""
         if 0 <= index < len(self.reminder_periods):
             self.reminder_periods.pop(index)
             self.render_reminder_periods()
     
+    @handle_errors("validating form")
     def validate_form(self):
         """Validate the form data."""
         if not self.ui.lineEdit_task_title.text().strip():
@@ -445,6 +463,7 @@ class TaskEditDialog(QDialog):
             return False
         return True
     
+    @handle_errors("collecting reminder periods")
     def collect_reminder_periods(self):
         """Collect reminder period data from the UI."""
         periods = []
@@ -494,6 +513,7 @@ class TaskEditDialog(QDialog):
         
         return periods
     
+    @handle_errors("collecting quick reminders")
     def collect_quick_reminders(self):
         """Collect quick reminder options."""
         quick_reminders = []
@@ -511,10 +531,12 @@ class TaskEditDialog(QDialog):
             quick_reminders.append('3-5day')
         return quick_reminders
     
+    @handle_errors("collecting selected tags")
     def collect_selected_tags(self):
         """Collect selected tags from the tag widget."""
         return self.tag_widget.get_selected_tags()
     
+    @handle_errors("collecting recurring task data")
     def collect_recurring_task_data(self):
         """Collect recurring task settings from the form."""
         pattern_index = self.ui.comboBox_recurring_pattern.currentIndex()

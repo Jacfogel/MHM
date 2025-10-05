@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 
 # Route rich formatting logs to communication component
 rich_formatter_logger = get_component_logger('rich_formatter')
@@ -39,6 +40,7 @@ class DiscordRichFormatter(RichFormatter):
             logger.warning("Discord library not available - DiscordRichFormatter will not work")
             self.discord = None
     
+    @handle_errors("creating Discord embed")
     def create_embed(self, message: str, rich_data: Dict[str, Any]):
         """Create a Discord embed from rich data"""
         if not self.discord:
@@ -84,6 +86,7 @@ class DiscordRichFormatter(RichFormatter):
         
         return embed
     
+    @handle_errors("creating Discord interactive view")
     def create_interactive_view(self, suggestions: List[str]):
         """Create a Discord view with buttons from suggestions"""
         if not self.discord:
@@ -127,6 +130,7 @@ class DiscordRichFormatter(RichFormatter):
 class EmailRichFormatter(RichFormatter):
     """Email-specific rich formatting utilities"""
     
+    @handle_errors("creating email embed")
     def create_embed(self, message: str, rich_data: Dict[str, Any]) -> str:
         """Create rich HTML content for email"""
         html = ""
@@ -148,7 +152,7 @@ class EmailRichFormatter(RichFormatter):
             html += "</table>\n"
         
         if 'footer' in rich_data:
-            html += f"<hr style='margin: 20px 0;'><p style='font-size: 0.9em; color: #7f8c8d;'>{rich_data['footer']}</p>\n"
+            html += f"<hr style='margin:20px 0;'><p style='font-size: 0.9em; color: #7f8c8d;'>{rich_data['footer']}</p>\n"
         
         return html
     

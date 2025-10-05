@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout
 from PySide6.QtCore import Signal
 from ui.widgets.dynamic_list_field import DynamicListField
 from core.user_management import get_predefined_options
+from core.error_handling import handle_errors
 
 class DynamicListContainer(QWidget):
     """Manages a vertical list of DynamicListField rows."""
@@ -15,6 +16,7 @@ class DynamicListContainer(QWidget):
     # Flag to prevent duplicate handling recursion
     _handling_duplicate = False
 
+    @handle_errors("initializing dynamic list container")
     def __init__(self, parent=None, field_key: str = ""):
         """Initialize the object."""
         super().__init__(parent)
@@ -165,6 +167,7 @@ class DynamicListContainer(QWidget):
             DynamicListContainer._programmatic_change = False
 
     # ------------------------------------------------------------------
+    @handle_errors("getting values from dynamic list container")
     def get_values(self) -> list[str]:
         predefined_options = get_predefined_options(self.field_key)
         preset_vals: list[str] = []
@@ -191,6 +194,7 @@ class DynamicListContainer(QWidget):
         # Return presets in predefined order, followed by custom items
         return preset_vals + custom_vals
 
+    @handle_errors("setting values in dynamic list container")
     def set_values(self, selected: list[str]):
         # Clear custom rows first (leave presets)
         for r in list(self.rows):

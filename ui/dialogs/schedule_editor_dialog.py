@@ -89,6 +89,7 @@ class ScheduleEditorDialog(QDialog):
         # Center the dialog
         self.center_dialog()
     
+    @handle_errors("centering dialog")
     def center_dialog(self):
         """Center the dialog on the parent window."""
         if self.parent():
@@ -97,6 +98,7 @@ class ScheduleEditorDialog(QDialog):
             y = parent_geometry.y() + (parent_geometry.height() - self.height()) // 2
             self.move(x, y)
     
+    @handle_errors("setting up functionality")
     def setup_functionality(self):
         """Setup the functionality and connect signals."""
         # Connect buttons
@@ -113,6 +115,7 @@ class ScheduleEditorDialog(QDialog):
         # Update group box title
         self.ui.groupBox_time_periods.setTitle("Time Periods")
     
+    @handle_errors("loading existing schedule data")
     def load_existing_data(self):
         """Load existing schedule data using the new reusable function."""
         try:
@@ -134,6 +137,7 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error loading schedule data for user {self.user_id}, category {self.category}: {e}")
     
+    @handle_errors("adding new period")
     def add_new_period(self, period_name=None, period_data=None):
         """Add a new period row using the PeriodRowWidget."""
         if period_name is None:
@@ -167,6 +171,7 @@ class ScheduleEditorDialog(QDialog):
         
         return period_widget
 
+    @handle_errors("resorting period widgets")
     def resort_period_widgets(self):
         """Re-sort the period widgets to maintain proper order (ALL at bottom)."""
         # Remove all widgets from layout

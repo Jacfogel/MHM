@@ -33,6 +33,7 @@ widget_logger = logger
 class CheckinSettingsWidget(QWidget):
     """Widget for check-in settings configuration."""
     
+    @handle_errors("initializing checkin settings widget")
     def __init__(self, parent=None, user_id=None):
         """Initialize the object."""
         super().__init__(parent)
@@ -49,6 +50,7 @@ class CheckinSettingsWidget(QWidget):
         self.load_existing_data()
         self.ui.scrollAreaWidgetContents_checkin_time_periods.setVisible(True)
     
+    @handle_errors("handling show event")
     def showEvent(self, event):
         """
         Handle widget show event.
@@ -62,6 +64,7 @@ class CheckinSettingsWidget(QWidget):
         """
         super().showEvent(event)
     
+    @handle_errors("setting up connections")
     def setup_connections(self):
         """Setup signal connections."""
         # Connect time period buttons
@@ -74,6 +77,7 @@ class CheckinSettingsWidget(QWidget):
         # Connect question checkboxes
         self.connect_question_checkboxes()
     
+    @handle_errors("connecting question checkboxes")
     def connect_question_checkboxes(self):
         """Connect all question checkboxes to track changes."""
         question_checkboxes = [
@@ -95,11 +99,13 @@ class CheckinSettingsWidget(QWidget):
         for checkbox in question_checkboxes:
             checkbox.toggled.connect(self.on_question_toggled)
     
+    @handle_errors("handling question toggle")
     def on_question_toggled(self, checked):
         """Handle question checkbox toggle."""
         # This can be used for real-time validation or UI updates
         pass
     
+    @handle_errors("loading existing check-in data")
     def load_existing_data(self):
         """Load existing check-in data."""
         if not self.user_id:
@@ -127,6 +133,7 @@ class CheckinSettingsWidget(QWidget):
         # Set question checkboxes based on saved preferences
         self.set_question_checkboxes(questions)
     
+    @handle_errors("setting question checkboxes")
     def set_question_checkboxes(self, questions):
         """Set question checkboxes based on saved preferences."""
         # Import the dynamic checkin manager
@@ -160,6 +167,7 @@ class CheckinSettingsWidget(QWidget):
                 enabled = question_data.get('enabled', default_enabled)
                 checkbox.setChecked(enabled)
     
+    @handle_errors("getting default question state")
     def get_default_question_state(self, question_key):
         """Get default enabled state for a question."""
         # Import the dynamic checkin manager
@@ -170,6 +178,7 @@ class CheckinSettingsWidget(QWidget):
         question_data = available_questions.get(question_key, {})
         return question_data.get('enabled', False)
     
+    @handle_errors("finding lowest available period number")
     def find_lowest_available_period_number(self):
         """Find the lowest available integer (2+) that's not currently used in period names."""
         used_numbers = set()
@@ -192,6 +201,7 @@ class CheckinSettingsWidget(QWidget):
         
         return number
     
+    @handle_errors("adding new check-in period")
     def add_new_period(self, checked=None, period_name=None, period_data=None):
         """Add a new time period using the PeriodRowWidget."""
         logger.info(f"CheckinSettingsWidget: add_new_period called with period_name={period_name}, period_data={period_data}")
@@ -223,6 +233,7 @@ class CheckinSettingsWidget(QWidget):
         self.period_widgets.append(period_widget)
         return period_widget
     
+    @handle_errors("removing period row")
     def remove_period_row(self, row_widget):
         """Remove a period row and store it for undo."""
         # Prevent deletion of the last period
@@ -255,6 +266,7 @@ class CheckinSettingsWidget(QWidget):
         if row_widget in self.period_widgets:
             self.period_widgets.remove(row_widget)
     
+    @handle_errors("undoing last time period delete")
     def undo_last_time_period_delete(self):
         """Undo the last time period deletion."""
         if not self.deleted_periods:
@@ -275,6 +287,7 @@ class CheckinSettingsWidget(QWidget):
         # Add it back
         self.add_new_period(period_name=deleted_data['period_name'], period_data=period_data)
     
+    @handle_errors("adding new question")
     def add_new_question(self):
         """Add a new check-in question."""
         from PySide6.QtWidgets import QInputDialog, QMessageBox
@@ -302,6 +315,7 @@ class CheckinSettingsWidget(QWidget):
                 "Please enter a question."
             )
     
+    @handle_errors("undoing last question delete")
     def undo_last_question_delete(self):
         """Undo the last question deletion."""
         if not self.deleted_questions:
@@ -315,6 +329,7 @@ class CheckinSettingsWidget(QWidget):
         QMessageBox.information(self, "Undo Question", 
                                f"Would restore question: {deleted_question}")
     
+    @handle_errors("getting check-in settings")
     def get_checkin_settings(self):
         """Get the current check-in settings."""
         # Use the new reusable function to collect period data
@@ -356,6 +371,7 @@ class CheckinSettingsWidget(QWidget):
             'questions': questions
         }
     
+    @handle_errors("setting checkin settings")
     def set_checkin_settings(self, settings):
         """Set the check-in settings."""
         if not settings:
