@@ -47,8 +47,10 @@ class TestLoggerCoverageExpansion:
     """Test Core Logger coverage expansion with real behavior verification."""
     
     @pytest.fixture(autouse=True)
-    def _setup(self, test_path_factory):
+    def _setup(self, test_path_factory, monkeypatch):
         """Set up test environment."""
+        # Disable consolidated logging for these tests to allow individual log files
+        monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
         self.test_dir = test_path_factory
         self.log_file = os.path.join(self.test_dir, 'test.log')
         self.backup_dir = os.path.join(self.test_dir, 'backups')
@@ -665,8 +667,10 @@ class TestLoggerIntegration:
     """Test integration behavior of Core Logger."""
     
     @pytest.fixture(autouse=True)
-    def _setup(self, test_path_factory):
+    def _setup(self, test_path_factory, monkeypatch):
         """Set up test environment."""
+        # Disable consolidated logging for these tests to allow individual log files
+        monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
         self.test_dir = test_path_factory
         self.log_file = os.path.join(self.test_dir, 'test.log')
         self.backup_dir = os.path.join(self.test_dir, 'backups')

@@ -9,6 +9,14 @@
 ## Overview
 Use this file to get fast orientation before assisting the user. Entries are ordered newest first and trimmed to keep context compact.
 
+### 2025-10-05 - Consolidated Test Logging System **COMPLETED**
+- **Fixed excessive log file creation**: Consolidated all component logs into single `test_consolidated.log` file, eliminating 10+ individual log files per test run
+- **Real-time component logging**: Component logs now captured in real-time during tests with proper test context formatting
+- **Log separation**: `test_consolidated.log` contains only component logs, `test_run.log` contains only test execution logs
+- **Automatic cleanup**: Individual log files (app.log, errors.log) automatically consolidated and cleaned up after test runs
+- **Test compatibility**: All logging tests updated to work with consolidated system, 1754 tests passing
+- **10MB rotation**: Consolidated log rotates at 10MB between test runs to prevent excessive growth
+
 ### 2025-10-04 - Error Handling Coverage Expansion **IN PROGRESS**
 - **Massive coverage improvement**: Expanded error handling from 60.3% to 72.4% (1011 functions protected)
 - **88 new functions protected**: Added @handle_errors decorators to critical UI, communication, and core modules

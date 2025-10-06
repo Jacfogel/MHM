@@ -17,6 +17,8 @@ def test_component_logs_isolation_and_errors_capture(tmp_path, monkeypatch):
     # Point env to tests mode with verbose component logs in tests/logs
     monkeypatch.setenv("MHM_TESTING", "1")
     monkeypatch.setenv("TEST_VERBOSE_LOGS", "1")
+    # Disable consolidated logging for this test to allow individual component files
+    monkeypatch.setenv("TEST_CONSOLIDATED_LOGGING", "0")
 
     # Redirect LOGS_DIR to tests/logs and ensure core.logger picks this up before first import
     monkeypatch.setenv("LOGS_DIR", str(test_logs))

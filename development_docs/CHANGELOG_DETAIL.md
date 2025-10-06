@@ -17,6 +17,53 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-05 - Consolidated Test Logging System **COMPLETED**
+
+**Context**: The MHM test logging system was creating excessive log files during test runs, with most files containing only single "# Log rotated at ..." lines. The system needed consolidation to reduce file clutter and improve test debugging efficiency.
+
+**Problem**:
+- Test runs were creating 10+ individual log files (ai.log, app.log, communication_manager.log, discord.log, errors.log, etc.)
+- Most log files contained only rotation markers, not actual content
+- test_run.log was not rotating and grew to over 121MB
+- No clear separation between component logs and test execution logs
+- Individual log files were not being cleaned up after test runs
+
+**Technical Changes**:
+- **Consolidated Logging System**: Created single `test_consolidated.log` file for all component logs
+- **Real-time Component Logging**: Component logs now captured in real-time during tests with proper test context formatting
+- **Log Separation**: `test_consolidated.log` contains only component logs, `test_run.log` contains only test execution logs
+- **Automatic Cleanup**: Individual log files (app.log, errors.log) automatically consolidated and cleaned up after test runs
+- **10MB Rotation**: Consolidated log rotates at 10MB between test runs to prevent excessive growth
+- **Test Compatibility**: All logging tests updated to work with consolidated system
+
+**Files Modified**:
+- `tests/conftest.py` - Added consolidated logging setup, session rotation manager, test run markers
+- `core/logger.py` - Added TEST_CONSOLIDATED_LOGGING environment variable support, consolidated handler creation
+- `tests/unit/test_logging_components.py` - Updated tests to work with consolidated system, added consolidated logging test
+- `tests/behavior/test_observability_logging.py` - Updated to disable consolidated logging for individual file testing
+- `tests/behavior/test_logger_coverage_expansion.py` - Updated to disable consolidated logging for individual file testing
+
+**Key Features**:
+- **Single Consolidated File**: All component logs go to `test_consolidated.log` instead of individual files
+- **Test Context Preservation**: Component logs include test names in brackets for easy debugging
+- **Test Run Markers**: Clear markers separate different test runs in both log files
+- **Automatic Rotation**: Consolidated log rotates at 10MB to prevent excessive growth
+- **Clean Separation**: Component logs vs test execution logs properly separated
+- **Backward Compatibility**: Tests can still use individual logging with `TEST_CONSOLIDATED_LOGGING=0`
+
+**Testing Evidence**:
+- All 1754 tests passing with consolidated logging system
+- No individual log files created in consolidated mode
+- Component logs properly captured in real-time
+- Test context formatting working correctly
+- Automatic cleanup functioning properly
+
+**Outcome**: 
+- **Eliminated excessive log file creation**: Reduced from 10+ files to 2 files per test run
+- **Improved test debugging**: Single consolidated file with proper test context
+- **Better log management**: Automatic rotation and cleanup
+- **Maintained test compatibility**: All existing tests continue to work
+
 ### 2025-10-04 - Error Handling Coverage Expansion **IN PROGRESS**
 
 **Context**: The MHM system needed comprehensive error handling coverage expansion to improve system robustness and reliability. The system had achieved 60.3% error handling coverage but needed to reach 80%+ for production readiness.

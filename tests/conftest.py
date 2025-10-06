@@ -12,11 +12,15 @@ This file provides:
 import pytest
 import os
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
+# Set environment variable for consolidated logging very early, before any logging initialization
+# Allow override via environment variable for individual component logging
+os.environ['TEST_CONSOLIDATED_LOGGING'] = os.environ.get('TEST_CONSOLIDATED_LOGGING', '1')
 import tempfile
 import shutil
 import json
 import logging
 import warnings
+import time
 from pathlib import Path
 from unittest.mock import Mock, patch
 import sys
@@ -440,7 +444,7 @@ test_logger, test_log_file = setup_test_logging()
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
     
-    def __init__(self, max_size_mb=10):
+    def __init__(self, max_size_mb=10):  # 10MB for consolidated log rotation
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
@@ -501,6 +505,9 @@ class SessionLogRotationManager:
 
 # Global session rotation manager
 session_rotation_manager = SessionLogRotationManager()
+
+# Global consolidated handler for new component loggers
+_consolidated_handler = None
 
 # Register the test_run file with session rotation manager
 if test_log_file and test_log_file.exists():
@@ -565,97 +572,79 @@ class LogLifecycleManager:
         self.cleanup_old_archives()
         test_logger.info("Log lifecycle maintenance completed")
 
+
 # Global log lifecycle manager
 log_lifecycle_manager = LogLifecycleManager()
 
 # Configure size-based rotation for component logs during tests to avoid growth
 @pytest.fixture(scope="session", autouse=True)
-def setup_component_log_rotation():
-    """Replace component logger handlers with simple file handlers under tests/logs.
-
-    Uses simple FileHandler to avoid rotation conflicts during test sessions.
-    Session-based rotation is handled separately by SessionLogRotationManager.
+def setup_consolidated_test_logging():
+    """Set up consolidated test logging - all component logs go to a single file.
+    
+    This replaces the complex multi-file logging system with a single consolidated log file
+    that contains all component logs, making it much easier to manage and debug.
     """
-
-    # Map logger names to their file env vars (already pointed to tests/logs/* in this file)
-    logger_file_env = {
-        # Core system loggers
-        "mhm": os.environ.get("LOG_MAIN_FILE"),
-        "mhm.errors": os.environ.get("LOG_ERRORS_FILE"),
-        "mhm.scheduler": os.environ.get("LOG_SCHEDULER_FILE"),
-        "mhm.file_ops": os.environ.get("LOG_FILE_OPS_FILE"),
-        "mhm.ai": os.environ.get("LOG_AI_FILE"),
-        "mhm.discord": os.environ.get("LOG_DISCORD_FILE"),
-        "mhm.email": os.environ.get("LOG_EMAIL_FILE"),
-        "mhm.ui": os.environ.get("LOG_UI_FILE"),
-        "mhm.communication_manager": os.environ.get("LOG_COMMUNICATION_MANAGER_FILE"),
-        "mhm.user_activity": os.environ.get("LOG_USER_ACTIVITY_FILE"),
-        
-        # Core component loggers
-        "mhm.schedule_utilities": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'schedule_utilities.log'),
-        "mhm.analytics": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'analytics.log'),
-        "mhm.message": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message.log'),
-        "mhm.backup": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'backup.log'),
-        "mhm.checkin_dynamic": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'checkin_dynamic.log'),
-        
-        # Communication component loggers
-        "mhm.channel_orchestrator": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'channel_orchestrator.log'),
-        "mhm.command_registry": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'command_registry.log'),
-        "mhm.discord_events": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'discord_events.log'),
-        "mhm.message_router": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message_router.log'),
-        "mhm.discord_api": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'discord_api.log'),
-        "mhm.message_formatter": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'message_formatter.log'),
-        "mhm.rich_formatter": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'rich_formatter.log'),
-        "mhm.channel_monitor": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'channel_monitor.log'),
-        "mhm.retry_manager": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'retry_manager.log'),
-        
-        # Command handler loggers
-        "mhm.analytics_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'analytics_handler.log'),
-        "mhm.checkin_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'checkin_handler.log'),
-        "mhm.profile_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'profile_handler.log'),
-        "mhm.schedule_handler": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'schedule_handler.log'),
-        
-        # AI component loggers
-        "mhm.ai_context": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_context.log'),
-        "mhm.ai_prompt": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_prompt.log'),
-        "mhm.ai_cache": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_cache.log'),
-        "mhm.ai_conversation": os.path.join(os.environ.get('LOGS_DIR', 'tests/logs'), 'ai_conversation.log'),
-    }
-
+    
+    # Create a single consolidated log file for all test logging
+    consolidated_log_file = Path(project_root) / "tests" / "logs" / "test_consolidated.log"
+    consolidated_log_file.parent.mkdir(exist_ok=True)
+    
+    # Create a formatter that includes component information
     formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    for logger_name, file_path in logger_file_env.items():
-        if not file_path:
-            continue
+    
+    # Create a single file handler for all component logs
+    consolidated_handler = logging.FileHandler(consolidated_log_file, encoding='utf-8')
+    consolidated_handler.setLevel(logging.DEBUG)
+    consolidated_handler.setFormatter(formatter)
+    
+    # Store the consolidated handler globally so it can be attached to new loggers
+    global _consolidated_handler
+    _consolidated_handler = consolidated_handler
+    
+    # Set up all component loggers to use the same consolidated file
+    # Note: We exclude "mhm.main" and "root" to keep test execution logs separate
+    component_loggers = [
+        "mhm", "mhm.errors", "mhm.ai", "mhm.discord", "mhm.email", "mhm.ui",
+        "mhm.communication_manager", "mhm.user_activity", "mhm.scheduler", "mhm.file_ops",
+        "mhm.schedule_utilities", "mhm.analytics", "mhm.message", "mhm.backup",
+        "mhm.channel_orchestrator", "mhm.command_registry", "mhm.discord_events",
+        "mhm.message_router", "mhm.discord_api", "mhm.message_formatter", "mhm.rich_formatter",
+        "mhm.channel_monitor", "mhm.retry_manager", "mhm.analytics_handler",
+        "mhm.checkin_handler", "mhm.profile_handler", "mhm.schedule_handler",
+        "mhm.ai_context", "mhm.ai_conversation", "mhm.ai_cache", "mhm.ai_prompt"
+        # Excluded "mhm.main" and "root" to keep test execution logs in test_run.log only
+    ]
+    
+    for logger_name in component_loggers:
         try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            handler = logging.FileHandler(
-                filename=file_path,
-                encoding='utf-8',
-                delay=True,
-            )
-            # Respect TEST_VERBOSE_LOGS
-            level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
-            handler.setLevel(level)
-            handler.setFormatter(formatter)
-
             logger_obj = logging.getLogger(logger_name)
-            # Replace existing handlers for deterministic behavior in tests
+            
+            # Clear existing handlers
             for h in logger_obj.handlers[:]:
                 try:
                     h.close()
                 except Exception:
                     pass
                 logger_obj.removeHandler(h)
-            logger_obj.addHandler(handler)
+            
+            # Add the consolidated handler
+            logger_obj.addHandler(consolidated_handler)
+            
+            # Set appropriate log level
+            level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
             logger_obj.setLevel(level)
             logger_obj.propagate = False
             
-            # Register log file with session rotation manager
-            session_rotation_manager.register_log_file(file_path)
         except Exception:
             # Never fail tests due to logging configuration issues
             continue
+    
+    # Register the consolidated log file with session rotation manager
+    session_rotation_manager.register_log_file(str(consolidated_log_file))
+    
+    # Also register the test_run.log file for rotation
+    test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
+    session_rotation_manager.register_log_file(str(test_run_log_file))
     
     # Apply TestContextFormatter to all existing loggers when in test mode
     try:
@@ -664,6 +653,20 @@ def setup_component_log_rotation():
     except Exception:
         # Never fail tests due to logging configuration issues
         pass
+    
+    # Check if rotation is needed and perform it if necessary
+    if session_rotation_manager.check_rotation_needed():
+        session_rotation_manager.rotate_all_logs()
+        test_logger.info("Performed automatic log rotation at session start")
+    
+    # Clean up any individual log files that were created before consolidated mode was enabled
+    _cleanup_individual_log_files()
+    
+    # Also clean up app.log and errors.log after consolidating their content
+    _consolidate_and_cleanup_main_logs()
+    
+    # Add test run start markers to both log files
+    _add_test_run_start_markers()
 
 
 # REMOVED: cap_component_log_sizes_on_start fixture
@@ -671,6 +674,171 @@ def setup_component_log_rotation():
 # The SessionLogRotationManager handles all rotation consistently at session start/end
 
 # --- HOUSEKEEPING: Prune old test artifacts to keep repo tidy ---
+def _cleanup_test_log_files():
+    """Clean up excessive test log files to prevent accumulation."""
+    try:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        if not logs_dir.exists():
+            return
+            
+        # Remove old individual component log files (now that we use consolidated logging)
+        for log_file in logs_dir.glob("*.log"):
+            # Skip the consolidated log file and test_run.log
+            if log_file.name in ["test_consolidated.log", "test_run.log"]:
+                continue
+                
+            try:
+                with open(log_file, 'r', encoding='utf-8') as f:
+                    content = f.read().strip()
+                    # If file only contains rotation message or is empty, remove it
+                    if (content.startswith("# Log rotated at") and len(content.split('\n')) <= 2) or len(content) == 0:
+                        log_file.unlink()
+                        test_logger.info(f"Removed old component log file: {log_file.name}")
+            except Exception:
+                continue
+                
+        # Clean up backup files older than 1 day
+        backups_dir = logs_dir / "backups"
+        if backups_dir.exists():
+            for backup_file in backups_dir.glob("*.bak"):
+                try:
+                    if backup_file.stat().st_mtime < time.time() - 86400:  # 1 day
+                        backup_file.unlink()
+                        test_logger.info(f"Removed old backup file: {backup_file.name}")
+                except Exception:
+                    continue
+                    
+    except Exception as e:
+        test_logger.warning(f"Error during test log cleanup: {e}")
+
+
+def _cleanup_individual_log_files():
+    """Clean up individual log files that were created before consolidated mode was enabled."""
+    try:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        if not logs_dir.exists():
+            return
+            
+        # List of individual log files that should be cleaned up in consolidated mode
+        individual_log_files = [
+            "app.log", "errors.log", "ai.log", "discord.log", "user_activity.log",
+            "communication_manager.log", "email.log", "ui.log", "file_ops.log",
+            "scheduler.log", "schedule_utilities.log", "analytics.log", "message.log",
+            "backup.log", "checkin_dynamic.log"
+        ]
+        
+        for log_file_name in individual_log_files:
+            log_file = logs_dir / log_file_name
+            if log_file.exists():
+                try:
+                    # Check if file has content
+                    with open(log_file, 'r', encoding='utf-8') as f:
+                        content = f.read().strip()
+                        if len(content) > 0:
+                            # Copy content to consolidated log if it has useful content
+                            consolidated_log = logs_dir / "test_consolidated.log"
+                            if consolidated_log.exists():
+                                with open(consolidated_log, 'a', encoding='utf-8') as cf:
+                                    cf.write(f"\n# Content from {log_file_name}:\n{content}\n")
+                    
+                    # Remove the individual file
+                    log_file.unlink()
+                    test_logger.info(f"Cleaned up individual log file: {log_file_name}")
+                except Exception as e:
+                    test_logger.warning(f"Error cleaning up {log_file_name}: {e}")
+                    
+    except Exception as e:
+        test_logger.warning(f"Error during individual log file cleanup: {e}")
+
+
+def _consolidate_and_cleanup_main_logs():
+    """Consolidate content from app.log and errors.log into the consolidated log, then clean them up."""
+    try:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        if not logs_dir.exists():
+            return
+            
+        consolidated_log = logs_dir / "test_consolidated.log"
+        app_log = logs_dir / "app.log"
+        errors_log = logs_dir / "errors.log"
+        
+        # Consolidate app.log content
+        if app_log.exists():
+            try:
+                with open(app_log, 'r', encoding='utf-8') as f:
+                    app_content = f.read().strip()
+                    if len(app_content) > 0:
+                        with open(consolidated_log, 'a', encoding='utf-8') as cf:
+                            cf.write(f"\n# Content from app.log:\n{app_content}\n")
+                        test_logger.info("Consolidated app.log content into test_consolidated.log")
+            except Exception as e:
+                test_logger.warning(f"Error consolidating app.log: {e}")
+            finally:
+                # Remove app.log after consolidating
+                try:
+                    app_log.unlink()
+                    test_logger.info("Cleaned up app.log after consolidation")
+                except Exception as e:
+                    test_logger.warning(f"Error removing app.log: {e}")
+        
+        # Consolidate errors.log content
+        if errors_log.exists():
+            try:
+                with open(errors_log, 'r', encoding='utf-8') as f:
+                    errors_content = f.read().strip()
+                    if len(errors_content) > 0:
+                        with open(consolidated_log, 'a', encoding='utf-8') as cf:
+                            cf.write(f"\n# Content from errors.log:\n{errors_content}\n")
+                        test_logger.info("Consolidated errors.log content into test_consolidated.log")
+            except Exception as e:
+                test_logger.warning(f"Error consolidating errors.log: {e}")
+            finally:
+                # Remove errors.log after consolidating
+                try:
+                    errors_log.unlink()
+                    test_logger.info("Cleaned up errors.log after consolidation")
+                except Exception as e:
+                    test_logger.warning(f"Error removing errors.log: {e}")
+                    
+    except Exception as e:
+        test_logger.warning(f"Error during main log consolidation: {e}")
+
+
+def _add_test_run_start_markers():
+    """Add clear test run start markers to both consolidated and test_run log files."""
+    try:
+        logs_dir = Path(project_root) / "tests" / "logs"
+        if not logs_dir.exists():
+            return
+            
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Add marker to consolidated log
+        consolidated_log = logs_dir / "test_consolidated.log"
+        if consolidated_log.exists():
+            with open(consolidated_log, 'a', encoding='utf-8') as f:
+                f.write(f"\n{'='*80}\n")
+                f.write(f"# TEST RUN STARTED: {timestamp}\n")
+                f.write(f"# Component Logging Active\n")
+                f.write(f"# All component logs (excluding test execution) are captured here\n")
+                f.write(f"{'='*80}\n\n")
+        
+        # Add marker to test_run log
+        test_run_log = logs_dir / "test_run.log"
+        if test_run_log.exists():
+            with open(test_run_log, 'a', encoding='utf-8') as f:
+                f.write(f"\n{'='*80}\n")
+                f.write(f"# TEST RUN STARTED: {timestamp}\n")
+                f.write(f"# Test Execution Logging Active\n")
+                f.write(f"# Test execution and framework logs are captured here\n")
+                f.write(f"{'='*80}\n\n")
+                
+        test_logger.info("Added test run start markers to log files")
+        
+    except Exception as e:
+        test_logger.warning(f"Error adding test run start markers: {e}")
+
+
 def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int) -> int:
     """Remove files in target_dir matching any pattern older than N days.
 
@@ -728,6 +896,9 @@ def prune_test_artifacts_before_and_after_session():
         )
         if removed:
             test_logger.info(f"Pruned {removed} old test backup files from {test_backups_dir}")
+
+    # Clean up excessive test log files to prevent accumulation
+    _cleanup_test_log_files()
 
     # Pre-run purge of stray pytest-of-* under tests/data and leftover tmp children
     data_dir = project_root_path / "tests" / "data"
@@ -820,6 +991,9 @@ def session_log_rotation_check():
     # Check if rotation is needed at session end and perform if necessary
     if session_rotation_manager.check_rotation_needed():
         session_rotation_manager.rotate_all_logs()
+    
+    # Final cleanup: consolidate any remaining app.log and errors.log files
+    _consolidate_and_cleanup_main_logs()
 
 @pytest.fixture(scope="session", autouse=True)
 def isolate_logging():

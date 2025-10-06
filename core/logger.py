@@ -169,6 +169,54 @@ class ComponentLogger:
         # Prevent propagation to root so component logs don't appear in app.log
         self.logger.propagate = False
         
+        # In consolidated test logging mode, don't create individual file handlers
+        if os.getenv('TEST_CONSOLIDATED_LOGGING') == '1':
+            # Create consolidated handler directly for this logger
+            try:
+                # Get environment-specific log paths
+                log_paths = _get_log_paths_for_environment()
+                consolidated_log_file = os.path.join(log_paths['base_dir'], 'test_consolidated.log')
+                
+                # Create consolidated handler
+                consolidated_handler = logging.FileHandler(consolidated_log_file, encoding='utf-8')
+                consolidated_handler.setLevel(logging.DEBUG)
+                
+                # Use TestContextFormatter in test mode
+                if _is_testing_environment():
+                    formatter = TestContextFormatter(
+                        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S'
+                    )
+                else:
+                    formatter = logging.Formatter(
+                        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S'
+                    )
+                
+                consolidated_handler.setFormatter(formatter)
+                
+                # Clear any existing handlers first
+                for h in self.logger.handlers[:]:
+                    try:
+                        h.close()
+                    except Exception:
+                        pass
+                    self.logger.removeHandler(h)
+                
+                # Add the consolidated handler
+                self.logger.addHandler(consolidated_handler)
+                
+                # Set appropriate log level
+                level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
+                self.logger.setLevel(level)
+                self.logger.propagate = False
+                
+            except Exception:
+                # If we can't create the consolidated handler, just set up the logger without handlers
+                pass
+            # CRITICAL: Return here to prevent individual file handler creation
+            return
+        
         # Create formatter with component name
         # Use TestContextFormatter in test mode, regular formatter otherwise
         if _is_testing_environment():
@@ -616,6 +664,10 @@ def setup_logging():
     if _is_testing_environment():
         return
     
+    # Skip individual file creation in consolidated test logging mode
+    if os.getenv('TEST_CONSOLIDATED_LOGGING') == '1':
+        return
+    
     # Get environment-specific log paths
     log_paths = _get_log_paths_for_environment()
     
@@ -679,6 +731,10 @@ def setup_third_party_error_logging():
     Routes ERROR and CRITICAL messages from asyncio, discord, and aiohttp
     to the errors.log file instead of app.log.
     """
+    # Skip individual file creation in consolidated test logging mode
+    if os.getenv('TEST_CONSOLIDATED_LOGGING') == '1':
+        return
+        
     try:
         # Get environment-specific log paths
         log_paths = _get_log_paths_for_environment()
