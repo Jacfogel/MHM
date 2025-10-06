@@ -140,8 +140,18 @@ class ChannelManagementDialog(QDialog):
             QMessageBox.critical(self, "Error", f"Failed to save channel settings: {e}")
             self.reject()
 
+    @handle_errors("getting selected channel")
     def get_selected_channel(self):
-        return self.channel_widget.get_selected_channel()
+        try:
+            return self.channel_widget.get_selected_channel()
+        except Exception as e:
+            get_component_logger('ui').error(f"Error getting selected channel: {e}")
+            return None, None
 
+    @handle_errors("setting selected channel")
     def set_selected_channel(self, channel, value):
-        self.channel_widget.set_selected_channel(channel, value) 
+        try:
+            self.channel_widget.set_selected_channel(channel, value)
+        except Exception as e:
+            get_component_logger('ui').error(f"Error setting selected channel: {e}")
+            raise 

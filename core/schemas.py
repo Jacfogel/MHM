@@ -19,6 +19,7 @@ except Exception:
 
 # Add logging support for schema validation
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 logger = get_component_logger('main')
 
 
@@ -40,16 +41,21 @@ class FeaturesModel(BaseModel):
     task_management: Literal["enabled", "disabled"] = "disabled"
 
     @classmethod
+    @handle_errors("coercing boolean value", default_return="disabled")
     def _coerce_bool(cls, v: Any) -> Literal["enabled", "disabled"]:
-        if isinstance(v, bool):
-            return "enabled" if v else "disabled"
-        if isinstance(v, str):
-            vv = v.strip().lower()
-            if vv in ("enabled", "enable", "true", "yes", "1"):
-                return "enabled"
-            if vv in ("disabled", "disable", "false", "no", "0"):
-                return "disabled"
-        return "disabled"
+        try:
+            if isinstance(v, bool):
+                return "enabled" if v else "disabled"
+            if isinstance(v, str):
+                vv = v.strip().lower()
+                if vv in ("enabled", "enable", "true", "yes", "1"):
+                    return "enabled"
+                if vv in ("disabled", "disable", "false", "no", "0"):
+                    return "disabled"
+            return "disabled"
+        except Exception as e:
+            logger.error(f"Error coercing boolean value '{v}': {e}")
+            return "disabled"
 
     @field_validator("automated_messages", "checkins", "task_management", mode="before")
     @classmethod
@@ -259,8 +265,13 @@ class SchedulesModel(RootModel[Dict[str, CategoryScheduleModel]]):
     # RootModel does not support extra config; rely on inner models' tolerance
     pass
 
+    @handle_errors("converting to dictionary")
     def to_dict(self) -> Dict[str, Any]:
-        return {k: v.model_dump() for k, v in self.root.items()}
+        try:
+            return {k: v.model_dump() for k, v in self.root.items()}
+        except Exception as e:
+            logger.error(f"Error converting to dictionary: {e}")
+            return {}
 
 
 # --------------------------------- Messages ----------------------------------
@@ -297,64 +308,84 @@ class MessagesFileModel(BaseModel):
 
 # ------------------------------ Helper functions -----------------------------
 
+@handle_errors("validating account dictionary")
 def validate_account_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
-    errors: List[str] = []
     try:
-        model = AccountModel.model_validate(data)
-        return model.model_dump(), errors
-    except Exception as e:
-        errors.append(str(e))
-        # Best effort normalization: coerce features
-        fixed = data.copy()
-        feats = fixed.get("features") or {}
-        for k in ("automated_messages", "checkins", "task_management"):
-            v = feats.get(k)
-            feats[k] = FeaturesModel._coerce_bool(v)
-        fixed["features"] = feats
+        errors: List[str] = []
+        try:
+            model = AccountModel.model_validate(data)
+            return model.model_dump(), errors
+        except Exception as e:
+            errors.append(str(e))
+            # Best effort normalization: coerce features
+            fixed = data.copy()
+            feats = fixed.get("features") or {}
+            for k in ("automated_messages", "checkins", "task_management"):
+                v = feats.get(k)
+                feats[k] = FeaturesModel._coerce_bool(v)
+            fixed["features"] = feats
         return fixed, errors
+    except Exception as e:
+        logger.error(f"Error validating account dictionary: {e}")
+        return data, [str(e)]
 
 
+@handle_errors("validating preferences dictionary")
 def validate_preferences_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
-    errors: List[str] = []
     try:
-        model = PreferencesModel.model_validate(data)
-        # Exclude None so optional blocks like task_settings/checkin_settings vanish when absent
-        return model.model_dump(exclude_none=True), errors
+        errors: List[str] = []
+        try:
+            model = PreferencesModel.model_validate(data)
+            # Exclude None so optional blocks like task_settings/checkin_settings vanish when absent
+            return model.model_dump(exclude_none=True), errors
+        except Exception as e:
+            errors.append(str(e))
+            # Return original data to avoid disruption
+            return data, errors
     except Exception as e:
-        errors.append(str(e))
-        # Return original data to avoid disruption
-        return data, errors
+        logger.error(f"Error validating preferences dictionary: {e}")
+        return data, [str(e)]
 
 
+@handle_errors("validating schedules dictionary")
 def validate_schedules_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
-    errors: List[str] = []
     try:
-        model = SchedulesModel.model_validate(data)
-        return model.to_dict(), errors
+        errors: List[str] = []
+        try:
+            model = SchedulesModel.model_validate(data)
+            return model.to_dict(), errors
+        except Exception as e:
+            errors.append(str(e))
+            return data, errors
     except Exception as e:
-        errors.append(str(e))
-        return data, errors
+        logger.error(f"Error validating schedules dictionary: {e}")
+        return data, [str(e)]
 
 
+@handle_errors("validating messages file dictionary")
 def validate_messages_file_dict(data: Dict[str, Any]) -> tuple[Dict[str, Any], List[str]]:
-    errors: List[str] = []
     try:
-        model = MessagesFileModel.model_validate(data)
-        return model.model_dump(), errors
+        errors: List[str] = []
+        try:
+            model = MessagesFileModel.model_validate(data)
+            return model.model_dump(), errors
+        except Exception as e:
+            errors.append(str(e))
+            # Try to coerce to messages list
+            msgs = data.get("messages")
+            if isinstance(msgs, list):
+                normalized: List[Dict[str, Any]] = []
+                for item in msgs:
+                    try:
+                        mi = MessageModel.model_validate(item)
+                        normalized.append(mi.model_dump())
+                    except Exception:
+                        # skip bad rows
+                        continue
+                return {"messages": normalized}, errors
+            return {"messages": []}, errors
     except Exception as e:
-        errors.append(str(e))
-        # Try to coerce to messages list
-        msgs = data.get("messages")
-        if isinstance(msgs, list):
-            normalized: List[Dict[str, Any]] = []
-            for item in msgs:
-                try:
-                    mi = MessageModel.model_validate(item)
-                    normalized.append(mi.model_dump())
-                except Exception:
-                    # skip bad rows
-                    continue
-            return {"messages": normalized}, errors
-        return {"messages": []}, errors
+        logger.error(f"Error validating messages file dictionary: {e}")
+        return {"messages": []}, [str(e)]
 
 

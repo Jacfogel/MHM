@@ -31,16 +31,21 @@ data_manager_logger = get_component_logger('user_activity')
 class UserDataManager:
     """Enhanced user data management with references, backup, and indexing capabilities"""
     
+    @handle_errors("initializing user data manager")
     def __init__(self):
         """
         Initialize the UserDataManager.
         
         Sets up backup directory and index file path for user data management operations.
         """
-        self.index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
-        # Redirect backups under tests/data when in test mode
-        self.backup_dir = get_backups_dir()
-        os.makedirs(self.backup_dir, exist_ok=True)
+        try:
+            self.index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
+            # Redirect backups under tests/data when in test mode
+            self.backup_dir = get_backups_dir()
+            os.makedirs(self.backup_dir, exist_ok=True)
+        except Exception as e:
+            logger.error(f"Error initializing user data manager: {e}")
+            raise
     
     @handle_errors("updating message references", default_return=False)
     def update_message_references(self, user_id: str) -> bool:
@@ -251,85 +256,115 @@ class UserDataManager:
         
         return summary
 
+    @handle_errors("initializing user data summary")
     def _get_user_data_summary__initialize_summary(self, user_id: str) -> Dict[str, Any]:
         """Initialize the summary structure with default values."""
-        return {
-            "user_id": user_id,
-            "files": {},        # generic file-type map, e.g. files['profile']
-            "messages": {},     # per-category message file info
-            "logs": {},         # per-type log info
-            "total_files": 0,
-            "total_size_bytes": 0,
-            "last_modified": None,
-        }
+        try:
+            return {
+                "user_id": user_id,
+                "files": {},        # generic file-type map, e.g. files['profile']
+                "messages": {},     # per-category message file info
+                "logs": {},         # per-type log info
+                "total_files": 0,
+                "total_size_bytes": 0,
+                "last_modified": None,
+            }
+        except Exception as e:
+            logger.error(f"Error initializing user data summary: {e}")
+            return {"user_id": user_id, "files": {}, "messages": {}, "logs": {}, "total_files": 0, "total_size_bytes": 0, "last_modified": None}
 
+    @handle_errors("processing core files for user data summary")
     def _get_user_data_summary__process_core_files(self, user_id: str, summary: Dict[str, Any]) -> None:
         """Process core user data files (profile, preferences, schedules, etc.)."""
-        from core.user_data_handlers import USER_DATA_LOADERS
+        try:
+            from core.user_data_handlers import USER_DATA_LOADERS
 
-        # Build list of core file types dynamically from registered loaders
-        dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
+            # Build list of core file types dynamically from registered loaders
+            dynamic_types = list(USER_DATA_LOADERS.keys()) + ["sent_messages"]
 
-        for file_type in dynamic_types:
-            file_path = get_user_file_path(user_id, file_type)
-            if os.path.exists(file_path):
-                self._get_user_data_summary__add_file_info(file_path, file_type, summary)
-                self._get_user_data_summary__add_special_file_details(file_path, file_type, summary)
+            for file_type in dynamic_types:
+                file_path = get_user_file_path(user_id, file_type)
+                if os.path.exists(file_path):
+                    self._get_user_data_summary__add_file_info(file_path, file_type, summary)
+                    self._get_user_data_summary__add_special_file_details(file_path, file_type, summary)
+        except Exception as e:
+            logger.error(f"Error processing core files for user data summary: {e}")
 
+    @handle_errors("adding file info to user data summary")
     def _get_user_data_summary__add_file_info(self, file_path: str, file_type: str, summary: Dict[str, Any]) -> None:
         """Add basic file information to the summary."""
-        size = os.path.getsize(file_path)
-        summary["files"].setdefault(file_type, {})
-        summary["files"][file_type]["exists"] = True
-        summary["files"][file_type]["size"] = size
-        summary["total_files"] += 1
-        summary["total_size_bytes"] += size
+        try:
+            size = os.path.getsize(file_path)
+            summary["files"].setdefault(file_type, {})
+            summary["files"][file_type]["exists"] = True
+            summary["files"][file_type]["size"] = size
+            summary["total_files"] += 1
+            summary["total_size_bytes"] += size
+        except Exception as e:
+            logger.error(f"Error adding file info to user data summary: {e}")
 
+    @handle_errors("adding special file details to user data summary")
     def _get_user_data_summary__add_special_file_details(self, file_path: str, file_type: str, summary: Dict[str, Any]) -> None:
         """Add special details for specific file types (schedules, sent_messages)."""
-        if file_type == "schedules":
-            self._get_user_data_summary__add_schedule_details(file_path, summary)
-        elif file_type == "sent_messages":
-            self._get_user_data_summary__add_sent_messages_details(file_path, summary)
+        try:
+            if file_type == "schedules":
+                self._get_user_data_summary__add_schedule_details(file_path, summary)
+            elif file_type == "sent_messages":
+                self._get_user_data_summary__add_sent_messages_details(file_path, summary)
+        except Exception as e:
+            logger.error(f"Error adding special file details to user data summary: {e}")
 
+    @handle_errors("adding schedule details to user data summary")
     def _get_user_data_summary__add_schedule_details(self, file_path: str, summary: Dict[str, Any]) -> None:
         """Add schedule-specific details to the summary."""
-        data = load_json_data(file_path)
-        if data:
-            total_periods = sum(len(cat_schedules) for cat_schedules in data.values())
-            summary["files"]["schedules"]["periods"] = total_periods
+        try:
+            data = load_json_data(file_path)
+            if data:
+                total_periods = sum(len(cat_schedules) for cat_schedules in data.values())
+                summary["files"]["schedules"]["periods"] = total_periods
+        except Exception as e:
+            logger.error(f"Error adding schedule details to user data summary: {e}")
 
+    @handle_errors("adding sent messages details to user data summary")
     def _get_user_data_summary__add_sent_messages_details(self, file_path: str, summary: Dict[str, Any]) -> None:
         """Add sent messages count to the summary."""
-        data = load_json_data(file_path)
-        if data:
-            total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
-            summary["files"]["sent_messages"]["count"] = total_messages
+        try:
+            data = load_json_data(file_path)
+            if data:
+                total_messages = sum(len(msgs) for msgs in data.values() if isinstance(msgs, list))
+                summary["files"]["sent_messages"]["count"] = total_messages
+        except Exception as e:
+            logger.error(f"Error adding sent messages details to user data summary: {e}")
 
+    @handle_errors("processing message files for user data summary")
     def _get_user_data_summary__process_message_files(self, user_id: str, summary: Dict[str, Any]) -> None:
         """Process message files for all user categories."""
-        # Get user categories
-        prefs_result = get_user_data(user_id, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        
-        # Ensure message files exist
-        self._get_user_data_summary__ensure_message_files(user_id, categories)
-        
-        # Get existing message files
-        message_files = self.get_user_message_files(user_id)
-        
-        # Process enabled category message files
-        self._get_user_data_summary__process_enabled_message_files(user_id, categories, summary)
-        
-        # Process orphaned message files
-        self._get_user_data_summary__process_orphaned_message_files(user_id, categories, message_files, summary)
+        try:
+            # Get user categories
+            prefs_result = get_user_data(user_id, 'preferences')
+            categories = prefs_result.get('preferences', {}).get('categories', [])
+            
+            # Ensure message files exist
+            self._get_user_data_summary__ensure_message_files(user_id, categories)
+            
+            # Get existing message files
+            message_files = self.get_user_message_files(user_id)
+            
+            # Process enabled category message files
+            self._get_user_data_summary__process_enabled_message_files(user_id, categories, summary)
+            
+            # Process orphaned message files
+            self._get_user_data_summary__process_orphaned_message_files(user_id, categories, message_files, summary)
+        except Exception as e:
+            logger.error(f"Error processing message files for user data summary: {e}")
 
+    @handle_errors("ensuring message files for user data summary")
     def _get_user_data_summary__ensure_message_files(self, user_id: str, categories: List[str]) -> None:
         """Ensure message files exist for all user categories."""
-        if not categories:
-            return
-            
         try:
+            if not categories:
+                return
+                
             from core.message_management import ensure_user_message_files
             # This will check which files are missing and create them
             result = ensure_user_message_files(user_id, categories)
@@ -340,74 +375,98 @@ class UserDataManager:
         except Exception as e:
             logger.error(f"Error ensuring message files during validation for user {user_id}: {e}")
 
+    @handle_errors("processing enabled message files for user data summary")
     def _get_user_data_summary__process_enabled_message_files(self, user_id: str, categories: List[str], summary: Dict[str, Any]) -> None:
         """Process message files for enabled categories."""
-        for category in categories:
-            file_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
-            
-            if os.path.exists(file_path):
-                self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=False)
-            else:
-                self._get_user_data_summary__add_missing_message_file_info(file_path, category, summary, user_id)
+        try:
+            for category in categories:
+                file_path = str(Path(get_user_data_dir(user_id)) / 'messages' / f"{category}.json")
+                
+                if os.path.exists(file_path):
+                    self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=False)
+                else:
+                    self._get_user_data_summary__add_missing_message_file_info(file_path, category, summary, user_id)
+        except Exception as e:
+            logger.error(f"Error processing enabled message files for user data summary: {e}")
 
+    @handle_errors("processing orphaned message files for user data summary")
     def _get_user_data_summary__process_orphaned_message_files(self, user_id: str, categories: List[str], message_files: Dict[str, str], summary: Dict[str, Any]) -> None:
         """Process orphaned message files (categories not enabled but files exist)."""
-        for category, file_path in message_files.items():
-            if category not in categories and os.path.exists(file_path):
-                self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=True)
+        try:
+            for category, file_path in message_files.items():
+                if category not in categories and os.path.exists(file_path):
+                    self._get_user_data_summary__add_message_file_info(file_path, category, summary, orphaned=True)
+        except Exception as e:
+            logger.error(f"Error processing orphaned message files for user data summary: {e}")
 
+    @handle_errors("adding message file info to user data summary")
     def _get_user_data_summary__add_message_file_info(self, file_path: str, category: str, summary: Dict[str, Any], orphaned: bool = False) -> None:
         """Add message file information to the summary."""
-        size = os.path.getsize(file_path)
-        data = load_json_data(file_path)
-        message_count = len(data.get("messages", [])) if data else 0
-        
-        message_info = {
-            "exists": True,
-            "size": size,
-            "message_count": message_count,
-            "path": file_path
-        }
-        
-        if orphaned:
-            message_info["orphaned"] = True  # Mark as orphaned for potential cleanup
+        try:
+            size = os.path.getsize(file_path)
+            data = load_json_data(file_path)
+            message_count = len(data.get("messages", [])) if data else 0
             
-        summary["messages"][category] = message_info
-        summary["total_files"] += 1
-        summary["total_size_bytes"] += size
+            message_info = {
+                "exists": True,
+                "size": size,
+                "message_count": message_count,
+                "path": file_path
+            }
+            
+            if orphaned:
+                message_info["orphaned"] = True  # Mark as orphaned for potential cleanup
+                
+            summary["messages"][category] = message_info
+            summary["total_files"] += 1
+            summary["total_size_bytes"] += size
+        except Exception as e:
+            logger.error(f"Error adding message file info to user data summary: {e}")
 
+    @handle_errors("adding missing message file info to user data summary")
     def _get_user_data_summary__add_missing_message_file_info(self, file_path: str, category: str, summary: Dict[str, Any], user_id: str) -> None:
         """Add information for missing message files."""
-        summary["messages"][category] = {
-            "exists": False,
-            "size": 0,
-            "message_count": 0,
-            "path": file_path,
-            "creation_failed": True
-        }
-        logger.warning(f"Message file for category {category} still missing after ensure_user_message_files for user {user_id}")
+        try:
+            summary["messages"][category] = {
+                "exists": False,
+                "size": 0,
+                "message_count": 0,
+                "path": file_path,
+                "creation_failed": True
+            }
+            logger.warning(f"Message file for category {category} still missing after ensure_user_message_files for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error adding missing message file info to user data summary: {e}")
 
+    @handle_errors("processing log files for user data summary")
     def _get_user_data_summary__process_log_files(self, user_id: str, summary: Dict[str, Any]) -> None:
         """Process log files (checkins, chat_interactions)."""
-        log_types = ["checkins", "chat_interactions"]
-        for log_type in log_types:
-            log_file = get_user_file_path(user_id, log_type)
-            if os.path.exists(log_file):
-                self._get_user_data_summary__add_log_file_info(log_file, log_type, summary)
+        try:
+            log_types = ["checkins", "chat_interactions"]
+            for log_type in log_types:
+                log_file = get_user_file_path(user_id, log_type)
+                if os.path.exists(log_file):
+                    self._get_user_data_summary__add_log_file_info(log_file, log_type, summary)
+        except Exception as e:
+            logger.error(f"Error processing log files for user data summary: {e}")
 
+    @handle_errors("adding log file info to user data summary")
     def _get_user_data_summary__add_log_file_info(self, log_file: str, log_type: str, summary: Dict[str, Any]) -> None:
         """Add log file information to the summary."""
-        size = os.path.getsize(log_file)
-        data = load_json_data(log_file)
-        entry_count = len(data) if isinstance(data, list) else 0
-        
-        summary["logs"][log_type] = {
-            "exists": True,
-            "size": size,
-            "entry_count": entry_count
-        }
-        summary["total_files"] += 1
-        summary["total_size_bytes"] += size
+        try:
+            size = os.path.getsize(log_file)
+            data = load_json_data(log_file)
+            entry_count = len(data) if isinstance(data, list) else 0
+            
+            summary["logs"][log_type] = {
+                "exists": True,
+                "size": size,
+                "entry_count": entry_count
+            }
+            summary["total_files"] += 1
+            summary["total_size_bytes"] += size
+        except Exception as e:
+            logger.error(f"Error adding log file info to user data summary: {e}")
     
     @handle_errors("getting last interaction", default_return="1970-01-01 00:00:00")
     def _get_last_interaction(self, user_id: str) -> str:
@@ -801,6 +860,7 @@ class UserDataManager:
 user_data_manager = UserDataManager()
 
 # Convenience functions
+@handle_errors("updating message references", default_return=False)
 def update_message_references(user_id: str) -> bool:
     """
     Update message file references for a user.
@@ -811,9 +871,14 @@ def update_message_references(user_id: str) -> bool:
     Returns:
         bool: True if references were updated successfully
     """
-    manager = UserDataManager()
-    return manager.update_message_references(user_id)
+    try:
+        manager = UserDataManager()
+        return manager.update_message_references(user_id)
+    except Exception as e:
+        logger.error(f"Error updating message references: {e}")
+        return False
 
+@handle_errors("backing up user data")
 def backup_user_data(user_id: str, include_messages: bool = True) -> str:
     """
     Create a backup of user data.
@@ -825,9 +890,14 @@ def backup_user_data(user_id: str, include_messages: bool = True) -> str:
     Returns:
         str: Path to the created backup file
     """
-    manager = UserDataManager()
-    return manager.backup_user_data(user_id, include_messages)
+    try:
+        manager = UserDataManager()
+        return manager.backup_user_data(user_id, include_messages)
+    except Exception as e:
+        logger.error(f"Error backing up user data: {e}")
+        return ""
 
+@handle_errors("exporting user data")
 def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any]:
     """
     Export user data to a structured format.
@@ -839,9 +909,14 @@ def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any
     Returns:
         Dict containing all user data in structured format
     """
-    manager = UserDataManager()
-    return manager.export_user_data(user_id, export_format)
+    try:
+        manager = UserDataManager()
+        return manager.export_user_data(user_id, export_format)
+    except Exception as e:
+        logger.error(f"Error exporting user data: {e}")
+        return {}
 
+@handle_errors("deleting user completely", default_return=False)
 def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
     """
     Completely delete a user and all their data.
@@ -853,9 +928,14 @@ def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
     Returns:
         bool: True if user was deleted successfully
     """
-    manager = UserDataManager()
-    return manager.delete_user_completely(user_id, create_backup)
+    try:
+        manager = UserDataManager()
+        return manager.delete_user_completely(user_id, create_backup)
+    except Exception as e:
+        logger.error(f"Error deleting user completely: {e}")
+        return False
 
+@handle_errors("getting user data summary")
 def get_user_data_summary(user_id: str) -> Dict[str, Any]:
     """
     Get a summary of user data.
@@ -866,9 +946,14 @@ def get_user_data_summary(user_id: str) -> Dict[str, Any]:
     Returns:
         Dict containing user data summary
     """
-    manager = UserDataManager()
-    return manager.get_user_data_summary(user_id)
+    try:
+        manager = UserDataManager()
+        return manager.get_user_data_summary(user_id)
+    except Exception as e:
+        logger.error(f"Error getting user data summary: {e}")
+        return {}
 
+@handle_errors("updating user index", default_return=False)
 def update_user_index(user_id: str) -> bool:
     """
     Update the user index for a specific user.
@@ -879,8 +964,12 @@ def update_user_index(user_id: str) -> bool:
     Returns:
         bool: True if index was updated successfully
     """
-    manager = UserDataManager()
-    return manager.update_user_index(user_id)
+    try:
+        manager = UserDataManager()
+        return manager.update_user_index(user_id)
+    except Exception as e:
+        logger.error(f"Error updating user index: {e}")
+        return False
 
 def rebuild_user_index() -> bool:
     """

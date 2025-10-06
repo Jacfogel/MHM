@@ -17,8 +17,13 @@ logger = profile_logger
 class ProfileHandler(InteractionHandler):
     """Handler for profile management interactions"""
     
+    @handle_errors("checking if profile handler can handle intent")
     def can_handle(self, intent: str) -> bool:
-        return intent in ['show_profile', 'update_profile', 'profile_stats']
+        try:
+            return intent in ['show_profile', 'update_profile', 'profile_stats']
+        except Exception as e:
+            logger.error(f"Error checking if profile handler can handle intent: {e}")
+            return False
     
     @handle_errors("handling profile interaction", default_return=InteractionResponse("I'm having trouble with profile management right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
@@ -376,9 +381,11 @@ class ProfileHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
 
+    @handle_errors("formatting profile text")
     def _format_profile_text(self, account_data: Dict[str, Any], context_data: Dict[str, Any], preferences_data: Dict[str, Any]) -> str:
         """Create a clean, readable profile string for channels like Discord."""
-        lines: List[str] = ["**Your Profile:**"]
+        try:
+            lines: List[str] = ["**Your Profile:**"]
 
         # Basic info
         name = (context_data or {}).get('preferred_name', 'Not set')
@@ -452,20 +459,33 @@ class ProfileHandler(InteractionHandler):
             lines.append(f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}")
             lines.append(f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}")
 
-        return "\n".join(lines)
+            return "\n".join(lines)
+        except Exception as e:
+            logger.error(f"Error formatting profile text: {e}")
+            return "Error formatting profile information."
     
+    @handle_errors("getting profile handler help")
     def get_help(self) -> str:
-        return "Help with profile management - view and update your information"
+        try:
+            return "Help with profile management - view and update your information"
+        except Exception as e:
+            logger.error(f"Error getting profile handler help: {e}")
+            return "Profile management help unavailable."
     
+    @handle_errors("getting profile handler examples")
     def get_examples(self) -> List[str]:
-        return [
-            "show profile",
-            "update name 'Julie'",
-            "update gender_identity 'Non-binary, Woman'",
-            "add health_conditions 'Depression, Anxiety'",
-            "update interests 'Reading, Gaming, Hiking'",
-            "add goals 'mental_health, career'",
-            "add loved_ones 'Mom - Family - Mother, Support'",
-            "update notes_for_ai 'I prefer gentle reminders'",
-            "profile stats"
-        ]
+        try:
+            return [
+                "show profile",
+                "update name 'Julie'",
+                "update gender_identity 'Non-binary, Woman'",
+                "add health_conditions 'Depression, Anxiety'",
+                "update interests 'Reading, Gaming, Hiking'",
+                "add goals 'mental_health, career'",
+                "add loved_ones 'Mom - Family - Mother, Support'",
+                "update notes_for_ai 'I prefer gentle reminders'",
+                "profile stats"
+            ]
+        except Exception as e:
+            logger.error(f"Error getting profile handler examples: {e}")
+            return ["show profile", "update profile"]

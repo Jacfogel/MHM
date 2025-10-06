@@ -32,25 +32,40 @@ class ChannelConfig:
     timeout: float = 30.0
     custom_settings: Dict[str, Any] = None
 
+    @handle_errors("post-initializing channel config")
     def __post_init__(self):
         """Post-initialization setup."""
-        if self.custom_settings is None:
+        try:
+            if self.custom_settings is None:
+                self.custom_settings = {}
+        except Exception as e:
+            # Use a basic logger for dataclass errors
+            logger = get_logger(__name__)
+            logger.error(f"Error in channel config post-init: {e}")
+            # Set a default value to prevent further errors
             self.custom_settings = {}
 
 class BaseChannel(ABC):
     """Abstract base class for all communication channels"""
     
+    @handle_errors("initializing base channel")
     def __init__(self, config: ChannelConfig):
         """Initialize the object."""
-        self.config = config
-        self.status = ChannelStatus.UNINITIALIZED
-        self.error_message: Optional[str] = None
-        # Standardize: route channel instance logs to the component logger named by config.name
         try:
-            self.logger = get_component_logger(self.config.name)
-        except Exception:
-            # Fallback to module logger if component logger unavailable
-            self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
+            self.config = config
+            self.status = ChannelStatus.UNINITIALIZED
+            self.error_message: Optional[str] = None
+            # Standardize: route channel instance logs to the component logger named by config.name
+            try:
+                self.logger = get_component_logger(self.config.name)
+            except Exception:
+                # Fallback to module logger if component logger unavailable
+                self.logger = get_logger(f"{__name__}.{self.__class__.__name__}")
+        except Exception as e:
+            # Use a basic logger if all else fails
+            self.logger = get_logger(__name__)
+            self.logger.error(f"Error initializing base channel: {e}")
+            raise
         
     @property
     @abstractmethod

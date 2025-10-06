@@ -31,6 +31,7 @@ class RichFormatter(ABC):
 class DiscordRichFormatter(RichFormatter):
     """Discord-specific rich formatting utilities"""
     
+    @handle_errors("initializing Discord formatter", default_return=None)
     def __init__(self):
         """Initialize Discord formatter"""
         try:
@@ -38,6 +39,9 @@ class DiscordRichFormatter(RichFormatter):
             self.discord = discord
         except ImportError:
             logger.warning("Discord library not available - DiscordRichFormatter will not work")
+            self.discord = None
+        except Exception as e:
+            logger.error(f"Error initializing Discord formatter: {e}")
             self.discord = None
     
     @handle_errors("creating Discord embed")
@@ -107,25 +111,30 @@ class DiscordRichFormatter(RichFormatter):
         
         return view
     
+    @handle_errors("getting Discord color for type", default_return=None)
     def get_color_for_type(self, content_type: str):
         """Get Discord color for content type"""
-        if not self.discord:
+        try:
+            if not self.discord:
+                return None
+            
+            color_map = {
+                'success': self.discord.Color.green(),
+                'error': self.discord.Color.red(),
+                'warning': self.discord.Color.yellow(),
+                'info': self.discord.Color.blue(),
+                'task': self.discord.Color.purple(),
+                'profile': self.discord.Color.orange(),
+                'schedule': self.discord.Color.blue(),
+                'analytics': self.discord.Color.green(),
+                'checkin': self.discord.Color.teal(),
+                'help': self.discord.Color.light_grey()
+            }
+            
+            return color_map.get(content_type, self.discord.Color.blue())
+        except Exception as e:
+            logger.error(f"Error getting Discord color for type {content_type}: {e}")
             return None
-        
-        color_map = {
-            'success': self.discord.Color.green(),
-            'error': self.discord.Color.red(),
-            'warning': self.discord.Color.yellow(),
-            'info': self.discord.Color.blue(),
-            'task': self.discord.Color.purple(),
-            'profile': self.discord.Color.orange(),
-            'schedule': self.discord.Color.blue(),
-            'analytics': self.discord.Color.green(),
-            'checkin': self.discord.Color.teal(),
-            'help': self.discord.Color.light_grey()
-        }
-        
-        return color_map.get(content_type, self.discord.Color.blue())
 
 class EmailRichFormatter(RichFormatter):
     """Email-specific rich formatting utilities"""
@@ -156,40 +165,55 @@ class EmailRichFormatter(RichFormatter):
         
         return html
     
+    @handle_errors("creating email interactive view", default_return="")
     def create_interactive_view(self, suggestions: List[str]) -> str:
         """Create HTML buttons for email"""
-        if not suggestions:
+        try:
+            if not suggestions:
+                return ""
+            
+            html = "<div style='margin: 15px 0;'>\n"
+            for suggestion in suggestions[:5]:
+                html += f"<a href='#' style='display: inline-block; margin: 5px; padding: 8px 16px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px;'>{suggestion}</a>\n"
+            html += "</div>\n"
+            
+            return html
+        except Exception as e:
+            logger.error(f"Error creating email interactive view: {e}")
             return ""
-        
-        html = "<div style='margin: 15px 0;'>\n"
-        for suggestion in suggestions[:5]:
-            html += f"<a href='#' style='display: inline-block; margin: 5px; padding: 8px 16px; background-color: #3498db; color: white; text-decoration: none; border-radius: 4px;'>{suggestion}</a>\n"
-        html += "</div>\n"
-        
-        return html
     
+    @handle_errors("getting email color for type", default_return="#3498db")
     def get_color_for_type(self, content_type: str) -> str:
         """Get HTML color for content type"""
-        color_map = {
-            'success': '#27ae60',
-            'error': '#e74c3c',
-            'warning': '#f39c12',
-            'info': '#3498db',
-            'task': '#9b59b6',
-            'profile': '#e67e22',
-            'schedule': '#3498db',
-            'analytics': '#27ae60'
-        }
-        
-        return color_map.get(content_type, '#3498db')
+        try:
+            color_map = {
+                'success': '#27ae60',
+                'error': '#e74c3c',
+                'warning': '#f39c12',
+                'info': '#3498db',
+                'task': '#9b59b6',
+                'profile': '#e67e22',
+                'schedule': '#3498db',
+                'analytics': '#27ae60'
+            }
+            
+            return color_map.get(content_type, '#3498db')
+        except Exception as e:
+            logger.error(f"Error getting email color for type {content_type}: {e}")
+            return "#3498db"
 
 # Factory function to get appropriate rich formatter
+@handle_errors("getting rich formatter", default_return=None)
 def get_rich_formatter(channel_type: str) -> RichFormatter:
     """Get the appropriate rich formatter for a channel type"""
-    if channel_type == 'discord':
-        return DiscordRichFormatter()
-    elif channel_type == 'email':
-        return EmailRichFormatter()
-    else:
-        # Return a basic formatter for other channels
-        return EmailRichFormatter()  # Use email formatter as fallback
+    try:
+        if channel_type == 'discord':
+            return DiscordRichFormatter()
+        elif channel_type == 'email':
+            return EmailRichFormatter()
+        else:
+            # Return a basic formatter for other channels
+            return EmailRichFormatter()  # Use email formatter as fallback
+    except Exception as e:
+        logger.error(f"Error getting rich formatter for channel type {channel_type}: {e}")
+        return EmailRichFormatter()  # Fallback to email formatter

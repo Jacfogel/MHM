@@ -1,6 +1,6 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-10-04 22:33:54
+**Generated**: 2025-10-06 00:56:04
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 7
 
@@ -50,12 +50,12 @@
 ### core\user_data_manager.py
 **Issues Found**: 2
 
-- **Line 554**: `# LEGACY COMPATIBILITY:`
+- **Line 613**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
   ```
 
-- **Line 733**: `# LEGACY COMPATIBILITY:`
+- **Line 792**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
   ```

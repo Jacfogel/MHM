@@ -27,132 +27,140 @@ widget_logger = logger
 class UserProfileSettingsWidget(QWidget):
     """Widget for user profile settings configuration."""
     
+    @handle_errors("initializing user profile settings widget")
     def __init__(self, parent=None, user_id: Optional[str] = None, existing_data: Optional[Dict[str, Any]] = None):
         """Initialize the object."""
-        super().__init__(parent)
-        self.user_id = user_id
-        self.existing_data = existing_data or {}
-        
-        # Setup UI
-        self.ui = Ui_Form_user_profile_settings()
-        self.ui.setupUi(self)
-        
-        # Add preferred name field at the top of Basic Info
-        if hasattr(self.ui, 'verticalLayout_basic_info') and not hasattr(self.ui, 'lineEdit_preferred_name'):
-            from PySide6.QtWidgets import QLineEdit, QLabel
-            self.ui.label_preferred_name = QLabel("Preferred Name:")
-            self.ui.lineEdit_preferred_name = QLineEdit()
-            self.ui.lineEdit_preferred_name.setObjectName('lineEdit_preferred_name')
-            self.ui.verticalLayout_basic_info.insertWidget(0, self.ui.label_preferred_name)
-            self.ui.verticalLayout_basic_info.insertWidget(1, self.ui.lineEdit_preferred_name)
-        
-        # Populate timezone options
-        self.populate_timezones()
-        
-        # ----------------------------------------------------------
-        # Setup dynamic list containers using Designer-created scroll areas
-        # ----------------------------------------------------------
         try:
-            from ui.widgets.dynamic_list_container import DynamicListContainer
+            super().__init__(parent)
+            self.user_id = user_id
+            self.existing_data = existing_data or {}
             
-            # Interests tab - replace content in existing scroll area
-            self.interests_container = DynamicListContainer(
-                parent=self.ui.scrollAreaWidgetContents_interests,
-                field_key='interests'
-            )
-            # Clear existing layout and add dynamic container
-            layout = self.ui.scrollAreaWidgetContents_interests.layout()
-            if layout:
-                # Remove all existing widgets
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().setParent(None)
-            else:
-                layout = QVBoxLayout()
-                self.ui.scrollAreaWidgetContents_interests.setLayout(layout)
+            # Setup UI
+            self.ui = Ui_Form_user_profile_settings()
+            self.ui.setupUi(self)
             
-            layout.addWidget(self.interests_container)
+            # Add preferred name field at the top of Basic Info
+            if hasattr(self.ui, 'verticalLayout_basic_info') and not hasattr(self.ui, 'lineEdit_preferred_name'):
+                from PySide6.QtWidgets import QLineEdit, QLabel
+                self.ui.label_preferred_name = QLabel("Preferred Name:")
+                self.ui.lineEdit_preferred_name = QLineEdit()
+                self.ui.lineEdit_preferred_name.setObjectName('lineEdit_preferred_name')
+                self.ui.verticalLayout_basic_info.insertWidget(0, self.ui.label_preferred_name)
+                self.ui.verticalLayout_basic_info.insertWidget(1, self.ui.lineEdit_preferred_name)
             
-            # Health & Medical tab - replace content in existing scroll areas
-            self.health_conditions_container = DynamicListContainer(
-                parent=self.ui.scrollAreaWidgetContents_medical,
-                field_key='health_conditions'
-            )
-            layout = self.ui.scrollAreaWidgetContents_medical.layout()
-            if layout:
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().setParent(None)
-            else:
-                layout = QVBoxLayout()
-                self.ui.scrollAreaWidgetContents_medical.setLayout(layout)
-            layout.addWidget(self.health_conditions_container)
+            # Populate timezone options
+            self.populate_timezones()
             
-            self.allergies_container = DynamicListContainer(
-                parent=self.ui.scrollAreaWidgetContents_allergies,
-                field_key='allergies_sensitivities'
-            )
-            layout = self.ui.scrollAreaWidgetContents_allergies.layout()
-            if layout:
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().setParent(None)
-            else:
-                layout = QVBoxLayout()
-                self.ui.scrollAreaWidgetContents_allergies.setLayout(layout)
-            layout.addWidget(self.allergies_container)
+            # ----------------------------------------------------------
+            # Setup dynamic list containers using Designer-created scroll areas
+            # ----------------------------------------------------------
+            try:
+                from ui.widgets.dynamic_list_container import DynamicListContainer
+                
+                # Interests tab - replace content in existing scroll area
+                self.interests_container = DynamicListContainer(
+                    parent=self.ui.scrollAreaWidgetContents_interests,
+                    field_key='interests'
+                )
+                # Clear existing layout and add dynamic container
+                layout = self.ui.scrollAreaWidgetContents_interests.layout()
+                if layout:
+                    # Remove all existing widgets
+                    while layout.count():
+                        child = layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                else:
+                    layout = QVBoxLayout()
+                    self.ui.scrollAreaWidgetContents_interests.setLayout(layout)
+                
+                layout.addWidget(self.interests_container)
+                
+                # Health & Medical tab - replace content in existing scroll areas
+                self.health_conditions_container = DynamicListContainer(
+                    parent=self.ui.scrollAreaWidgetContents_medical,
+                    field_key='health_conditions'
+                )
+                layout = self.ui.scrollAreaWidgetContents_medical.layout()
+                if layout:
+                    while layout.count():
+                        child = layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                else:
+                    layout = QVBoxLayout()
+                    self.ui.scrollAreaWidgetContents_medical.setLayout(layout)
+                layout.addWidget(self.health_conditions_container)
+                
+                self.allergies_container = DynamicListContainer(
+                    parent=self.ui.scrollAreaWidgetContents_allergies,
+                    field_key='allergies_sensitivities'
+                )
+                layout = self.ui.scrollAreaWidgetContents_allergies.layout()
+                if layout:
+                    while layout.count():
+                        child = layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                else:
+                    layout = QVBoxLayout()
+                    self.ui.scrollAreaWidgetContents_allergies.setLayout(layout)
+                layout.addWidget(self.allergies_container)
+                
+                # Medications & Reminders tab - replace content in existing scroll areas
+                self.medications_container = DynamicListContainer(
+                    parent=self.ui.scrollAreaWidgetContents_medications,
+                    field_key='medications'
+                )
+                layout = self.ui.scrollAreaWidgetContents_medications.layout()
+                if layout:
+                    while layout.count():
+                        child = layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                else:
+                    layout = QVBoxLayout()
+                    self.ui.scrollAreaWidgetContents_medications.setLayout(layout)
+                layout.addWidget(self.medications_container)
+                
+                # Goals tab - replace content in existing scroll areas
+                self.goals_container = DynamicListContainer(
+                    parent=self.ui.scrollAreaWidgetContents_goals,
+                    field_key='goals'
+                )
+                layout = self.ui.scrollAreaWidgetContents_goals.layout()
+                if layout:
+                    while layout.count():
+                        child = layout.takeAt(0)
+                        if child.widget():
+                            child.widget().setParent(None)
+                else:
+                    layout = QVBoxLayout()
+                    self.ui.scrollAreaWidgetContents_goals.setLayout(layout)
+                layout.addWidget(self.goals_container)
+                
+            except Exception as e:
+                logger.error(f"Failed to set up DynamicListContainer: {e}")
             
-            # Medications & Reminders tab - replace content in existing scroll areas
-            self.medications_container = DynamicListContainer(
-                parent=self.ui.scrollAreaWidgetContents_medications,
-                field_key='medications'
-            )
-            layout = self.ui.scrollAreaWidgetContents_medications.layout()
-            if layout:
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().setParent(None)
-            else:
-                layout = QVBoxLayout()
-                self.ui.scrollAreaWidgetContents_medications.setLayout(layout)
-            layout.addWidget(self.medications_container)
+            # Set default tab to Basic Info (index 0)
+            if hasattr(self.ui, 'tabWidget'):
+                self.ui.tabWidget.setCurrentIndex(0)
             
-            # Goals tab - replace content in existing scroll areas
-            self.goals_container = DynamicListContainer(
-                parent=self.ui.scrollAreaWidgetContents_goals,
-                field_key='goals'
-            )
-            layout = self.ui.scrollAreaWidgetContents_goals.layout()
-            if layout:
-                while layout.count():
-                    child = layout.takeAt(0)
-                    if child.widget():
-                        child.widget().setParent(None)
-            else:
-                layout = QVBoxLayout()
-                self.ui.scrollAreaWidgetContents_goals.setLayout(layout)
-            layout.addWidget(self.goals_container)
-            
-
-            
+            # Load existing data
+            self.load_existing_data()
         except Exception as e:
-            logger.error(f"Failed to set up DynamicListContainer: {e}")
-        
-        # Set default tab to Basic Info (index 0)
-        if hasattr(self.ui, 'tabWidget'):
-            self.ui.tabWidget.setCurrentIndex(0)
-        
-        # Load existing data
-        self.load_existing_data()
+            logger.error(f"Error initializing user profile settings widget: {e}")
+            raise
     
+    @handle_errors("populating timezones")
     def populate_timezones(self):
         """Populate the timezone combo box with options and enable selection."""
-        # Timezone functionality moved to channel selection widget
-        pass
+        try:
+            # Timezone functionality moved to channel selection widget
+            pass
+        except Exception as e:
+            logger.error(f"Error populating timezones: {e}")
+            raise
     
 
     
@@ -247,6 +255,7 @@ class UserProfileSettingsWidget(QWidget):
         except Exception as e:
             logger.error(f"Error loading existing data: {e}")
     
+    @handle_errors("setting checkbox group")
     def set_checkbox_group(self, group_name: str, values: list):
         """Set checkboxes for a specific group based on values."""
         try:
@@ -312,129 +321,164 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error getting personalization data: {e}")
             return self.existing_data or {}
     
+    @handle_errors("extracting basic fields from personalization data")
     def _get_personalization_data__extract_basic_fields(self, data: Dict[str, Any]) -> None:
         """Extract basic text fields from the UI."""
-        # Preferred Name
-        if hasattr(self.ui, 'lineEdit_preferred_name'):
-            data['preferred_name'] = self.ui.lineEdit_preferred_name.text().strip()
+        try:
+            # Preferred Name
+            if hasattr(self.ui, 'lineEdit_preferred_name'):
+                data['preferred_name'] = self.ui.lineEdit_preferred_name.text().strip()
+        except Exception as e:
+            logger.error(f"Error extracting basic fields: {e}")
+            raise
 
+    @handle_errors("extracting gender identity from personalization data")
     def _get_personalization_data__extract_gender_identity(self, data: Dict[str, Any]) -> None:
         """Extract gender identity from checkboxes and custom input."""
-        gender_identity = []
-        
-        # Standard gender identity checkboxes
-        gender_mappings = [
-            ('checkBox_woman', 'Woman'),
-            ('checkBox_man', 'Man'),
-            ('checkBox_nonbinary', 'Non-binary'),
-            ('checkBox_none', 'None'),
-            ('checkBox_prefer_not_to_say', 'Prefer not to say')
-        ]
-        
-        for checkbox_attr, value in gender_mappings:
-            if hasattr(self.ui, checkbox_attr) and getattr(self.ui, checkbox_attr).isChecked():
-                gender_identity.append(value)
-        
-        # Custom gender identities
-        if hasattr(self.ui, 'lineEdit_custom_gender'):
-            custom_genders = self.ui.lineEdit_custom_gender.text().strip()
-            if custom_genders:
-                gender_identity.extend([g.strip() for g in custom_genders.split(',') if g.strip()])
-        
-        data['gender_identity'] = gender_identity
+        try:
+            gender_identity = []
+            
+            # Standard gender identity checkboxes
+            gender_mappings = [
+                ('checkBox_woman', 'Woman'),
+                ('checkBox_man', 'Man'),
+                ('checkBox_nonbinary', 'Non-binary'),
+                ('checkBox_none', 'None'),
+                ('checkBox_prefer_not_to_say', 'Prefer not to say')
+            ]
+            
+            for checkbox_attr, value in gender_mappings:
+                if hasattr(self.ui, checkbox_attr) and getattr(self.ui, checkbox_attr).isChecked():
+                    gender_identity.append(value)
+            
+            # Custom gender identities
+            if hasattr(self.ui, 'lineEdit_custom_gender'):
+                custom_genders = self.ui.lineEdit_custom_gender.text().strip()
+                if custom_genders:
+                    gender_identity.extend([g.strip() for g in custom_genders.split(',') if g.strip()])
+            
+            data['gender_identity'] = gender_identity
+        except Exception as e:
+            logger.error(f"Error extracting gender identity: {e}")
+            raise
 
+    @handle_errors("extracting date of birth from personalization data")
     def _get_personalization_data__extract_date_of_birth(self, data: Dict[str, Any]) -> None:
         """Extract date of birth from calendar widget with proper validation."""
-        if not hasattr(self.ui, 'calendarWidget_date_of_birth'):
-            return
+        try:
+            if not hasattr(self.ui, 'calendarWidget_date_of_birth'):
+                return
             
-        selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
-        if not selected_date.isValid():
-            data['date_of_birth'] = ''
-            return
-        
-        # Only save the date if it's different from the default (current date)
-        # or if there was an existing date of birth
-        current_date = QDate.currentDate()
-        existing_dob = self.existing_data.get('date_of_birth', '')
-        
-        # Convert QDate to ISO format string
-        dob_str = selected_date.toString(Qt.DateFormat.ISODate)
-        
-        # Only save if user actually selected a date (not default current date)
-        # or if there was an existing date of birth that we should preserve
-        if selected_date != current_date or existing_dob:
-            data['date_of_birth'] = dob_str
-        else:
-            # Clear date if user didn't actually select one
-            data['date_of_birth'] = ''
+            selected_date = self.ui.calendarWidget_date_of_birth.selectedDate()
+            if not selected_date.isValid():
+                data['date_of_birth'] = ''
+                return
+            
+            # Only save the date if it's different from the default (current date)
+            # or if there was an existing date of birth
+            current_date = QDate.currentDate()
+            existing_dob = self.existing_data.get('date_of_birth', '')
+            
+            # Convert QDate to ISO format string
+            dob_str = selected_date.toString(Qt.DateFormat.ISODate)
+            
+            # Only save if user actually selected a date (not default current date)
+            # or if there was an existing date of birth that we should preserve
+            if selected_date != current_date or existing_dob:
+                data['date_of_birth'] = dob_str
+            else:
+                # Clear date if user didn't actually select one
+                data['date_of_birth'] = ''
+        except Exception as e:
+            logger.error(f"Error extracting date of birth: {e}")
+            raise
 
+    @handle_errors("extracting dynamic containers from personalization data")
     def _get_personalization_data__extract_dynamic_containers(self, data: Dict[str, Any]) -> None:
         """Extract data from all dynamic list containers."""
-        # Ensure custom_fields structure exists
-        if 'custom_fields' not in data:
-            data['custom_fields'] = {}
-        
-        # Health conditions - use dynamic list container
-        data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
-        
-        # Medications - use dynamic list container
-        data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
-        
-        # Allergies/Sensitivities - use dynamic list container
-        data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
-        
-        # Interests via dynamic container
-        data['interests'] = self.interests_container.get_values()
-        
-        # Goals - use dynamic list container
-        data['goals'] = self.goals_container.get_values()
+        try:
+            # Ensure custom_fields structure exists
+            if 'custom_fields' not in data:
+                data['custom_fields'] = {}
+            
+            # Health conditions - use dynamic list container
+            data['custom_fields']['health_conditions'] = self.health_conditions_container.get_values()
+            
+            # Medications - use dynamic list container
+            data['custom_fields']['medications_treatments'] = self.medications_container.get_values()
+            
+            # Allergies/Sensitivities - use dynamic list container
+            data['custom_fields']['allergies_sensitivities'] = self.allergies_container.get_values()
+            
+            # Interests via dynamic container
+            data['interests'] = self.interests_container.get_values()
+            
+            # Goals - use dynamic list container
+            data['goals'] = self.goals_container.get_values()
+        except Exception as e:
+            logger.error(f"Error extracting dynamic containers: {e}")
+            raise
 
+    @handle_errors("extracting loved ones from personalization data")
     def _get_personalization_data__extract_loved_ones(self, data: Dict[str, Any]) -> None:
         """Extract loved ones data from text field with structured parsing."""
-        if not hasattr(self.ui, 'textEdit_loved_ones'):
-            return
+        try:
+            if not hasattr(self.ui, 'textEdit_loved_ones'):
+                return
             
-        loved_ones_text = self.ui.textEdit_loved_ones.toPlainText().strip()
-        loved_ones = []
-        
-        if loved_ones_text:
-            for line in loved_ones_text.split('\n'):
-                parts = [p.strip() for p in line.split('-')]
-                name = parts[0] if len(parts) > 0 else ''
-                type_val = parts[1] if len(parts) > 1 else ''
-                relationships = []
-                if len(parts) > 2:
-                    relationships = [r.strip() for r in parts[2].split(',') if r.strip()]
-                
-                if name:
-                    loved_ones.append({
-                        'name': name,
-                        'type': type_val,
-                        'relationships': relationships
-                    })
-        
-        data['loved_ones'] = loved_ones
+            loved_ones_text = self.ui.textEdit_loved_ones.toPlainText().strip()
+            loved_ones = []
+            
+            if loved_ones_text:
+                for line in loved_ones_text.split('\n'):
+                    parts = [p.strip() for p in line.split('-')]
+                    name = parts[0] if len(parts) > 0 else ''
+                    type_val = parts[1] if len(parts) > 1 else ''
+                    relationships = []
+                    if len(parts) > 2:
+                        relationships = [r.strip() for r in parts[2].split(',') if r.strip()]
+                    
+                    if name:
+                        loved_ones.append({
+                            'name': name,
+                            'type': type_val,
+                            'relationships': relationships
+                        })
+            
+            data['loved_ones'] = loved_ones
+        except Exception as e:
+            logger.error(f"Error extracting loved ones: {e}")
+            raise
 
+    @handle_errors("extracting notes from personalization data")
     def _get_personalization_data__extract_notes(self, data: Dict[str, Any]) -> None:
         """Extract notes for AI from text field."""
-        notes_text = self.ui.textEdit_notes.toPlainText().strip() if hasattr(self.ui, 'textEdit_notes') else ""
-        notes_for_ai = [notes_text] if notes_text else []
-        data['notes_for_ai'] = notes_for_ai
+        try:
+            notes_text = self.ui.textEdit_notes.toPlainText().strip() if hasattr(self.ui, 'textEdit_notes') else ""
+            notes_for_ai = [notes_text] if notes_text else []
+            data['notes_for_ai'] = notes_for_ai
+        except Exception as e:
+            logger.error(f"Error extracting notes: {e}")
+            raise
 
+    @handle_errors("ensuring required fields in personalization data")
     def _get_personalization_data__ensure_required_fields(self, data: Dict[str, Any]) -> None:
         """Ensure all required fields exist in the data structure."""
-        # Preserve other fields that we don't handle yet
-        required_fields = {
+        try:
+            # Preserve other fields that we don't handle yet
+            required_fields = {
             'timezone': '',
             'reminders_needed': [],
             'activities_for_encouragement': [],
             'preferred_name': ''
         }
         
-        for field, default_value in required_fields.items():
-            if field not in data:
-                data[field] = default_value
+            for field, default_value in required_fields.items():
+                if field not in data:
+                    data[field] = default_value
+        except Exception as e:
+            logger.error(f"Error ensuring required fields: {e}")
+            raise
 
     @handle_errors("getting settings", default_return={})
     def get_settings(self):

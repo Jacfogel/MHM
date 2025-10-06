@@ -33,47 +33,57 @@ class CheckinManagementDialog(QDialog):
     """Dialog for managing check-in settings."""
     user_changed = Signal()
     
+    @handle_errors("initializing checkin management dialog", default_return=None)
     def __init__(self, parent=None, user_id=None):
         """Initialize the object."""
-        super().__init__(parent)
-        self.user_id = user_id
-        self.ui = Ui_Dialog_checkin_management()
-        self.ui.setupUi(self)
-        # Load user account to set groupbox checked state
-        checkins_enabled = False
-        if self.user_id:
-            user_data_result = get_user_data(self.user_id, 'account')
-            account = user_data_result.get('account') or {}
-            features = account.get('features', {})
-            checkins_enabled = features.get('checkins') == 'enabled'
-        self.ui.groupBox_checkBox_enable_checkins.setChecked(checkins_enabled)
-        # Add the check-in settings widget to the placeholder
-        self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
-        layout = self.ui.widget_placeholder_checkin_settings.layout()
-        # Remove any existing widgets
-        while layout.count():
-            item = layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.setParent(None)
-        layout.addWidget(self.checkin_widget)
-        # Connect Save/Cancel
-        self.ui.buttonBox_save_cancel.accepted.connect(self.save_checkin_settings)
-        self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
-        # Wire up groupbox checkbox logic
-        self.ui.groupBox_checkBox_enable_checkins.toggled.connect(self.on_enable_checkins_toggled)
-        self.on_enable_checkins_toggled(self.ui.groupBox_checkBox_enable_checkins.isChecked())
+        try:
+            super().__init__(parent)
+            self.user_id = user_id
+            self.ui = Ui_Dialog_checkin_management()
+            self.ui.setupUi(self)
+            # Load user account to set groupbox checked state
+            checkins_enabled = False
+            if self.user_id:
+                user_data_result = get_user_data(self.user_id, 'account')
+                account = user_data_result.get('account') or {}
+                features = account.get('features', {})
+                checkins_enabled = features.get('checkins') == 'enabled'
+            self.ui.groupBox_checkBox_enable_checkins.setChecked(checkins_enabled)
+            # Add the check-in settings widget to the placeholder
+            self.checkin_widget = CheckinSettingsWidget(self, self.user_id)
+            layout = self.ui.widget_placeholder_checkin_settings.layout()
+            # Remove any existing widgets
+            while layout.count():
+                item = layout.takeAt(0)
+                w = item.widget()
+                if w:
+                    w.setParent(None)
+            layout.addWidget(self.checkin_widget)
+            # Connect Save/Cancel
+            self.ui.buttonBox_save_cancel.accepted.connect(self.save_checkin_settings)
+            self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
+            # Wire up groupbox checkbox logic
+            self.ui.groupBox_checkBox_enable_checkins.toggled.connect(self.on_enable_checkins_toggled)
+            self.on_enable_checkins_toggled(self.ui.groupBox_checkBox_enable_checkins.isChecked())
+        except Exception as e:
+            logger.error(f"Error initializing checkin management dialog: {e}")
+            raise
     
+    @handle_errors("toggling checkins", default_return=None)
     def on_enable_checkins_toggled(self, checked):
-        # Enable/disable all children except the groupbox itself
-        for child in self.ui.groupBox_checkBox_enable_checkins.findChildren(QWidget):
-            if child is not self.ui.groupBox_checkBox_enable_checkins:
-                child.setEnabled(checked)
-        
-        # If check-ins are being enabled and no periods exist, create a default period
-        if checked and not self.checkin_widget.period_widgets:
-            logger.info("Check-ins enabled with no periods - creating default period")
-            self.checkin_widget.add_new_period()
+        try:
+            # Enable/disable all children except the groupbox itself
+            for child in self.ui.groupBox_checkBox_enable_checkins.findChildren(QWidget):
+                if child is not self.ui.groupBox_checkBox_enable_checkins:
+                    child.setEnabled(checked)
+            
+            # If check-ins are being enabled and no periods exist, create a default period
+            if checked and not self.checkin_widget.period_widgets:
+                logger.info("Check-ins enabled with no periods - creating default period")
+                self.checkin_widget.add_new_period()
+        except Exception as e:
+            logger.error(f"Error toggling checkins: {e}")
+            raise
     
     @handle_errors("loading user checkin data", default_return=None)
     def load_user_checkin_data(self):
@@ -153,10 +163,20 @@ class CheckinManagementDialog(QDialog):
             logger.error(f"Error saving check-in settings for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save check-in settings: {str(e)}")
     
+    @handle_errors("getting checkin settings", default_return={})
     def get_checkin_settings(self):
         """Get the current check-in settings."""
-        return self.checkin_widget.get_checkin_settings()
+        try:
+            return self.checkin_widget.get_checkin_settings()
+        except Exception as e:
+            logger.error(f"Error getting checkin settings: {e}")
+            return {}
     
+    @handle_errors("setting checkin settings", default_return=None)
     def set_checkin_settings(self, settings):
         """Set the check-in settings."""
-        self.checkin_widget.set_checkin_settings(settings) 
+        try:
+            self.checkin_widget.set_checkin_settings(settings)
+        except Exception as e:
+            logger.error(f"Error setting checkin settings: {e}")
+            raise 

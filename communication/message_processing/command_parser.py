@@ -37,13 +37,15 @@ class ParsingResult:
 class EnhancedCommandParser:
     """Enhanced command parser that combines rule-based and AI parsing"""
     
+    @handle_errors("initializing enhanced command parser")
     def __init__(self):
-        self.ai_chatbot = get_ai_chatbot()
-        self.interaction_handlers = get_all_handlers()
-        
-        # Rule-based patterns for common intents
-        self.intent_patterns = {
-            'create_task': [
+        try:
+            self.ai_chatbot = get_ai_chatbot()
+            self.interaction_handlers = get_all_handlers()
+            
+            # Rule-based patterns for common intents
+            self.intent_patterns = {
+                'create_task': [
                 r'create\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'add\s+(?:a\s+)?task\s+(?:to\s+)?(.+)',
                 r'new\s+task\s+(?:to\s+)?(.+)',
@@ -294,10 +296,13 @@ class EnhancedCommandParser:
             ],
         }
         
-        # Compile patterns for performance
-        self.compiled_patterns = {}
-        for intent, patterns in self.intent_patterns.items():
-            self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+            # Compile patterns for performance
+            self.compiled_patterns = {}
+            for intent, patterns in self.intent_patterns.items():
+                self.compiled_patterns[intent] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+        except Exception as e:
+            logger.error(f"Error initializing enhanced command parser: {e}")
+            raise
     
     
     @handle_errors("parsing command", default_return=ParsingResult(
@@ -576,234 +581,286 @@ class EnhancedCommandParser:
         
         return entities
     
+    @handle_errors("extracting task entities")
     def _extract_task_entities(self, title: str) -> Dict[str, Any]:
         """Extract task-related entities from title"""
-        entities = {}
-        
-        # Extract due date
-        due_patterns = [
-            r'tomorrow',
-            r'next\s+week',
-            r'next\s+month',
-            r'on\s+(\w+\s+\d+)',
-            r'by\s+(\w+\s+\d+)',
-        ]
-        
-        for pattern in due_patterns:
-            match = re.search(pattern, title, re.IGNORECASE)
-            if match:
-                entities['due_date'] = match.group(0)
-                break
-        
-        # Extract priority
-        priority_patterns = {
-            'high': [r'urgent', r'asap', r'important', r'critical'],
-            'low': [r'low\s+priority', r'when\s+convenient', r'no\s+rush'],
-        }
-        
-        for priority, patterns in priority_patterns.items():
-            for pattern in patterns:
-                if re.search(pattern, title, re.IGNORECASE):
-                    entities['priority'] = priority
+        try:
+            entities = {}
+            
+            # Extract due date
+            due_patterns = [
+                r'tomorrow',
+                r'next\s+week',
+                r'next\s+month',
+                r'on\s+(\w+\s+\d+)',
+                r'by\s+(\w+\s+\d+)',
+            ]
+            
+            for pattern in due_patterns:
+                match = re.search(pattern, title, re.IGNORECASE)
+                if match:
+                    entities['due_date'] = match.group(0)
                     break
+            
+            # Extract priority
+            priority_patterns = {
+                'high': [r'urgent', r'asap', r'important', r'critical'],
+                'low': [r'low\s+priority', r'when\s+convenient', r'no\s+rush'],
+            }
         
-        return entities
-    
+            for priority, patterns in priority_patterns.items():
+                for pattern in patterns:
+                    if re.search(pattern, title, re.IGNORECASE):
+                        entities['priority'] = priority
+                        break
+            
+            return entities
+        except Exception as e:
+            logger.error(f"Error extracting task entities: {e}")
+            return {}
+
+    @handle_errors("extracting task name from context")
     def _extract_task_name_from_context(self, message: str) -> Optional[str]:
         """Extract task name from natural language context"""
-        # Look for patterns like "I brushed my teeth" -> extract "teeth" or "brush teeth"
-        patterns = [
-            r'i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now|\s*,?\s*we\s+can\s+complete|\s*,?\s*so\s+we\s+can\s+complete)',
-        ]
-        
-        for pattern in patterns:
-            match = re.search(pattern, message.lower())
-            if match:
-                task_name = match.group(1).strip()
-                return task_name
-        
-        return None
-    
+        try:
+            # Look for patterns like "I brushed my teeth" -> extract "teeth" or "brush teeth"
+            patterns = [
+                r'i\s+(?:just\s+)?(?:brushed|washed|cleaned|did|completed|finished)\s+(?:my\s+)?(.+?)(?:\s+today|\s+now|\s+just\s+now|\s*,?\s*we\s+can\s+complete|\s*,?\s*so\s+we\s+can\s+complete)',
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, message.lower())
+                if match:
+                    task_name = match.group(1).strip()
+                    return task_name
+            
+            return None
+        except Exception as e:
+            logger.error(f"Error extracting task name from context: {e}")
+            return None
+
+    @handle_errors("extracting update entities")
     def _extract_update_entities(self, update_text: str) -> Dict[str, Any]:
         """Extract update entities from update text"""
-        entities = {}
-        
-        # Extract priority
-        if re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE):
-            match = re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE)
-            entities['priority'] = match.group(1)
-        
-        # Extract due date (support 'due ...' and 'due date ...')
-        due_match = re.search(r'(?:due\s+date|due)\s+(.+)', update_text, re.IGNORECASE)
-        if due_match:
-            entities['due_date'] = due_match.group(1)
-        
-        return entities
-    
+        try:
+            entities = {}
+            
+            # Extract priority
+            if re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE):
+                match = re.search(r'priority\s+(high|medium|low)', update_text, re.IGNORECASE)
+                entities['priority'] = match.group(1)
+            
+            # Extract due date (support 'due ...' and 'due date ...')
+            due_match = re.search(r'(?:due\s+date|due)\s+(.+)', update_text, re.IGNORECASE)
+            if due_match:
+                entities['due_date'] = due_match.group(1)
+            
+            return entities
+        except Exception as e:
+            logger.error(f"Error extracting update entities: {e}")
+            return {}
+
+    @handle_errors("extracting intent from AI response")
     def _extract_intent_from_ai_response(self, ai_response: str) -> Optional[str]:
         """Extract intent from AI response text"""
-        # Map common AI response patterns to intents
-        intent_mappings = {
-            'create task': 'create_task',
-            'list tasks': 'list_tasks',
-            'complete task': 'complete_task',
-            'delete task': 'delete_task',
-            'update task': 'update_task',
-            'task stats': 'task_stats',
-            'start checkin': 'start_checkin',
-            'checkin status': 'checkin_status',
-            'show profile': 'show_profile',
-            'update profile': 'update_profile',
-            'profile stats': 'profile_stats',
-            'help': 'help',
-            'commands': 'commands',
-            'examples': 'examples',
-        }
+        try:
+            # Map common AI response patterns to intents
+            intent_mappings = {
+                'create task': 'create_task',
+                'list tasks': 'list_tasks',
+                'complete task': 'complete_task',
+                'delete task': 'delete_task',
+                'update task': 'update_task',
+                'task stats': 'task_stats',
+                'start checkin': 'start_checkin',
+                'checkin status': 'checkin_status',
+                'show profile': 'show_profile',
+                'update profile': 'update_profile',
+                'profile stats': 'profile_stats',
+                'help': 'help',
+                'commands': 'commands',
+                'examples': 'examples',
+            }
         
-        ai_response_lower = ai_response.lower()
-        for pattern, intent in intent_mappings.items():
-            if pattern in ai_response_lower:
-                return intent
-        
-        return None
-    
+            ai_response_lower = ai_response.lower()
+            for pattern, intent in intent_mappings.items():
+                if pattern in ai_response_lower:
+                    return intent
+            
+            return None
+        except Exception as e:
+            logger.error(f"Error extracting intent from AI response: {e}")
+            return None
+
+    @handle_errors("extracting entities from AI response")
     def _extract_entities_from_ai_response(self, ai_response: str) -> Dict[str, Any]:
         """Extract entities from AI response text"""
-        entities = {}
-        
-        # Extract task title in quotes
-        title_match = re.search(r'"([^"]+)"', ai_response)
-        if title_match:
-            entities['title'] = title_match.group(1)
-        
-        # Extract task number
-        number_match = re.search(r'task\s+(\d+)', ai_response)
-        if number_match:
-            entities['task_identifier'] = number_match.group(1)
-        
-        return entities
-    
+        try:
+            entities = {}
+            
+            # Extract task title in quotes
+            title_match = re.search(r'"([^"]+)"', ai_response)
+            if title_match:
+                entities['title'] = title_match.group(1)
+            
+            # Extract task number
+            number_match = re.search(r'task\s+(\d+)', ai_response)
+            if number_match:
+                entities['task_identifier'] = number_match.group(1)
+            
+            return entities
+        except Exception as e:
+            logger.error(f"Error extracting entities from AI response: {e}")
+            return {}
+
     @handle_errors("calculating confidence score")
     def _calculate_confidence(self, intent: str, match: re.Match, message: str) -> float:
         """Calculate confidence score for a parsed command"""
-        base_confidence = 0.8
+        try:
+            base_confidence = 0.8
+            
+            # Boost confidence for exact matches
+            if match.group(0).lower() == message.lower().strip():
+                base_confidence = 1.0
+            
+            # Boost confidence for specific intents
+            high_confidence_intents = ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']
+            if intent in high_confidence_intents:
+                base_confidence = min(1.0, base_confidence + 0.1)
+            
+            # Reduce confidence for very short matches
+            if len(match.group(0)) < 5:
+                base_confidence *= 0.8
+            
+            # Boost confidence for question marks (indicates intent)
+            if '?' in message:
+                base_confidence = min(1.0, base_confidence + 0.1)
         
-        # Boost confidence for exact matches
-        if match.group(0).lower() == message.lower().strip():
-            base_confidence = 1.0
-        
-        # Boost confidence for specific intents
-        high_confidence_intents = ['help', 'commands', 'examples', 'checkin_history', 'completion_rate', 'task_weekly_stats']
-        if intent in high_confidence_intents:
-            base_confidence = min(1.0, base_confidence + 0.1)
-        
-        # Reduce confidence for very short matches
-        if len(match.group(0)) < 5:
-            base_confidence *= 0.8
-        
-        # Boost confidence for question marks (indicates intent)
-        if '?' in message:
-            base_confidence = min(1.0, base_confidence + 0.1)
-        
-        return min(1.0, base_confidence)
+            return min(1.0, base_confidence)
+        except Exception as e:
+            logger.error(f"Error calculating confidence score: {e}")
+            return 0.5
     
     @handle_errors("checking if intent is valid")
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
-        for handler in self.interaction_handlers.values():
-            if handler.can_handle(intent):
-                return True
-        return False
+        try:
+            for handler in self.interaction_handlers.values():
+                if handler.can_handle(intent):
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error checking if intent is valid: {e}")
+            return False
     
     @handle_errors("getting command suggestions")
     def get_suggestions(self, partial_message: str) -> List[str]:
         """Get command suggestions based on partial input"""
-        suggestions = []
-        
-        if not partial_message:
-            # General suggestions
-            suggestions = [
-                "Create a task to call mom tomorrow",
-                "Show me my tasks",
-                "Start a check-in",
-                "Show my analytics",
-                "Show my schedule"
-            ]
-        else:
-            partial_lower = partial_message.lower()
+        try:
+            suggestions = []
             
-            # Task-related suggestions
-            if any(word in partial_lower for word in ['task', 'todo', 'remind']):
+            if not partial_message:
+                # General suggestions
                 suggestions = [
                     "Create a task to call mom tomorrow",
                     "Show me my tasks",
-                    "Complete task 1",
-                    "Delete task 2",
-                    "Update task 1 priority high"
-                ]
-            
-            # Check-in suggestions
-            elif any(word in partial_lower for word in ['check', 'mood', 'feel']):
-                suggestions = [
                     "Start a check-in",
-                    "Show my check-in history",
-                    "How am I doing this week?",
-                    "Mood trends for 7 days"
-                ]
-            
-            # Profile suggestions
-            elif any(word in partial_lower for word in ['profile', 'name', 'pronoun']):
-                suggestions = [
-                    "Show my profile",
-                    "Update my name to Julie",
-                    "Update my gender identity to Non-binary",
-                    "Show my statistics"
-                ]
-            
-            # Schedule suggestions
-            elif any(word in partial_lower for word in ['schedule', 'time', 'when', 'reminder']):
-                suggestions = [
-                    "Show my schedule",
-                    "Schedule status",
-                    "Enable my task schedule",
-                    "Add a new period called morning to my task schedule from 9am to 11am"
-                ]
-            
-            # Analytics suggestions
-            elif any(word in partial_lower for word in ['analytics', 'trend', 'analysis', 'how am i doing', 'progress']):
-                suggestions = [
                     "Show my analytics",
-                    "Mood trends for 7 days",
-                    "Habit analysis",
-                    "Sleep analysis",
-                    "Wellness score"
+                    "Show my schedule"
                 ]
+            else:
+                partial_lower = partial_message.lower()
+                
+                # Task-related suggestions
+                if any(word in partial_lower for word in ['task', 'todo', 'remind']):
+                    suggestions = [
+                        "Create a task to call mom tomorrow",
+                        "Show me my tasks",
+                        "Complete task 1",
+                        "Delete task 2",
+                        "Update task 1 priority high"
+                    ]
+                
+                # Check-in suggestions
+                elif any(word in partial_lower for word in ['check', 'mood', 'feel']):
+                    suggestions = [
+                        "Start a check-in",
+                        "Show my check-in history",
+                        "How am I doing this week?",
+                        "Mood trends for 7 days"
+                    ]
+                
+                # Profile suggestions
+                elif any(word in partial_lower for word in ['profile', 'name', 'pronoun']):
+                    suggestions = [
+                        "Show my profile",
+                        "Update my name to Julie",
+                        "Update my gender identity to Non-binary",
+                        "Show my statistics"
+                    ]
+                
+                # Schedule suggestions
+                elif any(word in partial_lower for word in ['schedule', 'time', 'when', 'reminder']):
+                    suggestions = [
+                        "Show my schedule",
+                        "Schedule status",
+                        "Enable my task schedule",
+                        "Add a new period called morning to my task schedule from 9am to 11am"
+                    ]
+                
+                # Analytics suggestions
+                elif any(word in partial_lower for word in ['analytics', 'trend', 'analysis', 'how am i doing', 'progress']):
+                    suggestions = [
+                        "Show my analytics",
+                        "Mood trends for 7 days",
+                        "Habit analysis",
+                        "Sleep analysis",
+                        "Wellness score"
+                        ]
+                
+                # Help suggestions
+                elif any(word in partial_lower for word in ['help', 'how', 'what']):
+                    suggestions = [
+                        "Help with tasks",
+                        "Help with check-ins",
+                        "Help with profile",
+                        "Help with schedule",
+                        "Help with analytics",
+                        "Show available commands",
+                        "Show examples"
+                    ]
             
-            # Help suggestions
-            elif any(word in partial_lower for word in ['help', 'how', 'what']):
-                suggestions = [
-                    "Help with tasks",
-                    "Help with check-ins",
-                    "Help with profile",
-                    "Help with schedule",
-                    "Help with analytics",
-                    "Show available commands",
-                    "Show examples"
-                ]
-        
-        return suggestions[:5]  # Limit to 5 suggestions
+            return suggestions[:5]  # Limit to 5 suggestions
+        except Exception as e:
+            logger.error(f"Error getting command suggestions: {e}")
+            return ["Help", "Show my tasks", "Start a check-in"]
 
 # Global instance
 _parser_instance = None
 
+@handle_errors("getting enhanced command parser")
 def get_enhanced_command_parser() -> EnhancedCommandParser:
     """Get the global enhanced command parser instance"""
-    global _parser_instance
-    if _parser_instance is None:
-        _parser_instance = EnhancedCommandParser()
-    return _parser_instance
+    try:
+        global _parser_instance
+        if _parser_instance is None:
+            _parser_instance = EnhancedCommandParser()
+        return _parser_instance
+    except Exception as e:
+        logger.error(f"Error getting enhanced command parser: {e}")
+        raise
 
+@handle_errors("parsing command", default_return=ParsingResult(
+    ParsedCommand("unknown", {}, 0.0, ""), 0.0, "fallback"
+))
 def parse_command(message: str) -> ParsingResult:
     """Convenience function to parse a command"""
-    parser = get_enhanced_command_parser()
-    return parser.parse(message) 
+    try:
+        parser = get_enhanced_command_parser()
+        return parser.parse(message)
+    except Exception as e:
+        logger.error(f"Error parsing command: {e}")
+        return ParsingResult(
+            ParsedCommand("unknown", {}, 0.0, message),
+            0.0, "fallback"
+        ) 

@@ -35,18 +35,20 @@ class CommandDefinition:
 class InteractionManager:
     """Main manager for handling user interactions across all channels"""
     
+    @handle_errors("initializing interaction manager")
     def __init__(self):
-        self.command_parser = get_enhanced_command_parser()
-        self.ai_chatbot = get_ai_chatbot()
-        self.interaction_handlers = get_all_handlers()
-        
-        # Configuration
-        self.min_command_confidence = 0.3  # Lowered from 0.6 to catch more commands
-        self.enable_ai_enhancement = True   # Enable AI enhancement for better command parsing
-        self.fallback_to_chat = True        # Whether to fall back to contextual chat
-
-        # Channel-agnostic command definitions for discoverability across channels
-        self._command_definitions: List[CommandDefinition] = [
+        try:
+            self.command_parser = get_enhanced_command_parser()
+            self.ai_chatbot = get_ai_chatbot()
+            self.interaction_handlers = get_all_handlers()
+            
+            # Configuration
+            self.min_command_confidence = 0.3  # Lowered from 0.6 to catch more commands
+            self.enable_ai_enhancement = True   # Enable AI enhancement for better command parsing
+            self.fallback_to_chat = True        # Whether to fall back to contextual chat
+            
+            # Channel-agnostic command definitions for discoverability across channels
+            self._command_definitions: List[CommandDefinition] = [
             CommandDefinition("tasks", "show my tasks", "Show your tasks", is_flow=False),
             CommandDefinition("profile", "show profile", "Show your profile", is_flow=False),
             CommandDefinition("schedule", "show schedule", "Show your schedules", is_flow=False),
@@ -58,10 +60,13 @@ class InteractionManager:
             CommandDefinition("restart", "restart checkin", "Restart check-in (clears current)", is_flow=True),
             CommandDefinition("clear", "clear flows", "Clear stuck conversation flows", is_flow=True),
             CommandDefinition("cancel", "/cancel", "Cancel current flow", is_flow=False),
-        ]
+            ]
 
-        # Build the legacy map for quick lookup, derived from definitions
-        self.slash_command_map = {f"/{c.name}": c.mapped_message for c in self._command_definitions}
+            # Build the legacy map for quick lookup, derived from definitions
+            self.slash_command_map = {f"/{c.name}": c.mapped_message for c in self._command_definitions}
+        except Exception as e:
+            logger.error(f"Error initializing interaction manager: {e}")
+            raise
     
     @handle_errors("handling user interaction", default_return=InteractionResponse(
         "I'm having trouble processing your request right now. Please try again in a moment.", True
@@ -199,21 +204,31 @@ class InteractionManager:
         logger.debug("No fallback to chat, returning help")
         return self._get_help_response(user_id, message)
 
+    @handle_errors("getting slash command map")
     def get_slash_command_map(self) -> dict:
         """Expose slash command mappings without coupling callers to internals.
         Returns a dict like {'tasks': 'show my tasks', ...} suitable for Discord registration.
         """
-        result = {}
-        for c in self._command_definitions:
-            result[c.name] = c.mapped_message
-        return result
+        try:
+            result = {}
+            for c in self._command_definitions:
+                result[c.name] = c.mapped_message
+            return result
+        except Exception as e:
+            logger.error(f"Error getting slash command map: {e}")
+            return {}
 
+    @handle_errors("getting command definitions")
     def get_command_definitions(self) -> List[Dict[str, str]]:
         """Return canonical command definitions: name, mapped_message, description."""
-        return [
-            {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
-            for c in self._command_definitions
-        ]
+        try:
+            return [
+                {"name": c.name, "mapped_message": c.mapped_message, "description": c.description}
+                for c in self._command_definitions
+            ]
+        except Exception as e:
+            logger.error(f"Error getting command definitions: {e}")
+            return []
     
     def _handle_structured_command(self, user_id: str, parsing_result: ParsingResult, channel_type: str) -> InteractionResponse:
         """Handle a structured command using interaction handlers"""
@@ -477,16 +492,22 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         
         return suggestions[:5]  # Limit to 5 suggestions
 
+    @handle_errors("checking if AI response is command")
     def _is_ai_command_response(self, ai_response: str) -> bool:
         """Check if AI response indicates this was a command"""
-        # Look for JSON structure or command indicators
-        if ai_response.strip().startswith('{') and ai_response.strip().endswith('}'):
-            return True
-        
-        # Look for command action keywords
-        command_indicators = ['action', 'intent', 'command', 'task', 'checkin', 'profile', 'schedule']
-        return any(indicator in ai_response.lower() for indicator in command_indicators)
+        try:
+            # Look for JSON structure or command indicators
+            if ai_response.strip().startswith('{') and ai_response.strip().endswith('}'):
+                return True
+            
+            # Look for command action keywords
+            command_indicators = ['action', 'intent', 'command', 'task', 'checkin', 'profile', 'schedule']
+            return any(indicator in ai_response.lower() for indicator in command_indicators)
+        except Exception as e:
+            logger.error(f"Error checking if AI response is command: {e}")
+            return False
     
+    @handle_errors("parsing AI command response")
     def _parse_ai_command_response(self, ai_response: str, original_message: str) -> Optional[ParsedCommand]:
         """Parse AI command response into ParsedCommand"""
         try:
@@ -514,12 +535,14 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             
             return None
         except Exception as e:
-            logger.debug(f"Failed to parse AI command response: {e}")
+            logger.error(f"Error parsing AI command response: {e}")
             return None
     
+    @handle_errors("checking if AI response is clarification request")
     def _is_clarification_request(self, ai_response: str) -> bool:
         """Check if AI response is asking for clarification"""
-        clarification_indicators = [
+        try:
+            clarification_indicators = [
             'could you clarify', 'can you clarify', 'please clarify',
             'what do you mean', 'could you be more specific',
             'are you asking', 'do you want', 'would you like',
@@ -527,13 +550,18 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             'which one', 'what type', 'when', 'how'
         ]
         
-        response_lower = ai_response.lower()
-        return any(indicator in response_lower for indicator in clarification_indicators)
+            response_lower = ai_response.lower()
+            return any(indicator in response_lower for indicator in clarification_indicators)
+        except Exception as e:
+            logger.error(f"Error checking if AI response is clarification request: {e}")
+            return False
     
+    @handle_errors("extracting intent from text")
     def _extract_intent_from_text(self, text: str) -> Optional[str]:
         """Extract intent from AI text response"""
-        # Map common AI response patterns to intents
-        intent_mappings = {
+        try:
+            # Map common AI response patterns to intents
+            intent_mappings = {
             'create task': 'create_task',
             'list tasks': 'list_tasks',
             'complete task': 'complete_task',
@@ -557,20 +585,29 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             'examples': 'examples',
         }
         
-        text_lower = text.lower()
-        for pattern, intent in intent_mappings.items():
-            if pattern in text_lower:
-                return intent
-        
-        return None
+            text_lower = text.lower()
+            for pattern, intent in intent_mappings.items():
+                if pattern in text_lower:
+                    return intent
+            
+            return None
+        except Exception as e:
+            logger.error(f"Error extracting intent from text: {e}")
+            return None
     
+    @handle_errors("checking if intent is valid")
     def _is_valid_intent(self, intent: str) -> bool:
         """Check if intent is supported by any handler"""
-        for handler in self.interaction_handlers.values():
-            if handler.can_handle(intent):
-                return True
-        return False
+        try:
+            for handler in self.interaction_handlers.values():
+                if handler.can_handle(intent):
+                    return True
+            return False
+        except Exception as e:
+            logger.error(f"Error checking if intent is valid: {e}")
+            return False
 
+    @handle_errors("trying AI command parsing")
     def _try_ai_command_parsing(self, user_id: str, message: str, channel_type: str) -> Optional[InteractionResponse]:
         """Attempt to parse ambiguous messages using AI command parsing."""
         try:
@@ -610,21 +647,36 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
                         ParsingResult(parsed_command, 0.6, "ai_command_clarified"), channel_type)
                         
         except Exception as e:
-            logger.debug(f"AI command parsing failed: {e}")
+            logger.error(f"Error trying AI command parsing: {e}")
         
         return None
 
 # Global instance
 _interaction_manager_instance = None
 
+@handle_errors("getting interaction manager")
 def get_interaction_manager() -> InteractionManager:
     """Get the global interaction manager instance"""
-    global _interaction_manager_instance
-    if _interaction_manager_instance is None:
-        _interaction_manager_instance = InteractionManager()
-    return _interaction_manager_instance
+    try:
+        global _interaction_manager_instance
+        if _interaction_manager_instance is None:
+            _interaction_manager_instance = InteractionManager()
+        return _interaction_manager_instance
+    except Exception as e:
+        logger.error(f"Error getting interaction manager: {e}")
+        raise
 
+@handle_errors("handling user message", default_return=InteractionResponse(
+    "I'm having trouble processing your request right now. Please try again in a moment.", True
+))
 def handle_user_message(user_id: str, message: str, channel_type: str = "discord") -> InteractionResponse:
     """Convenience function to handle a user message"""
-    manager = get_interaction_manager()
-    return manager.handle_message(user_id, message, channel_type) 
+    try:
+        manager = get_interaction_manager()
+        return manager.handle_message(user_id, message, channel_type)
+    except Exception as e:
+        logger.error(f"Error handling user message: {e}")
+        return InteractionResponse(
+            "I'm having trouble processing your request right now. Please try again in a moment.",
+            True
+        ) 

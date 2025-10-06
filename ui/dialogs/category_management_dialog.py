@@ -13,32 +13,37 @@ dialog_logger = logger
 
 class CategoryManagementDialog(QDialog):
     user_changed = Signal()
+    @handle_errors("initializing category management dialog", default_return=None)
     def __init__(self, parent=None, user_id=None):
         """Initialize the object."""
-        super().__init__(parent)
-        self.user_id = user_id
-        self.setWindowTitle("Category Settings")
-        self.ui = Ui_Dialog_category_management()
-        self.ui.setupUi(self)
-        # Add the category widget to the group box layout
-        self.category_widget = CategorySelectionWidget(self)
-        layout = self.ui.groupBox_select_categories.layout()
-        # Remove any existing widgets
-        while layout.count():
-            item = layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.setParent(None)
-        layout.addWidget(self.category_widget)
-        
-        # Connect checkbox to enable/disable category selection
-        self.ui.groupBox_enable_automated_messages.toggled.connect(self.on_enable_messages_toggled)
-        
-        # Connect Save/Cancel
-        self.ui.buttonBox_save_cancel.accepted.connect(self.save_category_settings)
-        self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
-        # Load user's current categories
-        self.load_user_category_data()
+        try:
+            super().__init__(parent)
+            self.user_id = user_id
+            self.setWindowTitle("Category Settings")
+            self.ui = Ui_Dialog_category_management()
+            self.ui.setupUi(self)
+            # Add the category widget to the group box layout
+            self.category_widget = CategorySelectionWidget(self)
+            layout = self.ui.groupBox_select_categories.layout()
+            # Remove any existing widgets
+            while layout.count():
+                item = layout.takeAt(0)
+                w = item.widget()
+                if w:
+                    w.setParent(None)
+            layout.addWidget(self.category_widget)
+            
+            # Connect checkbox to enable/disable category selection
+            self.ui.groupBox_enable_automated_messages.toggled.connect(self.on_enable_messages_toggled)
+            
+            # Connect Save/Cancel
+            self.ui.buttonBox_save_cancel.accepted.connect(self.save_category_settings)
+            self.ui.buttonBox_save_cancel.rejected.connect(self.reject)
+            # Load user's current categories
+            self.load_user_category_data()
+        except Exception as e:
+            logger.error(f"Error initializing category management dialog: {e}")
+            raise
 
     @handle_errors("loading user category data", default_return=None)
     def load_user_category_data(self):
@@ -68,10 +73,15 @@ class CategoryManagementDialog(QDialog):
             self.ui.groupBox_enable_automated_messages.setChecked(True)
             self.on_enable_messages_toggled(True)
 
+    @handle_errors("toggling automated messages", default_return=None)
     def on_enable_messages_toggled(self, checked):
         """Handle enable automated messages checkbox toggle."""
-        # Enable/disable the category selection group box
-        self.ui.groupBox_select_categories.setEnabled(checked)
+        try:
+            # Enable/disable the category selection group box
+            self.ui.groupBox_select_categories.setEnabled(checked)
+        except Exception as e:
+            logger.error(f"Error toggling automated messages: {e}")
+            raise
 
     @handle_errors("saving category settings", default_return=False)
     def save_category_settings(self):
@@ -140,8 +150,18 @@ class CategoryManagementDialog(QDialog):
             logger.error(f"Error saving category settings for user {self.user_id}: {e}")
             QMessageBox.critical(self, "Error", f"Failed to save categories: {str(e)}")
 
+    @handle_errors("getting selected categories", default_return=[])
     def get_selected_categories(self):
-        return self.category_widget.get_selected_categories()
+        try:
+            return self.category_widget.get_selected_categories()
+        except Exception as e:
+            logger.error(f"Error getting selected categories: {e}")
+            return []
 
+    @handle_errors("setting selected categories", default_return=None)
     def set_selected_categories(self, categories):
-        self.category_widget.set_selected_categories(categories) 
+        try:
+            self.category_widget.set_selected_categories(categories)
+        except Exception as e:
+            logger.error(f"Error setting selected categories: {e}")
+            raise 

@@ -5,6 +5,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .coverage
 |   .env
 |   .gitattributes
 |   .gitignore
@@ -18,18 +19,28 @@ C:.
 |   QUICK_REFERENCE.md
 |   README.md
 |   requirements.txt
+|   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
+|   shutdown_request.flag
 |   TODO.md
 |   
 +---.cursor
 |   +---commands
 |   |       audit.md
+|   |       close.md
 |   |       docs.md
+|   |       explore-options.md
+|   |       full-audit.md
+|   |       git.md
+|   |       improve-system.md
 |   |       README.md
+|   |       refactor.md
 |   |       review.md
+|   |       start.md
 |   |       status.md
 |   |       test.md
+|   |       triage-issue.md
 |   |       
 |   \---rules
 |           audit.mdc
@@ -55,13 +66,15 @@ C:.
 +---ai_development_docs
 |       AI_ARCHITECTURE.md
 |       AI_CHANGELOG.md
-|       AI_CHANGELOG_ARCHIVE.md
 |       AI_DEVELOPMENT_WORKFLOW.md
 |       AI_DOCUMENTATION_GUIDE.md
+|       AI_ERROR_HANDLING_GUIDE.md
 |       AI_FUNCTION_REGISTRY.md
+|       AI_LOGGING_GUIDE.md
 |       AI_MODULE_DEPENDENCIES.md
 |       AI_REFERENCE.md
 |       AI_SESSION_STARTER.md
+|       AI_TESTING_GUIDE.md
 |       
 +---ai_development_tools
 |   |   ai_audit_detailed_results.json
@@ -79,6 +92,7 @@ C:.
 |   |   coverage.json
 |   |   decision_support.py
 |   |   documentation_sync_checker.py
+|   |   error_handling_coverage.py
 |   |   file_rotation.py
 |   |   function_discovery.py
 |   |   generate_function_registry.py
@@ -91,6 +105,7 @@ C:.
 |   |   tool_guide.py
 |   |   validate_ai_work.py
 |   |   version_sync.py
+|   |   __init__.py
 |   |   
 |   +---archive
     (archived files)
@@ -119,6 +134,7 @@ C:.
 |   |   ERROR_HANDLING_GUIDE.md
 |   |   file_auditor.py
 |   |   file_operations.py
+|   |   headless_service.py
 |   |   logger.py
 |   |   message_management.py
 |   |   response_tracking.py
@@ -152,10 +168,14 @@ C:.
 |       MODULE_DEPENDENCIES_DETAIL.md
 |       PLANS.md
 |       TEST_COVERAGE_EXPANSION_PLAN.md
+|       UI_COMPONENT_TESTING_STRATEGY.md
 |       
++---htmlcov
+    (HTML coverage reports)
 +---logs
 |   |   .last_cache_cleanup
 |   |   ai.log
+|   |   analytics.log
 |   |   app.log
 |   |   backup.log
 |   |   checkin_dynamic.log
@@ -292,58 +312,15 @@ C:.
 |   \---__pycache__
     (Python cache files)
 +---tests
-|   |   .coverage
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   MANUAL_TESTING_GUIDE.md
-|   |   README.md
+|   |   TESTING_GUIDE.md
 |   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
-|   +---behavior
-|   |   |   test_account_management_real_behavior.py
-|   |   |   test_ai_chatbot_behavior.py
-|   |   |   test_ai_context_builder_behavior.py
-|   |   |   test_ai_context_builder_coverage_expansion.py
-|   |   |   test_ai_conversation_history_behavior.py
-|   |   |   test_auto_cleanup_behavior.py
-|   |   |   test_backup_manager_behavior.py
-|   |   |   test_checkin_analytics_behavior.py
-|   |   |   test_command_parser_coverage_expansion_phase3_simple.py
-|   |   |   test_communication_behavior.py
-|   |   |   test_communication_command_parser_behavior.py
-|   |   |   test_communication_factory_coverage_expansion.py
-|   |   |   test_communication_interaction_manager_behavior.py
-|   |   |   test_communication_manager_coverage_expansion.py
-|   |   |   test_config_coverage_expansion_phase3_simple.py
-|   |   |   test_conversation_behavior.py
-|   |   |   test_core_message_management_coverage_expansion.py
-|   |   |   test_core_service_coverage_expansion.py
-|   |   |   test_discord_bot_behavior.py
-|   |   |   test_dynamic_checkin_behavior.py
-|   |   |   test_email_bot_behavior.py
-|   |   |   test_enhanced_command_parser_behavior.py
-|   |   |   test_error_handling_coverage_expansion_phase3_final.py
-|   |   |   test_interaction_handlers_behavior.py
-|   |   |   test_interaction_handlers_coverage_expansion.py
-|   |   |   test_logger_behavior.py
-|   |   |   test_logger_coverage_expansion.py
-|   |   |   test_logger_coverage_expansion_phase3_simple.py
-|   |   |   test_message_behavior.py
-|   |   |   test_observability_logging.py
-|   |   |   test_response_tracking_behavior.py
-|   |   |   test_scheduler_behavior.py
-|   |   |   test_scheduler_coverage_expansion.py
-|   |   |   test_schedule_management_behavior.py
-|   |   |   test_service_behavior.py
-|   |   |   test_service_utilities_behavior.py
-|   |   |   test_static_logging_check.py
-|   |   |   test_task_behavior.py
-|   |   |   test_task_management_coverage_expansion.py
-|   |   |   test_ui_app_behavior.py
-|   |   |   test_user_context_behavior.py
-|   |   |   test_user_management_coverage_expansion.py
-|   |   |   test_utilities_demo.py
+|   +---ai
+|   |   |   test_cache_manager.py
 |   |   |   
 |   |   \---__pycache__
     (Python cache files)
@@ -380,6 +357,7 @@ C:.
 |   |   |   category_management_dialog.py
 |   |   |   channel_management_dialog.py
 |   |   |   checkin_management_dialog.py
+|   |   |   process_watcher_dialog.py
 |   |   |   schedule_editor_dialog.py
 |   |   |   task_completion_dialog.py
 |   |   |   task_crud_dialog.py

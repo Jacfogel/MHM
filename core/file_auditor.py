@@ -72,27 +72,37 @@ class FileAuditor:
     Auditor for tracking file creation and modification patterns.
     """
     
+    @handle_errors("initializing file auditor")
     def __init__(self):
-        # Use configurable directories instead of hardcoded paths
-        self._dirs = self._get_audit_directories()
-        self._created_files = []
-        self._modified_files = []
-        self._audit_data = {}
+        try:
+            # Use configurable directories instead of hardcoded paths
+            self._dirs = self._get_audit_directories()
+            self._created_files = []
+            self._modified_files = []
+            self._audit_data = {}
+        except Exception as e:
+            _logger.error(f"Error initializing file auditor: {e}")
+            raise
         
+    @handle_errors("getting audit directories")
     def _get_audit_directories(self):
         """Get configurable audit directories from environment or use defaults."""
-        env_dirs = os.getenv('FILE_AUDIT_DIRS')
-        if env_dirs:
-            return [d.strip() for d in env_dirs.split(',')]
-        else:
-            # Default directories - use configurable paths where possible
-            default_dirs = ['logs', 'data']
-            
-            # Add test directories if in testing environment
-            if os.getenv('MHM_TESTING') == '1':
-                default_dirs.extend(['tests/data', 'tests/logs'])
+        try:
+            env_dirs = os.getenv('FILE_AUDIT_DIRS')
+            if env_dirs:
+                return [d.strip() for d in env_dirs.split(',')]
+            else:
+                # Default directories - use configurable paths where possible
+                default_dirs = ['logs', 'data']
                 
-            return default_dirs
+                # Add test directories if in testing environment
+                if os.getenv('MHM_TESTING') == '1':
+                    default_dirs.extend(['tests/data', 'tests/logs'])
+                    
+                return default_dirs
+        except Exception as e:
+            _logger.error(f"Error getting audit directories: {e}")
+            return ['logs', 'data']  # Fallback to basic directories
     
     @handle_errors("starting file auditor", default_return=False)
     def start(self):

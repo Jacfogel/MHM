@@ -56,9 +56,14 @@ class ContextAnalysis:
 class ContextBuilder:
     """Builds comprehensive context for AI interactions"""
     
+    @handle_errors("initializing context builder")
     def __init__(self):
         """Initialize the context builder"""
-        pass
+        try:
+            pass
+        except Exception as e:
+            logger.error(f"Error initializing context builder: {e}")
+            raise
     
     @handle_errors("building user context", default_return=ContextData())
     def build_user_context(self, user_id: str, include_conversation_history: bool = True) -> ContextData:
@@ -176,99 +181,114 @@ class ContextBuilder:
             logger.error(f"Error analyzing context: {e}")
             return ContextAnalysis()
     
+    @handle_errors("determining trend", default_return="stable")
     def _determine_trend(self, values: List[float]) -> str:
         """Determine trend from a list of values"""
-        if len(values) < 3:
-            return "stable"
-        
-        # Simple trend analysis - compare first half to second half
-        mid_point = len(values) // 2
-        first_half = values[:mid_point]
-        second_half = values[mid_point:]
-        
-        first_avg = sum(first_half) / len(first_half)
-        second_avg = sum(second_half) / len(second_half)
-        
-        if second_avg > first_avg + 0.5:
-            return "improving"
-        elif second_avg < first_avg - 0.5:
-            return "declining"
-        else:
+        try:
+            if len(values) < 3:
+                return "stable"
+            
+            # Simple trend analysis - compare first half to second half
+            mid_point = len(values) // 2
+            first_half = values[:mid_point]
+            second_half = values[mid_point:]
+            
+            first_avg = sum(first_half) / len(first_half)
+            second_avg = sum(second_half) / len(second_half)
+            
+            if second_avg > first_avg + 0.5:
+                return "improving"
+            elif second_avg < first_avg - 0.5:
+                return "declining"
+            else:
+                return "stable"
+        except Exception as e:
+            logger.error(f"Error determining trend for values {values}: {e}")
             return "stable"
     
+    @handle_errors("calculating wellness score", default_return=0.0)
     def _calculate_wellness_score(self, breakfast_rate: float, avg_mood: Optional[float], 
                                  avg_energy: Optional[float], teeth_brushing_rate: float) -> float:
         """Calculate overall wellness score (0-100)"""
-        score = 0.0
-        factors = 0
-        
-        # Breakfast factor (25% weight)
-        if breakfast_rate > 0:
-            score += (breakfast_rate / 100) * 25
-            factors += 1
-        
-        # Mood factor (30% weight)
-        if avg_mood is not None:
-            score += (avg_mood / 5) * 30
-            factors += 1
-        
-        # Energy factor (30% weight)
-        if avg_energy is not None:
-            score += (avg_energy / 5) * 30
-            factors += 1
-        
-        # Teeth brushing factor (15% weight)
-        if teeth_brushing_rate > 0:
-            score += (teeth_brushing_rate / 100) * 15
-            factors += 1
-        
-        return score if factors > 0 else 0.0
+        try:
+            score = 0.0
+            factors = 0
+            
+            # Breakfast factor (25% weight)
+            if breakfast_rate > 0:
+                score += (breakfast_rate / 100) * 25
+                factors += 1
+            
+            # Mood factor (30% weight)
+            if avg_mood is not None:
+                score += (avg_mood / 5) * 30
+                factors += 1
+            
+            # Energy factor (30% weight)
+            if avg_energy is not None:
+                score += (avg_energy / 5) * 30
+                factors += 1
+            
+            # Teeth brushing factor (15% weight)
+            if teeth_brushing_rate > 0:
+                score += (teeth_brushing_rate / 100) * 15
+                factors += 1
+            
+            return score if factors > 0 else 0.0
+        except Exception as e:
+            logger.error(f"Error calculating wellness score: {e}")
+            return 0.0
     
+    @handle_errors("generating insights", default_return=[])
     def _generate_insights(self, breakfast_rate: float, avg_mood: Optional[float], 
                           avg_energy: Optional[float], teeth_brushing_rate: float,
                           mood_trend: str, energy_trend: str) -> List[str]:
         """Generate insights from analyzed data"""
-        insights = []
-        
-        # Breakfast insights
-        if breakfast_rate >= 80:
-            insights.append("excellent breakfast habits")
-        elif breakfast_rate >= 60:
-            insights.append("good breakfast consistency")
-        elif breakfast_rate <= 30:
-            insights.append("room for improvement in breakfast habits")
-        
-        # Mood insights
-        if avg_mood is not None:
-            if avg_mood >= 4:
-                insights.append("generally positive mood")
-            elif avg_mood <= 2:
-                insights.append("challenging mood patterns")
+        try:
+            insights = []
             
-            if mood_trend == "improving":
-                insights.append("mood is trending upward")
-            elif mood_trend == "declining":
-                insights.append("mood is trending downward")
-        
-        # Energy insights
-        if avg_energy is not None:
-            if avg_energy >= 4:
-                insights.append("good energy levels")
-            elif avg_energy <= 2:
-                insights.append("low energy patterns")
+            # Breakfast insights
+            if breakfast_rate >= 80:
+                insights.append("excellent breakfast habits")
+            elif breakfast_rate >= 60:
+                insights.append("good breakfast consistency")
+            elif breakfast_rate <= 30:
+                insights.append("room for improvement in breakfast habits")
             
-            if energy_trend == "improving":
-                insights.append("energy is trending upward")
-            elif energy_trend == "declining":
-                insights.append("energy is trending downward")
-        
-        # Teeth brushing insights
-        if teeth_brushing_rate >= 90:
-            insights.append("excellent dental hygiene")
-        elif teeth_brushing_rate <= 50:
-            insights.append("room for improvement in dental hygiene")
-        
-        return insights
+            # Mood insights
+            if avg_mood is not None:
+                if avg_mood >= 4:
+                    insights.append("generally positive mood")
+                elif avg_mood <= 2:
+                    insights.append("challenging mood patterns")
+                
+                if mood_trend == "improving":
+                    insights.append("mood is trending upward")
+                elif mood_trend == "declining":
+                    insights.append("mood is trending downward")
+            
+            # Energy insights
+            if avg_energy is not None:
+                if avg_energy >= 4:
+                    insights.append("good energy levels")
+                elif avg_energy <= 2:
+                    insights.append("low energy patterns")
+                
+                if energy_trend == "improving":
+                    insights.append("energy is trending upward")
+                elif energy_trend == "declining":
+                    insights.append("energy is trending downward")
+            
+            # Teeth brushing insights
+            if teeth_brushing_rate >= 90:
+                insights.append("excellent dental hygiene")
+            elif teeth_brushing_rate <= 50:
+                insights.append("room for improvement in dental hygiene")
+            
+            return insights
+        except Exception as e:
+            logger.error(f"Error generating insights: {e}")
+            return []
     
     @handle_errors("creating context prompt", default_return="")
     def create_context_prompt(self, context_data: ContextData, analysis: ContextAnalysis = None) -> str:
@@ -434,9 +454,14 @@ class ContextBuilder:
 # Global context builder instance
 _context_builder = None
 
+@handle_errors("getting context builder", default_return=None)
 def get_context_builder() -> ContextBuilder:
     """Get the global context builder instance"""
-    global _context_builder
-    if _context_builder is None:
-        _context_builder = ContextBuilder()
-    return _context_builder
+    try:
+        global _context_builder
+        if _context_builder is None:
+            _context_builder = ContextBuilder()
+        return _context_builder
+    except Exception as e:
+        logger.error(f"Error getting context builder: {e}")
+        return None
