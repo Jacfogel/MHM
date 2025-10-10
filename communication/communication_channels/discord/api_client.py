@@ -38,6 +38,7 @@ class SendMessageOptions:
 class DiscordAPIClient:
     """Discord API client for handling Discord-specific operations"""
     
+    @handle_errors("initializing Discord API client", default_return=None)
     def __init__(self, bot: discord.Client = None):
         """Initialize the Discord API client"""
         self.bot = bot
@@ -259,10 +260,12 @@ class DiscordAPIClient:
             logger.error(f"Error checking permissions in channel {channel_id}: {e}")
             return {perm: False for perm in permissions}
     
+    @handle_errors("checking Discord connection status", default_return=False)
     def is_connected(self) -> bool:
         """Check if the bot is connected to Discord"""
         return self.bot and not self.bot.is_closed()
     
+    @handle_errors("getting Discord connection latency", default_return=0.0)
     def get_connection_latency(self) -> float:
         """Get the bot's connection latency"""
         if not self.bot:
@@ -271,6 +274,7 @@ class DiscordAPIClient:
         return self.bot.latency
 
 # Factory function to get Discord API client
+@handle_errors("getting Discord API client", default_return=None)
 def get_discord_api_client(bot: discord.Client = None) -> DiscordAPIClient:
     """Get a Discord API client instance"""
     return DiscordAPIClient(bot)

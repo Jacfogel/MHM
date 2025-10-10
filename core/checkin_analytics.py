@@ -21,6 +21,7 @@ logger = get_component_logger('analytics')
 analytics_logger = get_component_logger('user_activity')
 
 class CheckinAnalytics:
+    @handle_errors("initializing checkin analytics", default_return=None)
     def __init__(self):
         """
         Initialize the CheckinAnalytics instance.

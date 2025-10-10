@@ -84,7 +84,7 @@ class FileAuditor:
             _logger.error(f"Error initializing file auditor: {e}")
             raise
         
-    @handle_errors("getting audit directories")
+    @handle_errors("getting audit directories", default_return=[])
     def _get_audit_directories(self):
         """Get configurable audit directories from environment or use defaults."""
         try:
@@ -104,12 +104,12 @@ class FileAuditor:
             _logger.error(f"Error getting audit directories: {e}")
             return ['logs', 'data']  # Fallback to basic directories
     
-    @handle_errors("starting file auditor", default_return=False)
+    @handle_errors("starting file auditor", default_return=None)
     def start(self):
         """Start the file auditor (no-op for now)."""
         return True
     
-    @handle_errors("stopping file auditor", default_return=False)
+    @handle_errors("stopping file auditor", default_return=None)
     def stop(self):
         """Stop the file auditor (no-op for now)."""
         return True

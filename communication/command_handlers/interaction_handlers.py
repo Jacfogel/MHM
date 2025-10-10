@@ -36,21 +36,25 @@ class InteractionHandler(ABC):
     """Abstract base class for interaction handlers"""
     
     @abstractmethod
+    @handle_errors("checking if can handle intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         """Check if this handler can handle the given intent"""
         pass
     
     @abstractmethod
+    @handle_errors("handling task management interaction", default_return=InteractionResponse("Error handling task management", "error"))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
         """Handle the interaction and return a response"""
         pass
     
     @abstractmethod
+    @handle_errors("getting help text", default_return="Help information not available")
     def get_help(self) -> str:
         """Get help text for this handler"""
         pass
     
     @abstractmethod
+    @handle_errors("getting examples", default_return=[])
     def get_examples(self) -> List[str]:
         """Get example commands for this handler"""
         pass
@@ -58,6 +62,7 @@ class InteractionHandler(ABC):
 class TaskManagementHandler(InteractionHandler):
     """Handler for task management interactions"""
     
+    @handle_errors("checking if can handle task intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['create_task', 'list_tasks', 'complete_task', 'delete_task', 'update_task', 'task_stats']
     
@@ -81,6 +86,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that task command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("creating task", default_return=InteractionResponse("I'm having trouble creating your task. Please try again.", True))
     def _handle_create_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task creation"""
         title = entities.get('title')
@@ -184,6 +190,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to create task. Please try again.", True)
     
+    @handle_errors("parsing relative date", default_return="")
     def _handle_create_task__parse_relative_date(self, date_str: str) -> str:
         """Convert relative date strings to proper dates"""
         from datetime import datetime, timedelta
@@ -210,6 +217,7 @@ class TaskManagementHandler(InteractionHandler):
             # Return as-is if it's already a proper date or unknown format
             return date_str
     
+    @handle_errors("listing tasks", default_return=InteractionResponse("I'm having trouble listing your tasks. Please try again.", True))
     def _handle_list_tasks(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task listing with enhanced filtering and details"""
         tasks = load_active_tasks(user_id)
@@ -250,6 +258,7 @@ class TaskManagementHandler(InteractionHandler):
             suggestions=suggestions if suggestions else None
         )
 
+    @handle_errors("applying task filters")
     def _handle_list_tasks__apply_filters(self, user_id, tasks, filter_type, priority_filter, tag_filter):
         """Apply filters to tasks and return filtered list."""
         filtered_tasks = tasks.copy()
@@ -274,6 +283,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return filtered_tasks
 
+    @handle_errors("generating no tasks response")
     def _handle_list_tasks__no_tasks_response(self, filter_type, priority_filter, tag_filter):
         """Get appropriate response when no tasks match filters."""
         if filter_type == 'due_soon':
@@ -289,6 +299,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("You have no active tasks. Great job staying on top of things! 🎉", True)
 
+    @handle_errors("sorting tasks")
     def _handle_list_tasks__sort_tasks(self, tasks):
         """Sort tasks by priority and due date."""
         priority_order = {'high': 0, 'medium': 1, 'low': 2}
@@ -297,6 +308,7 @@ class TaskManagementHandler(InteractionHandler):
             x.get('due_date') or '9999-12-31'  # Handle None due_date properly
         ))
 
+    @handle_errors("formatting task list")
     def _handle_list_tasks__format_list(self, tasks):
         """Format task list with enhanced details."""
         task_list = []
@@ -332,6 +344,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return task_list
 
+    @handle_errors("formatting due date")
     def _handle_list_tasks__format_due_date(self, due_date):
         """Format due date with urgency indicator."""
         if not due_date:
@@ -346,6 +359,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return f" (due: {due_date})"
 
+    @handle_errors("building filter info")
     def _handle_list_tasks__build_filter_info(self, filter_type, priority_filter, tag_filter):
         """Build filter information list."""
         filter_info = []
@@ -357,6 +371,7 @@ class TaskManagementHandler(InteractionHandler):
             filter_info.append(f"tag: {tag_filter}")
         return filter_info
 
+    @handle_errors("building task response")
     def _handle_list_tasks__build_response(self, task_list, filter_info, total_tasks):
         """Build the main task list response."""
         response = "**Your Active Tasks"
@@ -369,6 +384,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return response
 
+    @handle_errors("generating task suggestions")
     def _handle_list_tasks__generate_suggestions(self, tasks, filter_info):
         """Generate contextual suggestions based on current state."""
         suggestions = []
@@ -396,6 +412,7 @@ class TaskManagementHandler(InteractionHandler):
         # Limit to exactly 3 suggestions
         return suggestions[:3]
 
+    @handle_errors("getting task suggestion")
     def _handle_list_tasks__get_suggestion(self, tasks):
         """Get contextual show suggestion based on task analysis."""
         from datetime import datetime, timedelta
@@ -417,6 +434,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
 
+    @handle_errors("creating rich data for tasks")
     def _handle_list_tasks__create_rich_data(self, filter_info, tasks):
         """Create rich data for Discord embeds."""
         rich_data = {
@@ -456,6 +474,7 @@ class TaskManagementHandler(InteractionHandler):
         
         return rich_data
     
+    @handle_errors("completing task", default_return=InteractionResponse("I'm having trouble completing your task. Please try again.", True))
     def _handle_complete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task completion"""
         task_identifier = entities.get('task_identifier')
@@ -527,6 +546,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to complete task. Please try again.", True)
     
+    @handle_errors("deleting task", default_return=InteractionResponse("I'm having trouble deleting your task. Please try again.", True))
     def _handle_delete_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task deletion"""
         task_identifier = entities.get('task_identifier')
@@ -549,6 +569,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to delete task. Please try again.", True)
     
+    @handle_errors("updating task", default_return=InteractionResponse("I'm having trouble updating your task. Please try again.", True))
     def _handle_update_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task updates"""
         task_identifier = entities.get('task_identifier')
@@ -598,6 +619,7 @@ class TaskManagementHandler(InteractionHandler):
         else:
             return InteractionResponse("❌ Failed to update task. Please try again.", True)
     
+    @handle_errors("getting task statistics", default_return=InteractionResponse("I'm having trouble getting your task statistics. Please try again.", True))
     def _handle_task_stats(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle task statistics with dynamic time periods"""
         # Get time period information
@@ -881,9 +903,11 @@ class TaskManagementHandler(InteractionHandler):
         
         return None
     
+    @handle_errors("getting task help", default_return="Help with task management - create, list, complete, delete, and update tasks")
     def get_help(self) -> str:
         return "Help with task management - create, list, complete, delete, and update tasks"
     
+    @handle_errors("getting task examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "create task 'Call mom tomorrow'",
@@ -897,6 +921,7 @@ class TaskManagementHandler(InteractionHandler):
 class CheckinHandler(InteractionHandler):
     """Handler for check-in interactions"""
     
+    @handle_errors("checking if can handle checkin intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['start_checkin', 'continue_checkin', 'checkin_status']
     
@@ -914,6 +939,7 @@ class CheckinHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that check-in command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("starting check-in", default_return=InteractionResponse("I'm having trouble starting your check-in. Please try again.", True))
     def _handle_start_checkin(self, user_id: str) -> InteractionResponse:
         """Handle starting a check-in by delegating to conversation manager"""
         if not is_user_checkins_enabled(user_id):
@@ -958,6 +984,7 @@ class CheckinHandler(InteractionHandler):
                 True
             )
     
+    @handle_errors("continuing check-in", default_return=InteractionResponse("I'm having trouble continuing your check-in. Please try again.", True))
     def _handle_continue_checkin(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle continuing a check-in"""
         # This would integrate with the existing conversation manager
@@ -967,6 +994,7 @@ class CheckinHandler(InteractionHandler):
             True
         )
     
+    @handle_errors("getting check-in status", default_return=InteractionResponse("I'm having trouble getting your check-in status. Please try again.", True))
     def _handle_checkin_status(self, user_id: str) -> InteractionResponse:
         """Handle check-in status request"""
         if not is_user_checkins_enabled(user_id):
@@ -990,9 +1018,11 @@ class CheckinHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
     
+    @handle_errors("getting checkin help", default_return="Help with check-ins - start check-ins and view your status")
     def get_help(self) -> str:
         return "Help with check-ins - start check-ins and view your status"
     
+    @handle_errors("getting checkin examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "start checkin",
@@ -1003,6 +1033,7 @@ class CheckinHandler(InteractionHandler):
 class ProfileHandler(InteractionHandler):
     """Handler for profile management interactions"""
     
+    @handle_errors("checking if can handle profile intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['show_profile', 'update_profile', 'profile_stats']
     
@@ -1020,6 +1051,7 @@ class ProfileHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that profile command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("showing profile", default_return=InteractionResponse("I'm having trouble showing your profile. Please try again.", True))
     def _handle_show_profile(self, user_id: str) -> InteractionResponse:
         """Handle showing user profile with comprehensive personalization data"""
         # Load user data
@@ -1189,6 +1221,7 @@ class ProfileHandler(InteractionHandler):
             suggestions=["Update my name", "Add health conditions", "Update interests", "Show profile stats"]
         )
     
+    @handle_errors("updating profile", default_return=InteractionResponse("I'm having trouble updating your profile. Please try again.", True))
     def _handle_update_profile(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle comprehensive profile updates"""
         if not entities:
@@ -1326,6 +1359,7 @@ class ProfileHandler(InteractionHandler):
                 suggestions=["Update my name", "Add health conditions", "Update interests", "Add goals"]
             )
     
+    @handle_errors("getting profile statistics", default_return=InteractionResponse("I'm having trouble getting your profile statistics. Please try again.", True))
     def _handle_profile_stats(self, user_id: str) -> InteractionResponse:
         """Handle profile statistics"""
         # Get task stats
@@ -1342,9 +1376,11 @@ class ProfileHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
     
+    @handle_errors("getting profile help", default_return="Help with profile management - view and update your information")
     def get_help(self) -> str:
         return "Help with profile management - view and update your information"
     
+    @handle_errors("getting profile examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "show profile",
@@ -1361,9 +1397,11 @@ class ProfileHandler(InteractionHandler):
 class HelpHandler(InteractionHandler):
     """Handler for help and command information"""
     
+    @handle_errors("checking if can handle help intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['help', 'commands', 'examples', 'status', 'messages']
     
+    @handle_errors("handling help interaction", default_return=InteractionResponse("I'm having trouble with help right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
         intent = parsed_command.intent
         entities = parsed_command.entities
@@ -1381,6 +1419,7 @@ class HelpHandler(InteractionHandler):
         else:
             return InteractionResponse("I'm here to help! Try 'help' for general help or 'commands' for a list of commands.", True)
     
+    @handle_errors("handling general help", default_return=InteractionResponse("Error providing help", "error"))
     def _handle_general_help(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle general help request"""
         topic = entities.get('topic', 'general')
@@ -1449,6 +1488,7 @@ class HelpHandler(InteractionHandler):
                 True
             )
     
+    @handle_errors("handling commands list", default_return=InteractionResponse("Error listing commands", "error"))
     def _handle_commands_list(self, user_id: str) -> InteractionResponse:
         """Handle commands list request"""
         response = "**Complete Command List:**\n\n"
@@ -1507,6 +1547,7 @@ class HelpHandler(InteractionHandler):
         
         return InteractionResponse(response, True)
     
+    @handle_errors("handling examples", default_return=InteractionResponse("Error providing examples", "error"))
     def _handle_examples(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Handle examples request"""
         category = entities.get('category', 'general')
@@ -1700,9 +1741,11 @@ class HelpHandler(InteractionHandler):
                 True
             )
     
+    @handle_errors("getting help help", default_return="Get help and see available commands")
     def get_help(self) -> str:
         return "Get help and see available commands"
     
+    @handle_errors("getting help examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "help",
@@ -1716,6 +1759,7 @@ class HelpHandler(InteractionHandler):
 class ScheduleManagementHandler(InteractionHandler):
     """Handler for schedule management interactions"""
     
+    @handle_errors("checking if can handle schedule intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['show_schedule', 'update_schedule', 'schedule_status', 'add_schedule_period', 'edit_schedule_period']
     
@@ -1737,6 +1781,7 @@ class ScheduleManagementHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that schedule command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("showing schedule", default_return=InteractionResponse("I'm having trouble showing your schedule. Please try again.", True))
     def _handle_show_schedule(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show schedule for a specific category or all categories"""
         category = entities.get('category', 'all')
@@ -1839,6 +1884,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error showing schedule for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your schedule right now. Please try again.", True)
     
+    @handle_errors("updating schedule", default_return=InteractionResponse("I'm having trouble updating your schedule. Please try again.", True))
     def _handle_update_schedule(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Update schedule settings"""
         category = entities.get('category')
@@ -1880,6 +1926,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error updating schedule for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble updating your schedule right now. Please try again.", True)
     
+    @handle_errors("getting schedule status", default_return=InteractionResponse("I'm having trouble getting your schedule status. Please try again.", True))
     def _handle_schedule_status(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show status of schedules"""
         try:
@@ -1911,6 +1958,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error showing schedule status for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble checking your schedule status right now. Please try again.", True)
     
+    @handle_errors("adding schedule period", default_return=InteractionResponse("I'm having trouble adding your schedule period. Please try again.", True))
     def _handle_add_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Add a new schedule period with enhanced options"""
         category = entities.get('category')
@@ -1979,6 +2027,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error adding schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble adding the schedule period: {str(e)}", True)
     
+    @handle_errors("parsing time format")
     def _handle_add_schedule_period__parse_time_format(self, time_str: str) -> str:
         """Parse various time formats and convert to standard format"""
         if not time_str:
@@ -2011,6 +2060,7 @@ class ScheduleManagementHandler(InteractionHandler):
             
             return time_str
     
+    @handle_errors("parsing time format for edit")
     def _handle_edit_schedule_period__parse_time_format(self, time_str: str) -> str:
         """Parse various time formats and convert to standard format"""
         if not time_str:
@@ -2043,6 +2093,7 @@ class ScheduleManagementHandler(InteractionHandler):
             
             return time_str
     
+    @handle_errors("editing schedule period", default_return=InteractionResponse("I'm having trouble editing your schedule period. Please try again.", True))
     def _handle_edit_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Edit an existing schedule period with enhanced options"""
         category = entities.get('category')
@@ -2136,9 +2187,11 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error editing schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble editing the schedule period: {str(e)}", True)
     
+    @handle_errors("getting schedule help", default_return="Help with schedule management - manage your message, task, and check-in schedules")
     def get_help(self) -> str:
         return "Help with schedule management - manage your message, task, and check-in schedules"
     
+    @handle_errors("getting schedule examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "show schedule",
@@ -2155,6 +2208,7 @@ class ScheduleManagementHandler(InteractionHandler):
 class AnalyticsHandler(InteractionHandler):
     """Handler for analytics and insights interactions"""
     
+    @handle_errors("checking if can handle analytics intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'completion_rate', 'quant_summary']
     
@@ -2182,6 +2236,7 @@ class AnalyticsHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that analytics command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("showing analytics", default_return=InteractionResponse("I'm having trouble showing your analytics. Please try again.", True))
     def _handle_show_analytics(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show comprehensive analytics overview"""
         days = entities.get('days', 30)
@@ -2271,6 +2326,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error computing quantitative summaries for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble computing your quantitative summaries right now. Please try again.", True)
     
+    @handle_errors("showing mood trends", default_return=InteractionResponse("I'm having trouble showing your mood trends. Please try again.", True))
     def _handle_mood_trends(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show mood trends analysis"""
         days = entities.get('days', 30)
@@ -2308,6 +2364,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing mood trends for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your mood trends right now. Please try again.", True)
     
+    @handle_errors("showing habit analysis", default_return=InteractionResponse("I'm having trouble showing your habit analysis. Please try again.", True))
     def _handle_habit_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show habit analysis"""
         days = entities.get('days', 30)
@@ -2347,6 +2404,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing habit analysis for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your habit analysis right now. Please try again.", True)
     
+    @handle_errors("showing sleep analysis", default_return=InteractionResponse("I'm having trouble showing your sleep analysis. Please try again.", True))
     def _handle_sleep_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show sleep analysis"""
         days = entities.get('days', 30)
@@ -2382,6 +2440,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing sleep analysis for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your sleep analysis right now. Please try again.", True)
     
+    @handle_errors("showing wellness score", default_return=InteractionResponse("I'm having trouble showing your wellness score. Please try again.", True))
     def _handle_wellness_score(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show wellness score"""
         days = entities.get('days', 30)
@@ -2419,6 +2478,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing wellness score for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble calculating your wellness score right now. Please try again.", True)
     
+    @handle_errors("showing check-in history", default_return=InteractionResponse("I'm having trouble showing your check-in history. Please try again.", True))
     def _handle_checkin_history(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show check-in history"""
         days = entities.get('days', 30)
@@ -2446,6 +2506,7 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing check-in history for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your check-in history right now. Please try again.", True)
     
+    @handle_errors("showing completion rate", default_return=InteractionResponse("I'm having trouble showing your completion rate. Please try again.", True))
     def _handle_completion_rate(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show completion rate"""
         days = entities.get('days', 30)
@@ -2470,9 +2531,11 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing completion rate for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble calculating your completion rate right now. Please try again.", True)
     
+    @handle_errors("getting analytics help", default_return="Help with analytics - view analytics and insights about your wellness patterns")
     def get_help(self) -> str:
         return "Help with analytics - view analytics and insights about your wellness patterns"
     
+    @handle_errors("getting analytics examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "show analytics",
@@ -2494,6 +2557,7 @@ INTERACTION_HANDLERS = {
     'AnalyticsHandler': AnalyticsHandler(),
 }
 
+@handle_errors("getting interaction handler", default_return=None)
 def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
     """Get the appropriate handler for an intent"""
     for handler in INTERACTION_HANDLERS.values():
@@ -2501,6 +2565,7 @@ def get_interaction_handler(intent: str) -> Optional[InteractionHandler]:
             return handler
     return None
 
+@handle_errors("getting all handlers", default_return={})
 def get_all_handlers() -> Dict[str, InteractionHandler]:
     """Get all registered handlers"""
     return INTERACTION_HANDLERS.copy() 

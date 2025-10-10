@@ -596,6 +596,7 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
         return wrapper
     return decorator
 
+@handle_errors("safe file operation", default_return=None)
 def safe_file_operation(file_path: str, operation: str = "file operation", 
                        user_id: str = None, category: str = None):
     """
@@ -666,6 +667,7 @@ error_handler = ErrorHandler()
 # CONVENIENCE FUNCTIONS
 # ============================================================================
 
+@handle_errors("handling file error", default_return=False)
 def handle_file_error(error: Exception, file_path: str, operation: str, 
                      user_id: str = None, category: str = None) -> bool:
     """Convenience function for handling file-related errors."""
@@ -676,8 +678,9 @@ def handle_file_error(error: Exception, file_path: str, operation: str,
     }
     return error_handler.handle_error(error, context, operation)
 
+@handle_errors("handling communication error", default_return=False)
 def handle_communication_error(error: Exception, channel: str, operation: str, 
-                             user_id: str = None) -> bool:
+                            user_id: str = None) -> bool:
     """Convenience function for handling communication errors."""
     context = {
         'channel': channel,
@@ -685,6 +688,7 @@ def handle_communication_error(error: Exception, channel: str, operation: str,
     }
     return error_handler.handle_error(error, context, operation)
 
+@handle_errors("handling configuration error", default_return=False)
 def handle_configuration_error(error: Exception, setting: str, operation: str) -> bool:
     """Convenience function for handling configuration errors."""
     context = {
@@ -692,6 +696,7 @@ def handle_configuration_error(error: Exception, setting: str, operation: str) -
     }
     return error_handler.handle_error(error, context, operation)
 
+@handle_errors("handling network error", default_return=False)
 def handle_network_error(error: Exception, operation: str, user_id: str = None) -> bool:
     """Convenience function for handling network errors."""
     context = {
@@ -700,6 +705,7 @@ def handle_network_error(error: Exception, operation: str, user_id: str = None) 
     }
     return error_handler.handle_error(error, context, operation)
 
+@handle_errors("handling validation error", default_return=False)
 def handle_validation_error(error: Exception, field: str, operation: str, user_id: str = None) -> bool:
     """Convenience function for handling validation errors."""
     context = {
@@ -708,6 +714,7 @@ def handle_validation_error(error: Exception, field: str, operation: str, user_i
     }
     return error_handler.handle_error(error, context, operation)
 
+@handle_errors("handling AI error", default_return=False)
 def handle_ai_error(error: Exception, operation: str, user_id: str = None) -> bool:
     """Convenience function for handling AI-related errors."""
     context = {

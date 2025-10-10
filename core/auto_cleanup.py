@@ -272,6 +272,7 @@ def archive_old_messages_for_all_users():
         logger.error(f"Error during message archiving: {e}")
         return False
 
+@handle_errors("getting never cleaned status", default_return={})
 def _get_cleanup_status__get_never_cleaned_status():
     """Get status when cleanup has never been performed."""
     return {
@@ -280,17 +281,20 @@ def _get_cleanup_status__get_never_cleaned_status():
         'next_cleanup': 'On next startup'
     }
 
+@handle_errors("calculating days since cleanup", default_return=0)
 def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
     """Calculate days since last cleanup."""
     last_date = datetime.fromtimestamp(last_cleanup_timestamp)
     days_since = (datetime.now() - last_date).days
     return days_since, last_date
 
+@handle_errors("formatting next cleanup date", default_return="Unknown")
 def _get_cleanup_status__format_next_cleanup_date(last_date):
     """Format the next cleanup date or return 'Overdue'."""
     next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
     return next_cleanup_date.strftime('%Y-%m-%d') if next_cleanup_date > datetime.now() else 'Overdue'
 
+@handle_errors("building status response", default_return={})
 def _get_cleanup_status__build_status_response(last_date, days_since, next_cleanup):
     """Build the final status response dictionary."""
     return {

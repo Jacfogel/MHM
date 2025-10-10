@@ -22,6 +22,7 @@ class ConversationMessage:
     timestamp: datetime
     metadata: Dict[str, Any] = None
     
+    @handle_errors("post-initializing conversation message", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
         if self.metadata is None:
@@ -37,6 +38,7 @@ class ConversationSession:
     messages: List[ConversationMessage] = None
     metadata: Dict[str, Any] = None
     
+    @handle_errors("post-initializing conversation session", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
         if self.messages is None:
@@ -47,6 +49,7 @@ class ConversationSession:
 class ConversationHistory:
     """Manages conversation history for AI interactions"""
     
+    @handle_errors("initializing conversation history", default_return=None)
     def __init__(self, max_sessions_per_user: int = 10, max_messages_per_session: int = 50):
         """Initialize the conversation history manager"""
         self.max_sessions_per_user = max_sessions_per_user
@@ -446,6 +449,7 @@ class ConversationHistory:
 # Global conversation history instance
 _conversation_history = None
 
+@handle_errors("getting conversation history instance", default_return=None)
 def get_conversation_history() -> ConversationHistory:
     """Get the global conversation history instance"""
     global _conversation_history

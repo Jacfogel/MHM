@@ -14,6 +14,7 @@ logger = analytics_logger
 class AnalyticsHandler(InteractionHandler):
     """Handler for analytics and insights interactions"""
     
+    @handle_errors("checking if can handle analytics", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'checkin_analysis', 'completion_rate', 'task_analytics', 'task_stats', 'quant_summary']
     
@@ -586,9 +587,11 @@ class AnalyticsHandler(InteractionHandler):
             handle_ai_error(e, "showing task statistics", user_id)
             return InteractionResponse("I'm having trouble showing your task statistics right now. Please try again.", True)
     
+    @handle_errors("getting analytics help", default_return="Help with analytics - view analytics and insights about your wellness patterns")
     def get_help(self) -> str:
         return "Help with analytics - view analytics and insights about your wellness patterns"
     
+    @handle_errors("getting analytics examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "show analytics",
@@ -604,6 +607,7 @@ class AnalyticsHandler(InteractionHandler):
             "quant summary"
         ]
 
+    @handle_errors("truncating response", default_return="")
     def _truncate_response(self, response: str, max_length: int = 1900) -> str:
         """Truncate response to fit Discord message limits"""
         if len(response) <= max_length:

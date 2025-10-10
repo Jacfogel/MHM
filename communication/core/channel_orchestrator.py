@@ -40,6 +40,7 @@ class CommunicationManager:
     _instance = None
     _lock = threading.Lock()
     
+    @handle_errors("creating channel orchestrator instance", default_return=None)
     def __new__(cls, *args, **kwargs):
         """Ensure that only one instance of the CommunicationManager exists (Singleton pattern)."""
         with cls._lock:
@@ -48,6 +49,7 @@ class CommunicationManager:
                 cls._instance._initialized = False
             return cls._instance
 
+    @handle_errors("initializing channel orchestrator", default_return=None)
     def __init__(self):
         """Initialize the CommunicationManager singleton"""
         # Check if already initialized
@@ -73,6 +75,7 @@ class CommunicationManager:
         # Mark as initialized
         self._initialized = True
             
+    @handle_errors("setting up event loop", default_return=None)
     def __init____setup_event_loop(self):
         """Set up a dedicated event loop for async operations"""
         try:
@@ -82,6 +85,7 @@ class CommunicationManager:
                 self._event_loop = self._main_loop
                 # If we get here, there's a running loop, so create a new one for our operations
                 import threading
+                @handle_errors("running event loop", default_return=None)
                 def run_event_loop():
                     """
                     Run the event loop in a separate thread for async operations.
@@ -121,6 +125,7 @@ class CommunicationManager:
             self._event_loop = self._main_loop
             asyncio.set_event_loop(self._main_loop)
     
+    @handle_errors("running async sync", default_return=None)
     def send_message_sync__run_async_sync(self, coro):
         """Run async function synchronously using our managed loop"""
         if self._loop_thread:
@@ -191,6 +196,7 @@ class CommunicationManager:
         # Run the async initialization
         return loop.run_until_complete(self.initialize_channels_from_config__initialize_channels_async())
 
+    @handle_errors("initializing channels from config async", default_return=None)
     async def initialize_channels_from_config__initialize_channels_async(self):
         """Async method to initialize all configured channels"""
         logger.debug("Starting async channel initialization.")
@@ -262,6 +268,7 @@ class CommunicationManager:
         logger.error(f"Failed to initialize {channel.config.name} after {config.max_retries} attempts")
         return False
 
+    @handle_errors("getting default channel configs", default_return={})
     def _get_default_channel_configs(self) -> Dict[str, ChannelConfig]:
         """Get default channel configurations"""
         configs = {}
@@ -334,6 +341,7 @@ class CommunicationManager:
             # Final fallback
             self._start_sync()
 
+    @handle_errors("starting all async channels", default_return=None)
     async def _start_all_async(self):
         """Async method to start all configured channels"""
         logger.debug("Starting async channel startup.")
@@ -363,6 +371,7 @@ class CommunicationManager:
         
         return len(self._channels_dict) > 0
 
+    @handle_errors("starting sync channels", default_return=None)
     def _start_sync(self):
         """Synchronous method to start all configured channels"""
         logger.debug("Starting sync channel startup.")
@@ -682,6 +691,7 @@ class CommunicationManager:
                 return None
         return None
 
+    @handle_errors("getting all channel statuses", default_return={})
     async def get_all_statuses(self) -> Dict[str, ChannelStatus]:
         """Get status of all channels"""
         statuses = {}
@@ -706,6 +716,7 @@ class CommunicationManager:
         
         return health_results
 
+    @handle_errors("getting Discord connectivity status", default_return=None)
     def get_discord_connectivity_status(self) -> Optional[Dict[str, Any]]:
         """Get detailed Discord connectivity status if available"""
         if 'discord' in self._channels_dict:
@@ -865,6 +876,7 @@ class CommunicationManager:
 
         logger.info(f"Completed message sending for user {user_id}, category {category}")
 
+    @handle_errors("getting recipient for service", default_return=None)
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
         """Get the appropriate recipient ID for the messaging service"""
         if messaging_service == "discord":
@@ -1111,20 +1123,24 @@ class CommunicationManager:
 
 
     # NEW METHODS: More specific channel management methods
+    @handle_errors("getting active channels", default_return=[])
     def get_active_channels(self) -> List[str]:
         """Get list of currently active/running channels"""
         return list(self._channels_dict.keys())
     
+    @handle_errors("getting configured channels", default_return=[])
     def get_configured_channels(self) -> List[str]:
         """Get list of channels that are configured (from config)"""
         from core.config import get_available_channels
         return get_available_channels()
     
+    @handle_errors("getting registered channels", default_return=[])
     def get_registered_channels(self) -> List[str]:
         """Get list of channels that are registered in the factory"""
         from communication.core.factory import ChannelFactory
         return ChannelFactory.get_registered_channels()
 
+    @handle_errors("handling task reminder", default_return=None)
     def handle_task_reminder(self, user_id: str, task_id: str):
         """
         Handle sending task reminders for a user.
@@ -1185,6 +1201,7 @@ class CommunicationManager:
         else:
             logger.error(f"Failed to send task reminder for user {user_id}, task {task_id}")
 
+    @handle_errors("getting last task reminder", default_return=None)
     def get_last_task_reminder(self, user_id: str) -> Optional[str]:
         """
         Get the task ID of the last task reminder sent to a user.
@@ -1197,6 +1214,7 @@ class CommunicationManager:
         """
         return self._last_task_reminders.get(user_id)
 
+    @handle_errors("creating task reminder message", default_return="Task reminder")
     def _create_task_reminder_message(self, task: dict) -> str:
         """
         Create a formatted task reminder message.
@@ -1243,6 +1261,7 @@ class CommunicationManager:
         
         return message
 
+    @handle_errors("selecting weighted message", default_return="")
     def _select_weighted_message(self, available_messages, matching_periods):
         """
         Select a message using a weighting system that prioritizes

@@ -14,6 +14,7 @@ logger = schedule_logger
 class ScheduleManagementHandler(InteractionHandler):
     """Handler for schedule management interactions"""
     
+    @handle_errors("checking if can handle schedule intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         return intent in ['show_schedule', 'update_schedule', 'schedule_status', 'add_schedule_period', 'edit_schedule_period']
     
@@ -35,6 +36,7 @@ class ScheduleManagementHandler(InteractionHandler):
         else:
             return InteractionResponse(f"I don't understand that schedule command. Try: {', '.join(self.get_examples())}", True)
     
+    @handle_errors("showing schedule", default_return=InteractionResponse("I'm having trouble showing your schedule. Please try again.", True))
     def _handle_show_schedule(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show schedule for a specific category or all categories"""
         category = entities.get('category', 'all')
@@ -137,6 +139,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error showing schedule for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your schedule right now. Please try again.", True)
     
+    @handle_errors("updating schedule", default_return=InteractionResponse("I'm having trouble updating your schedule. Please try again.", True))
     def _handle_update_schedule(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Update schedule settings"""
         category = entities.get('category')
@@ -178,6 +181,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error updating schedule for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble updating your schedule right now. Please try again.", True)
     
+    @handle_errors("checking schedule status", default_return=InteractionResponse("I'm having trouble checking your schedule status. Please try again.", True))
     def _handle_schedule_status(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Show status of schedules"""
         try:
@@ -209,6 +213,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error showing schedule status for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble checking your schedule status right now. Please try again.", True)
     
+    @handle_errors("adding schedule period", default_return=InteractionResponse("I'm having trouble adding that schedule period. Please try again.", True))
     def _handle_add_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Add a new schedule period with enhanced options"""
         category = entities.get('category')
@@ -277,6 +282,7 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error adding schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble adding the schedule period: {str(e)}", True)
     
+    @handle_errors("parsing time format", default_return="")
     def _handle_add_schedule_period__parse_time_format(self, time_str: str) -> str:
         """Parse various time formats and convert to standard format"""
         if not time_str:
@@ -309,6 +315,7 @@ class ScheduleManagementHandler(InteractionHandler):
             
             return time_str
     
+    @handle_errors("parsing time format for edit", default_return="")
     def _handle_edit_schedule_period__parse_time_format(self, time_str: str) -> str:
         """Parse various time formats and convert to standard format"""
         if not time_str:
@@ -341,6 +348,7 @@ class ScheduleManagementHandler(InteractionHandler):
             
             return time_str
     
+    @handle_errors("editing schedule period", default_return=InteractionResponse("I'm having trouble editing that schedule period. Please try again.", True))
     def _handle_edit_schedule_period(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
         """Edit an existing schedule period with enhanced options"""
         category = entities.get('category')
@@ -434,9 +442,11 @@ class ScheduleManagementHandler(InteractionHandler):
             logger.error(f"Error editing schedule period for user {user_id}: {e}")
             return InteractionResponse(f"I'm having trouble editing the schedule period: {str(e)}", True)
     
+    @handle_errors("getting schedule help", default_return="Help with schedule management - manage your message, task, and check-in schedules")
     def get_help(self) -> str:
         return "Help with schedule management - manage your message, task, and check-in schedules"
     
+    @handle_errors("getting schedule examples", default_return=[])
     def get_examples(self) -> List[str]:
         return [
             "show schedule",

@@ -39,6 +39,7 @@ class EventContext:
     timestamp: float = None
     data: Dict[str, Any] = None
     
+    @handle_errors("post-initializing Discord event handler", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
         if self.timestamp is None:
@@ -49,6 +50,7 @@ class EventContext:
 class DiscordEventHandler:
     """Handles Discord events and routes them to appropriate handlers"""
     
+    @handle_errors("initializing Discord event handler", default_return=None)
     def __init__(self, bot: discord.Client = None):
         """Initialize the Discord event handler"""
         self.bot = bot
@@ -61,6 +63,7 @@ class DiscordEventHandler:
         # Register default handlers
         self._register_default_handlers()
     
+    @handle_errors("registering default Discord handlers", default_return=None)
     def _register_default_handlers(self):
         """Register default event handlers"""
         if self.bot:
@@ -69,18 +72,22 @@ class DiscordEventHandler:
             self.bot.event(self.on_error)
             self.bot.event(self.on_message)
     
+    @handle_errors("adding message handler")
     def add_message_handler(self, handler: Callable):
         """Add a custom message handler"""
         self._message_handlers.append(handler)
     
+    @handle_errors("adding ready handler")
     def add_ready_handler(self, handler: Callable):
         """Add a custom ready handler"""
         self._ready_handlers.append(handler)
     
+    @handle_errors("adding disconnect handler")
     def add_disconnect_handler(self, handler: Callable):
         """Add a custom disconnect handler"""
         self._disconnect_handlers.append(handler)
     
+    @handle_errors("adding error handler")
     def add_error_handler(self, handler: Callable):
         """Add a custom error handler"""
         self._error_handlers.append(handler)
@@ -301,6 +308,7 @@ class DiscordEventHandler:
         
         logger.info(f"Member left: {member.name} from {member.guild.name}")
     
+    @handle_errors("registering Discord events")
     def register_events(self, bot: discord.Client):
         """Register all event handlers with a Discord bot"""
         self.bot = bot
@@ -318,6 +326,7 @@ class DiscordEventHandler:
         logger.info("Discord event handlers registered")
 
 # Factory function to get Discord event handler
+@handle_errors("getting Discord event handler")
 def get_discord_event_handler(bot: discord.Client = None) -> DiscordEventHandler:
     """Get a Discord event handler instance"""
     return DiscordEventHandler(bot)

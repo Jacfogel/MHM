@@ -69,31 +69,37 @@ class BaseChannel(ABC):
         
     @property
     @abstractmethod
+    @handle_errors("getting channel type", default_return=ChannelType.SYNC)
     def channel_type(self) -> ChannelType:
         """Return whether this channel is sync or async"""
         pass
     
     @abstractmethod
+    @handle_errors("initializing channel", default_return=False)
     async def initialize(self) -> bool:
         """Initialize the channel. Returns True if successful."""
         pass
     
     @abstractmethod
+    @handle_errors("shutting down channel", default_return=False)
     async def shutdown(self) -> bool:
         """Shutdown the channel. Returns True if successful."""
         pass
     
     @abstractmethod
+    @handle_errors("sending message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
         """Send a message. Returns True if successful."""
         pass
     
     @abstractmethod
+    @handle_errors("receiving messages", default_return=[])
     async def receive_messages(self) -> List[Dict[str, Any]]:
         """Receive messages. Returns list of message dictionaries."""
         pass
     
     @abstractmethod
+    @handle_errors("performing health check", default_return=False)
     async def health_check(self) -> bool:
         """Perform a health check. Returns True if healthy."""
         pass

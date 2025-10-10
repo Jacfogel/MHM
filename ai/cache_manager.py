@@ -26,6 +26,7 @@ class CacheEntry:
 class ResponseCache:
     """Simple in-memory cache for AI responses to avoid repeated calculations"""
     
+    @handle_errors("initializing response cache", default_return=None)
     def __init__(self, max_size: int = 100, ttl: int = 300):
         """Initialize the response cache"""
         self.cache: Dict[str, CacheEntry] = {}
@@ -138,6 +139,7 @@ class ResponseCache:
         if expired_keys:
             logger.info(f"Cleared {len(expired_keys)} expired cache entries")
     
+    @handle_errors("getting cache statistics")
     def get_stats(self) -> Dict[str, Any]:
         """Get cache statistics"""
         with self._lock:
@@ -162,12 +164,14 @@ class ResponseCache:
                 "cache_enabled": AI_CACHE_RESPONSES
             }
     
+    @handle_errors("getting cache entries by type")
     def get_entries_by_type(self, prompt_type: str) -> Dict[str, CacheEntry]:
         """Get all cache entries for a specific prompt type"""
         with self._lock:
             return {key: entry for key, entry in self.cache.items() 
                    if entry.prompt_type == prompt_type}
     
+    @handle_errors("removing cache entries by type")
     def remove_entries_by_type(self, prompt_type: str) -> int:
         """Remove all cache entries for a specific prompt type"""
         keys_to_remove = []
@@ -183,6 +187,7 @@ class ResponseCache:
         logger.info(f"Removed {len(keys_to_remove)} cache entries for prompt type '{prompt_type}'")
         return len(keys_to_remove)
     
+    @handle_errors("removing user cache entries")
     def remove_user_entries(self, user_id: str) -> int:
         """Remove all cache entries for a specific user"""
         keys_to_remove = []
@@ -201,6 +206,7 @@ class ResponseCache:
 class ContextCache:
     """Cache for user context information"""
     
+    @handle_errors("initializing context cache", default_return=None)
     def __init__(self, ttl: int = None):
         """Initialize the context cache"""
         self.cache: Dict[str, Tuple[Dict[str, Any], float]] = {}
@@ -237,6 +243,7 @@ class ContextCache:
         with self._lock:
             self.cache.clear()
     
+    @handle_errors("clearing expired context cache")
     def clear_expired(self):
         """Remove all expired contexts"""
         current_time = time.time()
@@ -254,6 +261,7 @@ class ContextCache:
 _response_cache = None
 _context_cache = None
 
+@handle_errors("getting response cache instance")
 def get_response_cache() -> ResponseCache:
     """Get the global response cache instance"""
     global _response_cache
@@ -261,6 +269,7 @@ def get_response_cache() -> ResponseCache:
         _response_cache = ResponseCache(ttl=AI_RESPONSE_CACHE_TTL)
     return _response_cache
 
+@handle_errors("getting context cache instance")
 def get_context_cache() -> ContextCache:
     """Get the global context cache instance"""
     global _context_cache

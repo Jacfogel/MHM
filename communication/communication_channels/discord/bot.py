@@ -83,6 +83,7 @@ class DiscordBot(BaseChannel):
             pass
 
     @property
+    @handle_errors("getting Discord channel type", default_return=ChannelType.ASYNC)
     def channel_type(self) -> ChannelType:
         """
         Get the channel type for Discord bot.
@@ -92,6 +93,7 @@ class DiscordBot(BaseChannel):
         """
         return ChannelType.ASYNC
 
+    @handle_errors("checking DNS resolution", default_return=False)
     def _check_dns_resolution(self, hostname: str = "discord.com") -> bool:
         """Check DNS resolution for a hostname with enhanced fallback and error reporting"""
         # Alternative DNS servers to try if primary fails
@@ -161,6 +163,7 @@ class DiscordBot(BaseChannel):
             self._connection_status = DiscordConnectionStatus.DNS_FAILURE
             return False
 
+    @handle_errors("checking network connectivity", default_return=False)
     def _check_network_connectivity(self, hostname: str = "discord.com", port: int = 443) -> bool:
         """Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling"""
         # Discord endpoints to try in order of preference
@@ -200,6 +203,7 @@ class DiscordBot(BaseChannel):
         self._connection_status = DiscordConnectionStatus.NETWORK_FAILURE
         return False
 
+    @handle_errors("waiting for network recovery", default_return=False)
     def _wait_for_network_recovery(self, max_wait: int = 300) -> bool:
         """Wait for network connectivity to recover with enhanced monitoring and early exit"""
         logger.info(f"Waiting for network connectivity to recover (max {max_wait}s)...")
@@ -222,6 +226,7 @@ class DiscordBot(BaseChannel):
         return False
 
     @contextlib.asynccontextmanager
+    @handle_errors("cleaning up session context", default_return=None)
     async def shutdown__session_cleanup_context(self):
         """Context manager for proper session cleanup with timeout handling"""
         sessions_to_cleanup = []
@@ -327,6 +332,7 @@ class DiscordBot(BaseChannel):
             logger.debug(f"Error during aiohttp session cleanup: {e}")
             return False
 
+    @handle_errors("getting detailed connection status", default_return={})
     def _get_detailed_connection_status(self) -> Dict[str, Any]:
         """Get detailed connection status information"""
         status_info = {
@@ -353,6 +359,7 @@ class DiscordBot(BaseChannel):
         
         return status_info
 
+    @handle_errors("updating connection status", default_return=None)
     def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
         """Update connection status with detailed error information"""
         self._connection_status = status
@@ -373,6 +380,7 @@ class DiscordBot(BaseChannel):
         except Exception:
             pass
 
+    @handle_errors("checking network health", default_return=False)
     def _check_network_health(self) -> bool:
         """Comprehensive network health check with detailed reporting"""
         logger.debug("Performing network health check...")
@@ -401,6 +409,7 @@ class DiscordBot(BaseChannel):
         logger.debug("Network health check passed")
         return True
 
+    @handle_errors("checking if should attempt reconnection", default_return=False)
     def _should_attempt_reconnection(self) -> bool:
         """Determine if reconnection should be attempted based on various factors"""
         current_time = time.time()
@@ -636,6 +645,7 @@ class DiscordBot(BaseChannel):
                 logger.debug(f"Failed to schedule app command sync: {e}")
 
         @self.bot.event
+        @handle_errors("handling Discord disconnect event", default_return=None)
         async def on_disconnect():
             logger.warning("Discord bot disconnected")
             # Use component logger for Discord disconnection events
@@ -654,6 +664,7 @@ class DiscordBot(BaseChannel):
             logger.info("Discord.py will handle automatic reconnection")
 
         @self.bot.event
+        @handle_errors("handling Discord error event", default_return=None)
         async def on_error(event, *args, **kwargs):
             logger.error(f"Discord bot error in event {event}: {args} {kwargs}")
             
@@ -1079,6 +1090,7 @@ class DiscordBot(BaseChannel):
                            recipient=recipient)
         return False
     
+    @handle_errors("creating Discord embed", default_return=None)
     def _create_discord_embed(self, message: str, rich_data: Dict[str, Any]) -> discord.Embed:
         """Create a Discord embed from rich data"""
         embed = discord.Embed()
@@ -1132,6 +1144,7 @@ class DiscordBot(BaseChannel):
         
         return embed
     
+    @handle_errors("creating Discord action row", default_return=None)
     def _create_action_row(self, suggestions: List[str]) -> discord.ui.View:
         """Create a Discord view with buttons from suggestions"""
         # Use discord.ui.View instead of ActionRow for discord.py v2.x compatibility
@@ -1215,10 +1228,12 @@ class DiscordBot(BaseChannel):
         logger.debug("Discord health check passed")
         return True
 
+    @handle_errors("getting Discord health status", default_return={})
     def get_health_status(self) -> Dict[str, Any]:
         """Get comprehensive health status information"""
         return self._get_detailed_connection_status()
 
+    @handle_errors("getting connection status summary", default_return="Unknown")
     def get_connection_status_summary(self) -> str:
         """Get a human-readable connection status summary"""
         status_info = self._get_detailed_connection_status()
@@ -1240,6 +1255,7 @@ class DiscordBot(BaseChannel):
         else:
             return f"Status: {status_info['connection_status']}"
 
+    @handle_errors("checking if actually connected", default_return=False)
     def is_actually_connected(self) -> bool:
         """Check if the Discord bot is actually connected, regardless of initialization status"""
         if not self.bot:
@@ -1261,6 +1277,7 @@ class DiscordBot(BaseChannel):
         
         return False
 
+    @handle_errors("checking if can send messages", default_return=False)
     def can_send_messages(self) -> bool:
         """Check if the Discord bot can actually send messages"""
         if not self.is_actually_connected():

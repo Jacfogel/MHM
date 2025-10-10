@@ -18,6 +18,7 @@ logger = get_component_logger('checkin_dynamic')
 class DynamicCheckinManager:
     """Manages dynamic check-in questions and responses loaded from JSON files."""
     
+    @handle_errors("initializing checkin dynamic manager", default_return=None)
     def __init__(self):
         """Initialize the dynamic check-in manager."""
         self.questions_data = None

@@ -16,6 +16,7 @@ from core.error_handling import (
 
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors with detailed information."""
+    @handle_errors("initializing config error", default_return=None)
     def __init__(self, message: str, missing_configs: List[str] = None, warnings: List[str] = None):
         """Initialize the object."""
         super().__init__(message)
@@ -629,6 +630,7 @@ def get_user_data_dir(user_id: str) -> str:
         logger.error(f"Error getting user data directory for user {user_id}: {e}")
         return ""
 
+@handle_errors("getting backups directory", default_return="data/backups")
 def get_backups_dir() -> str:
     """Get the backups directory, redirected under tests when MHM_TESTING=1.
     Returns tests/data/backups if testing, otherwise BASE_DATA_DIR/backups.
@@ -639,6 +641,7 @@ def get_backups_dir() -> str:
         return os.path.join(test_data_dir, 'backups')
     return os.path.join(BASE_DATA_DIR, 'backups')
 
+@handle_errors("getting user file path", default_return="")
 def get_user_file_path(user_id: str, file_type: str) -> str:
     """Get the file path for a specific user file type."""
     user_dir = get_user_data_dir(user_id)

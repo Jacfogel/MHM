@@ -21,21 +21,25 @@ class InteractionHandler(ABC):
     """Abstract base class for interaction handlers"""
     
     @abstractmethod
+    @handle_errors("checking if can handle intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
         """Check if this handler can handle the given intent"""
         pass
     
     @abstractmethod
+    @handle_errors("handling interaction", default_return=InteractionResponse("I'm having trouble processing your request. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
         """Handle the interaction and return a response"""
         pass
     
     @abstractmethod
+    @handle_errors("getting help", default_return="Help information not available")
     def get_help(self) -> str:
         """Get help text for this handler"""
         pass
     
     @abstractmethod
+    @handle_errors("getting examples", default_return=[])
     def get_examples(self) -> List[str]:
         """Get example commands for this handler"""
         pass

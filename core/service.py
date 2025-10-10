@@ -124,6 +124,7 @@ class MHMService:
         return paths
 
     @handle_errors("checking and fixing logging")
+    @handle_errors("testing logging functionality", default_return=False)
     def _check_and_fix_logging__test_logging_functionality(self, test_message):
         """Test if logging functionality works by writing a test message and flushing handlers."""
         logger.debug(test_message)
@@ -137,6 +138,7 @@ class MHMService:
         # Give more time for file operations and buffering
         time.sleep(0.5)
 
+    @handle_errors("ensuring log file exists", default_return=False)
     def _check_and_fix_logging__ensure_log_file_exists(self):
         """Ensure the log file exists, creating it if necessary."""
         from core.config import LOG_MAIN_FILE
@@ -150,6 +152,7 @@ class MHMService:
             except Exception:
                 raise Exception("Log file missing")
 
+    @handle_errors("reading recent log content", default_return="")
     def _check_and_fix_logging__read_recent_log_content(self):
         """Read the last 1000 characters from the log file to check for recent activity."""
         from core.config import LOG_MAIN_FILE
@@ -164,6 +167,7 @@ class MHMService:
                 f.seek(0)
             return f.read()
 
+    @handle_errors("verifying test message present", default_return=False)
     def _check_and_fix_logging__verify_test_message_present(self, recent_content, test_message, test_timestamp):
         """Check if our test message or recent timestamp patterns are present in log content."""
         if (test_message in recent_content or 
@@ -172,6 +176,7 @@ class MHMService:
             return True
         return False
 
+    @handle_errors("checking recent activity timestamps", default_return=False)
     def _check_and_fix_logging__check_recent_activity_timestamps(self, recent_content):
         """Check if there's any recent activity within the last 5 minutes using timestamp patterns."""
         import re
@@ -194,6 +199,7 @@ class MHMService:
         logger.warning("No recent logging activity detected, may need restart")
         return False
 
+    @handle_errors("forcing restart of logging system", default_return=False)
     def _check_and_fix_logging__force_restart_logging_system(self):
         """Force restart the logging system and update the global logger."""
         logger.warning("Logging system verification failed - attempting force restart...")
@@ -447,6 +453,7 @@ class MHMService:
         self.cleanup_reschedule_requests()
     
     @handle_errors("checking test message requests")
+    @handle_errors("getting base directory for test message requests", default_return="")
     def _check_test_message_requests__get_base_directory(self):
         """Get the base directory for test message request files."""
         return os.path.dirname(os.path.dirname(__file__))

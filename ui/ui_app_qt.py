@@ -45,6 +45,7 @@ from ui.generated.admin_panel_pyqt import Ui_ui_app_mainwindow
 class ServiceManager:
     """Manages the MHM backend service process"""
     
+    @handle_errors("initializing service manager", default_return=None)
     def __init__(self):
         """Initialize the object."""
         self.service_process = None

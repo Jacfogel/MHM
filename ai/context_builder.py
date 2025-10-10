@@ -23,6 +23,7 @@ class ContextData:
     conversation_history: List[Dict[str, Any]] = None
     current_time: datetime = None
     
+    @handle_errors("post-initializing context data", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
         if self.user_profile is None:
@@ -48,6 +49,7 @@ class ContextAnalysis:
     overall_wellness_score: float = 0.0
     insights: List[str] = None
     
+    @handle_errors("post-initializing context analysis", default_return=None)
     def __post_init__(self):
         """Post-initialization setup"""
         if self.insights is None:

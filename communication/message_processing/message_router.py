@@ -34,6 +34,7 @@ class RoutingResult:
 class MessageRouter:
     """Routes messages to appropriate handlers based on message type and content"""
     
+    @handle_errors("initializing message router", default_return=None)
     def __init__(self):
         """Initialize the message router"""
         # Channel-agnostic command definitions for discoverability across channels
@@ -193,6 +194,7 @@ class MessageRouter:
 # Global router instance
 _message_router = None
 
+@handle_errors("getting message router", default_return=None)
 def get_message_router() -> MessageRouter:
     """Get the global message router instance"""
     global _message_router

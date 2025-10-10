@@ -14,16 +14,19 @@ class MessageFormatter(ABC):
     """Abstract base class for message formatting utilities"""
     
     @abstractmethod
+    @handle_errors("formatting message", default_return="")
     def format_message(self, message: str, rich_data: Optional[Dict[str, Any]] = None) -> str:
         """Format a message with optional rich data"""
         pass
     
     @abstractmethod
+    @handle_errors("creating rich content", default_return=None)
     def create_rich_content(self, message: str, rich_data: Dict[str, Any]) -> Any:
         """Create rich content (embed, card, etc.) from rich data"""
         pass
     
     @abstractmethod
+    @handle_errors("creating interactive elements", default_return=None)
     def create_interactive_elements(self, suggestions: List[str]) -> Any:
         """Create interactive elements (buttons, menus, etc.) from suggestions"""
         pass

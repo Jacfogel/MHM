@@ -75,6 +75,7 @@ QUESTION_STATES = {
 }
 
 class ConversationManager:
+    @handle_errors("initializing conversation flow manager", default_return=None)
     def __init__(self):
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
         """Initialize the object."""
@@ -226,6 +227,7 @@ class ConversationManager:
         else:
             return ("No active flow found to clear.", True)
 
+    @handle_errors("clearing all conversation states", default_return=None)
     def clear_all_states(self):
         """Clear all user states - primarily for testing."""
         self.user_states.clear()

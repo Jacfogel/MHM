@@ -24,6 +24,7 @@ class PromptTemplate:
 class PromptManager:
     """Manages AI prompts and templates"""
     
+    @handle_errors("initializing prompt manager", default_return=None)
     def __init__(self):
         """Initialize the prompt manager"""
         self._custom_prompt = None
@@ -96,7 +97,7 @@ class PromptManager:
         # Load custom prompt
         self._load_custom_prompt()
     
-    @handle_errors("loading custom prompt")
+    @handle_errors("loading custom prompt", default_return=None)
     def _load_custom_prompt(self):
         """Load the custom system prompt from file"""
         if not AI_USE_CUSTOM_PROMPT:
@@ -193,14 +194,17 @@ class PromptManager:
         self._load_custom_prompt()
         logger.info("Custom system prompt reloaded")
     
+    @handle_errors("checking if custom prompt exists", default_return=False)
     def has_custom_prompt(self) -> bool:
         """Check if a custom prompt is loaded."""
         return self._custom_prompt is not None
 
+    @handle_errors("getting custom prompt length", default_return=0)
     def custom_prompt_length(self) -> int:
         """Get the length of the custom prompt."""
         return len(self._custom_prompt or "")
 
+    @handle_errors("getting fallback prompt keys", default_return=[])
     def fallback_prompt_keys(self) -> list[str]:
         """Get the keys of available fallback prompts."""
         return list(self._fallback_prompts.keys()) if isinstance(self._fallback_prompts, dict) else []
@@ -287,6 +291,7 @@ class PromptManager:
 # Global prompt manager instance
 _prompt_manager = None
 
+@handle_errors("getting prompt manager instance", default_return=None)
 def get_prompt_manager() -> PromptManager:
     """Get the global prompt manager instance"""
     global _prompt_manager

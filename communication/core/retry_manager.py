@@ -31,6 +31,7 @@ class QueuedMessage:
 class RetryManager:
     """Manages message retry logic and failed message queuing"""
     
+    @handle_errors("initializing retry manager", default_return=None)
     def __init__(self):
         """Initialize the retry manager"""
         self._failed_message_queue = queue.Queue()

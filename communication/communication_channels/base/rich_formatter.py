@@ -14,16 +14,19 @@ class RichFormatter(ABC):
     """Abstract base class for rich formatting utilities"""
     
     @abstractmethod
+    @handle_errors("creating embed", default_return=None)
     def create_embed(self, message: str, rich_data: Dict[str, Any]) -> Any:
         """Create a rich embed/card from rich data"""
         pass
     
     @abstractmethod
+    @handle_errors("creating interactive view", default_return=None)
     def create_interactive_view(self, suggestions: List[str]) -> Any:
         """Create interactive view with buttons/menus from suggestions"""
         pass
     
     @abstractmethod
+    @handle_errors("getting color for type", default_return=None)
     def get_color_for_type(self, content_type: str) -> Any:
         """Get appropriate color for content type"""
         pass
@@ -44,7 +47,7 @@ class DiscordRichFormatter(RichFormatter):
             logger.error(f"Error initializing Discord formatter: {e}")
             self.discord = None
     
-    @handle_errors("creating Discord embed")
+    @handle_errors("creating Discord embed", default_return=None)
     def create_embed(self, message: str, rich_data: Dict[str, Any]):
         """Create a Discord embed from rich data"""
         if not self.discord:
@@ -90,7 +93,7 @@ class DiscordRichFormatter(RichFormatter):
         
         return embed
     
-    @handle_errors("creating Discord interactive view")
+    @handle_errors("creating Discord interactive view", default_return=None)
     def create_interactive_view(self, suggestions: List[str]):
         """Create a Discord view with buttons from suggestions"""
         if not self.discord:

@@ -96,7 +96,7 @@ class PeriodRowWidget(QWidget):
             # Now set read-only
             self.set_read_only(True)
     
-    @handle_errors("setting up period row widget functionality")
+    @handle_errors("setting up period row functionality", default_return=None)
     def setup_functionality(self):
         """Setup the widget functionality and connect signals."""
         
@@ -136,7 +136,7 @@ class PeriodRowWidget(QWidget):
         for checkbox in day_checkboxes:
             checkbox.toggled.connect(self.on_individual_day_toggled)
     
-    @handle_errors("loading period data into widget")
+    @handle_errors("loading period data", default_return=None)
     def load_period_data(self):
         """Load period data into the widget."""
         # Set period name - preserve user's original case for custom entries
@@ -175,7 +175,7 @@ class PeriodRowWidget(QWidget):
         days = self.period_data.get('days', ['ALL'])
         self.load_days(days)
     
-    @handle_errors("loading day selections")
+    @handle_errors("loading days", default_return=None)
     def load_days(self, days: List[str]):
         """Load day selections."""
         # Clear all checkboxes first
@@ -206,7 +206,7 @@ class PeriodRowWidget(QWidget):
                 if day in day_mapping:
                     day_mapping[day].setChecked(True)
     
-    @handle_errors("handling select all days toggle")
+    @handle_errors("handling select all days toggle", default_return=None)
     def on_select_all_days_toggled(self, checked: bool):
         """Handle 'Select All Days' checkbox toggle."""
         day_checkboxes = [
@@ -223,7 +223,7 @@ class PeriodRowWidget(QWidget):
             cb.setChecked(checked)
             cb.blockSignals(False)
     
-    @handle_errors("handling individual day toggle")
+    @handle_errors("handling individual day toggle", default_return=None)
     def on_individual_day_toggled(self, checked: bool):
         """Handle individual day checkbox toggle."""
         day_checkboxes = [

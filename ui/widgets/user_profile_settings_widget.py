@@ -27,7 +27,7 @@ widget_logger = logger
 class UserProfileSettingsWidget(QWidget):
     """Widget for user profile settings configuration."""
     
-    @handle_errors("initializing user profile settings widget")
+    @handle_errors("initializing user profile settings widget", default_return=None)
     def __init__(self, parent=None, user_id: Optional[str] = None, existing_data: Optional[Dict[str, Any]] = None):
         """Initialize the object."""
         try:
@@ -152,7 +152,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error initializing user profile settings widget: {e}")
             raise
     
-    @handle_errors("populating timezones")
+    @handle_errors("populating timezones", default_return=None)
     def populate_timezones(self):
         """Populate the timezone combo box with options and enable selection."""
         try:
@@ -255,7 +255,7 @@ class UserProfileSettingsWidget(QWidget):
         except Exception as e:
             logger.error(f"Error loading existing data: {e}")
     
-    @handle_errors("setting checkbox group")
+    @handle_errors("setting checkbox group", default_return=None)
     def set_checkbox_group(self, group_name: str, values: list):
         """Set checkboxes for a specific group based on values."""
         try:
@@ -321,7 +321,7 @@ class UserProfileSettingsWidget(QWidget):
             logger.error(f"Error getting personalization data: {e}")
             return self.existing_data or {}
     
-    @handle_errors("extracting basic fields from personalization data")
+    @handle_errors("extracting basic fields from personalization data", default_return=None)
     def _get_personalization_data__extract_basic_fields(self, data: Dict[str, Any]) -> None:
         """Extract basic text fields from the UI."""
         try:

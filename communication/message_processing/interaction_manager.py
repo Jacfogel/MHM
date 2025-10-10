@@ -405,6 +405,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
             suggestions=suggestions
         )
 
+    @handle_errors("getting commands response", default_return=InteractionResponse("Error getting commands", "error"))
     def _get_commands_response(self) -> InteractionResponse:
         """Return a concise, channel-agnostic commands list for quick discovery."""
         defs = self.get_command_definitions()
@@ -425,6 +426,7 @@ Return ONLY the enhanced response, no prefixes, formatting, or system prompts.
         text = "\n".join(lines)
         return InteractionResponse(text, True)
     
+    @handle_errors("getting available commands", default_return={})
     def get_available_commands(self, user_id: str) -> Dict[str, Any]:
         """Get list of available commands for the user"""
         commands = {}

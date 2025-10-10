@@ -24,6 +24,7 @@ class EmailBotError(Exception):
     pass
 
 class EmailBot(BaseChannel):
+    @handle_errors("initializing email bot", default_return=None)
     def __init__(self, config: ChannelConfig = None):
         """
         Initialize the EmailBot with configuration.
@@ -44,6 +45,7 @@ class EmailBot(BaseChannel):
         super().__init__(config)
 
     @property
+    @handle_errors("getting email channel type", default_return=ChannelType.SYNC)
     def channel_type(self) -> ChannelType:
         """
         Get the channel type for email bot.

@@ -31,43 +31,18 @@ When adding new tasks, follow this format:
 - *Estimated effort*: Small
 
 
-**Error Handling Coverage Expansion** ?? **COMPLETED**
-- *What it means*: Continue expanding error handling coverage from current 72.4% to 80%+ by adding @handle_errors decorators to remaining functions
+**Continue Error Handling Coverage Expansion**
+- *What it means*: Continue expanding error handling coverage beyond current 92.0% to 93%+ by adding @handle_errors decorators to remaining 115 functions
 - *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
-- *Estimated effort*: Medium (ongoing)
-- *Current Status*: 80.3% coverage achieved (1115 functions protected) - TARGET EXCEEDED!
-- *Completed*:
-  - [x] **Fixed 19 Modules Completely** (100% coverage achieved)
-    - [x] Category Management Dialog (4 functions)
-    - [x] Checkin Management Dialog (4 functions) 
-    - [x] Rich Formatter (7 functions)
-    - [x] Channel Monitor (7 functions)
-    - [x] Dynamic List Container (7 functions)
-    - [x] Config (13 functions)
-    - [x] Schedule Editor Dialog (11 functions)
-    - [x] Schemas (10 functions)
-    - [x] Context Builder (7 functions)
-    - [x] Base Channel (2 functions)
-    - [x] User Profile Settings Widget (8 functions)
-    - [x] Command Parser (8 functions)
-    - [x] Interaction Manager (11 functions)
-    - [x] User Data Manager (21 functions)
-    - [x] Profile Handler (4 functions)
-    - [x] File Auditor (2 functions)
-    - [x] File Operations (8 functions)
-    - [x] Channel Management Dialog (2 functions)
-    - [x] Schemas Continued (5 functions)
+- *Estimated effort*: Medium
+- *Current Status*: 92.0% coverage achieved (1,285 functions protected) - continue to 93%+
 - *Next Steps*:
-  - [ ] **Continue Expanding Beyond 80%**
-    - [ ] Cache Manager (9 functions to fix)
-    - [ ] Discord Event Handler (9 functions to fix)
-    - [ ] Interaction Handlers (48 functions to fix) - Large module
+  - [ ] **Continue Expanding Beyond 92%**
+    - [ ] Add error handling to remaining 115 functions for 93%+ coverage
+    - [ ] Focus on UI modules and remaining utility functions
   - [ ] **Replace Basic Try-Except Blocks**
-    - [ ] Replace 154 basic try-except blocks with @handle_errors decorator
+    - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
-  - [ ] **Add Error Handling to Critical Functions**
-    - [ ] Add error handling to 284 critical functions with no error handling
-    - [ ] Focus on high-priority modules first
 
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
@@ -103,17 +78,6 @@ When adding new tasks, follow this format:
   - [ ] Add pattern recognition to identify common function/module categories
   - [ ] Implement concise summary generation with cross-references to detailed docs
   - [ ] Test generated documentation usability for AI collaborators
-
-**Fix Consolidated Test Logging Fixture** ?? **NEW PRIORITY**
-- *What it means*: Fix the consolidated logging fixture configuration that's causing "Fixture called directly" errors in test runs
-- *Why it helps*: Ensures the new consolidated logging system works properly without breaking test execution
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] **Fix Fixture Configuration**
-    - [ ] Investigate why `setup_consolidated_test_logging` fixture is being called directly
-    - [ ] Ensure proper pytest fixture configuration
-    - [ ] Test that consolidated logging works without errors
-    - [ ] Verify both `test_run.log` and `test_consolidated.log` are created correctly
 
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.

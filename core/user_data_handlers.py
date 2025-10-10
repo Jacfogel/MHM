@@ -42,6 +42,7 @@ from core.user_management import (
 )
 
 
+@handle_errors("registering data loader", default_return=None)
 def register_data_loader(
     data_type: str,
     loader_func,
@@ -402,6 +403,7 @@ def get_user_data(
 
 @handle_errors("saving user data", default_return={})
 
+@handle_errors("validating user data input", default_return=(False, {}, ["Validation failed"]))
 def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
     """Validate input parameters and initialize result structure."""
     if not user_id:
@@ -424,6 +426,7 @@ def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[s
     return True, result, invalid_types
 
 
+@handle_errors("creating user data backup", default_return=None)
 def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_backup: bool) -> None:
     """Create backup if needed for major data updates."""
     if create_backup and len(valid_types) > 1:
@@ -435,6 +438,7 @@ def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_
             logger.warning(f"Failed to create backup before data update: {e}")
 
 
+@handle_errors("validating user data", default_return=None)
 def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[str, Any]], valid_types: List[str], 
                            validate_data: bool, is_new_user: bool) -> tuple[List[str], Dict[str, bool]]:
     """Validate data for new and existing users."""
@@ -479,6 +483,7 @@ def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[st
 
 
 
+@handle_errors("handling legacy preferences", default_return=None)
 def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
     """Handle legacy preferences compatibility and cleanup."""
     
@@ -524,6 +529,7 @@ def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[s
         pass
 
 
+@handle_errors("normalizing user data", default_return=None)
 def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> None:
     """Apply Pydantic normalization to data."""
     try:
@@ -554,6 +560,7 @@ def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> None:
         pass
 
 
+@handle_errors("saving single data type", default_return=False)
 def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool) -> bool:
     """Save a single data type for a user."""
     try:
@@ -665,6 +672,7 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
         return False
 
 
+@handle_errors("updating user index", default_return=None)
 def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_index: bool) -> None:
     """Update user index and clear cache if needed."""
     # Update index if at least one type succeeded

@@ -8,6 +8,9 @@ Finds all functions, categorizes them (handler, utility, test, etc.), and shows 
 import os
 import ast
 from pathlib import Path
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from core.error_handling import handle_errors
 from typing import Dict, List, Set
 import importlib.util
 import sys
@@ -26,6 +29,7 @@ HIGH_COMPLEXITY = config.FUNCTION_DISCOVERY['high_complexity_threshold']
 CRITICAL_COMPLEXITY = config.FUNCTION_DISCOVERY['critical_complexity_threshold']
 
 
+@handle_errors("checking if code is auto-generated", default_return=False)
 def is_auto_generated_code(file_path: str, func_name: str) -> bool:
     """
     Determine if a function is in auto-generated code that should be excluded from complexity analysis.
@@ -83,6 +87,7 @@ def is_auto_generated_code(file_path: str, func_name: str) -> bool:
     return False
 
 
+@handle_errors("checking if method is special Python method", default_return=False)
 def is_special_python_method(func_name: str, complexity: int) -> bool:
     """
     Determine if a function is a special Python method that should be excluded from undocumented count.
@@ -128,6 +133,7 @@ def is_special_python_method(func_name: str, complexity: int) -> bool:
     return False
 
 
+@handle_errors("extracting decorator documentation", default_return="")
 def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
     """
     Extract documentation from decorators like @handle_errors("description").
@@ -162,6 +168,7 @@ def extract_decorator_documentation(decorator_list: List[ast.expr]) -> str:
     return "; ".join(documentation)
 
 
+@handle_errors("extracting functions from file", default_return=[])
 def extract_functions(file_path: str) -> List[Dict]:
     """Extract all function definitions from a Python file."""
     functions = []
@@ -220,6 +227,7 @@ def extract_functions(file_path: str) -> List[Dict]:
     return functions
 
 
+@handle_errors("scanning all functions", default_return=[])
 def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = False) -> List[Dict]:
     """Scan all Python files in SCAN_DIRECTORIES and extract functions."""
     all_functions = []
@@ -253,6 +261,7 @@ def scan_all_functions(include_tests: bool = False, include_dev_tools: bool = Fa
     return all_functions
 
 
+@handle_errors("categorizing functions", default_return={})
 def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
     """Categorize functions by type for easy discovery."""
     categories = {
@@ -287,6 +296,7 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
     return categories
 
 
+@handle_errors("printing function summary", default_return=None)
 def print_summary(categories: Dict[str, List[Dict]]):
     print("\n=== FUNCTION DISCOVERY SUMMARY ===")
     

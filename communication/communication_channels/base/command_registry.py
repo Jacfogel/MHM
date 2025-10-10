@@ -32,13 +32,13 @@ class CommandDefinition:
 class CommandRegistry(ABC):
     """Abstract base class for command registration utilities"""
     
-    @handle_errors("initializing command registry")
+    @handle_errors("initializing command registry", default_return=None)
     def __init__(self):
         """Initialize the command registry"""
         self._commands: Dict[str, CommandDefinition] = {}
         self._aliases: Dict[str, str] = {}
     
-    @handle_errors("registering command")
+    @handle_errors("registering command", default_return=False)
     def register_command(self, command_def: CommandDefinition) -> bool:
         """Register a command definition"""
         try:
@@ -111,11 +111,13 @@ class CommandRegistry(ABC):
         return command_name in self._commands or command_name in self._aliases
     
     @abstractmethod
+    @handle_errors("registering with platform", default_return=False)
     def register_with_platform(self, command_def: CommandDefinition) -> bool:
         """Register command with the specific platform (Discord, etc.)"""
         pass
     
     @abstractmethod
+    @handle_errors("unregistering from platform", default_return=False)
     def unregister_from_platform(self, command_name: str) -> bool:
         """Unregister command from the specific platform"""
         pass

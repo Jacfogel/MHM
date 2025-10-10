@@ -51,6 +51,7 @@ class AIChatBotSingleton:
     """
     _instance = None
 
+    @handle_errors("creating AI chatbot instance", default_return=None)
     def __new__(cls):
         """Create a new instance."""
         if cls._instance is None:
@@ -58,6 +59,7 @@ class AIChatBotSingleton:
             cls._instance._initialized = False
         return cls._instance
 
+    @handle_errors("initializing AI chatbot", default_return=None)
     def __init__(self):
         """Initialize the object."""
         if self._initialized:
@@ -73,6 +75,7 @@ class AIChatBotSingleton:
         
         self._initialized = True
 
+    @handle_errors("making cache key inputs", default_return=("", "", ""))
     def _make_cache_key_inputs(self, mode: str, user_prompt: str, user_id: Optional[str]):
         """Create consistent cache key inputs using prompt_type parameter."""
         # Always use the raw prompt; pass mode as prompt_type into the cache
@@ -723,12 +726,14 @@ Additional Instructions:
             loop = asyncio.get_event_loop()
         return await loop.run_in_executor(None, self.generate_response, user_prompt, AI_TIMEOUT_SECONDS, user_id)
 
+    @handle_errors("checking AI availability", default_return=False)
     def is_ai_available(self) -> bool:
         """
         Check if the AI model is available and functional.
         """
         return self.lm_studio_available
     
+    @handle_errors("reloading system prompt", default_return=None)
     def reload_system_prompt(self):
         """
         Reload the system prompt from file (useful for development and testing).
