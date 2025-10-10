@@ -8,6 +8,15 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-09 - Testing Framework Consolidation and Automation Enhancement **COMPLETED**
+- **Manual Testing Consolidation**: Combined MANUAL_DISCORD_TESTING_GUIDE.md into MANUAL_TESTING_GUIDE.md, removing redundancy and focusing manual testing on visual verification, UX, and integration
+- **Comprehensive Automation**: Created 57 automation tests covering all UI dialogs (7 types) and Discord scenarios (15 basic + 16 advanced)
+- **Real Behavior Testing**: Implemented Arrange-Act-Assert patterns with actual system state verification, not just return values
+- **Documentation Streamlining**: Updated TESTING_GUIDE.md with consolidated navigation and removed redundant automation links
+- **AI Testing Guide Enhancement**: Added concise best practices documentation for real behavior testing, side effects verification, and data persistence
+- **Test Coverage**: All 1,827 tests passing with comprehensive automation replacing manual testing where possible
+- **Files**: tests/behavior/test_*automation*.py, tests/MANUAL_TESTING_GUIDE.md, tests/TESTING_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md
+
 ### 2025-01-09 - Fixed Test Log Rotation and Cleanup Issues **COMPLETED**
 - **Issues**: Test log rotation at 100MB instead of 5MB, Windows file locking preventing truncation, aggressive cleanup deleting test_run.log, ISO timestamp format, verbose logging disabled
 - **Fixes**: Updated rotation threshold to 5MB, added Windows file locking fallback (move→copy+truncate), fixed cleanup to preserve current session logs, human-readable timestamps, enabled verbose logging by default
