@@ -1417,69 +1417,93 @@ class HelpHandler(InteractionHandler):
             )
         else:
             return InteractionResponse(
-                "**Welcome to MHM!** 🌟\n\n"
-                "I'm here to help you manage your mental health and daily tasks. "
-                "You can interact with me using natural language commands.\n\n"
-                "**Main Categories:**\n"
-                "• **Tasks**: Create, manage, and track your tasks\n"
-                "• **Check-ins**: Customizable wellness check-ins\n"
-                "• **Profile**: View and update your information\n"
-                "• **Analytics**: View your progress and insights\n"
-                "• **Schedule**: Manage automated messages and reminders\n\n"
-                "**Try these commands:**\n"
-                "• 'help tasks' - Task management help\n"
-                "• 'help checkin' - Check-in help\n"
-                "• 'help profile' - Profile management help\n"
-                "• 'commands' - List all available commands\n"
-                "• 'examples' - See example commands\n\n"
-                "**Natural Language Examples:**\n"
-                "• 'I need to create a task to call mom tomorrow'\n"
-                "• 'Show me my tasks'\n"
-                "• 'How am I doing with my tasks this week?'\n"
-                "• 'What's my completion rate?'\n\n"
-                "Just start typing naturally - I'll understand what you want to do!\n\n"
-                "Tip: type 'commands' or use slash-commands to see the full list.",
+                "**MHM Bot Commands** 🌟\n\n"
+                "I understand natural language best! Just talk to me naturally.\n\n"
+                "**Tasks**:\n"
+                "• \"create a task to...\" - Add new task\n"
+                "• \"show my tasks\" - View all tasks\n"
+                "• \"complete [task]\" - Mark task done\n"
+                "• Or use: /tasks, !tasks\n\n"
+                "**Check-ins** (Conversational):\n"
+                "• \"start a check-in\" - Begin wellness check-in\n"
+                "• I'll ask you questions about mood, energy, etc.\n"
+                "• Or use: /checkin, !checkin\n\n"
+                "**Profile**:\n"
+                "• \"show my profile\" - View your information\n"
+                "• \"update my name to...\" - Change details\n"
+                "• Or use: /profile, !profile\n\n"
+                "**Analytics**:\n"
+                "• \"show my analytics\" - View insights\n"
+                "• \"what are my mood trends?\" - See patterns\n"
+                "• \"how am I doing with habits?\" - Get analysis\n"
+                "• Or use: /analytics, !analytics\n\n"
+                "**Schedule**:\n"
+                "• \"show my schedule\" - View time periods\n"
+                "• \"add schedule period...\" - Create new periods\n"
+                "• Or use: /schedule, !schedule\n\n"
+                "**Need More Help?**\n"
+                "• Say \"examples\" for more natural language examples\n"
+                "• Say \"commands\" for a complete command list\n"
+                "• Visit DISCORD.md for full documentation\n\n"
+                "Just start typing naturally - I'll understand what you want to do!",
                 True
             )
     
     def _handle_commands_list(self, user_id: str) -> InteractionResponse:
         """Handle commands list request"""
-        response = "**Available Commands:**\n\n"
+        response = "**Complete Command List:**\n\n"
         
         # Task commands
         response += "📋 **Task Management:**\n"
-        response += "• create task, list tasks, complete task, delete task, update task, task stats\n"
-        response += "• task weekly stats, how am I doing with my tasks this week\n\n"
+        response += "• Natural: \"create a task to...\", \"show my tasks\", \"complete [task]\"\n"
+        response += "• Explicit: create_task, list_tasks, complete_task, delete_task, update_task, task_stats\n"
+        response += "• Slash: /tasks, !tasks\n\n"
         
         # Check-in commands
-        response += "✅ **Check-ins:**\n"
-        response += "• start checkin, checkin status, checkin history\n\n"
+        response += "✅ **Check-ins** (Conversational Flows):\n"
+        response += "• Natural: \"start a check-in\", \"how am I feeling?\", \"I want to check in\"\n"
+        response += "• Explicit: start_checkin, checkin_status, checkin_history, checkin_analysis\n"
+        response += "• Slash: /checkin, !checkin\n"
+        response += "• Note: Check-ins are conversational - bot asks questions and waits for responses\n\n"
         
         # Profile commands
-        response += "👤 **Profile:**\n"
-        response += "• show profile, update profile, profile stats\n\n"
+        response += "👤 **Profile Management:**\n"
+        response += "• Natural: \"show my profile\", \"update my name to...\", \"add health condition...\"\n"
+        response += "• Explicit: show_profile, update_profile, profile_stats\n"
+        response += "• Slash: /profile, !profile\n\n"
         
         # Schedule commands
         response += "📅 **Schedule Management:**\n"
-        response += "• show schedule, schedule status, enable/disable schedule, add schedule period\n\n"
+        response += "• Natural: \"show my schedule\", \"add schedule period...\", \"what's my schedule status?\"\n"
+        response += "• Explicit: show_schedule, update_schedule, schedule_status, add_schedule_period, edit_schedule_period\n"
+        response += "• Slash: /schedule, !schedule\n\n"
         
         # Analytics commands
         response += "📊 **Analytics & Insights:**\n"
-        response += "• show analytics, mood trends, habit analysis, sleep analysis, wellness score\n"
-        response += "• completion rate, checkin history, task weekly stats\n\n"
+        response += "• Natural: \"show my analytics\", \"what are my mood trends?\", \"how am I doing with habits?\"\n"
+        response += "• Explicit: show_analytics, mood_trends, habit_analysis, sleep_analysis, wellness_score\n"
+        response += "• More: checkin_history, completion_rate, task_analytics, quant_summary\n"
+        response += "• Slash: /analytics, !analytics\n\n"
         
-        # Help commands
-        response += "❓ **Help:**\n"
-        response += "• help, commands, examples\n\n"
+        # System commands
+        response += "🔧 **System Commands:**\n"
+        response += "• Natural: \"help\", \"what commands are available?\", \"show me examples\"\n"
+        response += "• Explicit: help, commands, examples, status, clear_flows, cancel\n"
+        response += "• Slash: /help, /status, /clear, /cancel\n\n"
         
-        response += "**Natural Language Support:**\n"
-        response += "You can also use natural language! Try:\n"
-        response += "• 'I need to create a task'\n"
-        response += "• 'Show me my profile'\n"
-        response += "• 'How am I doing with my tasks this week?'\n"
-        response += "• 'What's my completion rate?'\n"
-        response += "• 'Show my check-in history'\n"
-        response += "\nTip: type 'commands' or use slash-commands to see the full list."
+        response += "**Command Types Explained:**\n"
+        response += "• **Single-Turn**: Most commands - you ask, bot responds once\n"
+        response += "• **Conversational Flows**: Check-ins, some task creation - multi-turn conversations\n"
+        response += "• **Natural Language**: Primary method - just talk naturally!\n"
+        response += "• **Explicit Commands**: For precision when needed\n"
+        response += "• **Slash/Bang Commands**: Discord-specific shortcuts\n\n"
+        response += "**Flow Management:**\n"
+        response += "• To exit a conversation: say \"cancel\" or \"/cancel\"\n"
+        response += "• To clear stuck flows: say \"clear flows\" or use /clear\n\n"
+        response += "**Need More Help?**\n"
+        response += "• Say \"examples\" for natural language examples\n"
+        response += "• Say \"help [topic]\" for specific help (tasks, checkin, profile, etc.)\n"
+        response += "• Visit DISCORD.md for complete documentation"
         
         return InteractionResponse(response, True)
     

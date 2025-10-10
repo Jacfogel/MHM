@@ -1,6 +1,6 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-10-09 16:45:18
+**Generated**: 2025-10-09 22:40:17
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 7
 
@@ -29,7 +29,7 @@
 ### communication\command_handlers\interaction_handlers.py
 **Issues Found**: 1
 
-- **Line 2225**: `# LEGACY COMPATIBILITY:`
+- **Line 2249**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Support old enabled_fields format
   ```

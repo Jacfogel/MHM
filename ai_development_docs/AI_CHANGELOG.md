@@ -6,8 +6,22 @@
 
 > **See [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the full history**
 
-## Overview
-Use this file to get fast orientation before assisting the user. Entries are ordered newest first and trimmed to keep context compact.
+## Recent Changes (Most Recent First)
+
+### 2025-01-09 - Discord Commands Testing Completion **COMPLETED**
+- **Automated Testing**: Added 16 comprehensive behavior tests for profile display formatting and command discovery
+- **Profile Display Tests**: 6 test scenarios verifying clean text output, no JSON syntax, proper formatting, and rich data structure
+- **Command Discovery Tests**: 10 test scenarios verifying help system provides comprehensive command discovery
+- **Manual Testing Guide**: Created comprehensive testing checklist with 15 specific test scenarios for real-world Discord verification
+- **Code Quality**: Fixed syntax error in profile_handler.py and ensured all tests pass
+- **User Impact**: Complete test coverage for Discord commands, ready for manual verification, comprehensive testing documentation
+
+### 2025-10-09 - Discord Commands Documentation and Profile Display Enhancement **COMPLETED**
+- **Profile Display Fix**: Removed dead code in profile_handler.py (lines 54-139) that built unused emoji responses overwritten by _format_profile_text() call
+- **Comprehensive Command Documentation**: Complete rewrite of DISCORD.md with natural language examples, explicit commands, and beginner-friendly structure
+- **Enhanced Help System**: Improved help responses to emphasize natural language as primary method with categorized command lists and flow management guidance
+- **Test Compatibility**: Updated test assertions to match new help text format
+- **User Impact**: Better command discovery, cleaner codebase, comprehensive documentation for all Discord interaction methods
 
 ### 2025-10-09 - Consolidated Test Logging System **COMPLETED**
 - **Direct logging approach**: Implemented clean separation where component logs go directly to `test_consolidated.log` and test execution logs go directly to `test_run.log`

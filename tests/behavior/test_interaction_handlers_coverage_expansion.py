@@ -961,7 +961,7 @@ class TestHelpHandlerCoverage:
         response = handler.handle(user_id, parsed_command)
 
         assert isinstance(response, InteractionResponse)
-        assert "available commands" in response.message.lower()
+        assert "complete command list" in response.message.lower()
         assert "help" in response.message.lower() or "example" in response.message.lower()
     
     def test_handle_examples(self, test_data_dir):

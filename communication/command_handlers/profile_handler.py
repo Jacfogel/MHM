@@ -51,92 +51,6 @@ class ProfileHandler(InteractionHandler):
         context_data = context_result.get('context', {}) if context_result else {}
         preferences_data = preferences_result.get('preferences', {}) if preferences_result else {}
         
-        # Format profile information
-        response = "**Your Profile:**\n"
-        
-        # Basic info
-        if context_data:
-            name = context_data.get('preferred_name', 'Not set')
-            gender_identity = context_data.get('gender_identity', [])
-            date_of_birth = context_data.get('date_of_birth', 'Not set')
-            
-            response += f"👤 **Name:** {name}\n"
-            
-            # Format gender identity (can be a list)
-            if isinstance(gender_identity, list) and gender_identity:
-                gender_str = ', '.join(gender_identity)
-            elif isinstance(gender_identity, str):
-                gender_str = gender_identity
-            else:
-                gender_str = 'Not set'
-            response += f"🎭 **Gender Identity:** {gender_str}\n"
-            
-            if date_of_birth and date_of_birth != 'Not set':
-                response += f"📅 **Date of Birth:** {date_of_birth}\n"
-        
-        # Account info
-        if account_data:
-            email = account_data.get('email', 'Not set')
-            status = account_data.get('account_status', 'Unknown')
-            response += f"📧 **Email:** {email}\n"
-            response += f"📊 **Status:** {status}\n"
-        
-        # Health & Medical Information
-        if context_data:
-            custom_fields = context_data.get('custom_fields', {})
-            
-            # Health conditions
-            health_conditions = custom_fields.get('health_conditions', [])
-            if health_conditions:
-                response += f"🏥 **Health Conditions:** {', '.join(health_conditions)}\n"
-            
-            # Medications
-            medications = custom_fields.get('medications_treatments', [])
-            if medications:
-                response += f"💊 **Medications/Treatments:** {', '.join(medications)}\n"
-            
-            # Allergies
-            allergies = custom_fields.get('allergies_sensitivities', [])
-            if allergies:
-                response += f"⚠️ **Allergies/Sensitivities:** {', '.join(allergies)}\n"
-        
-        # Interests
-        interests = context_data.get('interests', []) if context_data else []
-        if interests:
-            response += f"🎯 **Interests:** {', '.join(interests)}\n"
-        
-        # Goals
-        goals = context_data.get('goals', []) if context_data else []
-        if goals:
-            response += f"🎯 **Goals:** {', '.join(goals)}\n"
-        
-        # Loved Ones/Support Network
-        loved_ones = context_data.get('loved_ones', []) if context_data else []
-        if loved_ones:
-            response += f"💕 **Support Network:**\n"
-            for person in loved_ones[:3]:  # Show first 3
-                name = person.get('name', 'Unknown')
-                person_type = person.get('type', '')
-                relationships = person.get('relationships', [])
-                rel_str = f" ({', '.join(relationships)})" if relationships else ""
-                response += f"  • {name} - {person_type}{rel_str}\n"
-            if len(loved_ones) > 3:
-                response += f"  ... and {len(loved_ones) - 3} more\n"
-        
-        # Notes for AI
-        notes = context_data.get('notes_for_ai', []) if context_data else []
-        if notes and notes[0]:
-            response += f"📝 **Notes for AI:** {notes[0][:100]}{'...' if len(notes[0]) > 100 else ''}\n"
-        
-        # Account features
-        if account_data:
-            features = account_data.get('features', {})
-            checkins_enabled = features.get('checkins') == 'enabled'
-            tasks_enabled = features.get('task_management') == 'enabled'
-            response += f"\n**Account Features:**\n"
-            response += f"✅ Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}\n"
-            response += f"📋 Tasks: {'Enabled' if tasks_enabled else 'Disabled'}\n"
-        
         # Create plain-text message via formatter (clean, readable)
         response = self._format_profile_text(account_data, context_data, preferences_data)
 
@@ -387,77 +301,77 @@ class ProfileHandler(InteractionHandler):
         try:
             lines: List[str] = ["**Your Profile:**"]
 
-        # Basic info
-        name = (context_data or {}).get('preferred_name', 'Not set')
-        gender_identity = (context_data or {}).get('gender_identity', [])
-        date_of_birth = (context_data or {}).get('date_of_birth', 'Not set')
-        lines.append(f"- Name: {name}")
-        if isinstance(gender_identity, list):
-            gender_str = ', '.join(gender_identity) if gender_identity else 'Not set'
-        else:
-            gender_str = gender_identity or 'Not set'
-        lines.append(f"- Gender Identity: {gender_str}")
-        if date_of_birth and date_of_birth != 'Not set':
-            lines.append(f"- Date of Birth: {date_of_birth}")
+            # Basic info
+            name = (context_data or {}).get('preferred_name', 'Not set')
+            gender_identity = (context_data or {}).get('gender_identity', [])
+            date_of_birth = (context_data or {}).get('date_of_birth', 'Not set')
+            lines.append(f"- Name: {name}")
+            if isinstance(gender_identity, list):
+                gender_str = ', '.join(gender_identity) if gender_identity else 'Not set'
+            else:
+                gender_str = gender_identity or 'Not set'
+            lines.append(f"- Gender Identity: {gender_str}")
+            if date_of_birth and date_of_birth != 'Not set':
+                lines.append(f"- Date of Birth: {date_of_birth}")
 
-        # Account info
-        if account_data:
-            email = account_data.get('email', 'Not set')
-            status = account_data.get('account_status', 'Unknown')
-            lines.append(f"- Email: {email}")
-            lines.append(f"- Status: {status}")
+            # Account info
+            if account_data:
+                email = account_data.get('email', 'Not set')
+                status = account_data.get('account_status', 'Unknown')
+                lines.append(f"- Email: {email}")
+                lines.append(f"- Status: {status}")
 
-        # Health & Medical Information
-        custom_fields = (context_data or {}).get('custom_fields', {}) or {}
-        health_conditions = custom_fields.get('health_conditions', []) or []
-        medications = custom_fields.get('medications_treatments', []) or []
-        allergies = custom_fields.get('allergies_sensitivities', []) or []
-        if health_conditions:
-            lines.append(f"- Health Conditions: {', '.join(health_conditions)}")
-        if medications:
-            lines.append(f"- Medications/Treatments: {', '.join(medications)}")
-        if allergies:
-            lines.append(f"- Allergies/Sensitivities: {', '.join(allergies)}")
+            # Health & Medical Information
+            custom_fields = (context_data or {}).get('custom_fields', {}) or {}
+            health_conditions = custom_fields.get('health_conditions', []) or []
+            medications = custom_fields.get('medications_treatments', []) or []
+            allergies = custom_fields.get('allergies_sensitivities', []) or []
+            if health_conditions:
+                lines.append(f"- Health Conditions: {', '.join(health_conditions)}")
+            if medications:
+                lines.append(f"- Medications/Treatments: {', '.join(medications)}")
+            if allergies:
+                lines.append(f"- Allergies/Sensitivities: {', '.join(allergies)}")
 
-        # Interests & Goals
-        interests = (context_data or {}).get('interests', []) or []
-        goals = (context_data or {}).get('goals', []) or []
-        if interests:
-            lines.append(f"- Interests: {', '.join(interests)}")
-        if goals:
-            lines.append(f"- Goals: {', '.join(goals)}")
+            # Interests & Goals
+            interests = (context_data or {}).get('interests', []) or []
+            goals = (context_data or {}).get('goals', []) or []
+            if interests:
+                lines.append(f"- Interests: {', '.join(interests)}")
+            if goals:
+                lines.append(f"- Goals: {', '.join(goals)}")
 
-        # Loved Ones/Support Network (show up to 3)
-        loved_ones = (context_data or {}).get('loved_ones', []) or []
-        if loved_ones:
-            lines.append("- Support Network:")
-            for person in loved_ones[:3]:
-                pname = person.get('name', 'Unknown')
-                ptype = person.get('type') or person.get('role') or ''
-                rels = person.get('relationships') or []
-                rel_str = f" ({', '.join(rels)})" if rels else ''
-                type_str = f" [{ptype}]" if ptype else ''
-                lines.append(f"  • {pname}{type_str}{rel_str}")
-            if len(loved_ones) > 3:
-                lines.append(f"  ... and {len(loved_ones) - 3} more")
+            # Loved Ones/Support Network (show up to 3)
+            loved_ones = (context_data or {}).get('loved_ones', []) or []
+            if loved_ones:
+                lines.append("- Support Network:")
+                for person in loved_ones[:3]:
+                    pname = person.get('name', 'Unknown')
+                    ptype = person.get('type') or person.get('role') or ''
+                    rels = person.get('relationships') or []
+                    rel_str = f" ({', '.join(rels)})" if rels else ''
+                    type_str = f" [{ptype}]" if ptype else ''
+                    lines.append(f"  • {pname}{type_str}{rel_str}")
+                if len(loved_ones) > 3:
+                    lines.append(f"  ... and {len(loved_ones) - 3} more")
 
-        # Notes for AI (preview)
-        notes = (context_data or {}).get('notes_for_ai', []) or []
-        if notes and isinstance(notes, list) and notes[0]:
-            preview = notes[0]
-            if isinstance(preview, str):
-                short = preview[:100] + ('...' if len(preview) > 100 else '')
-                lines.append(f"- Notes for AI: {short}")
+            # Notes for AI (preview)
+            notes = (context_data or {}).get('notes_for_ai', []) or []
+            if notes and isinstance(notes, list) and notes[0]:
+                preview = notes[0]
+                if isinstance(preview, str):
+                    short = preview[:100] + ('...' if len(preview) > 100 else '')
+                    lines.append(f"- Notes for AI: {short}")
 
-        # Account features
-        if account_data:
-            features = account_data.get('features', {}) or {}
-            checkins_enabled = features.get('checkins') == 'enabled'
-            tasks_enabled = features.get('task_management') == 'enabled'
-            lines.append("")
-            lines.append("**Account Features:**")
-            lines.append(f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}")
-            lines.append(f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}")
+            # Account features
+            if account_data:
+                features = account_data.get('features', {}) or {}
+                checkins_enabled = features.get('checkins') == 'enabled'
+                tasks_enabled = features.get('task_management') == 'enabled'
+                lines.append("")
+                lines.append("**Account Features:**")
+                lines.append(f"- Check-ins: {'Enabled' if checkins_enabled else 'Disabled'}")
+                lines.append(f"- Tasks: {'Enabled' if tasks_enabled else 'Disabled'}")
 
             return "\n".join(lines)
         except Exception as e:

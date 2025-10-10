@@ -115,23 +115,6 @@ When adding new tasks, follow this format:
     - [ ] Test that consolidated logging works without errors
     - [ ] Verify both `test_run.log` and `test_consolidated.log` are created correctly
 
-**Fix Profile Display and Document Discord Commands**
-- *What it means*: Fix the profile display formatting if any raw JSON paths remain and document all available Discord commands for user discovery
-- *Why it helps*: Users can properly view their profile information and discover all available commands
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] **Fix Profile Display Formatting**
-    - [ ] Investigate any path that outputs raw JSON for profile
-    - [ ] Fix formatting to show user-friendly profile information
-    - [ ] Test profile display in Discord to ensure proper formatting
-    - [ ] Ensure all profile information is displayed (not truncated)
-  - [ ] **Document All Discord Commands**
-    - [ ] Audit all available Discord commands (slash commands, ! commands, natural language)
-    - [ ] Keep comprehensive list in `communication/communication_channels/discord/DISCORD.md` with examples (developer/admin only)
-    - [ ] Ensure help system surfaces core commands and examples
-    - [ ] Test all commands to ensure they work properly
-
-
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.
 - *Why it helps*: Prevents lost messages and duplicate check-in starts.

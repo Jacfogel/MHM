@@ -44,6 +44,18 @@ def cleanup_test_data():
     pass
 ```
 
+### **Discord Command Testing**
+```python
+# Test profile display formatting
+python -m pytest tests/behavior/test_profile_display_formatting.py -v
+
+# Test command discovery help system
+python -m pytest tests/behavior/test_command_discovery_help.py -v
+
+# Manual Discord testing
+# See tests/MANUAL_DISCORD_TESTING_GUIDE.md for comprehensive testing checklist
+```
+
 ### **Test Categories**
 
 #### **Unit Tests** (`tests/unit/`)
@@ -60,6 +72,7 @@ def cleanup_test_data():
 - Test complete user scenarios
 - End-to-end functionality
 - Real user data interactions
+- **Discord Commands**: Profile display formatting and command discovery testing
 
 #### **UI Tests** (`tests/ui/`)
 - Test PySide6 dialogs and widgets
@@ -140,5 +153,6 @@ python -m pytest --cov=core --cov-report=html
 ## Resources
 - **Full Guide**: `tests/TESTING_GUIDE.md` - Complete testing framework documentation
 - **Manual Testing**: `tests/MANUAL_TESTING_GUIDE.md` - UI testing procedures
+- **Discord Testing**: `tests/MANUAL_DISCORD_TESTING_GUIDE.md` - Discord command testing procedures
 - **Error Handling**: `core/ERROR_HANDLING_GUIDE.md` - Exception handling patterns
 - **Development Workflow**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Testing in development process
