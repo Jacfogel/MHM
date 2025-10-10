@@ -27,6 +27,10 @@ class TestContextFormatter(logging.Formatter):
     
     @handle_errors("formatting log record")
     def format(self, record):
+        # Skip adding test context to component loggers
+        if record.name.startswith("mhm."):
+            return super().format(record)
+            
         # Get test name from pytest's environment variable
         test_name = os.environ.get('PYTEST_CURRENT_TEST', '')
         if test_name:
@@ -51,7 +55,7 @@ def apply_test_context_formatter_to_all_loggers():
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # Apply to all existing loggers
+    # Apply to all existing loggers - the TestContextFormatter will skip component loggers
     count = 0
     for logger_name in logging.Logger.manager.loggerDict:
         logger = logging.getLogger(logger_name)

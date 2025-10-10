@@ -104,7 +104,18 @@ When adding new tasks, follow this format:
   - [ ] Implement concise summary generation with cross-references to detailed docs
   - [ ] Test generated documentation usability for AI collaborators
 
-**Fix Profile Display and Document Discord Commands** ?? **NEW PRIORITY**
+**Fix Consolidated Test Logging Fixture** ?? **NEW PRIORITY**
+- *What it means*: Fix the consolidated logging fixture configuration that's causing "Fixture called directly" errors in test runs
+- *Why it helps*: Ensures the new consolidated logging system works properly without breaking test execution
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] **Fix Fixture Configuration**
+    - [ ] Investigate why `setup_consolidated_test_logging` fixture is being called directly
+    - [ ] Ensure proper pytest fixture configuration
+    - [ ] Test that consolidated logging works without errors
+    - [ ] Verify both `test_run.log` and `test_consolidated.log` are created correctly
+
+**Fix Profile Display and Document Discord Commands**
 - *What it means*: Fix the profile display formatting if any raw JSON paths remain and document all available Discord commands for user discovery
 - *Why it helps*: Users can properly view their profile information and discover all available commands
 - *Estimated effort*: Small

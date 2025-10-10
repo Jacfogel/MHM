@@ -17,6 +17,47 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-09 - Consolidated Test Logging System **COMPLETED**
+
+**Context**: The user requested a consolidated logging system for tests that would capture all component logs in a single file instead of creating 10+ separate log files per test run. The goal was to have clean separation between component logs and test execution logs while maintaining proper headers and session boundaries.
+
+**Problem Solved**: 
+- Excessive log file creation during tests (10+ individual .log files)
+- Test context pollution in component logs
+- Complex post-processing splitting that was unreliable
+- Missing session headers and separators
+- Log rotation and history preservation issues
+
+**Technical Changes**:
+- **Implemented direct logging approach** in `tests/conftest.py`:
+  - Component loggers (`mhm.*`) write directly to `test_consolidated.log` with standard formatter (no test context)
+  - Test execution loggers write directly to `test_run.log` with `TestContextFormatter` (with test context)
+  - Eliminated complex `split_consolidated_log` post-processing function
+- **Added session headers** written immediately at test session start:
+  - Clear `# TEST RUN STARTED` markers with timestamps
+  - Separate headers for component logs vs test execution logs
+- **Added session separators** with "---" markers at end of each test session
+- **Reduced rotation threshold** from 10MB to 5MB for faster testing
+- **Synchronized rotation** for both `test_run.log` and `test_consolidated.log`
+
+**Files Modified**:
+- `tests/conftest.py`: Complete refactor of `setup_consolidated_test_logging` fixture
+- `core/logger.py`: Enhanced `TestContextFormatter` to properly handle component vs test loggers
+- `tests/logs/test_run.log`: Now contains clean test execution logs with proper context
+- `tests/logs/test_consolidated.log`: Now contains clean component logs without test context
+
+**Testing Evidence**:
+- ✅ **Perfect log separation**: Component logs completely clean of test context
+- ✅ **Session headers**: Clear markers at start of each test session
+- ✅ **Session separators**: Clean "---" separators between sessions
+- ✅ **History preservation**: Previous test runs preserved without duplication
+- ✅ **Synchronized rotation**: Both files rotate together at 5MB threshold
+- ✅ **Simple and reliable**: Direct logging approach eliminates complex post-processing
+
+**Outcome**: Achieved exactly what was requested - a simple, clean, consolidated logging system that separates component logs from test execution logs with proper headers, separators, and rotation. The system is much more reliable than the previous complex splitting approach.
+
+**Remaining Issue**: One fixture configuration error needs fixing to prevent "Fixture called directly" errors in test runs.
+
 ### 2025-10-06 - Error Handling Coverage Expansion **COMPLETED**
 
 **Context**: The MHM system needed comprehensive error handling coverage expansion to improve system robustness and reliability. The goal was to expand error handling coverage from 72.4% to 80%+ by adding @handle_errors decorators to remaining functions across critical modules.

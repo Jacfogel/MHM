@@ -444,7 +444,7 @@ test_logger, test_log_file = setup_test_logging()
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
     
-    def __init__(self, max_size_mb=10):  # 10MB for consolidated log rotation
+    def __init__(self, max_size_mb=100):  # 100MB for consolidated log rotation (temporarily increased)
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
@@ -580,45 +580,72 @@ log_lifecycle_manager = LogLifecycleManager()
 @pytest.fixture(scope="session", autouse=True)
 def setup_consolidated_test_logging():
     """Set up consolidated test logging - all component logs go to a single file.
-    
+
     This replaces the complex multi-file logging system with a single consolidated log file
     that contains all component logs, making it much easier to manage and debug.
     """
-    
     # Create a single consolidated log file for all test logging
     consolidated_log_file = Path(project_root) / "tests" / "logs" / "test_consolidated.log"
     consolidated_log_file.parent.mkdir(exist_ok=True)
+
+    # Ensure test_run.log exists so rotation manager can write headers to it
+    test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
+    if not test_run_log_file.exists():
+        test_run_log_file.touch()
+
+    # Write headers FIRST before any logging starts
+    from datetime import datetime
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Write header to test_run.log
+    with open(test_run_log_file, 'a', encoding='utf-8') as f:
+        f.write(f"\n{'='*80}\n")
+        f.write(f"# TEST RUN STARTED: {timestamp}\n")
+        f.write(f"# Test Execution Logging Active\n")
+        f.write(f"# Test execution and framework logs are captured here\n")
+        f.write(f"{'='*80}\n\n")
+
+    # Write header to test_consolidated.log
+    with open(consolidated_log_file, 'a', encoding='utf-8') as f:
+        f.write(f"\n{'='*80}\n")
+        f.write(f"# TEST RUN STARTED: {timestamp}\n")
+        f.write(f"# Component Logging Active\n")
+        f.write(f"# Real component logs from application components are captured here\n")
+        f.write(f"{'='*80}\n\n")
+
+    # Set up separate handlers for component logs vs test execution logs
+    # Component logs go directly to test_consolidated.log (no test context)
+    # Test execution logs go directly to test_run.log (with test context)
+
+    # Create handler for component logs (no test context)
+    component_handler = logging.FileHandler(str(consolidated_log_file), mode='a', encoding='utf-8')
+    component_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+                                           datefmt='%Y-%m-%d %H:%M:%S')
+    component_handler.setFormatter(component_formatter)
+
+    # Create handler for test execution logs (with test context)
+    test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
+    from core.logger import TestContextFormatter
+    test_formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+                                        datefmt='%Y-%m-%d %H:%M:%S')
+    test_handler.setFormatter(test_formatter)
+
+    # Ensure component loggers are created by importing the modules that create them
+    try:
+        from core.scheduler import SchedulerManager
+        from core.service import MHMService
+        from communication.core.channel_orchestrator import CommunicationManager
+        from ai.chatbot import AIChatbot
+    except ImportError:
+        pass  # Some modules might not be available during tests
     
-    # Create a formatter that includes component information
-    formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # Component loggers are now available for configuration
     
-    # Create a single file handler for all component logs
-    consolidated_handler = logging.FileHandler(consolidated_log_file, encoding='utf-8')
-    consolidated_handler.setLevel(logging.DEBUG)
-    consolidated_handler.setFormatter(formatter)
-    
-    # Store the consolidated handler globally so it can be attached to new loggers
-    global _consolidated_handler
-    _consolidated_handler = consolidated_handler
-    
-    # Set up all component loggers to use the same consolidated file
-    # Note: We exclude "mhm.main" and "root" to keep test execution logs separate
-    component_loggers = [
-        "mhm", "mhm.errors", "mhm.ai", "mhm.discord", "mhm.email", "mhm.ui",
-        "mhm.communication_manager", "mhm.user_activity", "mhm.scheduler", "mhm.file_ops",
-        "mhm.schedule_utilities", "mhm.analytics", "mhm.message", "mhm.backup",
-        "mhm.channel_orchestrator", "mhm.command_registry", "mhm.discord_events",
-        "mhm.message_router", "mhm.discord_api", "mhm.message_formatter", "mhm.rich_formatter",
-        "mhm.channel_monitor", "mhm.retry_manager", "mhm.analytics_handler",
-        "mhm.checkin_handler", "mhm.profile_handler", "mhm.schedule_handler",
-        "mhm.ai_context", "mhm.ai_conversation", "mhm.ai_cache", "mhm.ai_prompt"
-        # Excluded "mhm.main" and "root" to keep test execution logs in test_run.log only
-    ]
-    
-    for logger_name in component_loggers:
+    # Configure loggers
+    for logger_name in logging.Logger.manager.loggerDict:
         try:
             logger_obj = logging.getLogger(logger_name)
-            
+
             # Clear existing handlers
             for h in logger_obj.handlers[:]:
                 try:
@@ -626,35 +653,32 @@ def setup_consolidated_test_logging():
                 except Exception:
                     pass
                 logger_obj.removeHandler(h)
-            
-            # Add the consolidated handler
-            logger_obj.addHandler(consolidated_handler)
-            
+
             # Set appropriate log level
-            level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
+            if logger_name.startswith("mhm."):
+                # Component loggers always use DEBUG level to capture all logs
+                level = logging.DEBUG
+            else:
+                # Test execution loggers use DEBUG if verbose, WARNING otherwise
+                level = logging.DEBUG if os.getenv("TEST_VERBOSE_LOGS", "0") == "1" else logging.WARNING
             logger_obj.setLevel(level)
-            logger_obj.propagate = False
-            
+
+            # Component loggers go to test_consolidated.log (no test context)
+            if logger_name.startswith("mhm."):
+                logger_obj.addHandler(component_handler)
+                logger_obj.propagate = False
+            # Test execution loggers go to test_run.log (with test context)
+            else:
+                logger_obj.addHandler(test_handler)
+                logger_obj.propagate = True
+
         except Exception:
             # Never fail tests due to logging configuration issues
             continue
-    
-    # Register the consolidated log file with session rotation manager
+
+    # Register both log files with session rotation manager
     session_rotation_manager.register_log_file(str(consolidated_log_file))
-    
-    # Also register the test_run.log file for rotation
-    test_run_log_file = Path(project_root) / "tests" / "logs" / "test_run.log"
     session_rotation_manager.register_log_file(str(test_run_log_file))
-    
-    # Apply TestContextFormatter to all existing loggers when in test mode
-    try:
-        from core.logger import apply_test_context_formatter_to_all_loggers
-        apply_test_context_formatter_to_all_loggers()
-    except Exception:
-        # Never fail tests due to logging configuration issues
-        pass
-    
-    # Check if rotation is needed and perform it if necessary
     if session_rotation_manager.check_rotation_needed():
         session_rotation_manager.rotate_all_logs()
         test_logger.info("Performed automatic log rotation at session start")
@@ -806,37 +830,9 @@ def _consolidate_and_cleanup_main_logs():
 
 def _add_test_run_start_markers():
     """Add clear test run start markers to both consolidated and test_run log files."""
-    try:
-        logs_dir = Path(project_root) / "tests" / "logs"
-        if not logs_dir.exists():
-            return
-            
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
-        # Add marker to consolidated log
-        consolidated_log = logs_dir / "test_consolidated.log"
-        if consolidated_log.exists():
-            with open(consolidated_log, 'a', encoding='utf-8') as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"# TEST RUN STARTED: {timestamp}\n")
-                f.write(f"# Component Logging Active\n")
-                f.write(f"# All component logs (excluding test execution) are captured here\n")
-                f.write(f"{'='*80}\n\n")
-        
-        # Add marker to test_run log
-        test_run_log = logs_dir / "test_run.log"
-        if test_run_log.exists():
-            with open(test_run_log, 'a', encoding='utf-8') as f:
-                f.write(f"\n{'='*80}\n")
-                f.write(f"# TEST RUN STARTED: {timestamp}\n")
-                f.write(f"# Test Execution Logging Active\n")
-                f.write(f"# Test execution and framework logs are captured here\n")
-                f.write(f"{'='*80}\n\n")
-                
-        test_logger.info("Added test run start markers to log files")
-        
-    except Exception as e:
-        test_logger.warning(f"Error adding test run start markers: {e}")
+    # Headers are now written immediately when consolidated logging is set up
+    # No need to write duplicate headers here
+    pass
 
 
 def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int) -> int:
