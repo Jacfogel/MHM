@@ -1,9 +1,9 @@
 # MHM Manual Testing Guide
 
-> **Audience**: Developers and testers performing manual UI testing  
-> **Purpose**: Comprehensive manual testing guide for all dialogs and UI components  
+> **Audience**: Developers and testers performing manual testing for scenarios not covered by automation  
+> **Purpose**: Comprehensive manual testing guide focusing on visual verification, user experience, and real-world integration  
 > **Style**: Step-by-step, checklist-focused, testing-oriented  
-> **Status**: **ACTIVE** - Consolidated from multiple sources  
+> **Status**: **ACTIVE** - Focused on non-automated scenarios  
 > **Last Updated**: 2025-09-28
 
 > **See [README.md](../README.md) for complete navigation and project overview**  
@@ -12,399 +12,176 @@
 
 ## 🚀 Quick Reference
 
-### **Testing Order (Recommended)**
-1. **Category Management Dialog** - Simplest, good starting point
-2. **Channel Management Dialog** - Basic functionality
-3. **Check-in Management Dialog** - Moderate complexity
-4. **Task Management Dialog** - Moderate complexity
-5. **Schedule Editor Dialog** - More complex
-6. **User Profile Dialog** - Most complex, many fields
-7. **Account Creator Dialog** - Most complex, integration testing
+### **Automated Testing Coverage**
+✅ **Fully Automated**: All 7 UI dialog types, Discord commands, error handling, data persistence  
+✅ **Test Commands**: `python -m pytest tests/behavior/test_*automation* -v`
+
+### **Manual Testing Focus**
+1. **Visual Design** - Layout, styling, responsive design
+2. **User Experience** - Usability, accessibility, workflow efficiency
+3. **Performance** - Real-world performance under user conditions
+4. **Integration** - External system interactions (Discord, email, etc.)
+5. **Cross-Platform** - Different operating systems, screen sizes
+
 
 ### **Before Starting**
+- [ ] Run automated tests first: `python -m pytest tests/behavior/test_*automation* -v`
 - [ ] Run `python run_headless_service.py start` to ensure system starts
 - [ ] Have a test user ready (or create one)
-- [ ] Keep this guide open for notes
+- [ ] Focus on visual and UX aspects not covered by automation
 
-## 🎯 **Testing Strategy**
-
-### **Order of Testing (Recommended)**
-1. **Category Management Dialog** - Simplest, good starting point
-2. **Channel Management Dialog** - Basic functionality
-3. **Check-in Management Dialog** - Moderate complexity
-4. **Task Management Dialog** - Moderate complexity
-5. **Schedule Editor Dialog** - More complex
-6. **User Profile Dialog** - Most complex, many fields
-7. **Account Creator Dialog** - Most complex, integration testing
-
-### **Before Starting**
-- [ ] Run `python run_headless_service.py start` to ensure system starts
-- [ ] Have a test user ready (or create one)
-- [ ] Keep this guide open for notes
 
 ---
 
-## 📊 **Current Dialog Status**
+## 📊 **Manual Testing Focus Areas**
 
-### **✅ Working Dialogs (7/8)**
-1. **Account Creator Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - Feature-based account creation with conditional tabs
-   - All widgets integrated properly
-2. **Profile Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - All personalization fields working
-   - Save/load functionality working
-3. **Category Management Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - Category selection widget working
-4. **Channel Management Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - Channel selection widget working
-5. **Check-in Management Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - Enable/disable functionality working
-6. **Task Management Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Instantiates successfully
-   - Enable/disable functionality working
-7. **Schedule Editor Dialog** - ✅ **FULLY FUNCTIONAL**
-   - Imports successfully
-   - Period management working
+### **Visual & UX Testing**
+- **Layout Quality** - Are dialogs properly sized and positioned?
+- **Visual Consistency** - Do all dialogs follow the same design patterns?
+- **Responsive Design** - Do dialogs work on different screen sizes?
+- **Accessibility** - Are dialogs usable with keyboard navigation?
 
-### **⚠️ Issues Found (1/8)**
-8. **Admin Panel Dialog** - ⚠️ **PLACEHOLDER ONLY**
-   - **Issue**: File exists but is just a placeholder with `AdminPanelDialog` class
-   - **Test Expectation**: Looking for `AdminPanel` class
-   - **Impact**: Not critical - main admin panel works through `ui_app_qt.py`
+### **Performance Testing**
+- **Load Times** - How quickly do dialogs open and close?
+- **Memory Usage** - Does the system remain stable during extended use?
+- **Resource Usage** - CPU and memory consumption under normal use
 
-### **✅ All Widgets Working (6/6)**
-- Category Selection Widget
-- Channel Selection Widget
-- Check-in Settings Widget
-- Task Settings Widget
-- User Profile Settings Widget
-- Period Row Widget
+### **Integration Testing**
+- **Discord Integration** - Real Discord server testing
+- **Email Integration** - Actual email sending/receiving
+- **File System** - Real file operations and permissions
 
 ---
 
-## 📝 **1. Category Management Dialog**
+## 📝 **Manual Testing Scenarios**
 
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Category Settings"
-- [ ] Shows current user's selected categories
-- [ ] Can check/uncheck categories
-- [ ] Save button works and updates categories
-- [ ] Cancel button works without saving changes
-- [ ] Dialog closes properly after save/cancel
+### **1. Visual Design & Layout Testing**
+- [ ] **Dialog Sizing** - Are all dialogs properly sized and positioned?
+- [ ] **Layout Consistency** - Do all dialogs follow consistent design patterns?
+- [ ] **Widget Alignment** - Are buttons, fields, and labels properly aligned?
+- [ ] **Color Scheme** - Is the color scheme consistent across all dialogs?
+- [ ] **Typography** - Are fonts, sizes, and styles consistent?
 
-### **Data Persistence**
-- [ ] Categories save correctly to user preferences
-- [ ] Categories load correctly when reopening dialog
-- [ ] Changes persist after closing and reopening main app
+### **2. User Experience Testing**
+- [ ] **Navigation Flow** - Is the dialog opening/closing workflow intuitive?
+- [ ] **Keyboard Navigation** - Can users navigate with Tab, Enter, Escape keys?
+- [ ] **Accessibility** - Are dialogs usable for users with different needs?
+- [ ] **Error Messages** - Are error messages clear and helpful?
+- [ ] **Loading States** - Are loading indicators clear and informative?
 
-### **Edge Cases**
-- [ ] What happens with no categories selected? (should show warning)
-- [ ] What happens if user has no categories configured?
-- [ ] What happens if user data is corrupted/missing?
+### **3. Performance Testing**
+- [ ] **Dialog Load Times** - How quickly do dialogs open and close?
+- [ ] **Memory Usage** - Does memory usage remain stable during extended use?
+- [ ] **CPU Usage** - Is CPU usage reasonable during normal operations?
+- [ ] **Resource Cleanup** - Are resources properly cleaned up when dialogs close?
 
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
+### **4. Integration Testing**
+- [ ] **Discord Integration** - Test with real Discord server and bot
+- [ ] **Email Integration** - Test actual email sending/receiving
+- [ ] **File System** - Test file operations with real file system
+- [ ] **Cross-Platform** - Test on different operating systems (if applicable)
 
----
-
-## 📝 **2. Channel Management Dialog**
-
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Channel Settings"
-- [ ] Shows current user's channel configuration
-- [ ] Can select different communication channels (Discord, Email, Telegram)
-- [ ] Can enter/update contact information
-- [ ] Save button works and updates channel settings
-- [ ] Cancel button works without saving changes
-
-### **Data Persistence**
-- [ ] Channel settings save correctly to user preferences
-- [ ] Channel settings load correctly when reopening dialog
-- [ ] Contact information persists correctly
-
-### **Validation**
-- [ ] Shows validation error for invalid email format
-- [ ] Shows validation error for invalid Discord format
-- [ ] Shows validation error for invalid Telegram format
-- [ ] Prevents saving with invalid contact information
-
-### **Edge Cases**
-- [ ] What happens if no channel is selected?
-- [ ] What happens if contact info is empty?
-- [ ] What happens if user has no channel configured?
-
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
+### **5. Edge Case Testing**
+- [ ] **Large Data Sets** - Test with users having many categories, tasks, etc.
+- [ ] **Special Characters** - Test with special characters in names, descriptions
+- [ ] **Network Issues** - Test behavior when network connectivity is poor
+- [ ] **System Resources** - Test behavior when system resources are low
 
 ---
 
-## 📝 **3. Check-in Management Dialog**
+## 🤖 **Discord Manual Testing**
 
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Check-in Settings"
-- [ ] Shows current user's check-in configuration
-- [ ] Can enable/disable check-ins
-- [ ] Can add new time periods
-- [ ] Can edit existing time periods
-- [ ] Can delete time periods
-- [ ] Can undo deleted time periods
-- [ ] Save button works and updates settings
+### **Prerequisites**
+- Discord bot token configured (`DISCORD_BOT_TOKEN`)
+- Bot invited to test server with appropriate permissions
+- MHM service running (`python run_headless_service.py start`)
+- Test user account available
+- **Run automated tests first**: `python -m pytest tests/behavior/test_discord_automation_complete.py -v`
 
-### **Time Period Management**
-- [ ] Time periods save correctly
-- [ ] Time periods load correctly when reopening
-- [ ] Period names are preserved (not converted to title case)
-- [ ] Can set start and end times
-- [ ] Can enable/disable individual periods
+### **Automated Coverage Status**
+✅ **All 15 Basic Scenarios** - Fully automated with comprehensive testing  
+✅ **All Command Types** - Natural language, slash, and bang commands  
+✅ **All Help Systems** - General help, category-specific help, examples  
+✅ **All Flow Management** - Check-in flows, flow cancellation, flow clearing  
+✅ **All Edge Cases** - Unknown commands, malformed commands, incomplete data  
 
-### **Data Persistence**
-- [ ] Check-in settings save correctly to user preferences
-- [ ] Time periods save correctly to user schedules
-- [ ] Changes persist after closing and reopening main app
+### **A. Visual & UX Verification**
 
-### **Edge Cases**
-- [ ] What happens with no time periods?
-- [ ] What happens if all periods are disabled?
-- [ ] What happens if time periods overlap?
+#### Discord Embed Quality
+- [ ] **Rich Embeds** - Do slash commands display proper Discord embeds?
+- [ ] **Button Interactions** - Do suggestion buttons work correctly?
+- [ ] **Color Schemes** - Are embed colors consistent and appropriate?
+- [ ] **Field Organization** - Are embed fields properly structured and readable?
+- [ ] **Markdown Formatting** - Is text formatting consistent and readable?
 
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
+#### Message Formatting
+- [ ] **Text Formatting** - Are natural language responses properly formatted?
+- [ ] **Bullet Points** - Are lists properly formatted with bullet points?
+- [ ] **Headers** - Are section headers clearly distinguished?
+- [ ] **Code Blocks** - Are code examples properly formatted?
+- [ ] **Line Breaks** - Are messages properly spaced and readable?
 
----
+### **B. User Experience Testing**
 
-## 📝 **4. Task Management Dialog**
+#### Conversation Flow
+- [ ] **Natural Flow** - Do conversations feel natural and intuitive?
+- [ ] **Context Preservation** - Is user context maintained across interactions?
+- [ ] **Response Timing** - Are response times acceptable for user experience?
+- [ ] **Error Recovery** - Can users easily recover from errors?
+- [ ] **Help Integration** - Is help easily accessible when needed?
 
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Task Management"
-- [ ] Shows current user's task configuration
-- [ ] Can enable/disable task management
-- [ ] Can add new time periods
-- [ ] Can edit existing time periods
-- [ ] Can delete time periods
-- [ ] Can undo deleted time periods
-- [ ] Task statistics display correctly
-- [ ] Save button works and updates settings
+#### Command Discovery
+- [ ] **Command Suggestions** - Are users guided to available commands?
+- [ ] **Help Navigation** - Is the help system easy to navigate?
+- [ ] **Example Quality** - Are examples practical and useful?
+- [ ] **Category Organization** - Are commands logically categorized?
 
-### **Time Period Management**
-- [ ] Time periods save correctly
-- [ ] Time periods load correctly when reopening
-- [ ] Period names are preserved (not converted to title case)
-- [ ] Can set start and end times
-- [ ] Can enable/disable individual periods
+### **C. Real-World Integration Testing**
 
-### **Data Persistence**
-- [ ] Task settings save correctly to user preferences
-- [ ] Time periods save correctly to user schedules
-- [ ] Changes persist after closing and reopening main app
+#### Discord Server Integration
+- [ ] **Bot Permissions** - Does the bot have all necessary permissions?
+- [ ] **Server Settings** - Does the bot work with different server configurations?
+- [ ] **User Permissions** - Does the bot respect user permission levels?
+- [ ] **Channel Types** - Does the bot work in different channel types?
 
-### **Edge Cases**
-- [ ] What happens with no time periods?
-- [ ] What happens if all periods are disabled?
-- [ ] What happens if time periods overlap?
+#### Performance Under Load
+- [ ] **Multiple Users** - Does the bot handle multiple simultaneous users?
+- [ ] **Long Conversations** - Does the bot maintain performance in long conversations?
+- [ ] **Memory Usage** - Does the bot maintain stable memory usage?
+- [ ] **Response Consistency** - Are responses consistent under load?
 
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
+### **D. Cross-Platform Testing**
 
----
+#### Different Discord Clients
+- [ ] **Desktop App** - Does the bot work properly in Discord desktop app?
+- [ ] **Web Browser** - Does the bot work properly in Discord web client?
+- [ ] **Mobile App** - Does the bot work properly in Discord mobile app?
+- [ ] **Feature Parity** - Are all features available across platforms?
 
-## 📝 **5. Schedule Editor Dialog**
-
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Schedule Editor"
-- [ ] Shows current user's schedule for selected category
-- [ ] Can add new time periods
-- [ ] Can edit existing time periods
-- [ ] Can delete time periods
-- [ ] Can undo deleted time periods
-- [ ] Can enable/disable periods
-- [ ] Save button works and updates schedule
-
-### **Time Period Management**
-- [ ] Time periods save correctly
-- [ ] Time periods load correctly when reopening
-- [ ] Period names are preserved (not converted to title case)
-- [ ] Can set start and end times with AM/PM
-- [ ] Can set days of the week
-- [ ] Can enable/disable individual periods
-
-### **Data Persistence**
-- [ ] Schedule changes save correctly to user schedules
-- [ ] Changes persist after closing and reopening main app
-- [ ] Schedule data doesn't overwrite "ALL" time period
-
-### **Edge Cases**
-- [ ] What happens with no time periods?
-- [ ] What happens if all periods are disabled?
-- [ ] What happens if time periods overlap?
-- [ ] What happens with the "ALL" time period?
-
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
-
----
-
-## 📝 **6. User Profile Dialog**
-
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Personalization"
-- [ ] Shows current user's profile information
-- [ ] All fields are present and functional:
-  - [ ] Preferred name
-  - [ ] Gender identity
-  - [ ] Date of birth
-  - [ ] Health conditions
-  - [ ] Medications
-  - [ ] Allergies
-  - [ ] Interests
-  - [ ] Goals
-  - [ ] Loved ones
-  - [ ] Notes for AI
-  - [ ] Timezone
-- [ ] Save button works and updates profile
-- [ ] Cancel button works without saving changes
-
-### **Data Persistence**
-- [ ] All fields save correctly to user context
-- [ ] All fields load correctly when reopening dialog
-- [ ] Date of birth saves and loads properly
-- [ ] Timezone saves to account.json (not user_context.json)
-- [ ] Changes persist after closing and reopening main app
-
-### **Field Functionality**
-- [ ] Can enter text in all text fields
-- [ ] Can add/remove items in list fields (health, meds, allergies, interests, goals)
-- [ ] Date picker works for date of birth
-- [ ] Timezone dropdown works
-- [ ] Loved ones field handles complex data (name - type - relationships)
-
-### **Validation**
-- [ ] Date of birth validation works (invalid dates show error)
-- [ ] All fields are optional (no validation errors for empty fields)
-- [ ] Type checking works for all fields
-
-### **Edge Cases**
-- [ ] What happens with very long text entries?
-- [ ] What happens with special characters?
-- [ ] What happens if user_context.json is corrupted?
-
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
-
----
-
-## 📝 **7. Account Creator Dialog**
-
-### **Basic Functionality**
-- [ ] Opens without errors when clicking "Create New Account"
-- [ ] All tabs are present: Basic Information, Messages, Tasks, Check-ins
-- [ ] Can enter username and select timezone
-- [ ] Feature enablement checkboxes work
-- [ ] Tabs appear/disappear based on feature selection
-- [ ] Save button works and creates user
-- [ ] Cancel button works without creating user
-
-### **Tab Functionality**
-- [ ] **Basic Information Tab**:
-  - [ ] Username field works
-  - [ ] Timezone dropdown works
-  - [ ] Feature checkboxes work (messages, tasks, check-ins)
-- [ ] **Messages Tab** (when enabled):
-  - [ ] Communication service selection works
-  - [ ] Contact information field works
-  - [ ] Message category selection works
-- [ ] **Tasks Tab** (when enabled):
-  - [ ] Task settings configuration works
-  - [ ] Time period management works
-- [ ] **Check-ins Tab** (when enabled):
-  - [ ] Check-in settings configuration works
-  - [ ] Time period management works
-
-### **Integration**
-- [ ] "Setup Profile" button opens user profile dialog
-- [ ] User profile dialog receives correct data
-- [ ] Created user appears in main admin panel dropdown
-- [ ] All user data files are created correctly
-
-### **Validation**
-- [ ] Username is required
-- [ ] At least one feature must be enabled
-- [ ] If messages enabled: communication service and contact info required
-- [ ] If messages enabled: at least one category must be selected
-- [ ] Validation errors show but don't close dialog
-- [ ] Can fix validation errors and retry save
-
-### **Data Persistence**
-- [ ] All entered data saves correctly
-- [ ] All selections save correctly
-- [ ] User account file created with correct data
-- [ ] User preferences file created with correct data
-- [ ] User schedules file created with correct data
-- [ ] User context file created with correct data
-
-### **Edge Cases**
-- [ ] What happens with duplicate usernames?
-- [ ] What happens with invalid contact information?
-- [ ] What happens if no features are enabled?
-
-**Notes:**
-```
-Test Date: ________
-Tester: ________
-Issues Found: ________
-```
+#### Network Conditions
+- [ ] **Slow Connections** - How does the bot behave with slow internet?
+- [ ] **Intermittent Connectivity** - How does the bot handle connection drops?
+- [ ] **High Latency** - How does the bot behave with high latency connections?
+- [ ] **Recovery** - Does the bot recover gracefully from network issues?
 
 ---
 
 ## 🚨 **Critical Issues to Watch For**
 
-### **High Priority** ✅ **RESOLVED**
-- [x] **Data Loss**: Users created but selections/entered information missing ✅ **FIXED**
-- [x] **Validation Dialog Closes Account Creation**: Validation errors close dialog instead of allowing fix ✅ **FIXED**
-- [x] **Missing Validation**: No duplicate username checks, format validation ✅ **FIXED**
+### **High Priority**
+- [ ] **Visual Issues**: Missing widgets, broken layouts, styling problems
+- [ ] **Performance Issues**: Slow loading, unresponsive UI, memory leaks
+- [ ] **Integration Issues**: Discord/email not working, file system problems
+- [ ] **Accessibility Issues**: Keyboard navigation, screen reader compatibility
 
 ### **Medium Priority**
-- [ ] **UI Responsiveness**: Dialogs slow to open/close
-- [ ] **Data Corruption**: Files not saving correctly
-- [ ] **Integration Issues**: Dialogs don't communicate with main window
+- [ ] **UX Issues**: Confusing workflows, unclear error messages
+- [ ] **Cross-Platform Issues**: Different behavior on different systems
+- [ ] **Resource Issues**: High CPU/memory usage, poor cleanup
 
 ### **Low Priority**
-- [ ] **Visual Issues**: Layout problems, missing elements
-- [ ] **Minor Bugs**: Non-critical functionality issues
+- [ ] **Minor Visual Issues**: Slight alignment problems, color inconsistencies
+- [ ] **Minor UX Issues**: Non-critical workflow improvements
 
 ---
 
@@ -412,10 +189,10 @@ Issues Found: ________
 
 ### **Overall Results**
 - [ ] All dialogs open without errors
-- [ ] All dialogs save data correctly
-- [ ] All dialogs load data correctly
-- [ ] All validation works properly
-- [ ] All integration works properly
+- [ ] All dialogs display correctly
+- [ ] All integrations work properly
+- [ ] Performance is acceptable
+- [ ] User experience is intuitive
 
 ### **Issues Found**
 ```
@@ -439,27 +216,27 @@ Low Priority Issues: ________
 ### **✅ What Should Work**
 - All dialogs should open without errors
 - All widgets should display correctly
-- Data should save and load properly
-- Validation should work correctly
+- Discord integration should work smoothly
+- Performance should be acceptable
 - UI should be responsive and user-friendly
 
 ### **⚠️ Known Issues**
-- Admin panel dialog is just a placeholder (not critical)
 - Some dialogs may need performance optimization
-- Cross-dialog communication may need testing
+- Cross-platform compatibility may need testing
+- Network connectivity issues may affect Discord integration
 
 ### **🔍 What to Look For**
 - **Visual Issues**: Missing widgets, broken layouts, styling problems
-- **Functional Issues**: Data not saving, validation not working, crashes
-- **Performance Issues**: Slow loading, unresponsive UI
-- **Integration Issues**: Dialogs not communicating with main window
+- **Performance Issues**: Slow loading, unresponsive UI, memory issues
+- **Integration Issues**: Discord/email not working, file system problems
+- **UX Issues**: Confusing workflows, unclear error messages
 
 ---
 
 ## 📝 **Reporting Results**
 
 When testing, document:
-1. **Dialog Name**: Which dialog was tested
+1. **Test Area**: Which area was tested (UI, Discord, Performance, etc.)
 2. **Test Steps**: What was tested
 3. **Expected Result**: What should happen
 4. **Actual Result**: What actually happened
@@ -468,14 +245,14 @@ When testing, document:
 
 ## 🎯 **Success Criteria**
 
-A dialog is considered **fully functional** if:
+A feature is considered **fully functional** if:
 - ✅ Opens without errors
 - ✅ All widgets display correctly
-- ✅ Data saves and loads properly
-- ✅ Validation works correctly
+- ✅ Integration works properly
+- ✅ Performance is acceptable
 - ✅ UI is responsive
 - ✅ No crashes or error messages
 
 ---
 
-**Remember**: Test one dialog at a time, document everything, and don't rush through the testing!
+**Remember**: Focus on visual verification, user experience, and real-world integration testing that cannot be automated!

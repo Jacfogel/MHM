@@ -8,7 +8,9 @@
 
 > **See [README.md](../README.md) for complete navigation and project overview**  
 > **See [DEVELOPMENT_WORKFLOW.md](../DEVELOPMENT_WORKFLOW.md) for safe development practices**  
-> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**
+> **See [QUICK_REFERENCE.md](../QUICK_REFERENCE.md) for essential commands**  
+> **See [MANUAL_TESTING_GUIDE.md](MANUAL_TESTING_GUIDE.md) for comprehensive manual testing for non-automated scenarios**  
+> **See [ERROR_HANDLING_GUIDE.md](../core/ERROR_HANDLING_GUIDE.md) for exception handling patterns**
 
 ## Quick Reference
 
@@ -21,6 +23,14 @@ python run_tests.py
 python run_tests.py --type unit
 python run_tests.py --type integration
 python run_tests.py --verbose
+
+# Run automation tests
+python -m pytest tests/behavior/test_*automation* -v
+
+# Run specific automation categories
+python -m pytest tests/behavior/test_discord_automation_complete.py -v
+python -m pytest tests/behavior/test_ui_automation_complete.py -v
+python -m pytest tests/behavior/test_discord_advanced_automation.py -v
 ```
 
 ### **Test Categories**
@@ -28,8 +38,17 @@ python run_tests.py --verbose
 - **Integration Tests**: Cross-module workflows
 - **Behavior Tests**: Real system behavior verification
 - **UI Tests**: User interface functionality
+- **Automation Tests**: Comprehensive automated testing for UI and Discord scenarios
 
 The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
+
+## Automation Coverage
+✅ **UI Dialog Testing** - All 7 dialog types fully automated  
+✅ **Discord Command Testing** - All 15 basic + 16 advanced scenarios automated  
+✅ **Data Persistence Testing** - Save/load functionality automated  
+✅ **Error Handling Testing** - Edge cases and recovery automated  
+
+**Manual Testing Focus**: Visual verification, user experience, performance, and real-world integration testing.
 
 ## Testing Philosophy & Priorities
 
@@ -412,7 +431,7 @@ def test_debug_example():
 
 ### **High Priority (Next 1-2 weeks)**
 1. **UI Layer Testing** - Add tests for all dialogs and widgets
-2. **Bot/Communication Testing** - Test Discord, Telegram, Email bots
+2. **Discord Command Testing** - Complete automation for all Discord command scenarios
 3. **Core Services Testing** - Test message management, schedule management
 4. **Integration Scenarios** - Complete account lifecycle, feature enablement workflows
 

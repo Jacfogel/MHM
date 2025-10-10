@@ -2257,6 +2257,8 @@ def _show_help_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0
 
 
+
+
 COMMAND_REGISTRY = OrderedDict([
     ('audit', CommandRegistration('audit', _audit_command, 'Run fast or full audit.')),
     ('docs', CommandRegistration('docs', _docs_command, 'Regenerate documentation artifacts.')),

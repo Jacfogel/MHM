@@ -52,7 +52,13 @@ python -m pytest tests/behavior/test_profile_display_formatting.py -v
 # Test command discovery help system
 python -m pytest tests/behavior/test_command_discovery_help.py -v
 
-# Manual Discord testing
+# Complete Discord automation (replaces manual testing)
+python -m pytest tests/behavior/test_discord_automation_complete.py -v
+
+# Run all Discord tests together
+python -m pytest tests/behavior/test_*discord* -v
+
+# Manual Discord testing (when automation isn't sufficient)
 # See tests/MANUAL_DISCORD_TESTING_GUIDE.md for comprehensive testing checklist
 ```
 
@@ -150,9 +156,62 @@ python -m pytest --cov=core --cov-report=html
 3. **UI components** - `ui/` directory
 4. **Data handlers** - User data management
 
+## Discord Test Automation
+
+```powershell
+# Complete Discord automation (replaces manual testing)
+python -m pytest tests/behavior/test_discord_automation_complete.py -v
+
+# Advanced Discord automation (performance, integration, security)
+python -m pytest tests/behavior/test_discord_advanced_automation.py -v
+```
+
+**Status**: ✅ **Profile/Help** automated, ⚠️ **Task/Flow/Error** need real implementation
+
+## UI Test Automation
+
+```powershell
+# Complete UI automation (replaces manual testing)
+python -m pytest tests/behavior/test_ui_automation_complete.py -v
+```
+
+**Status**: ⚠️ **All UI dialogs** need real implementation
+
+## Best Practices
+
+### **Test Real Behavior**
+1. **Verify Actual System Changes**: Test that functions actually modify system state, not just return values
+2. **Check Side Effects**: Ensure data is saved, files are created, state is updated
+3. **Test Integration**: Focus on workflows that span multiple modules
+4. **Verify Data Persistence**: Ensure changes are actually saved and persist
+
+### **Test Structure**
+1. **Use Descriptive Names**: Test names should clearly describe scenario and expected behavior
+2. **Arrange-Act-Assert**: Structure tests with clear sections for setup, execution, verification
+3. **Use Fixtures**: Leverage shared fixtures for common test data and setup
+4. **Test Error Recovery**: Include tests for error conditions and recovery
+
+### **Example Pattern**
+```python
+def test_user_profile_saves_correctly(self, test_data_dir):
+    """Test: User profile changes are saved and persist."""
+    # Arrange: Create user and load initial profile
+    user_id = "test_user_profile_save"
+    TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+    
+    # Act: Update profile and save
+    profile_handler = ProfileHandler()
+    # ... perform profile update ...
+    
+    # Assert: Verify actual system changes
+    assert profile_data_was_saved_to_disk(user_id)
+    assert profile_changes_persist_after_reload(user_id)
+```
+
 ## Resources
 - **Full Guide**: `tests/TESTING_GUIDE.md` - Complete testing framework documentation
 - **Manual Testing**: `tests/MANUAL_TESTING_GUIDE.md` - UI testing procedures
 - **Discord Testing**: `tests/MANUAL_DISCORD_TESTING_GUIDE.md` - Discord command testing procedures
+- **Discord Automation**: `tests/behavior/test_discord_automation_complete.py` - Automated Discord testing
 - **Error Handling**: `core/ERROR_HANDLING_GUIDE.md` - Exception handling patterns
 - **Development Workflow**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Testing in development process
