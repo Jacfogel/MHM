@@ -81,7 +81,7 @@ setup_logging_isolation()
 
 # Set environment variable to indicate we're running tests, and enable verbose component logs under tests/logs
 os.environ['MHM_TESTING'] = '1'
-os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '0')
+os.environ['TEST_VERBOSE_LOGS'] = os.environ.get('TEST_VERBOSE_LOGS', '1')
 # Disable core app log rotation during tests to avoid Windows file-in-use issues
 os.environ['DISABLE_LOG_ROTATION'] = '1'
 
@@ -444,7 +444,7 @@ test_logger, test_log_file = setup_test_logging()
 class SessionLogRotationManager:
     """Manages session-based log rotation that rotates ALL logs together if any exceed size limits."""
     
-    def __init__(self, max_size_mb=100):  # 100MB for consolidated log rotation (temporarily increased)
+    def __init__(self, max_size_mb=5):  # 5MB for consolidated log rotation (matches core config)
         self.max_size_bytes = max_size_mb * 1024 * 1024
         self.log_files = []
         self.rotation_needed = False
@@ -489,13 +489,26 @@ class SessionLogRotationManager:
                     backup_filename = f"{log_filename}.{timestamp}.bak"
                     backup_file = backup_dir / backup_filename
                     
-                    # Move log file to backups directory
-                    shutil.move(log_file, backup_file)
-                    test_logger.info(f"Rotated {log_file} to {backup_file}")
+                    # Handle Windows file locking by copying instead of moving
+                    try:
+                        # Try to move first (faster)
+                        shutil.move(log_file, backup_file)
+                        test_logger.info(f"Rotated {log_file} to {backup_file}")
+                    except (OSError, PermissionError) as move_error:
+                        # If move fails due to file locking, copy and truncate
+                        test_logger.warning(f"Move failed for {log_file} due to file locking, using copy method: {move_error}")
+                        shutil.copy2(log_file, backup_file)
+                        test_logger.info(f"Copied {log_file} to {backup_file}")
+                        
+                        # Truncate the original file instead of moving it
+                        with open(log_file, 'w', encoding='utf-8') as f:
+                            f.write(f"# Log rotated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                        test_logger.info(f"Truncated {log_file} after copy")
+                        continue
                     
-                    # Create new empty log file
+                    # Create new empty log file (only if move succeeded)
                     with open(log_file, 'w', encoding='utf-8') as f:
-                        f.write(f"# Log rotated at {datetime.now().isoformat()}\n")
+                        f.write(f"# Log rotated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
                         
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
@@ -2042,12 +2055,13 @@ def cleanup_test_users_after_session():
         if os.path.exists(logs_dir):
             shutil.rmtree(logs_dir, ignore_errors=True)
         
-        # Clean up old test_run files in tests/logs
+        # Clean up old test_run files in tests/logs (but preserve current session files)
         test_logs_dir = os.path.join(project_root, "tests", "logs")
         if os.path.exists(test_logs_dir):
             try:
                 for item in os.listdir(test_logs_dir):
-                    if (item.startswith("test_run_") and item.endswith(".log")) or item == "test_run.log":
+                    # Only clean up old test_run files, not the current session's test_run.log
+                    if item.startswith("test_run_") and item.endswith(".log") and item != "test_run.log":
                         item_path = os.path.join(test_logs_dir, item)
                         if os.path.isfile(item_path):
                             os.remove(item_path)

@@ -8,6 +8,12 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-09 - Fixed Test Log Rotation and Cleanup Issues **COMPLETED**
+- **Issues**: Test log rotation at 100MB instead of 5MB, Windows file locking preventing truncation, aggressive cleanup deleting test_run.log, ISO timestamp format, verbose logging disabled
+- **Fixes**: Updated rotation threshold to 5MB, added Windows file locking fallback (move→copy+truncate), fixed cleanup to preserve current session logs, human-readable timestamps, enabled verbose logging by default
+- **Impact**: Test logs rotate properly at 5MB, handle Windows file locking gracefully, preserve session logs, readable timestamps, capture component logs for debugging
+- **Files**: tests/conftest.py, development_docs/CHANGELOG_DETAIL.md
+
 ### 2025-01-09 - Discord Commands Testing Completion **COMPLETED**
 - **Automated Testing**: Added 16 comprehensive behavior tests for profile display formatting and command discovery
 - **Profile Display Tests**: 6 test scenarios verifying clean text output, no JSON syntax, proper formatting, and rich data structure

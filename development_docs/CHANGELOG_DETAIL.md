@@ -17,6 +17,27 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-09 - Fixed Test Log Rotation and Cleanup Issues **COMPLETED**
+
+**Issues Fixed**:
+1. **Log Rotation Threshold**: Test log rotation was set to 100MB instead of standard 5MB, causing excessive log growth
+2. **Windows File Locking**: test_run.log rotation failed due to Windows file locking issues, preventing proper truncation
+3. **Aggressive Cleanup**: test_run.log was being deleted by cleanup fixture after test sessions
+4. **Timestamp Format**: Rotation markers used ISO format instead of human-readable format
+5. **Verbose Logging Disabled**: test_consolidated.log only accumulated headers because TEST_VERBOSE_LOGS was disabled by default
+
+**Technical Changes**:
+- **Rotation Threshold**: Updated SessionLogRotationManager from 100MB to 5MB threshold (matches core config)
+- **File Locking Handling**: Added fallback logic: try move() first, if that fails due to file locking, use copy() + truncate()
+- **Cleanup Logic**: Modified cleanup fixture to preserve current session's test_run.log instead of deleting it
+- **Timestamp Format**: Changed rotation markers from ISO format to human-readable format (YYYY-MM-DD HH:MM:SS)
+- **Verbose Logging**: Enabled TEST_VERBOSE_LOGS by default to capture component logs in test_consolidated.log
+
+**Files Modified**:
+- `tests/conftest.py` - Fixed rotation threshold, added Windows file locking handling, fixed cleanup logic, improved timestamp format
+
+**Impact**: Test logs now rotate properly at 5MB threshold, handle Windows file locking gracefully, preserve session logs, use readable timestamps, and capture component logs for better debugging.
+
 ### 2025-10-09 - Discord Commands Documentation and Profile Display Enhancement **COMPLETED**
 
 **Problem Analysis**:
@@ -240,7 +261,7 @@ This file is the authoritative source for every meaningful change to the project
 - **Real-time Component Logging**: Component logs now captured in real-time during tests with proper test context formatting
 - **Log Separation**: `test_consolidated.log` contains only component logs, `test_run.log` contains only test execution logs
 - **Automatic Cleanup**: Individual log files (app.log, errors.log) automatically consolidated and cleaned up after test runs
-- **10MB Rotation**: Consolidated log rotates at 10MB between test runs to prevent excessive growth
+- **5MB Rotation**: Consolidated log rotates at 5MB between test runs to prevent excessive growth (matches core config)
 - **Test Compatibility**: All logging tests updated to work with consolidated system
 
 **Files Modified**:
