@@ -569,37 +569,74 @@ def handle_errors(operation: str = None, context: Dict[str, Any] = None,
         default_return: Value to return if error occurs and can't be recovered
     """
     def decorator(func: Callable) -> Callable:
-        def wrapper(*args, **kwargs):
-            op_name = operation or func.__name__
-            ctx = context or {}
-            
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                # Add function context
-                ctx.update({
-                    'function': func.__name__,
-                    'args': str(args),
-                    'kwargs': str(kwargs)
-                })
+        # Check if the function is async
+        import asyncio
+        if asyncio.iscoroutinefunction(func):
+            # Async wrapper for async functions
+            async def async_wrapper(*args, **kwargs):
+                op_name = operation or func.__name__
+                ctx = context or {}
                 
-                # Try to handle the error
-                if error_handler.handle_error(e, ctx, op_name, user_friendly):
-                    # If recovery was successful, try the operation again
-                    try:
-                        return func(*args, **kwargs)
-                    except Exception as e2:
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    # Add function context
+                    ctx.update({
+                        'function': func.__name__,
+                        'args': str(args),
+                        'kwargs': str(kwargs)
+                    })
+                    
+                    # Try to handle the error
+                    if error_handler.handle_error(e, ctx, op_name, user_friendly):
+                        # If recovery was successful, try the operation again
                         try:
-                            from core.logger import get_component_logger
-                            logger = get_component_logger('main')
-                            logger.error(f"Operation failed again after recovery: {e2}")
-                        except Exception:
-                            pass  # Don't let logger failures break error handling
+                            return await func(*args, **kwargs)
+                        except Exception as e2:
+                            try:
+                                from core.logger import get_component_logger
+                                logger = get_component_logger('main')
+                                logger.error(f"Operation failed again after recovery: {e2}")
+                            except Exception:
+                                pass  # Don't let logger failures break error handling
+                            return default_return
+                    else:
                         return default_return
-                else:
-                    return default_return
-        
-        return wrapper
+            
+            return async_wrapper
+        else:
+            # Regular wrapper for sync functions
+            def wrapper(*args, **kwargs):
+                op_name = operation or func.__name__
+                ctx = context or {}
+                
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    # Add function context
+                    ctx.update({
+                        'function': func.__name__,
+                        'args': str(args),
+                        'kwargs': str(kwargs)
+                    })
+                    
+                    # Try to handle the error
+                    if error_handler.handle_error(e, ctx, op_name, user_friendly):
+                        # If recovery was successful, try the operation again
+                        try:
+                            return func(*args, **kwargs)
+                        except Exception as e2:
+                            try:
+                                from core.logger import get_component_logger
+                                logger = get_component_logger('main')
+                                logger.error(f"Operation failed again after recovery: {e2}")
+                            except Exception:
+                                pass  # Don't let logger failures break error handling
+                            return default_return
+                    else:
+                        return default_return
+            
+            return wrapper
     return decorator
 
 @handle_errors("safe file operation", default_return=None)

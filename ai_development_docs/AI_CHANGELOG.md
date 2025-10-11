@@ -8,6 +8,16 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-11 - Critical Async Error Handling Fix for Discord Message Receiving **COMPLETED**
+- **Critical Bug Fixed**: Discord bot was not receiving messages due to `@handle_errors` decorator breaking async event handlers
+- **Error**: "event registered must be a coroutine function" during Discord initialization
+- **Root Cause**: `@handle_errors` decorator wrapped async functions in non-async wrappers, converting coroutine functions to regular functions
+- **Fix**: Enhanced `@handle_errors` decorator to detect async functions and use async wrappers (`async def` + `await`)
+- **Test Coverage**: Added 4 comprehensive async error handling tests verifying decorator works with async functions
+- **System Stability**: All 1,848 tests passing (28 total error handling tests, 4 new async tests)
+- **Impact**: Discord message receiving now works correctly, all async functions properly decorated
+- **Files**: core/error_handling.py, tests/unit/test_error_handling.py
+
 ### 2025-10-11 - Check-in Flow State Persistence Bug Fix **COMPLETED**
 - **Critical Bug Fixed**: Check-in flows were being expired when scheduled messages were checked, even when no message was sent
 - **Root Cause**: System called "Completed message sending" after checking for messages, triggering flow expiration even when no message sent

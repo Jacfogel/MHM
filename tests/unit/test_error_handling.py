@@ -593,4 +593,57 @@ class TestErrorHandlingEdgeCases:
             
             # Should not raise exception even if logger fails
             result = test_function()
-            assert result is None 
+            assert result is None
+
+class TestAsyncErrorHandling:
+    """Test async function error handling."""
+    
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_handle_errors_async_success(self):
+        """Test handle_errors decorator with successful async function."""
+        @handle_errors("async test operation")
+        async def async_function():
+            return "success"
+        
+        result = await async_function()
+        assert result == "success"
+    
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_handle_errors_async_exception(self):
+        """Test handle_errors decorator with async function that raises exception."""
+        @handle_errors("async test operation", default_return="default")
+        async def async_function():
+            raise ValueError("Test error")
+        
+        result = await async_function()
+        assert result == "default"
+    
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_handle_errors_async_custom_return(self):
+        """Test handle_errors decorator with custom return value for async functions."""
+        @handle_errors("async test operation", default_return=42)
+        async def async_function():
+            raise ValueError("Test error")
+        
+        result = await async_function()
+        assert result == 42
+    
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_handle_errors_async_is_coroutine(self):
+        """Test that decorated async functions remain coroutine functions."""
+        import asyncio
+        
+        @handle_errors("async test operation")
+        async def async_function():
+            return "success"
+        
+        # Verify it's still a coroutine function
+        assert asyncio.iscoroutinefunction(async_function)
+        
+        # And it can be awaited
+        result = await async_function()
+        assert result == "success" 
