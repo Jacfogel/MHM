@@ -1125,7 +1125,7 @@ class CommunicationManager:
             from pathlib import Path
             user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
             file_path = user_messages_dir / f"{category}.json"
-            data = load_json_data(file_path)
+            data = load_json_data(str(file_path))  # Convert Path to string
             # Normalize messages file shape for robust selection
             try:
                 from core.schemas import validate_messages_file_dict

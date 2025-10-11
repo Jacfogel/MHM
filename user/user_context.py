@@ -264,13 +264,21 @@ class UserContext:
         context_result = get_user_data(user_id, 'context')
         context_data = context_result.get('context') or {}
         
+        # Get schedules for active schedules check
+        schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
+        schedules_data = (
+            schedules_result.get('schedules', {})
+            if isinstance(schedules_result, dict) and 'schedules' in schedules_result
+            else (schedules_result if isinstance(schedules_result, dict) else {})
+        )
+        
         # Build basic context
         context = {
             'user_id': user_id,
             'preferred_name': context_data.get('preferred_name', ''),
             'account_status': account_data.get('account_status', 'unknown'),
             'preferences': preferences_data,
-            'active_schedules': get_active_schedules(self.user_data.get('user_id', ''))
+            'active_schedules': get_active_schedules(schedules_data)
         }
         
         return context

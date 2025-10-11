@@ -99,12 +99,20 @@ class UserContextManager:
         # Get user context
         context_result = get_user_data(user_id, 'context')
         user_context_data = context_result.get('context') or {}
+        
+        # Get schedules for active schedules check
+        schedules_result = get_user_data(user_id, 'schedules', normalize_on_read=True)
+        schedules_data = (
+            schedules_result.get('schedules', {})
+            if isinstance(schedules_result, dict) and 'schedules' in schedules_result
+            else (schedules_result if isinstance(schedules_result, dict) else {})
+        )
             
         return {
             'preferred_name': user_context.get_preferred_name() or user_context_data.get('preferred_name', ''),
             'active_categories': user_preferences.get('categories', []),
             'messaging_service': user_preferences.get('channel', {}).get('type', ''),
-            'active_schedules': get_active_schedules(user_id)  # Use direct function call
+            'active_schedules': get_active_schedules(schedules_data)  # Pass schedules dict, not user_id
         }
     
     @handle_errors("getting recent activity", default_return={})

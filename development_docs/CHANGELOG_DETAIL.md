@@ -17,6 +17,96 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-11 - Fixed Two Critical Errors: AttributeError and Invalid File Path **COMPLETED**
+
+**Context**: Error log showed two distinct issues:
+1. `'str' object has no attribute 'items'` during "getting active schedules" operation at 16:01:05
+2. "Invalid file_path" errors for message files (health.json, motivational.json) throughout the day
+
+Investigation revealed:
+1. `get_active_schedules()` function expects a dictionary of schedules but was being called with a user_id string in two locations
+2. `load_json_data()` expects a string but was receiving Path objects from channel_orchestrator.py
+
+**Goals**:
+- Fix the AttributeError by passing correct data type to get_active_schedules()
+- Fix the "Invalid file_path" errors by converting Path objects to strings
+- Maintain all existing functionality
+- Update tests to account for additional get_user_data() call
+- Ensure no regressions in test suite
+
+**Technical Changes**:
+1. **user/user_context.py** (line 267-281):
+   - Added call to `get_user_data(user_id, 'schedules', normalize_on_read=True)` to retrieve schedules data
+   - Extract schedules dictionary from result with proper wrapper handling
+   - Pass schedules_data dictionary to `get_active_schedules()` instead of user_id string
+
+2. **user/context_manager.py** (line 103-115):
+   - Added call to `get_user_data(user_id, 'schedules', normalize_on_read=True)` to retrieve schedules data
+   - Extract schedules dictionary from result with proper wrapper handling
+   - Pass schedules_data dictionary to `get_active_schedules()` instead of user_id string
+   - Updated comment to clarify we're passing schedules dict, not user_id
+
+3. **tests/behavior/test_user_context_behavior.py**:
+   - Updated two test mocks to include 'schedules' data type in mock_get_user_data responses
+   - Changed lambda to accept **kwargs to handle normalize_on_read parameter
+   - Updated assertion from 3 to 4 get_user_data calls (added schedules retrieval)
+   - Tests: test_get_user_profile_uses_existing_infrastructure, test_user_context_manager_with_real_user_data
+
+4. **communication/core/channel_orchestrator.py** (line 1128):
+   - Added `str()` conversion to Path object before passing to load_json_data()
+   - Changed `load_json_data(file_path)` to `load_json_data(str(file_path))`
+   - Prevents "Invalid file_path" validation errors for Path objects
+
+**Root Cause Analysis**:
+
+**Issue 1: AttributeError in get_active_schedules**
+The `get_active_schedules()` function signature is `def get_active_schedules(schedules: Dict) -> List[str]` and expects a dictionary of schedule periods like:
+```python
+{
+    'period1': {'active': True},
+    'period2': {'active': False}
+}
+```
+
+However, it was being called with:
+- `get_active_schedules(user_id)` - passing a string instead of a dictionary
+- This caused `.items()` to be called on a string, resulting in AttributeError
+
+**Issue 2: Invalid file_path errors**
+The `load_json_data()` function has validation that checks `isinstance(file_path, str)`. When Path objects are passed (from pathlib.Path operations), this validation fails because:
+- Path objects are not strings
+- The check `isinstance(file_path, str)` returns False
+- Error logged: "Invalid file_path: {path}" even though the path itself is valid
+
+This occurred in channel_orchestrator.py when loading user message files:
+```python
+file_path = user_messages_dir / f"{category}.json"  # Creates Path object
+data = load_json_data(file_path)  # Expects string, gets Path
+```
+
+**Testing**:
+- All 30 schedule utilities tests passing
+- All 23 user context behavior tests passing
+- All 22 file operations tests passing (1 skipped)
+- Total 75 related tests passing with no failures
+- No linter errors introduced
+- Service started successfully with no new errors in logs
+
+**Impact**:
+- Fixes the AttributeError that was preventing active schedules from being retrieved correctly
+- Fixes the "Invalid file_path" errors that were cluttering error logs
+- User context and AI context generation now work properly
+- Message loading from user-specific message files now works correctly
+- All existing functionality preserved
+
+**Files Modified**:
+- user/user_context.py
+- user/context_manager.py
+- communication/core/channel_orchestrator.py
+- tests/behavior/test_user_context_behavior.py
+
+---
+
 ### 2025-10-11 - Critical Async Error Handling Fix for Discord Message Receiving **COMPLETED**
 
 **Context**: User reported Discord bot was not receiving messages. Investigation revealed error "event registered must be a coroutine function" in app.log during Discord initialization. The `@handle_errors` decorator was wrapping async event handlers in non-async wrappers, breaking Discord.py's event registration system.

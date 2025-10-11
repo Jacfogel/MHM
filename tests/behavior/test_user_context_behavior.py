@@ -247,10 +247,11 @@ class TestUserContextManagerBehavior:
             mock_user_context.get_preferred_name.return_value = "TestUser"
             mock_user_context_class.return_value = mock_user_context
             
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
+            mock_get_user_data.side_effect = lambda user_id, data_type, **kwargs: {
                 'preferences': {'preferences': {'categories': ['motivational', 'health'], 'channel': {'type': 'discord'}}},
                 'account': {'account': {'username': 'testuser', 'email': 'test@example.com'}},
-                'context': {'context': {'preferred_name': 'TestUser', 'timezone': 'UTC'}}
+                'context': {'context': {'preferred_name': 'TestUser', 'timezone': 'UTC'}},
+                'schedules': {'schedules': {}}
             }.get(data_type, {})
             
             mock_get_active_schedules.return_value = []
@@ -260,7 +261,7 @@ class TestUserContextManagerBehavior:
             
             # Assert - Verify infrastructure usage
             mock_user_context.load_user_data.assert_called_once_with(test_user_id)
-            assert mock_get_user_data.call_count == 3, "Should call get_user_data for all data types"
+            assert mock_get_user_data.call_count == 4, "Should call get_user_data for all data types (preferences, account, context, schedules)"
             assert 'preferred_name' in profile, "Should include preferred_name"
             assert 'active_categories' in profile, "Should include active_categories"
             assert 'messaging_service' in profile, "Should include messaging_service"
@@ -624,10 +625,11 @@ class TestUserContextManagerIntegration:
             mock_user_context_class.return_value = mock_user_context
             
             # Mock get_user_data to return the correct structure
-            mock_get_user_data.side_effect = lambda user_id, data_type: {
+            mock_get_user_data.side_effect = lambda user_id, data_type, **kwargs: {
                 'preferences': {'preferences': {'categories': ['motivational', 'health'], 'channel': {'type': 'discord'}}},
                 'account': {'account': {'username': 'realuser', 'email': f'{test_user_id}@example.com'}},
-                'context': {'context': {'preferred_name': 'realuser', 'timezone': 'UTC'}}
+                'context': {'context': {'preferred_name': 'realuser', 'timezone': 'UTC'}},
+                'schedules': {'schedules': {}}
             }.get(data_type, {})
             
             mock_get_active_schedules.return_value = []

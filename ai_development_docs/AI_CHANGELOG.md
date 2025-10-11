@@ -8,6 +8,20 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-11 - Fixed Two Critical Errors: AttributeError and Invalid File Path **COMPLETED**
+- **Critical Bugs Fixed**: 
+  1. `get_active_schedules()` called with user_id string instead of schedules dict → `'str' object has no attribute 'items'` error
+  2. `load_json_data()` received Path objects instead of strings → "Invalid file_path" validation errors
+- **Root Causes**: 
+  1. Function expects dict but was receiving user_id string in user_context.py and context_manager.py
+  2. Path objects from pathlib operations not converted to strings before passing to load_json_data()
+- **Fixes**: 
+  1. Added proper schedules retrieval using `get_user_data(user_id, 'schedules')` before calling `get_active_schedules()`
+  2. Added `str()` conversion in channel_orchestrator.py: `load_json_data(str(file_path))`
+- **Test Coverage**: Updated 2 tests for additional get_user_data call; all 75 related tests passing (schedule utilities, user context, file operations)
+- **Impact**: User context and AI context generation work correctly; message loading from user files works; error logs no longer cluttered
+- **Files**: user/user_context.py, user/context_manager.py, communication/core/channel_orchestrator.py, tests/behavior/test_user_context_behavior.py
+
 ### 2025-10-11 - Critical Async Error Handling Fix for Discord Message Receiving **COMPLETED**
 - **Critical Bug Fixed**: Discord bot was not receiving messages due to `@handle_errors` decorator breaking async event handlers
 - **Error**: "event registered must be a coroutine function" during Discord initialization
