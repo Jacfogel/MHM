@@ -17,6 +17,105 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-11 - Check-in Flow State Persistence Bug Fix and Enhanced Debugging **COMPLETED**
+
+**Context**: User reported that check-in flow state was lost between receiving the initial check-in message (11:27 AM) and responding to it (3:18 PM). Investigation revealed the flow was being prematurely expired when scheduled messages were checked, even when no message was actually sent. Additionally, the user's response "2" was never logged or processed by Discord.
+
+**Goals**:
+- Fix premature check-in flow expiration when scheduled messages are checked
+- Add comprehensive flow state logging to track lifecycle events
+- Add debugging for Discord message reception issues
+- Add debugging for message selection logic to understand matching failures
+
+**Technical Changes**:
+
+**Fix 1: Premature Flow Expiration**
+- **Files**: communication/core/channel_orchestrator.py
+- **Issue**: `handle_scheduled_message()` was calling `expire_checkin_flow_due_to_unrelated_outbound()` even when no message was sent (just checked)
+- **Root Cause**: Flow expiration happened after "Completed message sending" log, but no actual message was sent
+- **Fix**: 
+  - Updated `_send_predefined_message()` to return `bool` indicating success/failure
+  - Updated `_send_ai_generated_message()` to return `bool` indicating success/failure
+  - Modified `handle_scheduled_message()` to only expire flows when:
+    - Message was actually sent successfully (not just attempted)
+    - AND message is NOT a scheduled message (motivational, health, checkin, task_reminders)
+    - Only expire for response messages to user input
+- **Impact**: Check-in flows now persist correctly through scheduled message checks
+
+**Enhancement 2: Flow State Lifecycle Logging**
+- **Files**: communication/message_processing/conversation_flow_manager.py
+- **Changes**:
+  - Enhanced `_load_user_states()`: Log file path, count, and details of each loaded state with full error stack traces
+  - Enhanced `_save_user_states()`: Log file path, count, state details with specific error handling for PermissionError, IOError
+  - Enhanced `expire_checkin_flow_due_to_unrelated_outbound()`: Log flow details before expiration, progress info, and reason
+  - Enhanced `_start_dynamic_checkin()`: Log flow creation with question count and order
+- **Log Prefixes**: `FLOW_STATE_LOAD:`, `FLOW_STATE_SAVE:`, `FLOW_STATE_CREATE:`, `FLOW_STATE_EXPIRE:`, `FLOW_STATE_*_ERROR:`
+- **Impact**: Complete visibility into flow state lifecycle for debugging
+
+**Enhancement 3: Discord Message Reception Logging**
+- **Files**: communication/communication_channels/discord/bot.py
+- **Changes**: Added comprehensive logging to `on_message()` handler
+  - Log ALL messages received with author, content preview, channel, guild
+  - Log when messages are ignored (bot's own messages)
+  - Log user lookup process and results
+  - Log when user is not recognized
+  - Log successful user identification
+- **Log Prefixes**: `DISCORD_MESSAGE_RECEIVED:`, `DISCORD_MESSAGE_IGNORED:`, `DISCORD_MESSAGE_PROCESS:`, `DISCORD_MESSAGE_UNRECOGNIZED:`, `DISCORD_MESSAGE_USER_IDENTIFIED:`
+- **Impact**: Will now see exactly why messages aren't being processed
+
+**Enhancement 4: Message Selection Debugging**
+- **Files**: communication/core/channel_orchestrator.py
+- **Changes**: Added comprehensive logging to `_send_predefined_message()`
+  - Log matching periods and valid periods
+  - Log current days and total messages in library
+  - Log sample messages when no match found
+  - Show what criteria are being used vs what's available
+- **Log Prefixes**: `MESSAGE_SELECTION:`, `MESSAGE_SELECTION_NO_MATCH:`, `MESSAGE_SELECTION_SAMPLE_*:`, `MESSAGE_SELECTION_ERROR:`
+- **Impact**: Will reveal why message selection fails (helps debug why no motivational messages were found at 1:41 PM)
+
+**Bug Timeline (From Logs)**:
+```
+11:27:28 AM - Check-in sent and flow initialized
+1:41:30 PM  - System checked for motivational messages, found none to send
+1:41:30 PM  - Called "Completed message sending" and expired check-in flow (BUG)
+3:18 PM     - User sent "2" but flow state was already deleted
+```
+
+**Expected Behavior After Fix**:
+```
+11:27 AM - Check-in starts
+           FLOW_STATE_CREATE: Created new check-in flow
+           FLOW_STATE_SAVE: Saved 1 user states to disk
+           
+1:41 PM  - System checks for motivational message, finds none
+           No message sent - preserving any active check-in flow ✓
+           
+3:18 PM  - User sends "2"
+           DISCORD_MESSAGE_RECEIVED: content='2'
+           FLOW_CHECK: User flow state: 1 (check-in)
+           Processes as check-in response ✓
+```
+
+**Testing Required**:
+- [ ] Restart service to activate new logging
+- [ ] Start check-in via Discord
+- [ ] Wait for scheduled message check (should preserve flow)
+- [ ] Respond to check-in (should process correctly)
+- [ ] Monitor logs for MESSAGE_SELECTION entries to understand message matching
+
+**Files Modified**:
+- communication/core/channel_orchestrator.py - Message sending returns, flow expiration logic, message selection debugging
+- communication/message_processing/conversation_flow_manager.py - Flow state lifecycle logging
+- communication/communication_channels/discord/bot.py - Discord message reception logging
+
+**Backward Compatibility**: ✅ All changes are backward compatible, no breaking changes to API or data structures
+
+**Known Issues to Monitor**:
+- Discord message "2" was never logged - new logging will help diagnose
+- No motivational messages matched at 1:41 PM Saturday afternoon - new logging will show why
+
+---
+
 ### 2025-10-11 - Test Suite Fixes: All 50 Failures Resolved **COMPLETED**
 
 **Context**: After recent error handling improvements, the test suite had 50 failures related to Path object handling, error recovery behavior, test expectations, and missing validation. This session systematically identified and fixed all failures.

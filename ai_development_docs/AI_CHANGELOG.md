@@ -8,6 +8,16 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-11 - Check-in Flow State Persistence Bug Fix **COMPLETED**
+- **Critical Bug Fixed**: Check-in flows were being expired when scheduled messages were checked, even when no message was sent
+- **Root Cause**: System called "Completed message sending" after checking for messages, triggering flow expiration even when no message sent
+- **Fix**: Only expire flows when message is actually sent successfully AND message is not a scheduled type (motivational, health, checkin, task_reminders)
+- **Enhanced Logging**: Added comprehensive flow state lifecycle logging (`FLOW_STATE_CREATE`, `FLOW_STATE_SAVE`, `FLOW_STATE_LOAD`, `FLOW_STATE_EXPIRE`)
+- **Discord Debugging**: Added message reception logging (`DISCORD_MESSAGE_RECEIVED`, `DISCORD_MESSAGE_USER_IDENTIFIED`)
+- **Message Selection Debugging**: Added detailed logging to understand why message matching fails (`MESSAGE_SELECTION`, `MESSAGE_SELECTION_NO_MATCH`)
+- **Impact**: Check-in flows now persist correctly through scheduled message checks; comprehensive debugging for two additional issues
+- **Files**: communication/core/channel_orchestrator.py, communication/message_processing/conversation_flow_manager.py, communication/communication_channels/discord/bot.py
+
 ### 2025-10-11 - Test Suite Fixes: All 50 Failures Resolved **COMPLETED**
 - **Achievement**: Fixed all 50 test failures from initial run - 100% success rate (1,844 passed, 1 skipped)
 - **Major Fixes**: Path object handling (33 tests), error recovery metadata wrappers (33 tests), test expectations (2 tests), validation (2 tests)

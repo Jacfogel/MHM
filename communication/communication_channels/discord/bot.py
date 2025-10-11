@@ -741,8 +741,12 @@ class DiscordBot(BaseChannel):
 
         @self.bot.event
         async def on_message(message):
+            # COMPREHENSIVE LOGGING: Log ALL messages received
+            discord_logger.debug(f"DISCORD_MESSAGE_RECEIVED: author_id={message.author.id}, content='{message.content[:100]}', channel={message.channel.id}, guild={message.guild.id if message.guild else 'DM'}")
+            
             # Don't respond to ourselves
             if message.author == self.bot.user:
+                discord_logger.debug(f"DISCORD_MESSAGE_IGNORED: Message from bot itself, ignoring")
                 return
 
             # Process explicit commands (starting with "!" or "/") through our interaction manager
@@ -752,14 +756,18 @@ class DiscordBot(BaseChannel):
             # This prevents Discord from automatically trying to match commands to regular messages
             # Map Discord user ID to internal user ID
             discord_user_id = str(message.author.id)
+            discord_logger.debug(f"DISCORD_MESSAGE_PROCESS: Looking up user for Discord ID {discord_user_id}")
             internal_user_id = get_user_id_by_identifier(discord_user_id)
             
             if not internal_user_id:
+                discord_logger.warning(f"DISCORD_MESSAGE_UNRECOGNIZED: No internal user found for Discord ID {discord_user_id}")
                 await message.channel.send(
                     f"I don't recognize you yet! Please register first using the MHM application. "
                     f"Your Discord ID is: {discord_user_id}"
                 )
                 return
+            
+            discord_logger.info(f"DISCORD_MESSAGE_USER_IDENTIFIED: Discord ID {discord_user_id} → Internal user {internal_user_id}")
 
             # Validate that the stored Discord user ID is still accessible
             # This helps catch cases where the user's Discord account was deleted or they blocked the bot

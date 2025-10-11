@@ -84,31 +84,37 @@ class ConversationManager:
         self._load_user_states()
 
     def _load_user_states(self) -> None:
-        """Load user states from disk"""
+        """Load user states from disk with comprehensive logging"""
         try:
             if os.path.exists(self._state_file):
                 with open(self._state_file, 'r', encoding='utf-8') as f:
                     self.user_states = json.load(f)
-                logger.info(f"Loaded {len(self.user_states)} user states from disk")
+                logger.info(f"FLOW_STATE_LOAD: Loaded {len(self.user_states)} user states from disk | File: {self._state_file}")
                 for user_id, state in self.user_states.items():
-                    logger.info(f"Loaded state for user {user_id}: flow={state.get('flow')}, state={state.get('state')}")
+                    logger.info(f"FLOW_STATE_LOAD: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}, questions={len(state.get('question_order', []))}")
             else:
-                logger.debug("No existing conversation states file found")
+                logger.debug(f"FLOW_STATE_LOAD: No existing conversation states file found at {self._state_file}")
         except Exception as e:
-            logger.error(f"Failed to load user states: {e}")
+            logger.error(f"FLOW_STATE_LOAD_ERROR: Failed to load user states from {self._state_file}: {e}", exc_info=True)
             self.user_states = {}
 
     def _save_user_states(self) -> None:
-        """Save user states to disk"""
+        """Save user states to disk with comprehensive logging and error handling"""
         try:
             # Ensure data directory exists
             os.makedirs(os.path.dirname(self._state_file), exist_ok=True)
             
             with open(self._state_file, 'w', encoding='utf-8') as f:
                 json.dump(self.user_states, f, indent=2)
-            logger.debug(f"Saved {len(self.user_states)} user states to disk")
+            logger.debug(f"FLOW_STATE_SAVE: Saved {len(self.user_states)} user states to disk | File: {self._state_file}")
+            for user_id, state in self.user_states.items():
+                logger.debug(f"FLOW_STATE_SAVE: User {user_id} | flow={state.get('flow')}, state={state.get('state')}, question_index={state.get('current_question_index')}")
+        except PermissionError as e:
+            logger.error(f"FLOW_STATE_SAVE_ERROR: Permission denied saving to {self._state_file}: {e}", exc_info=True)
+        except IOError as e:
+            logger.error(f"FLOW_STATE_SAVE_ERROR: IO error saving to {self._state_file}: {e}", exc_info=True)
         except Exception as e:
-            logger.error(f"Failed to save user states: {e}")
+            logger.error(f"FLOW_STATE_SAVE_ERROR: Unexpected error saving user states: {e}", exc_info=True)
 
     def expire_checkin_flow_due_to_unrelated_outbound(self, user_id: str) -> None:
         """Expire an active check-in flow when an unrelated outbound message is sent.
@@ -117,13 +123,23 @@ class ConversationManager:
         try:
             user_state = self.user_states.get(user_id)
             if user_state and user_state.get("flow") == FLOW_CHECKIN:
+                # Log details before expiration
+                question_index = user_state.get('current_question_index', 0)
+                total_questions = len(user_state.get('question_order', []))
+                logger.info(f"FLOW_STATE_EXPIRE: Expiring active check-in flow for user {user_id} due to unrelated outbound message | Progress: {question_index}/{total_questions} questions")
+                
                 # End the flow silently
                 self.user_states.pop(user_id, None)
                 self._save_user_states()
-                logger.info(f"Expired active check-in flow for user {user_id} due to unrelated outbound message")
-        except Exception:
+                logger.info(f"FLOW_STATE_EXPIRE: Successfully expired and saved state for user {user_id}")
+            else:
+                if not user_state:
+                    logger.debug(f"FLOW_STATE_EXPIRE: No flow state found for user {user_id}, nothing to expire")
+                else:
+                    logger.debug(f"FLOW_STATE_EXPIRE: User {user_id} has flow={user_state.get('flow')}, not check-in, skipping expiration")
+        except Exception as e:
             # Don't let this affect outbound sending
-            logger.debug(f"Could not expire check-in flow for user {user_id}")
+            logger.error(f"FLOW_STATE_EXPIRE_ERROR: Could not expire check-in flow for user {user_id}: {e}", exc_info=True)
 
     @handle_errors("handling inbound message", default_return=("I'm having trouble processing your message right now. Please try again in a moment.", True))
     def handle_inbound_message(self, user_id: str, message_text: str) -> tuple[str, bool]:
@@ -306,6 +322,7 @@ class ConversationManager:
             "current_question_index": 0
         }
         self.user_states[user_id] = user_state
+        logger.info(f"FLOW_STATE_CREATE: Created new check-in flow for user {user_id} | Questions: {len(question_order)} | Order: {question_order[:3]}...")
         self._save_user_states()
         
         # Compose user-requested intro plus first question
@@ -320,6 +337,7 @@ class ConversationManager:
         )
         # Update state to current question without advancing index
         user_state['state'] = QUESTION_STATES.get(first_question_key, CHECKIN_START)
+        logger.info(f"FLOW_STATE_CREATE: Check-in flow initialized successfully for user {user_id} | First question: {first_question_key}")
         return (intro, False)
 
     @handle_errors("getting personalized welcome", default_return="🌟 Hello! Let's take a moment to check in on how you're feeling today.\n\nI have some quick questions for you today. Type /cancel anytime to skip.")

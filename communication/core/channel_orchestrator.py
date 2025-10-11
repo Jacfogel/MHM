@@ -881,22 +881,36 @@ class CommunicationManager:
             self._handle_scheduled_checkin(user_id, messaging_service, recipient)
             return
 
-        # Handle AI-generated messages
+        # Handle AI-generated messages and track if message was actually sent
+        message_sent = False
         if category in ["personalized", "ai_personalized"]:
-            self._send_ai_generated_message(user_id, category, messaging_service, recipient)
+            message_sent = self._send_ai_generated_message(user_id, category, messaging_service, recipient)
         else:
-            self._send_predefined_message(user_id, category, messaging_service, recipient)
+            message_sent = self._send_predefined_message(user_id, category, messaging_service, recipient)
         
-        # Expire any active check-in flow when any message is sent to avoid user confusion
-        try:
-            # ALL messages sent to the user should cancel active checkin flows
-            # This prevents confusion when the user receives messages while in a checkin flow
-            from communication.message_processing.conversation_flow_manager import conversation_manager
-            conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
-        except Exception as _e:
-            logger.debug(f"Check-in flow expiration after outbound message failed for user {user_id}: {_e}")
-
-        logger.info(f"Completed message sending for user {user_id}, category {category}")
+        # CRITICAL: Only expire check-in flows if a message was actually sent and delivered
+        # Don't expire flows for failed sends or when no message was available to send
+        if message_sent:
+            # Expire active check-in flows ONLY for non-scheduled messages to avoid user confusion
+            # Scheduled messages (motivational, health, etc.) are expected and shouldn't cancel active check-ins
+            # Only cancel check-in flows when we're responding to user input with unrelated content
+            try:
+                # Determine if this is a scheduled message or a response to user input
+                is_scheduled_message = category in ['motivational', 'health', 'checkin', 'task_reminders']
+                
+                if not is_scheduled_message:
+                    # This is a response to user input - expire any active check-in flow
+                    from communication.message_processing.conversation_flow_manager import conversation_manager
+                    conversation_manager.expire_checkin_flow_due_to_unrelated_outbound(user_id)
+                    logger.debug(f"Expired check-in flow for user {user_id} due to unrelated response message")
+                else:
+                    logger.debug(f"Skipping check-in flow expiration for scheduled {category} message to user {user_id}")
+            except Exception as _e:
+                logger.debug(f"Check-in flow expiration check failed for user {user_id}: {_e}")
+            
+            logger.info(f"Completed message sending for user {user_id}, category {category}")
+        else:
+            logger.debug(f"No message sent for user {user_id}, category {category} - preserving any active check-in flow")
 
     @handle_errors("getting recipient for service", default_return=None)
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
@@ -1045,8 +1059,13 @@ class CommunicationManager:
             logger.error(f"Error sending check-in prompt to user {user_id}: {e}")
             # Preserve conversation state to allow retry after recovery
 
-    def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
-        """Send an AI-generated personalized message using contextual AI"""
+    def _send_ai_generated_message(self, user_id: str, category: str, messaging_service: str, recipient: str) -> bool:
+        """
+        Send an AI-generated personalized message using contextual AI.
+        
+        Returns:
+            bool: True if a message was sent successfully, False otherwise
+        """
         try:
             from ai.chatbot import get_ai_chatbot
             ai_bot = get_ai_chatbot()
@@ -1073,22 +1092,34 @@ class CommunicationManager:
                 # Enhanced logging with message content
                 message_preview = message_to_send[:50] + "..." if len(message_to_send) > 50 else message_to_send
                 logger.info(f"Sent contextual AI-generated message for user {user_id}, category {category} | Content: '{message_preview}'")
+                return True
             else:
                 logger.error(f"Failed to send AI-generated message for user {user_id}")
+                return False
                 
         except Exception as e:
             logger.error(f"Error sending AI-generated message for user {user_id}: {e}")
+            return False
 
-    def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str):
-        """Send a pre-defined message from the user's message library with deduplication"""
+    def _send_predefined_message(self, user_id: str, category: str, messaging_service: str, recipient: str) -> bool:
+        """
+        Send a pre-defined message from the user's message library with deduplication.
+        
+        Returns:
+            bool: True if a message was sent successfully, False otherwise
+        """
         try:
             matching_periods, valid_periods = get_current_time_periods_with_validation(user_id, category)
+            logger.debug(f"MESSAGE_SELECTION: User {user_id}, category {category} | Matching periods: {matching_periods}, Valid periods: {valid_periods}")
+            
             # Remove 'ALL' from matching_periods if there are other periods
             if 'ALL' in matching_periods and len(matching_periods) > 1:
                 matching_periods = [p for p in matching_periods if p != 'ALL']
+                logger.debug(f"MESSAGE_SELECTION: Removed 'ALL' from matching_periods, now: {matching_periods}")
             # If no periods match (other than ALL), use ALL as fallback
             if not matching_periods and 'ALL' in valid_periods:
                 matching_periods = ['ALL']
+                logger.debug(f"MESSAGE_SELECTION: Using 'ALL' as fallback period")
 
             # Use new user-specific message file structure
             from pathlib import Path
@@ -1104,19 +1135,28 @@ class CommunicationManager:
                 pass
 
             if not data or 'messages' not in data:
-                logger.error(f"No messages found for category {category} and user {user_id}.")
-                return
+                logger.error(f"MESSAGE_SELECTION_ERROR: No messages found for category {category} and user {user_id}.")
+                return False
+
+            # Get current day for filtering
+            current_days = get_current_day_names()
+            logger.debug(f"MESSAGE_SELECTION: Current days: {current_days}")
+            logger.debug(f"MESSAGE_SELECTION: Total messages in library: {len(data['messages'])}")
 
             # Get all available messages for the current time period
             all_messages = [
                 msg for msg in data['messages']
-                if any(day in msg['days'] for day in get_current_day_names())
+                if any(day in msg['days'] for day in current_days)
                 and any(period in msg['time_periods'] for period in matching_periods)
             ]
             
             if not all_messages:
-                logger.info(f"No messages to send for category {category} and user {user_id} at this time.")
-                return
+                logger.warning(f"MESSAGE_SELECTION_NO_MATCH: No messages found for user {user_id}, category {category} | Current days: {current_days}, Matching periods: {matching_periods}, Total messages: {len(data['messages'])}")
+                # Sample first 3 messages to show what we're looking for
+                sample_messages = data['messages'][:3]
+                for i, msg in enumerate(sample_messages):
+                    logger.debug(f"MESSAGE_SELECTION_SAMPLE_{i}: days={msg.get('days')}, time_periods={msg.get('time_periods')}, message_preview='{msg.get('message', '')[:50]}'")
+                return False
 
             # ENHANCED: Apply deduplication logic to time-period-filtered messages
             from core.message_management import get_recent_messages
@@ -1155,6 +1195,7 @@ class CommunicationManager:
                     # Enhanced logging with message content and time period
                     message_preview = message_to_send['message'][:50] + "..." if len(message_to_send['message']) > 50 else message_to_send['message']
                     logger.info(f"Successfully sent deduplicated message for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'")
+                    return True
                 else:
                     # Enhanced logging with message content and time period
                     current_time_period = matching_periods[0] if matching_periods else None
@@ -1163,13 +1204,16 @@ class CommunicationManager:
                     # Still store it since the message might have gone through
                     from core.message_management import store_sent_message
                     store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
+                    return True  # Message was attempted and likely delivered
                     
             except Exception as send_error:
                 logger.error(f"Exception during message send for user {user_id}, category {category}: {send_error}")
                 # Don't store the message if there was an exception
+                return False
 
         except Exception as e:
             logger.error(f"Error in predefined message handling for user {user_id}, category {category}: {e}")
+            return False
 
 
     # NEW METHODS: More specific channel management methods
