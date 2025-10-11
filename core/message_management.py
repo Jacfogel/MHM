@@ -113,7 +113,7 @@ def add_message(user_id, category, message_data, index=None):
     user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
     
-    data = load_json_data(file_path)
+    data = load_json_data(str(file_path))
     
     if data is None:
         data = {'messages': []}
@@ -131,7 +131,7 @@ def add_message(user_id, category, message_data, index=None):
         data, _errs = validate_messages_file_dict(data)
     except Exception:
         pass
-    save_json_data(data, file_path)
+    save_json_data(data, str(file_path))
     
     # Update user index
     try:
@@ -164,7 +164,7 @@ def edit_message(user_id, category, message_id, updated_data):
     user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
     file_path = user_messages_dir / f"{category}.json"
     
-    data = load_json_data(file_path)
+    data = load_json_data(str(file_path))
     
     if data is None or 'messages' not in data:
         raise ValidationError("Invalid category or data file.")
@@ -180,7 +180,7 @@ def edit_message(user_id, category, message_id, updated_data):
         data, _errs = validate_messages_file_dict(data)
     except Exception:
         pass
-    save_json_data(data, file_path)
+    save_json_data(data, str(file_path))
     
     # Update user index
     try:
@@ -250,7 +250,7 @@ def delete_message(user_id, category, message_id):
     user_messages_dir.mkdir(parents=True, exist_ok=True)
     file_path = user_messages_dir / f"{category}.json"
     
-    data = load_json_data(file_path)
+    data = load_json_data(str(file_path))
     
     if data is None or 'messages' not in data:
         raise ValidationError("Invalid category or data file.")
@@ -264,7 +264,7 @@ def delete_message(user_id, category, message_id):
     # If no messages remain, keep an empty file (tests expect file to exist post-delete)
     if not data.get('messages'):
         data = {'messages': []}
-    save_json_data(data, file_path)
+    save_json_data(data, str(file_path))
     
     # Update user index
     try:
@@ -599,7 +599,11 @@ def create_message_file_from_defaults(user_id: str, category: str) -> bool:
             message_data, _errs = validate_messages_file_dict(message_data)
         except Exception:
             pass
-        save_json_data(message_data, category_message_file)
+        # Convert Path to string for save_json_data
+        success = save_json_data(message_data, str(category_message_file))
+        if not success:
+            logger.error(f"Failed to save message file for user {user_id}, category {category}")
+            return False
         logger.info(f"Created message file for user {user_id}, category {category} from defaults ({len(formatted_messages)} messages)")
         return True
         

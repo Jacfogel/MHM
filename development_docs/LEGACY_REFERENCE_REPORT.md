@@ -1,6 +1,6 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-10-10 01:39:40
+**Generated**: 2025-10-10 19:36:38
 **Total Files with Issues**: 5
 **Legacy Compatibility Markers Detected**: 7
 
@@ -29,7 +29,7 @@
 ### communication\command_handlers\interaction_handlers.py
 **Issues Found**: 1
 
-- **Line 2299**: `# LEGACY COMPATIBILITY:`
+- **Line 2304**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Support old enabled_fields format
   ```
@@ -37,12 +37,12 @@
 ### core\checkin_analytics.py
 **Issues Found**: 2
 
-- **Line 269**: `# LEGACY COMPATIBILITY:`
+- **Line 270**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Support old enabled_fields format
   ```
 
-- **Line 297**: `# LEGACY COMPATIBILITY:`
+- **Line 298**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
   ```
@@ -50,12 +50,12 @@
 ### core\user_data_manager.py
 **Issues Found**: 2
 
-- **Line 613**: `# LEGACY COMPATIBILITY:`
+- **Line 720**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
   ```
 
-- **Line 792**: `# LEGACY COMPATIBILITY:`
+- **Line 919**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
   ```

@@ -65,7 +65,13 @@ class MessageRouter:
         Returns:
             RoutingResult with message type and routing information
         """
-        if not message or not message.strip():
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return RoutingResult(MessageType.UNKNOWN)
+            
+        if not message.strip():
+            logger.error("Empty message provided")
             return RoutingResult(MessageType.UNKNOWN)
         
         message_stripped = message.strip()
@@ -81,8 +87,22 @@ class MessageRouter:
         # Default to structured command parsing
         return RoutingResult(MessageType.STRUCTURED_COMMAND, should_continue_parsing=True)
     
-    @handle_errors("routing slash command")
+    @handle_errors("routing slash command", default_return=RoutingResult(MessageType.UNKNOWN))
     def _route_slash_command(self, message: str) -> RoutingResult:
+        """
+        Route a slash command with validation.
+        
+        Returns:
+            RoutingResult: Routing result, UNKNOWN if failed
+        """
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return RoutingResult(MessageType.UNKNOWN)
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return RoutingResult(MessageType.UNKNOWN)
         """Route a slash command"""
         lowered = message.lower()
         parts = lowered.split()
@@ -126,8 +146,22 @@ class MessageRouter:
             should_continue_parsing=True
         )
     
-    @handle_errors("routing bang command")
+    @handle_errors("routing bang command", default_return=RoutingResult(MessageType.UNKNOWN))
     def _route_bang_command(self, message: str) -> RoutingResult:
+        """
+        Route a bang command with validation.
+        
+        Returns:
+            RoutingResult: Routing result, UNKNOWN if failed
+        """
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return RoutingResult(MessageType.UNKNOWN)
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return RoutingResult(MessageType.UNKNOWN)
         """Route a bang command"""
         lowered = message.lower()
         parts = lowered.split()
@@ -161,32 +195,78 @@ class MessageRouter:
             should_continue_parsing=True
         )
     
-    @handle_errors("getting command definitions")
+    @handle_errors("getting command definitions", default_return=[])
     def get_command_definitions(self) -> List[Dict[str, str]]:
+        """
+        Get command definitions with validation.
+        
+        Returns:
+            List[Dict[str, str]]: Command definitions, empty list if failed
+        """
         """Return canonical command definitions"""
         return [
             {"name": c['name'], "mapped_message": c['mapped_message'], "description": c['description']}
             for c in self._command_definitions
         ]
     
-    @handle_errors("getting slash command map")
+    @handle_errors("getting slash command map", default_return={})
     def get_slash_command_map(self) -> Dict[str, str]:
+        """
+        Get slash command map with validation.
+        
+        Returns:
+            Dict[str, str]: Slash command map, empty dict if failed
+        """
         """Get slash command mappings"""
         return {c['name']: c['mapped_message'] for c in self._command_definitions}
     
-    @handle_errors("getting bang command map")
+    @handle_errors("getting bang command map", default_return={})
     def get_bang_command_map(self) -> Dict[str, str]:
+        """
+        Get bang command map with validation.
+        
+        Returns:
+            Dict[str, str]: Bang command map, empty dict if failed
+        """
         """Get bang command mappings"""
         return {c['name']: c['mapped_message'] for c in self._command_definitions}
     
-    @handle_errors("checking if command is flow command")
+    @handle_errors("checking if command is flow command", default_return=False)
     def is_flow_command(self, command_name: str) -> bool:
+        """
+        Check if command is flow command with validation.
+        
+        Returns:
+            bool: True if flow command, False otherwise
+        """
+        # Validate command_name
+        if not command_name or not isinstance(command_name, str):
+            logger.error(f"Invalid command_name: {command_name}")
+            return False
+            
+        if not command_name.strip():
+            logger.error("Empty command_name provided")
+            return False
         """Check if a command is a flow command"""
         cmd_def = next((c for c in self._command_definitions if c['name'] == command_name), None)
         return cmd_def['is_flow'] if cmd_def else False
     
-    @handle_errors("getting command mapping")
+    @handle_errors("getting command mapping", default_return=None)
     def get_command_mapping(self, command_name: str) -> Optional[str]:
+        """
+        Get command mapping with validation.
+        
+        Returns:
+            Optional[str]: Command mapping, None if failed
+        """
+        # Validate command_name
+        if not command_name or not isinstance(command_name, str):
+            logger.error(f"Invalid command_name: {command_name}")
+            return None
+            
+        if not command_name.strip():
+            logger.error("Empty command_name provided")
+            return None
         """Get the mapped message for a command"""
         cmd_def = next((c for c in self._command_definitions if c['name'] == command_name), None)
         return cmd_def['mapped_message'] if cmd_def else None

@@ -40,8 +40,14 @@ class BackupManager:
         except Exception:
             self.backup_retention_days = 30
     
-    @handle_errors("ensuring backup directory exists")
+    @handle_errors("ensuring backup directory exists", default_return=False)
     def ensure_backup_directory(self) -> bool:
+        """
+        Ensure backup directory exists with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Ensure backup directory exists."""
         try:
             os.makedirs(self.backup_dir, exist_ok=True)
@@ -95,6 +101,32 @@ class BackupManager:
                      include_users: bool = True,
                      include_config: bool = True,
                      include_logs: bool = False) -> Optional[str]:
+        """
+        Create a comprehensive backup with validation.
+        
+        Returns:
+            Optional[str]: Path to backup file, None if failed
+        """
+        # Validate inputs
+        if backup_name is not None and not isinstance(backup_name, str):
+            logger.error(f"Invalid backup_name type: {type(backup_name)}")
+            return None
+            
+        if backup_name is not None and not backup_name.strip():
+            logger.error("Empty backup_name provided")
+            return None
+            
+        if not isinstance(include_users, bool):
+            logger.error(f"Invalid include_users: {include_users}")
+            return None
+            
+        if not isinstance(include_config, bool):
+            logger.error(f"Invalid include_config: {include_config}")
+            return None
+            
+        if not isinstance(include_logs, bool):
+            logger.error(f"Invalid include_logs: {include_logs}")
+            return None
         """
         Create a comprehensive backup of the system.
         
@@ -305,6 +337,29 @@ class BackupManager:
     def restore_backup(self, backup_path: str, 
                       restore_users: bool = True,
                       restore_config: bool = False) -> bool:
+        """
+        Restore backup with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate backup_path
+        if not backup_path or not isinstance(backup_path, str):
+            logger.error(f"Invalid backup_path: {backup_path}")
+            return False
+            
+        if not backup_path.strip():
+            logger.error("Empty backup_path provided")
+            return False
+            
+        # Validate boolean parameters
+        if not isinstance(restore_users, bool):
+            logger.error(f"Invalid restore_users: {restore_users}")
+            return False
+            
+        if not isinstance(restore_config, bool):
+            logger.error(f"Invalid restore_config: {restore_config}")
+            return False
         """
         Restore from a backup file.
         

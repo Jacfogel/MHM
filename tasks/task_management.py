@@ -25,8 +25,22 @@ class TaskManagementError(Exception):
     """Custom exception for task management errors."""
     pass
 
-@handle_errors("creating task directory structure")
+@handle_errors("creating task directory structure", default_return=False)
 def ensure_task_directory(user_id: str) -> bool:
+    """
+    Ensure the task directory structure exists for a user with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
     """Ensure the task directory structure exists for a user."""
     try:
         if not user_id:
@@ -63,6 +77,20 @@ def ensure_task_directory(user_id: str) -> bool:
 
 @handle_errors("loading active tasks", default_return=[])
 def load_active_tasks(user_id: str) -> List[Dict[str, Any]]:
+    """
+    Load active tasks for a user with validation.
+    
+    Returns:
+        List[Dict[str, Any]]: List of active tasks, empty list if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return []
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return []
     """Load active tasks for a user."""
     try:
         if not user_id:
@@ -173,8 +201,36 @@ def create_task(user_id: str, title: str, description: str = "", due_date: str =
                 recurrence_interval: int = 1, repeat_after_completion: bool = True) -> Optional[str]:
     """Create a new task for a user."""
     try:
-        if not user_id or not title:
-            logger.error("User ID and title are required for task creation")
+        if not user_id or not isinstance(user_id, str):
+            logger.error("Valid user ID required for task creation")
+            return None
+            
+        if not title or not isinstance(title, str):
+            logger.error("Valid title required for task creation")
+            return None
+            
+        # Validate description parameter
+        if description is not None and not isinstance(description, str):
+            logger.error(f"Invalid description type: {type(description)}")
+            return None
+        
+        # Validate priority parameter
+        valid_priorities = ["low", "medium", "high", "urgent"]
+        if priority and not isinstance(priority, str):
+            logger.error(f"Invalid priority type: {type(priority)}")
+            return None
+        if priority and priority.lower() not in valid_priorities:
+            logger.error(f"Invalid priority value: {priority}. Must be one of {valid_priorities}")
+            return None
+        
+        # Validate reminder_periods parameter
+        if reminder_periods is not None and not isinstance(reminder_periods, list):
+            logger.error(f"Invalid reminder_periods type: {type(reminder_periods)}")
+            return None
+        
+        # Validate tags parameter
+        if tags is not None and not isinstance(tags, list):
+            logger.error(f"Invalid tags type: {type(tags)}")
             return None
         
         # Generate unique task ID

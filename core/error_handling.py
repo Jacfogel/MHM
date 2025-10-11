@@ -182,6 +182,9 @@ class FileNotFoundRecovery(ErrorRecoveryStrategy):
                 "category": context.get('category', 'unknown'),
                 "created": datetime.now().isoformat()
             }
+        elif 'checkins' in file_path or 'chat_interactions' in file_path:
+            # Log files should be simple arrays
+            return []
         elif file_path.endswith('.json'):
             # Generic JSON file - create basic structure
             return {
@@ -276,6 +279,9 @@ class JSONDecodeRecovery(ErrorRecoveryStrategy):
                 "category": context.get('category', 'unknown'),
                 "created": datetime.now().isoformat()
             }
+        elif 'checkins' in file_path or 'chat_interactions' in file_path:
+            # Log files should be simple arrays
+            return []
         elif file_path.endswith('.json'):
             # Generic JSON file - create basic structure
             return {

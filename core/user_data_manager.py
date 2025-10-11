@@ -31,7 +31,7 @@ data_manager_logger = get_component_logger('user_activity')
 class UserDataManager:
     """Enhanced user data management with references, backup, and indexing capabilities"""
     
-    @handle_errors("initializing user data manager")
+    @handle_errors("initializing user data manager", default_return=None)
     def __init__(self):
         """
         Initialize the UserDataManager.
@@ -50,6 +50,15 @@ class UserDataManager:
     @handle_errors("updating message references", default_return=False)
     def update_message_references(self, user_id: str) -> bool:
         """Add/update message file references in user profile"""
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return False
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return False
+        
         # Load user profile
         user_info = get_user_info_for_data_manager(user_id)
         if not user_info:
@@ -95,6 +104,15 @@ class UserDataManager:
     @handle_errors("getting user message files", default_return={})
     def get_user_message_files(self, user_id: str) -> Dict[str, str]:
         """Get all message file paths for a user"""
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return {}
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return {}
+        
         user_info = get_user_info_for_data_manager(user_id)
         if not user_info:
             return {}
@@ -117,8 +135,27 @@ class UserDataManager:
         
         return message_files
     
-    @handle_errors("backing up user data")
+    @handle_errors("backing up user data", default_return="")
     def backup_user_data(self, user_id: str, include_messages: bool = True) -> str:
+        """
+        Create a complete backup of user's data with validation.
+        
+        Returns:
+            str: Path to backup file, empty string if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return ""
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return ""
+            
+        # Validate include_messages
+        if not isinstance(include_messages, bool):
+            logger.error(f"Invalid include_messages: {include_messages}")
+            return ""
         """Create a complete backup of user's data"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"user_backup_{user_id}_{timestamp}.zip"
@@ -154,8 +191,31 @@ class UserDataManager:
         logger.info(f"User backup created: {backup_path}")
         return backup_path
     
-    @handle_errors("exporting user data")
+    @handle_errors("exporting user data", default_return={})
     def export_user_data(self, user_id: str, export_format: str = "json") -> Dict[str, Any]:
+        """
+        Export all user data to a structured format with validation.
+        
+        Returns:
+            Dict[str, Any]: Exported data, empty dict if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return {}
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return {}
+            
+        # Validate export_format
+        if not export_format or not isinstance(export_format, str):
+            logger.error(f"Invalid export_format: {export_format}")
+            return {}
+            
+        if export_format not in ["json", "csv", "yaml"]:
+            logger.error(f"Unsupported export_format: {export_format}")
+            return {}
         """Export all user data to a structured format"""
         export_data = {
             "user_id": user_id,
@@ -206,6 +266,25 @@ class UserDataManager:
     
     @handle_errors("deleting user completely", default_return=False)
     def delete_user_completely(self, user_id: str, create_backup: bool = True) -> bool:
+        """
+        Completely remove all traces of a user from the system with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return False
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return False
+            
+        # Validate create_backup
+        if not isinstance(create_backup, bool):
+            logger.error(f"Invalid create_backup: {create_backup}")
+            return False
         """Completely remove all traces of a user from the system"""
         if create_backup:
             backup_path = self.backup_user_data(user_id, include_messages=True)
@@ -232,6 +311,20 @@ class UserDataManager:
     
     @handle_errors("getting user data summary", default_return={"error": "Failed to get summary"})
     def get_user_data_summary(self, user_id: str) -> Dict[str, Any]:
+        """
+        Get comprehensive summary of user data with validation.
+        
+        Returns:
+            Dict[str, Any]: User data summary, error dict if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return {"error": f"Invalid user_id: {user_id}"}
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return {"error": "Empty user_id provided"}
         """
         Get a comprehensive summary of user data including file counts and sizes.
         
@@ -528,6 +621,20 @@ class UserDataManager:
     @handle_errors("updating user index", default_return=False)
     def update_user_index(self, user_id: str) -> bool:
         """
+        Update user index with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return False
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return False
+        """
         Update the user index with current information for a specific user.
         
         Creates a comprehensive multi-identifier structure:
@@ -647,6 +754,20 @@ class UserDataManager:
     @handle_errors("removing from index", default_return=False)
     def remove_from_index(self, user_id: str) -> bool:
         """
+        Remove user from index with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return False
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return False
+        """
         Remove a user from the index.
         
         Removes all identifier mappings (internal_username, email, discord_user_id, phone) and detailed mapping.
@@ -703,6 +824,12 @@ class UserDataManager:
     
     @handle_errors("rebuilding full index", default_return=False)
     def rebuild_full_index(self) -> bool:
+        """
+        Rebuild full user index with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """
         Rebuild the complete user index from scratch.
         
@@ -813,6 +940,25 @@ class UserDataManager:
     @handle_errors("searching users", default_return=[])
     def search_users(self, query: str, search_fields: List[str] = None) -> List[Dict[str, Any]]:
         """
+        Search users with validation.
+        
+        Returns:
+            List[Dict[str, Any]]: Search results, empty list if failed
+        """
+        # Validate query
+        if not query or not isinstance(query, str):
+            logger.error(f"Invalid query: {query}")
+            return []
+            
+        if not query.strip():
+            logger.error("Empty query provided")
+            return []
+            
+        # Validate search_fields
+        if search_fields is not None and not isinstance(search_fields, list):
+            logger.error(f"Invalid search_fields: {search_fields}")
+            return []
+        """
         Search for users based on query string and specified fields.
         
         Args:
@@ -863,6 +1009,20 @@ user_data_manager = UserDataManager()
 @handle_errors("updating message references", default_return=False)
 def update_message_references(user_id: str) -> bool:
     """
+    Update message references with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+    """
     Update message file references for a user.
     
     Args:
@@ -878,8 +1038,27 @@ def update_message_references(user_id: str) -> bool:
         logger.error(f"Error updating message references: {e}")
         return False
 
-@handle_errors("backing up user data")
+@handle_errors("backing up user data", default_return="")
 def backup_user_data(user_id: str, include_messages: bool = True) -> str:
+    """
+    Create a complete backup of user's data with validation.
+    
+    Returns:
+        str: Path to backup file, empty string if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return ""
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return ""
+        
+    # Validate include_messages
+    if not isinstance(include_messages, bool):
+        logger.error(f"Invalid include_messages: {include_messages}")
+        return ""
     """
     Create a backup of user data.
     
@@ -897,8 +1076,31 @@ def backup_user_data(user_id: str, include_messages: bool = True) -> str:
         logger.error(f"Error backing up user data: {e}")
         return ""
 
-@handle_errors("exporting user data")
+@handle_errors("exporting user data", default_return={})
 def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any]:
+    """
+    Export all user data to a structured format with validation.
+    
+    Returns:
+        Dict[str, Any]: Exported data, empty dict if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {}
+        
+    # Validate export_format
+    if not export_format or not isinstance(export_format, str):
+        logger.error(f"Invalid export_format: {export_format}")
+        return {}
+        
+    if export_format not in ["json", "csv", "yaml"]:
+        logger.error(f"Unsupported export_format: {export_format}")
+        return {}
     """
     Export user data to a structured format.
     
@@ -919,6 +1121,25 @@ def export_user_data(user_id: str, export_format: str = "json") -> Dict[str, Any
 @handle_errors("deleting user completely", default_return=False)
 def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
     """
+    Completely remove all traces of a user from the system with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    # Validate create_backup
+    if not isinstance(create_backup, bool):
+        logger.error(f"Invalid create_backup: {create_backup}")
+        return False
+    """
     Completely delete a user and all their data.
     
     Args:
@@ -935,8 +1156,22 @@ def delete_user_completely(user_id: str, create_backup: bool = True) -> bool:
         logger.error(f"Error deleting user completely: {e}")
         return False
 
-@handle_errors("getting user data summary")
+@handle_errors("getting user data summary", default_return={"error": "Failed to get summary"})
 def get_user_data_summary(user_id: str) -> Dict[str, Any]:
+    """
+    Get comprehensive summary of user data with validation.
+    
+    Returns:
+        Dict[str, Any]: User data summary, error dict if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {"error": f"Invalid user_id: {user_id}"}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {"error": "Empty user_id provided"}
     """
     Get a summary of user data.
     
@@ -955,6 +1190,20 @@ def get_user_data_summary(user_id: str) -> Dict[str, Any]:
 
 @handle_errors("updating user index", default_return=False)
 def update_user_index(user_id: str) -> bool:
+    """
+    Update user index with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
     """
     Update the user index for a specific user.
     
@@ -983,6 +1232,20 @@ def rebuild_user_index() -> bool:
 
 @handle_errors("getting user info for data manager", default_return=None)
 def get_user_info_for_data_manager(user_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get user info using the new centralized data structure with validation.
+    
+    Returns:
+        Optional[Dict[str, Any]]: User info dict or None if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return None
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return None
     """Get user info using the new centralized data structure."""
     try:
         from core.user_data_handlers import get_user_data
@@ -1027,6 +1290,12 @@ from core.user_management import get_user_categories
 
 @handle_errors("building user index", default_return={})
 def build_user_index() -> Dict[str, Any]:
+    """
+    Build an index of all users and their message data with validation.
+    
+    Returns:
+        Dict[str, Any]: User index, empty dict if failed
+    """
     """Build an index of all users and their message data."""
     try:
         user_ids = get_all_user_ids()
@@ -1073,6 +1342,20 @@ def build_user_index() -> Dict[str, Any]:
 
 @handle_errors("getting user summary", default_return={})
 def get_user_summary(user_id: str) -> Dict[str, Any]:
+    """
+    Get a summary of user data and message statistics with validation.
+    
+    Returns:
+        Dict[str, Any]: User summary, empty dict if failed
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {}
     """Get a summary of user data and message statistics."""
     try:
         # Get user info using new structure
@@ -1122,6 +1405,12 @@ def get_user_summary(user_id: str) -> Dict[str, Any]:
 
 @handle_errors("getting all user summaries", default_return=[])
 def get_all_user_summaries() -> List[Dict[str, Any]]:
+    """
+    Get summaries for all users with validation.
+    
+    Returns:
+        List[Dict[str, Any]]: List of user summaries, empty list if failed
+    """
     """Get summaries for all users."""
     try:
         user_ids = get_all_user_ids()

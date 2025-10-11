@@ -23,13 +23,11 @@
 4. **Integration** - External system interactions (Discord, email, etc.)
 5. **Cross-Platform** - Different operating systems, screen sizes
 
-
 ### **Before Starting**
 - [ ] Run automated tests first: `python -m pytest tests/behavior/test_*automation* -v`
 - [ ] Run `python run_headless_service.py start` to ensure system starts
 - [ ] Have a test user ready (or create one)
 - [ ] Focus on visual and UX aspects not covered by automation
-
 
 ---
 

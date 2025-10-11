@@ -27,7 +27,7 @@ except Exception:
 
 logger = get_component_logger('file_ops')
 
-@handle_errors("verifying file access", user_friendly=False)
+@handle_errors("verifying file access", user_friendly=False, default_return=False)
 def verify_file_access(paths):
     """
     Verify that files exist and are accessible.
@@ -35,16 +35,30 @@ def verify_file_access(paths):
     Args:
         paths: List of file paths to verify
         
+    Returns:
+        bool: True if all files exist and are accessible, False otherwise
+        
     Raises:
         FileOperationError: If any file is not found or inaccessible
     """
+    # Validate input
+    if not paths or not isinstance(paths, (list, tuple)):
+        logger.error(f"Invalid paths provided: {paths}")
+        return False
+    
     for path in paths:
+        if not path or not isinstance(path, str):
+            logger.error(f"Invalid path in list: {path}")
+            return False
+            
         if not os.path.exists(path):
             raise FileOperationError(f"File not found at path: {path}")
         else:
             logger.debug(f"File verified: {path}")
+    
+    return True
 
-@handle_errors("determining file path", user_friendly=False)
+@handle_errors("determining file path", user_friendly=False, default_return="")
 def determine_file_path(file_type, identifier):
     """
     Determine file path based on file type and identifier.
@@ -55,11 +69,19 @@ def determine_file_path(file_type, identifier):
         identifier: Identifier for the file (format depends on file_type)
         
     Returns:
-        str: Full file path
+        str: Full file path, empty string if invalid
         
     Raises:
         FileOperationError: If file_type is unknown or identifier format is invalid
     """
+    # Validate inputs
+    if not file_type or not isinstance(file_type, str):
+        logger.error(f"Invalid file_type: {file_type}")
+        return ""
+        
+    if not identifier or not isinstance(identifier, str):
+        logger.error(f"Invalid identifier: {identifier}")
+        return ""
     if file_type == 'users':
         # New structure: return account file path
         return get_user_file_path(identifier, 'account')
@@ -102,7 +124,7 @@ def determine_file_path(file_type, identifier):
         logger.debug(f"Determined file path for {file_type}: {path}")
     return str(path)
 
-@handle_errors("loading JSON data", default_return=None)
+@handle_errors("loading JSON data", default_return={})
 def load_json_data(file_path):
     """
     Load data from a JSON file with comprehensive error handling and auto-create user files if missing.
@@ -111,17 +133,32 @@ def load_json_data(file_path):
         file_path: Path to the JSON file to load
         
     Returns:
-        dict/list: Loaded JSON data, or None if loading failed
+        dict/list: Loaded JSON data, or empty dict if loading failed
     """
+    # Validate input
+    if not file_path or not isinstance(file_path, str):
+        logger.error(f"Invalid file_path: {file_path}")
+        return {}
+        
+    if not file_path.strip():
+        logger.error("Empty file_path provided")
+        return {}
+    
     context = {'file_path': file_path}
     
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             return json.load(file)
     except FileNotFoundError as e:
+        # Use specialized file error handler for better recovery
+        if not handle_file_error(e, file_path, "loading JSON data"):
+            logger.error(f"File not found and recovery failed: {file_path}")
+            return {}
         # Try to auto-create user files if this is a user file
+        # NOTE: Don't auto-create message files - let add_message handle that
+        # Only auto-create core user files (account, preferences, etc.)
         # Detect user files by path
-        if 'users' in file_path:
+        if 'users' in file_path and 'messages' not in file_path:
             # Try to extract user_id from the path
             import re
             match = re.search(r'users[\\/](.*?)[\\/]', file_path)
@@ -134,9 +171,9 @@ def load_json_data(file_path):
                 if match:
                     user_id = match.group(1)
             if user_id:
-                # Try to guess categories if possible (for schedules/messages)
+                # Try to guess categories if possible (for schedules)
                 categories = []
-                if 'schedules' in file_path or 'messages' in file_path:
+                if 'schedules' in file_path:
                     # Try to find categories from existing files or default to ['motivational']
                     categories = ['motivational']
                 create_user_files(user_id, categories, None)  # No user preferences available in auto-creation
@@ -167,13 +204,13 @@ def load_json_data(file_path):
                     return json.load(file)
             except Exception as e2:
                 logger.error(f"Failed to load file after JSON recovery: {e2}")
-                return None
+                return {}
         else:
             logger.error(f"JSON decode error and recovery failed: {file_path}")
-            return None
+            return {}
     except Exception as e:
         logger.error(f"Unexpected error loading data from {file_path}: {e}")
-        return None
+        return {}
 
 @handle_errors("saving JSON data", user_friendly=False, default_return=False)
 def save_json_data(data, file_path):
@@ -190,6 +227,18 @@ def save_json_data(data, file_path):
     Raises:
         FileOperationError: If saving fails
     """
+    # Validate inputs
+    if file_path is None or not isinstance(file_path, str):
+        logger.error(f"Invalid file_path: {file_path}")
+        return False
+        
+    if not file_path.strip():
+        logger.error("Empty file_path provided")
+        return False
+        
+    if data is None:
+        logger.error("None data provided to save_json_data")
+        return False
     # Atomic write with temp file and replace to avoid partial writes
     file_path = Path(file_path)
     directory = file_path.parent
@@ -231,7 +280,7 @@ def save_json_data(data, file_path):
     except Exception as e:
         raise FileOperationError(f"Failed to save data to {file_path}: {e}")
 
-@handle_errors("creating user files", user_friendly=True)
+@handle_errors("creating user files", user_friendly=True, default_return=False)
 def create_user_files(user_id, categories, user_preferences=None):
     """
     Creates files for a new user in the appropriate structure.
@@ -241,7 +290,22 @@ def create_user_files(user_id, categories, user_preferences=None):
         user_id: The user ID
         categories: List of message categories the user is opted into
         user_preferences: Optional user preferences dict to determine which files to create
+        
+    Returns:
+        bool: True if successful, False if failed
     """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if categories is not None and not isinstance(categories, (list, tuple)):
+        logger.error(f"Invalid categories type: {type(categories)}")
+        return False
     ensure_user_directory(user_id)
     
     # Always use a dict for user_prefs to avoid NoneType errors
@@ -280,7 +344,7 @@ def create_user_files(user_id, categories, user_preferences=None):
     logger.info(f"Successfully created all user files for user {user_id}")
 
 
-@handle_errors("determining feature enablement")
+@handle_errors("determining feature enablement", default_return=(False, False))
 def _create_user_files__determine_feature_enablement(user_prefs):
     """
     Determine which features are enabled based on user preferences.
@@ -313,7 +377,7 @@ def _create_user_files__determine_feature_enablement(user_prefs):
         return False, False
 
 
-@handle_errors("creating account file")
+@handle_errors("creating account file", default_return=False)
 def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
     """Create account.json with actual user data."""
     try:
@@ -364,7 +428,7 @@ def _create_user_files__account_file(user_id, user_prefs, categories, tasks_enab
         raise
 
 
-@handle_errors("creating preferences file")
+@handle_errors("creating preferences file", default_return=False)
 def _create_user_files__preferences_file(user_id, user_prefs, categories, tasks_enabled, checkins_enabled):
     """Create preferences.json with actual user data."""
     try:
@@ -411,7 +475,7 @@ def _create_user_files__preferences_file(user_id, user_prefs, categories, tasks_
         raise
 
 
-@handle_errors("creating context file")
+@handle_errors("creating context file", default_return=False)
 def _create_user_files__context_file(user_id, user_prefs):
     """Create user_context.json with actual personalization data."""
     try:
@@ -452,7 +516,7 @@ def _create_user_files__context_file(user_id, user_prefs):
         raise
 
 
-@handle_errors("creating schedules file")
+@handle_errors("creating schedules file", default_return=False)
 def _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_enabled, checkins_enabled):
     """Create schedules file with appropriate structure."""
     try:
@@ -514,7 +578,7 @@ def _create_user_files__schedules_file(user_id, categories, user_prefs, tasks_en
         raise
 
 
-@handle_errors("creating log files")
+@handle_errors("creating log files", default_return=False)
 def _create_user_files__log_files(user_id):
     """Initialize empty log files if they don't exist."""
     try:
@@ -529,7 +593,7 @@ def _create_user_files__log_files(user_id):
         raise
 
 
-@handle_errors("creating sent messages file")
+@handle_errors("creating sent messages file", default_return=False)
 def _create_user_files__sent_messages_file(user_id):
     """Create sent_messages.json in messages/ subdirectory."""
     try:
@@ -545,7 +609,7 @@ def _create_user_files__sent_messages_file(user_id):
         raise
 
 
-@handle_errors("creating task files")
+@handle_errors("creating task files", default_return=False)
 def _create_user_files__task_files(user_id):
     """Create task files if tasks are enabled."""
     try:

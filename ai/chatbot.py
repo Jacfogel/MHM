@@ -77,12 +77,46 @@ class AIChatBotSingleton:
 
     @handle_errors("making cache key inputs", default_return=("", "", ""))
     def _make_cache_key_inputs(self, mode: str, user_prompt: str, user_id: Optional[str]):
+        """
+        Create consistent cache key inputs with validation.
+        
+        Returns:
+            tuple: (user_prompt, user_id, mode)
+        """
+        # Validate mode
+        if not mode or not isinstance(mode, str):
+            logger.error(f"Invalid mode: {mode}")
+            return "", "", ""
+            
+        if not mode.strip():
+            logger.error("Empty mode provided")
+            return "", "", ""
+            
+        # Validate user_prompt
+        if not user_prompt or not isinstance(user_prompt, str):
+            logger.error(f"Invalid user_prompt: {user_prompt}")
+            return "", "", ""
+            
+        if not user_prompt.strip():
+            logger.error("Empty user_prompt provided")
+            return "", "", ""
+            
+        # Validate user_id if provided
+        if user_id is not None and not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return "", "", ""
         """Create consistent cache key inputs using prompt_type parameter."""
         # Always use the raw prompt; pass mode as prompt_type into the cache
         return user_prompt, user_id, mode
 
-    @handle_errors("testing LM Studio connection")
+    @handle_errors("testing LM Studio connection", default_return=None)
     def _test_lm_studio_connection(self):
+        """
+        Test connection to LM Studio server with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Test connection to LM Studio server."""
         # In testing environments, skip real HTTP calls and assume LM Studio is available
         if os.getenv("MHM_TESTING") == "1":
@@ -593,6 +627,11 @@ Additional Instructions:
         Generate a basic AI response from user_prompt, using LM Studio API.
         Uses adaptive timeout to prevent blocking for too long with improved performance optimizations.
         """
+        # Validate timeout parameter
+        if timeout is not None and not isinstance(timeout, int):
+            logger.error(f"Invalid timeout parameter: {timeout} (expected int)")
+            return "I'm having trouble generating a response. Please check your input and try again."
+            
         if timeout is None:
             timeout = self._get_adaptive_timeout(AI_TIMEOUT_SECONDS)
 
@@ -603,6 +642,11 @@ Additional Instructions:
             mode = "chat"
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(mode, user_prompt, user_id)
+        
+        # Check if inputs are valid - if cache key inputs are empty, inputs were invalid
+        if not prompt_for_key or not prompt_for_key.strip():
+            logger.error(f"Invalid inputs provided to generate_response: mode={mode}, user_prompt={user_prompt}, user_id={user_id}")
+            return "I'm having trouble generating a response. Please check your input and try again."
 
         # Check cache first, but skip cache for chat mode and fallback responses to allow variation
         if mode != "chat":

@@ -173,6 +173,16 @@ class CommunicationManager:
 
     @handle_errors("initializing channels from config", default_return=False)
     def initialize_channels_from_config(self, channel_configs: Dict[str, ChannelConfig] = None):
+        """
+        Initialize channels from configuration with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate channel_configs
+        if channel_configs is not None and not isinstance(channel_configs, dict):
+            logger.error(f"Invalid channel_configs: {type(channel_configs)}")
+            return False
         """Initialize channels from configuration"""
         if channel_configs is None:
             # Use default configurations
@@ -303,6 +313,12 @@ class CommunicationManager:
 
     @handle_errors("starting all channels", default_return=False)
     def start_all(self):
+        """
+        Start all communication channels with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Start all communication channels"""
         logger.debug("Starting all communication channels.")
         
@@ -739,6 +755,12 @@ class CommunicationManager:
 
     @handle_errors("stopping all channels", default_return=False)
     def stop_all(self):
+        """
+        Stop all communication channels with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Stop all communication channels"""
         logger.debug("Stopping all communication channels.")
         
@@ -878,6 +900,34 @@ class CommunicationManager:
 
     @handle_errors("getting recipient for service", default_return=None)
     def _get_recipient_for_service(self, user_id: str, messaging_service: str, preferences: dict) -> Optional[str]:
+        """
+        Get recipient for service with validation.
+        
+        Returns:
+            Optional[str]: Recipient ID, None if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return None
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return None
+            
+        # Validate messaging_service
+        if not messaging_service or not isinstance(messaging_service, str):
+            logger.error(f"Invalid messaging_service: {messaging_service}")
+            return None
+            
+        if not messaging_service.strip():
+            logger.error("Empty messaging_service provided")
+            return None
+            
+        # Validate preferences
+        if not preferences or not isinstance(preferences, dict):
+            logger.error(f"Invalid preferences: {preferences}")
+            return None
         """Get the appropriate recipient ID for the messaging service"""
         if messaging_service == "discord":
             # For Discord, we need to get the channel ID, not the user ID
@@ -1125,23 +1175,64 @@ class CommunicationManager:
     # NEW METHODS: More specific channel management methods
     @handle_errors("getting active channels", default_return=[])
     def get_active_channels(self) -> List[str]:
+        """
+        Get active channels with validation.
+        
+        Returns:
+            List[str]: List of active channels, empty list if failed
+        """
         """Get list of currently active/running channels"""
         return list(self._channels_dict.keys())
     
     @handle_errors("getting configured channels", default_return=[])
     def get_configured_channels(self) -> List[str]:
+        """
+        Get configured channels with validation.
+        
+        Returns:
+            List[str]: List of configured channels, empty list if failed
+        """
         """Get list of channels that are configured (from config)"""
         from core.config import get_available_channels
         return get_available_channels()
     
     @handle_errors("getting registered channels", default_return=[])
     def get_registered_channels(self) -> List[str]:
+        """
+        Get registered channels with validation.
+        
+        Returns:
+            List[str]: List of registered channels, empty list if failed
+        """
         """Get list of channels that are registered in the factory"""
         from communication.core.factory import ChannelFactory
         return ChannelFactory.get_registered_channels()
 
     @handle_errors("handling task reminder", default_return=None)
     def handle_task_reminder(self, user_id: str, task_id: str):
+        """
+        Handle task reminder with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return None
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return None
+            
+        # Validate task_id
+        if not task_id or not isinstance(task_id, str):
+            logger.error(f"Invalid task_id: {task_id}")
+            return None
+            
+        if not task_id.strip():
+            logger.error("Empty task_id provided")
+            return None
         """
         Handle sending task reminders for a user.
         """
@@ -1204,6 +1295,20 @@ class CommunicationManager:
     @handle_errors("getting last task reminder", default_return=None)
     def get_last_task_reminder(self, user_id: str) -> Optional[str]:
         """
+        Get last task reminder with validation.
+        
+        Returns:
+            Optional[str]: Last task reminder, None if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return None
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return None
+        """
         Get the task ID of the last task reminder sent to a user.
         
         Args:
@@ -1216,6 +1321,16 @@ class CommunicationManager:
 
     @handle_errors("creating task reminder message", default_return="Task reminder")
     def _create_task_reminder_message(self, task: dict) -> str:
+        """
+        Create task reminder message with validation.
+        
+        Returns:
+            str: Task reminder message, default if failed
+        """
+        # Validate task
+        if not task or not isinstance(task, dict):
+            logger.error(f"Invalid task: {task}")
+            return "Task reminder"
         """
         Create a formatted task reminder message.
         """
@@ -1263,6 +1378,21 @@ class CommunicationManager:
 
     @handle_errors("selecting weighted message", default_return="")
     def _select_weighted_message(self, available_messages, matching_periods):
+        """
+        Select weighted message with validation.
+        
+        Returns:
+            str: Selected message, empty string if failed
+        """
+        # Validate available_messages
+        if not available_messages or not isinstance(available_messages, list):
+            logger.error(f"Invalid available_messages: {available_messages}")
+            return ""
+            
+        # Validate matching_periods
+        if not matching_periods or not isinstance(matching_periods, list):
+            logger.error(f"Invalid matching_periods: {matching_periods}")
+            return ""
         """
         Select a message using a weighting system that prioritizes
         messages with specific time periods over 'ALL' time periods.

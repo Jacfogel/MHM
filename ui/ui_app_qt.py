@@ -98,6 +98,12 @@ class ServiceManager:
         
     @handle_errors("checking service status", default_return=(False, None))
     def is_service_running(self):
+        """
+        Check if the MHM service is running with validation.
+        
+        Returns:
+            tuple: (is_running, process_info)
+        """
         """Check if the MHM service is running"""
         # Look for python processes running service.py as their main script
         service_pids = []
@@ -122,6 +128,12 @@ class ServiceManager:
     
     @handle_errors("starting service", default_return=False)
     def start_service(self):
+        """
+        Start the MHM backend service with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Start the MHM backend service"""
         # Validate configuration before starting
         if not self.validate_configuration_before_start():
@@ -183,6 +195,12 @@ class ServiceManager:
     
     @handle_errors("stopping service", default_return=False)
     def stop_service(self):
+        """
+        Stop the MHM backend service with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Stop the MHM backend service"""
         is_running, pid = self.is_service_running()
         if not is_running:
@@ -277,6 +295,12 @@ class ServiceManager:
     
     @handle_errors("restarting service", default_return=False)
     def restart_service(self):
+        """
+        Restart the MHM backend service with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Restart the MHM backend service"""
         logger.info("Restart service requested")
         
@@ -507,6 +531,12 @@ class MHMManagerUI(QMainWindow):
     
     @handle_errors("refreshing user list", default_return=None)
     def refresh_user_list(self):
+        """
+        Refresh the user list with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Refresh the user list in the combo box using user index"""
         try:
             from core.user_data_manager import load_json_data
@@ -598,6 +628,20 @@ class MHMManagerUI(QMainWindow):
     
     @handle_errors("handling user selection", default_return=None)
     def on_user_selected(self, user_display):
+        """
+        Handle user selection with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate user_display
+        if not user_display or not isinstance(user_display, str):
+            logger.error(f"Invalid user_display: {user_display}")
+            return None
+            
+        if not user_display.strip():
+            logger.error("Empty user_display provided")
+            return None
         """Handle user selection from combo box"""
         if not user_display or user_display == "Select a user...":
             self.current_user = None
@@ -710,8 +754,14 @@ class MHMManagerUI(QMainWindow):
     # Placeholder methods for user actions - these will need to be implemented
     # based on your existing functionality from the Tkinter version
     
-    @handle_errors("creating new user")
+    @handle_errors("creating new user", default_return=None)
     def create_new_user(self):
+        """
+        Create new user with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Open dialog to create a new user"""
         logger.info("Admin Panel: Opening create new user dialog")
         try:
@@ -729,8 +779,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening create account dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open create account dialog: {str(e)}")
 
-    @handle_errors("managing communication settings")
+    @handle_errors("managing communication settings", default_return=None)
     def manage_communication_settings(self):
+        """
+        Manage communication settings with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -745,8 +805,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening communication settings dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open communication settings: {str(e)}")
 
-    @handle_errors("managing categories")
+    @handle_errors("managing categories", default_return=None)
     def manage_categories(self):
+        """
+        Manage categories with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -762,8 +832,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening category management dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open category management: {str(e)}")
 
-    @handle_errors("managing checkins")
+    @handle_errors("managing checkins", default_return=None)
     def manage_checkins(self):
+        """
+        Manage checkins with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -778,8 +858,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening check-in management: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open check-in management: {str(e)}")
 
-    @handle_errors("managing tasks")
+    @handle_errors("managing tasks", default_return=None)
     def manage_tasks(self):
+        """
+        Manage tasks with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -794,8 +884,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening task management dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open task management: {str(e)}")
 
-    @handle_errors("managing task CRUD")
+    @handle_errors("managing task CRUD", default_return=None)
     def manage_task_crud(self):
+        """
+        Manage task CRUD with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -809,8 +909,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening task CRUD dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open task CRUD: {str(e)}")
 
-    @handle_errors("managing personalization")
+    @handle_errors("managing personalization", default_return=None)
     def manage_personalization(self):
+        """
+        Manage personalization with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
@@ -842,8 +952,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening personalization dialog: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open personalization settings: {str(e)}")
     
-    @handle_errors("managing user analytics")
+    @handle_errors("managing user analytics", default_return=None)
     def manage_user_analytics(self):
+        """
+        Manage user analytics with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         """Open user analytics interface for selected user"""
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
@@ -858,8 +978,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening user analytics: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open user analytics: {str(e)}")
     
-    @handle_errors("editing user messages")
+    @handle_errors("editing user messages", default_return=None)
     def edit_user_messages(self):
+        """
+        Edit user messages with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         """Open message editing interface for selected user"""
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
@@ -913,8 +1043,27 @@ class MHMManagerUI(QMainWindow):
         
         category_dialog.exec()
 
-    @handle_errors("opening message editor")
+    @handle_errors("opening message editor", default_return=None)
     def open_message_editor(self, parent_dialog, category):
+        """
+        Open message editor with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate parent_dialog
+        if not parent_dialog:
+            logger.error("Invalid parent_dialog")
+            return None
+            
+        # Validate category
+        if not category or not isinstance(category, str):
+            logger.error(f"Invalid category: {category}")
+            return None
+            
+        if not category.strip():
+            logger.error("Empty category provided")
+            return None
         """Open the message editing window for a specific category"""
         logger.info(f"Admin Panel: Opening message editor for user {self.current_user}, category {category}")
         parent_dialog.accept()
@@ -929,8 +1078,18 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening message editor: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open message editor: {str(e)}")
     
-    @handle_errors("editing user schedules")
+    @handle_errors("editing user schedules", default_return=None)
     def edit_user_schedules(self):
+        """
+        Edit user schedules with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate current_user
+        if not self.current_user:
+            logger.error("No current user selected")
+            return None
         """Open schedule editing interface for selected user"""
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
@@ -965,8 +1124,27 @@ class MHMManagerUI(QMainWindow):
         # Open the schedule editor directly with the selected category
         self.open_schedule_editor(None, selected_category)
 
-    @handle_errors("opening schedule editor")
+    @handle_errors("opening schedule editor", default_return=None)
     def open_schedule_editor(self, parent_dialog, category):
+        """
+        Open schedule editor with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate parent_dialog
+        if not parent_dialog:
+            logger.error("Invalid parent_dialog")
+            return None
+            
+        # Validate category
+        if not category or not isinstance(category, str):
+            logger.error(f"Invalid category: {category}")
+            return None
+            
+        if not category.strip():
+            logger.error("Empty category provided")
+            return None
         """Open the schedule editing window for a specific category"""
         logger.info(f"Admin Panel: Opening schedule editor for user {self.current_user}, category {category}")
         
@@ -1027,8 +1205,14 @@ class MHMManagerUI(QMainWindow):
         
         return category
 
-    @handle_errors("sending test message")
+    @handle_errors("sending test message", default_return=None)
     def send_test_message(self):
+        """
+        Send test message with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Send a test message to the selected user"""
         # Validate user selection
         if not self._send_test_message__validate_user_selection():
@@ -1048,8 +1232,22 @@ class MHMManagerUI(QMainWindow):
         # Confirm the test message
         self.confirm_test_message(category)
 
-    @handle_errors("confirming test message")
+    @handle_errors("confirming test message", default_return=None)
     def confirm_test_message(self, category):
+        """
+        Confirm test message with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate category
+        if not category or not isinstance(category, str):
+            logger.error(f"Invalid category: {category}")
+            return None
+            
+        if not category.strip():
+            logger.error("Empty category provided")
+            return None
         """Confirm and send test message"""
         result = QMessageBox.question(self, "Confirm Test Message", 
                                      f"Send a test {category} message to {self.current_user}?\n\n"
@@ -1063,8 +1261,22 @@ class MHMManagerUI(QMainWindow):
         else:
             logger.info(f"Admin Panel: Test message cancelled for user {self.current_user}, category {category}")
 
-    @handle_errors("sending actual test message")
+    @handle_errors("sending actual test message", default_return=None)
     def send_actual_test_message(self, category):
+        """
+        Send actual test message with validation.
+        
+        Returns:
+            None: Always returns None
+        """
+        # Validate category
+        if not category or not isinstance(category, str):
+            logger.error(f"Invalid category: {category}")
+            return None
+            
+        if not category.strip():
+            logger.error("Empty category provided")
+            return None
         """Send a test message via the running service"""
         # Since service is running, we'll create a minimal communication to the service
         # For now, we'll use a simple approach: create a test message file that the service can pick up
@@ -1138,15 +1350,27 @@ class MHMManagerUI(QMainWindow):
         status = "enabled" if is_verbose else "disabled"
         QMessageBox.information(self, "Logging", f"Verbose logging has been {status}")
     
-    @handle_errors("viewing log file")
+    @handle_errors("viewing log file", default_return=None)
     def view_log_file(self):
+        """
+        View log file with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Open the log file in the default text editor."""
         import webbrowser
         from core.config import LOG_MAIN_FILE
         webbrowser.open(LOG_MAIN_FILE)
     
-    @handle_errors("opening process watcher")
+    @handle_errors("opening process watcher", default_return=None)
     def open_process_watcher(self):
+        """
+        Open process watcher with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Open the process watcher dialog."""
         try:
             from ui.dialogs.process_watcher_dialog import ProcessWatcherDialog
@@ -1157,8 +1381,14 @@ class MHMManagerUI(QMainWindow):
             logger.error(f"Error opening process watcher: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open process watcher: {e}")
     
-    @handle_errors("viewing cache status")
+    @handle_errors("viewing cache status", default_return=None)
     def view_cache_status(self):
+        """
+        View cache status with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Show cache cleanup status and information."""
         from core.auto_cleanup import get_cleanup_status, find_pycache_dirs, find_pyc_files, calculate_cache_size
         import os
@@ -1216,8 +1446,14 @@ Current cache files found:
         
         status_window.exec()
     
-    @handle_errors("forcing cache cleanup")
+    @handle_errors("forcing cache cleanup", default_return=None)
     def force_clean_cache(self):
+        """
+        Force cache cleanup with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Force cache cleanup regardless of schedule."""
         from core.auto_cleanup import perform_cleanup, update_cleanup_timestamp
         
@@ -1235,8 +1471,14 @@ Current cache files found:
             else:
                 QMessageBox.critical(self, "Error", "Cache cleanup failed")
     
-    @handle_errors("validating configuration")
+    @handle_errors("validating configuration", default_return=None)
     def validate_configuration(self):
+        """
+        Validate configuration with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Show detailed configuration validation report."""
         from core.config import validate_all_configuration
         from PySide6.QtWidgets import QTabWidget, QTextEdit, QScrollArea
@@ -1613,8 +1855,14 @@ For detailed setup instructions, see the ui/README.md file.
         self.shutdown_ui_components()
         event.accept()
     
-    @handle_errors("shutting down UI components")
+    @handle_errors("shutting down UI components", default_return=None)
     def shutdown_ui_components(self):
+        """
+        Shutdown UI components with validation.
+        
+        Returns:
+            None: Always returns None
+        """
         """Shutdown any UI-created components gracefully"""
         logger.info("Shutting down admin panel.")
         # Admin panel no longer creates its own communication manager

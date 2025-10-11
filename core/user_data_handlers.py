@@ -42,7 +42,7 @@ from core.user_management import (
 )
 
 
-@handle_errors("registering data loader", default_return=None)
+@handle_errors("registering data loader", default_return=False)
 def register_data_loader(
     data_type: str,
     loader_func,
@@ -51,6 +51,24 @@ def register_data_loader(
     metadata_fields: List[str] | None = None,
     description: str = "",
 ):
+    """
+    Register a data loader with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not data_type or not isinstance(data_type, str):
+        logger.error(f"Invalid data_type: {data_type}")
+        return False
+        
+    if not file_type or not isinstance(file_type, str):
+        logger.error(f"Invalid file_type: {file_type}")
+        return False
+        
+    if not callable(loader_func):
+        logger.error(f"Invalid loader_func: {loader_func}")
+        return False
     """Proxy to the original *register_data_loader*.
 
     Imported here so callers can simply do::
@@ -81,6 +99,20 @@ def get_user_data(
     include_metadata: bool = False,
     normalize_on_read: bool = False
 ) -> Dict[str, Any]:
+    """
+    Get user data with comprehensive validation.
+    
+    Returns:
+        Dict[str, Any]: User data dictionary, empty dict if failed
+    """
+    # Validate user_id early
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {}
     """Migrated implementation of get_user_data."""
     logger.debug(f"get_user_data called: user_id={user_id}, data_types={data_types}")
     # Ensure default loaders are registered (idempotent). Under certain import
@@ -109,8 +141,9 @@ def get_user_data(
         # Never let diagnostics interfere with normal operation
         pass
     
-    if not user_id:
-        logger.error("get_user_data called with None user_id")
+    # Additional validation for user_id format
+    if len(user_id) < 1 or len(user_id) > 100:
+        logger.error(f"Invalid user_id length: {len(user_id)}")
         return {}
 
     # Early exit: for strict no-autocreate requests on truly nonexistent users, return empty
@@ -401,10 +434,26 @@ def get_user_data(
         pass
     return result 
 
-@handle_errors("saving user data", default_return={})
+@handle_errors("saving user data", default_return=False)
 
 @handle_errors("validating user data input", default_return=(False, {}, ["Validation failed"]))
 def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[str, Any]]) -> tuple[bool, Dict[str, bool], List[str]]:
+    """
+    Validate input parameters with enhanced validation.
+    
+    Returns:
+        tuple: (is_valid, valid_types, error_messages)
+    """
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        return False, {}, [f"Invalid user_id: {user_id}"]
+        
+    if not user_id.strip():
+        return False, {}, ["Empty user_id provided"]
+        
+    # Validate data_updates
+    if not data_updates or not isinstance(data_updates, dict):
+        return False, {}, [f"Invalid data_updates: {type(data_updates)}"]
     """Validate input parameters and initialize result structure."""
     if not user_id:
         logger.error("save_user_data called with None user_id")
@@ -426,8 +475,22 @@ def _save_user_data__validate_input(user_id: str, data_updates: Dict[str, Dict[s
     return True, result, invalid_types
 
 
-@handle_errors("creating user data backup", default_return=None)
-def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_backup: bool) -> None:
+@handle_errors("creating user data backup", default_return=False)
+def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_backup: bool) -> bool:
+    """
+    Create backup with validation.
+    
+    Returns:
+        bool: True if successful or not needed, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id for backup: {user_id}")
+        return False
+        
+    if not isinstance(valid_types, list):
+        logger.error(f"Invalid valid_types: {valid_types}")
+        return False
     """Create backup if needed for major data updates."""
     if create_backup and len(valid_types) > 1:
         try:
@@ -438,9 +501,21 @@ def _save_user_data__create_backup(user_id: str, valid_types: List[str], create_
             logger.warning(f"Failed to create backup before data update: {e}")
 
 
-@handle_errors("validating user data", default_return=None)
+@handle_errors("validating user data", default_return=([], {}))
 def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[str, Any]], valid_types: List[str], 
                            validate_data: bool, is_new_user: bool) -> tuple[List[str], Dict[str, bool]]:
+    """
+    Validate user data with enhanced validation.
+    
+    Returns:
+        tuple: (error_messages, validation_results)
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        return [f"Invalid user_id: {user_id}"], {}
+        
+    if not isinstance(data_updates, dict):
+        return [f"Invalid data_updates: {type(data_updates)}"], {}
     """Validate data for new and existing users."""
     result: Dict[str, bool] = {dt: False for dt in data_updates}
     invalid_types = []
@@ -483,8 +558,22 @@ def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[st
 
 
 
-@handle_errors("handling legacy preferences", default_return=None)
-def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> None:
+@handle_errors("handling legacy preferences", default_return=False)
+def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> bool:
+    """
+    Handle legacy preferences with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id for legacy preferences: {user_id}")
+        return False
+        
+    if not isinstance(updated, dict):
+        logger.error(f"Invalid updated data: {type(updated)}")
+        return False
     """Handle legacy preferences compatibility and cleanup."""
     
     # If corresponding features are disabled, remove entire settings blocks only for "full" updates
@@ -529,8 +618,22 @@ def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[s
         pass
 
 
-@handle_errors("normalizing user data", default_return=None)
-def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> None:
+@handle_errors("normalizing user data", default_return=False)
+def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> bool:
+    """
+    Normalize user data with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not dt or not isinstance(dt, str):
+        logger.error(f"Invalid data type: {dt}")
+        return False
+        
+    if not isinstance(updated, dict):
+        logger.error(f"Invalid updated data: {type(updated)}")
+        return False
     """Apply Pydantic normalization to data."""
     try:
         if dt == "account":
@@ -562,6 +665,24 @@ def _save_user_data__normalize_data(dt: str, updated: Dict[str, Any]) -> None:
 
 @handle_errors("saving single data type", default_return=False)
 def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, Any], auto_create: bool) -> bool:
+    """
+    Save single data type with enhanced validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not dt or not isinstance(dt, str):
+        logger.error(f"Invalid data type: {dt}")
+        return False
+        
+    if not isinstance(updates, dict):
+        logger.error(f"Invalid updates: {type(updates)}")
+        return False
     """Save a single data type for a user."""
     try:
         # Check if user exists when auto_create=False
@@ -672,8 +793,22 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
         return False
 
 
-@handle_errors("updating user index", default_return=None)
-def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_index: bool) -> None:
+@handle_errors("updating user index", default_return=False)
+def _save_user_data__update_index(user_id: str, result: Dict[str, bool], update_index: bool) -> bool:
+    """
+    Update user index with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id for index update: {user_id}")
+        return False
+        
+    if not isinstance(result, dict):
+        logger.error(f"Invalid result: {type(result)}")
+        return False
     """Update user index and clear cache if needed."""
     # Update index if at least one type succeeded
     if update_index and any(result.values()):
@@ -792,6 +927,12 @@ def save_user_data_transaction(
 
 @handle_errors("getting all user IDs (centralised)", default_return=[])
 def get_all_user_ids() -> List[str]:
+    """
+    Get all user IDs with enhanced error handling.
+    
+    Returns:
+        List[str]: List of user IDs, empty list if failed
+    """
     """Return a list of *all* user IDs known to the system."""
     from core.user_management import get_all_user_ids as management_get_all_user_ids
     return management_get_all_user_ids()
@@ -799,6 +940,24 @@ def get_all_user_ids() -> List[str]:
 
 @handle_errors("updating user schedules (centralised)", default_return=False)
 def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
+    """
+    Update user schedules with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if not isinstance(schedules_data, dict):
+        logger.error(f"Invalid schedules_data: {type(schedules_data)}")
+        return False
     """Persist a complete schedules dict for *user_id*.
 
     Wrapper around the original helper in **core.user_management** – keeps
@@ -819,6 +978,24 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
 
 @handle_errors("updating user account (centralised)", default_return=False)
 def update_user_account(user_id: str, updates: Dict[str, Any], *, auto_create: bool = True) -> bool:
+    """
+    Update user account with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if not isinstance(updates, dict):
+        logger.error(f"Invalid updates: {type(updates)}")
+        return False
     """Update (part of) a user’s *account.json* file.
 
     This is a thin convenience wrapper around :pyfunc:`save_user_data` that
@@ -834,6 +1011,24 @@ def update_user_account(user_id: str, updates: Dict[str, Any], *, auto_create: b
 
 @handle_errors("updating user preferences (centralised)", default_return=False)
 def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_create: bool = True) -> bool:
+    """
+    Update user preferences with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if not isinstance(updates, dict):
+        logger.error(f"Invalid updates: {type(updates)}")
+        return False
     """Update *preferences.json*.
 
     Includes the extra bookkeeping originally implemented in
@@ -916,6 +1111,24 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
 
 @handle_errors("updating user context (centralised)", default_return=False)
 def update_user_context(user_id: str, updates: Dict[str, Any], *, auto_create: bool = True) -> bool:
+    """
+    Update user context with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if not isinstance(updates, dict):
+        logger.error(f"Invalid updates: {type(updates)}")
+        return False
     """Update *user_context.json* for the given user."""
     if not user_id:
         logger.error("update_user_context called with None user_id")
@@ -927,6 +1140,24 @@ def update_user_context(user_id: str, updates: Dict[str, Any], *, auto_create: b
 
 @handle_errors("updating channel preferences (centralised)", default_return=False)
 def update_channel_preferences(user_id: str, updates: Dict[str, Any], *, auto_create: bool = True) -> bool:
+    """
+    Update channel preferences with validation.
+    
+    Returns:
+        bool: True if successful, False if failed
+    """
+    # Validate inputs
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+        
+    if not isinstance(updates, dict):
+        logger.error(f"Invalid updates: {type(updates)}")
+        return False
     """Specialised helper – update only the *preferences.channel* subtree."""
     if not user_id:
         logger.error("update_channel_preferences called with None user_id")

@@ -35,7 +35,7 @@ class DynamicCheckinManager:
             # Load questions data
             questions_file = resources_dir / "questions.json"
             if questions_file.exists():
-                self.questions_data = load_json_data(questions_file)
+                self.questions_data = load_json_data(str(questions_file))
                 logger.debug(f"Loaded questions data from {questions_file}")
             else:
                 logger.error(f"Questions file not found: {questions_file}")
@@ -44,7 +44,7 @@ class DynamicCheckinManager:
             # Load responses data
             responses_file = resources_dir / "responses.json"
             if responses_file.exists():
-                self.responses_data = load_json_data(responses_file)
+                self.responses_data = load_json_data(str(responses_file))
                 logger.debug(f"Loaded responses data from {responses_file}")
             else:
                 logger.error(f"Responses file not found: {responses_file}")

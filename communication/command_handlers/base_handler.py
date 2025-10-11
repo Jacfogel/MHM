@@ -22,65 +22,147 @@ class InteractionHandler(ABC):
     
     @abstractmethod
     @handle_errors("checking if can handle intent", default_return=False)
-    def can_handle(self, intent: str) -> bool:
-        """Check if this handler can handle the given intent"""
+    def can_handle(self, parsed_command) -> bool:
+        """
+        Check if this handler can handle the given parsed command with validation.
+        
+        NOTE: Subclasses should validate parsed_command (check for None, type, etc.) 
+        before proceeding with their logic.
+        
+        Returns:
+            bool: True if can handle, False otherwise
+        """
+        # Base validation - subclasses should call super().can_handle() or implement their own
+        if parsed_command is None:
+            logger.error("Received None as parsed_command")
+            return False
         pass
     
     @abstractmethod
     @handle_errors("handling interaction", default_return=InteractionResponse("I'm having trouble processing your request. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
-        """Handle the interaction and return a response"""
-        pass
+        """
+        Handle the interaction and return a response with validation.
+        
+        Returns:
+            InteractionResponse: Response to the interaction
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return InteractionResponse("Invalid user ID provided", False)
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return InteractionResponse("Empty user ID provided", False)
+            
+        # Validate parsed_command
+        if not parsed_command:
+            logger.error("Invalid parsed_command: None")
+            return InteractionResponse("Invalid command provided", False)
     
     @abstractmethod
     @handle_errors("getting help", default_return="Help information not available")
     def get_help(self) -> str:
-        """Get help text for this handler"""
-        pass
+        """
+        Get help text for this handler with validation.
+        
+        Returns:
+            str: Help text, default if failed
+        """
     
     @abstractmethod
     @handle_errors("getting examples", default_return=[])
     def get_examples(self) -> List[str]:
-        """Get example commands for this handler"""
-        pass
+        """
+        Get example commands for this handler with validation.
+        
+        Returns:
+            List[str]: Example commands, empty list if failed
+        """
     
     # Helper methods with error handling for common operations
     @handle_errors("validating user ID", default_return=False)
     def _validate_user_id(self, user_id: str) -> bool:
-        """Validate that user ID is properly formatted"""
-        if not user_id:
-            logger.warning("Empty user ID provided")
-            return False
+        """
+        Validate that user ID is properly formatted with enhanced validation.
         
-        if not isinstance(user_id, str):
-            logger.warning(f"User ID must be string, got {type(user_id)}")
+        Returns:
+            bool: True if valid, False otherwise
+        """
+        # Validate user_id type
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id type: {type(user_id)}")
             return False
-        
+            
         if not user_id.strip():
-            logger.warning("User ID is whitespace only")
+            logger.error("Empty user_id provided")
+            return False
+            
+        # Additional validation for user_id format
+        if len(user_id) < 1 or len(user_id) > 100:
+            logger.error(f"Invalid user_id length: {len(user_id)}")
+            return False
+            
+        # Check for valid characters (alphanumeric, underscore, hyphen)
+        if not user_id.replace("_", "").replace("-", "").isalnum():
+            logger.error(f"Invalid user_id format: {user_id}")
             return False
         
         return True
     
     @handle_errors("validating parsed command", default_return=False)
     def _validate_parsed_command(self, parsed_command: ParsedCommand) -> bool:
-        """Validate that parsed command is properly formatted"""
+        """
+        Validate that parsed command is properly formatted with enhanced validation.
+        
+        Returns:
+            bool: True if valid, False otherwise
+        """
         if not parsed_command:
-            logger.warning("Empty parsed command provided")
+            logger.error("Empty parsed command provided")
             return False
-        
+            
         if not hasattr(parsed_command, 'intent'):
-            logger.warning("Parsed command missing intent attribute")
+            logger.error("Parsed command missing intent attribute")
             return False
-        
+            
         if not parsed_command.intent:
-            logger.warning("Parsed command has empty intent")
+            logger.error("Parsed command has empty intent")
+            return False
+            
+        # Validate intent format
+        if not isinstance(parsed_command.intent, str):
+            logger.error(f"Invalid intent type: {type(parsed_command.intent)}")
+            return False
+            
+        if not parsed_command.intent.strip():
+            logger.error("Intent is whitespace only")
             return False
         
         return True
     
     @handle_errors("creating error response", default_return=None)
     def _create_error_response(self, error_message: str, user_id: str = None) -> InteractionResponse:
+        """
+        Create a standardized error response with validation.
+        
+        Returns:
+            InteractionResponse: Error response, None if failed
+        """
+        # Validate error_message
+        if not error_message or not isinstance(error_message, str):
+            logger.error(f"Invalid error_message: {error_message}")
+            return None
+            
+        if not error_message.strip():
+            logger.error("Empty error_message provided")
+            return None
+            
+        # Validate user_id if provided
+        if user_id is not None and not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return None
         """Create a standardized error response"""
         try:
             from communication.command_handlers.shared_types import InteractionResponse

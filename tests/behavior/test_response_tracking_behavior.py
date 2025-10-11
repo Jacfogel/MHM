@@ -573,11 +573,9 @@ class TestResponseTrackingIntegration:
             recent = get_recent_responses(user_id, "checkin", limit=5)
         
         # Assert - Should handle corruption gracefully with improved error handling
-        # With improved error handling, we get default data structure instead of empty list
+        # With improved error handling, corrupted checkins files are recovered to empty list
         assert isinstance(recent, list), "Should return a list"
-        assert len(recent) > 0, "Should return default data structure for corrupted file"
-        # Should contain default data structure elements
-        assert 'data' in recent or 'created' in recent or 'file_type' in recent
+        assert len(recent) == 0, "Should return empty list for corrupted file (recovered)"
         
         # Act - Try to store new response with mocked file path (should create new file)
         with patch('core.response_tracking.get_user_file_path', return_value=checkins_file):
@@ -587,11 +585,10 @@ class TestResponseTrackingIntegration:
         with open(checkins_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
         
-        # With improved error handling, we get default data structure
-        assert isinstance(data, dict), "Should create valid JSON file"
-        assert 'created' in data, "Should have created timestamp"
-        assert 'data' in data, "Should have data field"
-        assert 'file_type' in data, "Should have file_type field"
+        # With improved error handling, checkins files are simple lists
+        assert isinstance(data, list), "Should create valid JSON array file"
+        assert len(data) == 1, "Should have one checkin entry"
+        assert data[0]["mood"] == 5, "Should have correct mood value"
         # The file should be created successfully (the exact data structure may vary)
         # The main point is that error recovery works and creates a valid file
     

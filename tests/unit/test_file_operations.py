@@ -64,7 +64,7 @@ class TestFileOperations:
             f.write('{invalid json}')
         
         data = load_json_data(temp_file)
-        assert data is None
+        assert data == {}
     
     @pytest.mark.unit
     @pytest.mark.file_io
@@ -76,7 +76,7 @@ class TestFileOperations:
             pass
         
         data = load_json_data(temp_file)
-        assert data is None
+        assert data == {}
     
     @pytest.mark.unit
     @pytest.mark.file_io
@@ -238,7 +238,7 @@ class TestFileOperations:
             assert f.read() == test_content, "File content should be correct before test"
         
         result = verify_file_access([temp_file])
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check file still exists and is unchanged after test
         assert os.path.exists(temp_file), f"File should still exist after verification: {temp_file}"
@@ -280,7 +280,7 @@ class TestFileOperations:
         assert not os.path.exists(missing_dir), f"Missing directory should not exist: {missing_dir}"
         
         result = verify_file_access([missing_file])
-        assert result is None
+        assert result is False
         
         # ✅ VERIFY REAL BEHAVIOR: Check that no files were created during verification
         assert not os.path.exists(missing_file), f"Missing file should still not exist after verification: {missing_file}"
@@ -321,7 +321,7 @@ class TestFileOperations:
             root_contents_before = None
         
         result = verify_file_access([protected_file])
-        assert result is None
+        assert result is False
         
         # ✅ VERIFY REAL BEHAVIOR: Check that no files were created during verification
         try:
@@ -481,9 +481,9 @@ class TestFileOperationsEdgeCases:
     def test_determine_file_path_invalid_file_type(self):
         """Test determining file path with invalid file type."""
         # FIXED: correct parameter order (file_type, identifier)
-        # FIXED: The @handle_errors decorator catches the exception and returns None
+        # FIXED: The @handle_errors decorator catches the exception and returns empty string
         result = determine_file_path('invalid_type', 'test-user')
-        assert result is None  # Should return None due to error handling decorator
+        assert result == ""  # Should return empty string due to error handling decorator
     
     @pytest.mark.integration
     @pytest.mark.file_io
@@ -543,7 +543,7 @@ class TestFileOperationsEdgeCases:
         
         # Step 5: Test file access verification
         result = verify_file_access([account_file_path])
-        assert result is None
+        assert result is True
         
         # ✅ VERIFY REAL BEHAVIOR: Check file still exists and is accessible
         assert os.path.exists(account_file_path), f"File should still exist after verification: {account_file_path}"
@@ -595,7 +595,13 @@ class TestFileOperationsEdgeCases:
         
         # ✅ VERIFY REAL BEHAVIOR: Check error handling doesn't break existing files
         result = load_json_data(invalid_path)
-        assert result is None  # Should return None for non-existent files
+        # Error recovery creates generic JSON files with metadata wrapper for non-specific file types
+        assert isinstance(result, dict), "Should return a dict"
+        # The file may be created with a default structure or return empty dict
+        # depending on whether the directory can be created
+        if result:
+            # If error recovery created the file, it should have metadata structure
+            assert 'created' in result or result == {}, "Should have metadata or be empty dict"
         
         # ✅ VERIFY REAL BEHAVIOR: Check existing files are unaffected
         assert os.path.exists(account_file_path), f"Account file should be unaffected: {account_file_path}"

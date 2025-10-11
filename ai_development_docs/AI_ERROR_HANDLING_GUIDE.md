@@ -19,6 +19,24 @@ MHMError (base)
 └── CommunicationError (network/service issues)
 ```
 
+### **Enhanced Error Handling Patterns**
+```python
+# Enhanced error handling with validation and proper defaults
+@handle_errors("loading user data", default_return={})
+def load_user_data(user_id: str) -> dict:
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {}
+    
+    # Function logic here
+    return data
+```
+
 ### **Common Error Patterns**
 ```python
 # Standard error handling pattern
@@ -34,6 +52,40 @@ def your_function():
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         raise MHMError(f"Unexpected failure: {e}") from e
+```
+
+### **Input Validation Patterns**
+```python
+# Validate inputs early and return appropriate defaults
+@handle_errors("processing data", default_return=[])
+def process_data(data: list) -> list:
+    # Validate data
+    if not data or not isinstance(data, list):
+        logger.error(f"Invalid data: {data}")
+        return []
+        
+    if not data:
+        logger.error("Empty data provided")
+        return []
+    
+    # Process with confidence that data is valid
+    return processed_data
+```
+
+### **Specialized Error Handlers**
+```python
+# Use specialized error handlers for specific operations
+try:
+    data = load_file("path/to/file.json")
+except Exception as e:
+    handle_file_error(e, "path/to/file.json", "loading data", user_id="123")
+    return {}
+
+try:
+    response = send_message(channel, recipient, message)
+except Exception as e:
+    handle_network_error(e, "sending message", user_id="123")
+    return False
 ```
 
 ## Error Handling Patterns

@@ -38,6 +38,137 @@ The MHM system implements a comprehensive, centralized exception handling system
 - **Enable debugging** through structured error logging
 - **Support maintainability** with consistent error handling patterns
 
+## 🔧 **Enhanced Error Handling Patterns**
+
+### **Input Validation**
+All functions now include comprehensive input validation to prevent errors before they occur:
+
+```python
+@handle_errors("loading user data", default_return={})
+def load_user_data(user_id: str) -> dict:
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return {}
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return {}
+    
+    # Function logic here
+    return data
+```
+
+### **Proper Default Return Values**
+Functions now specify appropriate default return values based on their return type:
+
+```python
+# Functions returning lists
+@handle_errors("getting user list", default_return=[])
+def get_user_list() -> List[str]:
+    # Function logic here
+    return users
+
+# Functions returning dicts
+@handle_errors("loading config", default_return={})
+def load_config() -> Dict[str, Any]:
+    # Function logic here
+    return config
+
+# Functions returning bool
+@handle_errors("saving data", default_return=False)
+def save_data(data: dict) -> bool:
+    # Function logic here
+    return success
+
+# Functions returning strings
+@handle_errors("generating response", default_return="")
+def generate_response(prompt: str) -> str:
+    # Function logic here
+    return response
+```
+
+### **Enhanced Context Parameters**
+Functions now include context parameters for better error tracking and recovery:
+
+```python
+@handle_errors("processing file", default_return=False, context={"file_path": "data.json"})
+def process_file(file_path: str) -> bool:
+    # Validate file_path
+    if not file_path or not isinstance(file_path, str):
+        logger.error(f"Invalid file_path: {file_path}")
+        return False
+        
+    if not file_path.strip():
+        logger.error("Empty file_path provided")
+        return False
+    
+    # Function logic here
+    return success
+```
+
+### **Specialized Error Handlers**
+For critical operations, use specialized error handlers instead of generic decorators:
+
+```python
+# File operations
+try:
+    data = load_file("path/to/file.json")
+except Exception as e:
+    handle_file_error(e, "path/to/file.json", "loading data", user_id="123")
+    return {}
+
+# Network operations
+try:
+    response = send_message(channel, recipient, message)
+except Exception as e:
+    handle_network_error(e, "sending message", user_id="123")
+    return False
+
+# Communication operations
+try:
+    result = discord_bot.send_message(user, message)
+except Exception as e:
+    handle_communication_error(e, "discord", "sending message", user_id="123")
+    return False
+```
+
+### **Validation Integration**
+Connect error handling with existing validation systems:
+
+```python
+from core.schemas import PreferencesModel
+from core.user_data_validation import validate_user_preferences
+
+@handle_errors("updating user preferences", default_return=False)
+def update_user_preferences(user_id: str, preferences: dict) -> bool:
+    # Validate user_id
+    if not user_id or not isinstance(user_id, str):
+        logger.error(f"Invalid user_id: {user_id}")
+        return False
+        
+    if not user_id.strip():
+        logger.error("Empty user_id provided")
+        return False
+    
+    # Validate preferences structure
+    validation_result = validate_user_preferences(preferences)
+    if not validation_result.get('is_valid'):
+        logger.error(f"Invalid preferences for {user_id}: {validation_result.get('errors')}")
+        return False
+    
+    # Use Pydantic model for additional validation
+    try:
+        validated_prefs = PreferencesModel(**preferences)
+        # Continue with validated data
+    except Exception as e:
+        handle_validation_error(e, "preferences", "validating preferences", user_id)
+        return False
+    
+    # Function logic here
+    return success
+```
+
 ## 🏗️ **Architecture**
 
 ### **Core Components**

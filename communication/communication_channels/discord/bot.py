@@ -95,6 +95,20 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("checking DNS resolution", default_return=False)
     def _check_dns_resolution(self, hostname: str = "discord.com") -> bool:
+        """
+        Check DNS resolution with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate hostname
+        if not hostname or not isinstance(hostname, str):
+            logger.error(f"Invalid hostname: {hostname}")
+            return False
+            
+        if not hostname.strip():
+            logger.error("Empty hostname provided")
+            return False
         """Check DNS resolution for a hostname with enhanced fallback and error reporting"""
         # Alternative DNS servers to try if primary fails
         alternative_dns_servers = [
@@ -165,6 +179,25 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("checking network connectivity", default_return=False)
     def _check_network_connectivity(self, hostname: str = "discord.com", port: int = 443) -> bool:
+        """
+        Check network connectivity with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate hostname
+        if not hostname or not isinstance(hostname, str):
+            logger.error(f"Invalid hostname: {hostname}")
+            return False
+            
+        if not hostname.strip():
+            logger.error("Empty hostname provided")
+            return False
+            
+        # Validate port
+        if not isinstance(port, int) or port < 1 or port > 65535:
+            logger.error(f"Invalid port: {port}")
+            return False
         """Check if network connectivity is available to Discord servers with enhanced fallback and timeout handling"""
         # Discord endpoints to try in order of preference
         discord_endpoints = [
@@ -205,6 +238,16 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("waiting for network recovery", default_return=False)
     def _wait_for_network_recovery(self, max_wait: int = 300) -> bool:
+        """
+        Wait for network recovery with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate max_wait
+        if not isinstance(max_wait, int) or max_wait < 0:
+            logger.error(f"Invalid max_wait: {max_wait}")
+            return False
         """Wait for network connectivity to recover with enhanced monitoring and early exit"""
         logger.info(f"Waiting for network connectivity to recover (max {max_wait}s)...")
         start_time = time.time()
@@ -434,6 +477,12 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("initializing Discord bot", default_return=False)
     async def initialize(self) -> bool:
+        """
+        Initialize Discord bot with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
         """Initialize Discord bot with enhanced network resilience"""
         if self._starting:
             logger.info("Discord bot already initializing")
@@ -912,6 +961,29 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("sending Discord message", default_return=False)
     async def send_message(self, recipient: str, message: str, **kwargs) -> bool:
+        """
+        Send Discord message with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate recipient
+        if not recipient or not isinstance(recipient, str):
+            logger.error(f"Invalid recipient: {recipient}")
+            return False
+            
+        if not recipient.strip():
+            logger.error("Empty recipient provided")
+            return False
+            
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return False
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return False
         """Send message via Discord using thread-safe queue communication with rich response support"""
         if not self.is_ready():
             logger.error("Discord bot is not ready to send messages")
@@ -1000,6 +1072,39 @@ class DiscordBot(BaseChannel):
 
     @handle_errors("sending Discord message internally", default_return=False)
     async def _send_message_internal(self, recipient: str, message: str, rich_data: Dict[str, Any] = None, suggestions: List[str] = None) -> bool:
+        """
+        Send Discord message internally with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate recipient
+        if not recipient or not isinstance(recipient, str):
+            logger.error(f"Invalid recipient: {recipient}")
+            return False
+            
+        if not recipient.strip():
+            logger.error("Empty recipient provided")
+            return False
+            
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return False
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return False
+            
+        # Validate rich_data
+        if rich_data is not None and not isinstance(rich_data, dict):
+            logger.error(f"Invalid rich_data: {type(rich_data)}")
+            return False
+            
+        # Validate suggestions
+        if suggestions is not None and not isinstance(suggestions, list):
+            logger.error(f"Invalid suggestions: {type(suggestions)}")
+            return False
         """Send message safely within async context with rich response support"""
         rich_data = rich_data or {}
         suggestions = suggestions or []
@@ -1092,6 +1197,25 @@ class DiscordBot(BaseChannel):
     
     @handle_errors("creating Discord embed", default_return=None)
     def _create_discord_embed(self, message: str, rich_data: Dict[str, Any]) -> discord.Embed:
+        """
+        Create Discord embed with validation.
+        
+        Returns:
+            discord.Embed: Created embed, None if failed
+        """
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return None
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return None
+            
+        # Validate rich_data
+        if not rich_data or not isinstance(rich_data, dict):
+            logger.error(f"Invalid rich_data: {rich_data}")
+            return None
         """Create a Discord embed from rich data"""
         embed = discord.Embed()
         
@@ -1146,6 +1270,20 @@ class DiscordBot(BaseChannel):
     
     @handle_errors("creating Discord action row", default_return=None)
     def _create_action_row(self, suggestions: List[str]) -> discord.ui.View:
+        """
+        Create Discord action row with validation.
+        
+        Returns:
+            discord.ui.View: Created view, None if failed
+        """
+        # Validate suggestions
+        if not suggestions or not isinstance(suggestions, list):
+            logger.error(f"Invalid suggestions: {suggestions}")
+            return None
+            
+        if not suggestions:
+            logger.error("Empty suggestions provided")
+            return None
         """Create a Discord view with buttons from suggestions"""
         # Use discord.ui.View instead of ActionRow for discord.py v2.x compatibility
         view = discord.ui.View()
@@ -1333,5 +1471,28 @@ class DiscordBot(BaseChannel):
     # Keep the existing send_dm method for specific Discord functionality
     @handle_errors("sending Discord DM", default_return=False)
     async def send_dm(self, user_id: str, message: str) -> bool:
+        """
+        Send Discord DM with validation.
+        
+        Returns:
+            bool: True if successful, False if failed
+        """
+        # Validate user_id
+        if not user_id or not isinstance(user_id, str):
+            logger.error(f"Invalid user_id: {user_id}")
+            return False
+            
+        if not user_id.strip():
+            logger.error("Empty user_id provided")
+            return False
+            
+        # Validate message
+        if not message or not isinstance(message, str):
+            logger.error(f"Invalid message: {message}")
+            return False
+            
+        if not message.strip():
+            logger.error("Empty message provided")
+            return False
         """Send a direct message to a Discord user"""
         return await self.send_message(user_id, message)
