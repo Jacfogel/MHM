@@ -20,10 +20,8 @@ Integration:
 from __future__ import annotations
 
 import os
-import threading
-import time
 import traceback
-from typing import Dict, Set, Optional, List
+from typing import Dict, Optional, List
 
 try:
     # Avoid heavy imports during tests; logger provides component loggers

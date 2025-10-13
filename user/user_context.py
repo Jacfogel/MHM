@@ -1,18 +1,9 @@
 # user_context.py
 
-import json
-import os
 import threading
-from core.logger import get_logger, get_component_logger
-from core.user_data_handlers import (
-    get_user_data,
-    update_user_account,
-    update_user_preferences,
-    update_user_context,
-)
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.logger import get_component_logger
+from core.user_data_handlers import get_user_data
+from core.error_handling import handle_errors
 from core.schedule_utilities import get_active_schedules
 
 logger = get_component_logger('user_activity')

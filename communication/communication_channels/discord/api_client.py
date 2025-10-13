@@ -1,7 +1,6 @@
 # api_client.py
 
 import discord
-from discord import app_commands
 import asyncio
 import time
 from typing import Dict, Any, List, Optional, Union

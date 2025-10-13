@@ -11,13 +11,11 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
 from core.user_data_handlers import get_all_user_ids
-from core.schedule_management import get_schedule_time_periods, is_schedule_period_active, get_current_time_periods_with_validation
+from core.schedule_management import get_schedule_time_periods
 from core.service_utilities import load_and_localize_datetime
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from user.user_context import UserContext
-from core.error_handling import (
-    error_handler, SchedulerError, CommunicationError, handle_errors
-)
+from core.error_handling import handle_errors
 from core.user_data_handlers import get_user_data
 from core.backup_manager import backup_manager
 

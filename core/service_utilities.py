@@ -9,19 +9,15 @@ import json
 import time
 import socket
 import psutil
-import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
-from typing import Optional
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 try:
     from core.file_auditor import record_created as _record_created
 except Exception:
     _record_created = None
 from core.config import SCHEDULER_INTERVAL
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 logger = get_component_logger('main')
 service_logger = get_component_logger('main')

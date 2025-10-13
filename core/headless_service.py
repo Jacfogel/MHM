@@ -8,16 +8,14 @@ that doesn't interfere with the UI service management system.
 import os
 import sys
 import time
-import signal
 import subprocess
-from typing import Optional, List, Dict, Any
+from typing import Optional
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError, FileOperationError
+from core.error_handling import handle_errors
 from core.service_utilities import (
     get_service_processes, 
     is_headless_service_running, 
-    is_ui_service_running,
-    is_service_running
+    is_ui_service_running
 )
 
 logger = get_component_logger('headless_service')

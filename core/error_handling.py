@@ -8,8 +8,7 @@ to make the application more robust and user-friendly.
 import os
 import sys
 import traceback
-from typing import Optional, Dict, Any, Callable, List, Tuple
-from pathlib import Path
+from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime
 # Import logger locally to avoid circular imports
 # logger = get_component_logger('main')

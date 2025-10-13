@@ -2,8 +2,8 @@
 
 import threading
 import time
-from typing import Dict, Optional, Any
-from datetime import datetime, timedelta
+from typing import Dict, Any
+from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

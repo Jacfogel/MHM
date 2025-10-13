@@ -8,20 +8,16 @@ This module provides a framework for handling different types of user interactio
 all communication channels (Discord, email, etc.).
 """
 
-import re
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass
-from datetime import datetime, timedelta
-import json
+from typing import Dict, List, Optional, Any
+from datetime import datetime
 
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,
     get_user_task_stats, get_tasks_due_soon
 )
-from core.user_management import get_user_categories
 from core.user_data_handlers import get_user_data, save_user_data
 from core.response_tracking import (
     is_user_checkins_enabled, get_recent_checkins

@@ -1,27 +1,22 @@
 # communication/communication_channels/discord/bot.py
 
-import os
 import discord
 from discord import app_commands
 import asyncio
 import threading
 from discord.ext import commands
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import queue
 import time
 import socket
-import random
 import enum
 import contextlib
 
 from core.config import DISCORD_BOT_TOKEN, DISCORD_APPLICATION_ID
-from core.logger import get_logger, get_component_logger
-from communication.message_processing.conversation_flow_manager import conversation_manager
+from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
 from core.user_management import get_user_id_by_identifier
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 # Route all Discord module logs to the Discord component logger so they appear in logs/discord.log
 discord_logger = get_component_logger('discord')

@@ -6,19 +6,16 @@ Contains functions for file I/O, path determination, and file management.
 
 import os
 import json
-import shutil
-import time
 from pathlib import Path
 from datetime import datetime
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.config import (
-    USER_INFO_DIR_PATH,
     DEFAULT_MESSAGES_DIR_PATH,
     get_user_file_path, ensure_user_directory, get_user_data_dir
 )
 from core.error_handling import (
-    error_handler, FileOperationError, DataError, handle_file_error,
-    handle_errors, safe_file_operation
+    FileOperationError, handle_file_error,
+    handle_errors
 )
 try:
     from core.file_auditor import record_created as _record_created

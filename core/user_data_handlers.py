@@ -6,10 +6,9 @@ across all data types (account, preferences, context, schedules, etc.).
 """
 
 import os
-from pathlib import Path
 import traceback
 from typing import Dict, Any, List, Union, Optional
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.config import get_user_file_path
 from core.user_data_validation import (

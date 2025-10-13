@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Optional
 from abc import ABC, abstractmethod
 
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError, CommunicationError
+from core.error_handling import handle_errors, DataError
 
 # Route formatting logs to communication component
 formatter_logger = get_component_logger('message_formatter')

@@ -1,6 +1,6 @@
 # rich_formatter.py
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 from abc import ABC, abstractmethod
 
 from core.logger import get_component_logger

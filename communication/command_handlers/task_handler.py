@@ -7,11 +7,10 @@ This module handles all task-related interactions including creating,
 listing, completing, deleting, updating, and getting statistics for tasks.
 """
 
-import re
 from typing import Dict, List, Optional, Any
 from datetime import datetime, timedelta
 
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from tasks.task_management import (
     create_task, load_active_tasks, complete_task, delete_task, update_task,

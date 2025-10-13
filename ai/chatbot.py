@@ -10,16 +10,14 @@ so we can phase in or out different messaging services without duplicating logic
 
 import os
 import asyncio
-import time
 import threading
 import requests
-import json
 import collections
-from typing import Dict, Optional, Tuple
-from core.logger import get_logger, get_component_logger
+from typing import Optional
+from core.logger import get_component_logger
 from core.config import (
     LM_STUDIO_BASE_URL, LM_STUDIO_API_KEY, LM_STUDIO_MODEL, 
-    AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES, CONTEXT_CACHE_TTL,
+    AI_TIMEOUT_SECONDS, AI_CACHE_RESPONSES,
     AI_SYSTEM_PROMPT_PATH, AI_USE_CUSTOM_PROMPT,
     AI_CONNECTION_TEST_TIMEOUT, AI_API_CALL_TIMEOUT, AI_PERSONALIZED_MESSAGE_TIMEOUT,
     AI_CONTEXTUAL_RESPONSE_TIMEOUT, AI_QUICK_RESPONSE_TIMEOUT,
@@ -31,11 +29,9 @@ from core.response_tracking import get_recent_responses, store_chat_interaction
 from core.user_data_handlers import get_user_data
 from user.context_manager import user_context_manager
 from ai.prompt_manager import get_prompt_manager
-from ai.cache_manager import get_response_cache, get_context_cache
+from ai.cache_manager import get_response_cache
 from datetime import datetime
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 
 

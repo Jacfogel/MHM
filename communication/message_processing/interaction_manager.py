@@ -12,9 +12,9 @@ This module provides a unified interface for handling user interactions by:
 
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from core.config import AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS
+from core.config import AI_MAX_RESPONSE_LENGTH
 from communication.message_processing.command_parser import get_enhanced_command_parser, ParsingResult
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from communication.command_handlers.interaction_handlers import get_interaction_handler, get_all_handlers

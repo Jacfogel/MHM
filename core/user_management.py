@@ -9,8 +9,8 @@ import json
 import time
 import uuid
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Union, Tuple
-from core.logger import get_logger, get_component_logger
+from typing import List, Dict, Any, Optional, Union
+from core.logger import get_component_logger
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir, determine_file_path
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
@@ -19,7 +19,6 @@ from core.schemas import (
     validate_account_dict,
     validate_preferences_dict,
 )
-import inspect
 from pathlib import Path
 
 logger = get_component_logger('main')
@@ -1269,9 +1268,6 @@ def clear_personalization_cache(user_id: str = None) -> None:
     # Use the centralized cache clearing system
     clear_user_caches(user_id)
 
-# LEGACY shim – function now lives in core.user_data_validation
-from core.user_data_validation import validate_personalization_data  # type: ignore
- 
 @handle_errors("getting user id by identifier", default_return=None)
 def get_user_id_by_identifier(identifier: str) -> Optional[str]:
     """

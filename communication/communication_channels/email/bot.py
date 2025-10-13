@@ -9,11 +9,9 @@ from email.header import decode_header
 from typing import List, Dict, Any
 
 from core.config import EMAIL_SMTP_SERVER, EMAIL_IMAP_SERVER, EMAIL_SMTP_USERNAME, EMAIL_SMTP_PASSWORD
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelType, ChannelStatus, ChannelConfig
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 # Route module-level logs to email component for consistency
 email_logger = get_component_logger('email')

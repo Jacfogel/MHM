@@ -1,10 +1,11 @@
 # command_registry.py
 
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, List, Optional, Callable
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from core.logger import get_component_logger
+from core.error_handling import handle_errors
 
 # Route command registry logs to communication component
 registry_logger = get_component_logger('command_registry')

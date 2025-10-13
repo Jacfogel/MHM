@@ -8,10 +8,10 @@ that all command handlers inherit from and use.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import List
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError, CommunicationError
+from core.error_handling import handle_errors
 
 # Route handler logs to communication component
 handler_logger = get_component_logger('command_handlers')

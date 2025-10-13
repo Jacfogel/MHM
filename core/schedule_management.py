@@ -6,16 +6,14 @@ Contains functions for schedule time periods, period activation, validation, and
 
 import time
 import calendar
-from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
-from core.logger import get_logger, get_component_logger
+from datetime import datetime
+from typing import Dict, Any, Optional
+from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 
 from core.service_utilities import create_reschedule_request
 from user.user_context import UserContext
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 logger = get_component_logger('scheduler')
 schedule_logger = get_component_logger('main')

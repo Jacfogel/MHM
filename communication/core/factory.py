@@ -1,9 +1,7 @@
 from typing import Dict, Type, Optional
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
-from core.logger import get_logger, get_component_logger
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.logger import get_component_logger
+from core.error_handling import handle_errors
 from core.config import get_available_channels, get_channel_class_mapping
 
 factory_logger = get_component_logger('communication_manager')

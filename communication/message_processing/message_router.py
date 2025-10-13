@@ -1,13 +1,11 @@
 # message_router.py
 
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, List
 from dataclasses import dataclass
 from enum import Enum
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
-from communication.message_processing.command_parser import ParsingResult
-from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 
 # Route routing logs to message processing component
 router_logger = get_component_logger('message_router')

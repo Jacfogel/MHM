@@ -3,13 +3,11 @@
 import logging
 import os
 import shutil
-import re
 import time
 import json
 import gzip
 import sys
-import datetime
-from datetime import datetime, timedelta
+from datetime import datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
 

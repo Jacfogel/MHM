@@ -17,6 +17,70 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Unused Imports Cleanup - Production Code **COMPLETED**
+
+**Context**: After creating the unused imports detection tool, systematically cleaned up all unused imports from production code directories (ai/, core/, communication/, tasks/, user/) to improve code quality and maintainability.
+
+**Problem**:
+- 954 total unused imports identified across 175 files
+- ~230 unused imports in production code alone (50 files)
+- Accumulated technical debt from refactoring (dead imports like `error_handler`, `get_logger`)
+- Unnecessary imports slow down code loading and obscure actual dependencies
+- Some unused imports indicated missing functionality (error handling, logging)
+
+**Solution**:
+Created semi-automated cleanup process:
+1. **Script** (`scripts/cleanup_unused_imports.py`): Parses unused imports report, categorizes imports, generates review document
+2. **Categorization**: Classified imports as Missing Error Handling, Missing Logging, Type Hints, Unused Utilities, or Safe to Remove
+3. **Review** (`scripts/unused_imports_cleanup_review.md`): Human-readable analysis of each unused import with proposed actions
+4. **Incremental Cleanup**: Cleaned files directory by directory with testing after each batch
+5. **Pattern Recognition**: Identified dead code patterns (`error_handler` → `@handle_errors`, `get_logger` → `get_component_logger()`)
+
+**Technical Changes**:
+Production code cleaned (47 files, ~170 imports removed):
+- `ai/` (4 files): Removed unused error handling, logging, type hints
+- `user/` (3 files): Removed unused context management imports
+- `tasks/` (1 file): Removed unused utilities
+- `communication/` (19 files): Cleaned command handlers, channels, core, message processing
+  - Fixed missing `handle_errors` import in `command_registry.py` (used 16 times without import)
+  - Restored imports needed for test mocking (e.g., `determine_file_path`, `get_available_channels`)
+- `core/` (21 files): Major cleanup across configuration, error handling, logging, file operations, user data, scheduling, service files
+
+**Key Patterns**:
+1. Dead code: `error_handler` decorator doesn't exist (replaced by `@handle_errors`)
+2. Logger pattern: All files use `get_component_logger()`, not `get_logger`
+3. Error handling: `@handle_errors` decorator eliminates need for exception imports (`DataError`, `FileOperationError`)
+4. Test mocking: Some imports must stay at module level for test mocking even if unused in code
+
+**Bugs Fixed**:
+1. `communication/communication_channels/base/command_registry.py`: Missing `handle_errors` import (used 16 times)
+2. `communication/command_handlers/base_handler.py`: Accidentally removed `List` import that was used in type hints (quickly fixed)
+
+**Documentation Updates**:
+- Created `scripts/unused_imports_cleanup_summary.md`: Concise summary of cleanup results
+- Updated `scripts/unused_imports_cleanup_review.md`: Detailed analysis and proposed actions
+
+**Testing**:
+- ✅ Compiled all production files after each directory batch
+- ✅ Full test suite: 1848 passed, 1 skipped, 0 failures
+- ✅ Service startup: `python run_headless_service.py start` successful
+- ✅ No import-related errors
+
+**Outcomes**:
+- 47/47 production files cleaned (100% of scope)
+- ~170 unused imports removed from production code
+- 2 bugs discovered and fixed
+- Cleaner, more maintainable codebase
+- Faster import times
+- Clearer code dependencies
+- ui/, tests/, and ai_development_tools/ excluded (to be addressed separately)
+
+**Scope**:
+- ✅ Included: Production code (ai/, core/, communication/, tasks/, user/)
+- ⏸️ Excluded: UI code (generated code has many unused imports), tests (defensive imports), ai_development_tools
+
+---
+
 ### 2025-10-13 - Added Unused Imports Detection Tool **COMPLETED**
 
 **Context**: Codebase had accumulated unused imports over time, reducing code clarity and potentially masking issues. Need systematic way to identify and track unused imports across the entire codebase.

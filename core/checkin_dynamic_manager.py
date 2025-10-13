@@ -3,10 +3,8 @@ Dynamic Check-in Manager for MHM.
 Handles loading and managing dynamic check-in questions and responses from JSON files.
 """
 
-import os
-import json
 import random
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple
 from pathlib import Path
 
 from core.logger import get_component_logger

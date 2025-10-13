@@ -6,13 +6,12 @@ import time
 import os
 import atexit
 from datetime import datetime
-from typing import List
 
 # Add parent directory to path so we can import from other modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set up logging FIRST before any other imports
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 import logging  # kept for tests that patch core.service.logging.getLogger
 setup_logging()
 logger = get_component_logger('main')
@@ -28,22 +27,20 @@ except Exception as _fa_err:
     logger.debug(f"File auditor not started: {_fa_err}")
 
 # Import configuration validation
-from core.config import validate_and_raise_if_invalid, print_configuration_report, ConfigValidationError
+from core.config import validate_and_raise_if_invalid, print_configuration_report
 
 # Import the communication manager (channels auto-register from config)
 from communication.core.channel_orchestrator import CommunicationManager
 from core.config import LOG_MAIN_FILE, USER_INFO_DIR_PATH, get_user_data_dir
 from core.scheduler import SchedulerManager
-from core.file_operations import verify_file_access, determine_file_path
+from core.file_operations import verify_file_access
 from core.user_data_handlers import get_all_user_ids
 from core.user_data_handlers import get_user_data
 
 # Expose get_user_data at module level so tests
 # that patch core.service.get_user_data continue to work.
 
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 class InitializationError(Exception):
     """Custom exception for initialization errors."""

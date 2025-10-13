@@ -8,22 +8,18 @@ import os
 import json
 import shutil
 import zipfile
-import time
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.config import (
-    USER_INFO_DIR_PATH,
-    get_user_file_path, ensure_user_directory, get_user_data_dir, BASE_DATA_DIR, get_backups_dir
+    get_user_file_path, get_user_data_dir, BASE_DATA_DIR, get_backups_dir
 )
 from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir
 from core.user_data_handlers import get_user_data
 from core.user_data_handlers import get_all_user_ids
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 logger = get_component_logger('main')
 data_manager_logger = get_component_logger('user_activity')

@@ -3,19 +3,12 @@ Response tracking utilities for MHM.
 Contains functions for storing and retrieving user responses, check-ins, and interactions.
 """
 
-import os
-from pathlib import Path
-import json
-import time
 from datetime import datetime
-from typing import List, Dict, Any, Optional
-from core.logger import get_logger, get_component_logger
+from typing import Dict, Any
+from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.file_operations import load_json_data, save_json_data, get_user_file_path
-from core.config import USER_INFO_DIR_PATH, ensure_user_directory
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 logger = get_component_logger('user_activity')
 tracking_logger = get_component_logger('user_activity')

@@ -7,15 +7,12 @@ Provides insights and analysis from check-in data to help users
 understand their patterns and progress over time.
 """
 
-import json
 import statistics
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-from core.logger import get_logger, get_component_logger
+from datetime import datetime
+from typing import Dict, List, Optional
+from core.logger import get_component_logger
 from core.response_tracking import get_recent_checkins
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 logger = get_component_logger('analytics')
 analytics_logger = get_component_logger('user_activity')

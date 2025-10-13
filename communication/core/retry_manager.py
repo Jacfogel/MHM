@@ -1,12 +1,11 @@
 # retry_manager.py
 
-import asyncio
 import threading
 import time
 import queue
-from typing import Dict, Optional
+from typing import Optional
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

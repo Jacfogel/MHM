@@ -19,15 +19,13 @@ Usage:
 import os
 import json
 from ai.chatbot import get_ai_chatbot
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
 from core.response_tracking import (
     is_user_checkins_enabled,
     get_recent_checkins,
 )
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 # Route conversation orchestration to communication_manager component log
 logger = get_component_logger('communication_manager')

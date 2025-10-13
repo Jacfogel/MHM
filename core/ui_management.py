@@ -4,8 +4,7 @@ UI management utilities for MHM.
 Contains functions for UI-specific operations like widget management and layout handling.
 """
 
-from typing import Dict, Any, List, Optional
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
 logger = get_component_logger('ui')

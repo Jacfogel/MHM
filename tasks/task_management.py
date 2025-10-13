@@ -4,17 +4,13 @@ Task management utilities for MHM.
 Contains functions for task CRUD operations, task scheduling, and task data management.
 """
 
-import os
 from pathlib import Path
 import uuid
-import json
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
-from core.logger import get_logger, get_component_logger
-from core.file_operations import load_json_data, save_json_data, determine_file_path
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.logger import get_component_logger
+from core.file_operations import load_json_data, save_json_data
+from core.error_handling import handle_errors
 from core.config import get_user_data_dir
 from core.user_data_handlers import get_user_data
 

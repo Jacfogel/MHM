@@ -1,15 +1,10 @@
 # user_preferences.py
 # module user_preferences code is not yet implemented or integrated into program
 
-import json
-import os
-
 from core.user_data_handlers import get_user_data, update_user_preferences
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active
-from core.logger import get_logger, get_component_logger
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.logger import get_component_logger
+from core.error_handling import handle_errors
 
 logger = get_component_logger('user_activity')
 preferences_logger = get_component_logger('user_activity')

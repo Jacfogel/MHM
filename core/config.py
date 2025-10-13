@@ -6,12 +6,12 @@ Handles environment variables, validation, and system settings.
 
 import os
 from dotenv import load_dotenv
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 from pathlib import Path
 
 from core.error_handling import (
-    ConfigurationError, ValidationError, handle_configuration_error,
-    handle_errors, error_handler
+    ConfigurationError, handle_configuration_error,
+    handle_errors
 )
 
 class ConfigValidationError(Exception):

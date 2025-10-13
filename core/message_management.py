@@ -9,13 +9,13 @@ from pathlib import Path
 import json
 import uuid
 from datetime import datetime, timezone, timedelta
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.config import DEFAULT_MESSAGES_DIR_PATH, get_user_data_dir
 from core.file_operations import load_json_data, save_json_data, determine_file_path
 from core.schemas import validate_messages_file_dict
 from core.error_handling import (
-    error_handler, DataError, FileOperationError, ValidationError,
-    handle_file_error, handle_errors
+    ValidationError,
+    handle_errors
 )
 from typing import List, Dict, Any, Optional
 
