@@ -686,24 +686,11 @@ def test_data_consistency_real_behavior(test_data_dir, mock_config):
     # Setup test environment and create test users
     # mock_config fixture already sets up the correct paths
     
-    # Create user index
+    # Create user index with flat lookup structure
     user_index = {
-        f"test-user-basic-{test_id}": {
-            "internal_username": f"test-user-basic-{test_id}",
-            "active": True,
-            "channel_type": "discord",
-            "enabled_features": ["messages"],
-            "last_interaction": "2025-01-01T00:00:00",
-            "last_updated": "2025-01-01T00:00:00"
-        },
-        f"test-user-full-{test_id}": {
-            "internal_username": f"test-user-full-{test_id}", 
-            "active": True,
-            "channel_type": "discord",
-            "enabled_features": ["messages", "tasks", "checkins"],
-            "last_interaction": "2025-01-01T00:00:00",
-            "last_updated": "2025-01-01T00:00:00"
-        }
+        "last_updated": "2025-01-01T00:00:00",
+        f"test-user-basic-{test_id}": f"test-user-basic-{test_id}",  # username → UUID
+        f"test-user-full-{test_id}": f"test-user-full-{test_id}"      # username → UUID
     }
     
     with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:

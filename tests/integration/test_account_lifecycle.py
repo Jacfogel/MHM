@@ -643,17 +643,12 @@ class TestAccountLifecycle:
         updated_data = get_user_data(actual_user_id)
         assert "health" in updated_data["preferences"]["categories"], "Health category should be added"
         
-        # Verify user index reflects the change
-        from core.user_data_manager import load_json_data
-        from core.config import BASE_DATA_DIR
-        index_file = os.path.join(BASE_DATA_DIR, "user_index.json")
-        user_index = load_json_data(index_file) or {}
-        
-        # Check detailed mapping in new structure
-        if "users" in user_index and actual_user_id in user_index["users"]:
-            index_entry = user_index["users"][actual_user_id]
-            enabled_features = index_entry.get("enabled_features", [])
-            assert "health" in enabled_features, "Health category should be in user index enabled_features"
+        # Verify user preferences reflects the change
+        # Note: User index now only stores flat lookups, not cached user data
+        # Source of truth is account.json and preferences.json
+        prefs_data = get_user_data(actual_user_id, 'preferences')
+        categories = prefs_data.get('preferences', {}).get('categories', [])
+        assert "health" in categories, "Health category should be in user preferences"
         
         # Test removing category via public API
         self._materialize_and_verify(actual_user_id)

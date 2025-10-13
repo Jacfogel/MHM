@@ -8,6 +8,27 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Consolidated Legacy Daily Checkin Files **COMPLETED**
+- **Problem Fixed**: User had two separate checkin files (daily_checkins.json + checkins.json) from legacy format
+- **Solution**: Merged 33 entries from daily_checkins.json into checkins.json, sorted chronologically, deleted legacy file
+- **Result**: Single unified checkins.json with 54 entries (June 10 - October 11, 2025)
+- **Files**: data/users/me581649-4533-4f13-9aeb-da8cb64b8342/ - daily_checkins.json deleted, checkins.json updated
+
+### 2025-10-13 - User Index Refactoring: Removed Redundant Data Cache **COMPLETED**
+- **Problem Fixed**: user_index.json stored user data in THREE places: flat lookups, "users" cache, and account.json files
+- **Solution**: Removed "users" cache object, kept only flat lookup mappings (username/email/discord/phone → UUID)
+- **Comprehensive Sweep**: Found 5 additional issues after user reported empty dropdown
+  1. Admin UI refresh_user_list() reading from removed cache (CRITICAL)
+  2. Backup validation iterating ALL keys as user IDs (CRITICAL - broken logic)
+  3. Test utilities creating OLD index structure (3 files)
+- **All Fixes Applied**: UI reads account.json; backup extracts UUIDs from values; all tests use flat structure
+- **Architecture**: account.json is now single source of truth; index only stores O(1) lookup mappings
+- **Code Reduction**: ~70 lines removed from user_data_manager.py and user_management.py
+- **Performance**: Still O(1) lookups via flat mappings; directory scan fallback remains
+- **Testing**: All 1848 tests passed; UI dropdown populated; backup validation works correctly
+- **Impact**: Eliminated double redundancy, simplified maintenance, removed sync complexity
+- **Files**: 10 files modified (core, ui, tests) + 2 doc files
+
 ### 2025-10-13 - Automated Weekly Backup System **COMPLETED**
 - **Problem Fixed**: User data was not being backed up automatically - `data/backups` was empty
 - **Solution**: Added check-based backup system to daily scheduler (runs at 01:00, before log archival at 02:00)
@@ -74,42 +95,12 @@
 - **Impact**: Improved system robustness, better error handling, more reliable file operations
 - **Files**: core/checkin_dynamic_manager.py, core/error_handling.py, core/message_management.py, core/file_operations.py, tasks/task_management.py, tests/behavior/test_response_tracking_behavior.py, tests/unit/test_file_operations.py, tests/test_error_handling_improvements.py, communication/command_handlers/base_handler.py
 
-### 2025-01-10 - Error Handling Coverage Expansion Phase 3 **COMPLETED**
-- **Coverage Achievement**: Reached 92.0% error handling coverage (1,285 functions protected) - exceeded 90% target
-- **Major Modules Enhanced**: Added comprehensive error handling to 35+ modules including AI modules, communication handlers, core services, and UI components
-- **System Reliability**: All 1,827 tests passing with enhanced error recovery mechanisms across all major subsystems
-- **Quality Improvement**: Upgraded from basic try-except to comprehensive @handle_errors decorators with contextual default returns
-- **Files**: ai/chatbot.py, ai/context_builder.py, ai/conversation_history.py, ai/prompt_manager.py, communication/command_handlers/*, communication/core/*, core/error_handling.py, core/auto_cleanup.py, core/checkin_analytics.py, core/checkin_dynamic_manager.py, core/config.py, communication/message_processing/*
-
 ### 2025-10-10 - Error Handling Coverage Expansion Phase 2 **COMPLETED**
 - **Coverage Improvement**: Expanded error handling from 80.4% to 82.7% (+2.31% increase, 33 functions protected)
 - **Modules Enhanced**: Added @handle_errors decorators to Cache Manager (6 functions), Discord Event Handler (6 functions), and Interaction Handlers (21 functions)
 - **Comprehensive Patterns**: Applied error handling patterns from AI_ERROR_HANDLING_GUIDE.md with contextual default returns for graceful degradation
 - **System Stability**: All 1,827 tests passing including 130 interaction handler tests, no regressions introduced
 - **Files**: ai/cache_manager.py, communication/communication_channels/discord/event_handler.py, communication/command_handlers/interaction_handlers.py
-
-### 2025-01-09 - Testing Framework Consolidation and Automation Enhancement **COMPLETED**
-- **Manual Testing Consolidation**: Combined MANUAL_DISCORD_TESTING_GUIDE.md into MANUAL_TESTING_GUIDE.md, removing redundancy and focusing manual testing on visual verification, UX, and integration
-- **Comprehensive Automation**: Created 57 automation tests covering all UI dialogs (7 types) and Discord scenarios (15 basic + 16 advanced)
-- **Real Behavior Testing**: Implemented Arrange-Act-Assert patterns with actual system state verification, not just return values
-- **Documentation Streamlining**: Updated TESTING_GUIDE.md with consolidated navigation and removed redundant automation links
-- **AI Testing Guide Enhancement**: Added concise best practices documentation for real behavior testing, side effects verification, and data persistence
-- **Test Coverage**: All 1,827 tests passing with comprehensive automation replacing manual testing where possible
-- **Files**: tests/behavior/test_*automation*.py, tests/MANUAL_TESTING_GUIDE.md, tests/TESTING_GUIDE.md, ai_development_docs/AI_TESTING_GUIDE.md
-
-### 2025-01-09 - Fixed Test Log Rotation and Cleanup Issues **COMPLETED**
-- **Issues**: Test log rotation at 100MB instead of 5MB, Windows file locking preventing truncation, aggressive cleanup deleting test_run.log, ISO timestamp format, verbose logging disabled
-- **Fixes**: Updated rotation threshold to 5MB, added Windows file locking fallback (move→copy+truncate), fixed cleanup to preserve current session logs, human-readable timestamps, enabled verbose logging by default
-- **Impact**: Test logs rotate properly at 5MB, handle Windows file locking gracefully, preserve session logs, readable timestamps, capture component logs for debugging
-- **Files**: tests/conftest.py, development_docs/CHANGELOG_DETAIL.md
-
-### 2025-01-09 - Discord Commands Testing Completion **COMPLETED**
-- **Automated Testing**: Added 16 comprehensive behavior tests for profile display formatting and command discovery
-- **Profile Display Tests**: 6 test scenarios verifying clean text output, no JSON syntax, proper formatting, and rich data structure
-- **Command Discovery Tests**: 10 test scenarios verifying help system provides comprehensive command discovery
-- **Manual Testing Guide**: Created comprehensive testing checklist with 15 specific test scenarios for real-world Discord verification
-- **Code Quality**: Fixed syntax error in profile_handler.py and ensured all tests pass
-- **User Impact**: Complete test coverage for Discord commands, ready for manual verification, comprehensive testing documentation
 
 ### 2025-10-09 - Discord Commands Documentation and Profile Display Enhancement **COMPLETED**
 - **Profile Display Fix**: Removed dead code in profile_handler.py (lines 54-139) that built unused emoji responses overwritten by _format_profile_text() call

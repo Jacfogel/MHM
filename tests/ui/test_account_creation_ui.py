@@ -593,11 +593,17 @@ class TestAccountManagementRealBehavior:
             with open(user_index_path, 'r') as f:
                 index_data = json.load(f)
             
-            index_usernames = [user.get('internal_username', '') for user in index_data.get('users', [])]
-            
-            # ✅ VERIFY REAL BEHAVIOR: All test users should be in the index
+            # ✅ VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
+            # Check that each user's internal_username is mapped to their UUID in the flat index
             for user_id in test_users:
-                assert user_id in index_usernames, f"User {user_id} should be in index"
+                # Get the user's account to find their internal_username
+                user_account_file = os.path.join(test_data_dir, 'users', user_id, 'account.json')
+                if os.path.exists(user_account_file):
+                    with open(user_account_file, 'r') as f:
+                        account = json.load(f)
+                    internal_username = account.get('internal_username')
+                    assert internal_username in index_data, f"User {internal_username} should be in index"
+                    assert index_data[internal_username] == user_id, f"Index should map {internal_username} to {user_id}"
                 
         except Exception as e:
             # If user index verification fails, that's okay for now
@@ -991,11 +997,17 @@ class TestAccountCreationIntegration:
             with open(user_index_path, 'r') as f:
                 index_data = json.load(f)
             
-            index_usernames = [user.get('internal_username', '') for user in index_data.get('users', [])]
-            
-            # ✅ VERIFY REAL BEHAVIOR: All test users should be in the index
+            # ✅ VERIFY REAL BEHAVIOR: All test users should be in the index (check flat lookups)
+            # Check that each user's internal_username is mapped to their UUID in the flat index
             for user_id in test_users:
-                assert user_id in index_usernames, f"User {user_id} should be in index"
+                # Get the user's account to find their internal_username
+                user_account_file = os.path.join(test_data_dir, 'users', user_id, 'account.json')
+                if os.path.exists(user_account_file):
+                    with open(user_account_file, 'r') as f:
+                        account = json.load(f)
+                    internal_username = account.get('internal_username')
+                    assert internal_username in index_data, f"User {internal_username} should be in index"
+                    assert index_data[internal_username] == user_id, f"Index should map {internal_username} to {user_id}"
                 
         except Exception as e:
             # If user index verification fails, that's okay for now

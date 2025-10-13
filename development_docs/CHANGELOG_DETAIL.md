@@ -17,6 +17,136 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Consolidated Legacy Daily Checkin Files **COMPLETED**
+
+**Context**: User data directory contained two separate checkin files: `daily_checkins.json` (33 entries from June-August 2025) and `checkins.json` (21 entries from August-October 2025). This was a legacy structure from an old format where daily check-ins were stored separately.
+
+**Problem**: 
+- Data fragmentation across two files
+- Potential for confusion about which file to use
+- Legacy file no longer referenced by code
+
+**Solution**:
+- Merged all 33 entries from `daily_checkins.json` into `checkins.json`
+- Sorted combined entries chronologically by timestamp (54 total entries)
+- Deleted `daily_checkins.json` (verified no code references)
+- Verified code only uses unified `checkins.json` format
+
+**Technical Changes**:
+- Combined files: June 10 - October 11, 2025 (54 check-in entries)
+- Aligned JSON formatting (4-space indentation)
+- Maintained all checkin data fields (mood, energy, ate_breakfast, brushed_teeth, sleep_quality, etc.)
+
+**Files Modified**:
+- `data/users/me581649-4533-4f13-9aeb-da8cb64b8342/daily_checkins.json` - Deleted
+- `data/users/me581649-4533-4f13-9aeb-da8cb64b8342/checkins.json` - Merged and sorted
+
+---
+
+### 2025-10-13 - User Index Refactoring: Removed Redundant Data Cache **COMPLETED**
+
+**Context**: The `user_index.json` file was storing user data in two redundant ways: (1) flat lookup mappings like `"email:example@mail.com": "user-uuid"` for O(1) lookups, and (2) a complete cache of all user data in a "users" object that duplicated information already stored in each user's `account.json` file. This meant the same data existed in THREE places: the index cache, the flat lookups, and the account.json files.
+
+**Problem**: 
+- Triple data redundancy (index cache, flat lookups, account.json) 
+- Synchronization complexity across three data stores
+- No actual performance benefit (index file read from disk every time, not cached in memory)
+- Over-engineered for a system with 3 users (optimization designed for thousands)
+- Maintenance burden and potential for data inconsistency
+
+**Goals**:
+- Keep flat lookup mappings for O(1) user ID lookups (scales well, minimal redundancy)
+- Remove "users" cache object (eliminates double redundancy)
+- Make `account.json` the single source of truth for user data
+- Simplify code while maintaining fast lookups
+- Future-proof architecture (works for 3 or 3000 users)
+
+**Technical Changes**:
+
+1. **data/user_index.json** (Data Structure):
+   - Removed entire "users" object containing cached user data
+   - Kept flat lookup mappings: `internal_username`, `email:*`, `discord:*`, `phone:*` → UUID
+   - Kept `last_updated` metadata field
+   - Result: File size reduced from ~2KB to ~400 bytes
+
+2. **core/user_data_manager.py** (Index Management):
+   - **update_user_index()**: 
+     - Removed code that builds detailed user info object (features, preferences, context, etc.)
+     - Now only reads account.json for identifiers (username, email, discord_id, phone)
+     - Creates only flat lookup mappings, no "users" cache
+     - Updated docstring to reflect flat-only structure
+   - **remove_from_index()**: 
+     - Changed to read identifiers from account.json directly
+     - Removed code that read from "users" cache
+   - **rebuild_full_index()**: 
+     - Simplified to create only flat lookups, no "users" cache
+     - Reduced complexity by ~50 lines of code
+     - Updated docstring to reflect new structure
+   - **search_users()**: 
+     - Changed from iterating cached "users" object to scanning user directories
+     - Reads account.json for each user during search
+     - Calls `get_user_data_summary()` for matched users (on-demand data loading)
+
+3. **core/user_management.py** (Lookup Functions):
+   - **_get_user_id_by_identifier__by_internal_username()**: Removed fallback to "users" cache
+   - **_get_user_id_by_identifier__by_email()**: Removed fallback to "users" cache  
+   - **_get_user_id_by_identifier__by_phone()**: Removed fallback to "users" cache
+   - **_get_user_id_by_identifier__by_discord_user_id()**: Removed fallback to "users" cache
+   - **get_user_id_by_identifier()**: Removed fallback loop through "users" cache
+   - All functions now use: (1) fast flat lookup → (2) directory scan fallback
+
+**Architecture Benefits**:
+- **Single Source of Truth**: account.json is authoritative, no sync issues
+- **Scalable Performance**: O(1) lookups via flat mappings work for any user count
+- **Reduced Complexity**: ~70 lines of code removed, simpler maintenance
+- **No Data Duplication**: Each piece of data stored exactly once (account.json) plus lookup mapping
+- **Clear Separation**: Index for lookups, account.json for data
+
+**Testing**:
+- All 1848 tests passed (including 25 user management tests)
+- Service start/stop working correctly
+- User lookup by username, email, discord_id, phone all functional
+- Directory scan fallback still works if index is incomplete
+
+**Documentation Updates**:
+- Updated docstrings in user_data_manager.py to reflect flat-only structure
+- Updated this changelog entry
+
+**Validation**:
+- No linting errors
+- Service starts successfully: `python run_headless_service.py start`
+- Full test suite passes: 1848 passed, 1 skipped
+- User lookups verified via test coverage
+
+**Follow-up Fixes** (Comprehensive Sweep):
+- Removed misleading "LEGACY COMPATIBILITY" comment in update_user_index() that referred to removed cache
+- Updated test in test_account_lifecycle.py to check source data (preferences.json) instead of removed cache
+- **CRITICAL FIX**: Fixed admin UI user dropdown being empty - refresh_user_list() was reading from removed "users" cache
+- Updated ui_app_qt.py to read user data directly from account.json files instead of cache
+- Fixed tests in test_account_creation_ui.py that checked removed "users" structure (2 occurrences)
+- **CRITICAL FIX**: Fixed backup validation iterating ALL keys as user IDs (broke with flat lookup structure)
+- Updated backup_manager.py to extract UUIDs from values and validate those directories
+- Fixed test_utilities.py create_test_environment() creating OLD index structure
+- Fixed test_backup_manager_behavior.py creating OLD index structure
+- Fixed test_account_management_real_behavior.py creating OLD index structure
+- All test utilities now create new flat lookup structure with username → UUID mappings
+
+**Files Modified** (10 files):
+- `data/user_index.json` - Removed "users" object
+- `core/user_data_manager.py` - Simplified to flat lookups only, removed misleading legacy comment
+- `core/user_management.py` - Removed "users" cache fallbacks
+- `core/backup_manager.py` - Fixed validation to extract UUIDs from values, not iterate keys as IDs
+- `ui/ui_app_qt.py` - Fixed refresh_user_list() to read from account.json not cache
+- `tests/integration/test_account_lifecycle.py` - Updated test to check source data not cache
+- `tests/ui/test_account_creation_ui.py` - Fixed 2 tests checking removed "users" structure
+- `tests/test_utilities.py` - Fixed create_test_environment() to use flat lookup structure
+- `tests/behavior/test_backup_manager_behavior.py` - Fixed to create flat lookup structure
+- `tests/behavior/test_account_management_real_behavior.py` - Fixed to create flat lookup structure
+- `development_docs/CHANGELOG_DETAIL.md` - This entry
+- `ai_development_docs/AI_CHANGELOG.md` - Corresponding entry
+
+---
+
 ### 2025-10-13 - Automated Weekly Backup System **COMPLETED**
 
 **Context**: Investigation revealed that the `data/backups` directory was empty because backups were never being created automatically. While the `BackupManager` class existed with full functionality, it was only being used for manual backups (which had no UI integration) and for safety backups before restore operations.

@@ -2018,24 +2018,11 @@ class TestDataManager:
         os.makedirs(os.path.join(test_data_dir, "users"), exist_ok=True)
         os.makedirs(os.path.join(test_test_data_dir, "users"), exist_ok=True)
         
-        # Create test user index
+        # Create test user index with flat lookup structure
         user_index = {
-            "test-user-basic": {
-                "internal_username": "test-user-basic",
-                "active": True,
-                "channel_type": "discord",
-                "enabled_features": ["messages"],
-                "last_interaction": "2025-01-01T00:00:00",
-                "last_updated": "2025-01-01T00:00:00"
-            },
-            "test-user-full": {
-                "internal_username": "test-user-full", 
-                "active": True,
-                "channel_type": "discord",
-                "enabled_features": ["messages", "tasks", "checkins"],
-                "last_interaction": "2025-01-01T00:00:00",
-                "last_updated": "2025-01-01T00:00:00"
-            }
+            "last_updated": "2025-01-01T00:00:00",
+            "test-user-basic": "test-user-basic",  # username → UUID
+            "test-user-full": "test-user-full"      # username → UUID
         }
         
         with open(os.path.join(test_data_dir, "user_index.json"), "w") as f:

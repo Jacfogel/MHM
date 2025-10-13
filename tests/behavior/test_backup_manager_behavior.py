@@ -77,10 +77,13 @@ class TestBackupManagerBehavior:
         with open(req_path, 'w') as f:
             f.write("pytest==7.0.0\n")
         
-        # Create user_index.json
+        # Create user_index.json with flat lookup structure
         user_index_path = os.path.join(self.test_data_dir, "user_index.json")
         with open(user_index_path, 'w') as f:
-            json.dump({self.test_user_id: {"username": "testuser"}}, f)
+            json.dump({
+                "last_updated": "2025-01-01T00:00:00",
+                "testuser": self.test_user_id  # username → UUID
+            }, f)
     
     def _cleanup_test_files(self):
         """Clean up test files and directories."""

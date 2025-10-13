@@ -637,9 +637,10 @@ class UserDataManager:
         """
         Update the user index with current information for a specific user.
         
-        Creates a comprehensive multi-identifier structure:
-        - Fast lookups: {"internal_username": "UUID", "email": "UUID", "discord_user_id": "UUID", "phone": "UUID"}
-        - Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
+        Creates flat lookup mappings for fast O(1) user lookups:
+        - {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+        
+        All detailed user data is stored in account.json, not duplicated in the index.
         
         Args:
             user_id: The user's ID (UUID)
@@ -649,24 +650,11 @@ class UserDataManager:
         """
         try:
             # Load existing index
-            index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
+            index_data = load_json_data(self.index_file) or {"last_updated": None}
             
-            # Get current user summary
-            user_summary = get_user_summary(user_id)
-            if not user_summary:
-                logger.warning(f"Could not get summary for user {user_id}")
-                return False
-
-            # Safely get message count - handle case where no message categories exist
-            message_count = user_summary.get("total_messages", 0)
-            
-            # Get user account, preferences, and context for additional info
+            # Get user account for identifiers
             user_data_result = get_user_data(user_id, 'account')
             user_account = user_data_result.get('account') or {}
-            prefs_result = get_user_data(user_id, 'preferences')
-            user_preferences = prefs_result.get('preferences') or {}
-            context_result = get_user_data(user_id, 'context')
-            user_context = context_result.get('context') or {}
             
             # Get identifiers for fast lookups
             internal_username = user_account.get('internal_username', '')
@@ -678,67 +666,19 @@ class UserDataManager:
                 logger.warning(f"No internal_username found for user {user_id}")
                 return False
             
-            # Determine enabled features
-            enabled_features = []
-            features = user_account.get('features', {})
-            
-            if features.get('automated_messages') == 'enabled':
-                enabled_features.append('automated_messages')
-                # Include categories only if automated messages are enabled
-                categories = user_preferences.get('categories', [])
-                enabled_features.extend(categories)
-            
-            if features.get('checkins') == 'enabled':
-                enabled_features.append('checkins')
-                
-            if features.get('task_management') == 'enabled':
-                enabled_features.append('task_management')
-            
-            # Get channel type
-            channel_type = user_preferences.get('channel', {}).get('type', 'email')
-            
-            # Get last interaction (most recent activity)
-            last_interaction = self._get_last_interaction(user_id)
-            
-            # Create detailed user info
-            detailed_user_info = {
-                "internal_username": internal_username,
-                "active": user_account.get('account_status') == 'active',
-                "channel_type": channel_type,
-                "enabled_features": sorted(enabled_features),
-                "last_interaction": last_interaction,
-                "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                "message_count": message_count,
-                "preferred_name": user_context.get('preferred_name', ''),
-                "email": email,
-                "discord_user_id": discord_user_id,
-                "phone": phone,
-                "created_at": user_account.get('created_at', '')
-            }
-            
-            # Update fast lookup mappings (multiple identifiers)
-            # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
-            # TODO: Remove after 2025-12-01 when all code has been updated to use new structure
-            # REMOVAL PLAN:
-            # 1. Update all get_user_id_by_* functions to use new multi-identifier structure
-            # 2. Update tests to use new structure
-            # 3. Remove simple mapping after 2 months of monitoring
-            # Only update simple mapping if it doesn't exist or points to the same user
+            # Update flat lookup mappings for fast O(1) user ID resolution
+            # Each identifier type maps directly to UUID for instant lookup
+            # Simple username mapping (most common lookup)
             if internal_username not in index_data or index_data[internal_username] == user_id:
                 index_data[internal_username] = user_id
             
-            # Add new multi-identifier mappings
+            # Prefixed identifier mappings for contact methods
             if email:
                 index_data[f"email:{email}"] = user_id
             if discord_user_id:
                 index_data[f"discord:{discord_user_id}"] = user_id
             if phone:
                 index_data[f"phone:{phone}"] = user_id
-            
-            # Update detailed mapping for rich information
-            if "users" not in index_data:
-                index_data["users"] = {}
-            index_data["users"][user_id] = detailed_user_info
             
             # Add metadata
             index_data["last_updated"] = datetime.now().isoformat()
@@ -770,7 +710,7 @@ class UserDataManager:
         """
         Remove a user from the index.
         
-        Removes all identifier mappings (internal_username, email, discord_user_id, phone) and detailed mapping.
+        Removes all identifier mappings (internal_username, email, discord_user_id, phone).
         
         Args:
             user_id: The user's ID (UUID)
@@ -779,24 +719,16 @@ class UserDataManager:
             bool: True if user was removed from index successfully
         """
         try:
-            index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
+            index_data = load_json_data(self.index_file) or {"last_updated": None}
             
-            # Get the user info to remove all identifier mappings
-            internal_username = None
-            email = None
-            discord_user_id = None
-            phone = None
+            # Get the user info from account.json to find all identifier mappings
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account') or {}
             
-            if "users" in index_data and user_id in index_data["users"]:
-                user_info = index_data["users"][user_id]
-                internal_username = user_info.get("internal_username")
-                email = user_info.get("email")
-                discord_user_id = user_info.get("discord_user_id")
-                phone = user_info.get("phone")
-            
-            # Remove from detailed mapping
-            if "users" in index_data and user_id in index_data["users"]:
-                del index_data["users"][user_id]
+            internal_username = user_account.get('internal_username')
+            email = user_account.get('email')
+            discord_user_id = user_account.get('discord_user_id')
+            phone = user_account.get('phone')
             
             # Remove all identifier mappings
             if internal_username and internal_username in index_data:
@@ -833,9 +765,10 @@ class UserDataManager:
         """
         Rebuild the complete user index from scratch.
         
-        Creates a comprehensive multi-identifier structure:
-        - Fast lookups: {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
-        - Detailed mapping: {"users": {"UUID": {"internal_username": "...", "active": true, ...}}} for rich info
+        Creates flat lookup mappings for fast O(1) user lookups:
+        - {"internal_username": "UUID", "email:email": "UUID", "discord:discord_id": "UUID", "phone:phone": "UUID"}
+        
+        All detailed user data is stored in account.json, not duplicated in the index.
         
         Returns:
             bool: True if index was rebuilt successfully
@@ -849,23 +782,16 @@ class UserDataManager:
                 logger.warning("No users found during index rebuild")
                 return True
 
-            # Initialize hybrid structure
+            # Initialize flat lookup structure
             index_data = {
-                "users": {},
                 "last_updated": datetime.now().isoformat()
             }
             
             for user_id in user_ids:
                 if user_id:
-                    summary = self.get_user_data_summary(user_id)
-                    
-                    # Get user account, preferences, and context for additional info
+                    # Get user account for identifiers
                     user_data_result = get_user_data(user_id, 'account')
                     user_account = user_data_result.get('account') or {}
-                    prefs_result = get_user_data(user_id, 'preferences')
-                    user_preferences = prefs_result.get('preferences') or {}
-                    context_result = get_user_data(user_id, 'context')
-                    user_context = context_result.get('context') or {}
                     
                     # Get identifiers for fast lookups
                     internal_username = user_account.get('internal_username', '')
@@ -877,61 +803,20 @@ class UserDataManager:
                         logger.warning(f"No internal_username found for user {user_id}, skipping")
                         continue
                     
-                    # Determine enabled features
-                    enabled_features = []
-                    features = user_account.get('features', {})
-                    
-                    if features.get('automated_messages') == 'enabled':
-                        enabled_features.append('automated_messages')
-                        # Include categories only if automated messages are enabled
-                        categories = user_preferences.get('categories', [])
-                        enabled_features.extend(categories)
-                    
-                    if features.get('checkins') == 'enabled':
-                        enabled_features.append('checkins')
-                        
-                    if features.get('task_management') == 'enabled':
-                        enabled_features.append('task_management')
-                    
-                    # Get channel type
-                    channel_type = user_preferences.get('channel', {}).get('type', 'email')
-                    
-                    # Get last interaction (most recent activity)
-                    last_interaction = self._get_last_interaction(user_id)
-                    
-                    # Create detailed user info
-                    detailed_user_info = {
-                        "internal_username": internal_username,
-                        "active": user_account.get('account_status') == 'active',
-                        "channel_type": channel_type,
-                        "enabled_features": sorted(enabled_features),
-                        "last_interaction": last_interaction,
-                        "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                        "message_count": summary.get("total_messages", 0),
-                        "preferred_name": user_context.get('preferred_name', ''),
-                        "email": email,
-                        "discord_user_id": discord_user_id,
-                        "phone": phone,
-                        "created_at": user_account.get('created_at', '')
-                    }
-                    
                     # Add all identifier mappings for fast lookups
-                    # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
                     index_data[internal_username] = user_id
                     
-                    # Add new multi-identifier mappings
+                    # Add prefixed identifier mappings
                     if email:
                         index_data[f"email:{email}"] = user_id
                     if discord_user_id:
                         index_data[f"discord:{discord_user_id}"] = user_id
                     if phone:
                         index_data[f"phone:{phone}"] = user_id
-                    
-                    # Add detailed mapping for rich information
-                    index_data["users"][user_id] = detailed_user_info
             
             save_json_data(index_data, self.index_file)
-            logger.info(f"Rebuilt user index with {len(index_data['users'])} users")
+            user_count = len([uid for uid in user_ids if uid])
+            logger.info(f"Rebuilt user index with {user_count} users")
             return True
         except Exception as e:
             logger.error(f"Error rebuilding full user index: {e}")
@@ -971,32 +856,33 @@ class UserDataManager:
         if not query.strip():
             return []
         
-        # Load index
-        index_data = load_json_data(self.index_file) or {"users": {}, "last_updated": None}
-        users = index_data.get("users", {})
-        
-        if not users:
+        # Get all user IDs
+        user_ids = get_all_user_ids()
+        if not user_ids:
             return []
 
         matches = []
         
-        for user_id, user_info in users.items():
+        # Search through each user's account data
+        for user_id in user_ids:
+            user_data_result = get_user_data(user_id, 'account')
+            user_account = user_data_result.get('account') or {}
+            
             # Check if query matches any search fields
             match_found = False
             for field in search_fields:
-                field_value = str(user_info.get(field, "")).lower()
+                field_value = str(user_account.get(field, "")).lower()
                 if query.lower() in field_value:
                     match_found = True
                     break
             
             if match_found:
+                # Get full user summary for matched users
+                user_summary = self.get_user_data_summary(user_id)
                 matches.append({
                     "user_id": user_id,
-                    "profile": user_info,
-                    "summary": {
-                        "message_count": user_info.get("message_count", 0),
-                        "enabled_features": user_info.get("enabled_features", [])
-                    }
+                    "profile": user_account,
+                    "summary": user_summary
                 })
         
         return matches

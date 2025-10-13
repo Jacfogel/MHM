@@ -794,15 +794,9 @@ def _get_user_id_by_identifier__by_internal_username(internal_username: str) -> 
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = load_json_data(index_file) or {}
         
-        # Check simple mapping first (fastest)
+        # Check mapping (fast O(1) lookup)
         if internal_username in index_data:
             return index_data[internal_username]
-        
-        # Fallback: check detailed mapping
-        users = index_data.get("users", {})
-        for user_id, user_info in users.items():
-            if user_info.get("internal_username") == internal_username:
-                return user_id
                 
     except Exception as e:
         logger.warning(f"Error looking up user by internal_username '{internal_username}' in index: {e}")
@@ -833,16 +827,10 @@ def _get_user_id_by_identifier__by_email(email: str) -> Optional[str]:
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = load_json_data(index_file) or {}
         
-        # Check email mapping (fastest)
+        # Check email mapping (fast O(1) lookup)
         email_key = f"email:{email}"
         if email_key in index_data:
             return index_data[email_key]
-        
-        # Fallback: check detailed mapping
-        users = index_data.get("users", {})
-        for user_id, user_info in users.items():
-            if user_info.get("email") == email:
-                return user_id
                 
     except Exception as e:
         logger.warning(f"Error looking up user by email '{email}' in index: {e}")
@@ -873,16 +861,10 @@ def _get_user_id_by_identifier__by_phone(phone: str) -> Optional[str]:
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = load_json_data(index_file) or {}
         
-        # Check phone mapping (fastest)
+        # Check phone mapping (fast O(1) lookup)
         phone_key = f"phone:{phone}"
         if phone_key in index_data:
             return index_data[phone_key]
-        
-        # Fallback: check detailed mapping
-        users = index_data.get("users", {})
-        for user_id, user_info in users.items():
-            if user_info.get("phone") == phone:
-                return user_id
                 
     except Exception as e:
         logger.warning(f"Error looking up user by phone '{phone}' in index: {e}")
@@ -929,18 +911,10 @@ def _get_user_id_by_identifier__by_discord_user_id(discord_user_id: str) -> Opti
         index_file = str(Path(BASE_DATA_DIR) / "user_index.json")
         index_data = load_json_data(index_file) or {}
         
-        # Check discord mapping (fastest)
+        # Check discord mapping (fast O(1) lookup)
         discord_key = f"discord:{discord_user_id}"
         if discord_key in index_data:
             return index_data[discord_key]
-        
-        # Fallback: check detailed mapping
-        users = index_data.get("users", {})
-        for user_id, user_info in users.items():
-            stored_discord_id = user_info.get("discord_user_id", "")
-            # Handle both string and integer comparisons
-            if str(stored_discord_id) == str(discord_user_id):
-                return user_id
                 
     except Exception as e:
         logger.warning(f"Error looking up user by discord_user_id '{discord_user_id}' in index: {e}")
@@ -1353,16 +1327,6 @@ def get_user_id_by_identifier(identifier: str) -> Optional[str]:
         phone_key = f"phone:{identifier}"
         if phone_key in index_data:
             return index_data[phone_key]
-        
-        # Fallback: check detailed mapping
-        users = index_data.get("users", {})
-        for user_id, user_info in users.items():
-            # Check all identifier fields
-            if (user_info.get("internal_username") == identifier or
-                user_info.get("email") == identifier or
-                str(user_info.get("discord_user_id", "")) == str(identifier) or
-                user_info.get("phone") == identifier):
-                return user_id
                 
     except Exception as e:
         logger.warning(f"Error looking up user by identifier '{identifier}' in index: {e}")

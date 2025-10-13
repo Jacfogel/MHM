@@ -545,8 +545,20 @@ def _validate_system_state__validate_user_index() -> bool:
             logger.error("User index is not a dictionary")
             return False
         
-        # Check if all users in index have corresponding directories
-        for user_id in user_index.keys():
+        # Check if UUID values in index have corresponding directories
+        # Index now uses flat lookups: username/email/discord/phone → UUID
+        # Extract unique UUIDs from the index values
+        user_ids = set()
+        for key, value in user_index.items():
+            # Skip metadata keys
+            if key in ['last_updated']:
+                continue
+            # Check if value looks like a UUID (flat lookup mapping)
+            if isinstance(value, str) and len(value) > 20:
+                user_ids.add(value)
+        
+        # Verify each user ID has a directory
+        for user_id in user_ids:
             user_dir = os.path.join(core.config.USER_INFO_DIR_PATH, user_id)
             if not os.path.exists(user_dir):
                 logger.warning(f"User directory missing for indexed user: {user_id}")

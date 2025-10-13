@@ -537,40 +537,72 @@ class MHMManagerUI(QMainWindow):
         Returns:
             None: Always returns None
         """
-        """Refresh the user list in the combo box using user index"""
+        """Refresh the user list in the combo box by reading user account files"""
         try:
-            from core.user_data_manager import load_json_data
-            from core.config import BASE_DATA_DIR
-            
             # Remember the currently selected user
             current_user_id = self.current_user
             
-            # Load user index
-            index_file = os.path.join(core.config.BASE_DATA_DIR, "user_index.json")
-            index_data = load_json_data(index_file) or {}
+            # Get all user IDs from directories
+            user_ids = get_all_user_ids()
             
             self.ui.comboBox_users.clear()
             self.ui.comboBox_users.addItem("Select a user...")
             
-            # Get the users section (detailed user info)
-            users = index_data.get('users', {})
+            # Collect user data for sorting
+            users_data = []
+            for user_id in user_ids:
+                # Get user account, preferences, and context
+                user_data_result = get_user_data(user_id, ['account', 'preferences', 'context'])
+                user_account = user_data_result.get('account', {})
+                user_preferences = user_data_result.get('preferences', {})
+                user_context = user_data_result.get('context', {})
+                
+                if not user_account:
+                    continue
+                
+                # Skip inactive users
+                if user_account.get('account_status') != 'active':
+                    continue
+                
+                internal_username = user_account.get('internal_username', 'Unknown')
+                channel_type = user_preferences.get('channel', {}).get('type', 'unknown')
+                preferred_name = user_context.get('preferred_name', '')
+                
+                # Determine enabled features
+                features = user_account.get('features', {})
+                enabled_features = []
+                if features.get('automated_messages') == 'enabled':
+                    enabled_features.append('automated_messages')
+                    categories = user_preferences.get('categories', [])
+                    enabled_features.extend(categories)
+                if features.get('checkins') == 'enabled':
+                    enabled_features.append('checkins')
+                if features.get('task_management') == 'enabled':
+                    enabled_features.append('task_management')
+                
+                users_data.append({
+                    'user_id': user_id,
+                    'internal_username': internal_username,
+                    'preferred_name': preferred_name,
+                    'channel_type': channel_type,
+                    'enabled_features': enabled_features
+                })
             
             # Sort users by preferred name, then internal username
             sorted_users = sorted(
-                users.items(),
+                users_data,
                 key=lambda x: (
-                    x[1].get('preferred_name', '') or x[1].get('internal_username', ''),
-                    x[1].get('internal_username', '')
+                    x['preferred_name'] or x['internal_username'],
+                    x['internal_username']
                 )
             )
             
-            for user_id, user_info in sorted_users:
-                if not user_info.get('active', True):
-                    continue  # Skip inactive users
-                    
-                internal_username = user_info.get('internal_username', 'Unknown')
-                channel_type = user_info.get('channel_type', 'unknown')
-                enabled_features = user_info.get('enabled_features', [])
+            # Build display names and add to combo box
+            for user_data in sorted_users:
+                user_id = user_data['user_id']
+                internal_username = user_data['internal_username']
+                channel_type = user_data['channel_type']
+                enabled_features = user_data['enabled_features']
                 
                 # Build display name with channel type and features
                 feature_summary = []
@@ -592,7 +624,7 @@ class MHMManagerUI(QMainWindow):
                 
         except Exception as e:
             logger.error(f"Error refreshing user list: {e}")
-            # Fallback to directory scanning if index fails
+            # Minimal fallback to directory scanning
             try:
                 user_ids = get_all_user_ids()
                 self.ui.comboBox_users.clear()
