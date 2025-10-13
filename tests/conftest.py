@@ -469,6 +469,39 @@ class SessionLogRotationManager:
         return False
     
     
+    def _write_log_header(self, log_file: str, timestamp: str):
+        """Write a formatted header to a log file during rotation.
+        
+        Args:
+            log_file: Path to the log file
+            timestamp: Timestamp string to include in header
+        """
+        log_filename = Path(log_file).name
+        
+        if 'test_run' in log_filename:
+            header_text = (
+                f"{'='*80}\n"
+                f"# TEST RUN STARTED: {timestamp}\n"
+                f"# Test Execution Logging Active\n"
+                f"# Test execution and framework logs are captured here\n"
+                f"{'='*80}\n\n"
+            )
+        elif 'consolidated' in log_filename:
+            header_text = (
+                f"{'='*80}\n"
+                f"# TEST RUN STARTED: {timestamp}\n"
+                f"# Component Logging Active\n"
+                f"# Real component logs from application components are captured here\n"
+                f"{'='*80}\n\n"
+            )
+        else:
+            # Default header for other log files
+            header_text = f"# Log rotated at {timestamp}\n"
+        
+        # Use 'w' mode for rotation (creates new file)
+        with open(log_file, 'w', encoding='utf-8') as f:
+            f.write(header_text)
+    
     def rotate_all_logs(self):
         """Rotate all registered log files together to maintain continuity."""
         if not self.rotation_needed:
@@ -476,6 +509,7 @@ class SessionLogRotationManager:
             
         test_logger.info("Starting session-based log rotation for all log files")
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp_display = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         
         # Ensure backups directory exists
         backup_dir = Path(os.environ.get('LOG_BACKUP_DIR', 'tests/logs/backups'))
@@ -500,21 +534,52 @@ class SessionLogRotationManager:
                         shutil.copy2(log_file, backup_file)
                         test_logger.info(f"Copied {log_file} to {backup_file}")
                         
-                        # Truncate the original file instead of moving it
-                        with open(log_file, 'w', encoding='utf-8') as f:
-                            f.write(f"# Log rotated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                        # Truncate the original file and write formatted header
+                        self._write_log_header(log_file, timestamp_display)
                         test_logger.info(f"Truncated {log_file} after copy")
                         continue
                     
-                    # Create new empty log file (only if move succeeded)
-                    with open(log_file, 'w', encoding='utf-8') as f:
-                        f.write(f"# Log rotated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                    # Create new log file with formatted header (only if move succeeded)
+                    self._write_log_header(log_file, timestamp_display)
                         
             except (OSError, FileNotFoundError) as e:
                 test_logger.warning(f"Failed to rotate {log_file}: {e}")
         
         self.rotation_needed = False
         test_logger.info("Session-based log rotation completed")
+
+# Helper function for writing log headers
+def _write_test_log_header(log_file: str, timestamp: str):
+    """Write a formatted header to a test log file.
+    
+    Args:
+        log_file: Path to the log file
+        timestamp: Timestamp string to include in header (format: 'YYYY-MM-DD HH:MM:SS')
+    """
+    log_filename = Path(log_file).name
+    
+    if 'test_run' in log_filename:
+        header_text = (
+            f"\n{'='*80}\n"
+            f"# TEST RUN STARTED: {timestamp}\n"
+            f"# Test Execution Logging Active\n"
+            f"# Test execution and framework logs are captured here\n"
+            f"{'='*80}\n\n"
+        )
+    elif 'consolidated' in log_filename:
+        header_text = (
+            f"\n{'='*80}\n"
+            f"# TEST RUN STARTED: {timestamp}\n"
+            f"# Component Logging Active\n"
+            f"# Real component logs from application components are captured here\n"
+            f"{'='*80}\n\n"
+        )
+    else:
+        # Default header for other log files
+        header_text = f"# Log rotated at {timestamp}\n"
+    
+    with open(log_file, 'a', encoding='utf-8') as f:
+        f.write(header_text)
 
 # Global session rotation manager
 session_rotation_manager = SessionLogRotationManager()
@@ -610,21 +675,9 @@ def setup_consolidated_test_logging():
     from datetime import datetime
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-    # Write header to test_run.log
-    with open(test_run_log_file, 'a', encoding='utf-8') as f:
-        f.write(f"\n{'='*80}\n")
-        f.write(f"# TEST RUN STARTED: {timestamp}\n")
-        f.write(f"# Test Execution Logging Active\n")
-        f.write(f"# Test execution and framework logs are captured here\n")
-        f.write(f"{'='*80}\n\n")
-
-    # Write header to test_consolidated.log
-    with open(consolidated_log_file, 'a', encoding='utf-8') as f:
-        f.write(f"\n{'='*80}\n")
-        f.write(f"# TEST RUN STARTED: {timestamp}\n")
-        f.write(f"# Component Logging Active\n")
-        f.write(f"# Real component logs from application components are captured here\n")
-        f.write(f"{'='*80}\n\n")
+    # Write headers to both log files using the shared helper function
+    _write_test_log_header(str(test_run_log_file), timestamp)
+    _write_test_log_header(str(consolidated_log_file), timestamp)
 
     # Set up separate handlers for component logs vs test execution logs
     # Component logs go directly to test_consolidated.log (no test context)
@@ -990,18 +1043,15 @@ def log_lifecycle_maintenance():
 
 @pytest.fixture(scope="session", autouse=True)
 def session_log_rotation_check():
-    """Check for log rotation needs at session start and end."""
-    # Check if rotation is needed at session start and rotate immediately if needed
-    if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs()
+    """Perform final log cleanup at session end.
     
+    NOTE: Log rotation only happens at session START in setup_consolidated_test_logging.
+    This ensures rotation only occurs between test runs, never during an active session.
+    """
     yield
     
-    # Check if rotation is needed at session end and perform if necessary
-    if session_rotation_manager.check_rotation_needed():
-        session_rotation_manager.rotate_all_logs()
-    
     # Final cleanup: consolidate any remaining app.log and errors.log files
+    # Do NOT rotate here - that would cause mid-work rotation
     _consolidate_and_cleanup_main_logs()
 
 @pytest.fixture(scope="session", autouse=True)

@@ -8,6 +8,20 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-12 - Fixed Test Logging: Headers, Isolation, and Rotation **COMPLETED**
+- **Three Issues Fixed**: Test logs missing headers, tests polluting production directories, redundant rotation checks
+- **Root Causes**:
+  1. Log rotation overwrote formatted headers with simple messages
+  2. `ConversationFlowManager` used hardcoded `"data/conversation_states.json"` bypassing test isolation
+  3. `session_log_rotation_check` had redundant/inappropriate rotation checks
+- **Fixes**:
+  1. Created `_write_test_log_header()` helper; rotation now writes proper formatted headers
+  2. Updated `conversation_flow_manager.py` to use `os.path.join(BASE_DATA_DIR, "conversation_states.json")`
+  3. Removed redundant rotation checks; rotation ONLY at session start when files exceed 5MB
+- **Verification**: 1848 tests passed; production dirs NOT polluted; test dirs properly used; logs have proper headers
+- **Impact**: Test logs readable, tests isolated, rotation predictable
+- **Files**: tests/conftest.py, communication/message_processing/conversation_flow_manager.py
+
 ### 2025-10-11 - Fixed Two Critical Errors: AttributeError and Invalid File Path **COMPLETED**
 - **Critical Bugs Fixed**: 
   1. `get_active_schedules()` called with user_id string instead of schedules dict → `'str' object has no attribute 'items'` error

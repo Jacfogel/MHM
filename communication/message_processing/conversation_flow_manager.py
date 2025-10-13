@@ -80,7 +80,9 @@ class ConversationManager:
         # Store user states: { user_id: {"flow": FLOW_..., "state": int, "data": {}, "question_order": [] } }
         """Initialize the object."""
         self.user_states = {}
-        self._state_file = "data/conversation_states.json"
+        # Use BASE_DATA_DIR from config to respect test environment
+        from core.config import BASE_DATA_DIR
+        self._state_file = os.path.join(BASE_DATA_DIR, "conversation_states.json")
         self._load_user_states()
 
     def _load_user_states(self) -> None:

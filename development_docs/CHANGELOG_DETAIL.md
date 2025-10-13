@@ -17,6 +17,73 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-12 - Fixed Test Logging: Headers, Isolation, and Rotation **COMPLETED**
+
+**Context**: Investigation into test log issues revealed three interconnected problems:
+1. Test logs missing formatted headers - showing only `# Log rotated at [timestamp]`
+2. Tests writing to production `data/` and `logs/` directories instead of isolated test directories
+3. Test log rotation happening redundantly (both at session start and session end)
+
+**Problems Identified**:
+1. **Missing Headers**: Log rotation code overwrote formatted headers with simple rotation messages
+2. **Hardcoded Path**: `conversation_flow_manager.py` line 83 used hardcoded `"data/"` instead of `BASE_DATA_DIR` from config, bypassing test isolation
+3. **Redundant Rotation**: `session_log_rotation_check` fixture checked rotation at BOTH session start (redundant) and session end (inappropriate timing)
+
+**Goals**:
+- Restore formatted headers to test logs with 80-character separators and descriptive text
+- Ensure tests only write to test directories (`tests/data/`, `tests/logs/`)
+- Ensure log rotation only happens BETWEEN test runs (at session start), never during active sessions
+- Remove redundant rotation checks
+
+**Technical Changes**:
+
+1. **tests/conftest.py** (Test Log Headers & Rotation):
+   - Created `_write_test_log_header()` standalone helper function to generate formatted headers
+   - Updated `SessionLogRotationManager._write_log_header()` to write proper formatted headers during rotation
+   - Modified `setup_consolidated_test_logging` fixture to use the helper function for consistency
+   - Removed redundant rotation check at session START in `session_log_rotation_check` (line 1048)
+   - Removed inappropriate rotation check at session END in `session_log_rotation_check` (line 1054)
+   - Rotation now ONLY happens at session start in `setup_consolidated_test_logging` (line 748)
+   - Updated docstrings to clarify rotation timing policy
+   - Headers now include:
+     - 80-character separator line
+     - "TEST RUN STARTED" with timestamp
+     - Description of log type (Test Execution vs Component Logging)
+     - 80-character closing separator line
+
+2. **communication/message_processing/conversation_flow_manager.py** (Test Isolation):
+   - Changed `self._state_file = "data/conversation_states.json"` to use `BASE_DATA_DIR` from config
+   - Added import: `from core.config import BASE_DATA_DIR`
+   - Now uses: `self._state_file = os.path.join(BASE_DATA_DIR, "conversation_states.json")`
+   - This respects the test environment variable set in conftest.py (lines 114-116)
+
+**Root Cause Analysis**:
+- Log rotation ran after setup fixture wrote headers, overwriting them with simple messages
+- 8 test files import `CommunicationManager`, which instantiates `ConversationFlowManager`
+- The hardcoded path bypassed the test isolation setup in conftest.py
+- Duplicate rotation checks caused confusion about when rotation should occur
+
+**Documentation Updates**:
+- Updated CHANGELOG_DETAIL.md and AI_CHANGELOG.md
+- Added clarifying comments in code about rotation timing
+
+**Testing**:
+- Full test suite: 1848 passed, 1 skipped in 6m 30s ✅
+- Verified `test_run.log` shows "Test Execution Logging Active" header with proper formatting
+- Verified `test_consolidated.log` shows "Component Logging Active" header with proper formatting
+- Verified production `data/conversation_states.json` is NOT created during tests (False)
+- Verified test `tests/data/conversation_states.json` IS created during tests (True)
+- Confirmed rotation only happens at session start when files exceed 5MB
+- No production directory pollution detected
+
+**Impact**: 
+- Test logs now have proper formatted headers, making them readable and informative ✅
+- Tests properly isolated - no more production directory pollution ✅
+- Log rotation timing is predictable and only happens between test runs ✅
+- All tests pass with clean separation between test and production environments ✅
+
+---
+
 ### 2025-10-11 - Fixed Two Critical Errors: AttributeError and Invalid File Path **COMPLETED**
 
 **Context**: Error log showed two distinct issues:
