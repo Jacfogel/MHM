@@ -17,6 +17,92 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Added Unused Imports Detection Tool **COMPLETED**
+
+**Context**: Codebase had accumulated unused imports over time, reducing code clarity and potentially masking issues. Need systematic way to identify and track unused imports across the entire codebase.
+
+**Problem**: 
+- No automated way to detect unused imports
+- Unused imports reduce code readability
+- Manual detection is time-consuming and error-prone
+- Different types of unused imports need different handling (type hints, re-exports, conditional imports)
+
+**Solution**:
+- Created `unused_imports_checker.py` tool using pylint to detect unused imports
+- Integrated with AI tools pipeline for automatic reporting during audits
+- Categorizes findings: obvious unused, type hints only, re-exports, conditional imports, star imports
+- Generates detailed reports with line numbers and recommendations
+- Added to both fast and full audit workflows
+
+**Technical Changes**:
+- **New Tool**: `ai_development_tools/unused_imports_checker.py`
+  - Uses pylint with `--disable=all --enable=unused-import` flags
+  - Follows standard_exclusions.py patterns for file filtering
+  - Excludes scripts/ directory, includes tests/
+  - Returns structured JSON data for integration
+  - Categorizes findings for better cleanup planning
+
+- **Integration**: `ai_development_tools/services/operations.py`
+  - Added to SCRIPT_REGISTRY
+  - Created `run_unused_imports_checker()` method with JSON handling
+  - Created `run_unused_imports_report()` command method
+  - Integrated into `_run_contributing_tools()` and `_run_essential_tools_only()`
+  - Added sections to AI_STATUS.md generation
+  - Added sections to AI_PRIORITIES.md generation  
+  - Added section to consolidated_report.txt generation
+  - Registered `unused-imports` command in COMMAND_REGISTRY
+
+- **Cursor Commands Updated**:
+  - `.cursor/commands/audit.md` - Added unused imports to response template
+  - `.cursor/commands/docs.md` - Added UNUSED_IMPORTS_REPORT.md to inspection list
+  - `.cursor/commands/status.md` - Added unused imports to status response template
+
+- **Documentation Updates**:
+  - `DOCUMENTATION_GUIDE.md` - Added UNUSED_IMPORTS_REPORT.md to Known Generated Files
+  - `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - Added to prioritized generated files
+  - `ai_development_tools/README.md` - Added unused-imports to commands and outputs
+
+**Initial Scan Results**:
+- Files scanned: 200
+- Files with unused imports: 175  
+- Total unused imports found: 954
+- Breakdown: 951 obvious unused, 3 conditional imports, 0 type hints only, 0 re-exports, 0 star imports
+
+**Files Created**:
+- `ai_development_tools/unused_imports_checker.py` - Main detection tool
+- `development_docs/UNUSED_IMPORTS_REPORT.md` - Generated findings report
+
+**Files Modified**:
+- `ai_development_tools/services/operations.py` - Integration and command registration
+- `.cursor/commands/audit.md` - Response template update
+- `.cursor/commands/docs.md` - Inspection list update
+- `.cursor/commands/status.md` - Response template update
+- `DOCUMENTATION_GUIDE.md` - Generated files list
+- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` - Generated files list
+- `ai_development_tools/README.md` - Commands and outputs documentation
+
+**Testing**:
+- ✓ Tool successfully scans all Python files (excluding scripts/)
+- ✓ Report generated with proper formatting and standard header
+- ✓ Categorization working correctly
+- ✓ Integration with AI tools pipeline confirmed
+- ✓ Command registered and accessible via ai_tools_runner.py
+- ✓ Progress updates working (every 10 files, shows percentage and files with issues)
+
+**User Experience Enhancement**:
+- Added progress updates every 10 files during scan
+- Shows: file count (e.g., "10/200"), percentage complete, and live results
+- Format: `[PROGRESS] Scanning files... {count}/{total} ({percent}%) - {issues} files with issues found`
+- Prevents user from thinking tool has frozen during long scans
+
+**Next Steps**:
+- Review report findings to identify cleanup priorities
+- Determine which imports are truly unused vs. false positives
+- Create cleanup strategy based on categorization
+- Execute cleanup in phases (obvious first, then review conditional/type hints)
+
+---
+
 ### 2025-10-13 - Consolidated Legacy Daily Checkin Files **COMPLETED**
 
 **Context**: User data directory contained two separate checkin files: `daily_checkins.json` (33 entries from June-August 2025) and `checkins.json` (21 entries from August-October 2025). This was a legacy structure from an old format where daily check-ins were stored separately.

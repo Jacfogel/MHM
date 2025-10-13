@@ -8,6 +8,31 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Added Unused Imports Detection Tool
+
+**What Changed**: Created automated tool to detect and categorize unused imports across codebase
+
+**Key Points**:
+- New tool: `ai_development_tools/unused_imports_checker.py` using pylint
+- Integrated into audit pipeline (both fast and full modes)
+- Command: `python ai_development_tools/ai_tools_runner.py unused-imports`
+- Categorizes: obvious unused, type hints, re-exports, conditional imports, star imports
+- Generated report: `development_docs/UNUSED_IMPORTS_REPORT.md`
+
+**Initial Scan**: 954 unused imports in 175 files (951 obvious, 3 conditional)
+
+**Integration Points**:
+- AI_STATUS.md includes "Unused Imports Status" section
+- AI_PRIORITIES.md includes "Unused Imports Priorities" section
+- consolidated_report.txt includes "UNUSED IMPORTS STATUS" section
+- Cursor commands updated: audit.md, docs.md, status.md
+
+**Files**: unused_imports_checker.py (new), services/operations.py, cursor commands, documentation guides
+
+**UX Enhancement**: Progress updates every 10 files - shows count, percentage, and live issue count to prevent confusion about tool freezing
+
+---
+
 ### 2025-10-13 - Consolidated Legacy Daily Checkin Files **COMPLETED**
 - **Problem Fixed**: User had two separate checkin files (daily_checkins.json + checkins.json) from legacy format
 - **Solution**: Merged 33 entries from daily_checkins.json into checkins.json, sorted chronologically, deleted legacy file

@@ -97,7 +97,7 @@
 
 ### Known Generated Files
 - Reference the full generated-file roster in `../DOCUMENTATION_GUIDE.md`.
-- Prioritise these when responding: `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `development_docs/DIRECTORY_TREE.md`.
+- Prioritise these when responding: `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `development_docs/DIRECTORY_TREE.md`, `development_docs/UNUSED_IMPORTS_REPORT.md`.
 
 ## Resources
 - `.cursor/rules/` for governing policies.

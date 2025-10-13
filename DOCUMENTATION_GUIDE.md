@@ -147,6 +147,7 @@ Every generated file must open with:
 - `development_docs/FUNCTION_REGISTRY_DETAIL.md`
 - `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
+- `development_docs/UNUSED_IMPORTS_REPORT.md`
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
 

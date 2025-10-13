@@ -23,6 +23,7 @@ python ai_development_tools/ai_tools_runner.py help
 - `status` - print a concise status snapshot
 - `docs` - regenerate documentation artefacts
 - `legacy` - scan for legacy references
+- `unused-imports` - detect unused imports in codebase
 - `coverage` - refresh coverage metrics
 
 ## Main Entry Point
@@ -38,6 +39,7 @@ Available sub-commands include:
 - `doc-sync`
 - `validate`
 - `legacy`
+- `unused-imports`
 - `version-sync <scope>`
 - `coverage`
 - `workflow <task_type>`
@@ -55,6 +57,7 @@ The audit workflow produces:
 - `ai_development_tools/AI_PRIORITIES.md`
 - `ai_development_tools/consolidated_report.txt`
 - `ai_development_tools/ai_audit_detailed_results.json`
+- `development_docs/UNUSED_IMPORTS_REPORT.md`
 
 ## Key Scripts
 - `function_discovery.py`, `decision_support.py`, `audit_function_registry.py`, `audit_module_dependencies.py`

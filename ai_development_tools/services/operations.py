@@ -34,6 +34,7 @@ SCRIPT_REGISTRY = {
     'legacy_reference_cleanup': 'legacy_reference_cleanup.py',
     'quick_status': 'quick_status.py',
     'regenerate_coverage_metrics': 'regenerate_coverage_metrics.py',
+    'unused_imports_checker': 'unused_imports_checker.py',
     'validate_ai_work': 'validate_ai_work.py',
     'version_sync': 'version_sync.py'
 }
@@ -226,6 +227,57 @@ class AIToolsService:
         else:
             lowered = output.lower() if isinstance(output, str) else ''
             if 'missing error handling' in lowered or 'coverage' in lowered:
+                result['issues_found'] = True
+                result['success'] = True
+                result['error'] = ''
+        return result
+    
+    def run_unused_imports_checker(self) -> Dict:
+        """Run unused_imports_checker with structured JSON handling."""
+        # Use longer timeout for this script (10 minutes) as it runs pylint on many files
+        script_path = Path(__file__).resolve().parent.parent / 'unused_imports_checker.py'
+        cmd = [sys.executable, str(script_path), '--json']
+        try:
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=600  # 10 minute timeout for pylint operations
+            )
+            result = {
+                'success': result_proc.returncode == 0,
+                'output': result_proc.stdout,
+                'error': result_proc.stderr,
+                'returncode': result_proc.returncode
+            }
+        except subprocess.TimeoutExpired:
+            return {
+                'success': False,
+                'output': '',
+                'error': 'Unused imports checker timed out after 10 minutes',
+                'returncode': None,
+                'issues_found': False
+            }
+        
+        output = result.get('output', '')
+        data = None
+        if output:
+            try:
+                data = json.loads(output)
+            except json.JSONDecodeError:
+                data = None
+        if data is not None:
+            result['data'] = data
+            self.results_cache['unused_imports'] = data
+            # Check for issues
+            total_unused = data.get('total_unused', 0)
+            result['issues_found'] = total_unused > 0
+            result['success'] = True
+            result['error'] = ''
+        else:
+            lowered = output.lower() if isinstance(output, str) else ''
+            if 'unused import' in lowered:
                 result['issues_found'] = True
                 result['success'] = True
                 result['error'] = ''
@@ -549,6 +601,41 @@ class AIToolsService:
             print("\nLegacy reference scan completed!")
             return True
         return False
+    
+    def run_unused_imports_report(self):
+        """Run unused imports checker and generate report"""
+        print("Running unused imports checker...")
+        # Use longer timeout for this script (10 minutes) as it runs pylint on many files
+        script_path = Path(__file__).resolve().parent.parent / 'unused_imports_checker.py'
+        cmd = [sys.executable, str(script_path)]
+        try:
+            result_proc = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=str(self.project_root),
+                timeout=600  # 10 minute timeout for pylint operations
+            )
+            result = {
+                'success': result_proc.returncode == 0,
+                'output': result_proc.stdout,
+                'error': result_proc.stderr,
+                'returncode': result_proc.returncode
+            }
+        except subprocess.TimeoutExpired:
+            print("Error: Unused imports checker timed out after 10 minutes")
+            return False
+        
+        if result['success']:
+            print(result['output'])
+            print("\nUnused imports scan completed!")
+            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+            if report_path.exists():
+                print(f"Report saved to: {report_path}")
+            return True
+        else:
+            print(f"Error: {result.get('error', 'Unknown error')}")
+            return False
     def generate_directory_trees(self):
         """Generate directory trees for documentation"""
         print("Generating directory trees...")
@@ -1200,6 +1287,27 @@ class AIToolsService:
         else:
             lines.append("- **Legacy References**: Run legacy cleanup to refresh metrics")
         lines.append("")
+        
+        # Unused Imports status
+        lines.append("## Unused Imports Status")
+        unused_imports_data = self.results_cache.get('unused_imports', {})
+        if unused_imports_data:
+            files_scanned = unused_imports_data.get('files_scanned', 0)
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            total_unused = unused_imports_data.get('total_unused', 0)
+            status = unused_imports_data.get('status', 'UNKNOWN')
+            
+            lines.append(f"- **Total Files Scanned**: {files_scanned} files")
+            lines.append(f"- **Files with Unused Imports**: {files_with_issues} files")
+            lines.append(f"- **Total Unused Imports**: {total_unused} imports")
+            lines.append(f"- **Status**: {status}")
+            
+            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+            if report_path.exists():
+                lines.append(f"- **Detailed Report**: {report_path}")
+        else:
+            lines.append("- **Unused Imports**: Run unused-imports checker to refresh metrics")
+        lines.append("")
 
         # Validation status
         lines.append("## Validation Status")
@@ -1350,6 +1458,39 @@ class AIToolsService:
             lines.append("- **Legacy References**: Review consolidated_report.txt for outstanding items")
             lines.append("- **Modernization**: Update legacy patterns to current standards")
         lines.append("")
+        
+        lines.append("## Unused Imports Priorities")
+        unused_imports_data = self.results_cache.get('unused_imports', {})
+        if unused_imports_data:
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            total_unused = unused_imports_data.get('total_unused', 0)
+            status = unused_imports_data.get('status', 'UNKNOWN')
+            by_category = unused_imports_data.get('by_category', {})
+            
+            if total_unused == 0:
+                lines.append("- **Unused Imports**: **CLEAN** (0 unused imports)")
+            else:
+                lines.append(f"- **Unused Imports**: **{status}** ({files_with_issues} files with {total_unused} total imports)")
+            
+            if by_category:
+                obvious = by_category.get('obvious_unused', 0)
+                if obvious > 0:
+                    lines.append(f"- **Obvious Cases**: {obvious} imports can be safely removed")
+                
+                type_hints = by_category.get('type_hints_only', 0)
+                if type_hints > 0:
+                    lines.append(f"- **Type Hints**: {type_hints} imports used only in type annotations")
+                
+                re_exports = by_category.get('re_exports', 0)
+                if re_exports > 0:
+                    lines.append(f"- **Re-exports**: {re_exports} imports in __init__.py files (needs review)")
+            
+            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+            if report_path.exists():
+                lines.append(f"- **Detailed Report**: {report_path}")
+        else:
+            lines.append("- **Unused Imports**: Run unused-imports checker to establish cleanup priorities")
+        lines.append("")
 
         lines.append("## Coverage Priorities")
         if hasattr(self, 'coverage_results') and self.coverage_results:
@@ -1463,6 +1604,17 @@ class AIToolsService:
                 print("  - Legacy-cleanup completed with reported issues")
         except Exception as e:
             print(f"  - Legacy-cleanup failed: {e}")
+        
+        # Run unused-imports checker to contribute to AI_STATUS.md and AI_PRIORITIES.md
+        try:
+            print("  - Running unused-imports checker for code quality...")
+            result = self.run_unused_imports_checker()
+            if result.get('issues_found'):
+                print("  - Unused imports checker completed (found issues to address)")
+            else:
+                print("  - Unused imports checker completed (no issues found)")
+        except Exception as e:
+            print(f"  - Unused imports checker failed: {e}")
 
         # Run validate-work to contribute to AI_STATUS.md
         try:
@@ -1547,6 +1699,16 @@ class AIToolsService:
                 print("  - Legacy-cleanup completed with reported issues")
         except Exception as e:
             print(f"  - Legacy-cleanup failed: {e}")
+        
+        try:
+            print("  - Running unused-imports checker for code quality...")
+            result = self.run_unused_imports_checker()
+            if result.get('issues_found'):
+                print("  - Unused imports checker completed (found issues to address)")
+            else:
+                print("  - Unused imports checker completed (no issues found)")
+        except Exception as e:
+            print(f"  - Unused imports checker failed: {e}")
 
         try:
             print("  - Running validate-work for validation status...")
@@ -1795,6 +1957,40 @@ class AIToolsService:
         else:
             lines.append("Legacy reference cleanup scan completed.")
             lines.append("Status: Legacy code patterns identified and documented.")
+        lines.append("")
+        
+        # Unused Imports Status
+        lines.append("## UNUSED IMPORTS STATUS")
+        lines.append("=" * 80)
+        lines.append("UNUSED IMPORTS DETECTION REPORT")
+        lines.append("=" * 80)
+        unused_imports_data = self.results_cache.get('unused_imports', {})
+        if unused_imports_data:
+            files_scanned = unused_imports_data.get('files_scanned', 0)
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            total_unused = unused_imports_data.get('total_unused', 0)
+            by_category = unused_imports_data.get('by_category', {})
+            
+            lines.append(f"Unused imports scan completed. Files with issues: {files_with_issues}")
+            lines.append(f"Total unused imports: {total_unused}")
+            
+            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
+            if report_path.exists():
+                lines.append(f"Report saved to: {report_path}")
+            
+            lines.append("")
+            lines.append("Unused Imports Summary:")
+            lines.append(f"   Files Scanned: {files_scanned}")
+            lines.append(f"   Files with Unused Imports: {files_with_issues}")
+            lines.append(f"   Total Unused Imports: {total_unused}")
+            if by_category:
+                lines.append("   By Category:")
+                for category, count in by_category.items():
+                    category_name = category.replace('_', ' ').title()
+                    lines.append(f"      - {category_name}: {count}")
+        else:
+            lines.append("Unused imports scan completed.")
+            lines.append("Status: Run unused-imports checker for detailed analysis.")
         lines.append("")
 
         # Validation Status
@@ -2241,6 +2437,17 @@ def _legacy_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     return 0 if success else 1
 
 
+def _unused_imports_command(service: "AIToolsService", argv: Sequence[str]) -> int:
+    if argv:
+        if any(arg not in ('-h', '--help') for arg in argv):
+            print("The 'unused-imports' command does not accept additional arguments.")
+            return 2
+        print("Usage: unused-imports")
+        return 0
+    success = service.run_unused_imports_report()
+    return 0 if success else 1
+
+
 def _trees_command(service: "AIToolsService", argv: Sequence[str]) -> int:
     if argv:
         if any(arg not in ('-h', '--help') for arg in argv):
@@ -2272,6 +2479,7 @@ COMMAND_REGISTRY = OrderedDict([
     ('doc-sync', CommandRegistration('doc-sync', _doc_sync_command, 'Check documentation synchronisation.')),
     ('coverage', CommandRegistration('coverage', _coverage_command, 'Regenerate coverage metrics.')),
     ('legacy', CommandRegistration('legacy', _legacy_command, 'Scan for legacy references.')),
+    ('unused-imports', CommandRegistration('unused-imports', _unused_imports_command, 'Detect unused imports in codebase.')),
     ('trees', CommandRegistration('trees', _trees_command, 'Generate directory tree reports.')),
     ('help', CommandRegistration('help', _show_help_command, 'Show detailed help information.')),
 ])

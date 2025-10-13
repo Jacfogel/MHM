@@ -23,6 +23,7 @@ Refresh generated documentation assets and verify that version metadata stays in
    - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
    - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
    - `development_docs/DIRECTORY_TREE.md`
+   - `development_docs/UNUSED_IMPORTS_REPORT.md`
    - `ai_development_tools/consolidated_report.txt`
 
 Cross-reference `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` for pairing expectations and formatting standards.
