@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import json
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 import sys
 
@@ -19,7 +18,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from ai_development_tools.services.common import (
     ProjectPaths,
     ensure_ascii,
-    iter_markdown_files,
     load_text,
     run_cli,
     summary_block,

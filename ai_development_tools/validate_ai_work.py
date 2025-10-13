@@ -4,13 +4,10 @@ Validation script for AI-generated work.
 Helps verify completeness and accuracy before presenting to user.
 """
 
-import os
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-import json
-import config
+from typing import Dict, List
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""

@@ -8,9 +8,7 @@ This prevents manual maintenance issues and ensures consistency.
 
 import os
 import re
-import json
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import config
 

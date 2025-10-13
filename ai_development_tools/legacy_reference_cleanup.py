@@ -23,14 +23,12 @@ legacy patterns, follow these requirements:
 6. See .cursor/rules/critical.mdc for complete legacy code standards
 """
 
-import os
 import re
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Tuple
 from collections import defaultdict
 import sys
-from pathlib import Path
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent

@@ -10,7 +10,7 @@ import sys
 import json
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import config
 

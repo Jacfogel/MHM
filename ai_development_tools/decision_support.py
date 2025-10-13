@@ -7,13 +7,12 @@ Highlights high-complexity functions, undocumented handlers, duplicate names, an
 
 import sys
 from pathlib import Path
-import importlib.util
 import ast
 
 # Import config and standard exclusions
 sys.path.insert(0, str(Path(__file__).parent))
 import config
-from standard_exclusions import get_analysis_exclusions, should_exclude_file
+from standard_exclusions import should_exclude_file
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES

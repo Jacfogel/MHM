@@ -9,14 +9,12 @@ Usage:
     python ai_tools/regenerate_coverage_metrics.py [--update-plan] [--output-file]
 """
 
-import os
 import re
 import subprocess
 import argparse
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 import sys
-from pathlib import Path
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent

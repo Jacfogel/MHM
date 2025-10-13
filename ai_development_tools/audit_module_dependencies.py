@@ -4,12 +4,10 @@ Audit script to verify MODULE_DEPENDENCIES_DETAIL.md completeness and accuracy.
 Scans all .py files and extracts import information for comparison.
 """
 
-import os
 import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-import json
+from typing import Dict, List
 import config
 from standard_exclusions import should_exclude_file
 from services.constants import (

@@ -11,14 +11,13 @@ from pathlib import Path
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.error_handling import handle_errors
-from typing import Dict, List, Set
-import importlib.util
+from typing import Dict, List
 import sys
 
 # Import config and standard exclusions
 sys.path.insert(0, str(Path(__file__).parent))
 import config
-from standard_exclusions import get_analysis_exclusions, should_exclude_file
+from standard_exclusions import should_exclude_file
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES

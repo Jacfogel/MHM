@@ -6,12 +6,8 @@ Provides specific guidance on when to use each audit tool and how to interpret t
 This helps AI assistants make better decisions about which tools to use and how to understand results.
 """
 
-import os
 import sys
 import subprocess
-import json
-from pathlib import Path
-import config
 
 # Tool configurations with usage guidance
 TOOL_GUIDE = {

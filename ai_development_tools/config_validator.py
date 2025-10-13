@@ -6,11 +6,9 @@ This tool validates that all AI tools are using the centralized configuration
 and checks for configuration consistency and completeness.
 """
 
-import os
-import ast
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List
 import json
 from datetime import datetime
 

@@ -10,12 +10,9 @@ Specifically designed for the MHM mental health assistant project, it understand
 the project's patterns for handlers, utilities, and core functionality.
 """
 
-import os
 import ast
-import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-import json
+from typing import Dict, List
 from datetime import datetime
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:

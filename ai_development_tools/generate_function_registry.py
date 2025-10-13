@@ -5,12 +5,9 @@ Scans all .py files and creates comprehensive function documentation.
 Enhanced with automatic template generation for various function types.
 """
 
-import os
 import ast
-import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any
-import json
+from typing import Dict, List, Any
 from datetime import datetime
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:

@@ -12,14 +12,12 @@ Integration:
     python ai_development_tools/ai_tools_runner.py unused-imports
 """
 
-import os
 import sys
-import re
 import subprocess
 import argparse
 import json
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Optional
 from collections import defaultdict
 from datetime import datetime
 
@@ -28,7 +26,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from ai_development_tools.standard_exclusions import should_exclude_file, get_exclusions
+    from ai_development_tools.standard_exclusions import should_exclude_file
     from core.logger import get_component_logger
     logger = get_component_logger(__name__)
 except ImportError:

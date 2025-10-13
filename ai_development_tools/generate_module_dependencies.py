@@ -4,12 +4,9 @@ Generate and update MODULE_DEPENDENCIES_DETAIL.md automatically.
 Scans all .py files and creates comprehensive module dependency documentation.
 """
 
-import os
 import ast
-import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple, Any
-import json
+from typing import Dict, List, Any
 from datetime import datetime
 from ai_development_tools.services.common import ensure_ascii
 from ai_development_tools.services.constants import (

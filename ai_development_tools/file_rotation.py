@@ -15,7 +15,6 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from core.logger import BackupDirectoryRotatingFileHandler
     from core.logger import get_component_logger
     logger = get_component_logger(__name__)
 except ImportError:

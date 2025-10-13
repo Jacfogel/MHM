@@ -12,15 +12,12 @@ Usage:
     python ai_tools/documentation_sync_checker.py [--check] [--fix] [--generate-trees]
 """
 
-import os
 import re
-import json
 import argparse
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 from collections import defaultdict
 import sys
-from pathlib import Path
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -34,7 +31,7 @@ except ImportError:
     logger = None
 
 try:
-    from ai_development_tools.standard_exclusions import should_exclude_file, get_documentation_exclusions
+    from ai_development_tools.standard_exclusions import should_exclude_file
 except ImportError:
     # Fallback if standard_exclusions not available
     def should_exclude_file(file_path: str, tool_type: str = None, context: str = 'development') -> bool:
