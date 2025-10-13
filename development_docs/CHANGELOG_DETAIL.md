@@ -17,6 +17,69 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Automated Weekly Backup System **COMPLETED**
+
+**Context**: Investigation revealed that the `data/backups` directory was empty because backups were never being created automatically. While the `BackupManager` class existed with full functionality, it was only being used for manual backups (which had no UI integration) and for safety backups before restore operations.
+
+**Problem**: User data (profiles, schedules, tasks, check-ins, preferences) was not being backed up automatically, creating a risk of data loss for a personal mental health assistant where data is valuable and personal.
+
+**Goals**:
+- Implement automatic weekly backups of user data and configuration files
+- Run backups during daily scheduler job (at 01:00, before log archival at 02:00)
+- Use check-based system (creates backup if last backup is 7+ days old) instead of fixed weekly schedule
+- Keep last 10 backups with 30-day retention (already configured in BackupManager)
+- Include user data and config files, exclude logs from backups
+
+**Technical Changes**:
+
+1. **core/scheduler.py** (Backup Integration):
+   - Added `from core.backup_manager import backup_manager` import
+   - Created `check_and_perform_weekly_backup()` method to check if backup is needed
+   - Method checks existing backups via `backup_manager.list_backups()`
+   - Creates backup if: no backups exist OR last backup is 7+ days old
+   - Integrated backup check into `run_full_daily_scheduler()` method (runs at 01:00 daily)
+   - Backup check runs BEFORE job clearing to ensure it happens before archival at 02:00
+   - Updated scheduler initialization to mention backup checks in daily job
+   - Removed fixed Sunday at 03:00 backup schedule in favor of flexible check-based approach
+   - Backups use format: `weekly_backup_YYYYMMDD_HHMMSS.zip`
+   - Backup includes: `include_users=True`, `include_config=True`, `include_logs=False`
+
+2. **BackupManager Integration**:
+   - Uses existing `BackupManager` class from `core/backup_manager.py`
+   - Leverages existing cleanup logic (max 10 backups, 30-day retention)
+   - Backup files stored in `data/backups/` directory
+   - Each backup includes manifest.json with metadata (backup name, created timestamp, includes flags)
+
+**Documentation Updates**:
+
+1. **QUICK_REFERENCE.md**:
+   - Added `data/backups/` to key file locations section
+   - Expanded "Create a Backup" section to "Backups" with three subsections:
+     - Automatic Backups description (weekly, check-based, retention policy)
+     - Manual Project Backup for development
+     - View Existing Backups command
+
+2. **ai_development_docs/AI_REFERENCE.md**:
+   - Added backup data flow pattern: `Automated weekly (daily check at 01:00) → data/backups/ (10 backups, 30-day retention)`
+   - Added backup info to Common Issues section
+
+**Testing**:
+- Verified backup creation by calling `check_and_perform_weekly_backup()` directly
+- Confirmed backup file created in `data/backups/` directory
+- Verified backup contains 48 files (46 user files, 1 config file, 1 manifest)
+- Confirmed manifest includes correct metadata (backup name, timestamp, includes flags)
+- Verified backup check logic doesn't create duplicate backups when recent backup exists
+- Confirmed no linter errors in modified files
+
+**Files Changed**:
+- `core/scheduler.py` - Added backup check integration (60 lines added/modified)
+- `QUICK_REFERENCE.md` - Updated backup documentation
+- `ai_development_docs/AI_REFERENCE.md` - Added backup patterns
+
+**User Impact**: User data is now automatically backed up weekly (checked daily at 01:00), providing protection against data loss with minimal storage footprint (10 backups maximum, 30-day retention). Backup runs before log archival to ensure data is protected before any cleanup operations.
+
+---
+
 ### 2025-10-12 - Fixed Test Logging: Headers, Isolation, and Rotation **COMPLETED**
 
 **Context**: Investigation into test log issues revealed three interconnected problems:

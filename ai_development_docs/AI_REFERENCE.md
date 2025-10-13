@@ -63,11 +63,13 @@
 - **User Data**: `data/users/{user_id}/` → `core/user_data_handlers.py` → UI/CommunicationManager
 - **Messages**: `resources/default_messages/` → `data/users/{user_id}/messages/`
 - **Configuration**: `.env` → `core/config.py` → Application
+- **Backups**: Automated weekly (daily check at 01:00) → `data/backups/` (10 backups, 30-day retention)
 
 ### **Common Issues**
 - **Data Access**: Use `get_user_data()` handler only
 - **UI Integration**: Use proper data handlers, not direct file manipulation
 - **Configuration**: Use `core/config.py` for all configuration
+- **Backups**: Automatic weekly backups via scheduler (checks at 01:00 daily, creates if 7+ days old)
 
 ## 📊 **Success Metrics**
 

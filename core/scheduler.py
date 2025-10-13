@@ -19,6 +19,7 @@ from core.error_handling import (
     error_handler, SchedulerError, CommunicationError, handle_errors
 )
 from core.user_data_handlers import get_user_data
+from core.backup_manager import backup_manager
 
 # Suppress debug logging from the schedule library to reduce log spam
 from core.logger import suppress_noisy_logging
@@ -57,9 +58,9 @@ class SchedulerManager:
                 logger.info("Scheduled new daily job for log archival at 02:00")
                 
                 # Schedule a single full daily scheduler job at 01:00 to handle complete system initialization
-                # This ensures checkins, task reminders, and full cleanup happen daily
+                # This ensures checkins, task reminders, full cleanup, and weekly backups (if needed) happen daily
                 schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
-                logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, and full cleanup)")
+                logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)")
                 
                 # Schedule messages for all users immediately on startup (one-time only)
                 self.schedule_all_users_immediately()
@@ -331,9 +332,12 @@ class SchedulerManager:
     def run_full_daily_scheduler(self):
         """
         Runs the full daily scheduler process - same as system startup.
-        This includes clearing accumulated jobs, scheduling all users, checkins, and task reminders.
+        This includes clearing accumulated jobs, scheduling all users, checkins, task reminders, and checking for weekly backups.
         """
         logger.info("Running full daily scheduler process (01:00 daily job)")
+        
+        # Check if weekly backup is needed (before everything else, so it runs before archival at 02:00)
+        self.check_and_perform_weekly_backup()
         
         # Clear all accumulated jobs first to prevent job accumulation
         self.clear_all_accumulated_jobs()
@@ -347,7 +351,7 @@ class SchedulerManager:
         
         # Schedule the next day's full daily scheduler job at 01:00
         schedule.every().day.at("01:00").do(self.run_full_daily_scheduler)
-        logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, and full cleanup)")
+        logger.info("Scheduled full daily scheduler job at 01:00 (includes checkins, task reminders, cleanup, and backup check)")
         
         # Log job count after daily job scheduling
         active_jobs = len(schedule.jobs)
@@ -1257,6 +1261,57 @@ class SchedulerManager:
             
         except Exception as e:
             logger.error(f"Error during daily log archival: {e}")
+
+    @handle_errors("checking and performing weekly backup")
+    def check_and_perform_weekly_backup(self):
+        """
+        Check if a weekly backup is needed and perform it if so.
+        Runs during the daily scheduler job at 01:00 (before log archival at 02:00).
+        Creates a backup if:
+        - No backups exist, OR
+        - Last backup is 7+ days old
+        Keeps last 10 backups with 30-day retention as configured in BackupManager.
+        """
+        try:
+            # Get list of existing backups
+            backups = backup_manager.list_backups()
+            
+            # Check if backup is needed
+            needs_backup = False
+            
+            if not backups:
+                logger.info("No existing backups found - creating first backup")
+                needs_backup = True
+            else:
+                # Get the most recent backup (list is sorted newest first)
+                last_backup = backups[0]
+                last_backup_time = datetime.fromisoformat(last_backup['created_at'])
+                days_since_backup = (datetime.now() - last_backup_time).days
+                
+                if days_since_backup >= 7:
+                    logger.info(f"Last backup was {days_since_backup} days ago - creating new backup")
+                    needs_backup = True
+                else:
+                    logger.debug(f"Backup not needed - last backup was {days_since_backup} days ago")
+            
+            # Create backup if needed
+            if needs_backup:
+                logger.info("Starting weekly backup process")
+                
+                backup_path = backup_manager.create_backup(
+                    backup_name=f"weekly_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                    include_users=True,
+                    include_config=True,
+                    include_logs=False
+                )
+                
+                if backup_path:
+                    logger.info(f"Weekly backup completed successfully: {backup_path}")
+                else:
+                    logger.error("Weekly backup failed - no backup path returned")
+            
+        except Exception as e:
+            logger.error(f"Error during weekly backup check: {e}")
 
     # Task reminders are now managed consistently with other jobs
     # No special cleanup function needed - they're handled by the main scheduler cleanup

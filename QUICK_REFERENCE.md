@@ -63,6 +63,7 @@ For a complete, up-to-date command list and examples, see `communication/communi
 - `data/users/` - User profiles and preferences
 - `data/users/{user_id}/messages/` - Per-user custom messages by category
 - `data/users/{user_id}/messages/sent_messages.json` - Per-user message history
+- `data/backups/` - Automatic weekly backups (created when last backup is 7+ days old)
 - `app.log` - Application logs
 
 ### Configuration
@@ -72,10 +73,19 @@ For a complete, up-to-date command list and examples, see `communication/communi
 
 ## 🔧 Common Tasks
 
-### Create a Backup
+### Backups
+
+**Automatic Backups**: The system automatically creates weekly backups of user data and config files during the daily scheduler job (01:00). Backups are created if no backup exists or if the last backup is 7+ days old. Last 10 backups are kept, with 30-day retention.
+
+**Manual Project Backup** (for development):
 ```powershell
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 Copy-Item -Path "." -Destination "../MHM_backup_$timestamp" -Recurse
+```
+
+**View Existing Backups**:
+```powershell
+Get-ChildItem data\backups\*.zip | Sort-Object LastWriteTime -Descending
 ```
 
 ### Check if Service is Running

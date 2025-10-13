@@ -8,6 +8,16 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-13 - Automated Weekly Backup System **COMPLETED**
+- **Problem Fixed**: User data was not being backed up automatically - `data/backups` was empty
+- **Solution**: Added check-based backup system to daily scheduler (runs at 01:00, before log archival at 02:00)
+- **Backup Logic**: Creates backup if no backups exist OR last backup is 7+ days old
+- **Retention**: Keeps last 10 backups with 30-day retention (max 10 files in `data/backups/`)
+- **Contents**: User data + config files (excludes logs)
+- **Testing**: Verified backup creation (48 files), manifest metadata, check logic prevents duplicates
+- **Impact**: Automatic weekly data protection with minimal storage footprint
+- **Files**: core/scheduler.py, QUICK_REFERENCE.md, ai_development_docs/AI_REFERENCE.md
+
 ### 2025-10-12 - Fixed Test Logging: Headers, Isolation, and Rotation **COMPLETED**
 - **Three Issues Fixed**: Test logs missing headers, tests polluting production directories, redundant rotation checks
 - **Root Causes**:
