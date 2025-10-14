@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QWidget, QCheckBox
+from PySide6.QtWidgets import QWidget
 from ui.generated.category_selection_widget_pyqt import Ui_Form_category_selection_widget
 from core.user_data_validation import _shared__title_case
 

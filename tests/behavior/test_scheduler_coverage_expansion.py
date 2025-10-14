@@ -20,10 +20,10 @@ from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
-    get_user_categories,
     process_user_schedules,
     process_category_schedule
 )
+from core.user_management import get_user_categories
 from tests.test_isolation import IsolationManager
 from core.error_handling import SchedulerError
 

@@ -12,7 +12,7 @@ the project's patterns for handlers, utilities, and core functionality.
 
 import ast
 from pathlib import Path
-from typing import Dict, List
+from typing import List
 from datetime import datetime
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:

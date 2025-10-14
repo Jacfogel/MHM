@@ -8,7 +8,6 @@ import ast
 import re
 from pathlib import Path
 from typing import Dict, List
-import config
 from standard_exclusions import should_exclude_file
 from services.constants import (
     is_local_module as _is_local_module,

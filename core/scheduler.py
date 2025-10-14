@@ -1415,9 +1415,6 @@ def schedule_all_task_reminders(user_id):
 # Task reminders are now managed consistently with other jobs
 # No special cleanup function needed - they're handled by the main scheduler cleanup
 
-# Import get_user_categories from user_management to avoid duplication
-from core.user_management import get_user_categories
-
 @handle_errors("clearing all accumulated jobs standalone")
 def clear_all_accumulated_jobs_standalone():
     """

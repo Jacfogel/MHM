@@ -17,9 +17,9 @@ from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
     schedule_all_task_reminders,
-    get_user_categories,
     process_user_schedules
 )
+from core.user_management import get_user_categories
 from core.error_handling import SchedulerError
 
 @pytest.fixture

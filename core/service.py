@@ -764,9 +764,6 @@ def get_scheduler_manager():
         return service.scheduler_manager
     return None
 
-# Import get_user_categories from user_management to avoid duplication
-from core.user_management import get_user_categories
-
 @handle_errors("main service function")
 def main():
     """

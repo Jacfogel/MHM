@@ -30,9 +30,9 @@ from pathlib import Path
 from core.service import (
     MHMService,
     InitializationError,
-    main,
-    get_user_categories
+    main
 )
+from core.user_management import get_user_categories
 from core.config import get_user_data_dir
 
 class TestMHMService:

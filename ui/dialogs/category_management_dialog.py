@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QDialog, QMessageBox
 from ui.generated.category_management_dialog_pyqt import Ui_Dialog_category_management
 from ui.widgets.category_selection_widget import CategorySelectionWidget
 from PySide6.QtCore import Signal
-from core.logger import get_logger, get_component_logger
+from core.logger import get_component_logger
 from core.user_data_handlers import update_user_preferences, update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors

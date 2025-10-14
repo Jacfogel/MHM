@@ -3,7 +3,7 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QWidget
 from PySide6.QtCore import Qt
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError, FileOperationError
+from core.error_handling import handle_errors, DataError
 
 # Route admin panel logs to UI component
 admin_logger = get_component_logger('admin_panel')

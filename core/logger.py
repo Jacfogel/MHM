@@ -7,7 +7,6 @@ import time
 import json
 import gzip
 import sys
-from datetime import datetime
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
 

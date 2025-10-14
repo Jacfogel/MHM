@@ -12,7 +12,7 @@ from communication.communication_channels.base.base_channel import BaseChannel, 
 from communication.core.factory import ChannelFactory
 from communication.core.retry_manager import RetryManager
 from communication.core.channel_monitor import ChannelMonitor
-from core.user_data_handlers import get_user_data, get_all_user_ids
+from core.user_data_handlers import get_user_data
 from core.message_management import store_sent_message
 from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
 from core.file_operations import determine_file_path, load_json_data

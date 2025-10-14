@@ -5,16 +5,14 @@ Contains functions for managing user accounts, preferences, context, and schedul
 """
 
 import os
-import json
 import time
 import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Union
 from core.logger import get_component_logger
-from core.file_operations import load_json_data, save_json_data, get_user_file_path, get_user_data_dir, determine_file_path
+from core.file_operations import load_json_data, save_json_data, get_user_file_path, determine_file_path
 from core.config import ensure_user_directory
 from core.error_handling import handle_errors
-from core.message_management import get_message_categories
 from core.schemas import (
     validate_account_dict,
     validate_preferences_dict,
