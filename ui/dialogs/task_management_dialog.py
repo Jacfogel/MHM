@@ -5,10 +5,10 @@ from PySide6.QtCore import Signal
 
 # Import core functionality
 from core.schedule_management import set_schedule_periods, clear_schedule_periods_cache
-from core.user_data_handlers import update_user_preferences, update_user_account
+from core.user_data_handlers import update_user_account
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 from core.user_data_validation import validate_schedule_periods
 from tasks.task_management import setup_default_task_tags
 

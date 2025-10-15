@@ -9,13 +9,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QWidget, QButtonGroup, QMessageBox
+    QWidget, QButtonGroup
 )
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Signal
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 widget_logger = logger

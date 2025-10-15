@@ -1,11 +1,11 @@
-from PySide6.QtWidgets import QDialog, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QDateEdit, QTimeEdit, QCheckBox, QPushButton, QListWidget, QListWidgetItem, QButtonGroup, QRadioButton
-from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtWidgets import QDialog, QMessageBox, QWidget, QHBoxLayout, QLabel, QComboBox, QDateEdit, QPushButton, QButtonGroup
+from PySide6.QtCore import QDate, QTime
 from ui.generated.task_edit_dialog_pyqt import Ui_Dialog_task_edit
 
 # Import core functionality
 from tasks.task_management import create_task, update_task
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 from ui.widgets.tag_widget import TagWidget
 
 setup_logging()

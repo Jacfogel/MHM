@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QDialog, QMessageBox, QTableWidgetItem, QHeaderView
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from ui.generated.task_crud_dialog_pyqt import Ui_Dialog_task_crud
 
 # Import core functionality
@@ -8,7 +8,7 @@ from tasks.task_management import (
     get_tasks_due_soon, complete_task, delete_task
 )
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 
 setup_logging()
 logger = get_component_logger('ui')

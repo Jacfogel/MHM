@@ -3,14 +3,13 @@
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, 
     QTableWidget, QTableWidgetItem, QHeaderView, QTextEdit,
-    QTabWidget, QWidget, QGroupBox, QGridLayout, QSplitter
+    QTabWidget, QWidget
 )
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QFont
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError, FileOperationError
+from core.error_handling import handle_errors
 import psutil
-import time
 from datetime import datetime
 
 # Route process watcher logs to UI component

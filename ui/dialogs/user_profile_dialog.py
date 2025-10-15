@@ -8,7 +8,7 @@ import sys
 import os
 import re
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, Optional, Callable
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -16,26 +16,23 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # PySide6 imports
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QCheckBox, QComboBox, QTextEdit, QGroupBox, QGridLayout, QWidget,
-    QMessageBox, QScrollArea, QFrame, QButtonGroup, QDialogButtonBox,
-    QSpinBox, QTimeEdit, QDateEdit, QTabWidget, QFormLayout
+    QCheckBox, QComboBox, QTextEdit, QGroupBox, QGridLayout,
+    QMessageBox, QFrame
 )
-from PySide6.QtCore import Qt, QTime, QDate, Signal
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import Qt, Signal
 
 # Import generated UI classes
 from ui.generated.user_profile_management_dialog_pyqt import Ui_Dialog_user_profile
-from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_settings
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 dialog_logger = logger
 
 # Import core functionality
 from core.user_management import (
-    get_predefined_options, get_timezone_options
+    get_predefined_options
 )
 from core.user_data_validation import validate_personalization_data
 from core.error_handling import handle_errors

@@ -15,7 +15,7 @@ from communication.core.channel_monitor import ChannelMonitor
 from core.user_data_handlers import get_user_data
 from core.message_management import store_sent_message
 from core.schedule_management import get_current_time_periods_with_validation, get_current_day_names
-from core.file_operations import determine_file_path, load_json_data
+from core.file_operations import determine_file_path, load_json_data  # determine_file_path needed for test mocking
 from core.config import EMAIL_SMTP_SERVER, DISCORD_BOT_TOKEN, get_user_data_dir
 from core.service_utilities import wait_for_network
 

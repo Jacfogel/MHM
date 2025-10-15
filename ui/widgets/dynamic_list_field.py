@@ -3,7 +3,7 @@ from PySide6.QtCore import Signal
 from ui.generated.dynamic_list_field_template_pyqt import Ui_Form_dynamic_list_field_template
 from PySide6.QtWidgets import QSizePolicy
 from core.logger import get_component_logger
-from core.error_handling import handle_errors, DataError
+from core.error_handling import handle_errors
 
 # Route widget logs to UI component
 widget_logger = get_component_logger('ui_widgets')

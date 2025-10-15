@@ -1,10 +1,10 @@
-from PySide6.QtWidgets import QDialog, QMessageBox, QButtonGroup
-from PySide6.QtCore import Qt, QDate, QTime
+from PySide6.QtWidgets import QDialog, QButtonGroup
+from PySide6.QtCore import QDate, QTime
 from ui.generated.task_completion_dialog_pyqt import Ui_Dialog_task_completion
 
 # Import core functionality
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 
 setup_logging()
 logger = get_component_logger('ui')

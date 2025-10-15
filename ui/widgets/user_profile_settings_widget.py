@@ -2,22 +2,19 @@
 
 import sys
 import os
-from datetime import datetime
 from typing import Dict, Any, Optional
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QMessageBox, QScrollArea
-from PySide6.QtCore import Qt, QDate, QEvent
-from PySide6.QtGui import QFont
+from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtCore import Qt, QDate
 
 # Import generated UI class
 from ui.generated.user_profile_settings_widget_pyqt import Ui_Form_user_profile_settings
 
 # Import core functionality
-from core.user_management import get_timezone_options
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 from core.error_handling import handle_errors
 
 setup_logging()

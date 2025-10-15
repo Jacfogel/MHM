@@ -2,7 +2,6 @@
 
 import sys
 import os
-from typing import List, Optional
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,7 +12,7 @@ from ui.generated.tag_widget_pyqt import Ui_Widget_tag
 from tasks.task_management import add_user_task_tag, remove_user_task_tag
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 
 setup_logging()
 logger = get_component_logger('ui')

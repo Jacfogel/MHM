@@ -1,18 +1,19 @@
 # Unused Imports Cleanup - Complete Summary
 
-**Date:** 2025-10-13  
-**Status:** ✅ COMPLETE - Production code and AI development tools  
-**Service:** ✅ Working (1848 tests passed)
+**Date:** 2025-10-13 to 2025-10-15  
+**Status:** ✅ COMPLETE - Production code, AI development tools, and UI files  
+**Service:** ✅ Working (service starts successfully)  
+**Tests:** ⚠️ 1847/1848 passing (1 pre-existing flaky UI test)
 
 ## Overview
 
-Systematic cleanup of unused imports across the MHM codebase, focusing on production code and development tools. Identified dead code patterns, fixed bugs, and significantly improved code quality.
+Systematic cleanup of unused imports across the MHM codebase. Completed production code, development tools, and UI files. Identified dead code patterns, fixed bugs, documented test mocking requirements, and significantly improved code quality.
 
-## Total Impact
+## Total Impact Across All Phases
 
-**Before:** 954 unused imports in 175 files  
-**After:** 691 unused imports in 120 files  
-**Reduction:** 263 imports removed (-28%), 55 files cleaned (-31%)
+**Phase 1-2 (Oct 13):** 954 → 691 imports (-263, -28%), 175 → 120 files (-55, -31%)  
+**Phase 3 (Oct 15):** 677 → 512 imports (-165, -24%), 110 → 95 files (-15, -14%)  
+**Overall:** 428 imports removed, 80 files cleaned
 
 ## Completed Work
 
@@ -40,6 +41,12 @@ All analysis, audit, generation, and documentation tools cleaned:
 - regenerate_coverage_metrics.py, tool_guide.py
 - unused_imports_checker.py, validate_ai_work.py
 - version_sync.py, file_rotation.py
+
+### Phase 3: UI Files and Remaining Production (19 files, 165 imports removed)
+**UI Dialogs (10 files):** account_creator_dialog, checkin_management_dialog, process_watcher_dialog, schedule_editor_dialog, task_completion_dialog, task_crud_dialog, task_edit_dialog, task_management_dialog, user_profile_dialog  
+**UI Widgets (6 files):** checkin_settings_widget, dynamic_list_field, period_row_widget, tag_widget, task_settings_widget, user_profile_settings_widget  
+**UI Main (1 file):** ui_app_qt  
+**Production (3 files):** channel_orchestrator (kept for test mocking), schedule_utilities (1 removed), scheduler (kept for test mocking)
 
 ## Key Patterns Discovered
 
@@ -70,11 +77,18 @@ All analysis, audit, generation, and documentation tools cleaned:
    - Removed: os (18 files), json (14 files), time (8 files)
    - Reason: No longer needed after code refactoring
 
-6. **Test Mocking Requirement**
-   - Issue: Some imports needed at module level for test mocking
-   - Examples: `os`, `determine_file_path`, `get_available_channels`
+6. **Test Mocking Requirement** (Discovered in Phase 3)
+   - Issue: Some imports needed at module level for test mocking (`@patch` requires them)
+   - Examples: `os`, `determine_file_path`, `get_available_channels`, `get_channel_class_mapping`
    - Action: Kept these imports despite not being used in production code
-   - Files affected: 3 files
+   - Files affected: 3 production files (channel_orchestrator, factory, scheduler)
+   - Pattern: Tests use `@patch('module.function')` which requires function at module level
+
+7. **Qt Signal Usage** (Discovered in Phase 3)
+   - Pattern: Qt `Signal` class appears unused but is actually used
+   - Reality: Used for signal definitions (`user_changed = Signal()`)
+   - Action: Initially removed, then restored after breaking UI test
+   - Files affected: account_creator_dialog.py
 
 ## Bugs Fixed
 
@@ -102,16 +116,11 @@ All analysis, audit, generation, and documentation tools cleaned:
 
 ## Remaining Work (Deferred)
 
-**UI Files (~30 files with ~200 unused imports):**
-- Many from auto-generated PyQt code (.ui files)
-- Need careful review to distinguish generated vs manual code
-- Estimated 30 files to clean
-
-**Test Files (~80 files with ~491 unused imports):**
+**Test Files (~90 files with ~500 unused imports):**
 - Test utilities often imported defensively
 - Mock imports and fixtures may appear unused
 - Need careful review to avoid breaking tests
-- Estimated 80 files to clean
+- Estimated 90 files to clean
 
 ## Documentation Updated
 

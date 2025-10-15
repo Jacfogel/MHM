@@ -2,41 +2,25 @@
 
 import sys
 import os
-from typing import Dict, Any, List, Optional, Callable
+from typing import Dict, Any, Optional, Callable
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QCheckBox, QComboBox, QGroupBox, QGridLayout, QWidget, QMessageBox,
-    QScrollArea, QFrame, QDialogButtonBox, QTimeEdit, QSpinBox,
-    QButtonGroup, QRadioButton, QSizePolicy
+    QDialog, QMessageBox
 )
-from PySide6.QtCore import Qt, QTime
-from PySide6.QtGui import QFont
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 dialog_logger = logger
 
 # Import core functionality
 from core.schedule_management import (
-    get_schedule_time_periods,
-    set_schedule_period_active,
-    is_schedule_period_active,
-    get_current_time_periods_with_validation,
-    add_schedule_period,
-    edit_schedule_period,
-    delete_schedule_period,
     clear_schedule_periods_cache,
-    get_period_data__validate_and_format_time as validate_and_format_time,
-    get_period_data__time_24h_to_12h_display as time_24h_to_12h_display,
-    get_period_data__time_12h_display_to_24h as time_12h_display_to_24h,
-    get_current_day_names,
     set_schedule_periods,
     get_schedule_days,
     set_schedule_days

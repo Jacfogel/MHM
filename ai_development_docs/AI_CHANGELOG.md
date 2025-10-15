@@ -8,6 +8,21 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-15 - Unused Imports Cleanup - UI Files Complete
+
+**What Changed**: Cleaned 16 UI files and 3 production files (165 unused imports removed)
+
+**Results**:
+- 165 imports removed: Qt widgets (50+), dead `get_logger` (16), type hints (30+), schedule mgmt (20+)
+- 110 → 95 files (-24% reduction), 677 → 512 imports
+- Service working, 1847/1848 tests passing
+
+**Key Finding**: Test mocking requires imports at module level - kept `determine_file_path`, `get_available_channels`, `os`
+
+**Remaining**: Test files (~90 files, ~500 imports) deferred
+
+---
+
 ### 2025-10-13 - Unused Imports Cleanup - AI Development Tools Complete
 
 **What Changed**: Cleaned all 18 files in ai_development_tools/ directory (59 unused imports removed)

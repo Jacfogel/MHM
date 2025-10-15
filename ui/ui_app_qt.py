@@ -5,33 +5,30 @@ import os
 import subprocess
 import psutil
 import time
-from pathlib import Path
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QMessageBox, QFileDialog, 
+    QApplication, QMainWindow, QMessageBox, 
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTextEdit, QComboBox, QGroupBox, QGridLayout, QWidget, QTabWidget, QDialogButtonBox, QCheckBox
+    QTextEdit, QWidget
 )
-from PySide6.QtCore import Qt, QTimer, QThread, Signal
-from PySide6.QtGui import QFont, QIcon
+from PySide6.QtCore import QTimer
+from PySide6.QtGui import QFont
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 ui_logger = logger
 
 # Import configuration validation
-from core.config import validate_all_configuration, ConfigValidationError
+from core.config import validate_all_configuration
 
 # Import comprehensive error handling
-from core.error_handling import (
-    error_handler, DataError, FileOperationError, handle_errors
-)
+from core.error_handling import handle_errors
 
 from user.user_context import UserContext
 from core.user_data_handlers import get_all_user_ids

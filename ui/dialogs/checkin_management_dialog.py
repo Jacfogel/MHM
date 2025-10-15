@@ -2,7 +2,6 @@
 
 import sys
 import os
-from typing import Dict, Any, Optional
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,7 +11,7 @@ from PySide6.QtWidgets import QDialog, QMessageBox, QWidget
 from PySide6.QtCore import Signal
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 dialog_logger = logger

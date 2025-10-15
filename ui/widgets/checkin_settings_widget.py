@@ -2,26 +2,20 @@
 
 import sys
 import os
-from typing import Dict, Any, List, Optional
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QRadioButton, QSpinBox, QPushButton, QMessageBox
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
 
 # Import core functionality
-from core.schedule_management import (
-    get_schedule_time_periods, set_schedule_periods, clear_schedule_periods_cache
-)
 from core.ui_management import (
     load_period_widgets_for_category, collect_period_data_from_widgets
 )
-from core.user_data_handlers import update_user_preferences
 from core.user_data_handlers import get_user_data
 from core.error_handling import handle_errors
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 
 # Import our period row widget
 from ui.widgets.period_row_widget import PeriodRowWidget

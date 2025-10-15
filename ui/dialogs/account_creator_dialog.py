@@ -2,36 +2,27 @@
 
 import sys
 import os
-import json
 import uuid
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit,
-    QRadioButton, QCheckBox, QComboBox, QGroupBox, QGridLayout, QWidget,
-    QMessageBox, QButtonGroup, QDialogButtonBox, QScrollArea, QTimeEdit,
-    QSpinBox, QTextEdit, QFrame, QSizePolicy
+    QDialog, QMessageBox
 )
-from PySide6.QtCore import Qt, Signal, QTime
-from PySide6.QtGui import QFont
+from PySide6.QtCore import Signal, QTime
 
 # Set up logging
-from core.logger import setup_logging, get_logger, get_component_logger
+from core.logger import setup_logging, get_component_logger
 setup_logging()
 logger = get_component_logger('ui')
 dialog_logger = logger
 
 # Import core functionality
-from user.user_context import UserContext
-from core.message_management import get_message_categories
-from core.user_data_validation import _shared__title_case, validate_schedule_periods
-from core.user_management import create_new_user, get_user_id_by_identifier
-from core.file_operations import create_user_files
+from core.user_data_validation import validate_schedule_periods
+from core.user_management import get_user_id_by_identifier
 from core.error_handling import handle_errors
 
 # Import widgets
@@ -40,9 +31,6 @@ from ui.widgets.channel_selection_widget import ChannelSelectionWidget
 from ui.widgets.task_settings_widget import TaskSettingsWidget
 from ui.widgets.checkin_settings_widget import CheckinSettingsWidget
 from ui.generated.account_creator_dialog_pyqt import Ui_Dialog_create_account
-
-# Import personalization dialog
-from ui.dialogs.user_profile_dialog import open_personalization_dialog
 
 
 class AccountCreatorDialog(QDialog):

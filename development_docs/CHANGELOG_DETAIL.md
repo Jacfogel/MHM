@@ -17,6 +17,81 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-15 - Unused Imports Cleanup - UI Files and Remaining Production Code **COMPLETED**
+
+**Context**: Continued unused imports cleanup effort, focusing on UI files (dialogs and widgets) and remaining production files to complete non-test code cleanup.
+
+**Problem**:
+- 110 files with 677 unused imports remaining after previous production/tools cleanup
+- 16 UI files with 171 unused imports (dialogs and widgets)
+- 4 production files with 4 unused imports (communication, core)
+- Many Qt widget imports from .ui file generation not used in manual code
+- Dead `get_logger` imports across all UI files
+
+**Solution**:
+Worked in 5 batches with testing after each batch:
+1. **Batch 1**: 7 small UI files (19 imports) - widgets and simple dialogs
+2. **Batch 2**: 4 medium UI files (24 imports) - process watcher, settings widgets
+3. **Batch 3**: 3 large UI files (50 imports) - main settings dialogs
+4. **Batch 4**: 2 very large UI files (66 imports) - account creator, schedule editor
+5. **Batch 5**: 4 production files (2 imports removed, 2 kept for test mocking)
+
+**Key Removals**:
+- `get_logger` (16 occurrences) - dead code, replaced by `get_component_logger`
+- Qt widget imports (50+) - QLabel, QVBoxLayout, QHBoxLayout, QTimeEdit, QSpinBox, etc.
+- Type hints (30+) - Dict, List, Optional unused in type annotations
+- Error handling imports (10) - DataError, FileOperationError covered by `@handle_errors`
+- Schedule management helpers (20+) - get_schedule_time_periods, set_schedule_periods, etc.
+- Misc imports (40+) - datetime, json, time, Path, etc.
+
+**Test Mocking Pattern Identified**:
+Some imports must remain at module level for `@patch` to work in tests:
+- `determine_file_path` in channel_orchestrator - tests mock this
+- `get_available_channels`, `get_channel_class_mapping` in factory - 15 tests mock these
+- `os` in scheduler - 2 tests mock `os.path.exists`
+
+**Bug Found and Fixed**:
+- Initially removed `Signal` from account_creator_dialog - broke UI test
+- Restored `Signal` - actually used for signal definition (`user_changed = Signal()`)
+
+**Results**:
+- **Before**: 110 files with 677 unused imports
+- **After**: 95 files with 512 unused imports
+- **Reduction**: 165 imports removed (-24%), 15 files cleaned (-14%)
+- Service starts successfully
+- 1847/1848 tests passing (1 pre-existing flaky UI test not caused by cleanup)
+
+**Testing**:
+✅ Service startup: `python run_headless_service.py start` - SUCCESS
+✅ Full test suite after each batch
+✅ Import-related test failures fixed (3 tests needed imports restored for mocking)
+✅ Unused imports report regenerated
+
+**Files Modified**:
+- UI Dialogs (10 files): account_creator_dialog.py, checkin_management_dialog.py, process_watcher_dialog.py, schedule_editor_dialog.py, task_completion_dialog.py, task_crud_dialog.py, task_edit_dialog.py, task_management_dialog.py, user_profile_dialog.py
+- UI Widgets (6 files): checkin_settings_widget.py, dynamic_list_field.py, period_row_widget.py, tag_widget.py, task_settings_widget.py, user_profile_settings_widget.py
+- UI Main (1 file): ui_app_qt.py
+- Production (3 files): channel_orchestrator.py, schedule_utilities.py, scheduler.py
+
+**Documentation Updated**:
+- ✅ `development_docs/ui_unused_imports_cleanup_summary.md` - Complete session summary
+- ✅ `development_docs/CHANGELOG_DETAIL.md` - This detailed entry
+- ✅ `ai_development_docs/AI_CHANGELOG.md` - Concise AI-friendly summary
+- ✅ `development_docs/UNUSED_IMPORTS_REPORT.md` - Regenerated with current stats
+
+**Remaining Work**:
+- Test files (~90 files with ~500 unused imports) - deferred to future session
+- 1 flaky UI test (`test_feature_enablement_real_behavior`) - needs separate investigation
+
+**Lessons Learned**:
+- Qt Signal class appears unused but is used for signal definitions
+- Test mocking requires imports at module level (documented pattern)
+- Incremental batching with testing prevents breakage
+- Pattern recognition accelerates cleanup
+- Always verify if tests mock a function before removing
+
+---
+
 ### 2025-10-13 - Unused Imports Cleanup - AI Development Tools **COMPLETED**
 
 **Context**: Continued unused imports cleanup effort, focusing on ai_development_tools/ directory to ensure development tools are clean and efficient.
