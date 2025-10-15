@@ -5,7 +5,6 @@ Tests focus on actual side effects and system changes rather than just return va
 """
 
 import pytest
-import json
 import os
 from unittest.mock import patch, Mock, AsyncMock
 from datetime import datetime, timedelta

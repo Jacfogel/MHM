@@ -4,7 +4,6 @@ Tests real behavior and side effects of service utility functions.
 """
 
 import pytest
-import json
 import os
 import time
 from datetime import datetime, timedelta

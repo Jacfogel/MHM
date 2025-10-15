@@ -8,7 +8,7 @@ This module tests the profile display functionality to verify:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from tests.test_utilities import TestUserFactory

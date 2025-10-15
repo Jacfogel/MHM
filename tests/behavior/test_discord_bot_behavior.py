@@ -14,7 +14,7 @@ from unittest.mock import patch, MagicMock, AsyncMock, call
 import queue
 import discord
 from discord.ext import commands
-import core
+import core.config
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType

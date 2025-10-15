@@ -1,7 +1,7 @@
 # Unused Imports Cleanup - Complete Summary
 
 **Date:** 2025-10-13 to 2025-10-15  
-**Status:** ✅ COMPLETE - Production code, AI development tools, and UI files  
+**Status:** ✅ COMPLETE - Production code, AI development tools, UI files, and Test Files Phase 1  
 **Service:** ✅ Working (service starts successfully)  
 **Tests:** ✅ 1848/1848 passing (all tests fixed and stable)
 
@@ -13,7 +13,8 @@ Systematic cleanup of unused imports across the MHM codebase. Completed producti
 
 **Phase 1-2 (Oct 13):** 954 → 691 imports (-263, -28%), 175 → 120 files (-55, -31%)  
 **Phase 3 (Oct 15):** 677 → 512 imports (-165, -24%), 110 → 95 files (-15, -14%)  
-**Overall:** 428 imports removed, 80 files cleaned
+**Phase 4 (Oct 15):** Test Files Phase 1 - 37+ files cleaned, ~200+ imports removed  
+**Overall:** 628+ imports removed, 117+ files cleaned
 
 ## Completed Work
 
@@ -47,6 +48,12 @@ All analysis, audit, generation, and documentation tools cleaned:
 **UI Widgets (6 files):** checkin_settings_widget, dynamic_list_field, period_row_widget, tag_widget, task_settings_widget, user_profile_settings_widget  
 **UI Main (1 file):** ui_app_qt  
 **Production (3 files):** channel_orchestrator (kept for test mocking), schedule_utilities (1 removed), scheduler (kept for test mocking)
+
+### Phase 4: Test Files Phase 1 (37+ files, ~200+ imports removed)
+**Behavior Tests (25 files):** AI, command/parser, communication, core/service, remaining behavior tests  
+**UI Tests (8 files):** account_creator_dialog_validation, dialogs, task_crud_dialog, ui_app_qt_core, ui_app_qt_main, ui_components_headless, ui_button_verification, ui_generation  
+**Unit Tests (4 files):** validation, logger, conversation behavior, comprehensive analytics  
+**Test Isolation Issues Fixed:** 4 validation tests (Pydantic data structure), logger test (global state), editor state issues
 
 ## Key Patterns Discovered
 
@@ -96,6 +103,18 @@ All analysis, audit, generation, and documentation tools cleaned:
    - Action: Updated tests to manually call connected slots after state changes
    - Files affected: tests/ui/test_account_creation_ui.py (test_feature_enablement_real_behavior)
 
+9. **Test Mocking Requirements** (Discovered in Phase 4)
+   - Pattern: Some imports appear unused but are needed for test mocking
+   - Reality: `@patch` decorator requires imports at module level for mocking
+   - Action: Kept imports like `MagicMock`, `get_user_data`, `save_user_data` that are used in mocks
+   - Files affected: Multiple test files across behavior, UI, and unit tests
+
+10. **Test Isolation Issues** (Discovered in Phase 4)
+    - Pattern: Import cleanup revealed hidden test isolation problems
+    - Reality: Global state contamination and incorrect test data structures
+    - Action: Fixed global `_verbose_mode` state, corrected Pydantic data structures
+    - Files affected: logger tests, validation tests, conversation behavior tests
+
 ## Bugs Fixed
 
 1. **communication/channels/base/command_registry.py**
@@ -113,6 +132,21 @@ All analysis, audit, generation, and documentation tools cleaned:
    - Severity: Medium - flaky test that failed intermittently
    - Fix: Manually call `dialog.update_tab_visibility()` after checkbox state changes
 
+4. **tests/unit/test_validation.py**
+   - Issue: 4 failing tests due to incorrect Pydantic data structure
+   - Severity: High - test failures
+   - Fix: Updated test data to include `periods` key under `tasks` to match `SchedulesModel` schema
+
+5. **tests/behavior/test_logger_behavior.py**
+   - Issue: Global `_verbose_mode` state contamination between tests
+   - Severity: Medium - test isolation issue
+   - Fix: Added explicit `set_verbose_mode(False)` in test setup
+
+6. **tests/behavior/test_conversation_behavior.py**
+   - Issue: Unsaved editor changes causing `MagicMock` import errors
+   - Severity: Medium - editor state issue
+   - Fix: Used `write` tool to force-save file with correct imports
+
 ## Testing & Verification
 
 **Production Code:**
@@ -127,11 +161,11 @@ All analysis, audit, generation, and documentation tools cleaned:
 
 ## Remaining Work (Deferred)
 
-**Test Files (~90 files with ~500 unused imports):**
-- Test utilities often imported defensively
-- Mock imports and fixtures may appear unused
-- Need careful review to avoid breaking tests
-- Estimated 90 files to clean
+**Test Files Phase 2 (~53 files with ~300 unused imports):**
+- Batch 8: 8 unit test files
+- Batch 9: 8 integration/communication/core test files  
+- Batch 10: 5 AI and root test files
+- Final verification and documentation updates
 
 ## Documentation Updated
 

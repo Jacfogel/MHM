@@ -6,7 +6,7 @@ Tests the MHMManagerUI class with proper mocking to avoid UI dependencies.
 import pytest
 import os
 import sys
-from unittest.mock import patch, Mock, MagicMock, mock_open
+from unittest.mock import patch, Mock, mock_open
 
 # Import the main UI application
 from ui.ui_app_qt import ServiceManager

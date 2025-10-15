@@ -7,7 +7,7 @@ with proper isolation and error handling.
 
 import pytest
 import os
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from PySide6.QtWidgets import QApplication, QTableWidgetItem
 from PySide6.QtCore import Qt
 

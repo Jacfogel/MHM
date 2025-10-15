@@ -12,7 +12,6 @@ This module tests:
 import pytest
 import os
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
-import sys
 import asyncio
 from datetime import datetime
 

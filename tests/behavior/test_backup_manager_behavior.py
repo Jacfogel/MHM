@@ -11,11 +11,10 @@ Tests focus on real side effects and system changes:
 import os
 import json
 import zipfile
-import tempfile
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 import pytest
 

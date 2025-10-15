@@ -7,7 +7,6 @@ READ-ONLY - Does not modify any user data
 
 import sys
 import os
-import time
 import logging
 import pytest
 from pathlib import Path

@@ -7,7 +7,6 @@ with proper isolation and error handling.
 
 import pytest
 import os
-import tempfile
 import subprocess
 from pathlib import Path
 from unittest.mock import patch, Mock, call

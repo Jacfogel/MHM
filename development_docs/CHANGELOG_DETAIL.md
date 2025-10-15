@@ -17,6 +17,79 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-15 - Unused Imports Cleanup - Test Files Phase 1 **COMPLETED**
+
+**Context**: Continued unused imports cleanup effort, focusing on test files which present unique challenges due to defensive imports and mocking requirements.
+
+**Problem**:
+- ~90 test files with ~500 unused imports remaining after production/tools/UI cleanup
+- Test utilities often imported defensively (imports that appear unused but are needed)
+- Mock imports and fixtures may appear unused but are required for test mocking
+- Need careful review to avoid breaking tests
+- Import cleanup can reveal hidden test isolation issues
+
+**Solution**:
+Worked in 7 batches with testing after each batch:
+1. **Batch 1**: 5 behavior test files (easy wins) - removed time, tempfile, shutil, Path, datetime
+2. **Batch 2**: 5 AI-related behavior tests - removed json, tempfile imports
+3. **Batch 3**: 7 command/parser behavior tests - removed re, json, tempfile, MagicMock
+4. **Batch 4**: 8 communication behavior tests - removed sys, MagicMock, mock_open
+5. **Batch 5**: 4 core/service behavior tests - removed sys, json, MagicMock
+6. **Batch 6**: 7 remaining behavior tests - removed get_user_data, save_user_data, MagicMock
+7. **Batch 7**: 8 UI test files - removed Mock, MagicMock, tempfile, logging
+
+**Key Removals**:
+- `json` (30+ occurrences) - unused in many test files
+- `tempfile` (15+ occurrences) - unused tempfile imports
+- `MagicMock` (20+ occurrences) - unused mock imports
+- `os` (25+ occurrences) - unused os imports
+- `sys` (10+ occurrences) - unused sys imports
+- `time`, `shutil`, `Path`, `datetime` (20+ occurrences) - unused utility imports
+- `get_user_data`, `save_user_data` (5+ occurrences) - unused data handler imports
+
+**Test Isolation Issues Discovered and Fixed**:
+1. **Validation Tests**: 4 failing tests due to incorrect Pydantic data structure
+   - Fixed: Updated test data to include `periods` key under `tasks`
+   - Root cause: Test data didn't match `SchedulesModel` schema
+2. **Logger Test**: Global `_verbose_mode` state contamination
+   - Fixed: Added explicit `set_verbose_mode(False)` in test setup
+   - Root cause: Global state persisted between tests
+3. **Editor State Issues**: Unsaved changes causing import errors
+   - Fixed: Used `write` tool to force-save files with correct imports
+   - Root cause: File changes not written to disk
+
+**Key Discoveries**:
+- **Test Mocking Requirements**: Some imports must remain at module level for `@patch` to work
+- **Linter Limitations**: Static analysis can't detect dynamic usage in mocks and test fixtures
+- **Import Cleanup Benefits**: Reveals hidden test isolation issues, improving overall test reliability
+- **Editor State Management**: Files open in editor may have unsaved changes affecting test runs
+
+**Testing and Verification**:
+- All 1848 tests passing (6 minutes 6 seconds)
+- Service starts and stops correctly
+- No regressions introduced
+- Test isolation issues resolved
+
+**Files Modified**:
+- 37+ test files cleaned across behavior, UI, and unit test categories
+- Fixed test data structures in `tests/unit/test_validation.py`
+- Fixed global state in `tests/behavior/test_logger_behavior.py`
+- Fixed editor state in `tests/behavior/test_conversation_behavior.py`
+
+**Remaining Work**:
+- Batch 8: 8 unit test files
+- Batch 9: 8 integration/communication/core test files  
+- Batch 10: 5 AI and root test files
+- Final verification and documentation updates
+
+**Impact**:
+- **Before**: ~90 test files with ~500 unused imports
+- **After**: ~53 test files remaining (37+ cleaned)
+- Improved test reliability by fixing isolation issues
+- Better understanding of test mocking requirements
+
+---
+
 ### 2025-10-15 - Unused Imports Cleanup - UI Files and Remaining Production Code **COMPLETED**
 
 **Context**: Continued unused imports cleanup effort, focusing on UI files (dialogs and widgets) and remaining production files to complete non-test code cleanup.

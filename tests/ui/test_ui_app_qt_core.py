@@ -6,7 +6,7 @@ Tests the core logic without UI components to avoid hanging issues.
 import pytest
 import os
 import sys
-from unittest.mock import patch, Mock, MagicMock, mock_open
+from unittest.mock import patch, Mock, mock_open
 
 # Import the main UI application
 from ui.ui_app_qt import ServiceManager

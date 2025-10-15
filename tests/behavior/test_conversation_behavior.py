@@ -632,4 +632,4 @@ class TestConversationManagerIntegration:
             # Assert - Verify concurrent access safety
             # Note: Regular messages don't create user states, only flows do
             assert len(manager.user_states) == 0, "Should not create states for regular messages"
-            assert all(reply is not None for reply, completed in responses), "Should process all messages successfully" 
+            assert all(reply is not None for reply, completed in responses), "Should process all messages successfully"

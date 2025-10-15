@@ -20,7 +20,6 @@ import os
 import json
 import time
 from unittest.mock import Mock, patch, MagicMock
-import sys
 import signal
 from pathlib import Path
 

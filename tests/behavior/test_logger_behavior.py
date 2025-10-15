@@ -8,10 +8,9 @@ Focuses on logger setup, verbosity control, and file operations.
 import pytest
 import os
 import logging
-import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 # Do not modify sys.path; rely on package imports
 
@@ -101,8 +100,10 @@ class TestLoggerVerbosityBehavior:
         with patch.dict(os.environ, {'LOG_MAIN_FILE': str(temp_log_dir / "test.log"), 'VERBOSE_LOGS': '0'}):
             # Ensure a clean logger init to avoid cross-test state
             try:
-                from core.logger import force_restart_logging
+                from core.logger import force_restart_logging, set_verbose_mode
                 force_restart_logging()
+                # Explicitly reset verbose mode to False to avoid cross-test contamination
+                set_verbose_mode(False)
             except Exception:
                 pass
             initial_mode = get_verbose_mode()

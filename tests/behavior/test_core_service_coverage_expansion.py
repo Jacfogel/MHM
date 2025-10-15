@@ -11,7 +11,8 @@ from unittest.mock import Mock, patch, MagicMock, mock_open
 from pathlib import Path
 
 # Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if '__file__' in globals():
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.service import MHMService, InitializationError, main, get_scheduler_manager
 from core.error_handling import DataError, FileOperationError

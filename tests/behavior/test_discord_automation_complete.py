@@ -13,7 +13,7 @@ Tests cover ALL manual testing scenarios:
 """
 
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.task_handler import TaskManagementHandler

@@ -4,7 +4,6 @@ Tests all handler methods, edge cases, and real behavior to achieve 60% coverage
 Focuses on real side effects and system changes rather than just return values.
 """
 import pytest
-import json
 import os
 from unittest.mock import patch, Mock, MagicMock, AsyncMock
 from datetime import datetime, timedelta

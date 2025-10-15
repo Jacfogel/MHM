@@ -5,7 +5,7 @@ These tests focus on the validation logic without UI dependencies.
 """
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 
 class TestAccountCreatorDialogValidation:

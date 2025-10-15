@@ -5,7 +5,6 @@ Tests focus on covering the uncovered lines in the ChannelFactory module.
 """
 
 import pytest
-import json
 import os
 from unittest.mock import patch, Mock, MagicMock, mock_open
 from datetime import datetime, timedelta

@@ -8,7 +8,6 @@ This module tests the help system functionality to verify:
 - Examples are practical and useful
 """
 
-import pytest
 from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from tests.test_utilities import TestUserFactory

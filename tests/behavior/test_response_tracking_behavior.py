@@ -8,7 +8,7 @@ import json
 import os
 from datetime import datetime
 from unittest.mock import patch, MagicMock
-from core.user_data_handlers import get_user_data
+# Removed unused import: get_user_data
 from core.response_tracking import (
     store_user_response,
     store_chat_interaction,

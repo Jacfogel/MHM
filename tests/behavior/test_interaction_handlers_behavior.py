@@ -7,9 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
-import json
 import os
-import tempfile
 from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime, timedelta
 

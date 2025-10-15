@@ -7,7 +7,6 @@ Tests real behavior and side effects of command parsing functionality.
 
 import pytest
 import json
-import tempfile
 import os
 from unittest.mock import patch, MagicMock
 from communication.message_processing.command_parser import (

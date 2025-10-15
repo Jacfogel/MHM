@@ -10,7 +10,7 @@ import json
 import os
 from unittest.mock import patch
 from core.checkin_analytics import CheckinAnalytics
-from core.user_data_handlers import get_user_data, save_user_data
+# Removed unused imports: get_user_data, save_user_data
 from tests.test_utilities import TestUserFactory
 
 

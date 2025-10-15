@@ -7,7 +7,6 @@ Demonstrates how to use the centralized test utilities to eliminate redundancy
 import os
 import pytest
 import json
-import pytest
 from tests.test_utilities import (
     TestUserFactory, TestDataManager, TestUserDataFactory,
     create_test_user, setup_test_data_environment, cleanup_test_data_environment

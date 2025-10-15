@@ -4,7 +4,6 @@ Simple version that works with the actual implementation
 """
 
 import pytest
-import re
 from unittest.mock import patch, MagicMock, Mock
 from communication.message_processing.command_parser import (
     EnhancedCommandParser, ParsingResult, get_enhanced_command_parser, parse_command

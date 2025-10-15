@@ -367,11 +367,13 @@ class TestUserUpdateValidation:
         user_id = "test-user"
         updates = {
             "tasks": {
-                "Morning": {
-                    "start_time": "09:00",
-                    "end_time": "10:00",
-                    "days": ["Monday", "Tuesday"],
-                    "active": True
+                "periods": {
+                    "Morning": {
+                        "start_time": "09:00",
+                        "end_time": "10:00",
+                        "days": ["Monday", "Tuesday"],
+                        "active": True
+                    }
                 }
             }
         }
@@ -389,11 +391,13 @@ class TestUserUpdateValidation:
         user_id = "test-user"
         updates = {
             "tasks": {
-                "Morning": {
-                    "start_time": "25:00",  # Invalid hour
-                    "end_time": "10:00",
-                    "days": ["Monday"],
-                    "active": True
+                "periods": {
+                    "Morning": {
+                        "start_time": "25:00",  # Invalid hour
+                        "end_time": "10:00",
+                        "days": ["Monday"],
+                        "active": True
+                    }
                 }
             }
         }
@@ -412,11 +416,13 @@ class TestUserUpdateValidation:
         user_id = "test-user"
         updates = {
             "tasks": {
-                "Morning": {
-                    "start_time": "10:00",
-                    "end_time": "09:00",  # End before start
-                    "days": ["Monday"],
-                    "active": True
+                "periods": {
+                    "Morning": {
+                        "start_time": "10:00",
+                        "end_time": "09:00",  # End before start
+                        "days": ["Monday"],
+                        "active": True
+                    }
                 }
             }
         }
@@ -435,11 +441,13 @@ class TestUserUpdateValidation:
         user_id = "test-user"
         updates = {
             "tasks": {
-                "Morning": {
-                    "start_time": "09:00",
-                    "end_time": "10:00",
-                    "days": ["InvalidDay"],
-                    "active": True
+                "periods": {
+                    "Morning": {
+                        "start_time": "09:00",
+                        "end_time": "10:00",
+                        "days": ["InvalidDay"],
+                        "active": True
+                    }
                 }
             }
         }

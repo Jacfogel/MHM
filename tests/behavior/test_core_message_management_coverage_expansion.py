@@ -6,7 +6,6 @@ Tests for core/message_management.py to improve coverage from 68% to 75%
 
 import pytest
 import os
-import json
 from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timezone, timedelta
 

@@ -6,7 +6,7 @@ focusing on business logic and data handling.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 
 class TestUIComponentsHeadless:
