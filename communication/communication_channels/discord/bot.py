@@ -71,6 +71,8 @@ class DiscordBot(BaseChannel):
         self._commands_registered = False
         # Session management
         self._sessions_to_cleanup = []
+        # Task management for proper cleanup
+        self._sync_task = None
         # Ensure BaseChannel logs for this instance also go to the Discord component log
         try:
             self.logger = discord_logger
@@ -116,7 +118,15 @@ class DiscordBot(BaseChannel):
         # Try primary DNS first (system default)
         try:
             socket.gethostbyname(hostname)
-            logger.debug(f"Primary DNS resolution successful for {hostname}")
+            # Only log DNS success occasionally to reduce log noise
+            if hasattr(self, '_dns_success_count'):
+                self._dns_success_count += 1
+            else:
+                self._dns_success_count = 1
+            
+            # Log DNS success every 10th check to reduce noise
+            if self._dns_success_count % 10 == 0:
+                logger.debug(f"Primary DNS resolution successful for {hostname} (check #{self._dns_success_count})")
             return True
         except socket.gaierror as e:
             primary_error = {
@@ -212,7 +222,15 @@ class DiscordBot(BaseChannel):
             try:
                 # Use a shorter timeout for faster failure detection
                 socket.create_connection((endpoint_hostname, endpoint_port), timeout=5)
-                logger.debug(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port}")
+                # Only log network success occasionally to reduce log noise
+                if hasattr(self, '_network_success_count'):
+                    self._network_success_count += 1
+                else:
+                    self._network_success_count = 1
+                
+                # Log network success every 10th check to reduce noise
+                if self._network_success_count % 10 == 0:
+                    logger.debug(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port} (check #{self._network_success_count})")
                 return True
             except (socket.gaierror, socket.timeout, OSError) as e:
                 logger.debug(f"Network connectivity failed to {endpoint_hostname}:{endpoint_port} - {e}")
@@ -684,7 +702,8 @@ class DiscordBot(BaseChannel):
                     except Exception as e:
                         logger.warning(f"Could not sync application commands: {e}")
                 # Schedule on the bot's loop to ensure proper task context
-                self.bot.loop.create_task(_sync_app_cmds())
+                # Store task reference for proper cleanup during shutdown
+                self._sync_task = self.bot.loop.create_task(_sync_app_cmds())
             except Exception as e:
                 logger.debug(f"Failed to schedule app command sync: {e}")
 
@@ -937,6 +956,16 @@ class DiscordBot(BaseChannel):
         if self.bot:
             async with self.shutdown__session_cleanup_context() as sessions_to_cleanup:
                 try:
+                    # Cancel any pending sync task first
+                    if hasattr(self, '_sync_task') and self._sync_task and not self._sync_task.done():
+                        self._sync_task.cancel()
+                        try:
+                            await asyncio.wait_for(self._sync_task, timeout=2.0)
+                        except (asyncio.CancelledError, asyncio.TimeoutError):
+                            logger.debug("Sync task cancelled or timed out during shutdown")
+                        except Exception as e:
+                            logger.debug(f"Error waiting for sync task cancellation: {e}")
+                    
                     # Close the bot first
                     if not self.bot.is_closed():
                         await self.bot.close()

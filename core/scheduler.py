@@ -100,7 +100,8 @@ class SchedulerManager:
                             logger.info(f"Scheduler running: {active_jobs} total jobs ({system_jobs} system, {user_message_jobs} message, {task_jobs} task)")
                         
                     # Use wait instead of sleep to allow immediate shutdown
-                    if self._stop_event.wait(timeout=60):  # Wait 60 seconds or until stop signal
+                    # Use shorter timeout to allow responsive shutdown
+                    if self._stop_event.wait(timeout=10):  # Wait 10 seconds or until stop signal
                         break
                 logger.info("Scheduler loop stopped gracefully.")
             except Exception as e:
@@ -122,7 +123,7 @@ class SchedulerManager:
         if self.scheduler_thread is not None and self.scheduler_thread.is_alive():
             logger.info("Stopping scheduler thread...")
             self._stop_event.set()  # Signal the thread to stop
-            self.scheduler_thread.join(timeout=5)  # Wait up to 5 seconds for clean shutdown
+            self.scheduler_thread.join(timeout=10)  # Wait up to 10 seconds for clean shutdown
             if self.scheduler_thread.is_alive():
                 logger.warning("Scheduler thread didn't stop within timeout period")
             else:

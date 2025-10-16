@@ -718,10 +718,16 @@ def setup_logging():
     # Suppress noisy third-party logging
     suppress_noisy_logging()
     
-    # Log successful setup
+    # Log successful setup (only on first initialization or config changes)
     logger = logging.getLogger(__name__)
-    logger.info(f"Logging initialized - Console level: {logging.getLevelName(log_level)}, File level: DEBUG")
-    logger.info("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
+    # Only log initialization details if this is the first setup or if verbosity is high
+    if not hasattr(setup_logging, '_logged_initialization'):
+        logger.info(f"Logging initialized - Console level: {logging.getLevelName(log_level)}, File level: DEBUG")
+        logger.info("Use LOG_LEVEL environment variable or toggle_verbose_logging() to change verbosity")
+        setup_logging._logged_initialization = True
+    else:
+        # Just log a brief debug message for subsequent initializations
+        logger.debug("Logging system reinitialized")
 
 
 @handle_errors("setting up third party error logging")

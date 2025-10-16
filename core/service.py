@@ -408,10 +408,50 @@ class MHMService:
                 
                 time.sleep(2)  # Sleep for 2 seconds
             
-            # Log heartbeat every 10 minutes instead of every 2 minutes to reduce log spam
+            # Enhanced service status logging with useful metrics
             loop_minutes += 1
             if loop_minutes % 10 == 0:
-                logger.info(f"Service running normally ({loop_minutes} minutes uptime)")
+                # Collect system metrics for enhanced status reporting
+                status_metrics = []
+                
+                # Basic uptime
+                status_metrics.append(f"{loop_minutes}m uptime")
+                
+                # Active scheduler jobs
+                if hasattr(self, 'scheduler_manager') and self.scheduler_manager:
+                    try:
+                        active_jobs = len(schedule.jobs) if 'schedule' in globals() else 0
+                        status_metrics.append(f"{active_jobs} active jobs")
+                    except:
+                        status_metrics.append("jobs: unknown")
+                
+                # User count
+                try:
+                    user_count = len(self.user_manager.get_all_user_ids()) if hasattr(self, 'user_manager') else 0
+                    status_metrics.append(f"{user_count} users")
+                except:
+                    status_metrics.append("users: unknown")
+                
+                # Memory usage (if available)
+                try:
+                    import psutil
+                    process = psutil.Process()
+                    memory_mb = process.memory_info().rss / 1024 / 1024
+                    status_metrics.append(f"{memory_mb:.1f}MB memory")
+                except:
+                    pass  # psutil not available, skip memory metric
+                
+                # Communication channel status
+                if self.communication_manager:
+                    try:
+                        channels = self.communication_manager.get_available_channels()
+                        status_metrics.append(f"{len(channels)} channels")
+                    except:
+                        pass
+                
+                # Log enhanced status
+                metrics_str = ", ".join(status_metrics)
+                logger.info(f"Service status: {metrics_str}")
                 
                 # Enhanced health monitoring - check Discord connectivity status
                 if self.communication_manager:

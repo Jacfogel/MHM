@@ -119,10 +119,26 @@ def register_default_loaders() -> None:
         ('context', _get_user_data__load_context, 'user_context'),
         ('schedules', _get_user_data__load_schedules, 'schedules'),
     ]
+    
+    # Track which loaders are being registered for batch logging
+    registered_loaders = []
+    
     for key, func, ftype in required:
         entry = USER_DATA_LOADERS.get(key)
         if entry is None or entry.get('loader') is None:
-            register_data_loader(key, func, ftype)
+            # Register without individual logging
+            USER_DATA_LOADERS[key] = {
+                'loader': func,
+                'file_type': ftype,
+                'default_fields': [],
+                'metadata_fields': [],
+                'description': f"Default {key} data loader"
+            }
+            registered_loaders.append(key)
+    
+    # Batch log all registered loaders at once
+    if registered_loaders:
+        logger.info(f"Registered data loaders: {', '.join(registered_loaders)} ({len(registered_loaders)} total)")
 
 
 def _ensure_default_loaders_once() -> None:
@@ -1024,11 +1040,19 @@ def ensure_all_categories_have_schedules(user_id: str) -> bool:
             logger.debug(f"No categories found for user {user_id}")
             return True
         
-        logger.info(f"Ensuring schedules exist for all categories for user {user_id}: {categories}")
+        # Track which schedules are actually created (not just verified)
+        created_schedules = []
         
         # Ensure each category has a default schedule
         for category in categories:
-            ensure_category_has_default_schedule(user_id, category)
+            if ensure_category_has_default_schedule(user_id, category):
+                created_schedules.append(category)
+        
+        # Only log when schedules are actually created, not when they already exist
+        if created_schedules:
+            logger.info(f"Created schedules for user {user_id}: {created_schedules}")
+        else:
+            logger.debug(f"Verified schedules exist for user {user_id}: {categories}")
         
         return True
     except Exception as e:
