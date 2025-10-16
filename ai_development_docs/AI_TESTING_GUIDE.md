@@ -44,6 +44,24 @@ def cleanup_test_data():
     pass
 ```
 
+### **CRITICAL: Windows Task Prevention**
+**MANDATORY**: Mock all scheduler methods to prevent real Windows task creation.
+
+```python
+# CORRECT: Mock scheduler methods
+from unittest.mock import patch
+
+def test_scheduler_functionality():
+    with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+        scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
+        mock_wake_timer.assert_called_once_with(schedule_time, user_id, category, period)
+```
+
+```powershell
+# Check for task pollution
+schtasks /query /fo csv /nh | findstr "Wake_" | Measure-Object
+```
+
 ### **Discord Command Testing**
 ```python
 # Test profile display formatting

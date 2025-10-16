@@ -8,6 +8,16 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-16 - CRITICAL: Windows Task Buildup Issue Resolved
+
+**What Changed**: Fixed tests creating real Windows scheduled tasks (598 tasks cleaned up)
+
+**Results**: 0 Windows tasks remaining, all 1,849 tests passing without system pollution
+
+**Fix**: Added proper mocking to 3 scheduler tests, updated testing documentation with prevention requirements
+
+---
+
 ### 2025-10-15 - Unused Imports Cleanup - Test Files Phase 1 Complete
 
 **What Changed**: Cleaned 37+ test files across 7 batches, fixed test isolation issues

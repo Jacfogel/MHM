@@ -73,6 +73,20 @@ class HeadlessServiceManager:
             # Give services time to shut down
             time.sleep(3)
         
+        # Double-check that no service processes are still running
+        processes = get_service_processes()
+        if processes:
+            logger.warning(f"Found {len(processes)} existing service processes, cleaning up...")
+            for proc in processes:
+                try:
+                    import psutil
+                    p = psutil.Process(proc['pid'])
+                    p.terminate()
+                    logger.info(f"Terminated existing service process {proc['pid']}")
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    pass
+            time.sleep(2)  # Give processes time to terminate
+        
         # Check if UI services are running and stop them
         if is_ui_service_running():
             logger.info("Stopping UI services before starting headless service...")
@@ -97,11 +111,15 @@ class HeadlessServiceManager:
             logger.info(f"Starting headless service with Python: {python_executable}")
             logger.info(f"Service path: {service_path}")
             
-            # Set up environment to ensure venv is used
+            # Set up environment to ensure venv is used and prevent duplicate processes
             env = os.environ.copy()
             venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
             if os.path.exists(venv_scripts_dir):
+                # Put venv first in PATH to ensure it's used
                 env['PATH'] = venv_scripts_dir + os.pathsep + env.get('PATH', '')
+                # Add explicit marker to prevent duplicate service detection
+                env['MHM_HEADLESS_SERVICE'] = '1'
+                env['MHM_SERVICE_TYPE'] = 'headless'
             
             # Start the service process
             if os.name == 'nt':  # Windows

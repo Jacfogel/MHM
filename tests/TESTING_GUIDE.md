@@ -33,6 +33,15 @@ python -m pytest tests/behavior/test_ui_automation_complete.py -v
 python -m pytest tests/behavior/test_discord_advanced_automation.py -v
 ```
 
+### **CRITICAL: Windows Task Prevention**
+```powershell
+# Check for Windows task pollution
+schtasks /query /fo csv /nh | findstr "Wake_" | Measure-Object
+
+# Clean up Windows tasks if needed
+python scripts/cleanup_windows_tasks.py
+```
+
 ### **Test Categories**
 - **Unit Tests**: Individual function testing
 - **Integration Tests**: Cross-module workflows
@@ -97,6 +106,56 @@ tests/
 - **Mock External Systems**: Never create real Windows tasks or system resources
 - **UI Testing**: Use headless mode, mock Qt applications
 - **User Data Access**: Use `TestUserFactory` and centralized `get_user_data()` over custom scaffolding
+
+### **CRITICAL: Windows Task Prevention Requirements**
+**MANDATORY**: All tests that interact with scheduler functionality MUST prevent Windows task creation.
+
+#### **Required Mocking Patterns**
+```python
+# CORRECT: Mock the scheduler method to prevent real Windows tasks
+from unittest.mock import patch
+
+def test_scheduler_functionality():
+    with patch.object(scheduler_manager, 'set_wake_timer') as mock_wake_timer:
+        # Test the functionality
+        scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
+        
+        # Verify the method was called with correct parameters
+        mock_wake_timer.assert_called_once_with(schedule_time, user_id, category, period)
+```
+
+#### **FORBIDDEN Patterns**
+```python
+# WRONG: Never call real scheduler methods in tests
+def test_scheduler_functionality():
+    # This creates real Windows tasks - FORBIDDEN
+    scheduler_manager.set_wake_timer(schedule_time, user_id, category, period)
+    
+    # This also creates real Windows tasks - FORBIDDEN
+    subprocess.run(['schtasks', '/create', ...])
+```
+
+#### **Verification Commands**
+```powershell
+# Check for Windows task pollution after test runs
+schtasks /query /fo csv /nh | findstr "Wake_" | Measure-Object
+
+# Clean up if tasks are found
+python scripts/cleanup_windows_tasks.py
+```
+
+#### **Test Categories Requiring Special Attention**
+- **Scheduler Tests**: `test_scheduler_*.py` - MUST mock `set_wake_timer`
+- **Wake Timer Tests**: Any test with "wake" or "timer" in name
+- **Real Behavior Tests**: Tests with "real_behavior" in name - MUST use proper mocking
+- **Integration Tests**: Tests that exercise full scheduler workflows
+
+#### **Enforcement Rules**
+1. **Pre-Test Check**: Verify no Windows tasks exist before running tests
+2. **Post-Test Check**: Verify no new Windows tasks were created
+3. **Mock Verification**: All scheduler methods must be mocked in tests
+4. **Cleanup Required**: Any test that creates Windows tasks must clean them up immediately
+5. **Documentation**: All scheduler tests must document their mocking strategy
 
 ### **Key Fixtures**
 - `force_test_data_directory` (session, autouse): routes all temp I/O to `tests/data`

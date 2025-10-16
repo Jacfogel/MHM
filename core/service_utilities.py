@@ -151,7 +151,9 @@ def is_service_running():
 def get_service_processes():
     """Get detailed information about all MHM service processes"""
     service_processes = []
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
+    seen_processes = set()  # Track processes to avoid duplicates
+    
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time', 'environ']):
         try:
             if not proc.info['name'] or 'python' not in proc.info['name'].lower():
                 continue
@@ -159,12 +161,27 @@ def get_service_processes():
             cmdline = proc.info.get('cmdline', [])
             if cmdline and any('service.py' in arg for arg in cmdline) and not any('run_headless_service.py' in arg for arg in cmdline):
                 if proc.is_running():
+                    # Create a unique identifier for this process to avoid duplicates
+                    process_key = f"{proc.info['pid']}_{proc.info['create_time']}"
+                    if process_key in seen_processes:
+                        continue
+                    seen_processes.add(process_key)
+                    
                     # Determine if this is a UI-managed or headless service
                     # UI-managed: has 'ui' in the path (launched by UI)
                     # Headless: runs core/service.py directly without 'ui' in path
                     full_cmdline = ' '.join(cmdline)
                     is_ui_managed = 'ui' in full_cmdline and 'service.py' in full_cmdline
                     is_headless = ('core/service.py' in full_cmdline or 'core\\service.py' in full_cmdline or full_cmdline.endswith('core/service.py') or full_cmdline.endswith('core\\service.py')) and not is_ui_managed
+                    
+                    # Check for environment markers to better identify service type
+                    try:
+                        environ = proc.info.get('environ', {})
+                        if environ and 'MHM_HEADLESS_SERVICE' in environ:
+                            is_headless = True
+                            is_ui_managed = False
+                    except (psutil.AccessDenied, KeyError):
+                        pass  # Can't access environment, use cmdline detection
                     
                     service_processes.append({
                         'pid': proc.info['pid'],
