@@ -14,6 +14,41 @@
 
 ## Quick Reference
 
+### **Test Suite Hanging Prevention**
+```python
+# Qt components in tests require proper mocking to avoid hanging
+# Mock-based approach provides same coverage without Qt initialization dependencies
+
+# BAD: Direct Qt instantiation in tests
+def test_ui_validation():
+    manager = MHMManagerUI()  # HANGS - requires Qt app context
+
+# GOOD: Mock-based testing
+def test_ui_validation():
+    class MockMHMManagerUI:
+        def on_user_selected(self, user_id):
+            if user_id is None or user_id == "":
+                return None
+            return user_id
+    
+    manager = MockMHMManagerUI()
+    # Test validation logic without Qt dependencies
+```
+
+### **Analytics Test Patching**
+```python
+# Analytics tests must match backend function usage
+# Test patching must target correct import paths and function names
+
+# BAD: Patching wrong function
+with patch('core.checkin_analytics.get_recent_checkins', return_value=mock_data):
+    result = analytics.get_mood_trends('user', days=30)  # FAILS
+
+# GOOD: Patching correct function  
+with patch('core.checkin_analytics.get_checkins_by_days', return_value=mock_data):
+    result = analytics.get_mood_trends('user', days=30)  # WORKS
+```
+
 ### **Test Execution**
 ```powershell
 # Run all tests

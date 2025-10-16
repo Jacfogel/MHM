@@ -109,6 +109,33 @@ def get_recent_checkins(user_id: str, limit: int = 7):
     """Get recent check-in responses for a user."""
     return get_recent_responses(user_id, "checkin", limit)
 
+@handle_errors("getting checkins by days", default_return=[])
+def get_checkins_by_days(user_id: str, days: int = 7):
+    """Get check-ins from the last N calendar days."""
+    from datetime import datetime, timedelta
+    
+    # Get all check-ins first
+    all_checkins = get_recent_responses(user_id, "checkin", limit=1000)  # Get a large number
+    
+    if not all_checkins:
+        return []
+    
+    # Calculate cutoff date
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    # Filter check-ins by date
+    recent_checkins = []
+    for checkin in all_checkins:
+        if 'timestamp' in checkin:
+            try:
+                checkin_date = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
+                if checkin_date >= cutoff_date:
+                    recent_checkins.append(checkin)
+            except (ValueError, TypeError):
+                continue
+    
+    return recent_checkins
+
 @handle_errors("getting recent chat interactions", default_return=[])
 def get_recent_chat_interactions(user_id: str, limit: int = 10):
     """Get recent chat interactions for a user."""

@@ -26,6 +26,18 @@ python -m pytest tests/ui/ -v
 
 ## Common Testing Patterns
 
+### **Qt Test Hanging**
+```python
+# BAD: MHMManagerUI()  # HANGS
+# GOOD: MockMHMManagerUI()  # Mock instead
+```
+
+### **Analytics Patching**
+```python
+# BAD: patch('get_recent_checkins')
+# GOOD: patch('get_checkins_by_days')
+```
+
 ### **Test Failure Investigation**
 1. **Read the error message** - Look for specific failure details
 2. **Check test data** - Verify test fixtures and setup

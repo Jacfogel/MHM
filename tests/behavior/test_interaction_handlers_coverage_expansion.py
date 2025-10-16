@@ -820,7 +820,7 @@ class TestAnalyticsHandlerCoverage:
 
         # Patch checkins data to have several fields
         from core import checkin_analytics as ca
-        monkeypatch.setattr(ca, "get_recent_checkins", lambda uid, limit=30: [
+        monkeypatch.setattr(ca, "get_checkins_by_days", lambda uid, days=30: [
             {"timestamp": "2025-01-10 09:00:00", "mood": 4, "energy": 2, "stress": 3},
             {"timestamp": "2025-01-11 09:00:00", "mood": 5, "energy": 4, "stress": 2},
         ])

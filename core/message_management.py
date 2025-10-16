@@ -58,6 +58,45 @@ def get_message_categories():
     logger.debug(f"Retrieved message categories from comma-separated string: {category_list}")
     return category_list
 
+@handle_errors("loading user messages", default_return=[])
+def load_user_messages(user_id, category):
+    """
+    Load user's message templates for a specific category.
+    
+    Args:
+        user_id: The user ID
+        category: The message category
+        
+    Returns:
+        List[dict]: List of message templates for the category
+    """
+    if user_id is None:
+        logger.error("load_user_messages called with None user_id")
+        return []
+    
+    try:
+        # Use new user-specific message file structure
+        user_messages_dir = Path(get_user_data_dir(user_id)) / 'messages'
+        file_path = user_messages_dir / f"{category}.json"
+        
+        if not file_path.exists():
+            logger.debug(f"No message file found for user {user_id}, category {category}")
+            return []
+        
+        data = load_json_data(str(file_path))
+        
+        if data is None or 'messages' not in data:
+            logger.debug(f"No messages found in file for user {user_id}, category {category}")
+            return []
+        
+        messages = data['messages']
+        logger.debug(f"Loaded {len(messages)} messages for user {user_id}, category {category}")
+        return messages
+        
+    except Exception as e:
+        logger.error(f"Error loading user messages for user {user_id}, category {category}: {e}")
+        return []
+
 @handle_errors("loading default messages", default_return=[])
 def load_default_messages(category):
     """Load default messages for a specific category."""

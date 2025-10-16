@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog_user_analytics</class>
+ <widget class="QDialog" name="Dialog_user_analytics">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>User Analytics</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_main">
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_header">
+     <item>
+      <widget class="QLabel" name="label_title">
+       <property name="text">
+        <string>User Analytics</string>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_title">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QComboBox" name="comboBox_time_period">
+       <property name="toolTip">
+        <string>Select time period for analytics</string>
+       </property>
+       <item>
+        <property name="text">
+         <string>Last 7 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 14 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 30 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 60 days</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Last 90 days</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_refresh">
+       <property name="text">
+        <string>Refresh</string>
+       </property>
+       <property name="toolTip">
+        <string>Refresh analytics data</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QTabWidget" name="tabWidget_analytics">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="tab_overview">
+      <attribute name="title">
+       <string>Overview</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_overview">
+       <item>
+        <widget class="QLabel" name="label_wellness_score">
+         <property name="text">
+          <string>Wellness Score: --</string>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>14</pointsize>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_summary">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="maximumHeight">
+          <number>200</number>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_recommendations">
+         <property name="text">
+          <string>Recommendations:</string>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_recommendations">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+         <property name="maximumHeight">
+          <number>150</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_mood">
+      <attribute name="title">
+       <string>Mood Trends</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_mood">
+       <item>
+        <widget class="QLabel" name="label_mood_summary">
+         <property name="text">
+          <string>Mood Analysis</string>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_mood_data">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_habits">
+      <attribute name="title">
+       <string>Habits</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_habits">
+       <item>
+        <widget class="QLabel" name="label_habits_summary">
+         <property name="text">
+          <string>Habit Analysis</string>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_habits_data">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_sleep">
+      <attribute name="title">
+       <string>Sleep</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_sleep">
+       <item>
+        <widget class="QLabel" name="label_sleep_summary">
+         <property name="text">
+          <string>Sleep Analysis</string>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_sleep_data">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_quantitative">
+      <attribute name="title">
+       <string>Quantitative Data</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_quantitative">
+       <item>
+        <widget class="QLabel" name="label_quantitative_summary">
+         <property name="text">
+          <string>Quantitative Summaries</string>
+         </property>
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_quantitative_data">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+     <item>
+      <spacer name="horizontalSpacer_buttons">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pushButton_close">
+       <property name="text">
+        <string>Close</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

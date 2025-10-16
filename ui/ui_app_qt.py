@@ -760,6 +760,8 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_checkin_settings.setEnabled(True)
         self.ui.pushButton_task_management.setEnabled(True)
         self.ui.pushButton_task_crud.setEnabled(True)
+        self.ui.pushButton_user_analytics.setEnabled(True)
+        self.ui.pushButton_run_user_scheduler.setEnabled(True)
         
         # Enable category actions group
         self.ui.groupBox_category_actions.setEnabled(True)
@@ -772,6 +774,8 @@ class MHMManagerUI(QMainWindow):
         self.ui.pushButton_checkin_settings.setEnabled(False)
         self.ui.pushButton_task_management.setEnabled(False)
         self.ui.pushButton_task_crud.setEnabled(False)
+        self.ui.pushButton_user_analytics.setEnabled(False)
+        self.ui.pushButton_run_user_scheduler.setEnabled(False)
         
         # Disable category actions group
         self.ui.groupBox_category_actions.setEnabled(False)
@@ -999,10 +1003,8 @@ class MHMManagerUI(QMainWindow):
             return
         logger.info(f"Admin Panel: Opening user analytics for user {self.current_user}")
         try:
-            # For now, show a message that this feature is being developed
-            QMessageBox.information(self, "Feature in Development", 
-                f"User analytics for '{self.current_user}' is currently being developed.\n\n"
-                "This feature will provide insights into user engagement, message effectiveness, and usage patterns.")
+            from ui.dialogs.user_analytics_dialog import open_user_analytics_dialog
+            open_user_analytics_dialog(self, self.current_user)
         except Exception as e:
             logger.error(f"Error opening user analytics: {e}")
             QMessageBox.critical(self, "Error", f"Failed to open user analytics: {str(e)}")
@@ -1023,8 +1025,16 @@ class MHMManagerUI(QMainWindow):
         if not self.current_user:
             QMessageBox.warning(self, "No User Selected", "Please select a user first.")
             return
-            
-        logger.info(f"Admin Panel: Opening message editor for user {self.current_user}")
+        
+        # Check if a category is selected
+        current_index = self.ui.comboBox_user_categories.currentIndex()
+        if current_index <= 0:  # No category selected or "Select a category..." selected
+            QMessageBox.warning(self, "No Category Selected", "Please select a category from the dropdown first.")
+            return
+        
+        selected_category = self.ui.comboBox_user_categories.itemData(current_index)
+        logger.info(f"Admin Panel: Opening message editor for user {self.current_user}, category {selected_category}")
+        
         # Temporarily set the user context for editing
         original_user = UserContext().get_user_id()
         UserContext().set_user_id(self.current_user)
@@ -1042,35 +1052,8 @@ class MHMManagerUI(QMainWindow):
             # Load the full user data into UserContext
             UserContext().load_user_data(self.current_user)
         
-        # Get user categories
-        prefs_result = get_user_data(self.current_user, 'preferences')
-        categories = prefs_result.get('preferences', {}).get('categories', [])
-        
-        if not categories:
-            logger.info(f"Admin Panel: User {self.current_user} has no message categories configured")
-            QMessageBox.information(self, "No Categories", "This user has no message categories configured.")
-            return
-        
-        # Open category selection dialog
-        category_dialog = QDialog(self)
-        category_dialog.setWindowTitle(f"Select Category - {self.current_user}")
-        category_dialog.setModal(True)
-        category_dialog.resize(300, 200)
-        
-        layout = QVBoxLayout(category_dialog)
-        
-        title_label = QLabel("Select message category to edit:")
-        title_label.setFont(QFont("Arial", 12))
-        layout.addWidget(title_label)
-        
-        for category in categories:
-            # Replace underscores with spaces before applying title_case
-            formatted_category = _shared__title_case(category.replace('_', ' '))
-            button = QPushButton(formatted_category)
-            button.clicked.connect(lambda checked, c=category: self.open_message_editor(category_dialog, c))
-            layout.addWidget(button)
-        
-        category_dialog.exec()
+        # Open the message editor directly with the selected category
+        self.open_message_editor(None, selected_category)
 
     @handle_errors("opening message editor", default_return=None)
     def open_message_editor(self, parent_dialog, category):
@@ -1080,11 +1063,6 @@ class MHMManagerUI(QMainWindow):
         Returns:
             None: Always returns None
         """
-        # Validate parent_dialog
-        if not parent_dialog:
-            logger.error("Invalid parent_dialog")
-            return None
-            
         # Validate category
         if not category or not isinstance(category, str):
             logger.error(f"Invalid category: {category}")
@@ -1095,13 +1073,14 @@ class MHMManagerUI(QMainWindow):
             return None
         """Open the message editing window for a specific category"""
         logger.info(f"Admin Panel: Opening message editor for user {self.current_user}, category {category}")
-        parent_dialog.accept()
+        
+        # Close parent dialog if it exists
+        if parent_dialog:
+            parent_dialog.accept()
         
         try:
-            # For now, show a message that this feature is being migrated
-            QMessageBox.information(self, "Feature in Migration", 
-                f"Message editing for category '{category}' is currently being migrated from Tkinter to PySide6.\n\n"
-                "This feature will be available in the next update.")
+            from ui.dialogs.message_editor_dialog import open_message_editor_dialog
+            open_message_editor_dialog(self, self.current_user, category)
             
         except Exception as e:
             logger.error(f"Error opening message editor: {e}")
@@ -1161,11 +1140,6 @@ class MHMManagerUI(QMainWindow):
         Returns:
             None: Always returns None
         """
-        # Validate parent_dialog
-        if not parent_dialog:
-            logger.error("Invalid parent_dialog")
-            return None
-            
         # Validate category
         if not category or not isinstance(category, str):
             logger.error(f"Invalid category: {category}")

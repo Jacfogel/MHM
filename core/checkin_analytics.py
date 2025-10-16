@@ -11,7 +11,7 @@ import statistics
 from datetime import datetime
 from typing import Dict, List, Optional
 from core.logger import get_component_logger
-from core.response_tracking import get_recent_checkins
+from core.response_tracking import get_recent_checkins, get_checkins_by_days
 from core.error_handling import handle_errors
 
 logger = get_component_logger('analytics')
@@ -30,7 +30,7 @@ class CheckinAnalytics:
     @handle_errors("analyzing mood trends", default_return={"error": "Analysis failed"})
     def get_mood_trends(self, user_id: str, days: int = 30) -> Dict:
         """Analyze mood trends over the specified period"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -94,7 +94,7 @@ class CheckinAnalytics:
     @handle_errors("analyzing habits", default_return={"error": "Analysis failed"})
     def get_habit_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze habit patterns from check-in data"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -138,21 +138,29 @@ class CheckinAnalytics:
     @handle_errors("analyzing sleep", default_return={"error": "Analysis failed"})
     def get_sleep_analysis(self, user_id: str, days: int = 30) -> Dict:
         """Analyze sleep patterns from check-in data"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data available"}
         
         sleep_data = []
         for checkin in checkins:
-            if 'sleep_hours' in checkin and 'sleep_quality' in checkin:
+            # Check for any sleep-related data (quality or hours)
+            has_sleep_data = 'sleep_quality' in checkin or 'sleep_hours' in checkin
+            if has_sleep_data:
                 try:
                     timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
-                    sleep_data.append({
+                    sleep_entry = {
                         'date': timestamp.date(),
-                        'hours': checkin['sleep_hours'],
-                        'quality': checkin['sleep_quality'],
                         'timestamp': checkin['timestamp']
-                    })
+                    }
+                    
+                    # Add available sleep data
+                    if 'sleep_quality' in checkin:
+                        sleep_entry['quality'] = checkin['sleep_quality']
+                    if 'sleep_hours' in checkin:
+                        sleep_entry['hours'] = checkin['sleep_hours']
+                    
+                    sleep_data.append(sleep_entry)
                 except (ValueError, TypeError):
                     continue
         
@@ -160,24 +168,43 @@ class CheckinAnalytics:
             return {"error": "No valid sleep data found"}
         
         # Calculate sleep statistics
-        hours = [d['hours'] for d in sleep_data]
-        quality = [d['quality'] for d in sleep_data]
+        hours = [d['hours'] for d in sleep_data if 'hours' in d]
+        quality = [d['quality'] for d in sleep_data if 'quality' in d]
         
-        avg_hours = statistics.mean(hours)
-        avg_quality = statistics.mean(quality)
+        avg_hours = statistics.mean(hours) if hours else None
+        avg_quality = statistics.mean(quality) if quality else None
         
         # Identify sleep patterns
-        good_sleep_days = [d for d in sleep_data if d['hours'] >= 7 and d['quality'] >= 4]
-        poor_sleep_days = [d for d in sleep_data if d['hours'] < 6 or d['quality'] <= 2]
+        good_sleep_days = []
+        poor_sleep_days = []
+        
+        for d in sleep_data:
+            is_good = True
+            is_poor = True
+            
+            if 'hours' in d and 'quality' in d:
+                is_good = d['hours'] >= 7 and d['quality'] >= 4
+                is_poor = d['hours'] < 6 or d['quality'] <= 2
+            elif 'quality' in d:
+                is_good = d['quality'] >= 4
+                is_poor = d['quality'] <= 2
+            elif 'hours' in d:
+                is_good = d['hours'] >= 7
+                is_poor = d['hours'] < 6
+            
+            if is_good:
+                good_sleep_days.append(d)
+            if is_poor:
+                poor_sleep_days.append(d)
         
         return {
             "period_days": days,
             "total_sleep_records": len(sleep_data),
-            "average_hours": round(avg_hours, 1),
-            "average_quality": round(avg_quality, 1),
+            "average_hours": round(avg_hours, 1) if avg_hours is not None else None,
+            "average_quality": round(avg_quality, 1) if avg_quality is not None else None,
             "good_sleep_days": len(good_sleep_days),
             "poor_sleep_days": len(poor_sleep_days),
-            "sleep_consistency": self._calculate_sleep_consistency(hours),
+            "sleep_consistency": self._calculate_sleep_consistency(hours) if hours else None,
             "recommendations": self._get_sleep_recommendations(avg_hours, avg_quality, len(poor_sleep_days)),
             "recent_data": sleep_data[:7]  # Last 7 days
         }
@@ -185,9 +212,21 @@ class CheckinAnalytics:
     @handle_errors("calculating wellness score", default_return={"error": "Calculation failed"})
     def get_wellness_score(self, user_id: str, days: int = 7) -> Dict:
         """Calculate overall wellness score from check-in data"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
-            return {"error": "No check-in data available"}
+            return {
+                "error": "No check-in data available",
+                "total_checkins": 0,
+                "data_completeness": 0.0
+            }
+        
+        # Additional validation: check if we have meaningful data
+        if len(checkins) < 3:  # Need at least 3 check-ins for meaningful analysis
+            return {
+                "error": "Insufficient data for analysis",
+                "total_checkins": len(checkins),
+                "data_completeness": (len(checkins) / days) * 100
+            }
         
         # Calculate component scores
         mood_score = self._calculate_mood_score(checkins)
@@ -212,7 +251,7 @@ class CheckinAnalytics:
     @handle_errors("getting check-in history", default_return={"error": "History retrieval failed"})
     def get_checkin_history(self, user_id: str, days: int = 30) -> List[Dict]:
         """Get check-in history with proper date formatting"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return []
         
@@ -241,6 +280,52 @@ class CheckinAnalytics:
         
         return formatted_history
 
+    @handle_errors("detecting available data types", default_return={"error": "Detection failed"})
+    def get_available_data_types(self, user_id: str, days: int = 30) -> Dict:
+        """Detect what types of data are available for analytics"""
+        checkins = get_checkins_by_days(user_id, days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Analyze what data is actually present
+        data_types = {
+            "mood": False,
+            "energy": False,
+            "sleep": False,
+            "habits": False,
+            "quantitative": False
+        }
+        
+        # Check for mood data
+        mood_data = [c for c in checkins if 'mood' in c]
+        if mood_data:
+            data_types["mood"] = True
+            data_types["quantitative"] = True
+        
+        # Check for energy data
+        energy_data = [c for c in checkins if 'energy' in c]
+        if energy_data:
+            data_types["quantitative"] = True
+        
+        # Check for sleep data
+        sleep_data = [c for c in checkins if 'sleep_quality' in c or 'sleep_hours' in c]
+        if sleep_data:
+            data_types["sleep"] = True
+            data_types["quantitative"] = True
+        
+        # Check for habit data
+        habit_fields = ['ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 'hydration', 'social_interaction']
+        habit_data = [c for c in checkins if any(field in c for field in habit_fields)]
+        if habit_data:
+            data_types["habits"] = True
+            data_types["quantitative"] = True
+        
+        return {
+            "data_types": data_types,
+            "total_checkins": len(checkins),
+            "analysis_period": days
+        }
+
     @handle_errors("computing quantitative summaries", default_return={"error": "Analysis failed"})
     def get_quantitative_summaries(self, user_id: str, days: int = 30, enabled_fields: Optional[List[str]] = None) -> Dict[str, Dict[str, float]]:
         """Compute per-field averages and ranges for opted-in quantitative fields.
@@ -253,30 +338,9 @@ class CheckinAnalytics:
         Returns mapping: { field: { 'average': float, 'min': float, 'max': float, 'count': int } }
         Only includes fields that appear in the data and are in enabled_fields if provided.
         """
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data"}
-
-        # If enabled_fields is not provided, get it from user preferences
-        if enabled_fields is None:
-            try:
-                from core.user_data_handlers import get_user_data
-                prefs = get_user_data(user_id, 'preferences') or {}
-                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
-                if isinstance(checkin_settings, dict):
-                    # LEGACY COMPATIBILITY: Support old enabled_fields format
-                    if 'enabled_fields' in checkin_settings:
-                        logger.warning(f"LEGACY COMPATIBILITY: User {user_id} using old enabled_fields format - consider migrating to questions format")
-                        enabled_fields = checkin_settings.get('enabled_fields', [])
-                        logger.debug(f"LEGACY: Found enabled_fields: {enabled_fields}")
-                    else:
-                        # Get enabled fields from new questions configuration
-                        questions = checkin_settings.get('questions', {})
-                        enabled_fields = [key for key, config in questions.items() 
-                                        if config.get('enabled', False) and 
-                                        config.get('type') in ['scale_1_5', 'number', 'yes_no']]
-            except Exception:
-                enabled_fields = None
 
         # Candidate fields available directly on checkin dicts
         # Include all quantitative fields from questions.json
@@ -290,6 +354,42 @@ class CheckinAnalytics:
             'ate_breakfast', 'brushed_teeth', 'medication_taken', 'exercise', 
             'hydration', 'social_interaction'
         ]
+
+        # If enabled_fields is not provided, check user preferences first, then fall back to auto-detection
+        if enabled_fields is None:
+            try:
+                from core.user_data_handlers import get_user_data
+                prefs = get_user_data(user_id, 'preferences') or {}
+                checkin_settings = (prefs.get('preferences') or {}).get('checkin_settings') or {}
+                
+                # Check for new questions format
+                if 'questions' in checkin_settings:
+                    questions = checkin_settings['questions']
+                    enabled_fields = []
+                    for field, config in questions.items():
+                        if isinstance(config, dict) and config.get('enabled', False):
+                            if field in candidate_fields:
+                                enabled_fields.append(field)
+                    logger.debug(f"Using questions format enabled fields: {enabled_fields}")
+                else:
+                    # Fall back to auto-detection from data
+                    available_fields = set()
+                    for checkin in checkins:
+                        for field in candidate_fields:
+                            if field in checkin and checkin[field] is not None:
+                                available_fields.add(field)
+                    enabled_fields = list(available_fields)
+                    logger.debug(f"Auto-detected available fields: {enabled_fields}")
+            except Exception as e:
+                logger.warning(f"Error checking user preferences: {e}")
+                # Fall back to auto-detection
+                available_fields = set()
+                for checkin in checkins:
+                    for field in candidate_fields:
+                        if field in checkin and checkin[field] is not None:
+                            available_fields.add(field)
+                enabled_fields = list(available_fields)
+                logger.debug(f"Auto-detected available fields: {enabled_fields}")
 
         if enabled_fields is not None:
             # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
@@ -364,7 +464,7 @@ class CheckinAnalytics:
     @handle_errors("calculating completion rate", default_return={"error": "Calculation failed"})
     def get_completion_rate(self, user_id: str, days: int = 30) -> Dict:
         """Calculate overall completion rate for check-ins"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -385,7 +485,7 @@ class CheckinAnalytics:
     @handle_errors("calculating task weekly stats", default_return={"error": "Calculation failed"})
     def get_task_weekly_stats(self, user_id: str, days: int = 7) -> Dict:
         """Calculate weekly statistics for tasks"""
-        checkins = get_recent_checkins(user_id, limit=days)
+        checkins = get_checkins_by_days(user_id, days)
         if not checkins:
             return {"error": "No check-in data available"}
         
@@ -485,13 +585,16 @@ class CheckinAnalytics:
         """Generate sleep recommendations"""
         recommendations = []
         
-        if avg_hours < 7:
-            recommendations.append("Try to get at least 7-8 hours of sleep per night")
-        elif avg_hours > 9:
-            recommendations.append("Consider if you're getting too much sleep")
+        # Handle None values for missing data
+        if avg_hours is not None:
+            if avg_hours < 7:
+                recommendations.append("Try to get at least 7-8 hours of sleep per night")
+            elif avg_hours > 9:
+                recommendations.append("Consider if you're getting too much sleep")
         
-        if avg_quality < 3:
-            recommendations.append("Work on improving sleep quality with a bedtime routine")
+        if avg_quality is not None:
+            if avg_quality < 3:
+                recommendations.append("Work on improving sleep quality with a bedtime routine")
         
         if poor_days > 3:
             recommendations.append("Consider consulting a sleep specialist if poor sleep persists")

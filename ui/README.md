@@ -37,11 +37,13 @@ All UI files are auto-generated from `.ui` files in `ui/designs/` and stored in 
 - `ui/generated/category_management_dialog_pyqt.py` - Category management dialog
 - `ui/generated/channel_management_dialog_pyqt.py` - Channel management dialog
 - `ui/generated/checkin_management_dialog_pyqt.py` - Check-in management dialog
+- `ui/generated/message_editor_dialog_pyqt.py` - Message editing dialog (CRUD operations)
 - `ui/generated/schedule_editor_dialog_pyqt.py` - Schedule editing dialog
 - `ui/generated/task_completion_dialog_pyqt.py` - Task completion dialog
 - `ui/generated/task_crud_dialog_pyqt.py` - Task CRUD operations dialog
 - `ui/generated/task_edit_dialog_pyqt.py` - Task editing dialog
 - `ui/generated/task_management_dialog_pyqt.py` - Task management dialog
+- `ui/generated/user_analytics_dialog_pyqt.py` - User analytics dialog (wellness insights)
 - `ui/generated/user_profile_management_dialog_pyqt.py` - User profile management dialog
 
 **Widget Files:**
