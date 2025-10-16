@@ -1,12 +1,12 @@
 # Legacy Reference Cleanup Report
 
-**Generated**: 2025-10-13 00:17:47
-**Total Files with Issues**: 5
-**Legacy Compatibility Markers Detected**: 7
+**Generated**: 2025-10-16 02:43:39
+**Total Files with Issues**: 4
+**Legacy Compatibility Markers Detected**: 4
 
 ## Summary
 - Scan mode only: no automated fixes were applied.
-- Legacy compatibility markers remain in 5 file(s) (7 total markers).
+- Legacy compatibility markers remain in 4 file(s) (4 total markers).
 - 3 file(s) still reference `enabled_fields`; confirm any clients still produce that payload.
 - 1 file(s) rely on legacy preference delegation paths; decide whether to modernise or retire them.
 
@@ -16,7 +16,7 @@
 3. Track the cleanup effort and rerun `python ai_development_tools/ai_tools_runner.py legacy --clean --dry-run` until this report returns zero issues.
 
 ## Legacy Compatibility Markers
-**Files Affected**: 5
+**Files Affected**: 4
 
 ### communication\command_handlers\analytics_handler.py
 **Issues Found**: 1
@@ -29,41 +29,23 @@
 ### communication\command_handlers\interaction_handlers.py
 **Issues Found**: 1
 
-- **Line 2304**: `# LEGACY COMPATIBILITY:`
+- **Line 2300**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Support old enabled_fields format
   ```
 
 ### core\checkin_analytics.py
-**Issues Found**: 2
+**Issues Found**: 1
 
-- **Line 270**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Support old enabled_fields format
-  ```
-
-- **Line 298**: `# LEGACY COMPATIBILITY:`
+- **Line 395**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: For legacy enabled_fields, include any field that's in the data
-  ```
-
-### core\user_data_manager.py
-**Issues Found**: 2
-
-- **Line 720**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
-  ```
-
-- **Line 919**: `# LEGACY COMPATIBILITY:`
-  ```
-  # LEGACY COMPATIBILITY: Maintain simple mapping for backward compatibility
   ```
 
 ### user\user_context.py
 **Issues Found**: 1
 
-- **Line 189**: `# LEGACY COMPATIBILITY:`
+- **Line 180**: `# LEGACY COMPATIBILITY:`
   ```
   # LEGACY COMPATIBILITY: Preference methods now delegate to UserPreferences
   ```

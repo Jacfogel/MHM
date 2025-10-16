@@ -48,8 +48,8 @@ Available sub-commands include:
 Run any command with `--help` to see command-specific options.
 
 ## Fast Mode vs Full Mode
-- **Fast mode** (`audit`): skips coverage regeneration; finishes in roughly 30 seconds.
-- **Full mode** (`audit --full`): runs coverage and the full test suite; budget 3-4 minutes.
+- **Fast mode** (`audit`): skips coverage regeneration and unused imports checker; finishes in roughly 30 seconds.
+- **Full mode** (`audit --full`): runs coverage, unused imports checker, and the full test suite; budget 3-4 minutes.
 
 ## Generated Outputs
 The audit workflow produces:

@@ -1307,6 +1307,7 @@ class AIToolsService:
                 lines.append(f"- **Detailed Report**: {report_path}")
         else:
             lines.append("- **Unused Imports**: Run unused-imports checker to refresh metrics")
+            lines.append("- **Note**: Skipped in fast mode - use full audit for unused imports analysis")
         lines.append("")
 
         # Validation status
@@ -1490,6 +1491,7 @@ class AIToolsService:
                 lines.append(f"- **Detailed Report**: {report_path}")
         else:
             lines.append("- **Unused Imports**: Run unused-imports checker to establish cleanup priorities")
+            lines.append("- **Note**: Skipped in fast mode - use full audit for unused imports analysis")
         lines.append("")
 
         lines.append("## Coverage Priorities")
@@ -1683,8 +1685,8 @@ class AIToolsService:
 
         return True
     def _run_essential_tools_only(self):
-        """Run essential tools for fast audit mode (skips only test coverage)"""
-        print("Running AI development tools (fast mode - skipping test coverage)...")
+        """Run essential tools for fast audit mode (skips test coverage and unused imports)"""
+        print("Running AI development tools (fast mode - skipping test coverage and unused imports)...")
 
         try:
             print("  - Running docs-sync for documentation status...")
@@ -1700,16 +1702,9 @@ class AIToolsService:
         except Exception as e:
             print(f"  - Legacy-cleanup failed: {e}")
         
-        try:
-            print("  - Running unused-imports checker for code quality...")
-            result = self.run_unused_imports_checker()
-            if result.get('issues_found'):
-                print("  - Unused imports checker completed (found issues to address)")
-            else:
-                print("  - Unused imports checker completed (no issues found)")
-        except Exception as e:
-            print(f"  - Unused imports checker failed: {e}")
-
+        # Skip unused-imports checker in fast mode (takes too long)
+        print("  - Skipping unused-imports checker (fast mode - use full audit for unused imports)")
+        
         try:
             print("  - Running validate-work for validation status...")
             result = self.run_script("validate_ai_work")
@@ -1991,6 +1986,7 @@ class AIToolsService:
         else:
             lines.append("Unused imports scan completed.")
             lines.append("Status: Run unused-imports checker for detailed analysis.")
+            lines.append("Note: Skipped in fast mode - use full audit for unused imports analysis.")
         lines.append("")
 
         # Validation Status

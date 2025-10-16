@@ -138,7 +138,7 @@ class UserAnalyticsDialog(QDialog):
         """Configure which tabs are visible based on available data."""
         try:
             # Get tab widget
-            tab_widget = self.ui.tabWidget
+            tab_widget = self.ui.tabWidget_analytics
             
             # Configure each tab based on available data
             tab_configs = [
