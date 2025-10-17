@@ -4,13 +4,10 @@ Real behavior tests for AI conversation history functionality.
 Tests focus on actual side effects and system changes rather than just return values.
 """
 
-import pytest
-import os
-from unittest.mock import patch, Mock
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from ai.conversation_history import ConversationHistory
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 
 class TestConversationHistoryBehavior:

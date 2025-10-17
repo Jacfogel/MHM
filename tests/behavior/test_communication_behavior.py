@@ -10,18 +10,13 @@ This module tests:
 """
 
 import pytest
-import os
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-import asyncio
-from datetime import datetime
+from unittest.mock import Mock, patch, AsyncMock
 
 # Do not modify sys.path; rely on package imports
 
 # Import the actual functions from communication_manager
-from communication.core.channel_orchestrator import CommunicationManager, BotInitializationError, MessageSendError
-from communication.core.retry_manager import QueuedMessage
-from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
-from core.config import get_user_data_dir
+from communication.core.channel_orchestrator import CommunicationManager
+from communication.communication_channels.base.base_channel import ChannelConfig, ChannelStatus
 
 class TestCommunicationManager:
     """Test cases for the CommunicationManager class."""

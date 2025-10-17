@@ -7,13 +7,10 @@ Tests verify actual system changes, not just return values.
 
 import pytest
 import asyncio
-import threading
 import time
 import socket
-from unittest.mock import patch, MagicMock, AsyncMock, call
+from unittest.mock import patch, MagicMock, AsyncMock
 import queue
-import discord
-from discord.ext import commands
 import core.config
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus

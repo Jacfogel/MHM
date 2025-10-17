@@ -15,11 +15,8 @@ Focuses on expanding coverage from 55% to 70% by testing:
 
 import pytest
 import os
-import time
-import json
-import gzip
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch, MagicMock, mock_open
 from pathlib import Path
 import shutil

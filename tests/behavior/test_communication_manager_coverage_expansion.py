@@ -13,13 +13,8 @@ This module tests the uncovered areas of CommunicationManager to expand coverage
 
 import pytest
 import os
-import shutil
 import asyncio
-import time
-import queue
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from datetime import datetime, timedelta
-from dataclasses import dataclass
+from unittest.mock import Mock, patch, AsyncMock
 import threading
 
 # Project imports rely on pytest and conftest path setup

@@ -4,15 +4,12 @@ Comprehensive tests for Communication Factory coverage expansion.
 Tests focus on covering the uncovered lines in the ChannelFactory module.
 """
 
-import pytest
-import os
-from unittest.mock import patch, Mock, MagicMock, mock_open
-from datetime import datetime, timedelta
+from unittest.mock import patch, Mock
 import core
 
 from communication.core.factory import ChannelFactory
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 
 class TestCommunicationFactoryCoverageExpansion:

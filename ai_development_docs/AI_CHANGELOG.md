@@ -8,6 +8,13 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-16 - Unused Imports Cleanup Phase 2.11 **COMPLETED**
+- Successfully cleaned 7 behavior test files and removed ~19 unused imports
+- All 1848 tests passing with no regressions introduced
+- Service starts successfully, confirming no functionality broken
+- Progress: 77 files cleaned, ~171 imports removed (from original 489)
+- Remaining: 73 files with 302 unused imports for Phase 2.12
+
 ## How to Update This File
 1. Add a new entry at the top summarising the change in 2-4 bullets.
 2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".

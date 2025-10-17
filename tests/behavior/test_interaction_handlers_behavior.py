@@ -7,9 +7,7 @@ side effects rather than just returning values.
 """
 
 import pytest
-import os
-from unittest.mock import patch, MagicMock, mock_open
-from datetime import datetime, timedelta
+from unittest.mock import Mock
 
 # Import the modules we're testing
 from communication.command_handlers.interaction_handlers import (

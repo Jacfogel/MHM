@@ -3,11 +3,8 @@ Test coverage expansion for core/config.py - Phase 3
 Simple version that works with the actual implementation
 """
 
-import pytest
 import os
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
+from unittest.mock import patch, mock_open
 import core.config
 
 

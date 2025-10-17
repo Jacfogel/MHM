@@ -13,10 +13,7 @@ This module tests:
 import pytest
 import os
 import json
-from unittest.mock import Mock, patch, MagicMock, mock_open
-from pathlib import Path
-import tempfile
-import shutil
+from unittest.mock import Mock, patch, mock_open
 
 # Add the project root to the path
 # Do not modify sys.path; rely on package imports

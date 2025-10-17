@@ -3,8 +3,7 @@ Test coverage expansion for communication/message_processing/command_parser.py -
 Simple version that works with the actual implementation
 """
 
-import pytest
-from unittest.mock import patch, MagicMock, Mock
+from unittest.mock import Mock
 from communication.message_processing.command_parser import (
     EnhancedCommandParser, ParsingResult, get_enhanced_command_parser, parse_command
 )

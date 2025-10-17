@@ -11,10 +11,9 @@ This module tests:
 
 import pytest
 import os
-from unittest.mock import Mock, patch, MagicMock
-import sys
+from unittest.mock import patch
 import json
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 
 # Do not modify sys.path; rely on package imports
 

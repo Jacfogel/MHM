@@ -6,10 +6,7 @@ Tests scheduling logic, time management, and task execution.
 
 import pytest
 import os
-import json
-import tempfile
-import time
-from unittest.mock import patch, Mock, MagicMock
+from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 import pytz
 

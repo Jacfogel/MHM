@@ -4,10 +4,7 @@ Focuses on real behavior, side effects, and actual system changes.
 """
 
 import pytest
-import os
-import json
 import time
-from datetime import datetime, timedelta
 from unittest.mock import patch, Mock
 from core.schedule_management import (
     get_schedule_time_periods,

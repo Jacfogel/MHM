@@ -4,12 +4,8 @@ Tests real behavior and side effects of the main UI application.
 """
 
 import pytest
-import json
-import os
-import sys
 from unittest.mock import patch, MagicMock, mock_open
 from PySide6.QtWidgets import QApplication
-from PySide6.QtCore import QTimer
 
 # Import the main UI application
 from ui.ui_app_qt import MHMManagerUI, ServiceManager

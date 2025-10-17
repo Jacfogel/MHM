@@ -4,13 +4,8 @@ Comprehensive tests for AI ContextBuilder coverage expansion.
 Tests focus on covering the uncovered lines in the ContextBuilder module.
 """
 
-import pytest
-import os
-from unittest.mock import patch, Mock, MagicMock
-from datetime import datetime, timedelta
-
 from ai.context_builder import ContextBuilder, ContextData, ContextAnalysis, get_context_builder
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 
 class TestContextBuilderCoverageExpansion:

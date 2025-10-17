@@ -4,13 +4,8 @@ Real behavior tests for communication interaction manager functionality.
 Tests focus on actual side effects and system changes rather than just return values.
 """
 
-import pytest
-import os
-from unittest.mock import patch, Mock, AsyncMock
-from datetime import datetime, timedelta
-
 from communication.message_processing.interaction_manager import InteractionManager
-from tests.test_utilities import TestUserFactory, TestDataFactory
+from tests.test_utilities import TestUserFactory
 
 
 class TestInteractionManagerBehavior:

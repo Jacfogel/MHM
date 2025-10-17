@@ -7,14 +7,11 @@ Comprehensive behavior tests for UserContextManager focusing on real behavior an
 Tests verify actual system changes, not just return values.
 """
 
-import json
 import os
 import pytest
-from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 
 from user.context_manager import UserContextManager
-from user.user_context import UserContext
 from user.user_preferences import UserPreferences
 
 

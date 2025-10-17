@@ -11,10 +11,6 @@ Tests cover:
 - Error recovery and resilience testing
 """
 
-import pytest
-from unittest.mock import patch
-from communication.command_handlers.profile_handler import ProfileHandler
-from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.task_handler import TaskManagementHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from tests.test_utilities import TestUserFactory

@@ -6,8 +6,6 @@ Tests that all opted-in quantitative questions are included in analytics.
 import pytest
 import json
 import os
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
 from core.checkin_analytics import CheckinAnalytics
 from core.user_data_handlers import get_user_data, save_user_data
 from tests.test_utilities import TestUserFactory

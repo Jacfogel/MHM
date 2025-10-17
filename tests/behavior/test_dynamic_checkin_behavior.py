@@ -3,9 +3,6 @@ Behavior tests for the dynamic check-in system.
 Tests the new dynamic question and response system.
 """
 
-import pytest
-import json
-from unittest.mock import patch, MagicMock
 from pathlib import Path
 
 from core.checkin_dynamic_manager import dynamic_checkin_manager, DynamicCheckinManager

@@ -7,13 +7,12 @@ Comprehensive behavior tests for ConversationManager focusing on real behavior a
 Tests verify actual system changes, not just return values.
 """
 
-import json
 import os
 import pytest
-from datetime import datetime, timedelta
+from datetime import timedelta
 from unittest.mock import patch, MagicMock
 
-from communication.message_processing.conversation_flow_manager import ConversationManager, FLOW_NONE, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
+from communication.message_processing.conversation_flow_manager import ConversationManager, FLOW_CHECKIN, CHECKIN_START, CHECKIN_MOOD, CHECKIN_REFLECTION
 from communication.message_processing.conversation_flow_manager import QUESTION_STATES
 
 

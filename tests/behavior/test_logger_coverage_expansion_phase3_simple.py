@@ -2,12 +2,9 @@
 
 import os
 import sys
-import tempfile
-import shutil
 import time
-import json
 import logging
-from unittest.mock import patch, mock_open, MagicMock
+from unittest.mock import patch, MagicMock
 import pytest
 
 # Add the project root to the path

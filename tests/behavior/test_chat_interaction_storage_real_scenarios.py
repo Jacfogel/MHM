@@ -6,16 +6,11 @@ Tests actual chat interaction storage with realistic user conversation patterns.
 import pytest
 import json
 import os
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from core.response_tracking import (
     store_chat_interaction,
-    get_recent_responses,
-    track_user_response
+    get_recent_responses
 )
-from ai.conversation_history import ConversationHistory
-from ai.context_builder import ContextBuilder
-from user.context_manager import UserContextManager
 from tests.test_utilities import TestUserFactory
 
 

@@ -10,10 +10,7 @@ import pytest
 import asyncio
 import smtplib
 import imaplib
-import email
-from email.mime.text import MIMEText
-from email.header import decode_header
-from unittest.mock import patch, MagicMock, AsyncMock
+from unittest.mock import patch, MagicMock
 from communication.communication_channels.email.bot import EmailBot, EmailBotError
 from communication.communication_channels.base.base_channel import ChannelConfig, ChannelStatus, ChannelType
 

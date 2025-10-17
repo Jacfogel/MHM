@@ -8,15 +8,14 @@ produces expected side effects rather than just returning values.
 
 import pytest
 import os
-from unittest.mock import patch, MagicMock, mock_open
-from datetime import datetime, timedelta
+from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
 from ai.chatbot import (
-    AIChatBotSingleton, get_ai_chatbot
+    AIChatBotSingleton
 )
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
-from core.user_data_handlers import get_user_data, save_user_data
+from core.user_data_handlers import save_user_data
 
 
 class TestAIChatBotBehavior:

@@ -8,10 +8,8 @@ Focuses on real behavior and side effects to ensure actual functionality works.
 import pytest
 import os
 import json
-import tempfile
 import time
-import threading
-from unittest.mock import patch, Mock, MagicMock, AsyncMock
+from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
 import pytz
 import schedule

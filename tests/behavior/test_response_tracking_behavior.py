@@ -6,8 +6,7 @@ Tests real behavior and side effects of response tracking functions.
 import pytest
 import json
 import os
-from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 # Removed unused import: get_user_data
 from core.response_tracking import (
     store_user_response,

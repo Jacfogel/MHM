@@ -7,7 +7,6 @@ This module tests the profile display functionality to verify:
 - Rich data is properly structured for Discord embeds
 """
 
-import pytest
 from unittest.mock import patch
 from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand

@@ -5,9 +5,7 @@ Final version that works with the actual implementation
 
 import pytest
 import json
-import tempfile
-from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import Mock
 from core.error_handling import (
     MHMError, DataError, FileOperationError, ConfigurationError,
     ErrorRecoveryStrategy, FileNotFoundRecovery, JSONDecodeRecovery,

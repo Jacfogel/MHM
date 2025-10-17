@@ -12,7 +12,7 @@ import time
 import shutil
 from pathlib import Path
 from unittest.mock import patch
-from datetime import datetime, timedelta
+from datetime import datetime
 
 # Do not modify sys.path; rely on package imports
 
@@ -26,8 +26,7 @@ from core.auto_cleanup import (
     perform_cleanup,
     auto_cleanup_if_needed,
     get_cleanup_status,
-    CLEANUP_TRACKER_FILE,
-    DEFAULT_CLEANUP_INTERVAL_DAYS
+    CLEANUP_TRACKER_FILE
 )
 
 class TestAutoCleanupTimestampBehavior:

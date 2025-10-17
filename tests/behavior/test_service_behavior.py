@@ -19,9 +19,8 @@ import pytest
 import os
 import json
 import time
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import signal
-from pathlib import Path
 
 # Do not modify sys.path; rely on package imports
 
@@ -32,7 +31,6 @@ from core.service import (
     main
 )
 from core.user_management import get_user_categories
-from core.config import get_user_data_dir
 
 class TestMHMService:
     """Test cases for the MHMService class."""

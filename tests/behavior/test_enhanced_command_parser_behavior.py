@@ -5,12 +5,10 @@ Behavior tests for Enhanced Command Parser.
 Tests real behavior and side effects of command parsing functionality.
 """
 
-import pytest
 import json
-import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from communication.message_processing.command_parser import (
-    EnhancedCommandParser, ParsingResult, ParsedCommand
+    EnhancedCommandParser, ParsedCommand
 )
 from communication.command_handlers.shared_types import ParsedCommand as SharedParsedCommand
 

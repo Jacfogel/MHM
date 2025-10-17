@@ -4,10 +4,8 @@ Real behavior tests for AI context builder functionality.
 Tests focus on actual side effects and system changes rather than just return values.
 """
 
-import pytest
 import os
-from unittest.mock import patch, Mock
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from ai.context_builder import ContextBuilder
 from tests.test_utilities import TestUserFactory, TestDataFactory

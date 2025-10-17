@@ -4,9 +4,6 @@ Tests real behavior and side effects of service utility functions.
 """
 
 import pytest
-import os
-import time
-from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock, mock_open
 from core.service_utilities import (
     Throttler,
