@@ -77,6 +77,12 @@ LM_STUDIO_BASE_URL = os.getenv('LM_STUDIO_BASE_URL', 'http://localhost:1234/v1')
 LM_STUDIO_API_KEY = os.getenv('LM_STUDIO_API_KEY', 'lm-studio')  # LM Studio uses any key
 LM_STUDIO_MODEL = os.getenv('LM_STUDIO_MODEL', 'phi-2')  # Model name for API calls
 
+# LM Studio Auto-Management Configuration
+LM_STUDIO_AUTO_START = os.getenv('LM_STUDIO_AUTO_START', 'true').lower() == 'true'  # Auto-start LM Studio if not running
+LM_STUDIO_AUTO_LOAD_MODEL = os.getenv('LM_STUDIO_AUTO_LOAD_MODEL', 'true').lower() == 'true'  # Auto-load model if not loaded
+LM_STUDIO_STARTUP_TIMEOUT = int(os.getenv('LM_STUDIO_STARTUP_TIMEOUT', '60'))  # Timeout for LM Studio startup (seconds)
+LM_STUDIO_MODEL_LOAD_TIMEOUT = int(os.getenv('LM_STUDIO_MODEL_LOAD_TIMEOUT', '30'))  # Timeout for model loading (seconds)
+
 # AI System Prompt Configuration
 AI_SYSTEM_PROMPT_PATH = os.getenv('AI_SYSTEM_PROMPT_PATH', 'resources/assistant_system_prompt.txt')
 AI_USE_CUSTOM_PROMPT = os.getenv('AI_USE_CUSTOM_PROMPT', 'true').lower() == 'true'

@@ -69,6 +69,19 @@ class AIChatBotSingleton:
         # Test LM Studio connection
         self._test_lm_studio_connection()
         
+        # If connection failed, check LM Studio status
+        if not self.lm_studio_available:
+            try:
+                from ai.lm_studio_manager import is_lm_studio_ready
+                if is_lm_studio_ready():
+                    logger.info("LM Studio is now ready - retrying connection")
+                    # Retry the connection test
+                    self._test_lm_studio_connection()
+                else:
+                    logger.warning("LM Studio not ready - AI features will be limited")
+            except Exception as e:
+                logger.warning(f"LM Studio status check error: {e}")
+        
         self._initialized = True
 
     @handle_errors("making cache key inputs", default_return=("", "", ""))
