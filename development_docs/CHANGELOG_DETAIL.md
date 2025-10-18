@@ -17,6 +17,35 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-18 - Log Consolidation and File Relocation **COMPLETED**
+
+**Problem**: Log structure had redundant files and data files mixed with log files, making logs noisy and organization unclear.
+
+**Solution**: 
+- **Log Consolidation**: Consolidated `backup.log` into `file_ops.log` for logical grouping
+- **File Relocation**: Moved `.last_cache_cleanup` from `logs/` to `data/` directory as it's a data file, not a log
+- **Test Updates**: Updated test fixtures to work with new file locations
+
+**Technical Implementation**:
+- **Backup Manager**: Changed logger from `backup` to `file_ops` component in `core/backup_manager.py`
+- **Auto Cleanup**: Updated `CLEANUP_TRACKER_FILE` path from `logs/.last_cache_cleanup` to `data/.last_cache_cleanup` in `core/auto_cleanup.py`
+- **Test Fixtures**: Updated `temp_test_environment` fixture in `tests/behavior/test_auto_cleanup_behavior.py` to create `data/` directory within test environment
+- **File Migration**: Successfully moved existing `.last_cache_cleanup` file from `logs/` to `data/` directory
+
+**Results**:
+- **Cleaner Structure**: Reduced from 13 log files to 12 log files
+- **Better Organization**: Related operations grouped together (file operations including backups)
+- **Logical Separation**: Data files separated from log files
+- **Test Compatibility**: All 1848 tests passing with no regressions
+- **File Preservation**: Existing cache cleanup data preserved during relocation
+
+**Files Modified**:
+- `core/backup_manager.py` - Changed logger to `file_ops`
+- `core/auto_cleanup.py` - Updated tracker file path to `data/.last_cache_cleanup`
+- `tests/behavior/test_auto_cleanup_behavior.py` - Updated test fixture to create data directory
+
+**Impact**: Improved log organization and cleaner project structure with no functionality changes.
+
 ### 2025-10-17 - LM Studio Automatic Management System **COMPLETED**
 - **Problem Solved**: Eliminated LM Studio connection errors and implemented automatic model loading
 - **Solution**: Created comprehensive LM Studio management system with automatic model loading

@@ -1020,7 +1020,7 @@ def load_and_ensure_ids(user_id):
     
     logger.debug(f"Ensured message ids are unique for user '{user_id}'")
 
-def ensure_all_categories_have_schedules(user_id: str) -> bool:
+def ensure_all_categories_have_schedules(user_id: str, suppress_logging: bool = False) -> bool:
     """Ensure all categories in user preferences have corresponding schedules."""
     if not user_id:
         logger.warning(f"Invalid user_id: {user_id}")
@@ -1049,9 +1049,10 @@ def ensure_all_categories_have_schedules(user_id: str) -> bool:
                 created_schedules.append(category)
         
         # Only log when schedules are actually created, not when they already exist
-        if created_schedules:
+        # Suppress logging for internal calls to avoid duplicate messages
+        if created_schedules and not suppress_logging:
             logger.info(f"Created schedules for user {user_id}: {created_schedules}")
-        else:
+        elif not suppress_logging:
             logger.debug(f"Verified schedules exist for user {user_id}: {categories}")
         
         return True

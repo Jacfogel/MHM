@@ -64,7 +64,6 @@ class MHMService:
     def validate_configuration(self):
         """Validate all configuration settings before starting the service."""
         logger.info("Validating configuration...")
-        main_logger.info("Service configuration validation started")
         
         # Print configuration report for debugging
         print_configuration_report()
@@ -72,8 +71,6 @@ class MHMService:
         # Validate configuration and get available channels
         available_channels = validate_and_raise_if_invalid()
         
-        logger.info(f"Configuration validation passed. Available channels: {', '.join(available_channels)}")
-        main_logger.info("Service configuration validation completed", available_channels=available_channels)
         return available_channels
         
     @handle_errors("initializing paths")
@@ -260,7 +257,6 @@ class MHMService:
         Sets up signal handlers for graceful shutdown.
         """
         logger.info("Starting MHM Backend Service...")
-        main_logger.info("MHM backend service startup initiated")
         self.running = True
         
         # Set up signal handlers for graceful shutdown
@@ -337,7 +333,6 @@ class MHMService:
             self.startup_time = time.time()
 
             logger.info("MHM Backend Service initialized successfully and running.")
-            main_logger.info("MHM backend service initialized successfully", startup_time=self.startup_time)
             
             # Keep the service running
             self.run_service_loop()
@@ -388,7 +383,14 @@ class MHMService:
                             try:
                                 with open(shutdown_file, 'r') as f:
                                     content = f.read().strip()
-                                logger.info(f"Shutdown request details: {content}")
+                                
+                                # Parse shutdown request type for better logging
+                                if content.startswith("SHUTDOWN_REQUESTED_BY_UI_"):
+                                    logger.info("Shutdown requested by UI")
+                                elif content.startswith("HEADLESS_SHUTDOWN_REQUESTED_"):
+                                    logger.info("Shutdown requested by headless service manager")
+                                else:
+                                    logger.info(f"Shutdown request details: {content}")
                             except Exception as e:
                                 logger.warning(f"Could not read shutdown file: {e}")
                             self.running = False

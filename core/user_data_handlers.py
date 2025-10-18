@@ -291,7 +291,7 @@ def get_user_data(
                             categories = prefs.get('categories', []) if isinstance(prefs, dict) else []
                             if categories:
                                 from core.user_management import ensure_all_categories_have_schedules
-                                ensure_all_categories_have_schedules(user_id)
+                                ensure_all_categories_have_schedules(user_id, suppress_logging=True)
                                 # reload after potential creation
                                 normalized_after, _e2 = validate_schedules_dict(get_user_data(user_id, 'schedules').get('schedules', {}))
                                 if normalized_after:
@@ -727,7 +727,7 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
                 if isinstance(categories_list, list) and len(categories_list) > 0:
                     try:
                         from core.user_management import ensure_all_categories_have_schedules
-                        ensure_all_categories_have_schedules(user_id)
+                        ensure_all_categories_have_schedules(user_id, suppress_logging=True)
                     except Exception:
                         pass
                     try:
@@ -1075,7 +1075,7 @@ def update_user_preferences(user_id: str, updates: Dict[str, Any], *, auto_creat
                     ensure_category_has_default_schedule(user_id, category)
 
                 # Double-check all categories have schedules
-                ensure_all_categories_have_schedules(user_id)
+                ensure_all_categories_have_schedules(user_id, suppress_logging=True)
 
                 # Ensure message files exist for newly added categories
                 if added_categories:

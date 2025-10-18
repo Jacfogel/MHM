@@ -712,7 +712,11 @@ def ensure_user_message_files(user_id: str, categories: List[str]) -> dict:
             "files_existing": existing_count
         }
         
-        logger.debug(f"Ensured message files for user {user_id}: {total_success}/{len(categories)} categories (created {success_count} new files, directory_created={directory_created})")
+        # Only log if files were actually created or if there were issues
+        if success_count > 0 or not result["success"]:
+            logger.info(f"Ensured message files for user {user_id}: {total_success}/{len(categories)} categories (created {success_count} new files, directory_created={directory_created})")
+        else:
+            logger.debug(f"Verified message files for user {user_id}: {total_success}/{len(categories)} categories (all files already exist)")
         return result
         
     except Exception as e:

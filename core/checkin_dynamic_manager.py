@@ -11,7 +11,7 @@ from core.logger import get_component_logger
 from core.error_handling import handle_errors
 from core.file_operations import load_json_data
 
-logger = get_component_logger('checkin_dynamic')
+logger = get_component_logger('user_activity')
 
 class DynamicCheckinManager:
     """Manages dynamic check-in questions and responses loaded from JSON files."""

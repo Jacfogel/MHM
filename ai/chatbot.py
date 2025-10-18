@@ -143,16 +143,17 @@ class AIChatBotSingleton:
 
         if response.status_code == 200:
             models_data = response.json()
-            logger.info(f"LM Studio connection successful. Available models: {len(models_data.get('data', []))}")
-            ai_logger.info("LM Studio connection test successful",
-                          available_models=len(models_data.get('data', [])))
+            models = models_data.get('data', [])
+            model_count = len(models)
+            
+            # Single consolidated log message
+            logger.info(f"LM Studio connection successful. Available models: {model_count}")
             self.lm_studio_available = True
 
-            # Log the first few models for debugging
-            models = models_data.get('data', [])
+            # Log the first few models for debugging (only if there are models)
             if models:
                 model_names = [model.get('id', 'unknown') for model in models[:3]]
-                logger.info(f"Available models (first 3): {model_names}")
+                logger.debug(f"Available models (first 3): {model_names}")
             else:
                 logger.warning("LM Studio is running but no models are loaded")
                 ai_logger.warning("LM Studio running but no models loaded")

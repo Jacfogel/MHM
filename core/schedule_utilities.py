@@ -11,7 +11,7 @@ from datetime import datetime
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
 
-logger = get_component_logger('schedule_utilities')
+logger = get_component_logger('scheduler')
 
 
 @handle_errors("getting active schedules", default_return=[])

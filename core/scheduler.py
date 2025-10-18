@@ -261,19 +261,19 @@ class SchedulerManager:
         
         logger.info(f"Scheduling complete: {total_scheduled} user/category combinations scheduled (includes checkins if enabled)")
         
-        # Log current job count for diagnostic purposes
+        # Log consolidated scheduler status
         active_jobs = len(schedule.jobs)
-        logger.info(f"Current scheduler status: {active_jobs} total active jobs scheduled")
-        
-        # Log job types for diagnostic purposes
-        job_types = {}
-        for job in schedule.jobs:
-            job_func_name = job.job_func.__name__
-            job_types[job_func_name] = job_types.get(job_func_name, 0) + 1
-        
-        if job_types:
+        if active_jobs > 0:
+            # Count job types for diagnostic purposes
+            job_types = {}
+            for job in schedule.jobs:
+                job_func_name = job.job_func.__name__
+                job_types[job_func_name] = job_types.get(job_func_name, 0) + 1
+            
             job_type_summary = ", ".join([f"{count} {name}" for name, count in job_types.items()])
-            logger.info(f"Job breakdown: {job_type_summary}")
+            logger.info(f"Scheduler status: {active_jobs} total jobs ({job_type_summary})")
+        else:
+            logger.info("Scheduler status: No active jobs")
 
     @handle_errors("scheduling new user", default_return=None)
     def schedule_new_user(self, user_id: str):
@@ -825,13 +825,13 @@ class SchedulerManager:
         final_job_count = len(schedule.jobs)
         jobs_cleared = initial_job_count - final_job_count
         
-        logger.info(f"Job cleanup complete: {jobs_cleared} accumulated jobs cleared")
+        # Log cleanup results in a single message
         if jobs_cleared > 0:
-            logger.info(f"Cleared {jobs_cleared} accumulated scheduler jobs")
+            logger.info(f"Job cleanup complete: {jobs_cleared} accumulated jobs cleared")
         elif jobs_cleared == 0:
-            logger.info("No accumulated jobs to clear (system was already clean - previous scheduler instance properly cleaned up)")
+            logger.debug("Job cleanup complete: No accumulated jobs to clear (system was already clean)")
         else:
-            logger.info(f"Added {abs(jobs_cleared)} scheduler jobs (system had fewer jobs than expected)")
+            logger.info(f"Job cleanup complete: Added {abs(jobs_cleared)} scheduler jobs (system had fewer jobs than expected)")
 
         # Cleanup system tasks for all users/categories
         logger.info("Starting system task cleanup for all users...")

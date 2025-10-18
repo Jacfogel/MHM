@@ -418,23 +418,20 @@ class DiscordBot(BaseChannel):
     @handle_errors("updating connection status", default_return=None)
     def _shared__update_connection_status(self, status: DiscordConnectionStatus, error_info: Dict[str, Any] = None):
         """Update connection status with detailed error information"""
-        self._connection_status = status
-        if error_info:
-            self._detailed_error_info.update(error_info)
-        
-        # Log status change with details
-        logger.info(f"Discord connection status changed to: {status.value}")
-        if error_info:
-            logger.debug(f"Connection error details: {error_info}")
-        # Also log to the Discord component log for better separation
-        try:
-            discord_logger.info(
-                "Discord connection status changed",
-                connection_status=status.value,
-                has_error_details=bool(error_info)
-            )
-        except Exception:
-            pass
+        # Only log if status actually changed
+        if self._connection_status != status:
+            self._connection_status = status
+            if error_info:
+                self._detailed_error_info.update(error_info)
+            
+            # Log status change with details (single log message)
+            logger.info(f"Discord connection status changed to: {status.value}")
+            if error_info:
+                logger.debug(f"Connection error details: {error_info}")
+        else:
+            # Status didn't change, just update error info if provided
+            if error_info:
+                self._detailed_error_info.update(error_info)
 
     @handle_errors("checking network health", default_return=False)
     def _check_network_health(self) -> bool:
@@ -683,15 +680,14 @@ class DiscordBot(BaseChannel):
             return
         @self.bot.event
         async def on_ready():
+            # Single consolidated log message
             logger.info(f"Discord Bot logged in as {self.bot.user}")
             print(f"Discord Bot is online as {self.bot.user}")
-            # Use component logger for structured Discord events
-            discord_logger.info("Discord bot connected", bot_name=str(self.bot.user), guild_count=len(self.bot.guilds))
+            
             # Reset reconnect attempts on successful connection
             self._reconnect_attempts = 0
             self._set_status(ChannelStatus.READY)
             self._shared__update_connection_status(DiscordConnectionStatus.CONNECTED)
-            logger.info("Discord bot is ready and connected")
 
             # Sync application (slash) commands
             try:
