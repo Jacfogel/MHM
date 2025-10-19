@@ -412,29 +412,30 @@ class MHMService:
             
             # Enhanced service status logging with useful metrics
             loop_minutes += 1
-            if loop_minutes % 10 == 0:
+            if loop_minutes % 60 == 0:  # Changed from 10 to 60 minutes
                 # Collect system metrics for enhanced status reporting
                 status_metrics = []
                 
                 # Basic uptime
                 status_metrics.append(f"{loop_minutes}m uptime")
                 
-                # Active scheduler jobs
+                # Active scheduler jobs (scheduled tasks, not schedule.jobs)
                 if hasattr(self, 'scheduler_manager') and self.scheduler_manager:
                     try:
-                        active_jobs = len(schedule.jobs) if 'schedule' in globals() else 0
+                        # Get actual scheduler jobs from the scheduler manager
+                        active_jobs = len(self.scheduler_manager.get_active_jobs()) if hasattr(self.scheduler_manager, 'get_active_jobs') else 0
                         status_metrics.append(f"{active_jobs} active jobs")
                     except:
                         status_metrics.append("jobs: unknown")
                 
-                # User count
+                # User count (total registered users in the system)
                 try:
                     user_count = len(self.user_manager.get_all_user_ids()) if hasattr(self, 'user_manager') else 0
                     status_metrics.append(f"{user_count} users")
                 except:
                     status_metrics.append("users: unknown")
                 
-                # Memory usage (if available)
+                # Memory usage (current process memory consumption in MB)
                 try:
                     import psutil
                     process = psutil.Process()
@@ -472,7 +473,12 @@ class MHMService:
                                 # Log successful connection with metrics
                                 latency = discord_status.get('latency', 'unknown')
                                 guild_count = discord_status.get('guild_count', 'unknown')
-                                discord_logger.debug(f"Discord healthy - Latency: {latency}s, Guilds: {guild_count}")
+                                # Format latency to 4 significant figures
+                                if isinstance(latency, (int, float)) and latency != 'unknown':
+                                    latency_formatted = f"{latency:.4f}"
+                                else:
+                                    latency_formatted = str(latency)
+                                discord_logger.debug(f"Discord healthy - Latency: {latency_formatted}s, Guilds: {guild_count}")
                     except Exception as e:
                         discord_logger.warning(f"Could not check Discord connectivity status: {e}")
                 

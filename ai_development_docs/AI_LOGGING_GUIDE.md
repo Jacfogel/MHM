@@ -23,17 +23,6 @@ logs/
 ├── scheduler.log             # Scheduler operations (active)
 ├── ui.log                    # UI operations (active)
 ├── message.log               # Message processing (active)
-├── backup.log                # Backup operations (active)
-├── schedule_utilities.log    # Schedule utilities (active)
-├── analytics.log             # Analytics operations (active)
-├── checkin_dynamic.log       # Dynamic check-in operations (active)
-├── ai_cache.log              # AI cache operations (active)
-├── ai_context.log            # AI context building (active)
-├── ai_conversation.log       # AI conversation management (active)
-├── ai_prompt.log             # AI prompt management (active)
-├── channel_orchestrator.log  # Channel orchestration (active)
-├── channel_monitor.log       # Channel monitoring (active)
-├── retry_manager.log         # Retry management (active)
 ├── backups/                  # Rotated log files (daily rotation)
 └── archive/                  # Compressed old logs (>7 days old)
 ```
@@ -159,7 +148,7 @@ Move-Item "logs/*.log" "logs/archive/" -Force
 ## Component Loggers Reference
 
 ### **Available Component Loggers**
-- `app` - Main application operations
+- `main` - Main application operations
 - `discord` - Discord bot operations
 - `ai` - AI processing and chatbot interactions
 - `user_activity` - User actions and check-ins
@@ -169,17 +158,23 @@ Move-Item "logs/*.log" "logs/archive/" -Force
 - `scheduler` - Scheduler operations
 - `ui` - UI operations
 - `message` - Message processing
-- `backup` - Backup operations
-- `analytics` - Analytics operations
+- `errors` - Error and critical messages
 
 ### **Usage Pattern**
 ```python
 from core.logger import get_component_logger
 
-# Get component-specific logger
-logger = get_component_logger("discord")
-logger.info("Discord bot started")
-logger.error("Failed to connect to Discord")
+# Get component-specific loggers
+main_logger = get_component_logger("main")
+discord_logger = get_component_logger("discord")
+ai_logger = get_component_logger("ai")
+user_logger = get_component_logger("user_activity")
+
+# Use appropriate logger for each component
+main_logger.info("Service started")
+discord_logger.info("Discord bot connected")
+ai_logger.info("AI request processed")
+user_logger.info("User check-in completed")
 ```
 
 ## Log Rotation and Archival

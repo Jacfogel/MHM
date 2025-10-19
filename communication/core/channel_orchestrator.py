@@ -533,7 +533,7 @@ class CommunicationManager:
                 time_period = kwargs.get('time_period', 'unknown')
                 user_id = kwargs.get('user_id', 'unknown')
                 category = kwargs.get('category', 'unknown')
-                logger.info(f"Message sent successfully via {channel_name} to {recipient} | User: {user_id}, Category: {category}, Period: {time_period} | Content: '{message_preview}'")
+                # Log will be handled by the deduplication logic below
                 return True
             elif success is False:
                 logger.warning(f"Channel {channel_name} returned False for message send to {recipient}")
@@ -905,7 +905,7 @@ class CommunicationManager:
             except Exception as _e:
                 logger.debug(f"Check-in flow expiration check failed for user {user_id}: {_e}")
             
-            logger.info(f"Completed message sending for user {user_id}, category {category}")
+            # Message sending completion already logged above with full details
         else:
             logger.debug(f"No message sent for user {user_id}, category {category} - preserving any active check-in flow")
 
@@ -1191,7 +1191,7 @@ class CommunicationManager:
                     store_sent_message(user_id, category, message_to_send['message_id'], message_to_send['message'], time_period=current_time_period)
                     # Enhanced logging with message content and time period
                     message_preview = message_to_send['message'][:50] + "..." if len(message_to_send['message']) > 50 else message_to_send['message']
-                    logger.info(f"Successfully sent deduplicated message for user {user_id}, category {category} | Period: {current_time_period} | Content: '{message_preview}'")
+                    logger.info(f"Message sent successfully via {messaging_service} to {recipient} | User: {user_id}, Category: {category}, Period: {current_time_period} | Content: '{message_preview}'")
                     return True
                 else:
                     # Enhanced logging with message content and time period

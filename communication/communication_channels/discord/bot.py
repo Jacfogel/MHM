@@ -124,8 +124,8 @@ class DiscordBot(BaseChannel):
             else:
                 self._dns_success_count = 1
             
-            # Log DNS success every 10th check to reduce noise
-            if self._dns_success_count % 10 == 0:
+            # Log DNS success every 60th check to reduce noise
+            if self._dns_success_count % 60 == 0:
                 logger.debug(f"Primary DNS resolution successful for {hostname} (check #{self._dns_success_count})")
             return True
         except socket.gaierror as e:
@@ -228,8 +228,8 @@ class DiscordBot(BaseChannel):
                 else:
                     self._network_success_count = 1
                 
-                # Log network success every 10th check to reduce noise
-                if self._network_success_count % 10 == 0:
+                # Log network success every 60th check to reduce noise
+                if self._network_success_count % 60 == 0:
                     logger.debug(f"Network connectivity successful to {endpoint_hostname}:{endpoint_port} (check #{self._network_success_count})")
                 return True
             except (socket.gaierror, socket.timeout, OSError) as e:
@@ -1172,7 +1172,7 @@ class DiscordBot(BaseChannel):
                             await user.send(message, view=view)
                         else:
                             await user.send(message)
-                        logger.info(f"DM sent to Discord user {discord_user_id} | Content: '{message[:50]}...'")
+                        # Log detailed message information (consolidated from two separate logs)
                         logger.info(f"Discord DM sent | {{\"user_id\": \"{discord_user_id}\", \"message_length\": {len(message)}, \"has_embed\": {bool(embed)}, \"has_components\": {bool(view)}, \"message_preview\": \"{message[:50]}...\"}}")
                         return True
                     else:

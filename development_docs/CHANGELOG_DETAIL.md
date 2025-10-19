@@ -17,37 +17,48 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
-### 2025-10-18 - Comprehensive Logging System Improvements **COMPLETED**
+### 2025-10-18 - Logging System Optimization and Redundancy Reduction **COMPLETED**
 
-**Problem**: Excessive and redundant logging across the entire system was making logs noisy and less useful for debugging. Multiple issues included:
-- Duplicate log messages during startup and schedule creation
-- Redundant Discord connection status messages
-- Multiple AI connection success messages
-- Overly verbose routine operation logs
-- Inaccurate shutdown request logging
-- Poor log organization with data files mixed with log files
+**Problem**: Excessive logging frequency and redundant messages were making logs noisy and less useful for debugging. Specific issues included:
+- Service status messages every 10 minutes (too frequent)
+- Discord health checks every 10 minutes (too frequent) 
+- DNS/network connectivity messages every 10th check (too frequent)
+- 3 separate redundant messages for each channel orchestrator action
+- Discord latency precision too high (unnecessary detail)
+- Inaccurate "active jobs" metric using wrong data source
+- Outdated documentation referencing non-existent log files
 
-**Solution**: Comprehensive logging improvements including consolidation, noise reduction, and better organization.
+**Solution**: Optimized logging frequency, consolidated redundant messages, and improved log clarity while maintaining all essential information.
 
 **Technical Implementation**:
 
-**Log Consolidation**:
-- **Backup Operations**: `core/backup_manager.py` - Changed logger from `backup` to `file_ops`
-- **Analytics Operations**: `core/checkin_analytics.py` - Changed logger from `analytics` to `user_activity`
-- **Check-in Dynamic**: `core/checkin_dynamic_manager.py` - Changed logger from `checkin_dynamic` to `user_activity`
-- **Schedule Utilities**: `core/schedule_utilities.py` - Changed logger from `schedule_utilities` to `scheduler`
+**Frequency Optimization**:
+- **Service Status**: `core/service.py` - Changed from every 10 minutes to every 60 minutes (`loop_minutes % 60 == 0`)
+- **Discord Health**: `core/service.py` - Discord health checks now only run with service status (hourly)
+- **DNS/Network Checks**: `communication/communication_channels/discord/bot.py` - Changed from every 10th check to every 60th check
+- **Discord Latency**: `core/service.py` - Formatted to 4 significant figures instead of full precision
 
-**Redundant Message Elimination**:
-- **Service Startup**: `core/service.py` - Removed duplicate configuration validation and startup messages
-- **Schedule Creation**: `core/user_management.py` - Added `suppress_logging` parameter to prevent duplicate schedule creation logs
-- **User Data Handlers**: `core/user_data_handlers.py` - Updated calls to use `suppress_logging=True`
-- **Discord Connection**: `communication/communication_channels/discord/bot.py` - Only log status changes, consolidated connection messages
-- **AI Connection**: `ai/chatbot.py` - Consolidated connection success into single message, moved model details to DEBUG
-- **Scheduler Status**: `core/scheduler.py` - Consolidated status into single informative message
-- **Message Files**: `core/message_management.py` - Changed routine verification from INFO to DEBUG level
+**Message Consolidation**:
+- **Channel Orchestrator**: `communication/core/channel_orchestrator.py` - Combined 3 separate messages into 1 comprehensive message:
+  - Removed: "Message sent successfully via discord to..." (line 536)
+  - Enhanced: "Successfully sent deduplicated message..." with all details (line 1194)  
+  - Removed: "Completed message sending..." (line 908)
+  - **Result**: 67% reduction in message logging (3 messages → 1 message)
 
-**Log Level Optimization**:
-- **Routine Operations**: Changed from INFO to DEBUG for non-critical operations
+**Metric Corrections**:
+- **Active Jobs**: `core/service.py` - Fixed to use `self.scheduler_manager.get_active_jobs()` instead of `schedule.jobs`
+- **Added Comments**: Explained what "active jobs", "users", and "memory" metrics represent
+- **Discord Guilds**: Added explanation that "Guilds" refers to Discord servers the bot is connected to
+
+**Documentation Updates**:
+- **Logging Guides**: Updated both `logs/LOGGING_GUIDE.md` and `ai_development_docs/AI_LOGGING_GUIDE.md`
+- **Component Count**: Updated from 12 to 11 component loggers (removed `backup` logger)
+- **File References**: Removed references to non-existent `backup.log` and other removed log files
+- **Directory Structure**: Updated to reflect current log file organization
+
+**File Cleanup**:
+- **Removed**: `logs/message.log` (outdated file with 3 days of old logs)
+- **Updated**: Documentation to remove references to non-existent log files
 - **Status Changes**: Only log when status actually changes, not on every check
 - **Cleanup Operations**: Use DEBUG for "no jobs cleared" messages, INFO for actual cleanup
 

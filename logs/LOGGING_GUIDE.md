@@ -46,17 +46,6 @@ logs/
 |-- scheduler.log             # Scheduler operations (active)
 |-- ui.log                    # UI operations (active)
 |-- message.log               # Message processing (active)
-|-- backup.log                # Backup operations (active)
-|-- schedule_utilities.log    # Schedule utilities (active)
-|-- analytics.log             # Analytics operations (active)
-|-- checkin_dynamic.log       # Dynamic check-in operations (active)
-|-- ai_cache.log              # AI cache operations (active)
-|-- ai_context.log            # AI context building (active)
-|-- ai_conversation.log       # AI conversation management (active)
-|-- ai_prompt.log             # AI prompt management (active)
-|-- channel_orchestrator.log  # Channel orchestration (active)
-|-- channel_monitor.log       # Channel monitoring (active)
-|-- retry_manager.log         # Retry management (active)
 |-- backups/                  # Rotated log files (daily rotation)
 `-- archive/                  # Compressed old logs (>7 days old)
 ```
@@ -71,7 +60,7 @@ logs/
 
 ### All Available Component Loggers
 
-The MHM system includes **23 component loggers** organized by functional area:
+The MHM system includes **11 component loggers** organized by functional area:
 
 | Category | Logger | File | Purpose |
 |----------|--------|------|---------|
@@ -85,45 +74,35 @@ The MHM system includes **23 component loggers** organized by functional area:
 | | `communication_manager` | `communication_manager.log` | Communication orchestration |
 | | `message` | `message.log` | Message processing and routing |
 | **AI System** | `ai` | `ai.log` | AI system operations |
-| | `ai_cache` | `ai_cache.log` | AI cache operations |
-| | `ai_context` | `ai_context.log` | AI context building |
-| | `ai_conversation` | `ai_conversation.log` | AI conversation management |
-| | `ai_prompt` | `ai_prompt.log` | AI prompt management |
 | **UI & Management** | `ui` | `ui.log` | UI operations and dialogs |
-| | `backup` | `backup.log` | Backup operations |
-| | `schedule_utilities` | `schedule_utilities.log` | Schedule utilities |
-| **Analytics** | `analytics` | `analytics.log` | Analytics operations |
-| | `checkin_dynamic` | `checkin_dynamic.log` | Dynamic check-in operations |
-| **Channel Management** | `channel_orchestrator` | `channel_orchestrator.log` | Channel orchestration |
-| | `channel_monitor` | `channel_monitor.log` | Channel monitoring |
-| | `retry_manager` | `retry_manager.log` | Retry management |
 
 ### Component Logger Creation Locations
 
 Component loggers are created **decentrally** throughout the codebase using `get_component_logger()`:
 
 #### **Core Modules**
+- `core/service.py`: `main`, `discord`
 - `core/user_data_handlers.py`: `main`, `user_activity`
 - `core/config.py`: `main`
-- `core/error_handling.py`: `main`, `errors`
-- `core/schedule_utilities.py`: `schedule_utilities`
+- `core/schedule_utilities.py`: `scheduler`
 - `core/file_operations.py`: `file_ops`
 - `core/scheduler.py`: `scheduler`
-- `core/backup_manager.py`: `backup`
+- `core/backup_manager.py`: `file_ops`, `main`
+- `core/message_management.py`: `message`
+- `core/user_management.py`: `main`, `user_activity`
+- `core/checkin_dynamic_manager.py`: `user_activity`
+- `core/checkin_analytics.py`: `user_activity`
+- `core/response_tracking.py`: `user_activity`
 
 #### **Communication Modules**
 - `communication/core/channel_orchestrator.py`: `channel_orchestrator`, `user_activity`
 - `communication/communication_channels/discord/bot.py`: `discord`
 - `communication/communication_channels/email/bot.py`: `email`
-- `communication/message_processing/conversation_flow_manager.py`: `communication_manager`, `user_activity`
 - `communication/message_processing/message_router.py`: `message`
 
 #### **AI Modules**
-- `ai/context_builder.py`: `ai_context`
-- `ai/prompt_manager.py`: `ai_prompt`
 - `ai/chatbot.py`: `ai`
-- `ai/cache_manager.py`: `ai_cache`
-- `ai/conversation_history.py`: `ai_conversation`
+- `ai/lm_studio_manager.py`: `ai`
 
 #### **UI Modules**
 - `ui/ui_app_qt.py`: `ui`
