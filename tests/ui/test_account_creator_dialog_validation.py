@@ -4,7 +4,6 @@ Direct tests for AccountCreatorDialog validation methods.
 These tests focus on the validation logic without UI dependencies.
 """
 
-import pytest
 from unittest.mock import patch
 
 

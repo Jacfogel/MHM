@@ -14,9 +14,7 @@ Tests real behavior, user interactions, and side effects for all dialogs:
 """
 
 import pytest
-import os
 import json
-import tempfile
 import shutil
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, time

@@ -6,7 +6,7 @@ editing, and deleting messages in specific categories.
 """
 
 from PySide6.QtWidgets import (QDialog, QMessageBox, QVBoxLayout, QHBoxLayout, 
-                               QLabel, QTextEdit, QPushButton, QTableWidget, QTableWidgetItem,
+                               QLabel, QTextEdit, QPushButton, QTableWidgetItem,
                                QCheckBox, QGroupBox, QFormLayout, QLineEdit, QDialogButtonBox,
                                QWidget, QScrollArea)
 from PySide6.QtCore import Qt, Signal

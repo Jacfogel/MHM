@@ -15,13 +15,8 @@ Coverage Areas:
 """
 
 import pytest
-import os
-import tempfile
-import shutil
-import json
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from datetime import datetime, timedelta
-from pathlib import Path
+from unittest.mock import Mock, patch, MagicMock
+from datetime import datetime
 
 # PySide6 imports for testing
 from PySide6.QtWidgets import QApplication, QWidget, QListWidgetItem, QMessageBox, QInputDialog

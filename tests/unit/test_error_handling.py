@@ -5,8 +5,7 @@ Tests error handling decorators, custom exceptions, and recovery strategies.
 """
 
 import pytest
-import logging
-from unittest.mock import patch, Mock, call
+from unittest.mock import patch, Mock
 from datetime import datetime
 
 from core.error_handling import (

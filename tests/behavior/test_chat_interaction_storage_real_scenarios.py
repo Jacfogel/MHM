@@ -11,7 +11,6 @@ from core.response_tracking import (
     store_chat_interaction,
     get_recent_responses
 )
-from tests.test_utilities import TestUserFactory
 
 
 class TestChatInteractionStorageRealScenarios:

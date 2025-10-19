@@ -6,11 +6,9 @@ with proper isolation and error handling.
 """
 
 import pytest
-import os
 import subprocess
 from pathlib import Path
-from unittest.mock import patch, Mock, call
-import sys
+from unittest.mock import patch, Mock
 
 # Set headless mode for Qt - use monkeypatch in tests instead of direct assignment
 

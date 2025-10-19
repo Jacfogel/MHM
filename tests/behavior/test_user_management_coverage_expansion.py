@@ -19,7 +19,7 @@ import pytest
 import os
 import json
 import time
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import core
 from core.user_management import (
     register_data_loader,
@@ -37,7 +37,6 @@ from core.user_management import (
     update_user_schedules,
     create_default_schedule_periods,
 )
-from tests.test_utilities import TestDataFactory
 
 
 class TestUserManagementCoverageExpansion:

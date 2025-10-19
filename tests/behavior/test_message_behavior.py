@@ -30,7 +30,6 @@ from core.message_management import (
     create_message_file_from_defaults,
     ensure_user_message_files
 )
-from core.config import get_user_data_dir
 
 
 class TestMessageCategories:

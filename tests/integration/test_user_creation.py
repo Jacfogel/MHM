@@ -13,9 +13,8 @@ import pytest
 import os
 import json
 import tempfile
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 from datetime import datetime
-from pathlib import Path
 
 from core.user_data_handlers import (
     get_user_data,

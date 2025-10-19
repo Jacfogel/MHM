@@ -4,7 +4,7 @@ Simple version that works with the actual implementation
 """
 
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import core.config
 
 

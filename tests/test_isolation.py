@@ -7,7 +7,7 @@ file system changes, or other system resources that could affect the host system
 
 import os
 import sys
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from typing import Any, Dict, List
 
 # Add project root to path

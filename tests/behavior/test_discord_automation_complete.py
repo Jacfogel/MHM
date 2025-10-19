@@ -12,7 +12,6 @@ Tests cover ALL manual testing scenarios:
 - Edge cases (Tests 13-15)
 """
 
-from unittest.mock import Mock
 from communication.command_handlers.profile_handler import ProfileHandler
 from communication.command_handlers.interaction_handlers import HelpHandler
 from communication.command_handlers.task_handler import TaskManagementHandler

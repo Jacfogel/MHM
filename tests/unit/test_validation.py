@@ -5,10 +5,7 @@ Tests focus on real behavior and side effects of validation operations.
 
 import pytest
 import os
-import tempfile
-import shutil
-from unittest.mock import patch, MagicMock
-from datetime import datetime
+from unittest.mock import patch
 import core
 
 # Import the validation functions we're testing

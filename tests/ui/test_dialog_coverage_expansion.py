@@ -18,7 +18,6 @@ Real behavior testing approach:
 import pytest
 import os
 import json
-import tempfile
 import shutil
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime, time

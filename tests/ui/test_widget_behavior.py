@@ -14,7 +14,6 @@ Tests real behavior, user interactions, and side effects for all widgets:
 """
 
 import pytest
-import os
 import json
 import tempfile
 import shutil

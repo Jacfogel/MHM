@@ -5,7 +5,6 @@ Final version that works with the actual implementation
 
 import pytest
 import json
-from unittest.mock import Mock
 from core.error_handling import (
     MHMError, DataError, FileOperationError, ConfigurationError,
     ErrorRecoveryStrategy, FileNotFoundRecovery, JSONDecodeRecovery,

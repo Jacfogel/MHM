@@ -7,8 +7,6 @@ Tests file I/O operations, data loading/saving, and file path management.
 import pytest
 import os
 import json
-import tempfile
-from unittest.mock import patch, Mock, mock_open
 from pathlib import Path
 
 from core.file_operations import (

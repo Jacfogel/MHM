@@ -3,9 +3,7 @@ Behavior tests for the dynamic check-in system.
 Tests the new dynamic question and response system.
 """
 
-from pathlib import Path
-
-from core.checkin_dynamic_manager import dynamic_checkin_manager, DynamicCheckinManager
+from core.checkin_dynamic_manager import dynamic_checkin_manager
 from communication.message_processing.conversation_flow_manager import conversation_manager
 
 

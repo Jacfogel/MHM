@@ -13,7 +13,6 @@ Tests the actual UI behavior, user interactions, and side effects for:
 import pytest
 import os
 import json
-import tempfile
 import shutil
 from unittest.mock import patch, Mock, MagicMock
 from datetime import datetime

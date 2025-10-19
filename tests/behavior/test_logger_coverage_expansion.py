@@ -16,9 +16,7 @@ Focuses on expanding coverage from 55% to 70% by testing:
 import pytest
 import os
 import logging
-from datetime import timedelta
-from unittest.mock import patch, MagicMock, mock_open
-from pathlib import Path
+from unittest.mock import patch, mock_open
 import shutil
 
 # Import logger components

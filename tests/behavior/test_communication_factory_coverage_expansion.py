@@ -9,7 +9,6 @@ import core
 
 from communication.core.factory import ChannelFactory
 from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig
-from tests.test_utilities import TestUserFactory
 
 
 class TestCommunicationFactoryCoverageExpansion:

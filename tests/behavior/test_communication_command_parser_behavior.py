@@ -5,7 +5,6 @@ Tests focus on actual side effects and system changes rather than just return va
 """
 
 from communication.message_processing.command_parser import EnhancedCommandParser
-from tests.test_utilities import TestUserFactory
 
 
 class TestCommandParserBehavior:

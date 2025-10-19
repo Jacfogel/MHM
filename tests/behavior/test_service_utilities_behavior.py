@@ -7,7 +7,6 @@ import pytest
 from unittest.mock import patch, MagicMock, mock_open
 from core.service_utilities import (
     Throttler,
-    InvalidTimeFormatError,
     create_reschedule_request,
     is_service_running,
     wait_for_network,

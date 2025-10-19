@@ -7,9 +7,7 @@ Tests user data operations, user lookup, and user preferences.
 import pytest
 import os
 import json
-import tempfile
-from unittest.mock import patch, Mock
-from datetime import datetime
+from unittest.mock import patch
 
 from core.user_data_handlers import (
     get_all_user_ids,

@@ -7,7 +7,7 @@ import pytest
 import threading
 import time
 from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from communication.core.channel_monitor import ChannelMonitor
 

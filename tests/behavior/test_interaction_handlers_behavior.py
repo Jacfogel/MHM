@@ -7,7 +7,6 @@ side effects rather than just returning values.
 """
 
 import pytest
-from unittest.mock import Mock
 
 # Import the modules we're testing
 from communication.command_handlers.interaction_handlers import (
@@ -17,8 +16,8 @@ from communication.command_handlers.interaction_handlers import (
 )
 from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
 from core.user_data_handlers import get_user_data, save_user_data
-from tasks.task_management import create_task, load_active_tasks, complete_task, delete_task
-from tests.test_utilities import TestUserFactory, create_test_user
+from tasks.task_management import create_task, load_active_tasks
+from tests.test_utilities import TestUserFactory
 
 
 class TestInteractionHandlersBehavior:

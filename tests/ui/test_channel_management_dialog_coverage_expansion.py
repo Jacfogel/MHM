@@ -6,7 +6,7 @@ to improve overall test coverage for UI dialogs.
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 from ui.dialogs.channel_management_dialog import ChannelManagementDialog
 from core.user_data_handlers import get_user_data, update_channel_preferences, update_user_account

@@ -15,7 +15,6 @@ import core.config
 
 from communication.communication_channels.discord.bot import DiscordBot, DiscordConnectionStatus
 from communication.communication_channels.base.base_channel import ChannelStatus, ChannelType
-from core.config import ensure_user_directory
 
 
 class TestDiscordBotBehavior:

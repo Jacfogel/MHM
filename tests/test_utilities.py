@@ -5,7 +5,6 @@ Centralized test helper functions to eliminate redundancy across test files
 """
 
 import os
-import sys
 import tempfile
 import shutil
 import json

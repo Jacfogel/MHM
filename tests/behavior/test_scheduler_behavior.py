@@ -8,16 +8,12 @@ import pytest
 import os
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
-import pytz
-
 from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
-    schedule_all_task_reminders,
-    process_user_schedules
+    schedule_all_task_reminders
 )
 from core.user_management import get_user_categories
-from core.error_handling import SchedulerError
 
 @pytest.fixture
 def mock_communication_manager():

@@ -6,7 +6,6 @@ Focuses on real behavior and side effects for core widget functionality.
 """
 
 import pytest
-import os
 import json
 from pathlib import Path
 from unittest.mock import patch, Mock

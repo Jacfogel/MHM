@@ -11,7 +11,7 @@ import asyncio
 import smtplib
 import imaplib
 from unittest.mock import patch, MagicMock
-from communication.communication_channels.email.bot import EmailBot, EmailBotError
+from communication.communication_channels.email.bot import EmailBot
 from communication.communication_channels.base.base_channel import ChannelConfig, ChannelStatus, ChannelType
 
 

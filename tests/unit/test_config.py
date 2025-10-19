@@ -6,9 +6,7 @@ Tests configuration validation, path checking, and environment variable handling
 
 import pytest
 import os
-import tempfile
-from unittest.mock import patch, Mock
-from pathlib import Path
+from unittest.mock import patch
 
 from core.config import (
     validate_core_paths,

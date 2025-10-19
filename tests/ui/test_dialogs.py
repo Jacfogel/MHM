@@ -5,7 +5,6 @@ Tests all dialogs to see what works and what's broken
 READ-ONLY - Does not modify any user data
 """
 
-import sys
 import os
 import logging
 import pytest

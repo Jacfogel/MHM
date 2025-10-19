@@ -4,7 +4,7 @@ import os
 import sys
 import time
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 import pytest
 
 # Add the project root to the path
@@ -16,7 +16,6 @@ from core.logger import (
     HeartbeatWarningFilter,
     get_component_logger,
     setup_logging,
-    get_logger,
     compress_old_logs,
     cleanup_old_archives,
     cleanup_old_logs,

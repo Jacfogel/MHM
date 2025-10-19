@@ -4,7 +4,6 @@ Tests all dialog methods, custom field management, validation, and edge cases.
 Focuses on real behavior and side effects to ensure actual functionality works.
 """
 import pytest
-import json
 import os
 import tempfile
 from unittest.mock import patch, Mock, MagicMock

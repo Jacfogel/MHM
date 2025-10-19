@@ -22,7 +22,6 @@ dialog_logger = logger
 from core.schedule_management import (
     clear_schedule_periods_cache,
     set_schedule_periods,
-    get_schedule_days,
     set_schedule_days
 )
 from core.ui_management import (

@@ -5,15 +5,11 @@ Tests all account management functionality for editing existing users
 READ-ONLY - Does not modify any real user data
 """
 
-import sys
 import os
 import pytest
 pytestmark = pytest.mark.debug
 import time
 import tempfile
-import shutil
-import pytest
-from pathlib import Path
 
 # Do not modify sys.path; rely on package imports
 

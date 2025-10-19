@@ -12,7 +12,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 from user.context_manager import UserContextManager
-from user.user_preferences import UserPreferences
 
 
 class TestUserContextManagerBehavior:

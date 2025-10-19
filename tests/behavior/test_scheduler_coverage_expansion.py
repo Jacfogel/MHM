@@ -11,9 +11,6 @@ import json
 import time
 from unittest.mock import patch, Mock
 from datetime import datetime, timedelta
-import pytz
-import schedule
-
 from core.user_data_handlers import get_user_data
 from core.scheduler import (
     SchedulerManager,
@@ -23,7 +20,6 @@ from core.scheduler import (
 )
 from core.user_management import get_user_categories
 from tests.test_isolation import IsolationManager
-from core.error_handling import SchedulerError
 
 @pytest.fixture
 def mock_communication_manager():

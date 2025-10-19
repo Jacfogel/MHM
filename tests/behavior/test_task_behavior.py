@@ -23,7 +23,6 @@ from tasks.task_management import (
     load_active_tasks,
     save_active_tasks,
     load_completed_tasks,
-    save_completed_tasks,
     create_task,
     update_task,
     complete_task,
@@ -31,10 +30,8 @@ from tasks.task_management import (
     get_task_by_id,
     get_tasks_due_soon,
     are_tasks_enabled,
-    get_user_task_stats,
-    TaskManagementError
+    get_user_task_stats
 )
-from core.config import get_user_data_dir
 
 class TestTaskManagement:
     """Test cases for task management functions."""

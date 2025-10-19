@@ -19,10 +19,9 @@ import threading
 
 # Project imports rely on pytest and conftest path setup
 
-from communication.core.channel_orchestrator import CommunicationManager, BotInitializationError, MessageSendError
-from communication.core.retry_manager import QueuedMessage
-from communication.communication_channels.base.base_channel import BaseChannel, ChannelConfig, ChannelStatus, ChannelType
-from tests.test_utilities import TestUserFactory, TestDataFactory, create_test_user
+from communication.core.channel_orchestrator import CommunicationManager
+from communication.communication_channels.base.base_channel import ChannelStatus, ChannelConfig
+from tests.test_utilities import TestUserFactory
 
 class TestCommunicationManagerCoverageExpansion:
     """Comprehensive tests for CommunicationManager uncovered functionality."""

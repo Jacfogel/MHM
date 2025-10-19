@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PySide6.QtWidgets import (
     QDialog, QMessageBox
 )
-from PySide6.QtCore import Signal, QTime
+from PySide6.QtCore import Signal
 
 # Set up logging
 from core.logger import setup_logging, get_component_logger

@@ -7,7 +7,6 @@ without trying to instantiate the full Qt dialogs.
 
 import pytest
 from unittest.mock import Mock, patch
-import inspect
 
 
 class TestUIComponentStructure:

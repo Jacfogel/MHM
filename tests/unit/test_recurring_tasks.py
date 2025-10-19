@@ -4,11 +4,9 @@ Test recurring tasks functionality.
 """
 
 import pytest
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-import tempfile
+from datetime import datetime
+from unittest.mock import patch
 import os
-import shutil
 
 from tasks.task_management import (
     create_task, complete_task, load_active_tasks, load_completed_tasks,

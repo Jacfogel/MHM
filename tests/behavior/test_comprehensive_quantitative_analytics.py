@@ -6,7 +6,6 @@ Tests that ALL quantitative questions from questions.json are included in analyt
 import pytest
 import json
 import os
-from unittest.mock import Mock
 from core.checkin_analytics import CheckinAnalytics
 from core.user_data_handlers import get_user_data, save_user_data
 from tests.test_utilities import TestUserFactory

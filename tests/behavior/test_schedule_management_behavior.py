@@ -10,7 +10,6 @@ from core.schedule_management import (
     get_schedule_time_periods,
     set_schedule_period_active,
     is_schedule_period_active,
-    get_current_time_periods_with_validation,
     add_schedule_period,
     edit_schedule_period,
     delete_schedule_period,
@@ -20,7 +19,6 @@ from core.schedule_management import (
     get_period_data__time_12h_display_to_24h,
     get_current_day_names,
     set_schedule_periods,
-    get_schedule_days,
     set_schedule_days
 )
 

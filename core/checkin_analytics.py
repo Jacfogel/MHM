@@ -11,7 +11,7 @@ import statistics
 from datetime import datetime
 from typing import Dict, List, Optional
 from core.logger import get_component_logger
-from core.response_tracking import get_recent_checkins, get_checkins_by_days
+from core.response_tracking import get_checkins_by_days
 from core.error_handling import handle_errors
 
 logger = get_component_logger('user_activity')

@@ -11,8 +11,6 @@ Tests cover:
 - Complete user workflows
 """
 
-from unittest.mock import Mock
-from PySide6.QtCore import Qt
 from tests.test_utilities import TestUserFactory
 
 

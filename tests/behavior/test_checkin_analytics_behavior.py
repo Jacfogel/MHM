@@ -56,7 +56,7 @@ class TestCheckinAnalyticsMoodTrendsBehavior:
     def test_mood_trends_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test mood trends with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_mood_trends('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -139,7 +139,7 @@ class TestCheckinAnalyticsHabitAnalysisBehavior:
     def test_habit_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test habit analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_habit_analysis('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -210,7 +210,7 @@ class TestCheckinAnalyticsSleepAnalysisBehavior:
     def test_sleep_analysis_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test sleep analysis with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_sleep_analysis('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -281,7 +281,7 @@ class TestCheckinAnalyticsWellnessScoreBehavior:
     def test_wellness_score_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test wellness score with no check-in data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_wellness_score('test_user', days=7)
         
         assert 'error' in result, "Should return error when no data available"
@@ -346,7 +346,7 @@ class TestCheckinAnalyticsHistoryBehavior:
     def test_checkin_history_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test check-in history with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns empty list
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_checkin_history('test_user', days=30)
         
         assert isinstance(result, list), "Should return list when no data available"
@@ -403,7 +403,7 @@ class TestCheckinAnalyticsCompletionRateBehavior:
     def test_completion_rate_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test completion rate with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_completion_rate('test_user', days=30)
         
         assert 'error' in result, "Should return error when no data available"
@@ -460,7 +460,7 @@ class TestCheckinAnalyticsTaskStatsBehavior:
     def test_task_weekly_stats_no_data_real_behavior(self, analytics):
         """REAL BEHAVIOR TEST: Test task weekly stats with no data."""
         # ✅ VERIFY REAL BEHAVIOR: No data returns error
-        with patch('core.checkin_analytics.get_recent_checkins', return_value=[]):
+        with patch('core.checkin_analytics.get_checkins_by_days', return_value=[]):
             result = analytics.get_task_weekly_stats('test_user', days=7)
         
         assert 'error' in result, "Should return error when no data available"
