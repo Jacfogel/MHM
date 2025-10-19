@@ -219,3 +219,65 @@ All analysis, audit, generation, and documentation tools cleaned:
 - Pattern recognition accelerates cleanup (error_handler, get_logger)
 - Categorization helps distinguish missing functionality from dead code
 
+## Phase 6: Final Analysis and Tool Improvement (2025-10-19) ✅
+
+**Problem**: After comprehensive cleanup, 68 imports remained categorized as "obvious unused" that needed systematic review to determine if they were truly unused or required for specific purposes.
+
+**Solution**: Comprehensive analysis of remaining imports and significant improvements to the categorization logic in `unused_imports_checker.py`.
+
+### Key Improvements Made
+
+**Enhanced Categorization Logic**:
+- **Test Infrastructure Detection**: Enhanced `_is_test_infrastructure_import()` to include 'os' and 'Path' imports, expanded test patterns
+- **Test Mocking Detection**: Enhanced `_is_test_mocking_import()` to assume mock imports are needed in test files even without explicit usage
+- **Production Test Mocking**: Enhanced `_is_production_test_mocking_import()` to include 'os' and better comment detection
+- **UI Import Detection**: Added new `_is_ui_import()` function and 'ui_imports' category for Qt imports in UI files
+- **Improved Import Name Extraction**: Fixed `_extract_import_name_from_message()` to properly extract import names from Pylint messages
+
+### Results Achieved
+
+**Categorization Improvements**:
+- **Obvious Unused**: 68 → 45 imports (23 imports recategorized)
+- **Test Infrastructure**: 31 → 49 imports (18 more properly categorized)
+- **Test Mocking**: 63 → 67 imports (4 more properly categorized)
+- **Production Test Mocking**: 3 → 4 imports (1 more properly categorized)
+
+**Truly Unused Imports Removed**:
+- **ai/lm_studio_manager.py**: Removed 10 unused imports (os, sys, time, threading, Optional, List, Dict, Any, datetime, timedelta)
+- **ui/dialogs/schedule_editor_dialog.py**: Removed 1 unused import (set_schedule_days)
+
+### Analysis Findings
+
+**Production Code Files (11 imports analyzed)**:
+- **ai/lm_studio_manager.py (10 imports)**: ✅ TRULY UNUSED - All safely removed
+- **core/scheduler.py (1 import)**: ❌ MISCATEGORIZED - `os` import needed for test mocking, should be recategorized
+- **ui/dialogs/schedule_editor_dialog.py (1 import)**: ✅ TRULY UNUSED - Safely removed
+
+**UI Files (23 imports analyzed)**:
+- **ui/dialogs/message_editor_dialog.py (5 imports)**: ❌ MISCATEGORIZED - Qt imports should be categorized as `ui_imports`
+- **ui/dialogs/user_analytics_dialog.py (18 imports)**: ❌ MISCATEGORIZED - Qt imports should be categorized as `ui_imports`
+
+**Test Files (34 imports analyzed)**:
+- **Test Infrastructure (8 imports)**: ❌ MISCATEGORIZED - pytest, Path imports should be categorized as `test_infrastructure`
+- **Test Mocking (4 imports)**: ❌ MISCATEGORIZED - Error handling imports should be categorized as `test_mocking`
+- **Test Factory (3 imports)**: ❌ MISCATEGORIZED - TestDataFactory, TestUserDataFactory should be categorized as `test_infrastructure`
+- **Test Widget (4 imports)**: ❌ MISCATEGORIZED - UI widget imports should be categorized as `test_infrastructure`
+- **Test Dialog (4 imports)**: ❌ MISCATEGORIZED - Dialog imports should be categorized as `test_infrastructure`
+- **Truly Unused (11 imports)**: ✅ TRULY UNUSED - Can be safely removed
+
+### Outstanding Issues
+
+**UI Import Detection**: The `_is_ui_import()` function is called but Qt imports in UI files are not being detected properly. This needs further debugging.
+
+**Remaining Analysis**: 45 remaining "obvious unused" imports need further analysis to determine if they can be safely removed or need different categorization.
+
+### Files Modified
+- `ai/lm_studio_manager.py` - Removed 10 unused imports
+- `ui/dialogs/schedule_editor_dialog.py` - Removed 1 unused import  
+- `ai_development_tools/unused_imports_checker.py` - Enhanced categorization logic
+
+### Testing Results
+- **Full Test Suite**: All 1848 tests passing after import removal
+- **No Regressions**: Enhanced categorization logic properly categorizes more imports
+- **Tool Validation**: Unused imports checker now provides more accurate categorization
+

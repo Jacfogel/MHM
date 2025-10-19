@@ -7,14 +7,8 @@ This module provides status detection for LM Studio:
 - Monitor connection status
 """
 
-import os
-import sys
-import time
 import subprocess
 import requests
-import threading
-from typing import Optional, List, Dict, Any
-from datetime import datetime, timedelta
 
 from core.logger import get_component_logger
 from core.error_handling import handle_errors

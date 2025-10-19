@@ -44,6 +44,27 @@ When adding new tasks, follow this format:
     - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
 
+**Fix UI Import Detection in Unused Imports Checker**
+- *What it means*: The UI import detection function in unused_imports_checker.py is not working properly - Qt imports in UI files are not being categorized as 'ui_imports'
+- *Why it helps*: Proper categorization prevents false positives and ensures Qt imports in UI files are correctly identified as needed
+- *Estimated effort*: Small
+- *Current Status*: Function is called but Qt imports not being detected properly
+- *Next Steps*:
+  - [ ] Debug why Qt imports are not being detected in UI files
+  - [ ] Fix the path detection or import name matching logic
+  - [ ] Test with UI files to ensure proper categorization
+
+**Complete Remaining Unused Imports Analysis**
+- *What it means*: Analyze the remaining 45 "obvious unused" imports to determine if they can be safely removed or need different categorization
+- *Why it helps*: Completes the unused imports cleanup and improves code quality
+- *Estimated effort*: Small/Medium
+- *Current Status*: 23 imports successfully recategorized, 45 remaining
+- *Next Steps*:
+  - [ ] Review remaining 45 imports systematically
+  - [ ] Determine if they are truly unused or need different categorization
+  - [ ] Update categorization logic if needed
+  - [ ] Remove truly unused imports
+
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
