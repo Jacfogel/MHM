@@ -155,32 +155,55 @@ class DynamicCheckinManager:
         
         answer = answer.strip()
         
+        # Handle skip functionality for all question types
+        if answer.lower() == 'skip':
+            return True, 'SKIPPED', None
+        
         if question_type == 'yes_no':
-            is_yes = answer.lower() in ["yes", "y", "yeah", "yep", "true", "1"]
-            return True, is_yes, None
+            # Enhanced yes/no parsing with more synonyms
+            yes_responses = [
+                "yes", "y", "yeah", "yep", "true", "1", "absolutely", "definitely", 
+                "sure", "of course", "i did", "i have", "100", "100%", "correct", 
+                "affirmative", "indeed", "certainly", "positively"
+            ]
+            no_responses = [
+                "no", "n", "nope", "false", "0", "not", "never", "i didn't", 
+                "i did not", "i haven't", "i have not", "no way", "absolutely not", 
+                "definitely not", "negative", "incorrect", "wrong", "0%"
+            ]
+            
+            answer_lower = answer.lower()
+            if answer_lower in yes_responses:
+                return True, True, None
+            elif answer_lower in no_responses:
+                return True, False, None
+            else:
+                return False, None, error_message
         
         elif question_type == 'scale_1_5':
-            try:
-                value = int(answer)
+            # Enhanced numerical parsing for scale questions
+            parsed_value = self._parse_numerical_response(answer)
+            if parsed_value is not None:
                 min_val = validation.get('min', 1)
                 max_val = validation.get('max', 5)
-                if min_val <= value <= max_val:
-                    return True, value, None
+                if min_val <= parsed_value <= max_val:
+                    return True, int(parsed_value), None
                 else:
                     return False, None, error_message
-            except ValueError:
+            else:
                 return False, None, error_message
         
         elif question_type == 'number':
-            try:
-                value = float(answer)
+            # Enhanced numerical parsing for number questions
+            parsed_value = self._parse_numerical_response(answer)
+            if parsed_value is not None:
                 min_val = validation.get('min', 0)
                 max_val = validation.get('max', 24)
-                if min_val <= value <= max_val:
-                    return True, value, None
+                if min_val <= parsed_value <= max_val:
+                    return True, float(parsed_value), None
                 else:
                     return False, None, error_message
-            except ValueError:
+            else:
                 return False, None, error_message
         
         elif question_type == 'optional_text':
@@ -189,6 +212,91 @@ class DynamicCheckinManager:
         
         else:
             return False, None, f"Unknown question type: {question_type}"
+    
+    @handle_errors("parsing numerical response", default_return=None)
+    def _parse_numerical_response(self, answer: str) -> Optional[float]:
+        """Parse numerical responses including written numbers, decimals, and mixed formats."""
+        answer = answer.strip().lower()
+        
+        # Handle direct numeric values (including decimals)
+        try:
+            return float(answer)
+        except ValueError:
+            pass
+        
+        # Handle written numbers
+        written_numbers = {
+            'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+            'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+            'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15,
+            'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20
+        }
+        
+        # Handle simple written numbers
+        if answer in written_numbers:
+            return float(written_numbers[answer])
+        
+        # Handle "and a half" patterns (e.g., "three and a half", "2 and a half")
+        if ' and a half' in answer:
+            base_part = answer.replace(' and a half', '').strip()
+            try:
+                base_value = float(base_part)
+                return base_value + 0.5
+            except ValueError:
+                if base_part in written_numbers:
+                    return written_numbers[base_part] + 0.5
+        
+        # Handle "and half" patterns (e.g., "three and half")
+        if ' and half' in answer:
+            base_part = answer.replace(' and half', '').strip()
+            try:
+                base_value = float(base_part)
+                return base_value + 0.5
+            except ValueError:
+                if base_part in written_numbers:
+                    return written_numbers[base_part] + 0.5
+        
+        # Handle decimal written numbers (e.g., "three point five", "2 point 75")
+        if ' point ' in answer:
+            parts = answer.split(' point ')
+            if len(parts) == 2:
+                try:
+                    whole_part = float(parts[0]) if parts[0].isdigit() else written_numbers.get(parts[0])
+                    decimal_part = parts[1]
+                    
+                    # Handle multi-word decimal parts (e.g., "two five" -> "25")
+                    if ' ' in decimal_part:
+                        decimal_words = decimal_part.split()
+                        decimal_str = ''
+                        for word in decimal_words:
+                            if word in written_numbers:
+                                decimal_str += str(written_numbers[word])
+                            elif word.isdigit():
+                                decimal_str += word
+                        if decimal_str:
+                            decimal_part = decimal_str
+                    else:
+                        # Handle single word decimal parts
+                        if decimal_part in written_numbers:
+                            decimal_part = str(written_numbers[decimal_part])
+                    
+                    if whole_part is not None and (decimal_part.isdigit() or decimal_part in written_numbers):
+                        if decimal_part in written_numbers:
+                            decimal_part = str(written_numbers[decimal_part])
+                        # Convert whole_part to int to avoid "2.0.5" issue
+                        whole_part_int = int(whole_part) if whole_part == int(whole_part) else whole_part
+                        return float(f"{whole_part_int}.{decimal_part}")
+                except (ValueError, TypeError):
+                    pass
+        
+        # Handle percentage values (e.g., "100%", "50%")
+        if answer.endswith('%'):
+            try:
+                return float(answer[:-1])
+            except ValueError:
+                pass
+        
+        return None
     
     @handle_errors("getting enabled questions for UI", default_return={})
     def get_enabled_questions_for_ui(self) -> Dict[str, Dict[str, Any]]:

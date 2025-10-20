@@ -420,12 +420,18 @@ class CheckinAnalytics:
                 if field in c:
                     try:
                         v_raw = c[field]
+                        # Skip 'SKIPPED' responses to avoid analytics inaccuracies
+                        if v_raw == 'SKIPPED':
+                            continue
                         # Handle yes/no questions by converting to 0/1
-                        if isinstance(v_raw, str):
+                        if isinstance(v_raw, bool):
+                            # Boolean values from validation (True/False)
+                            v = 1.0 if v_raw else 0.0
+                        elif isinstance(v_raw, str):
                             v_raw_lower = v_raw.lower().strip()
-                            if v_raw_lower in ['yes', 'y', 'true', '1']:
+                            if v_raw_lower in ['yes', 'y', 'yeah', 'yep', 'true', '1', 'absolutely', 'definitely', 'sure', 'of course', 'i did', 'i have', '100', '100%', 'correct', 'affirmative', 'indeed', 'certainly', 'positively']:
                                 v = 1.0
-                            elif v_raw_lower in ['no', 'n', 'false', '0']:
+                            elif v_raw_lower in ['no', 'n', 'nope', 'false', '0', 'not', 'never', 'i didn\'t', 'i did not', 'i haven\'t', 'i have not', 'no way', 'absolutely not', 'definitely not', 'negative', 'incorrect', 'wrong', '0%']:
                                 v = 0.0
                             else:
                                 v = float(v_raw)
@@ -438,12 +444,18 @@ class CheckinAnalytics:
                 elif isinstance(c.get('responses'), dict) and field in c['responses']:
                     try:
                         v_raw = c['responses'][field]
+                        # Skip 'SKIPPED' responses to avoid analytics inaccuracies
+                        if v_raw == 'SKIPPED':
+                            continue
                         # Handle yes/no questions by converting to 0/1
-                        if isinstance(v_raw, str):
+                        if isinstance(v_raw, bool):
+                            # Boolean values from validation (True/False)
+                            v = 1.0 if v_raw else 0.0
+                        elif isinstance(v_raw, str):
                             v_raw_lower = v_raw.lower().strip()
-                            if v_raw_lower in ['yes', 'y', 'true', '1']:
+                            if v_raw_lower in ['yes', 'y', 'yeah', 'yep', 'true', '1', 'absolutely', 'definitely', 'sure', 'of course', 'i did', 'i have', '100', '100%', 'correct', 'affirmative', 'indeed', 'certainly', 'positively']:
                                 v = 1.0
-                            elif v_raw_lower in ['no', 'n', 'false', '0']:
+                            elif v_raw_lower in ['no', 'n', 'nope', 'false', '0', 'not', 'never', 'i didn\'t', 'i did not', 'i haven\'t', 'i have not', 'no way', 'absolutely not', 'definitely not', 'negative', 'incorrect', 'wrong', '0%']:
                                 v = 0.0
                             else:
                                 v = float(v_raw)
