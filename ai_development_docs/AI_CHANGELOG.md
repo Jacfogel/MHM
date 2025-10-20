@@ -8,6 +8,12 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-20 - Audit Reporting Refresh & Coverage Follow-up **IN PROGRESS**
+- **AI-Facing Reports**: Rebuilt `_generate_ai_status_document`, `_generate_ai_priorities_document`, and `_generate_consolidated_report` to surface real metrics (documentation drift, error handling, coverage gaps, complexity hotspots) instead of placeholders.
+- **New TODO/Plan Items**: Logged follow-up tasks for fixing the failing coverage regeneration run and consolidating legacy coverage artefacts.
+- **Coverage Investigation**: Full audit confirms coverage step still fails and leaves shard `.coverage` files plus multiple HTML directories; captured next actions in planning docs.
+- **Files Modified**: ai_development_tools/services/operations.py, TODO.md, development_docs/PLANS.md, ai_development_tools/AI_STATUS.md, ai_development_tools/AI_PRIORITIES.md, ai_development_tools/consolidated_report.txt, ai_development_tools/ai_audit_detailed_results.json
+
 ### 2025-10-19 - Enhanced Checkin Response Parsing and Skip Functionality **COMPLETED**
 - **Problem Solved**: Checkin questions had rigid response requirements that didn't match natural user communication patterns
 - **Solution**: Implemented comprehensive response parsing enhancements and skip functionality

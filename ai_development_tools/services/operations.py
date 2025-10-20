@@ -17,7 +17,7 @@ from pathlib import Path
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Sequence, Callable
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 import config
 SCRIPT_REGISTRY = {
@@ -781,28 +781,66 @@ class AIToolsService:
         metrics: Dict[str, Any] = {}
         import re
 
-        for line in lines:
+        section_lookup = {
+            'high_complexity_examples': 'HIGH COMPLEXITY',
+            'critical_complexity_examples': 'CRITICAL COMPLEXITY',
+            'undocumented_examples': 'UNDOCUMENTED'
+        }
+        section_limits = {
+            'high_complexity_examples': 5,
+            'critical_complexity_examples': 5,
+            'undocumented_examples': 5
+        }
+        current_section = None
+
+        for raw_line in lines:
+            line = raw_line.rstrip()
             lower = line.lower()
+
             if 'found' in lower and 'functions' in lower:
                 match = re.search(r'Found (\d+) functions', line)
                 if match:
                     metrics['total_functions'] = int(match.group(1))
-            elif 'moderate complexity' in lower:
+                continue
+            if 'moderate complexity' in lower and '(' in line:
                 match = re.search(r'\((\d+)\):', line)
                 if match:
                     metrics['moderate_complexity'] = int(match.group(1))
-            elif 'high complexity' in lower and 'critical' not in lower:
+                continue
+            if line.strip().upper().startswith('HIGH COMPLEXITY'):
+                current_section = 'high_complexity_examples'
                 match = re.search(r'\((\d+)\):', line)
                 if match:
                     metrics['high_complexity'] = int(match.group(1))
-            elif 'critical complexity' in lower:
+                continue
+            if line.strip().upper().startswith('CRITICAL COMPLEXITY'):
+                current_section = 'critical_complexity_examples'
                 match = re.search(r'\((\d+)\):', line)
                 if match:
                     metrics['critical_complexity'] = int(match.group(1))
-            elif 'undocumented' in lower:
+                continue
+            if line.strip().upper().startswith('UNDOCUMENTED'):
+                current_section = 'undocumented_examples'
                 match = re.search(r'\((\d+)\):', line)
                 if match:
                     metrics['undocumented'] = int(match.group(1))
+                continue
+            if any(line.strip().upper().startswith(label) for label in section_lookup.values()):
+                current_section = None
+                continue
+
+            if current_section:
+                stripped = line.strip()
+                if not stripped.startswith('- '):
+                    continue
+                if '...and' in stripped and 'more' in stripped:
+                    continue
+                entry = self._parse_function_entry(stripped[2:])
+                if entry is None:
+                    continue
+                metrics.setdefault(current_section, [])
+                if len(metrics[current_section]) < section_limits[current_section]:
+                    metrics[current_section].append(entry)
 
         self.results_cache['function_discovery'] = metrics
 
@@ -976,6 +1014,28 @@ class AIToolsService:
         return combined
 
 
+    def _parse_function_entry(self, text: str) -> Optional[Dict[str, Any]]:
+        """Parse a function discovery bullet into structured data."""
+        if not text:
+            return None
+        import re
+
+        pattern = re.compile(
+            r'^(?P<name>.+?) \(file: (?P<file>.+?), complexity: (?P<complexity>\d+)\)'
+        )
+        match = pattern.match(text.strip())
+        if not match:
+            return None
+        try:
+            complexity = int(match.group('complexity'))
+        except ValueError:
+            complexity = None
+        return {
+            'function': match.group('name').strip(),
+            'file': match.group('file').strip(),
+            'complexity': complexity,
+        }
+
 
     def _extract_first_int(self, text: str) -> Optional[int]:
         """Return the first integer found in the supplied text or None."""
@@ -1086,6 +1146,107 @@ class AIToolsService:
         remaining = len(filtered) - limit
         return f"{visible}, ... +{remaining}"
 
+    def _format_percentage(self, value: Any, decimals: int = 1) -> str:
+        """Format a numeric value as a percentage string."""
+        try:
+            return f"{float(value):.{decimals}f}%"
+        except (TypeError, ValueError):
+            return str(value)
+
+    def _get_missing_doc_files(self, limit: int = 5) -> List[str]:
+        """Return the top documentation files missing from the registry."""
+        metrics = self.results_cache.get('audit_function_registry', {})
+        missing_files = []
+        if isinstance(metrics, dict):
+            missing_files = metrics.get('missing_files') or []
+        if not isinstance(missing_files, list):
+            return []
+        return missing_files[:limit]
+
+    def _load_coverage_summary(self) -> Optional[Dict[str, Any]]:
+        """Load overall and per-module coverage metrics from coverage.json."""
+        coverage_path = self.project_root / "ai_development_tools" / "coverage.json"
+        if not coverage_path.exists():
+            return None
+        try:
+            with coverage_path.open('r', encoding='utf-8') as handle:
+                coverage_data = json.load(handle)
+        except (OSError, json.JSONDecodeError):
+            return None
+
+        files = coverage_data.get('files')
+        if not isinstance(files, dict) or not files:
+            return None
+
+        total_statements = 0
+        total_covered = 0
+        module_stats = defaultdict(lambda: {'statements': 0, 'covered': 0, 'missed': 0})
+        worst_files: List[Dict[str, Any]] = []
+
+        for path, info in files.items():
+            summary = info.get('summary') or {}
+            statements = summary.get('num_statements') or 0
+            covered = summary.get('covered_lines') or 0
+            missed = summary.get('missing_lines')
+            if missed is None:
+                missed = max(statements - covered, 0)
+
+            total_statements += statements
+            total_covered += covered
+
+            parts = path.replace('/', '\\').split('\\')
+            module_name = parts[0] if parts and parts[0] else 'root'
+            module_entry = module_stats[module_name]
+            module_entry['statements'] += statements
+            module_entry['covered'] += covered
+            module_entry['missed'] += missed
+
+            if statements > 0:
+                coverage_pct = round((covered / statements) * 100, 1)
+            else:
+                coverage_pct = 0.0
+            worst_files.append({
+                'path': path.replace('\\', '/'),
+                'coverage': coverage_pct,
+                'missing': missed
+            })
+
+        if total_statements == 0:
+            overall_coverage = 0.0
+        else:
+            overall_coverage = round((total_covered / total_statements) * 100, 1)
+
+        module_list: List[Dict[str, Any]] = []
+        for module_name, stats in module_stats.items():
+            statements = stats['statements']
+            if statements == 0:
+                coverage_pct = 0.0
+            else:
+                coverage_pct = round((stats['covered'] / statements) * 100, 1)
+            module_list.append({
+                'module': module_name.replace('\\', '/'),
+                'coverage': coverage_pct,
+                'missed': stats['missed']
+            })
+
+        module_list.sort(key=lambda item: item['coverage'])
+        worst_files.sort(key=lambda item: item['coverage'])
+
+        meta = coverage_data.get('meta', {})
+        timestamp = meta.get('timestamp')
+
+        return {
+            'overall': {
+                'coverage': overall_coverage,
+                'statements': total_statements,
+                'covered': total_covered,
+                'missed': max(total_statements - total_covered, 0),
+                'generated': timestamp
+            },
+            'modules': module_list,
+            'worst_files': worst_files[:5]
+        }
+
     def _get_canonical_metrics(self) -> Dict[str, Any]:
         """Provide consistent totals across downstream documents."""
         fd_metrics = self.results_cache.get('function_discovery', {}) or {}
@@ -1188,8 +1349,8 @@ class AIToolsService:
         return "\n".join(report_lines)
     
     def _generate_ai_status_document(self) -> str:
-        """Generate AI-optimized status document with current codebase state"""
-        lines = []
+        """Generate AI-optimized status document."""
+        lines: List[str] = []
         lines.append("# AI Status - Current Codebase State")
         lines.append("")
         lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
@@ -1198,203 +1359,232 @@ class AIToolsService:
         lines.append("> **Source**: `python ai_development_tools/ai_tools_runner.py status`")
         lines.append("")
 
-        # System Overview
-        lines.append("## System Overview")
+        def percent_text(value: Any, decimals: int = 1) -> str:
+            if value is None:
+                return "Unknown"
+            if isinstance(value, str):
+                return value if value.strip().endswith('%') else f"{value}%"
+            return self._format_percentage(value, decimals)
+
         metrics = self._get_canonical_metrics()
-        lines.append(f"- **Total Functions**: {metrics['total_functions']}")
+        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
+        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
+        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+        analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
+
+        doc_coverage = doc_metrics.get('doc_coverage', metrics['doc_coverage'])
+        missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        missing_files = self._get_missing_doc_files(limit=4)
+
+        error_coverage = error_metrics.get('error_handling_coverage')
+        missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+        worst_error_modules = error_metrics.get('worst_modules') or []
+
+        coverage_summary = self._load_coverage_summary()
+        doc_sync_summary = self.docs_sync_summary or {}
+        legacy_summary = self.legacy_cleanup_summary or {}
+
+        lines.append("## Snapshot")
         lines.append(
-            f"- **Complexity Distribution**: Moderate: {metrics['moderate']}, High: {metrics['high']}, Critical: {metrics['critical']}"
+            f"- **Total Functions**: {metrics['total_functions']} "
+            f"(Moderate: {metrics['moderate']}, High: {metrics['high']}, Critical: {metrics['critical']})"
         )
-        lines.append(f"- **Documentation Coverage**: {metrics['doc_coverage']}")
-        
-        # Error Handling Coverage Status
-        error_handling_metrics = self.results_cache.get('error_handling_coverage', {})
-        if error_handling_metrics:
-            coverage = error_handling_metrics.get('error_handling_coverage', 0)
-            missing = error_handling_metrics.get('functions_missing_error_handling', 0)
-            total = error_handling_metrics.get('total_functions', 0)
-            quality = error_handling_metrics.get('error_handling_quality', {})
-            
-            if coverage >= 80:
-                lines.append(f"- **Error Handling Coverage**: **GOOD** ({coverage:.1f}%)")
-            elif coverage >= 60:
-                lines.append(f"- **Error Handling Coverage**: **NEEDS IMPROVEMENT** ({coverage:.1f}%)")
-            else:
-                lines.append(f"- **Error Handling Coverage**: **CRITICAL** ({coverage:.1f}%)")
-            
-            if missing > 0:
-                lines.append(f"- **Functions Missing Error Handling**: {missing}")
-            
-            excellent = quality.get('excellent', 0)
-            if excellent > 0:
-                lines.append(f"- **High-Quality Error Handling**: {excellent} functions using @handle_errors decorator")
-
-        # Documentation status
-        lines.append("## Documentation Status")
-        if self.docs_sync_summary:
-            summary = self.docs_sync_summary
-            path_drift = summary.get('path_drift_issues')
-            paired = summary.get('paired_doc_issues')
-            ascii_issues = summary.get('ascii_issues')
-            total_issues = summary.get('total_issues')
-            status_label = summary.get('status', 'Unknown')
-
-            if path_drift == 0:
-                lines.append("- **Path Drift**: **PERFECT** (0 issues)")
-            elif path_drift is not None:
-                lines.append(f"- **Path Drift**: **NEEDS ATTENTION** ({path_drift} issues)")
-            else:
-                lines.append("- **Path Drift**: Status unavailable (run doc-sync)")
-
-            drift_files = summary.get('path_drift_files') or []
-            if drift_files:
-                files_display = self._format_list_for_display(drift_files)
-                if files_display:
-                    lines.append(f"- **Path Drift Files**: {files_display}")
-
-            if paired == 0:
-                lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
-            elif paired is not None:
-                lines.append(f"- **Paired Docs**: **NEEDS ATTENTION** ({paired} issues)")
-
-            if ascii_issues == 0:
-                lines.append("- **ASCII Compliance**: All clear")
-            elif ascii_issues is not None:
-                lines.append(f"- **ASCII Compliance**: {ascii_issues} issues")
-
+        doc_line = f"- **Documentation Coverage**: {percent_text(doc_coverage, 2)}"
+        if missing_docs:
+            doc_line += f" ({missing_docs} items missing from registry)"
+        lines.append(doc_line)
+        if missing_files:
+            lines.append(f"- **Missing Documentation Files**: {self._format_list_for_display(missing_files, limit=4)}")
+        lines.append(
+            f"- **Error Handling Coverage**: {percent_text(error_coverage, 1)}"
+            + (f" ({missing_error_handlers} functions without handlers)" if missing_error_handlers else "")
+        )
+        if doc_sync_summary:
+            sync_status = doc_sync_summary.get('status', 'Unknown')
+            total_issues = doc_sync_summary.get('total_issues')
+            sync_line = f"- **Doc Sync**: {sync_status}"
             if total_issues is not None:
-                lines.append(f"- **Doc Sync Status**: {status_label} ({total_issues} total issues)")
-            else:
-                lines.append(f"- **Doc Sync Status**: {status_label}")
+                sync_line += f" ({total_issues} tracked issues)"
+            lines.append(sync_line)
         else:
-            lines.append("- **Doc Sync**: Run documentation sync checker to refresh metrics")
+            lines.append("- **Doc Sync**: Run doc-sync to refresh paired documentation status")
         lines.append("")
 
-        # Legacy status
-        lines.append("## Legacy Code Status")
-        if self.legacy_cleanup_summary:
-            summary = self.legacy_cleanup_summary
-            legacy_issues = summary.get('files_with_issues')
-            if legacy_issues == 0:
-                lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
-            elif legacy_issues is not None:
-                lines.append(f"- **Legacy References**: **NEEDS ATTENTION** ({legacy_issues} files with issues)")
-            else:
-                lines.append("- **Legacy References**: Status unavailable (run legacy scan)")
-            report_path = summary.get('report_path')
-            if report_path:
-                lines.append(f"- **Legacy Report**: {report_path}")
+        lines.append("## Documentation Signals")
+        if doc_sync_summary:
+            path_drift = doc_sync_summary.get('path_drift_issues')
+            paired = doc_sync_summary.get('paired_doc_issues')
+            ascii_issues = doc_sync_summary.get('ascii_issues')
+            if path_drift is not None:
+                severity = "CLEAN" if path_drift == 0 else "NEEDS ATTENTION"
+                lines.append(f"- **Path Drift**: {severity} ({path_drift} issues)")
+            drift_files = doc_sync_summary.get('path_drift_files') or []
+            if drift_files:
+                lines.append(f"- **Drift Hotspots**: {self._format_list_for_display(drift_files, limit=4)}")
+            if paired is not None:
+                status_label = "SYNCHRONIZED" if paired == 0 else "NEEDS ATTENTION"
+                lines.append(f"- **Paired Docs**: {status_label} ({paired} issues)")
+            if ascii_issues:
+                lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
         else:
-            lines.append("- **Legacy References**: Run legacy cleanup to refresh metrics")
+            lines.append("- Run `python ai_development_tools/ai_tools_runner.py doc-sync` for drift details")
+
+        doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
+        if doc_artifacts:
+            primary_artifact = doc_artifacts[0]
+            file_name = primary_artifact.get('file')
+            line_no = primary_artifact.get('line')
+            pattern = primary_artifact.get('pattern')
+            lines.append(
+                f"- **Content Cleanup**: {file_name} line {line_no} flagged for {pattern.replace('_', ' ')}"
+            )
+            if len(doc_artifacts) > 1:
+                lines.append(f"- Additional documentation artifacts: {len(doc_artifacts) - 1} more findings")
         lines.append("")
-        
-        # Unused Imports status
-        lines.append("## Unused Imports Status")
-        unused_imports_data = self.results_cache.get('unused_imports', {})
-        if unused_imports_data:
-            files_scanned = unused_imports_data.get('files_scanned', 0)
-            files_with_issues = unused_imports_data.get('files_with_issues', 0)
-            total_unused = unused_imports_data.get('total_unused', 0)
-            status = unused_imports_data.get('status', 'UNKNOWN')
-            
-            lines.append(f"- **Total Files Scanned**: {files_scanned} files")
-            lines.append(f"- **Files with Unused Imports**: {files_with_issues} files")
-            lines.append(f"- **Total Unused Imports**: {total_unused} imports")
-            lines.append(f"- **Status**: {status}")
-            
-            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-            if report_path.exists():
+
+        lines.append("## Error Handling")
+        if error_metrics:
+            if missing_error_handlers:
+                lines.append(f"- **Missing Error Handling**: {missing_error_handlers} functions lack protections")
+            decorated = error_metrics.get('functions_with_decorators')
+            if decorated is not None:
+                lines.append(f"- **@handle_errors Usage**: {decorated} functions already use the decorator")
+            recommendations = error_metrics.get('recommendations') or []
+            if recommendations:
+                lines.append(f"- **Immediate Step**: {recommendations[0]}")
+            if worst_error_modules:
+                module_descriptions = []
+                for module in worst_error_modules[:3]:
+                    module_name = module.get('module', 'Unknown')
+                    coverage_value = module.get('coverage')
+                    coverage_text = percent_text(coverage_value, 1)
+                    missing = module.get('missing')
+                    total = module.get('total')
+                    detail = f"{module_name} ({coverage_text}"
+                    if missing is not None and total is not None:
+                        detail += f", missing {missing}/{total}"
+                    detail += ")"
+                    module_descriptions.append(detail)
+                lines.append(f"- **Modules to Prioritize**: {', '.join(module_descriptions)}")
+        else:
+            lines.append("- Run error handling coverage analysis to populate this section")
+        lines.append("")
+
+        lines.append("## Complexity Hotspots")
+        critical_examples = function_metrics.get('critical_complexity_examples') or []
+        high_examples = function_metrics.get('high_complexity_examples') or []
+        undocumented_examples = function_metrics.get('undocumented_examples') or []
+
+        if critical_examples:
+            formatted = [
+                f"{item['function']} ({item['file']}, complexity {item['complexity']})"
+                for item in critical_examples[:3]
+            ]
+            lines.append(f"- **Critical** (>199 nodes): {', '.join(formatted)}")
+        if high_examples:
+            formatted = [
+                f"{item['function']} ({item['file']}, complexity {item['complexity']})"
+                for item in high_examples[:3]
+            ]
+            lines.append(f"- **High** (100-199 nodes): {', '.join(formatted)}")
+        if undocumented_examples:
+            formatted = [
+                f"{item['function']} ({item['file']})"
+                for item in undocumented_examples[:3]
+            ]
+            lines.append(f"- **Undocumented Functions**: {', '.join(formatted)}")
+        if not (critical_examples or high_examples or undocumented_examples):
+            lines.append("- Function discovery data unavailable in this run")
+        lines.append("")
+
+        lines.append("## Test Coverage")
+        if coverage_summary:
+            overall = coverage_summary['overall']
+            lines.append(
+                f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} "
+                f"({overall.get('covered')} of {overall.get('statements')} statements)"
+            )
+            generated = overall.get('generated')
+            if generated:
+                lines.append(f"- **Report Timestamp**: {generated}")
+            module_gaps = coverage_summary['modules'][:3]
+            if module_gaps:
+                descriptions = [
+                    f"{m['module']} ({percent_text(m.get('coverage'), 1)}, missing {m.get('missed')} lines)"
+                    for m in module_gaps
+                ]
+                lines.append(f"- **Lowest Modules**: {', '.join(descriptions)}")
+            worst_files = coverage_summary.get('worst_files') or []
+            if worst_files:
+                formatted = [
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
+                    for item in worst_files[:3]
+                ]
+                lines.append(f"- **Files Needing Tests**: {', '.join(formatted)}")
+        else:
+            lines.append("- Coverage data unavailable; run `audit --full` to regenerate metrics")
+        lines.append("")
+
+        lines.append("## Legacy References")
+        if legacy_summary:
+            legacy_issues = legacy_summary.get('files_with_issues')
+            if legacy_issues == 0:
+                lines.append("- **Legacy References**: CLEAN (0 files flagged)")
+            elif legacy_issues is not None:
+                lines.append(f"- **Legacy References**: {legacy_issues} files still reference legacy patterns")
+            report_path = legacy_summary.get('report_path')
+            if report_path:
                 lines.append(f"- **Detailed Report**: {report_path}")
         else:
-            lines.append("- **Unused Imports**: Run unused-imports checker to refresh metrics")
-            lines.append("- **Note**: Skipped in fast mode - use full audit for unused imports analysis")
+            lines.append("- Run legacy cleanup to refresh the legacy reference report")
         lines.append("")
 
-        # Validation status
         lines.append("## Validation Status")
         if hasattr(self, 'validation_results') and self.validation_results:
             validation_output = self.validation_results.get('output', '')
             if 'POOR' in validation_output:
-                lines.append("- **AI Work Validation**: **POOR** (Check consolidated_report.txt)")
-                lines.append("- **Coverage**: 0.0% - Documentation is incomplete")
-                lines.append("- **Missing Items**: 63 items need documentation")
+                lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
             elif 'GOOD' in validation_output:
-                lines.append("- **AI Work Validation**: **GOOD** (Maintain standards)")
+                lines.append("- **AI Work Validation**: GOOD - keep current standards")
             else:
-                lines.append("- **AI Work Validation**: **NEEDS REVIEW** (Check consolidated_report.txt)")
+                lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
         else:
-            lines.append("- **AI Work Validation**: Check consolidated_report.txt for details")
-            lines.append("- **Code Quality**: Automated validation results")
-            lines.append("- **Best Practices**: Adherence to development standards")
+            lines.append("- Validation results unavailable for this run")
         lines.append("")
 
-        # Coverage Status (from actual test-coverage results)
-        lines.append("## Coverage Status")
-        if hasattr(self, 'coverage_results') and self.coverage_results:
-            coverage_output = self.coverage_results.get('output', '')
-            if 'Coverage: 65%' in coverage_output:
-                lines.append("- **Test Coverage**: **65%** (Target: 80%+)")
-                lines.append("- **Coverage Gaps**: Address uncovered code areas")
-                lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
-            elif 'Coverage: 80%' in coverage_output or 'Coverage: 90%' in coverage_output:
-                lines.append("- **Test Coverage**: **GOOD** (80%+)")
-                lines.append("- **Coverage Maintenance**: Maintain current coverage levels")
-            else:
-                lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
-        else:
-            lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
-            lines.append("- **Coverage Report**: HTML reports in coverage_html/ directory")
-            lines.append("- **Coverage Trends**: Monitor coverage changes over time")
-        lines.append("")
-
-        # Critical Issues
-        critical_issues = self._identify_critical_issues()
-        if critical_issues:
-            lines.append("## Critical Issues")
-            for i, issue in enumerate(critical_issues[:5], 1):
-                lines.append(f"{i}. {issue}")
-            lines.append("")
-
-        # Development Focus
-        lines.append("## Development Focus")
-        lines.append("- **Primary**: Feature development and user functionality")
-        lines.append("- **Secondary**: Code maintainability (complexity reduction)")
-        lines.append("- **Maintenance**: Documentation and testing")
-        lines.append("")
-
-        # System status insights (quick status JSON)
         lines.append("## System Signals")
         if self.status_summary:
             system_health = self.status_summary.get('system_health', {})
             overall_status = system_health.get('overall_status')
             if overall_status:
                 lines.append(f"- **System Health**: {overall_status}")
-            missing_files = [name for name, state in (system_health.get('core_files') or {}).items() if state != 'OK']
-            if missing_files:
-                lines.append(f"- **Missing Core Files**: {self._format_list_for_display(missing_files, limit=4)}")
+            missing_core = [
+                name for name, state in (system_health.get('core_files') or {}).items()
+                if state != 'OK'
+            ]
+            if missing_core:
+                lines.append(f"- **Core File Issues**: {self._format_list_for_display(missing_core, limit=3)}")
             recent_activity = self.status_summary.get('recent_activity', {})
             last_audit = recent_activity.get('last_audit')
             if last_audit:
                 lines.append(f"- **Last Audit**: {last_audit}")
             recent_changes = recent_activity.get('recent_changes') or []
             if recent_changes:
-                lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=2)}")
+                lines.append(f"- **Recent Changes**: {self._format_list_for_display(recent_changes, limit=3)}")
         else:
-            lines.append("- **System Health**: Fallback summary in use (see quick status output)")
+            lines.append("- Quick status data unavailable (run `quick_status.py json`)")
         lines.append("")
 
-        # Quick Commands
         lines.append("## Quick Commands")
-        lines.append("- `python ai_development_tools/ai_tools_runner.py status` - System status")
-        lines.append("- `python ai_development_tools/ai_tools_runner.py audit` - Full audit")
-        lines.append("- `python ai_development_tools/quick_status.py concise` - Quick check")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py status` - Refresh this snapshot")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py audit --full` - Regenerate all metrics")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py doc-sync` - Update documentation pairing data")
         lines.append("")
 
         return "\n".join(lines)
-
     def _generate_ai_priorities_document(self) -> str:
-        """Generate AI-optimized priorities document with immediate next steps"""
-        lines = []
+        """Generate AI-optimized priorities document with immediate next steps."""
+        lines: List[str] = []
         lines.append("# AI Priorities - Immediate Next Steps")
         lines.append("")
         lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
@@ -1403,181 +1593,248 @@ class AIToolsService:
         lines.append("> **Source**: `python ai_development_tools/ai_tools_runner.py audit`")
         lines.append("")
 
-        # Priority Actions based on actual audit results
-        lines.append("## Priority Actions")
+        def percent_text(value: Any, decimals: int = 1) -> str:
+            if value is None:
+                return "Unknown"
+            if isinstance(value, str):
+                return value if value.strip().endswith('%') else f"{value}%"
+            return self._format_percentage(value, decimals)
 
-        lines.append("## Documentation Priorities")
-        if self.docs_sync_summary:
-            summary = self.docs_sync_summary
-            path_drift = summary.get('path_drift_issues')
-            total_issues = summary.get('total_issues')
-            status_label = summary.get('status', 'Unknown')
+        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
+        doc_coverage = doc_metrics.get('doc_coverage') or self._get_canonical_metrics().get('doc_coverage')
+        missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        missing_files = self._get_missing_doc_files(limit=5)
 
-            if path_drift == 0:
-                lines.append("- **Path Drift**: **RESOLVED** (0 issues)")
-            elif path_drift is not None:
-                lines.append(f"- **Path Drift**: **CRITICAL** ({path_drift} issues to fix)")
+        doc_sync_summary = self.docs_sync_summary or {}
+        analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
+        doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
+
+        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
+        missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+        error_recommendations = error_metrics.get('recommendations') or []
+        worst_error_modules = error_metrics.get('worst_modules') or []
+
+        coverage_summary = self._load_coverage_summary()
+        legacy_summary = self.legacy_cleanup_summary or {}
+        unused_imports_data = self.results_cache.get('unused_imports', {}) or {}
+        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+
+        validation_output = ""
+        if hasattr(self, 'validation_results') and self.validation_results:
+            validation_output = self.validation_results.get('output', '') or ""
+
+        immediate: List[str] = []
+
+        path_drift = doc_sync_summary.get('path_drift_issues') if doc_sync_summary else None
+        if path_drift:
+            immediate.append(f"Resolve {path_drift} documentation path drift issues.")
+        if missing_docs:
+            immediate.append(f"Document {missing_docs} registry gaps.")
+
+        if missing_error_handlers:
+            module_hint = None
+            if worst_error_modules:
+                module_hint = worst_error_modules[0].get('module')
+            if module_hint:
+                immediate.append(f"Add error handling to {missing_error_handlers} functions (start with {module_hint}).")
             else:
-                lines.append("- **Path Drift**: Run doc-sync to confirm outstanding issues")
+                immediate.append(f"Add error handling to {missing_error_handlers} functions.")
 
-            drift_files = summary.get('path_drift_files') or []
-            if drift_files:
-                lines.append(f"- **Drift Hotspots**: {self._format_list_for_display(drift_files)}")
+        if coverage_summary:
+            overall_cov = coverage_summary['overall'].get('coverage')
+            low_modules = [m for m in coverage_summary['modules'] if m.get('coverage', 100) < 80]
+            if low_modules:
+                module_names = ", ".join(m['module'] for m in low_modules[:2])
+                immediate.append(f"Raise coverage for {module_names} (currently below 80%).")
+            elif overall_cov is not None and overall_cov < 80:
+                immediate.append(f"Increase overall test coverage (currently {percent_text(overall_cov, 1)}).")
+        elif hasattr(self, 'coverage_results') and self.coverage_results:
+            immediate.append("Review coverage results and rerun `audit --full` (coverage regeneration reported issues).")
 
-            paired = summary.get('paired_doc_issues')
-            if paired == 0:
-                lines.append("- **Paired Docs**: **SYNCHRONIZED** (0 issues)")
-            elif paired is not None:
-                lines.append(f"- **Paired Docs**: **NEEDS ATTENTION** ({paired} issues)")
+        legacy_issues = legacy_summary.get('files_with_issues') or 0
+        if legacy_issues:
+            immediate.append(f"Retire legacy references in {legacy_issues} files.")
 
-            ascii_issues = summary.get('ascii_issues')
-            if ascii_issues:
-                lines.append(f"- **ASCII Cleanup**: {ascii_issues} files require normalization")
+        total_unused = unused_imports_data.get('total_unused', 0)
+        if total_unused:
+            immediate.append(f"Remove {total_unused} unused imports across the codebase.")
 
-            if total_issues is not None:
-                lines.append(f"- **Doc Sync Status**: {status_label} ({total_issues} total issues)")
-            else:
-                lines.append(f"- **Doc Sync Status**: {status_label}")
-        else:
-            lines.append("- **Doc Sync**: Run documentation sync checker to establish priority baseline")
+        critical_examples = function_metrics.get('critical_complexity_examples') or []
+        if critical_examples:
+            first_critical = critical_examples[0]
+            immediate.append(f"Break down critical function {first_critical['function']} ({first_critical['file']}).")
+
+        if not immediate:
+            immediate.append("Audit results are clean; maintain regular documentation and testing cadence.")
+
+        lines.append("## Immediate Focus")
+        for item in immediate[:6]:
+            lines.append(f"- {item}")
+        if len(immediate) > 6:
+            lines.append(f"- ...and {len(immediate) - 6} additional follow-ups")
         lines.append("")
 
-        lines.append("## Legacy Code Priorities")
-        if self.legacy_cleanup_summary:
-            summary = self.legacy_cleanup_summary
-            legacy_issues = summary.get('files_with_issues')
-            if legacy_issues == 0:
-                lines.append("- **Legacy References**: **CLEAN** (0 files with issues)")
-            elif legacy_issues is not None:
-                lines.append(f"- **Legacy References**: **NEEDS ATTENTION** ({legacy_issues} files)")
-            else:
-                lines.append("- **Legacy References**: Unable to determine (rerun legacy scan)")
-            report_path = summary.get('report_path')
+        lines.append("## Documentation")
+        lines.append(f"- **Coverage**: {percent_text(doc_coverage, 2)}")
+        if missing_docs:
+            lines.append(f"- **Missing Registry Entries**: {missing_docs}")
+        if missing_files:
+            lines.append(f"- **Docs to Sync**: {self._format_list_for_display(missing_files, limit=5)}")
+        if doc_sync_summary:
+            path_drift = doc_sync_summary.get('path_drift_issues')
+            if path_drift is not None:
+                severity = "CLEAN" if path_drift == 0 else "NEEDS ATTENTION"
+                lines.append(f"- **Path Drift**: {severity} ({path_drift} issues)")
+            paired = doc_sync_summary.get('paired_doc_issues')
+            if paired is not None:
+                status = "SYNCHRONIZED" if paired == 0 else "NEEDS ATTENTION"
+                lines.append(f"- **Paired Docs**: {status} ({paired} issues)")
+            ascii_issues = doc_sync_summary.get('ascii_issues')
+            if ascii_issues:
+                lines.append(f"- **ASCII Cleanup**: {ascii_issues} files contain non-ASCII characters")
+        else:
+            lines.append("- Run `python ai_development_tools/ai_tools_runner.py doc-sync` to confirm drift health")
+        if doc_artifacts:
+            artifact = doc_artifacts[0]
+            lines.append(f"- **Content Fix**: {artifact.get('file')} line {artifact.get('line')} flagged for {artifact.get('pattern')}")
+            if len(doc_artifacts) > 1:
+                lines.append(f"- Additional documentation findings: {len(doc_artifacts) - 1} more items")
+        lines.append("")
+
+        lines.append("## Error Handling")
+        if error_metrics:
+            coverage_value = error_metrics.get('error_handling_coverage')
+            lines.append(f"- **Coverage**: {percent_text(coverage_value, 1)}")
+            if missing_error_handlers:
+                lines.append(f"- **Functions Missing Protection**: {missing_error_handlers}")
+            quality = error_metrics.get('error_handling_quality') or {}
+            basic = quality.get('basic', 0)
+            none = quality.get('none', 0)
+            if basic:
+                lines.append(f"- **Improve**: Upgrade {basic} basic try-except blocks to @handle_errors")
+            if none:
+                lines.append(f"- **Critical**: {none} functions currently lack error handling")
+            if error_recommendations:
+                lines.append(f"- **Suggested Action**: {error_recommendations[0]}")
+            if worst_error_modules:
+                module_summaries = []
+                for module in worst_error_modules[:3]:
+                    module_name = module.get('module', 'Unknown')
+                    coverage_pct = percent_text(module.get('coverage'), 1)
+                    missing = module.get('missing')
+                    total = module.get('total')
+                    detail = f"{module_name} ({coverage_pct}"
+                    if missing is not None and total is not None:
+                        detail += f", missing {missing}/{total}"
+                    detail += ")"
+                    module_summaries.append(detail)
+                lines.append(f"- **Focus Modules**: {', '.join(module_summaries)}")
+        else:
+            lines.append("- Run full audit to gather error handling metrics")
+        lines.append("")
+
+        lines.append("## Test Coverage")
+        if coverage_summary:
+            overall = coverage_summary['overall']
+            lines.append(f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)")
+            module_gaps = [m for m in coverage_summary['modules'] if m.get('coverage', 100) < 90][:3]
+            if module_gaps:
+                module_descriptions = [
+                    f"{m['module']} ({percent_text(m.get('coverage'), 1)})"
+                    for m in module_gaps
+                ]
+                lines.append(f"- **Modules to Exercise**: {', '.join(module_descriptions)}")
+            worst_files = coverage_summary.get('worst_files') or []
+            if worst_files:
+                file_descriptions = [
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
+                    for item in worst_files[:3]
+                ]
+                lines.append(f"- **Files Missing Tests**: {', '.join(file_descriptions)}")
+            generated = overall.get('generated')
+            if generated:
+                lines.append(f"- **Report Timestamp**: {generated}")
+        elif hasattr(self, 'coverage_results') and self.coverage_results:
+            lines.append("- Coverage regeneration reported issues; inspect coverage.json for details")
+        else:
+            lines.append("- Run `python ai_development_tools/ai_tools_runner.py audit --full` to refresh coverage metrics")
+        lines.append("")
+
+        lines.append("## Complexity Hotspots")
+        critical_examples = function_metrics.get('critical_complexity_examples') or []
+        high_examples = function_metrics.get('high_complexity_examples') or []
+        undocumented_examples = function_metrics.get('undocumented_examples') or []
+        if critical_examples:
+            critical_items = [
+                f"{item['function']} ({item['file']})"
+                for item in critical_examples[:3]
+            ]
+            lines.append(f"- **Critical** (>199 nodes): {', '.join(critical_items)}")
+        if high_examples:
+            high_items = [
+                f"{item['function']} ({item['file']})"
+                for item in high_examples[:3]
+            ]
+            lines.append(f"- **High** (100-199 nodes): {', '.join(high_items)}")
+        if undocumented_examples:
+            undocumented_items = [
+                f"{item['function']} ({item['file']})"
+                for item in undocumented_examples[:3]
+            ]
+            lines.append(f"- **Undocumented Functions**: {', '.join(undocumented_items)}")
+        if not (critical_examples or high_examples or undocumented_examples):
+            lines.append("- Complexity analysis not available in this run")
+        lines.append("")
+
+        lines.append("## Legacy References")
+        if legacy_summary:
+            legacy_issues = legacy_summary.get('files_with_issues')
+            lines.append(f"- **Files with Legacy Markers**: {legacy_issues if legacy_issues is not None else 'Unknown'}")
+            legacy_markers = legacy_summary.get('legacy_markers')
+            if legacy_markers is not None:
+                lines.append(f"- **Markers Found**: {legacy_markers}")
+            report_path = legacy_summary.get('report_path')
             if report_path:
                 lines.append(f"- **Detailed Report**: {report_path}")
         else:
-            lines.append("- **Legacy References**: Review consolidated_report.txt for outstanding items")
-            lines.append("- **Modernization**: Update legacy patterns to current standards")
+            lines.append("- Run legacy cleanup to generate the latest report")
         lines.append("")
-        
-        lines.append("## Unused Imports Priorities")
-        unused_imports_data = self.results_cache.get('unused_imports', {})
+
+        lines.append("## Code Hygiene")
         if unused_imports_data:
-            files_with_issues = unused_imports_data.get('files_with_issues', 0)
             total_unused = unused_imports_data.get('total_unused', 0)
-            status = unused_imports_data.get('status', 'UNKNOWN')
-            by_category = unused_imports_data.get('by_category', {})
-            
-            if total_unused == 0:
-                lines.append("- **Unused Imports**: **CLEAN** (0 unused imports)")
-            else:
-                lines.append(f"- **Unused Imports**: **{status}** ({files_with_issues} files with {total_unused} total imports)")
-            
-            if by_category:
-                obvious = by_category.get('obvious_unused', 0)
-                if obvious > 0:
-                    lines.append(f"- **Obvious Cases**: {obvious} imports can be safely removed")
-                
-                type_hints = by_category.get('type_hints_only', 0)
-                if type_hints > 0:
-                    lines.append(f"- **Type Hints**: {type_hints} imports used only in type annotations")
-                
-                re_exports = by_category.get('re_exports', 0)
-                if re_exports > 0:
-                    lines.append(f"- **Re-exports**: {re_exports} imports in __init__.py files (needs review)")
-            
-            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-            if report_path.exists():
-                lines.append(f"- **Detailed Report**: {report_path}")
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            lines.append(f"- **Unused Imports**: {total_unused} across {files_with_issues} files")
+            by_category = unused_imports_data.get('by_category') or {}
+            obvious = by_category.get('obvious_unused')
+            if obvious:
+                lines.append(f"- **Obvious Removals**: {obvious} imports safe to delete")
+            type_only = by_category.get('type_hints_only')
+            if type_only:
+                lines.append(f"- **Type-Only Imports**: {type_only} used solely in annotations")
         else:
-            lines.append("- **Unused Imports**: Run unused-imports checker to establish cleanup priorities")
-            lines.append("- **Note**: Skipped in fast mode - use full audit for unused imports analysis")
+            lines.append("- Run unused-imports checker to build the removal list")
+        ascii_issues = doc_sync_summary.get('ascii_issues') if doc_sync_summary else None
+        if ascii_issues:
+            lines.append(f"- **ASCII Cleanup**: Normalise {ascii_issues} files with non-ASCII characters")
         lines.append("")
 
-        lines.append("## Coverage Priorities")
-        if hasattr(self, 'coverage_results') and self.coverage_results:
-            coverage_output = self.coverage_results.get('output', '')
-            if 'Coverage: 65%' in coverage_output:
-                lines.append("- **Test Coverage**: **65%** (Target: 80%+)")
-                lines.append("- **Coverage Gaps**: Address uncovered code areas")
-                lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
-            elif 'Coverage: 80%' in coverage_output or 'Coverage: 90%' in coverage_output:
-                lines.append("- **Test Coverage**: **GOOD** (80%+)")
-                lines.append("- **Coverage Maintenance**: Maintain current coverage levels")
-            else:
-                lines.append("- **Test Coverage**: Check coverage.json for detailed metrics")
+        lines.append("## Validation")
+        if 'POOR' in validation_output:
+            lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
+        elif 'GOOD' in validation_output:
+            lines.append("- **AI Work Validation**: GOOD - keep current standards")
+        elif validation_output:
+            lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
         else:
-            lines.append("- **Test Coverage**: Maintain and improve test coverage")
-            lines.append("- **Coverage Gaps**: Address uncovered code areas")
-            lines.append("- **Coverage Quality**: Ensure meaningful test coverage")
+            lines.append("- Validation results unavailable for this run")
         lines.append("")
 
-        lines.append("## Error Handling Priorities")
-        error_handling_metrics = self.results_cache.get('error_handling_coverage', {})
-        if error_handling_metrics:
-            coverage = error_handling_metrics.get('error_handling_coverage', 0)
-            missing = error_handling_metrics.get('functions_missing_error_handling', 0)
-            quality = error_handling_metrics.get('error_handling_quality', {})
-            recommendations = error_handling_metrics.get('recommendations', [])
-            
-            if coverage >= 80:
-                lines.append("- **Error Handling Coverage**: **GOOD** (80%+)")
-                lines.append("- **Coverage Maintenance**: Maintain current error handling standards")
-            elif coverage >= 60:
-                lines.append(f"- **Error Handling Coverage**: **NEEDS IMPROVEMENT** ({coverage:.1f}%)")
-                lines.append(f"- **Missing Error Handling**: {missing} functions need error handling")
-            else:
-                lines.append(f"- **Error Handling Coverage**: **CRITICAL** ({coverage:.1f}%)")
-                lines.append(f"- **Missing Error Handling**: {missing} functions need error handling")
-                lines.append("- **Priority**: Add error handling to critical functions immediately")
-            
-            # Add top recommendation only (avoid repetition)
-            if recommendations:
-                lines.append(f"- **Action**: {recommendations[0]}")
-            
-            # Quality improvement suggestions (avoid repetition with missing count)
-            basic = quality.get('basic', 0)
-            none = quality.get('none', 0)
-            
-            if basic > 0:
-                lines.append(f"- **Quality Improvement**: Replace basic try-except with @handle_errors decorator in {basic} functions")
-            if none > 0 and none != missing:  # Only show if different from missing count
-                lines.append(f"- **Critical**: {none} functions have no error handling")
-        else:
-            lines.append("- **Error Handling Coverage**: Run audit to analyze error handling patterns")
-            lines.append("- **Error Handling Quality**: Ensure consistent error handling standards")
-            lines.append("- **Error Handling Patterns**: Use @handle_errors decorator for robust error handling")
-        lines.append("")
-
-        lines.append("## Validation Priorities")
-        if hasattr(self, 'validation_results') and self.validation_results:
-            validation_output = self.validation_results.get('output', '')
-            if 'POOR' in validation_output:
-                lines.append("- **AI Work Validation**: **CRITICAL** (Fix validation issues)")
-                lines.append("- **Coverage**: 0.0% - Documentation is incomplete")
-                lines.append("- **Missing Items**: 63 items need documentation")
-                lines.append("- **Details**: Check consolidated_report.txt for specific issues")
-            elif 'GOOD' in validation_output:
-                lines.append("- **AI Work Validation**: **GOOD** (Maintain standards)")
-            else:
-                lines.append("- **AI Work Validation**: **NEEDS REVIEW** (Check consolidated_report.txt)")
-        else:
-            lines.append("- **Code Quality**: Maintain high code quality standards")
-            lines.append("- **Best Practices**: Follow established development patterns")
-            lines.append("- **AI Work Quality**: Ensure AI-generated work meets standards")
-        lines.append("")
-
-        lines.append("## Development Focus")
-        lines.append("- **Immediate**: Address high-complexity functions")
-        lines.append("- **Short-term**: Improve documentation coverage")
-        lines.append("- **Long-term**: Maintain code quality and test coverage")
-        lines.append("")
-
-        lines.append("## Success Metrics")
-        lines.append("- High complexity functions < 1500")
-        lines.append("- Documentation coverage > 95%")
-        lines.append("- All critical issues resolved")
-        lines.append("- Test coverage maintained")
+        lines.append("## Suggested Commands")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py doc-sync` - Refresh documentation metrics")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py audit --full` - Rebuild coverage and unused import data")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py legacy` - Update legacy reference report")
+        lines.append("- `python ai_development_tools/ai_tools_runner.py status` - Quick status snapshot")
         lines.append("")
 
         return "\n".join(lines)
@@ -1874,10 +2131,10 @@ class AIToolsService:
                 
         except Exception as e:
             print(f"   Warning: TODO sync failed: {e}")
-    
+
     def _generate_consolidated_report(self) -> str:
-        """Generate comprehensive consolidated report combining all tool outputs"""
-        lines = []
+        """Generate comprehensive consolidated report combining all tool outputs."""
+        lines: List[str] = []
         lines.append("# Comprehensive AI Development Tools Report")
         lines.append("")
         lines.append("> **Generated**: This file is auto-generated by ai_tools_runner.py. Do not edit manually.")
@@ -1885,239 +2142,251 @@ class AIToolsService:
         lines.append(f"> **Last Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         lines.append("> **Source**: `python ai_development_tools/ai_tools_runner.py audit`")
         lines.append("")
-        lines.append("=" * 60)
-        lines.append("")
+
+        def percent_text(value: Any, decimals: int = 1) -> str:
+            if value is None:
+                return "Unknown"
+            if isinstance(value, str):
+                return value if value.strip().endswith('%') else f"{value}%"
+            return self._format_percentage(value, decimals)
 
         metrics = self._get_canonical_metrics()
+        doc_metrics = self.results_cache.get('audit_function_registry', {}) or {}
+        doc_coverage = doc_metrics.get('doc_coverage', metrics.get('doc_coverage'))
+        missing_docs = doc_metrics.get('missing_docs') or doc_metrics.get('missing_items')
+        doc_totals = doc_metrics.get('totals') or {}
+        documented_functions = doc_totals.get('functions_documented')
 
-        # System Overview
-        lines.append("## SYSTEM OVERVIEW")
-        lines.append(f"Total Functions: {metrics['total_functions']}")
-        lines.append(f"High Complexity Functions: {metrics['high']} (>50 nodes)")
-        lines.append(f"Documentation Coverage: {metrics['doc_coverage']}")
-        lines.append("")
+        doc_sync_summary = self.docs_sync_summary or {}
+        analyze_docs = self.results_cache.get('analyze_documentation', {}) or {}
+        doc_artifacts = analyze_docs.get('artifacts') if isinstance(analyze_docs, dict) else None
 
-        # Audit Results
-        lines.append("## AUDIT RESULTS")
-        lines.append("Core audit completed successfully with the following metrics:")
-        for script_name, metrics_block in self.results_cache.items():
-            if metrics_block and isinstance(metrics_block, dict):
-                lines.append(f"\n### {script_name.replace('_', ' ').title()}")
-                for key, value in metrics_block.items():
-                    if key not in ['output', 'error']:
-                        lines.append(f"  {key}: {value}")
-        lines.append("")
+        error_metrics = self.results_cache.get('error_handling_coverage', {}) or {}
+        missing_error_handlers = error_metrics.get('functions_missing_error_handling')
+        error_recommendations = error_metrics.get('recommendations') or []
+        worst_error_modules = error_metrics.get('worst_modules') or []
 
-        # Documentation Status
-        lines.append("## DOCUMENTATION STATUS")
-        lines.append("=" * 80)
-        lines.append("DOCUMENTATION SYNCHRONIZATION CHECK REPORT")
-        lines.append("=" * 80)
-        if self.docs_sync_summary:
-            summary = self.docs_sync_summary
-            lines.append(
-                f"Status: {summary.get('status', 'Unknown')} (Total issues: {summary.get('total_issues', 'Unknown')})"
-            )
-            lines.append(f"Path Drift Issues: {summary.get('path_drift_issues', 'Unknown')}")
-            lines.append(f"Paired Doc Issues: {summary.get('paired_doc_issues', 'Unknown')}")
-            lines.append(f"ASCII Compliance Issues: {summary.get('ascii_issues', 'Unknown')}")
-            drift_files = summary.get('path_drift_files') or []
-            if drift_files:
-                lines.append(f"Path Drift Files: {', '.join(drift_files)}")
-            lines.append("")
-        if self.docs_sync_results and self.docs_sync_results.get('output'):
-            lines.append(self.docs_sync_results.get('output').rstrip())
-        else:
-            lines.append("Documentation synchronization check completed.")
-            lines.append("Status: All paired documentation files found and synchronized.")
-        lines.append("")
+        coverage_summary = self._load_coverage_summary()
+        legacy_summary = self.legacy_cleanup_summary or {}
+        unused_imports_data = self.results_cache.get('unused_imports', {}) or {}
+        function_metrics = self.results_cache.get('function_discovery', {}) or {}
+        decision_metrics = self.results_cache.get('decision_support_metrics', {}) or {}
 
-        # Legacy Code Status
-        lines.append("## LEGACY CODE STATUS")
-        lines.append("=" * 80)
-        lines.append("LEGACY REFERENCE CLEANUP REPORT")
-        lines.append("=" * 80)
-        if self.legacy_cleanup_summary:
-            summary = self.legacy_cleanup_summary
-            lines.append(
-                f"Legacy reference cleanup scan completed. Files with issues: {summary.get('files_with_issues', 'Unknown')}"
-            )
-            lines.append(f"Legacy compatibility markers: {summary.get('legacy_markers', 'Unknown')}")
-            report_path = summary.get('report_path')
-            if report_path:
-                lines.append(f"Report saved to: {report_path}")
-            lines.append("")
-        if self.legacy_cleanup_results and self.legacy_cleanup_results.get('output'):
-            lines.append(self.legacy_cleanup_results.get('output').rstrip())
-        else:
-            lines.append("Legacy reference cleanup scan completed.")
-            lines.append("Status: Legacy code patterns identified and documented.")
-        lines.append("")
-        
-        # Unused Imports Status
-        lines.append("## UNUSED IMPORTS STATUS")
-        lines.append("=" * 80)
-        lines.append("UNUSED IMPORTS DETECTION REPORT")
-        lines.append("=" * 80)
-        unused_imports_data = self.results_cache.get('unused_imports', {})
-        if unused_imports_data:
-            files_scanned = unused_imports_data.get('files_scanned', 0)
-            files_with_issues = unused_imports_data.get('files_with_issues', 0)
-            total_unused = unused_imports_data.get('total_unused', 0)
-            by_category = unused_imports_data.get('by_category', {})
-            
-            lines.append(f"Unused imports scan completed. Files with issues: {files_with_issues}")
-            lines.append(f"Total unused imports: {total_unused}")
-            
-            report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
-            if report_path.exists():
-                lines.append(f"Report saved to: {report_path}")
-            
-            lines.append("")
-            lines.append("Unused Imports Summary:")
-            lines.append(f"   Files Scanned: {files_scanned}")
-            lines.append(f"   Files with Unused Imports: {files_with_issues}")
-            lines.append(f"   Total Unused Imports: {total_unused}")
-            if by_category:
-                lines.append("   By Category:")
-                for category, count in by_category.items():
-                    category_name = category.replace('_', ' ').title()
-                    lines.append(f"      - {category_name}: {count}")
-        else:
-            lines.append("Unused imports scan completed.")
-            lines.append("Status: Run unused-imports checker for detailed analysis.")
-            lines.append("Note: Skipped in fast mode - use full audit for unused imports analysis.")
-        lines.append("")
-
-        # Validation Status
-        lines.append("## VALIDATION STATUS")
-        lines.append("=" * 80)
-        lines.append("AI WORK VALIDATION REPORT")
-        lines.append("=" * 80)
+        validation_output = ""
         if hasattr(self, 'validation_results') and self.validation_results:
-            lines.append("AI work validation completed.")
-            lines.append("")
-            lines.append(self.validation_results.get('output', 'No detailed results available'))
+            validation_output = self.validation_results.get('output', '') or ""
+
+        results_file = self.audit_config.get('results_file', 'ai_development_tools/ai_audit_detailed_results.json')
+        issues_file = self.audit_config.get('issues_file', 'ai_development_tools/critical_issues.txt')
+
+        lines.append("## Executive Summary")
+        lines.append(f"- Documentation coverage {percent_text(doc_coverage, 2)} with {missing_docs or 0} registry gaps")
+        error_cov = error_metrics.get('error_handling_coverage')
+        if error_cov is not None:
+            lines.append(f"- Error handling coverage {percent_text(error_cov, 1)}; {missing_error_handlers or 0} functions need protection")
+        if coverage_summary:
+            overall_cov = coverage_summary['overall'].get('coverage')
+            lines.append(f"- Test coverage {percent_text(overall_cov, 1)} across {coverage_summary['overall'].get('statements', 0)} statements")
+        elif hasattr(self, 'coverage_results') and self.coverage_results:
+            lines.append("- Coverage regeneration flagged issues; inspect coverage.json for details")
+        path_drift = doc_sync_summary.get('path_drift_issues') if doc_sync_summary else None
+        if path_drift is not None:
+            lines.append(f"- Documentation path drift: {path_drift} files need sync")
+        legacy_issues = legacy_summary.get('files_with_issues')
+        if legacy_issues is not None:
+            lines.append(f"- Legacy references outstanding in {legacy_issues} files")
+        lines.append("")
+
+        lines.append("## Audit Metrics")
+        lines.append(f"- **Total Functions**: {metrics.get('total_functions', 'Unknown')}")
+        lines.append(f"- **Complexity Distribution**: Moderate {metrics.get('moderate', 'Unknown')}, High {metrics.get('high', 'Unknown')}, Critical {metrics.get('critical', 'Unknown')}")
+        if documented_functions is not None:
+            lines.append(f"- **Documented Functions**: {documented_functions}")
+        if decision_metrics:
+            actions = decision_metrics.get('decision_support_items')
+            if actions:
+                lines.append(f"- **Decision Support Signals Captured**: {actions}")
+        lines.append("")
+
+        lines.append("## Documentation Findings")
+        lines.append(f"- **Coverage**: {percent_text(doc_coverage, 2)}")
+        if missing_docs:
+            lines.append(f"- **Missing Registry Entries**: {missing_docs}")
+        missing_files = self._get_missing_doc_files(limit=8)
+        if missing_files:
+            lines.append(f"- **Docs to Update**: {self._format_list_for_display(missing_files, limit=8)}")
+        if doc_sync_summary:
+            path_drift = doc_sync_summary.get('path_drift_issues')
+            paired = doc_sync_summary.get('paired_doc_issues')
+            ascii_issues = doc_sync_summary.get('ascii_issues')
+            total_issues = doc_sync_summary.get('total_issues')
+            lines.append(f"- **Doc Sync Status**: {doc_sync_summary.get('status', 'Unknown')} ({total_issues or 0} issues)")
+            if path_drift:
+                lines.append(f"  - Path drift in {path_drift} files")
+            if paired:
+                lines.append(f"  - {paired} paired documents out of sync")
+            if ascii_issues:
+                lines.append(f"  - {ascii_issues} files contain non-ASCII characters")
+            drift_files = doc_sync_summary.get('path_drift_files') or []
+            if drift_files:
+                lines.append(f"  - Hotspots: {self._format_list_for_display(drift_files, limit=5)}")
         else:
-            lines.append("AI work validation completed.")
-            lines.append("Status: All AI-generated work meets quality standards.")
+            lines.append("- Run doc-sync to capture current documentation drift data")
+        if doc_artifacts:
+            artifact = doc_artifacts[0]
+            lines.append(f"- **Content Fix**: {artifact.get('file')} line {artifact.get('line')} flagged for {artifact.get('pattern')}")
+            if len(doc_artifacts) > 1:
+                lines.append(f"  - Additional documentation findings: {len(doc_artifacts) - 1} more items")
         lines.append("")
 
-        # Coverage Status
-        lines.append("## COVERAGE STATUS")
-        lines.append("=" * 80)
-        lines.append("TEST COVERAGE ANALYSIS REPORT")
-        lines.append("=" * 80)
-        if hasattr(self, 'coverage_results') and self.coverage_results:
-            lines.append("Test coverage analysis completed.")
-            lines.append("")
-            lines.append(self.coverage_results.get('output', 'No detailed results available'))
+        lines.append("## Error Handling Analysis")
+        if error_metrics:
+            lines.append(f"- **Coverage**: {percent_text(error_cov, 1)}")
+            lines.append(f"- **Functions Missing Protection**: {missing_error_handlers or 0}")
+            quality = error_metrics.get('error_handling_quality') or {}
+            basic = quality.get('basic')
+            none = quality.get('none')
+            if basic:
+                lines.append(f"- **Upgrade Targets**: {basic} functions rely on basic try-except blocks")
+            if none:
+                lines.append(f"- **Critical Items**: {none} functions have no error handling")
+            if error_recommendations:
+                lines.append(f"- **Top Recommendation**: {error_recommendations[0]}")
+            if worst_error_modules:
+                module_summaries = []
+                for module in worst_error_modules[:5]:
+                    module_name = module.get('module', 'Unknown')
+                    coverage_pct = percent_text(module.get('coverage'), 1)
+                    missing = module.get('missing')
+                    total = module.get('total')
+                    detail = f"{module_name} ({coverage_pct}"
+                    if missing is not None and total is not None:
+                        detail += f", missing {missing}/{total}"
+                    detail += ")"
+                    module_summaries.append(detail)
+                lines.append(f"- **Modules Requiring Attention**: {', '.join(module_summaries)}")
         else:
-            lines.append("Test coverage analysis completed.")
-            lines.append("Status: Coverage metrics generated and analyzed.")
+            lines.append("- Error handling metrics unavailable; rerun audit to collect data")
         lines.append("")
 
-        # Version Sync Status
-        lines.append("## VERSION SYNC STATUS")
-        lines.append("=" * 80)
-        lines.append("VERSION SYNCHRONIZATION REPORT")
-        lines.append("=" * 80)
-        if hasattr(self, 'version_sync_results') and self.version_sync_results:
-            lines.append("Version synchronization completed.")
-            lines.append("")
-            lines.append(self.version_sync_results.get('output', 'No detailed results available'))
+        lines.append("## Testing & Coverage")
+        if coverage_summary:
+            overall = coverage_summary['overall']
+            lines.append(f"- **Overall Coverage**: {percent_text(overall.get('coverage'), 1)} ({overall.get('covered')} of {overall.get('statements')} statements)")
+            module_gaps = [m for m in coverage_summary['modules'] if m.get('coverage', 100) < 90]
+            if module_gaps:
+                module_descriptions = [
+                    f"{m['module']} ({percent_text(m.get('coverage'), 1)})"
+                    for m in module_gaps[:5]
+                ]
+                lines.append(f"- **Modules Below Target**: {', '.join(module_descriptions)}")
+            worst_files = coverage_summary.get('worst_files') or []
+            if worst_files:
+                file_descriptions = [
+                    f"{item['path']} ({percent_text(item.get('coverage'), 1)})"
+                    for item in worst_files
+                ]
+                lines.append(f"- **Files Missing Tests**: {', '.join(file_descriptions)}")
+            generated = overall.get('generated')
+            if generated:
+                lines.append(f"- **Report Timestamp**: {generated}")
+        elif hasattr(self, 'coverage_results') and self.coverage_results:
+            lines.append("- Coverage regeneration completed with issues; inspect coverage.json for gap details")
         else:
-            lines.append("Version synchronization completed.")
-            lines.append("Status: All version references are consistent.")
+            lines.append("- Run `audit --full` to regenerate coverage metrics")
         lines.append("")
 
-        # System Status
-        lines.append("## SYSTEM STATUS")
-        lines.append("=" * 80)
-        lines.append("SYSTEM STATUS REPORT")
-        lines.append("=" * 80)
-        if self.status_summary:
-            system_health = self.status_summary.get('system_health', {})
-            lines.append(f"System status check completed. Overall: {system_health.get('overall_status', 'Unknown')}")
-            missing_files = [name for name, state in (system_health.get('core_files') or {}).items() if state != 'OK']
-            if missing_files:
-                lines.append(f"Missing core files: {', '.join(missing_files)}")
-            missing_dirs = [name for name, state in (system_health.get('key_directories') or {}).items() if state != 'OK']
-            if missing_dirs:
-                lines.append(f"Missing key directories: {', '.join(missing_dirs)}")
-            doc_status = self.status_summary.get('documentation_status', {})
-            coverage = doc_status.get('coverage')
-            if coverage:
-                lines.append(f"Documentation coverage (quick status): {coverage}")
-            recent_activity = self.status_summary.get('recent_activity', {})
-            last_audit = recent_activity.get('last_audit')
-            if last_audit:
-                lines.append(f"Last audit: {last_audit}")
-            recent_changes = recent_activity.get('recent_changes') or []
-            if recent_changes:
-                lines.append(f"Recent activity: {', '.join(recent_changes)}")
-            lines.append("")
-        if self.status_results and self.status_results.get('output'):
-            # Parse and format the JSON output instead of including raw JSON
-            try:
-                status_data = json.loads(self.status_results.get('output'))
-                system_health = status_data.get('system_health', {})
-                overall_status = system_health.get('overall_status', 'Unknown')
-                lines.append(f"System status check completed. Overall: {overall_status}")
-                
-                # Check for missing core files
-                core_files = system_health.get('core_files', {})
-                missing_files = [name for name, status in core_files.items() if status != 'OK']
-                if missing_files:
-                    lines.append(f"Missing core files: {', '.join(missing_files)}")
-                
-                # Check for missing directories
-                key_dirs = system_health.get('key_directories', {})
-                missing_dirs = [name for name, status in key_dirs.items() if status != 'OK']
-                if missing_dirs:
-                    lines.append(f"Missing key directories: {', '.join(missing_dirs)}")
-                
-                # Add documentation status
-                doc_status = status_data.get('documentation_status', {})
-                coverage = doc_status.get('coverage', 'Unknown')
-                if coverage != 'Unknown':
-                    lines.append(f"Documentation coverage: {coverage}")
-                
-                # Add recent activity
-                recent_activity = status_data.get('recent_activity', {})
-                last_audit = recent_activity.get('last_audit')
-                if last_audit:
-                    lines.append(f"Last audit: {last_audit}")
-                recent_changes = recent_activity.get('recent_changes', [])
-                if recent_changes:
-                    lines.append(f"Recent activity: {', '.join(recent_changes)}")
-                    
-            except (json.JSONDecodeError, KeyError):
-                # Fallback to simple status if JSON parsing fails
-                lines.append("System status check completed.")
-                lines.append("Health: System is running optimally.")
+        lines.append("## Complexity & Refactoring")
+        lines.append(f"- **High Complexity Functions**: {function_metrics.get('high_complexity', 'Unknown')}")
+        lines.append(f"- **Critical Complexity Functions**: {function_metrics.get('critical_complexity', 'Unknown')}")
+        critical_examples = function_metrics.get('critical_complexity_examples') or []
+        if critical_examples:
+            critical_items = [
+                f"{item['function']} ({item['file']})"
+                for item in critical_examples[:5]
+            ]
+            lines.append(f"- **Critical Examples**: {', '.join(critical_items)}")
+        high_examples = function_metrics.get('high_complexity_examples') or []
+        if high_examples:
+            high_items = [
+                f"{item['function']} ({item['file']})"
+                for item in high_examples[:5]
+            ]
+            lines.append(f"- **High Complexity Examples**: {', '.join(high_items)}")
+        undocumented_examples = function_metrics.get('undocumented_examples') or []
+        if undocumented_examples:
+            undocumented_items = [
+                f"{item['function']} ({item['file']})"
+                for item in undocumented_examples[:5]
+            ]
+            lines.append(f"- **Undocumented Functions**: {', '.join(undocumented_items)}")
+        lines.append("")
+
+        lines.append("## Legacy & Code Hygiene")
+        if legacy_summary:
+            legacy_issues = legacy_summary.get('files_with_issues')
+            lines.append(f"- **Files with Legacy Markers**: {legacy_issues if legacy_issues is not None else 'Unknown'}")
+            legacy_markers = legacy_summary.get('legacy_markers')
+            if legacy_markers is not None:
+                lines.append(f"- **Markers Found**: {legacy_markers}")
+            report_path = legacy_summary.get('report_path')
+            if report_path:
+                lines.append(f"- **Detailed Report**: {report_path}")
         else:
-            lines.append("System status check completed.")
-            lines.append("Health: System is running optimally.")
+            lines.append("- Run legacy cleanup to refresh legacy reference data")
+        if unused_imports_data:
+            total_unused = unused_imports_data.get('total_unused', 0)
+            files_with_issues = unused_imports_data.get('files_with_issues', 0)
+            lines.append(f"- **Unused Imports**: {total_unused} across {files_with_issues} files")
+            by_category = unused_imports_data.get('by_category') or {}
+            obvious = by_category.get('obvious_unused')
+            if obvious:
+                lines.append(f"  - Obvious removals: {obvious}")
+            type_only = by_category.get('type_hints_only')
+            if type_only:
+                lines.append(f"  - Type-only imports: {type_only}")
+        else:
+            lines.append("- Run unused-imports checker for an updated removal list")
+        ascii_issues = doc_sync_summary.get('ascii_issues') if doc_sync_summary else None
+        if ascii_issues:
+            lines.append(f"- **ASCII Cleanup**: {ascii_issues} files need normalization")
         lines.append("")
 
-        # Recommendations remain unchanged
-        lines.append("## RECOMMENDATIONS")
-        lines.append("1. Address high-complexity functions for better maintainability")
-        lines.append("2. Maintain documentation coverage above 95%")
-        lines.append("3. Review legacy code references and plan modernization")
-        lines.append("4. Ensure test coverage meets project standards")
-        lines.append("5. Keep AI and human documentation synchronized")
+        lines.append("## Validation & Follow-ups")
+        if 'POOR' in validation_output:
+            lines.append("- **AI Work Validation**: POOR - documentation or tests missing")
+        elif 'GOOD' in validation_output:
+            lines.append("- **AI Work Validation**: GOOD - keep current standards")
+        elif validation_output:
+            lines.append("- **AI Work Validation**: NEEDS REVIEW - inspect consolidated report")
+        else:
+            lines.append("- Validation results unavailable for this run")
+        lines.append("- **Suggested Commands**:")
+        lines.append("  - `python ai_development_tools/ai_tools_runner.py doc-sync`")
+        lines.append("  - `python ai_development_tools/ai_tools_runner.py audit --full`")
+        lines.append("  - `python ai_development_tools/ai_tools_runner.py legacy`")
+        lines.append("  - `python ai_development_tools/ai_tools_runner.py status`")
         lines.append("")
 
-        # Quick commands remain unchanged
-        lines.append("## QUICK COMMANDS")
-        lines.append("- Full Audit: python ai_development_tools/ai_tools_runner.py audit")
-        lines.append("- Status Check: python ai_development_tools/ai_tools_runner.py status")
-        lines.append("- Docs Sync: python ai_development_tools/ai_tools_runner.py doc-sync")
-        lines.append("- Legacy Cleanup: python ai_development_tools/ai_tools_runner.py legacy")
+        lines.append("## Reference Files")
+        lines.append(f"- Detailed JSON results: {results_file}")
+        lines.append(f"- Critical issues summary: {issues_file}")
+        lines.append("- Latest AI status: ai_development_tools/AI_STATUS.md")
+        lines.append("- Current AI priorities: ai_development_tools/AI_PRIORITIES.md")
+        lines.append("- Legacy reference report: development_docs/LEGACY_REFERENCE_REPORT.md")
+        coverage_report = self.project_root / 'tests' / 'coverage_html'
+        if coverage_report.exists():
+            lines.append(f"- Coverage HTML report: {coverage_report}")
+        unused_report = self.project_root / 'development_docs' / 'UNUSED_IMPORTS_REPORT.md'
+        if unused_report.exists():
+            lines.append(f"- Unused imports detail: {unused_report}")
+        analyze_report = self.project_root / 'ai_development_tools' / 'ai_audit_detailed_results.json'
+        if analyze_report.exists():
+            lines.append(f"- Historical audit data: {analyze_report}")
 
+        lines.append("")
         return "\n".join(lines)
+
     def _identify_critical_issues(self) -> List[str]:
         """Identify critical issues from audit results"""
         issues = []
@@ -2483,10 +2752,6 @@ COMMAND_REGISTRY = OrderedDict([
 
 def list_commands() -> Sequence[CommandRegistration]:
     return tuple(COMMAND_REGISTRY.values())
-
-
-
-
 
 
 

@@ -17,6 +17,35 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-20 - Audit Report Refresh and Coverage Infrastructure Follow-ups **IN PROGRESS**
+
+**Background**: The AI-facing audit outputs (`AI_STATUS.md`, `AI_PRIORITIES.md`, `consolidated_report.txt`) were still populated with placeholder text, limiting their usefulness. The latest full audit continued to flag “coverage regeneration completed with issues”, and the repo has accumulated several legacy coverage artefact directories plus `.coverage` shard files.
+
+**Problems Addressed**:
+- AI collaborators lacked actionable summaries because the generated documents weren’t surfacing real metrics.
+- Coverage regeneration is still exiting non-zero, `coverage.json` hasn’t updated since 2025-10-01, and redundant HTML coverage directories are piling up.
+
+**Solutions Implemented**:
+- Rebuilt `_generate_ai_status_document`, `_generate_ai_priorities_document`, and `_generate_consolidated_report` in `ai_development_tools/services/operations.py` to pull concrete metrics from audit results (documentation drift, missing error handling, test coverage gaps, complexity hotspots, legacy references, etc.).
+- Regenerated `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, and `ai_development_tools/consolidated_report.txt` via fresh audit runs so they now reflect live data.
+- Logged new follow-up tasks in `TODO.md` and recorded a dedicated “Coverage Infrastructure Remediation” plan in `development_docs/PLANS.md` to capture the required remediation work.
+- Documented today’s changes in both AI and detailed changelogs.
+
+**Artifacts / Files Updated**:
+- `ai_development_tools/services/operations.py`
+- `ai_development_tools/AI_STATUS.md`, `ai_development_tools/AI_PRIORITIES.md`, `ai_development_tools/consolidated_report.txt`
+- `ai_development_tools/ai_audit_detailed_results.json`, `ai_development_tools/config_validation_results.json`, `development_docs/LEGACY_REFERENCE_REPORT.md`
+- `TODO.md`, `development_docs/PLANS.md`, `ai_development_docs/AI_CHANGELOG.md`, `development_docs/CHANGELOG_DETAIL.md`
+
+**Testing / Verification**:
+- Ran `python ai_development_tools/ai_tools_runner.py audit --fast` to regenerate outputs with the new generators.
+- Attempted `python ai_development_tools/ai_tools_runner.py audit --full`; coverage step still reports issues (pytest failure to be investigated separately).
+
+**Next Steps**:
+- Diagnose the failing coverage regeneration run and ensure `coverage.json` updates successfully.
+- Consolidate coverage artefacts (combine `.coverage` shards, remove stale HTML directories, update regen script).
+- Update the coverage workflow documentation and automation once the above tasks are complete.
+
 ### 2025-10-19 - Enhanced Checkin Response Parsing and Skip Functionality **COMPLETED**
 
 **Background**: The checkin system had rigid response requirements that didn't match natural user communication patterns. Users were forced to respond in specific formats (e.g., "3" instead of "three and a half", "yes" instead of "absolutely"), creating friction in the user experience. Additionally, there was no way to skip questions, forcing users to answer every question even when they didn't want to or couldn't provide a meaningful response.

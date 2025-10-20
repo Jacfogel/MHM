@@ -49,6 +49,30 @@
 - [ ] No regressions introduced
 - [ ] System stability maintained
 
+### **Coverage Infrastructure Remediation** ?? **NEW**
+
+**Status**: ?? **IN PROGRESS**  
+**Priority**: High  
+**Effort**: Medium  
+**Date**: 2025-10-20
+
+**Objective**: Restore the coverage regeneration workflow so that JSON/HTML metrics are updated on every full audit and redundant artefacts are removed.
+
+**Background**: The latest `audit --full` run continues to report “coverage regeneration completed with issues”, `ai_development_tools/coverage.json` has not updated since 2025-10-01, and multiple historical coverage directories (`htmlcov/`, `tests/coverage_html/`, `tests/htmlcov/`) plus `.coverage` shard files are accumulating.
+
+**Tasks / Next Steps**:
+- [ ] Capture stderr/output from `python ai_development_tools/regenerate_coverage_metrics.py --update-plan` to identify the failing tests or configuration
+- [ ] Fix the underlying coverage/test failure so the regeneration step exits successfully
+- [ ] Combine `tests/.coverage.*` shards into a single database (and update the regeneration script to run `coverage combine` + cleanup automatically)
+- [ ] Standardise on one HTML output directory (per `coverage.ini`) and prune/archive legacy coverage folders
+- [ ] Document the revised workflow and ensure temporary artefacts such as `shutdown_request.flag` are either ignored or auto-removed
+
+**Success Criteria**:
+- [ ] `ai_development_tools/coverage.json` and the HTML report gain a fresh timestamp after regeneration
+- [ ] No `.coverage.*` shards remain after the workflow completes
+- [ ] Only one canonical HTML coverage directory exists in the repo
+- [ ] Full audit completes without the “coverage regeneration completed with issues” warning
+
 ---
 
 ### **Analytics Scale Normalization (Mood/Energy)** ⚠️ **PARTIAL**
