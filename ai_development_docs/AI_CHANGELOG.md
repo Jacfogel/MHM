@@ -8,6 +8,13 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-21 - Coverage Workflow Stabilisation & AI Report Refresh **COMPLETED**
+- **Coverage Regeneration**: Reworked `regenerate_coverage_metrics.py` to capture pytest logs, skip redundant combines, consolidate shard databases, and publish HTML to `ai_development_tools/coverage_html/` while migrating legacy assets.
+- **Audit Experience**: Restored `_run_essential_tools_only` and `_run_contributing_tools` so fast and full audits rehydrate status/priorities correctly and push maintenance steps (doc-sync, validation, quick status).
+- **AI Documents**: Recast `_generate_ai_priorities_document` to surface ranked focus items + quick wins/watch list; AI status now keeps the factual snapshot without duplicating action items.
+- **Scheduler Fix**: Hardened reminder selection weighting logic to make coverage tests deterministic.
+- **Logs & Docs**: Coverage logs moved to `ai_development_tools/logs/coverage_regeneration/`; README and planning docs updated to match.
+
 ### 2025-10-20 - Audit Reporting Refresh & Coverage Follow-up **IN PROGRESS**
 - **AI-Facing Reports**: Rebuilt `_generate_ai_status_document`, `_generate_ai_priorities_document`, and `_generate_consolidated_report` to surface real metrics (documentation drift, error handling, coverage gaps, complexity hotspots) instead of placeholders.
 - **New TODO/Plan Items**: Logged follow-up tasks for fixing the failing coverage regeneration run and consolidating legacy coverage artefacts.
@@ -100,6 +107,13 @@ Guidelines:
 - Target 10-15 recent entries maximum for optimal AI context window usage
 
 ## Recent Changes (Most Recent First)
+
+### 2025-10-21 - Coverage Workflow Stabilisation & AI Report Refresh **COMPLETED**
+- **Coverage Regeneration**: Reworked `regenerate_coverage_metrics.py` to capture pytest logs, skip redundant combines, consolidate shard databases, and publish HTML to `ai_development_tools/coverage_html/` while migrating legacy assets.
+- **Audit Experience**: Restored `_run_essential_tools_only` and `_run_contributing_tools` so fast and full audits rehydrate status/priorities correctly and push maintenance steps (doc-sync, validation, quick status).
+- **AI Documents**: Recast `_generate_ai_priorities_document` to surface ranked focus items + quick wins/watch list; AI status now keeps the factual snapshot without duplicating action items.
+- **Scheduler Fix**: Hardened reminder selection weighting logic to make coverage tests deterministic.
+- **Logs & Docs**: Coverage logs moved to `ai_development_tools/logs/coverage_regeneration/`; README and planning docs updated to match.
 
 ### 2025-10-16 - Audit Optimization + UI Fix + Plan Cleanup
 

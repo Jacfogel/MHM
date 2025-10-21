@@ -9,12 +9,17 @@ Usage:
     python ai_tools/regenerate_coverage_metrics.py [--update-plan] [--output-file]
 """
 
-import re
-import subprocess
 import argparse
-from pathlib import Path
-from typing import Dict, List
+import configparser
+import json
+import os
+import re
+import shutil
+import subprocess
 import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent
@@ -33,6 +38,17 @@ class CoverageMetricsRegenerator:
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
         self.coverage_plan_file = self.project_root / "development_docs" / "TEST_COVERAGE_EXPANSION_PLAN.md"
+        self.coverage_config_path = self.project_root / "coverage.ini"
+        self.coverage_data_file: Path = self.project_root / ".coverage"
+        self.coverage_html_dir: Path = self.project_root / "htmlcov"
+        self.coverage_logs_dir: Path = self.project_root / "ai_development_tools" / "logs" / "coverage_regeneration"
+        self.pytest_stdout_log: Optional[Path] = None
+        self.pytest_stderr_log: Optional[Path] = None
+        self.archived_directories: List[Dict[str, str]] = []
+        self.command_logs: List[Path] = []
+        self._configure_coverage_paths()
+        self._migrate_legacy_logs()
+        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
         
         # Core modules to track coverage for
         self.core_modules = [
@@ -44,18 +60,49 @@ class CoverageMetricsRegenerator:
             'ai'
         ]
         
+    def _configure_coverage_paths(self) -> None:
+        """Load coverage configuration paths from coverage.ini."""
+        if not self.coverage_config_path.exists():
+            # Fall back to defaults
+            self.coverage_data_file = self.project_root / ".coverage"
+            self.coverage_html_dir = self.project_root / "htmlcov"
+            return
+        
+        config = configparser.ConfigParser()
+        config.read(self.coverage_config_path)
+        
+        data_file = config.get('run', 'data_file', fallback='').strip()
+        if data_file:
+            self.coverage_data_file = (self.coverage_config_path.parent / data_file).resolve()
+        else:
+            self.coverage_data_file = self.project_root / ".coverage"
+        
+        html_directory = config.get('html', 'directory', fallback='').strip()
+        if html_directory:
+            self.coverage_html_dir = (self.coverage_config_path.parent / html_directory).resolve()
+        else:
+            self.coverage_html_dir = self.project_root / "htmlcov"
+        
+        # Ensure parent directories exist when we later write artefacts
+        self.coverage_data_file.parent.mkdir(parents=True, exist_ok=True)
+        self.coverage_html_dir.parent.mkdir(parents=True, exist_ok=True)
+
     def run_coverage_analysis(self) -> Dict[str, Dict[str, any]]:
         """Run pytest coverage analysis and extract metrics."""
         if logger:
             logger.info("Running pytest coverage analysis...")
         
         try:
-            # Run coverage analysis with proper configuration
+            self.archived_directories.clear()
+            self.command_logs.clear()
+            self.pytest_stdout_log = None
+            self.pytest_stderr_log = None
+            
             coverage_output = self.project_root / "ai_development_tools" / "coverage.json"
             cmd = [
                 sys.executable, '-m', 'pytest',
                 '--cov=core',
-                '--cov=communication', 
+                '--cov=communication',
                 '--cov=ui',
                 '--cov=tasks',
                 '--cov=user',
@@ -65,37 +112,85 @@ class CoverageMetricsRegenerator:
                 '--cov-config=coverage.ini',
                 '--tb=no',
                 '-q',
-                '--maxfail=5',  # Stop after 5 failures
-                'tests/'  # Run all tests like the plan
+                '--maxfail=5',
+                'tests/'
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+            env = os.environ.copy()
+            env['COVERAGE_FILE'] = str(self.coverage_data_file)
             
-            if result.returncode != 0:
-                if logger:
-                    logger.warning("Coverage analysis had issues, but continuing...")
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=env
+            )
             
-            # Clean up .coverage file from root directory
-            coverage_file = self.project_root / ".coverage"
-            if coverage_file.exists():
-                coverage_file.unlink()
-                if logger:
-                    logger.info("Cleaned up .coverage file from project root")
-                
-            # Parse coverage output
+            self._record_pytest_output(result)
+            
+            if result.returncode != 0 and logger:
+                logger.warning(
+                    "Coverage analysis completed with issues (exit code %s). See %s for stderr.",
+                    result.returncode,
+                    self.pytest_stderr_log
+                )
+            
             coverage_data = self.parse_coverage_output(result.stdout)
+            if not coverage_data and coverage_output.exists():
+                coverage_data = self._load_coverage_json(coverage_output)
             
-            # Get overall coverage
             overall_coverage = self.extract_overall_coverage(result.stdout)
+            if not overall_coverage.get('overall_coverage') and coverage_output.exists():
+                overall_coverage = self._extract_overall_from_json(coverage_output)
+            
+            try:
+                self.finalize_coverage_outputs()
+            except Exception as finalize_error:
+                if logger:
+                    logger.warning(f"Failed to finalize coverage artefacts: {finalize_error}")
             
             return {
                 'modules': coverage_data,
-                'overall': overall_coverage
+                'overall': overall_coverage,
+                'logs': {
+                    'stdout': str(self.pytest_stdout_log) if self.pytest_stdout_log else None,
+                    'stderr': str(self.pytest_stderr_log) if self.pytest_stderr_log else None,
+                },
+                'archived_directories': self.archived_directories,
+                'command_logs': [str(path) for path in self.command_logs]
             }
             
         except Exception as e:
-            logger.error(f"Error running coverage analysis: {e}")
+            if logger:
+                logger.error(f"Error running coverage analysis: {e}")
+            else:
+                print(f"Error running coverage analysis: {e}")
             return {}
+
+    def _record_pytest_output(self, result: subprocess.CompletedProcess) -> None:
+        """Persist pytest stdout/stderr for troubleshooting."""
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+        
+        stdout_content = result.stdout or ""
+        stderr_content = result.stderr or ""
+        
+        stdout_path = self.coverage_logs_dir / f"pytest_stdout_{timestamp}.log"
+        stderr_path = self.coverage_logs_dir / f"pytest_stderr_{timestamp}.log"
+        stdout_latest = self.coverage_logs_dir / "pytest_stdout.latest.log"
+        stderr_latest = self.coverage_logs_dir / "pytest_stderr.latest.log"
+        
+        stdout_path.write_text(stdout_content, encoding='utf-8', errors='ignore')
+        stderr_path.write_text(stderr_content, encoding='utf-8', errors='ignore')
+        stdout_latest.write_text(stdout_content, encoding='utf-8', errors='ignore')
+        stderr_latest.write_text(stderr_content, encoding='utf-8', errors='ignore')
+        
+        self.pytest_stdout_log = stdout_path
+        self.pytest_stderr_log = stderr_path
+        
+        if logger:
+            logger.info("Saved pytest output to %s and %s", stdout_path, stderr_path)
     
     def parse_coverage_output(self, output: str) -> Dict[str, Dict[str, any]]:
         """Parse the coverage output to extract module-specific metrics."""
@@ -140,6 +235,46 @@ class CoverageMetricsRegenerator:
                     continue
                     
         return coverage_data
+
+    def _load_coverage_json(self, json_path: Path) -> Dict[str, Dict[str, any]]:
+        """Fallback parser that reads module metrics from coverage JSON output."""
+        try:
+            with open(json_path, 'r', encoding='utf-8') as json_file:
+                data = json.load(json_file)
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            if logger:
+                logger.warning(f"Unable to load coverage JSON data: {exc}")
+            return {}
+        
+        files = data.get('files', {})
+        coverage_data: Dict[str, Dict[str, any]] = {}
+        
+        for module_name, file_data in files.items():
+            summary = file_data.get('summary', {})
+            statements = int(summary.get('num_statements', 0))
+            covered = int(summary.get('covered_lines', statements - summary.get('missing_lines', 0)))
+            missed = int(summary.get('missing_lines', statements - covered))
+            percent = summary.get('percent_covered')
+            if isinstance(percent, float):
+                percent_value = int(round(percent))
+            else:
+                try:
+                    percent_value = int(percent)
+                except (TypeError, ValueError):
+                    percent_value = 0
+            
+            missing_lines = file_data.get('missing_lines', [])
+            missing_line_strings = [str(line) for line in missing_lines]
+            
+            coverage_data[module_name] = {
+                'statements': statements,
+                'missed': missed,
+                'coverage': percent_value,
+                'missing_lines': missing_line_strings,
+                'covered': covered
+            }
+        
+        return coverage_data
     
     def extract_missing_lines(self, missing_part: str) -> List[str]:
         """Extract missing line numbers from coverage output."""
@@ -180,6 +315,244 @@ class CoverageMetricsRegenerator:
             overall_data['overall_coverage'] = int(match.group(3))
             
         return overall_data
+
+    def _extract_overall_from_json(self, json_path: Path) -> Dict[str, any]:
+        """Compute overall coverage using the JSON report."""
+        try:
+            with open(json_path, 'r', encoding='utf-8') as json_file:
+                data = json.load(json_file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {
+                'total_statements': 0,
+                'total_missed': 0,
+                'overall_coverage': 0
+            }
+        
+        files = data.get('files', {})
+        total_statements = 0
+        total_missed = 0
+        
+        for file_data in files.values():
+            summary = file_data.get('summary', {})
+            total_statements += int(summary.get('num_statements', 0))
+            total_missed += int(summary.get('missing_lines', 0))
+        
+        if total_statements:
+            percent = int(round((total_statements - total_missed) / total_statements * 100))
+        else:
+            percent = 0
+        
+        return {
+            'total_statements': total_statements,
+            'total_missed': total_missed,
+            'overall_coverage': percent
+        }
+
+    def finalize_coverage_outputs(self) -> None:
+        """Combine coverage data, generate HTML, and clean up artefacts."""
+        env = os.environ.copy()
+        env['COVERAGE_FILE'] = str(self.coverage_data_file)
+        if self.coverage_config_path.exists():
+            env['COVERAGE_RCFILE'] = str(self.coverage_config_path)
+        
+        coverage_cmd = [sys.executable, '-m', 'coverage']
+        
+        shard_paths = self._collect_shard_paths()
+        if shard_paths:
+            combine_dirs = {
+                self.project_root.resolve(),
+                self.coverage_data_file.parent.resolve()
+            }
+            combine_args = coverage_cmd + ['combine'] + [str(path) for path in combine_dirs]
+            combine_result = subprocess.run(
+                combine_args,
+                capture_output=True,
+                text=True,
+                cwd=self.project_root,
+                env=env
+            )
+            self._write_command_log('coverage_combine', combine_result)
+            if combine_result.returncode != 0:
+                stdout_message = (combine_result.stdout or "").strip()
+                stderr_message = (combine_result.stderr or "").strip()
+                if "No data to combine" in stdout_message:
+                    if logger:
+                        logger.info("coverage combine reported no data to combine; continuing.")
+                elif logger:
+                    logger.warning(
+                        "coverage combine exited with %s: %s",
+                        combine_result.returncode,
+                        stderr_message or stdout_message
+                    )
+        else:
+            skip_message = "Skipped coverage combine: no shard files detected."
+            self._write_text_log('coverage_combine', skip_message)
+            if logger:
+                logger.info(skip_message)
+        
+        # Generate HTML report in the canonical directory
+        if self.coverage_html_dir.exists():
+            shutil.rmtree(self.coverage_html_dir)
+        self.coverage_html_dir.mkdir(parents=True, exist_ok=True)
+        
+        html_args = coverage_cmd + ['html', '-d', str(self.coverage_html_dir)]
+        html_result = subprocess.run(
+            html_args,
+            capture_output=True,
+            text=True,
+            cwd=self.project_root,
+            env=env
+        )
+        self._write_command_log('coverage_html', html_result)
+        if html_result.returncode != 0 and logger:
+            logger.warning(
+                "coverage html exited with %s: %s",
+                html_result.returncode,
+                html_result.stderr.strip()
+            )
+        
+        self._cleanup_coverage_shards()
+        self._archive_legacy_html_dirs()
+        self._cleanup_shutdown_flag()
+
+    def _write_command_log(self, command_name: str, result: subprocess.CompletedProcess) -> None:
+        """Persist stdout/stderr for coverage helper commands."""
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_path = self.coverage_logs_dir / f"{command_name}_{timestamp}.log"
+        latest_path = self.coverage_logs_dir / f"{command_name}.latest.log"
+        
+        content_lines = [
+            f"# Command: {command_name}",
+            f"# Return code: {result.returncode}",
+            "",
+            "## STDOUT",
+            result.stdout or "",
+            "",
+            "## STDERR",
+            result.stderr or ""
+        ]
+        log_text = "\n".join(content_lines)
+        log_path.write_text(log_text, encoding='utf-8', errors='ignore')
+        latest_path.write_text(log_text, encoding='utf-8', errors='ignore')
+        self.command_logs.append(log_path)
+        
+        if logger:
+            logger.info("Saved %s logs to %s", command_name, log_path)
+
+    def _write_text_log(self, log_name: str, message: str) -> None:
+        """Create a simple log file with a message."""
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_path = self.coverage_logs_dir / f"{log_name}_{timestamp}.log"
+        latest_path = self.coverage_logs_dir / f"{log_name}.latest.log"
+        content = f"# {log_name.replace('_', ' ').title()}\n\n{message}\n"
+        log_path.write_text(content, encoding='utf-8', errors='ignore')
+        latest_path.write_text(content, encoding='utf-8', errors='ignore')
+        self.command_logs.append(log_path)
+
+    def _collect_shard_paths(self) -> List[Path]:
+        """Return a list of coverage shard files currently on disk."""
+        shard_paths: List[Path] = []
+        patterns = [
+            self.project_root.glob('.coverage.*'),
+            self.coverage_data_file.parent.glob(f"{self.coverage_data_file.name}.*")
+        ]
+        for iterator in patterns:
+            for shard in iterator:
+                if shard.exists():
+                    shard_paths.append(shard)
+        return shard_paths
+
+    def _cleanup_coverage_shards(self) -> None:
+        """Remove leftover .coverage.* files to prevent stale data."""
+        removed = 0
+        for shard in self._collect_shard_paths():
+            try:
+                shard.unlink()
+                removed += 1
+            except FileNotFoundError:
+                continue
+        
+        # Remove root .coverage if different from configured data file
+        root_coverage = self.project_root / ".coverage"
+        if root_coverage.exists() and root_coverage.resolve() != self.coverage_data_file.resolve():
+            try:
+                root_coverage.unlink()
+                removed += 1
+            except FileNotFoundError:
+                pass
+        
+        if logger and removed:
+            logger.info("Removed %s stale coverage shard(s)", removed)
+
+    def _migrate_legacy_logs(self) -> None:
+        """Move legacy coverage logs from the old location into the new directory."""
+        legacy_dir = self.project_root / "logs" / "coverage_regeneration"
+        if not legacy_dir.exists() or legacy_dir.resolve() == self.coverage_logs_dir.resolve():
+            return
+        
+        self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
+        for item in legacy_dir.iterdir():
+            destination = self.coverage_logs_dir / item.name
+            try:
+                if destination.exists():
+                    # Preserve existing new-format logs by appending timestamp suffix
+                    suffix = datetime.now().strftime("%Y%m%d-%H%M%S")
+                    destination = self.coverage_logs_dir / f"{destination.stem}_{suffix}{destination.suffix}"
+                shutil.move(str(item), str(destination))
+            except Exception as exc:
+                if logger:
+                    logger.warning("Failed to migrate legacy log %s: %s", item, exc)
+        
+        try:
+            legacy_dir.rmdir()
+        except OSError:
+            # Directory not empty (maybe concurrent process); leave it alone
+            pass
+
+    def _archive_legacy_html_dirs(self) -> None:
+        """Archive and remove redundant legacy coverage HTML directories."""
+        legacy_dirs = [
+            self.project_root / "htmlcov",
+            self.project_root / "tests" / "coverage_html",
+            self.project_root / "tests" / "htmlcov"
+        ]
+        archive_root = self.project_root / "archive" / "coverage_artifacts"
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+        
+        for legacy_dir in legacy_dirs:
+            if not legacy_dir.exists():
+                continue
+            
+            # Skip if this directory is the canonical destination
+            if legacy_dir.resolve() == self.coverage_html_dir.resolve():
+                continue
+            
+            destination = archive_root / timestamp / legacy_dir.name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            
+            if destination.exists():
+                shutil.rmtree(destination)
+            
+            shutil.move(str(legacy_dir), str(destination))
+            self.archived_directories.append({
+                'source': str(legacy_dir),
+                'destination': str(destination)
+            })
+            
+            if logger:
+                logger.info("Archived legacy coverage directory %s -> %s", legacy_dir, destination)
+
+    def _cleanup_shutdown_flag(self) -> None:
+        """Remove the transient shutdown_request.flag file if it was created."""
+        flag_path = self.project_root / "shutdown_request.flag"
+        if flag_path.exists():
+            try:
+                flag_path.unlink()
+                if logger:
+                    logger.info("Removed stray shutdown_request.flag")
+            except OSError as exc:
+                if logger:
+                    logger.warning("Unable to remove shutdown_request.flag: %s", exc)
     
     def categorize_modules(self, coverage_data: Dict[str, Dict[str, any]]) -> Dict[str, List[str]]:
         """Categorize modules by coverage level."""
@@ -246,7 +619,8 @@ class CoverageMetricsRegenerator:
     def update_coverage_plan(self, coverage_summary: str) -> bool:
         """Update the TEST_COVERAGE_EXPANSION_PLAN.md with new metrics."""
         if not self.coverage_plan_file.exists():
-            logger.error(f"Coverage plan file not found: {self.coverage_plan_file}")
+            if logger:
+                logger.error(f"Coverage plan file not found: {self.coverage_plan_file}")
             return False
             
         try:
@@ -254,13 +628,19 @@ class CoverageMetricsRegenerator:
                 content = f.read()
             
             # Find and replace the current status section
-            current_status_pattern = r'(## 📊 \*\*Current Status\*\*.*?)(?=## 🎯|\Z)'
+            section_header = "## Current Status"
+            current_status_pattern = r'(## Current Status.*?)(?=\n## |\Z)'
             
-            new_status_section = f"## 📊 **Current Status**\n\n{coverage_summary}\n"
+            new_status_section = f"{section_header}\n\n{coverage_summary}\n"
             
             if re.search(current_status_pattern, content, re.DOTALL):
                 # Replace existing status section
-                updated_content = re.sub(current_status_pattern, new_status_section, content, flags=re.DOTALL)
+                updated_content = re.sub(
+                    current_status_pattern,
+                    lambda _: new_status_section,
+                    content,
+                    flags=re.DOTALL
+                )
             else:
                 # Add new status section after the header
                 header_pattern = r'(# Test Coverage Expansion Plan.*?\n)'
@@ -275,17 +655,26 @@ class CoverageMetricsRegenerator:
             # Update the last updated timestamp
             timestamp_pattern = r'(> \*\*Last Updated\*\*: ).*'
             current_time = self.get_current_timestamp()
-            updated_content = re.sub(timestamp_pattern, f'\\1{current_time}', updated_content)
+            if re.search(timestamp_pattern, updated_content):
+                updated_content = re.sub(
+                    timestamp_pattern,
+                    lambda match: f"{match.group(1)}{current_time}",
+                    updated_content
+                )
+            else:
+                updated_content = f"> **Last Updated**: {current_time}\n\n" + updated_content
             
             # Write updated content
-            with open(self.coverage_plan_file, 'w', encoding='utf-8') as f:
-                f.write(updated_content)
+            with open(self.coverage_plan_file, 'w', encoding='utf-8') as plan_file:
+                plan_file.write(updated_content)
                 
-            logger.info(f"Updated coverage plan: {self.coverage_plan_file}")
+            if logger:
+                logger.info(f"Updated coverage plan: {self.coverage_plan_file}")
             return True
             
         except Exception as e:
-            logger.error(f"Error updating coverage plan: {e}")
+            if logger:
+                logger.error(f"Error updating coverage plan: {e}")
             return False
     
     def get_current_timestamp(self) -> str:

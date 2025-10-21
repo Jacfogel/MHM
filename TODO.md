@@ -65,24 +65,23 @@ When adding new tasks, follow this format:
   - [ ] Update categorization logic if needed
   - [ ] Remove truly unused imports
 
-**Stabilize Coverage Regeneration Workflow**
-- *What it means*: Diagnose and fix the failing `regenerate_coverage_metrics.py` run so coverage data and reports update reliably.
-- *Why it helps*: Ensures coverage metrics (JSON/HTML) stay current and builds stop flagging “coverage regeneration completed with issues”.
-- *Estimated effort*: Medium
+**Resolve Documentation Path Validation Issues**
+- *What it means*: Fix the 8 broken documentation links reported by the latest audit path validation step.
+- *Why it helps*: Keeps cross-references accurate so generated reports and docs remain trustworthy.
+- *Estimated effort*: Small
 - *Next Steps*:
-  - [ ] Capture pytest stderr/output from `python ai_development_tools/regenerate_coverage_metrics.py --update-plan` to pinpoint the failure
-  - [ ] Fix the underlying tests/configuration so the coverage run exits cleanly
-  - [ ] Re-run the tool and confirm `ai_development_tools/coverage.json` gets a fresh timestamp
+  - [ ] Run `python ai_development_tools/ai_tools_runner.py doc-sync --fix` to regenerate paired path data
+  - [ ] Update or remove broken references surfaced in the audit
+  - [ ] Re-run `python ai_development_tools/ai_tools_runner.py audit --full` to confirm the path validator passes
 
-**Consolidate Coverage Artefacts and Cleanup Leftovers**
-- *What it means*: Merge the `.coverage` shard files, remove stale HTML coverage directories, and document a single canonical coverage output location.
-- *Why it helps*: Reduces nearly 30 MB of redundant coverage assets and prevents confusion during future audits.
-- *Estimated effort*: Medium
+**Repair Non-ASCII Documentation Findings**
+- *What it means*: Replace the 9 non-ASCII characters flagged in two documentation files by the doc-sync checker.
+- *Why it helps*: Maintains consistent encoding so future processing tools (including AI assistants) don't stumble on unexpected glyphs.
+- *Estimated effort*: Small
 - *Next Steps*:
-  - [ ] Combine `tests/.coverage.*` shard files into a single `tests/.coverage` database (or adjust the regen script to do so automatically)
-  - [ ] Prune/deprecate the old `htmlcov/`, `tests/coverage_html/`, and `tests/htmlcov/` directories after archiving anything needed
-  - [ ] Update the coverage regeneration workflow to clean up shards and emit HTML to one directory (per `coverage.ini`)
-  - [ ] Document the cleanup steps and ensure temporary artefacts (e.g., `shutdown_request.flag`) are ignored or auto-removed
+  - [ ] Inspect the flagged files listed in the doc-sync output
+  - [ ] Replace each non-ASCII character with an ASCII equivalent
+  - [ ] Re-run `python ai_development_tools/ai_tools_runner.py doc-sync` to verify a clean report
 
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision

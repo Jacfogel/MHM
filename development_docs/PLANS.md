@@ -3,7 +3,7 @@
 > **Audience**: Human Developer & AI Collaborators  
 > **Purpose**: Consolidated development plans (grouped, interdependent work) with step-by-step checklists  
 > **Style**: Actionable, checklist-focused, progress-tracked  
-> **Last Updated**: 2025-10-01  
+> **Last Updated**: 2025-10-21  
 > **See [TODO.md](TODO.md) for independent tasks**
 
 ---
@@ -21,17 +21,17 @@
 **Objective**: Expand error handling coverage from current 72.4% to 80%+ by systematically adding @handle_errors decorators to remaining functions.
 
 **Progress Achieved**:
-- ✅ **72.4% Coverage Achieved**: 1011 functions now protected (up from 60.3%)
-- ✅ **828 Functions with Decorators**: Excellent error handling quality
-- ✅ **88 New Functions Protected**: Significant robustness improvement
-- ✅ **Test Suite Validation**: All 1753 tests passing, no regressions
-- ✅ **Signal Handler Fix**: Resolved Qt signal compatibility issues
+- **72.4% Coverage Achieved**: 1011 functions now protected (up from 60.3%)
+- **828 Functions with Decorators**: Excellent error handling quality
+- **88 New Functions Protected**: Significant robustness improvement
+- **Test Suite Validation**: All 1753 tests passing, no regressions
+- **Signal Handler Fix**: Resolved Qt signal compatibility issues
 
 **Modules Enhanced**:
-- ✅ **UI Dialogs**: user_profile_dialog.py, account_creator_dialog.py, task_management_dialog.py, task_edit_dialog.py
-- ✅ **UI Widgets**: period_row_widget.py, tag_widget.py, task_settings_widget.py, checkin_settings_widget.py, channel_selection_widget.py
-- ✅ **Communication**: message_router.py, command_parser.py, checkin_handler.py, task_handler.py, profile_handler.py
-- ✅ **Core Systems**: logger.py, command_registry.py, rich_formatter.py
+- **UI Dialogs**: user_profile_dialog.py, account_creator_dialog.py, task_management_dialog.py, task_edit_dialog.py
+- **UI Widgets**: period_row_widget.py, tag_widget.py, task_settings_widget.py, checkin_settings_widget.py, channel_selection_widget.py
+- **Communication**: message_router.py, command_parser.py, checkin_handler.py, task_handler.py, profile_handler.py
+- **Core Systems**: logger.py, command_registry.py, rich_formatter.py
 
 **Next Steps**:
 - [ ] **Continue with Worst-Performing Modules**:
@@ -49,31 +49,27 @@
 - [ ] No regressions introduced
 - [ ] System stability maintained
 
-### **Coverage Infrastructure Remediation** ?? **NEW**
+### **Coverage Infrastructure Remediation** (COMPLETED)
 
-**Status**: ?? **IN PROGRESS**  
+**Status**: **COMPLETED**  
 **Priority**: High  
 **Effort**: Medium  
-**Date**: 2025-10-20
+**Completed**: 2025-10-21
 
-**Objective**: Restore the coverage regeneration workflow so that JSON/HTML metrics are updated on every full audit and redundant artefacts are removed.
+**Goal**: Restore the coverage regeneration workflow so JSON/HTML metrics update reliably and redundant artefacts are cleaned up after each run.
 
-**Background**: The latest `audit --full` run continues to report “coverage regeneration completed with issues”, `ai_development_tools/coverage.json` has not updated since 2025-10-01, and multiple historical coverage directories (`htmlcov/`, `tests/coverage_html/`, `tests/htmlcov/`) plus `.coverage` shard files are accumulating.
+**What we delivered**:
+- Captured pytest stdout/stderr automatically during coverage runs (`logs/coverage_regeneration/pytest_*`).
+- Repaired the flaky scheduler coverage test by stabilising weighted task selection.
+- Added shard detection + cleanup (skipping `coverage combine` when unnecessary) and removed legacy directories after each run.
+- Regenerated HTML into `ai_development_tools/coverage_html/` and migrated old `htmlcov` assets into `archive/coverage_artifacts/`.
+- Updated README and consolidated plan documentation with the new workflow.
+- Full `audit --full` now completes without the “coverage regeneration completed with issues” warning.
 
-**Tasks / Next Steps**:
-- [ ] Capture stderr/output from `python ai_development_tools/regenerate_coverage_metrics.py --update-plan` to identify the failing tests or configuration
-- [ ] Fix the underlying coverage/test failure so the regeneration step exits successfully
-- [ ] Combine `tests/.coverage.*` shards into a single database (and update the regeneration script to run `coverage combine` + cleanup automatically)
-- [ ] Standardise on one HTML output directory (per `coverage.ini`) and prune/archive legacy coverage folders
-- [ ] Document the revised workflow and ensure temporary artefacts such as `shutdown_request.flag` are either ignored or auto-removed
+**Follow-up considerations**:
+- Monitor upcoming audits for recurring doc-sync warnings (path validation and ASCII issues are tracked separately).
+- Revisit coverage targets once module-specific improvements begin.
 
-**Success Criteria**:
-- [ ] `ai_development_tools/coverage.json` and the HTML report gain a fresh timestamp after regeneration
-- [ ] No `.coverage.*` shards remain after the workflow completes
-- [ ] Only one canonical HTML coverage directory exists in the repo
-- [ ] Full audit completes without the “coverage regeneration completed with issues” warning
-
----
 
 ### **Analytics Scale Normalization (Mood/Energy)** ⚠️ **PARTIAL**
 
@@ -143,11 +139,11 @@
   - [x] Document refactoring patterns and best practices
 
 **Completed Work**:
-- ✅ **get_personalization_data Refactoring**: Successfully reduced complexity from 727 to 6 focused helper functions
-- ✅ **Helper Function Implementation**: Created 6 helper functions using `_main_function__helper_name` pattern
-- ✅ **Test Validation**: All tests pass, functionality preserved
-- ✅ **Legacy Code Cleanup**: Fixed legacy message function calls in tests
-- ✅ **Test Improvements**: Fixed failing scheduler test and suppressed expected warnings
+- **get_personalization_data Refactoring**: Successfully reduced complexity from 727 to 6 focused helper functions
+- **Helper Function Implementation**: Created 6 helper functions using `_main_function__helper_name` pattern
+- **Test Validation**: All tests pass, functionality preserved
+- **Legacy Code Cleanup**: Fixed legacy message function calls in tests
+- **Test Improvements**: Fixed failing scheduler test and suppressed expected warnings
 
 **Success Criteria**:
 - [x] Significant reduction in high complexity functions (get_personalization_data completed)
@@ -165,7 +161,7 @@
 
 ### **2025-09-11 - Test Coverage Expansion Phase 3** ✅ **COMPLETED**
 
-**Status**: ✅ **COMPLETED**  
+**Status**: **COMPLETED**  
 **Priority**: Medium  
 **Effort**: Medium  
 **Dependencies**: Test Coverage Expansion Phase 2 (completed)

@@ -65,6 +65,13 @@ The audit workflow produces:
 - `documentation_sync_checker.py`, `legacy_reference_cleanup.py`, `validate_ai_work.py`, `config_validator.py`
 - `quick_status.py`, `regenerate_coverage_metrics.py`, `version_sync.py`, `error_handling_coverage.py`
 
+### Coverage Workflow Refresh
+- `python ai_development_tools/regenerate_coverage_metrics.py [--update-plan]` now drives the end-to-end coverage refresh.
+- The run executes the full pytest suite with coverage, writes `ai_development_tools/coverage.json`, and updates `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` when `--update-plan` is provided.
+- Coverage artefacts are normalised: shard files are combined into `tests/.coverage`, legacy HTML directories are archived under `archive/coverage_artifacts/<timestamp>/`, and fresh HTML reports land in `ai_development_tools/coverage_html/`.
+- Troubleshooting output is kept in `ai_development_tools/logs/coverage_regeneration/` (`pytest_*`, `coverage_combine*`, `coverage_html*`). These logs include timestamped history plus `.latest` convenience copies.
+- Temporary files emitted during the run (including `shutdown_request.flag`) are auto-removed so the workspace stays clean between executions.
+
 ## Core Infrastructure
 - **`standard_exclusions.py`**: Centralized exclusion patterns for consistent file filtering across all tools
 - **`services/constants.py`**: Shared constants for paired docs, default doc sets, and standard-library names
