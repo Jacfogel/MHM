@@ -131,9 +131,7 @@ class CoverageMetricsRegenerator:
             
             if result.returncode != 0 and logger:
                 logger.warning(
-                    "Coverage analysis completed with issues (exit code %s). See %s for stderr.",
-                    result.returncode,
-                    self.pytest_stderr_log
+                    f"Coverage analysis completed with issues (exit code {result.returncode}). See {self.pytest_stderr_log} for stderr."
                 )
             
             coverage_data = self.parse_coverage_output(result.stdout)
@@ -190,7 +188,7 @@ class CoverageMetricsRegenerator:
         self.pytest_stderr_log = stderr_path
         
         if logger:
-            logger.info("Saved pytest output to %s and %s", stdout_path, stderr_path)
+            logger.info(f"Saved pytest output to {stdout_path} and {stderr_path}")
     
     def parse_coverage_output(self, output: str) -> Dict[str, Dict[str, any]]:
         """Parse the coverage output to extract module-specific metrics."""
@@ -380,9 +378,7 @@ class CoverageMetricsRegenerator:
                         logger.info("coverage combine reported no data to combine; continuing.")
                 elif logger:
                     logger.warning(
-                        "coverage combine exited with %s: %s",
-                        combine_result.returncode,
-                        stderr_message or stdout_message
+                        f"coverage combine exited with {combine_result.returncode}: {stderr_message or stdout_message}"
                     )
         else:
             skip_message = "Skipped coverage combine: no shard files detected."
@@ -406,9 +402,7 @@ class CoverageMetricsRegenerator:
         self._write_command_log('coverage_html', html_result)
         if html_result.returncode != 0 and logger:
             logger.warning(
-                "coverage html exited with %s: %s",
-                html_result.returncode,
-                html_result.stderr.strip()
+                f"coverage html exited with {html_result.returncode}: {html_result.stderr.strip()}"
             )
         
         self._cleanup_coverage_shards()
@@ -437,7 +431,7 @@ class CoverageMetricsRegenerator:
         self.command_logs.append(log_path)
         
         if logger:
-            logger.info("Saved %s logs to %s", command_name, log_path)
+            logger.info(f"Saved {command_name} logs to {log_path}")
 
     def _write_text_log(self, log_name: str, message: str) -> None:
         """Create a simple log file with a message."""
@@ -482,7 +476,7 @@ class CoverageMetricsRegenerator:
                 pass
         
         if logger and removed:
-            logger.info("Removed %s stale coverage shard(s)", removed)
+            logger.info(f"Removed {removed} stale coverage shard(s)")
 
     def _migrate_legacy_logs(self) -> None:
         """Move legacy coverage logs from the old location into the new directory."""
@@ -501,7 +495,7 @@ class CoverageMetricsRegenerator:
                 shutil.move(str(item), str(destination))
             except Exception as exc:
                 if logger:
-                    logger.warning("Failed to migrate legacy log %s: %s", item, exc)
+                    logger.warning(f"Failed to migrate legacy log {item}: {exc}")
         
         try:
             legacy_dir.rmdir()
@@ -540,7 +534,7 @@ class CoverageMetricsRegenerator:
             })
             
             if logger:
-                logger.info("Archived legacy coverage directory %s -> %s", legacy_dir, destination)
+                logger.info(f"Archived legacy coverage directory {legacy_dir} -> {destination}")
 
     def _cleanup_shutdown_flag(self) -> None:
         """Remove the transient shutdown_request.flag file if it was created."""
@@ -552,7 +546,7 @@ class CoverageMetricsRegenerator:
                     logger.info("Removed stray shutdown_request.flag")
             except OSError as exc:
                 if logger:
-                    logger.warning("Unable to remove shutdown_request.flag: %s", exc)
+                    logger.warning(f"Unable to remove shutdown_request.flag: {exc}")
     
     def categorize_modules(self, coverage_data: Dict[str, Dict[str, any]]) -> Dict[str, List[str]]:
         """Categorize modules by coverage level."""

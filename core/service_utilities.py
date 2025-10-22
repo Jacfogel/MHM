@@ -30,6 +30,7 @@ class Throttler:
     Prevents operations from running too frequently by tracking the last execution time.
     """
     
+    @handle_errors("initializing throttler", default_return=None)
     def __init__(self, interval):
         """
         Initialize the throttler with a specified interval.
@@ -40,6 +41,7 @@ class Throttler:
         self.interval = interval
         self.last_run = None
 
+    @handle_errors("checking if throttler should run", default_return=False)
     def should_run(self):
         """
         Check if enough time has passed since the last run to allow another execution.

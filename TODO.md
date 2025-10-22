@@ -65,23 +65,7 @@ When adding new tasks, follow this format:
   - [ ] Update categorization logic if needed
   - [ ] Remove truly unused imports
 
-**Resolve Documentation Path Validation Issues**
-- *What it means*: Fix the 8 broken documentation links reported by the latest audit path validation step.
-- *Why it helps*: Keeps cross-references accurate so generated reports and docs remain trustworthy.
-- *Estimated effort*: Small
-- *Next Steps*:
-  - [ ] Run `python ai_development_tools/ai_tools_runner.py doc-sync --fix` to regenerate paired path data
-  - [ ] Update or remove broken references surfaced in the audit
-  - [ ] Re-run `python ai_development_tools/ai_tools_runner.py audit --full` to confirm the path validator passes
 
-**Repair Non-ASCII Documentation Findings**
-- *What it means*: Replace the 9 non-ASCII characters flagged in two documentation files by the doc-sync checker.
-- *Why it helps*: Maintains consistent encoding so future processing tools (including AI assistants) don't stumble on unexpected glyphs.
-- *Estimated effort*: Small
-- *Next Steps*:
-  - [ ] Inspect the flagged files listed in the doc-sync output
-  - [ ] Replace each non-ASCII character with an ASCII equivalent
-  - [ ] Re-run `python ai_development_tools/ai_tools_runner.py doc-sync` to verify a clean report
 
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision

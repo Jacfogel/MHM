@@ -68,11 +68,14 @@ class DocumentationSyncChecker:
         self.project_root = Path(project_root).resolve()
         self.paired_docs = dict(PAIRED_DOCS)
         
-        # Common path patterns that might drift
+        # Common path patterns that might drift - improved precision
         self.path_patterns = [
-            r'`([^`]+\.py)`',
-            r'`([^`]+\.md)`',
+            # Only match backtick code that looks like file paths (not code blocks)
+            r'`([a-zA-Z_][a-zA-Z0-9_/]*\.py)`',
+            r'`([a-zA-Z_][a-zA-Z0-9_/]*\.md)`',
+            # Markdown links
             r'\[([^\]]+)\]\(([^)]+)\)',
+            # Python imports - but only in non-code contexts
             r'from\s+([a-zA-Z_][a-zA-Z0-9_.]*)\s+import',
             r'import\s+([a-zA-Z_][a-zA-Z0-9_.]*)',
         ]
@@ -127,18 +130,36 @@ class DocumentationSyncChecker:
                 with open(md_file, 'r', encoding='utf-8') as f:
                     content = f.read()
                     
-                # Extract all path references
-                for pattern in self.path_patterns:
-                    matches = re.findall(pattern, content)
-                    for match in matches:
-                        if isinstance(match, tuple):
-                            # Handle regex groups
-                            for group in match:
-                                if group and not group.startswith(('http', '#')):
-                                    doc_paths[str(md_file.relative_to(self.project_root))].append(group)
-                        else:
-                            if match and not match.startswith(('http', '#')):
-                                doc_paths[str(md_file.relative_to(self.project_root))].append(match)
+                # Extract all path references with context awareness
+                lines = content.split('\n')
+                in_code_block = False
+                
+                for line_num, line in enumerate(lines):
+                    # Track code block state
+                    if line.strip().startswith('```'):
+                        in_code_block = not in_code_block
+                        continue
+                    
+                    # Skip extraction if we're inside a code block
+                    if in_code_block:
+                        continue
+                    
+                    # Extract paths from this line
+                    for pattern in self.path_patterns:
+                        matches = re.findall(pattern, line)
+                        for match in matches:
+                            if isinstance(match, tuple):
+                                # Handle regex groups
+                                for group in match:
+                                    if group and not group.startswith(('http', '#')):
+                                        # Additional context filtering
+                                        if not self._is_likely_code_snippet(group, line):
+                                            doc_paths[str(md_file.relative_to(self.project_root))].append(group)
+                            else:
+                                if match and not match.startswith(('http', '#')):
+                                    # Additional context filtering
+                                    if not self._is_likely_code_snippet(match, line):
+                                        doc_paths[str(md_file.relative_to(self.project_root))].append(match)
                                 
             except Exception as e:
                 if logger:
@@ -295,6 +316,56 @@ class DocumentationSyncChecker:
         
         # Skip incomplete patterns
         if path.endswith('_') or path.startswith('_'):
+            return True
+        
+        # NEW: Skip code blocks and method calls
+        if '(' in path and ')' in path:
+            return True
+        
+        # NEW: Skip paths that look like method calls or function calls
+        if '.' in path and any(char in path for char in ['(', ')', '=', ' ']):
+            return True
+        
+        # NEW: Skip paths that contain Python keywords or operators
+        python_keywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None']
+        if any(keyword in path for keyword in python_keywords):
+            return True
+        
+        # NEW: Skip paths that look like code snippets (contain newlines or are very long)
+        if '\n' in path or len(path) > 200:
+            return True
+        
+        # NEW: Skip paths that contain Python operators
+        if any(op in path for op in ['==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '//=', '**=', '&=', '|=', '^=', '<<=', '>>=']):
+            return True
+        
+        return False
+    
+    def _is_likely_code_snippet(self, path: str, line: str) -> bool:
+        """Check if a path looks like it's part of a code snippet rather than a file reference."""
+        # Skip if it contains method calls
+        if '(' in path and ')' in path:
+            return True
+        
+        # Skip if it contains Python operators
+        if any(op in path for op in ['==', '!=', '<=', '>=', '+=', '-=', '*=', '/=', '%=', '//=', '**=']):
+            return True
+        
+        # Skip if it contains Python keywords
+        python_keywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'try', 'except', 'finally', 'with', 'as', 'return', 'yield', 'lambda']
+        if any(keyword in path for keyword in python_keywords):
+            return True
+        
+        # Skip if the line looks like code (contains indentation and Python syntax)
+        if line.strip().startswith(('    ', '\t')) and any(char in line for char in ['(', ')', '=', ':', 'def', 'class', 'import', 'from']):
+            return True
+        
+        # Skip if it's very long (likely a code snippet)
+        if len(path) > 100:
+            return True
+        
+        # Skip if it contains newlines (definitely a code snippet)
+        if '\n' in path:
             return True
         
         return False
