@@ -4,6 +4,10 @@ Simplified behavior tests for UI widgets.
 Tests basic functionality without complex UI setup that might cause hanging.
 Focuses on real behavior and side effects for core widget functionality.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 import json

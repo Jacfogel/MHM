@@ -3,9 +3,14 @@ import subprocess
 import psutil
 import time
 
+# Add parent directory to path so we can import from core
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from run_mhm import resolve_python_interpreter, prepare_launch_environment
+
 # PySide6 imports
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QMessageBox, 
+    QApplication, QMainWindow, QMessageBox,
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTextEdit, QWidget
 )
@@ -143,20 +148,12 @@ class ServiceManager:
         
         # Ensure we use the venv Python explicitly
         script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        venv_python = os.path.join(script_dir, '.venv', 'Scripts', 'python.exe')
-        if os.path.exists(venv_python):
-            python_executable = venv_python
-        else:
-            python_executable = sys.executable
-        
+        python_executable = resolve_python_interpreter(script_dir)
+
         logger.debug(f"Using Python: {python_executable}")
-        
+
         # Set up environment to ensure venv is used
-        env = os.environ.copy()
-        venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
-        if os.path.exists(venv_scripts_dir):
-            # Add venv Scripts directory to PATH to ensure it's found first
-            env['PATH'] = venv_scripts_dir + os.pathsep + env.get('PATH', '')
+        env = prepare_launch_environment(script_dir)
         
         # Run the service in the background without showing a console window
         if os.name == 'nt':  # Windows

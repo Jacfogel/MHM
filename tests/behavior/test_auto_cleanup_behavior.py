@@ -29,13 +29,15 @@ from core.auto_cleanup import (
     CLEANUP_TRACKER_FILE
 )
 
+TRACKER_FILENAME = Path(CLEANUP_TRACKER_FILE).name
+
 class TestAutoCleanupTimestampBehavior:
     """Test timestamp tracking functionality with real behavior verification."""
     
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -110,7 +112,7 @@ class TestAutoCleanupLogicBehavior:
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -510,7 +512,7 @@ class TestAutoCleanupStatusBehavior:
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
         """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / CLEANUP_TRACKER_FILE
+        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -820,7 +822,7 @@ class TestAutoCleanupIntegrationBehavior:
         data_dir.mkdir(exist_ok=True)
         
         # Create tracker file path
-        tracker_path = test_dir / CLEANUP_TRACKER_FILE
+        tracker_path = test_dir / TRACKER_FILENAME
         
         yield test_dir, tracker_path
         

@@ -2,6 +2,10 @@
 Comprehensive tests for ui/ui_app_qt.py - Main UI functionality.
 Tests the MHMManagerUI class with proper mocking to avoid UI dependencies.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import patch, Mock, mock_open

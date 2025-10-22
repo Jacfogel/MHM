@@ -25,6 +25,28 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 from datetime import datetime
 
+
+def ensure_qt_runtime():
+    """Ensure PySide6 can load in the current environment.
+
+    Qt-dependent tests rely on libGL/GLX libraries that may be absent in
+    containerized or headless environments. Import the critical PySide6
+    modules and skip those tests gracefully when the runtime is missing.
+    """
+
+    try:
+        from PySide6 import QtWidgets  # noqa: F401 - import verifies availability
+        from PySide6.QtWidgets import QApplication  # noqa: F401
+    except (ImportError, OSError) as exc:
+        message = str(exc)
+        lower_message = message.lower()
+        gl_indicators = ("libgl", "opengl", "libegl", "libglu", "glx")
+        if any(token in lower_message for token in gl_indicators):
+            pytest.skip(
+                f"Qt runtime unavailable: {exc}", allow_module_level=True
+            )
+        raise
+
 # Suppress Discord library warnings
 warnings.filterwarnings("ignore", message=".*audioop.*is deprecated.*", category=DeprecationWarning)
 warnings.filterwarnings("ignore", message=".*parameter 'timeout' of type 'float' is deprecated.*", category=DeprecationWarning)

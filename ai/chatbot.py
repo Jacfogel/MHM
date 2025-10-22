@@ -586,10 +586,92 @@ Additional Instructions:
             "task",
             "tasks"
         ]
-        prompt_lower = user_prompt.lower()
-        if any(keyword in prompt_lower for keyword in command_keywords):
-            return "command"
-        return "chat"
+        prompt_lower = user_prompt.lower().strip()
+        if not prompt_lower:
+            return "chat"
+
+        has_command_keyword = any(keyword in prompt_lower for keyword in command_keywords)
+        if not has_command_keyword:
+            return "chat"
+
+        words = prompt_lower.split()
+        stripped_prompt = prompt_lower.strip("?.! ")
+
+        clarification_phrases = [
+            "not sure",
+            "don't know",
+            "should i",
+            "should we",
+            "could you help",
+            "can you help",
+            "help me decide",
+            "need help",
+            "figure out",
+            "what should i",
+            "what should we",
+            "which task should",
+            "which reminder should",
+            "any suggestions",
+            "what do you recommend",
+            "i'm unsure",
+        ]
+
+        minimal_command_prompts = {
+            "remind me",
+            "add task",
+            "add a task",
+            "create task",
+            "create a task",
+            "delete task",
+            "delete a task",
+            "complete task",
+            "complete a task",
+            "schedule",
+            "schedule something",
+            "start checkin",
+            "start a checkin",
+            "stop checkin",
+            "stop a checkin",
+        }
+
+        request_question_patterns = [
+            "can you",
+            "could you",
+            "would you",
+            "will you",
+        ]
+
+        detail_markers = [
+            " to ",
+            " for ",
+            " with ",
+            " about ",
+            " regarding ",
+            " on ",
+            " at ",
+            " by ",
+            " before ",
+            " after ",
+        ]
+
+        needs_clarification = False
+
+        if len(words) <= 3:
+            needs_clarification = True
+        elif stripped_prompt in minimal_command_prompts:
+            needs_clarification = True
+        elif any(phrase in prompt_lower for phrase in clarification_phrases):
+            needs_clarification = True
+        else:
+            has_question_request = '?' in prompt_lower and any(
+                pattern in prompt_lower for pattern in request_question_patterns
+            )
+            if has_question_request and not any(marker in prompt_lower for marker in detail_markers):
+                needs_clarification = True
+
+        if needs_clarification:
+            return "command_with_clarification"
+        return "command"
 
     @handle_errors(
         "creating command parsing prompt",
@@ -648,7 +730,7 @@ Additional Instructions:
         if mode is None:
             mode = self._detect_mode(user_prompt)
         mode = mode.lower()
-        if mode not in ["command", "chat"]:
+        if mode != "chat" and not mode.startswith("command"):
             mode = "chat"
 
         prompt_for_key, uid_for_key, ptype = self._make_cache_key_inputs(mode, user_prompt, user_id)

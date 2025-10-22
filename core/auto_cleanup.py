@@ -10,14 +10,25 @@ import json
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+
 from core.error_handling import handle_errors
 from core.logger import get_component_logger
+
+CLEANUP_TRACKER_FILENAME = ".last_cache_cleanup"
+
+try:
+    from core.config import BASE_DATA_DIR  # noqa: WPS433 (import within module for fallback handling)
+except Exception:  # pragma: no cover - fallback for early import failures
+    BASE_DATA_DIR = None
 
 # Get component logger for this module
 logger = get_component_logger('main')
 
 # File to track last cleanup timestamp
-CLEANUP_TRACKER_FILE = "data/.last_cache_cleanup"
+if BASE_DATA_DIR:
+    CLEANUP_TRACKER_FILE = str(Path(BASE_DATA_DIR) / CLEANUP_TRACKER_FILENAME)
+else:
+    CLEANUP_TRACKER_FILE = str(Path("data") / CLEANUP_TRACKER_FILENAME)
 DEFAULT_CLEANUP_INTERVAL_DAYS = 30
 
 @handle_errors("getting last cleanup timestamp", default_return=0)
@@ -33,11 +44,14 @@ def get_last_cleanup_timestamp():
 @handle_errors("updating cleanup timestamp")
 def update_cleanup_timestamp():
     """Update the cleanup tracker file with current timestamp."""
+    tracker_path = Path(CLEANUP_TRACKER_FILE)
+    tracker_path.parent.mkdir(parents=True, exist_ok=True)
+
     data = {
         'last_cleanup_timestamp': time.time(),
         'last_cleanup_date': datetime.now().isoformat()
     }
-    with open(CLEANUP_TRACKER_FILE, 'w') as f:
+    with tracker_path.open('w') as f:
         json.dump(data, f, indent=2)
     logger.debug(f"Updated cleanup timestamp: {data['last_cleanup_date']}")
 
