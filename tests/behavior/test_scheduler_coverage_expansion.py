@@ -9,7 +9,7 @@ import pytest
 import os
 import json
 import time
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, mock_open
 from datetime import datetime, timedelta
 from core.user_data_handlers import get_user_data
 from core.scheduler import (
@@ -19,6 +19,7 @@ from core.scheduler import (
     process_category_schedule
 )
 from core.user_management import get_user_categories
+from core.service_utilities import create_reschedule_request
 from tests.test_isolation import IsolationManager
 
 @pytest.fixture
@@ -195,6 +196,21 @@ class TestMessageScheduling:
             
             # Verify side effect: function should have called get_all_user_ids
             mock_get_users.assert_called_once()
+
+    @pytest.mark.behavior
+    @pytest.mark.service
+    def test_create_reschedule_request_boolean_contract(self):
+        """Ensure create_reschedule_request communicates success via boolean return values."""
+        user_id = 'boolean-contract-user'
+        category = 'boolean-contract-category'
+
+        with patch('core.service_utilities.is_service_running', return_value=True):
+            with patch('core.service_utilities.open', mock_open()):
+                with patch('core.service_utilities.json.dump'):
+                    assert create_reschedule_request(user_id, category) is True
+
+        with patch('core.service_utilities.is_service_running', return_value=False):
+            assert create_reschedule_request(user_id, category) is False
     
     @pytest.mark.behavior
     @pytest.mark.schedules

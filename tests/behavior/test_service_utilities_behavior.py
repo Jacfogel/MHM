@@ -101,11 +101,14 @@ class TestServiceUtilitiesBehavior:
         with patch('core.service_utilities.is_service_running', return_value=True):
             with patch('builtins.open', mock_open()) as mock_file:
                 with patch('json.dump') as mock_json_dump:
-                    create_reschedule_request(user_id, category)
+                    result = create_reschedule_request(user_id, category)
         
         # Assert - Verify file operations were called
         mock_file.assert_called_once()
         mock_json_dump.assert_called_once()
+
+        # Verify the function reports success
+        assert result is True
         
         # Verify the request data structure
         call_args = mock_json_dump.call_args[0][0]
@@ -123,11 +126,14 @@ class TestServiceUtilitiesBehavior:
         with patch('core.service_utilities.is_service_running', return_value=False):
             with patch('builtins.open', mock_open()) as mock_file:
                 with patch('json.dump') as mock_json_dump:
-                    create_reschedule_request(user_id, category)
+                    result = create_reschedule_request(user_id, category)
         
         # Assert - Verify file operations were NOT called
         mock_file.assert_not_called()
         mock_json_dump.assert_not_called()
+
+        # Verify the function reports skipped work
+        assert result is False
     
     def test_is_service_running_checks_actual_processes(self, test_data_dir):
         """Test that is_service_running checks actual system processes."""
