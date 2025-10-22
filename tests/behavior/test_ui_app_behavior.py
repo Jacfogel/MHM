@@ -2,6 +2,10 @@
 Behavior tests for Main UI Application module.
 Tests real behavior and side effects of the main UI application.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import patch, MagicMock, mock_open

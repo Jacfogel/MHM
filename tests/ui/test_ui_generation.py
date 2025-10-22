@@ -4,6 +4,10 @@ UI File Generation Tests
 Tests for ui/generate_ui_files.py to ensure proper UI file generation
 with proper isolation and error handling.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 import subprocess

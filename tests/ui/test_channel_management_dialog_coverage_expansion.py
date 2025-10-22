@@ -4,6 +4,10 @@ Test coverage expansion for ChannelManagementDialog.
 This module provides comprehensive test coverage for the ChannelManagementDialog
 to improve overall test coverage for UI dialogs.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import Mock, patch

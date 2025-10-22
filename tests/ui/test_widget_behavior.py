@@ -12,6 +12,10 @@ Tests real behavior, user interactions, and side effects for all widgets:
 - DynamicListField
 - DynamicListContainer
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 import json

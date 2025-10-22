@@ -4,6 +4,10 @@ Headless UI component tests that avoid Qt initialization issues.
 This approach tests UI components without creating actual Qt widgets,
 focusing on business logic and data handling.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import patch
