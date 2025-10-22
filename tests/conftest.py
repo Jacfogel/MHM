@@ -23,7 +23,6 @@ import warnings
 import time
 from pathlib import Path
 from unittest.mock import Mock, patch
-import sys
 from datetime import datetime
 
 # Suppress Discord library warnings
@@ -54,8 +53,6 @@ warnings.filterwarnings("ignore", message=".*Task was destroyed but it is pendin
 
 # Ensure project root is on sys.path ONCE for all tests
 project_root = Path(__file__).parent.parent
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
 
 # CRITICAL: Set up logging isolation BEFORE importing any core modules
 def setup_logging_isolation():

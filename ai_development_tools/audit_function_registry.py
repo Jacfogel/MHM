@@ -9,15 +9,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Set
 
-import sys
-
-CURRENT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = CURRENT_DIR.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from ai_development_tools import config
-from ai_development_tools.services.common import (
+from . import config
+from .services.common import (
     ProjectPaths,
     ensure_ascii,
     iter_python_sources,

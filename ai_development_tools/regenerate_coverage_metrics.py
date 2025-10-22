@@ -21,16 +21,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from core.logger import get_component_logger
 
-try:
-    from core.logger import get_component_logger
-    logger = get_component_logger(__name__)
-except ImportError:
-    # Fallback logging if core.logger not available
-    logger = None
+logger = get_component_logger(__name__)
 
 class CoverageMetricsRegenerator:
     """Regenerates test coverage metrics for MHM."""

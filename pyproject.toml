@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mhm"
+version = "0.1.0"
+description = "Management Hub Manager (MHM)"
+readme = "README.md"
+authors = [{ name = "MHM Contributors" }]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+ui = ["PySide6"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "communication*", "ui*", "tasks*", "ai*", "tests*", "ai_development_tools*", "scripts*", "user*"]
+exclude = ["logs*", "resources*", "archive*", "development_docs*", "ai_development_docs*", "styles*", "tests/logs*", "tests/data*"]
+
+[tool.setuptools.package-data]
+"ui.generated" = ["*.py"]

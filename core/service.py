@@ -1,14 +1,10 @@
 # service.py - MHM Backend Service (No UI)
 
 import signal
-import sys
 import time
 import os
 import atexit
 from datetime import datetime
-
-# Add parent directory to path so we can import from other modules
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set up logging FIRST before any other imports
 from core.logger import setup_logging, get_component_logger

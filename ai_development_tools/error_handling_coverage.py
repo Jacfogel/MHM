@@ -18,9 +18,7 @@ from typing import Dict, List, Any
 from collections import defaultdict
 import re
 
-# Import standard exclusions
-sys.path.insert(0, str(Path(__file__).parent))
-from standard_exclusions import should_exclude_file
+from .standard_exclusions import should_exclude_file
 
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""

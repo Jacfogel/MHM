@@ -1,11 +1,6 @@
 # user_profile_settings_widget.py - User profile settings widget implementation
 
-import sys
-import os
 from typing import Dict, Any, Optional
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout
 from PySide6.QtCore import Qt, QDate

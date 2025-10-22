@@ -4,14 +4,9 @@ Personalization dialog for user account creation and management (PySide6-based).
 Provides a comprehensive interface for collecting and editing user personalization data.
 """
 
-import sys
-import os
 import re
 from datetime import datetime
 from typing import Dict, Any, Optional, Callable
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (

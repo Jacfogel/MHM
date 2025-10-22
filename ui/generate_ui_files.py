@@ -8,12 +8,8 @@ following the project's documentation standards.
 
 import subprocess
 import sys
-import os
 from pathlib import Path
 from datetime import datetime
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.error_handling import handle_errors
 

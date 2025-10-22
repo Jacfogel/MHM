@@ -5,21 +5,13 @@ Uses the existing MHM log rotation infrastructure for consistency.
 
 import os
 import shutil
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from core.logger import get_component_logger
 
-try:
-    from core.logger import get_component_logger
-    logger = get_component_logger(__name__)
-except ImportError:
-    # Fallback if core.logger not available
-    logger = None
+logger = get_component_logger(__name__)
 
 
 class FileRotator:

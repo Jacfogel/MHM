@@ -5,11 +5,6 @@ Safe headless service management that works alongside UI service management.
 """
 
 import sys
-import os
-
-# Add the project root to the Python path
-project_root = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, project_root)
 
 from core.headless_service import HeadlessServiceManager
 from core.logger import setup_logging, get_component_logger

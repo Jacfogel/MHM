@@ -1,13 +1,7 @@
-# ui_app_qt.py - MHM Management UI (PySide6-based)
-
 import sys
-import os
 import subprocess
 import psutil
 import time
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (

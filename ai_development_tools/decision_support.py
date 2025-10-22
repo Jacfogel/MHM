@@ -5,14 +5,11 @@ AI Decision Support Dashboard: actionable insights for codebase improvement and 
 Highlights high-complexity functions, undocumented handlers, duplicate names, and suggests next steps.
 """
 
-import sys
 from pathlib import Path
 import ast
 
-# Import config and standard exclusions
-sys.path.insert(0, str(Path(__file__).parent))
-import config
-from standard_exclusions import should_exclude_file
+from . import config
+from .standard_exclusions import should_exclude_file
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES

@@ -5,13 +5,8 @@ This module provides utilities to ensure tests don't create real Windows tasks,
 file system changes, or other system resources that could affect the host system.
 """
 
-import os
-import sys
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from typing import Any, Dict, List
-
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def mock_system_calls():
     """
