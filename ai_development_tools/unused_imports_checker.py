@@ -21,18 +21,10 @@ from typing import Dict, List, Optional
 from collections import defaultdict
 from datetime import datetime
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from .standard_exclusions import should_exclude_file
+from core.logger import get_component_logger
 
-try:
-    from ai_development_tools.standard_exclusions import should_exclude_file
-    from core.logger import get_component_logger
-    logger = get_component_logger(__name__)
-except ImportError:
-    # Fallback logging if imports not available
-    logger = None
-    print("Warning: Could not import standard_exclusions or logger", file=sys.stderr)
+logger = get_component_logger(__name__)
 
 
 class UnusedImportsChecker:

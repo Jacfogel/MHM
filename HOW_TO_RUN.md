@@ -29,7 +29,18 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Step 3: Configure Environment (Optional)
+### Step 3: Install the Project in Editable Mode
+Editable installation keeps the `core`, `communication`, `ui`, and `tasks` packages on the
+Python path so you never need manual `sys.path` tweaks.
+
+```powershell
+pip install -e .
+
+# If you want the optional UI dependencies in one step
+pip install -e .[ui]
+```
+
+### Step 4: Configure Environment (Optional)
 The system uses sensible defaults, but you can customize settings in `.env`:
 ```powershell
 # Copy the example configuration (if it exists)
@@ -39,7 +50,7 @@ Copy-Item .env.example .env
 
 **Note**: The `.env` file is in `.cursorignore` for security (contains API keys and passwords).
 
-### Step 4: Launch the Application
+### Step 5: Launch the Application
 ```powershell
 # For human users (UI interface)
 python run_mhm.py
@@ -79,6 +90,7 @@ Make sure your virtual environment is activated. You should see `(venv)` at the 
 Try reinstalling dependencies in your virtual environment:
 ```powershell
 pip install -r requirements.txt --force-reinstall
+pip install -e .
 ```
 
 ### Permission errors on Windows

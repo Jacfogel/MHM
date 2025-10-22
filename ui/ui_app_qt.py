@@ -1,7 +1,4 @@
-# ui_app_qt.py - MHM Management UI (PySide6-based)
-
 import sys
-import os
 import subprocess
 import psutil
 import time

@@ -2,15 +2,10 @@
 
 import pytest
 import os
-import sys
 import signal
 import time
 import json
 from unittest.mock import Mock, patch, MagicMock, mock_open
-
-# Add the project root to the path
-if '__file__' in globals():
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from core.service import MHMService, InitializationError, main, get_scheduler_manager
 

@@ -1,14 +1,10 @@
 # test_logger_coverage_expansion_phase3_simple.py
 
 import os
-import sys
 import time
 import logging
 from unittest.mock import patch
 import pytest
-
-# Add the project root to the path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from core.logger import (
     ComponentLogger, 

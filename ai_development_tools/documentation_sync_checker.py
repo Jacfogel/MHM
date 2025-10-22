@@ -17,30 +17,11 @@ import argparse
 from pathlib import Path
 from typing import Dict, List, Set
 from collections import defaultdict
-import sys
 
-# Add project root to path for imports
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+from core.logger import get_component_logger
 
-try:
-    from core.logger import get_component_logger
-    logger = get_component_logger(__name__)
-except ImportError:
-    # Fallback logging if core.logger not available
-    logger = None
-
-try:
-    from ai_development_tools.standard_exclusions import should_exclude_file
-except ImportError:
-    # Fallback if standard_exclusions not available
-    def should_exclude_file(file_path: str, tool_type: str = None, context: str = 'development') -> bool:
-        return False
-    def get_documentation_exclusions() -> list:
-        return []
-
-try:
-    from ai_development_tools.services.constants import (
+from .standard_exclusions import should_exclude_file
+from .services.constants import (
     ALTERNATIVE_DIRECTORIES,
     COMMAND_PATTERNS,
     COMMON_CLASS_NAMES,
@@ -53,13 +34,8 @@ try:
     TEMPLATE_PATTERNS,
     THIRD_PARTY_LIBRARIES,
 )
-except ImportError:
-    PAIRED_DOCS = {
-        'DEVELOPMENT_WORKFLOW.md': 'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-        'ARCHITECTURE.md': 'ai_development_docs/AI_ARCHITECTURE.md',
-        'DOCUMENTATION_GUIDE.md': 'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-        'development_docs/CHANGELOG_DETAIL.md': 'ai_development_docs/AI_CHANGELOG.md',
-    }
+
+logger = get_component_logger(__name__)
 
 class DocumentationSyncChecker:
     """Checks and maintains documentation synchronization."""

@@ -1,12 +1,7 @@
 # account_creator_dialog.py - Account creator dialog implementation
 
-import sys
-import os
 import uuid
 from typing import Dict, Any
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (

@@ -1,11 +1,5 @@
 # task_settings_widget.py - Task settings widget implementation
 
-import sys
-import os
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.task_settings_widget_pyqt import Ui_Form_task_settings
 from tasks.task_management import get_user_task_stats

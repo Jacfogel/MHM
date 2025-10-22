@@ -8,21 +8,14 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Sequence, Tuple
 
-import sys
-
-CURRENT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = CURRENT_DIR.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from ai_development_tools.services.common import (
+from .services.common import (
     ProjectPaths,
     ensure_ascii,
     load_text,
     run_cli,
     summary_block,
 )
-from ai_development_tools.services.constants import (
+from .services.constants import (
     CORRUPTED_ARTIFACT_PATTERNS,
     DEFAULT_DOCS,
     PAIRED_DOCS,

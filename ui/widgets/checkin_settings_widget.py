@@ -1,11 +1,5 @@
 # checkin_settings_widget.py - Check-in settings widget implementation
 
-import sys
-import os
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from PySide6.QtWidgets import QWidget, QMessageBox
 from ui.generated.checkin_settings_widget_pyqt import Ui_Form_checkin_settings
 

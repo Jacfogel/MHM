@@ -8,14 +8,10 @@ and context that was implemented across the MHM system.
 
 import pytest
 import os
-import sys
 import tempfile
 import shutil
 from unittest.mock import patch, MagicMock
 from pathlib import Path
-
-# Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.error_handling import handle_errors, MHMError, DataError, FileOperationError
 from core.file_operations import load_json_data, save_json_data, verify_file_access

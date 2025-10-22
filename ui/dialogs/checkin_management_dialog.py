@@ -1,10 +1,6 @@
 # checkin_management_dialog.py - Check-in management dialog implementation
 
-import sys
-import os
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+"""Check-in management dialog implementation."""
 
 # PySide6 imports
 from PySide6.QtWidgets import QDialog, QMessageBox, QWidget

@@ -1,11 +1,6 @@
 # period_row_widget.py - Reusable period row widget for schedules, check-ins, and tasks
 
-import sys
-import os
 from typing import Dict, Any, List, Optional
-
-# Add parent directory to path so we can import from core
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # PySide6 imports
 from PySide6.QtWidgets import (

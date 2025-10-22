@@ -1,10 +1,6 @@
 from PySide6.QtWidgets import QWidget
 from ui.generated.channel_selection_widget_pyqt import Ui_Form_channel_selection
 
-# Import core functionality for timezone handling
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from core.user_management import get_timezone_options
 
 # Set up logging
