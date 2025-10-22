@@ -3,6 +3,10 @@ Comprehensive test suite for UserProfileDialog coverage expansion.
 Tests all dialog methods, custom field management, validation, and edge cases.
 Focuses on real behavior and side effects to ensure actual functionality works.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 import pytest
 import os
 import tempfile

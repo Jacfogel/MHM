@@ -14,6 +14,10 @@ Real behavior testing approach:
 - Side effects verification and error handling
 - Integration with core systems
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 import os

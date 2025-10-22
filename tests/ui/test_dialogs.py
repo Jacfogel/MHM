@@ -5,6 +5,10 @@ Tests all dialogs to see what works and what's broken
 READ-ONLY - Does not modify any user data
 """
 
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 import os
 import logging
 import pytest

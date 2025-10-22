@@ -4,6 +4,10 @@ Task CRUD Dialog Tests
 Tests for ui/dialogs/task_crud_dialog.py to ensure proper dialog functionality
 with proper isolation and error handling.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import patch, Mock

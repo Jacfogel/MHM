@@ -2,6 +2,10 @@
 Core functionality tests for ui/ui_app_qt.py - Focus on non-UI functionality.
 Tests the core logic without UI components to avoid hanging issues.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import patch, Mock

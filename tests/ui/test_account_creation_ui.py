@@ -9,6 +9,10 @@ Tests the actual UI behavior, user interactions, and side effects for:
 - UI state management
 - Error handling and validation
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 import os

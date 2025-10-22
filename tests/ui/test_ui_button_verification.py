@@ -4,6 +4,10 @@ UI Button and Connection Verification Tests
 These tests verify that UI components are properly structured and connected
 without trying to instantiate the full Qt dialogs.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import Mock, patch

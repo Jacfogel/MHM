@@ -3,6 +3,10 @@ Direct tests for AccountCreatorDialog validation methods.
 
 These tests focus on the validation logic without UI dependencies.
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 from unittest.mock import patch
 

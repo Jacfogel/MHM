@@ -13,6 +13,10 @@ Coverage Areas:
 - Data persistence and validation
 - Error handling and edge cases
 """
+from tests.conftest import ensure_qt_runtime
+
+ensure_qt_runtime()
+
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
