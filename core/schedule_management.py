@@ -275,7 +275,9 @@ def add_schedule_period(category, period_name, start_time, end_time, scheduler_m
     else:
         logger.debug("No scheduler manager available for rescheduling")
         # Create a reschedule request for the service to pick up
-        create_reschedule_request(user_id, category)
+        created = create_reschedule_request(user_id, category)
+        if created is False:
+            logger.debug("Skipped creating reschedule request because service is not running")
 
 @handle_errors("editing schedule period")
 def edit_schedule_period(category, period_name, new_start_time, new_end_time, scheduler_manager=None):
@@ -330,7 +332,9 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
         else:
             logger.debug("No scheduler manager available for rescheduling")
             # Create a reschedule request for the service to pick up
-            create_reschedule_request(user_id, category)
+            created = create_reschedule_request(user_id, category)
+            if created is False:
+                logger.debug("Skipped creating reschedule request because service is not running")
     else:
         logger.warning(f"Period {period_name} not found in category {category} for user {user_id}.")
 
