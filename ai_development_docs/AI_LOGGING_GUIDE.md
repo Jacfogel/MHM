@@ -49,7 +49,7 @@ ai_logger = get_component_logger("ai")
 
 ### **Log Files (Priority Order)**
 - `errors.log` - Critical errors and failures (check first)
-- `app.log` - Main application flow and operations
+- `logs/app.log` - Main application flow and operations
 - `discord.log` - Communication channel issues
 - `ai.log` - AI processing and chatbot interactions
 - `user_activity.log` - User actions and check-ins
@@ -70,7 +70,7 @@ Get-Content "logs/app.log" -Wait -Tail 10
 
 ### **Error Investigation**
 1. **Check errors.log first** - Critical issues and failures
-2. **Check app.log** - Application flow and context
+2. **Check logs/app.log** - Application flow and context
 3. **Check specific component logs** - Discord, AI, user activity
 4. **Look for patterns** - Repeated errors, timing issues
 
@@ -95,7 +95,7 @@ ai_logger = get_logger("ai")
 
 ### **If System Won't Start**
 1. Check `errors.log` for startup failures
-2. Check `app.log` for configuration issues
+2. Check `logs/app.log` for configuration issues
 3. Look for missing dependencies or permissions
 
 ### **If Communication Fails**

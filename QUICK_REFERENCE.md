@@ -64,7 +64,7 @@ For a complete, up-to-date command list and examples, see `communication/communi
 - `data/users/{user_id}/messages/` - Per-user custom messages by category
 - `data/users/{user_id}/messages/sent_messages.json` - Per-user message history
 - `data/backups/` - Automatic weekly backups (created when last backup is 7+ days old)
-- `app.log` - Application logs
+- `logs/app.log` - Application logs (default main log file)
 
 ### Configuration
 - `.env` - Environment variables (create if needed)
@@ -95,7 +95,7 @@ Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}
 
 ### View Recent Logs
 ```powershell
-Get-Content app.log -Tail 50
+Get-Content logs/app.log -Tail 50
 ```
 
 ### Clean Python Cache
@@ -131,7 +131,7 @@ Get-ChildItem -Path . -Recurse -Include "__pycache__" | Remove-Item -Recurse -Fo
 1. Check if Python is installed: `python --version`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Check for syntax errors: `python -m py_compile run_mhm.py` or `python -m py_compile run_headless_service.py`
-4. Check log file: `Get-Content app.log -Tail 20`
+4. Check log file: `Get-Content logs/app.log -Tail 20`
 
 ### Service Won't Start
 1. Check if Discord token is set in `.env`

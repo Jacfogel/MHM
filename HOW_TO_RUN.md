@@ -114,7 +114,7 @@ pip install -r requirements.txt
 **A**: Check for Python processes: `Get-Process python | Where-Object {$_.CommandLine -like "*service.py*"}`
 
 ### **Q: Where are my logs stored?**
-**A**: Check `app.log` in the project root directory for application logs.
+**A**: Check `logs/app.log` (default log location) for application logs.
 
 ### **Q: Why do I see two Python processes when running the app on Windows?**
 **A**: This is normal Windows behavior. Windows launches both your venv Python and system Python when running scripts. The venv Python runs your actual code, while the system Python is a harmless Windows artifact.

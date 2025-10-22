@@ -149,7 +149,7 @@ If you see two service processes when using the play/debug button in VS Code or 
 1. Check if Python is installed: `python --version`
 2. Install dependencies: `pip install -r requirements.txt`
 3. Check for syntax errors: `python -m py_compile run_mhm.py` or `python -m py_compile run_headless_service.py`
-4. Check log file: `Get-Content app.log -Tail 20`
+4. Check log file: `Get-Content logs/app.log -Tail 20` (default location: `logs/app.log`)
 
 #### **Service Won't Start**
 1. Check if Discord token is set in `.env`
