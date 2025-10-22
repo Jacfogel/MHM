@@ -15,6 +15,41 @@ from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
 
+
+def resolve_python_interpreter(script_dir):
+    """Return the preferred Python executable for the given project directory."""
+    candidates = [
+        os.path.join(script_dir, '.venv', 'Scripts', 'python.exe'),
+        os.path.join(script_dir, '.venv', 'bin', 'python'),
+    ]
+
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+
+    return sys.executable
+
+
+def prepare_launch_environment(script_dir):
+    """Create an environment dict that prefers the project's virtualenv."""
+    env = os.environ.copy()
+    path_entries = []
+
+    venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
+    if os.path.exists(venv_scripts_dir):
+        path_entries.append(venv_scripts_dir)
+
+    venv_bin_dir = os.path.join(script_dir, '.venv', 'bin')
+    if os.path.exists(venv_bin_dir):
+        path_entries.append(venv_bin_dir)
+
+    if path_entries:
+        existing_path = env.get('PATH', '')
+        path_components = path_entries + ([existing_path] if existing_path else [])
+        env['PATH'] = os.pathsep.join(path_components)
+
+    return env
+
 @handle_errors("launching MHM Manager", default_return=1)
 def main():
     """Launch the MHM Manager UI"""
@@ -28,20 +63,12 @@ def main():
         return 1
     
     # Ensure we use the venv Python explicitly
-    venv_python = os.path.join(script_dir, '.venv', 'Scripts', 'python.exe')
-    if os.path.exists(venv_python):
-        python_executable = venv_python
-    else:
-        python_executable = sys.executable
-    
+    python_executable = resolve_python_interpreter(script_dir)
+
     print(f"Using Python: {python_executable}")
-    
+
     # Set up environment to ensure venv is used
-    env = os.environ.copy()
-    venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
-    if os.path.exists(venv_scripts_dir):
-        # Add venv Scripts directory to PATH to ensure it's found first
-        env['PATH'] = venv_scripts_dir + os.pathsep + env.get('PATH', '')
+    env = prepare_launch_environment(script_dir)
     
     # Launch the UI directly
     try:
@@ -50,7 +77,7 @@ def main():
             env=env,
             cwd=script_dir,  # Set working directory to project root
             shell=False,     # Explicitly prevent shell interpretation
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
+            creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0) if os.name == 'nt' else 0
         )
         # Don't wait - let the launcher exit and let the UI run independently
         print("UI launched successfully. Launcher exiting.")
