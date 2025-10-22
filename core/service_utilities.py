@@ -93,8 +93,8 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     # First check if service is running - if not, no need to reschedule
     # The service will pick up changes on next startup
     if not is_service_running():
-        logger.debug(f"Service not running - schedule changes will be picked up on next startup")
-        return
+        logger.debug("Service not running - schedule changes will be picked up on next startup")
+        return False
         
     # Create request data
     request_data = {
@@ -130,6 +130,8 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
             _record_created(request_file, reason="create_reschedule_request", extra={'user_id': user_id, 'category': category, 'source': request_data['source']})
     except Exception:
         pass
+
+    return True
 
 @handle_errors("checking if service is running", default_return=False)
 def is_service_running():
