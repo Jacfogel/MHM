@@ -5,8 +5,7 @@ Tests the channel monitoring functionality without external dependencies.
 
 import pytest
 import threading
-import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from unittest.mock import Mock, patch
 
 from communication.core.channel_monitor import ChannelMonitor
@@ -317,49 +316,57 @@ class TestChannelMonitor:
     def test_check_and_restart_stuck_channels_exception(self, channel_monitor, mock_channels):
         """Test checking and restarting channels with exception."""
         channel_monitor.set_channels(mock_channels)
-        
+
         # Make channel1 raise exception
         mock_channels['channel1'].is_healthy.side_effect = Exception("Health check failed")
-        
+
         # Should handle exception gracefully
         channel_monitor._check_and_restart_stuck_channels()
-        
-        # Should not crash and continue processing other channels
-        assert True  # Test passes if no exception is raised
+
+        # Verify other channels were still processed
+        assert channel_monitor._channel_failure_counts['channel2'] == 1
+        mock_channels['channel1'].restart.assert_not_called()
     
     def test_restart_monitor_loop_runs(self, channel_monitor, mock_channels):
         """Test restart monitor loop runs correctly."""
         channel_monitor.set_channels(mock_channels)
-        
-        # Start monitor
-        channel_monitor.start_restart_monitor()
-        
-        # Let it run briefly
-        time.sleep(0.1)
-        
-        # Stop monitor
-        channel_monitor.stop_restart_monitor()
-        
-        # Should have run without crashing
-        assert True  # Test passes if no exception is raised
-    
+
+        call_count = {'value': 0}
+
+        def check_side_effect():
+            call_count['value'] += 1
+            channel_monitor._restart_monitor_running = False
+
+        with (
+            patch.object(channel_monitor, '_check_and_restart_stuck_channels', side_effect=check_side_effect) as mock_check,
+            patch('communication.core.channel_monitor.time.sleep', side_effect=lambda _interval: None),
+        ):
+            channel_monitor.start_restart_monitor()
+            channel_monitor._restart_monitor_thread.join(timeout=1)
+
+        assert call_count['value'] >= 1
+        assert mock_check.call_count >= 1
+        assert channel_monitor._restart_monitor_running is False
+
     def test_restart_monitor_loop_with_exception(self, channel_monitor, mock_channels):
         """Test restart monitor loop handles exceptions."""
         channel_monitor.set_channels(mock_channels)
-        
-        # Make check_and_restart_stuck_channels raise exception
-        with patch.object(channel_monitor, '_check_and_restart_stuck_channels', side_effect=Exception("Monitor error")):
-            # Start monitor
+
+        def sleep_side_effect(_interval):
+            channel_monitor._restart_monitor_running = False
+
+        with (
+            patch.object(channel_monitor, '_check_and_restart_stuck_channels', side_effect=Exception("Monitor error")) as mock_check,
+            patch('communication.core.channel_monitor.time.sleep', side_effect=sleep_side_effect) as mock_sleep,
+            patch('communication.core.channel_monitor.logger') as mock_logger,
+        ):
             channel_monitor.start_restart_monitor()
-            
-            # Let it run briefly
-            time.sleep(0.1)
-            
-            # Stop monitor
-            channel_monitor.stop_restart_monitor()
-            
-            # Should handle exception gracefully
-            assert True  # Test passes if no exception is raised
+            channel_monitor._restart_monitor_thread.join(timeout=1)
+
+        mock_check.assert_called_once()
+        mock_sleep.assert_called_once()
+        error_calls = [call for call in mock_logger.error.call_args_list if "Monitor error" in call.args[0]]
+        assert error_calls, "Expected monitor loop error to be logged"
     
     def test_channel_monitor_threading_safety(self, channel_monitor):
         """Test channel monitor threading safety."""
