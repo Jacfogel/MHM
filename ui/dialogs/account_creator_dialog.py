@@ -248,7 +248,7 @@ class AccountCreatorDialog(QDialog):
         if username_edit:
             username_edit.textChanged.connect(self.on_username_changed)
         
-        preferred_name_edit = self.ui.lineEdit_prefered_name
+        preferred_name_edit = self.ui.lineEdit_preferred_name
         if preferred_name_edit:
             preferred_name_edit.textChanged.connect(self.on_preferred_name_changed)
         
@@ -342,7 +342,7 @@ class AccountCreatorDialog(QDialog):
     def on_preferred_name_changed(self):
         """Handle preferred name change."""
         try:
-            preferred_name_edit = self.ui.lineEdit_prefered_name
+            preferred_name_edit = self.ui.lineEdit_preferred_name
             if preferred_name_edit:
                 self.preferred_name = preferred_name_edit.text().strip()
         except Exception as e:
@@ -579,7 +579,7 @@ class AccountCreatorDialog(QDialog):
         if username_edit:
             self.username = username_edit.text().strip().lower()
         
-        preferred_name_edit = self.ui.lineEdit_prefered_name
+        preferred_name_edit = self.ui.lineEdit_preferred_name
         if preferred_name_edit:
             self.preferred_name = preferred_name_edit.text().strip()
         

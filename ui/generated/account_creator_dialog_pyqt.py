@@ -81,15 +81,15 @@ class Ui_Dialog_create_account(object):
 
         self.gridLayout_basic.addWidget(self.lineEdit_username, 0, 1, 1, 1)
 
-        self.label_prefered_name = QLabel(self.groupBox_basic_information)
-        self.label_prefered_name.setObjectName(u"label_prefered_name")
+        self.label_preferred_name = QLabel(self.groupBox_basic_information)
+        self.label_preferred_name.setObjectName(u"label_preferred_name")
 
-        self.gridLayout_basic.addWidget(self.label_prefered_name, 1, 0, 1, 1)
+        self.gridLayout_basic.addWidget(self.label_preferred_name, 1, 0, 1, 1)
 
-        self.lineEdit_prefered_name = QLineEdit(self.groupBox_basic_information)
-        self.lineEdit_prefered_name.setObjectName(u"lineEdit_prefered_name")
+        self.lineEdit_preferred_name = QLineEdit(self.groupBox_basic_information)
+        self.lineEdit_preferred_name.setObjectName(u"lineEdit_preferred_name")
 
-        self.gridLayout_basic.addWidget(self.lineEdit_prefered_name, 1, 1, 1, 1)
+        self.gridLayout_basic.addWidget(self.lineEdit_preferred_name, 1, 1, 1, 1)
 
 
         self.verticalLayout_basic.addWidget(self.groupBox_basic_information)
@@ -256,7 +256,7 @@ class Ui_Dialog_create_account(object):
         self.label_create_a_new_account.setProperty(u"role", QCoreApplication.translate("Dialog_create_account", u"header", None))
         self.groupBox_basic_information.setTitle(QCoreApplication.translate("Dialog_create_account", u"Account Details", None))
         self.label_username.setText(QCoreApplication.translate("Dialog_create_account", u"Username:", None))
-        self.label_prefered_name.setText(QCoreApplication.translate("Dialog_create_account", u"Preferred Name:", None))
+        self.label_preferred_name.setText(QCoreApplication.translate("Dialog_create_account", u"Preferred Name:", None))
         self.groupBox_features.setTitle(QCoreApplication.translate("Dialog_create_account", u"Features", None))
         self.checkBox_enable_messages.setText(QCoreApplication.translate("Dialog_create_account", u"Enable Automated Messages", None))
         self.checkBox_enable_task_management.setText(QCoreApplication.translate("Dialog_create_account", u"Enable Task Management", None))
