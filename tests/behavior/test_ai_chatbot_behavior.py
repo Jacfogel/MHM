@@ -8,6 +8,7 @@ produces expected side effects rather than just returning values.
 
 import pytest
 import os
+from contextlib import ExitStack
 from unittest.mock import patch, MagicMock
 
 # Import the modules we're testing
@@ -16,6 +17,7 @@ from ai.chatbot import (
 )
 from core.response_tracking import get_recent_chat_interactions, store_chat_interaction
 from core.user_data_handlers import save_user_data
+from core.config import AI_CLARIFICATION_TEMPERATURE
 
 
 class TestAIChatBotBehavior:
@@ -227,7 +229,7 @@ class TestAIChatBotBehavior:
     def test_ai_chatbot_command_parsing_creates_structured_output(self, test_data_dir):
         """Test that AI chatbot command parsing actually creates structured output."""
         chatbot = AIChatBotSingleton()
-        
+
         # Mock API response with JSON structure
         mock_response = MagicMock()
         mock_response.json.return_value = {
@@ -242,7 +244,110 @@ class TestAIChatBotBehavior:
             assert response is not None, "Command response should be generated"
             # Note: The AI might use fallback responses, so we check for any response
             assert isinstance(response, str), "Response should be a string"
-    
+
+    @pytest.mark.ai
+    def test_ai_chatbot_clarification_mode_uses_specialized_prompt(self, test_data_dir):
+        """Ensure clarification mode uses the dedicated prompt and temperature."""
+        chatbot = AIChatBotSingleton()
+        chatbot.response_cache.clear()
+
+        sentinel_prompt = [{"role": "system", "content": "clarify"}]
+
+        with ExitStack() as stack:
+            mock_prompt = stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_create_command_parsing_with_clarification_prompt',
+                    return_value=sentinel_prompt,
+                )
+            )
+            mock_api = stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_call_lm_studio_api',
+                    return_value="Please clarify your request.",
+                )
+            )
+            stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_smart_truncate_response',
+                    side_effect=lambda text, *args, **kwargs: text,
+                )
+            )
+            stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_enhance_conversational_engagement',
+                    side_effect=lambda text: text,
+                )
+            )
+            response = chatbot.generate_response(
+                "Can you add a task?",
+                mode="command_with_clarification",
+                user_id="clar_prompt_user",
+            )
+
+        mock_prompt.assert_called_once_with("Can you add a task?")
+        assert mock_api.call_count == 1, "Clarification mode should invoke the API once"
+        call_kwargs = mock_api.call_args.kwargs
+        assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used"
+        assert call_kwargs["max_tokens"] == 120, "Clarification mode should request more tokens"
+        assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be used"
+        assert response == "Please clarify your request."
+
+    @pytest.mark.ai
+    def test_ai_chatbot_detect_mode_routes_ambiguous_requests_to_clarification(self, test_data_dir):
+        """Ambiguous command-style prompts should trigger clarification mode automatically."""
+        chatbot = AIChatBotSingleton()
+        chatbot.response_cache.clear()
+
+        ambiguous_prompt = "Can you add a task?"
+        assert chatbot._detect_mode(ambiguous_prompt) == "command_with_clarification"
+        assert chatbot._detect_mode("Add task buy milk tomorrow at 5pm") == "command"
+
+        sentinel_prompt = [{"role": "system", "content": "clarify-ambiguous"}]
+
+        with ExitStack() as stack:
+            mock_prompt = stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_create_command_parsing_with_clarification_prompt',
+                    return_value=sentinel_prompt,
+                )
+            )
+            mock_api = stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_call_lm_studio_api',
+                    return_value="Could you share more details?",
+                )
+            )
+            stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_smart_truncate_response',
+                    side_effect=lambda text, *args, **kwargs: text,
+                )
+            )
+            stack.enter_context(
+                patch.object(
+                    chatbot,
+                    '_enhance_conversational_engagement',
+                    side_effect=lambda text: text,
+                )
+            )
+            response = chatbot.generate_response(
+                ambiguous_prompt,
+                user_id="clar_detect_user",
+            )
+
+        mock_prompt.assert_called_once_with(ambiguous_prompt)
+        call_kwargs = mock_api.call_args.kwargs
+        assert call_kwargs["messages"] == sentinel_prompt, "Clarification prompt should be used for ambiguous requests"
+        assert call_kwargs["temperature"] == AI_CLARIFICATION_TEMPERATURE, "Clarification temperature should be applied"
+        assert response == "Could you share more details?"
+
     @pytest.mark.ai
     @pytest.mark.slow
     def test_ai_chatbot_prompt_optimization_improves_performance(self, test_data_dir):
