@@ -8,6 +8,12 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-23 - UI Service Management Integration **COMPLETED**
+- **Service Detection Fix**: Updated UI's `is_service_running()` method to use centralized `get_service_processes()` function, enabling detection of both UI-managed and headless services.
+- **Service Startup Fix**: Fixed `prepare_launch_environment()` in `run_mhm.py` to include `PYTHONPATH = script_dir`, resolving `ModuleNotFoundError: No module named 'core'` when UI starts services.
+- **Unified Service Management**: UI can now properly detect, start, stop, and restart services without conflicts between headless and UI-managed service processes.
+- **Environment Setup**: Both headless service manager and UI now use consistent Python path configuration for reliable service startup.
+
 ### 2025-10-21 - Documentation & Testing Improvements **COMPLETED**
 - **ASCII Compliance**: Fixed all non-ASCII characters in documentation files (CHANGELOG_DETAIL.md, AI_CHANGELOG.md) by replacing smart quotes, arrows, and special characters with ASCII equivalents.
 - **Path Drift Resolution**: Improved documentation sync checker with 87.5% reduction in false positives (8→1 path drift issues) through enhanced pattern matching and context-aware extraction.

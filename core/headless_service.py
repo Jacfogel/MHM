@@ -121,6 +121,9 @@ class HeadlessServiceManager:
                 env['MHM_HEADLESS_SERVICE'] = '1'
                 env['MHM_SERVICE_TYPE'] = 'headless'
             
+            # Set PYTHONPATH to include the project root so imports work
+            env['PYTHONPATH'] = script_dir
+            
             # Start the service process
             if os.name == 'nt':  # Windows
                 self.service_process = subprocess.Popen([

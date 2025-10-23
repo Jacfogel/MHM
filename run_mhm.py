@@ -48,6 +48,9 @@ def prepare_launch_environment(script_dir):
         path_components = path_entries + ([existing_path] if existing_path else [])
         env['PATH'] = os.pathsep.join(path_components)
 
+    # Set PYTHONPATH to include the project root so imports work
+    env['PYTHONPATH'] = script_dir
+
     return env
 
 @handle_errors("launching MHM Manager", default_return=1)

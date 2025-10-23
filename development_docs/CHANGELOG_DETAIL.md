@@ -17,6 +17,37 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-23 - UI Service Management Integration **COMPLETED**
+
+**Context**: The UI application was unable to properly detect or manage the MHM service. When users tried to start/restart services via the UI, it would fail with `ModuleNotFoundError: No module named 'core'`, even though the headless service manager worked correctly.
+
+**Problem**: Two separate issues were preventing proper UI service management:
+1. **Service Detection**: UI's `is_service_running()` method used basic process detection that couldn't find headless services
+2. **Service Startup**: UI's `prepare_launch_environment()` function didn't set `PYTHONPATH`, causing import failures
+
+**Technical Changes**:
+- **Updated UI Service Detection** (`ui/ui_app_qt.py`):
+  - Replaced basic process detection with centralized `get_service_processes()` function
+  - UI can now detect both UI-managed and headless services
+  - Consistent service detection across all management interfaces
+
+- **Fixed Service Startup Environment** (`run_mhm.py`):
+  - Added `env['PYTHONPATH'] = script_dir` to `prepare_launch_environment()`
+  - Ensures service processes can import `core` module when started by UI
+  - Matches environment setup used by headless service manager
+
+**Files Modified**:
+- `ui/ui_app_qt.py` - Updated `is_service_running()` method
+- `run_mhm.py` - Enhanced `prepare_launch_environment()` function
+
+**Testing Evidence**:
+- UI can now detect running headless services (shows "Service Status: Running")
+- UI can successfully start/stop/restart services without import errors
+- Both command line (`python run_headless_service.py`) and UI service management work seamlessly
+- No conflicts between headless and UI-managed service processes
+
+**Outcome**: Unified service management system where both command line and UI interfaces can detect, start, stop, and restart MHM services without conflicts or import errors.
+
 ### 2025-10-21 - Documentation & Testing Improvements **COMPLETED**
 
 **Background**: The system audit revealed several critical issues that needed immediate attention: ASCII compliance violations in documentation files, path drift issues in documentation references, and logging violations causing test failures. These issues were blocking the test suite and affecting documentation quality.
