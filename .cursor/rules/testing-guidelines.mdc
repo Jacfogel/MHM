@@ -1,0 +1,16 @@
+---
+alwaysApply: false
+description: "Testing conventions"
+globs: ["tests/**"]
+priority: 2
+lastUpdated: "2025-10-22"
+---
+
+# Test Suite Guidance
+
+- Use helpers from `tests/test_utilities.py` for fixtures, fake data, and shared assertions.
+- Ensure tests leave no artefacts outside the tests directory; clean up any temporary files they create.
+- Prefer deterministic tests with clear naming (for example `test_feature_behavior_expected`); document gaps via TODO entries when necessary.
+- Mock scheduler integrations to prevent real Windows scheduled tasks (e.g., patch `set_wake_timer` and related methods).
+- Review `ai_development_docs/AI_TESTING_GUIDE.md` when adding or changing tests; for additional detail see `tests/TESTING_GUIDE.md`.
+- Keep test data inside `tests/data/` and remove any generated artefacts during cleanup.

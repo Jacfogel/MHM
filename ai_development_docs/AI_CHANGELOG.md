@@ -13,6 +13,12 @@
 - Trimmed advice duplicated by the Cursor rules, keeping the quick references focused on troubleshooting, communication cues, logging workflows, and maintenance.
 - Highlighted follow-up considerations (e.g., potential PowerShell cheat sheet) without adding new tasks.
 
+### 2025-10-24 - Cursor Rules & Commands Refresh **COMPLETED**
+- Streamlined all Cursor command templates (/start, /audit, /full-audit, /docs, /test, /refactor, /explore-options, /triage-issue, /review, /close, /git) to concise checklists that reference authoritative docs.
+- Removed unused commands (/status, /improve-system) and the legacy commands README; added scoped rules for core/communication/UI/tests plus i-tools.mdc for audit guidance.
+- Restructured .cursor/rules/ with updated critical/context guidance and new quality-standards.mdc; ensured ASCII-safe content and corrected glob patterns.
+
+
 ### 2025-10-23 - UI Service Management Integration **COMPLETED**
 - **Service Detection Fix**: Updated UI's `is_service_running()` method to use centralized `get_service_processes()` function, enabling detection of both UI-managed and headless services.
 - **Service Startup Fix**: Fixed `prepare_launch_environment()` in `run_mhm.py` to include `PYTHONPATH = script_dir`, resolving `ModuleNotFoundError: No module named 'core'` when UI starts services.

@@ -44,6 +44,32 @@ This file is the authoritative source for every meaningful change to the project
 - Author a short AI-facing PowerShell/environment cheat sheet if collaborators continue requesting examples.
 - Consider lightweight quick references for scheduler or communication specifics should future work highlight the need.
 
+### 2025-10-24 - Cursor Rules & Commands Refresh **COMPLETED**
+
+**Context**: Cursor command templates and rule files had grown inconsistent, duplicated guidance now covered by the critical ruleset, and included commands no longer used in daily workflows.
+
+**Goals**:
+- Replace the bloated commands with lean checklists that link back to authoritative docs.
+- Centralise all project-wide rules in .cursor/rules/ and add scoped rule files for core, communication, UI, and tests.
+- Remove obsolete commands (status, improve-system, README) and introduce the new quick audit tooling guide.
+
+**Key Updates**:
+- **Commands**: Rewrote /start, /audit, /full-audit, /docs, /test, /refactor, /explore-options, /triage-issue, /review, /close, /git with concise steps and references. Deleted unused /status, /improve-system, and legacy README entries.
+- **Rules**: Split essentials across critical.mdc, context.mdc, new quality-standards.mdc, and scoped guidelines (core, communication, ui, 	ests). Added i-tools.mdc for audit/status guidance.
+- Ensured all rule files live in the root .cursor/rules/ directory with ASCII-only content and corrected glob patterns.
+
+**Documentation**:
+- .cursor/rules/*.mdc (critical, context, quality-standards, ai-tools, core-guidelines, communication-guidelines, ui-guidelines, testing-guidelines).
+- .cursor/commands/*.md (updated templates reflecting streamlined workflows).
+
+**Testing**:
+- Not run (documentation/rule updates only).
+
+**Follow-up Considerations**:
+- Review archived rule content for any remaining niche procedures before deletion.
+- Expand scoped rules if future modules (e.g., scheduler) need dedicated guidance.
+
+
 ### 2025-10-23 - UI Service Management Integration **COMPLETED**
 
 **Context**: The UI application was unable to properly detect or manage the MHM service. When users tried to start/restart services via the UI, it would fail with `ModuleNotFoundError: No module named 'core'`, even though the headless service manager worked correctly.

@@ -1,44 +1,36 @@
-# Run Full System Audit
+# Run Full Audit
 
 ## Overview
-Execute the comprehensive audit with test coverage to capture complete health metrics.
+Regenerate complete health metrics, including coverage, legacy scans, and unused-import reports.
 
 ## Steps
-1. Run the full audit with test coverage.
+1. Execute the full audit:
    ```powershell
    python ai_development_tools/ai_tools_runner.py audit --full
-   if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red }
+   if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red; exit 1 }
    ```
-2. Review the generated outputs:
-   - `ai_development_tools/AI_STATUS.md`
-   - `ai_development_tools/AI_PRIORITIES.md`
-   - `ai_development_tools/consolidated_report.txt`
-
-Use the detailed report for evidence and rely on the summary files for quick context. Cross-check any concerns with `ai_development_docs/AI_REFERENCE.md` when diagnosing issues.
+2. Review outputs (includes fast audit artifacts plus):
+   - `development_docs/LEGACY_REFERENCE_REPORT.md`
+   - `development_docs/UNUSED_IMPORTS_REPORT.md`
+   - Updated coverage reports
+3. Present key metrics and findings to the user (coverage deltas, unused imports, legacy hits) and confirm next steps together.
+4. Summarize critical issues, explicit blockers, and legacy follow-up.
+5. Propose a prioritized plan (tests, cleanup, refactors).
 
 ## Response Template
-Use this structure when reporting audit results:
-
 #### System Overview
-- Total Functions: ...
-- Complexity Distribution: ...
-- Documentation Coverage: ...
-- System Health: ...
+- Total Functions / Complexity: ...
+- Coverage Status: ...
+- Legacy References: ...
+- Unused Imports: ...
 
 #### Critical Issues
 - ...
 
-#### Key Metrics
-- Function Complexity: ...
-- Test Coverage: ...
-- Error Handling Coverage: ...
-- Legacy References: ...
-- Documentation Sync: ...
-
-#### Immediate Action Items
+#### Immediate Actions
 1. ...
 2. ...
 3. ...
 
-#### Next Steps
-- ...
+#### Follow-up
+- Next audit cadence / monitoring notes.

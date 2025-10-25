@@ -1,0 +1,12 @@
+---
+description: "UI development guidance"
+globs: ["ui/**"]
+alwaysApply: false
+---
+# UI Module Guidance
+
+- Prefer designing widgets in `.ui` files and regenerate Python via `pyside6-uic`; avoid hand-coding large UI layouts.
+- Keep admin UI changes aligned with the communication-first philosophy; user-facing automation stays channel-based.
+- Do not hand-edit generated files in `ui/generated/`; adjust the `.ui` source or generator and regenerate.
+- Test UI flows with the guidance in `tests/MANUAL_TESTING_GUIDE.md` when modifying behaviour.
+- Sync documentation with `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` when UI interactions change.

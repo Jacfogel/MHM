@@ -1,35 +1,29 @@
-# Git Operations
+# Git Wrap-Up
 
 ## Overview
-Add, commit and push changes to git.
+Stage, commit, and push changes safely.
 
 ## Steps
-1. Add all changes to git.
-   ```powershell
-   git add .
-   ```
-2. Commit changes with a descriptive message.
-   ```powershell
-   git commit -m "Your commit message here"
-   ```
-3. Push changes to remote repository.
-   ```powershell
-   git push
-   ```
-4. Verify success by checking git status.
+1. Review status:
    ```powershell
    git status
    ```
-
-## Important Notes
-- **Exit Code Handling**: PowerShell's `$LASTEXITCODE` can be unreliable for git operations
-- **Success Verification**: Use `git status` to confirm operations completed successfully
-- **Working Tree Clean**: Final status should show "nothing to commit, working tree clean"
-- **Branch Status**: Should show "Your branch is up to date with 'origin/main'"
+2. Stage intended files:
+   ```powershell
+   git add <paths>
+   ```
+3. Commit with a descriptive message:
+   ```powershell
+   git commit -m "Describe the change"
+   ```
+4. Push and confirm a clean tree:
+   ```powershell
+   git push
+   git status
+   ```
 
 ## Response Template
-- Git Status: ...
-- Changes Added: ...
+- Staged Files: ...
 - Commit Message: ...
-- Push Status: ...
-- Next Steps: ...
+- Push Result: ...
+- Branch/Status Notes: ...

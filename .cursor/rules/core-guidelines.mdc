@@ -1,0 +1,12 @@
+---
+description: "Core service safety notes"
+globs: core/**
+alwaysApply: false
+---
+# Core Module Guidance
+
+- Preserve service entry points: `core/service.py`, `core/config.py`, and auth/state management utilities must remain functional after changes.
+- Audit configuration impacts. Update `core/config.py`, `.env`, and related docs together; run `python ai_development_tools/ai_tools_runner.py audit` if behaviour changes.
+- When touching background tasks or long-running loops, verify `python run_headless_service.py start` and capture logs for failures.
+- Reference `ai_development_docs/AI_ARCHITECTURE.md` and `AI_REFERENCE.md` for component responsibilities before refactoring.
+- Access and persist user data exclusively through `core/user_data_handlers` helpers; avoid manual file reads/writes in `data/users/`.

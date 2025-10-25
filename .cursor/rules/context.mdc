@@ -1,7 +1,7 @@
 ---
 alwaysApply: true
 description: "Project snapshot and quick references"
-globs: ["**/*"]
+globs: ["**/*.md", "**/*.txt"]
 priority: 2
 lastUpdated: "2025-10-22"
 ---
@@ -23,4 +23,5 @@ lastUpdated: "2025-10-22"
 - Testing guidance: `ai_development_docs/AI_TESTING_GUIDE.md`, `tests/TESTING_GUIDE.md`.
 - Error handling & logging: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md`, `AI_LOGGING_GUIDE.md`.
 - Scripts live in `scripts/` (testing, migration, utilities); update changelog when adding significant tools.
+- Paired docs to keep aligned: Development Workflow, Architecture, Documentation Guide, Logging Guide, Testing Guide, Error Handling Guide (human <-> AI versions).
 - When unsure about workflow steps, consult the relevant guide in `ai_development_docs`.

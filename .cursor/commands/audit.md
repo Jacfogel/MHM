@@ -1,41 +1,32 @@
-# Run Fast System Audit
+# Run Fast Audit
 
 ## Overview
-Execute the fast audit to capture current health metrics (skips coverage by default).
+Refresh code health metrics without running coverage or heavy hygiene checks.
 
 ## Steps
-1. Run the fast audit (skips coverage by default).
+1. Execute the fast audit:
    ```powershell
    python ai_development_tools/ai_tools_runner.py audit
    if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red; exit 1 }
    ```
-2. Review the generated outputs:
+2. Review updated artifacts:
    - `ai_development_tools/AI_STATUS.md`
    - `ai_development_tools/AI_PRIORITIES.md`
+   - `ai_development_tools/consolidated_report.txt`
+3. Share key metrics with the user (totals, warnings, documentation coverage) and confirm whether they want to proceed with follow-up work.
+4. Capture highlights and blockers; link to source docs for detail.
+5. Recommend immediate follow-up actions (tests, refactors, doc updates).
 
 ## Response Template
-Use this structure when reporting audit results:
-
-#### System Overview
-- Total Functions: ...
-- Complexity Distribution: ...
-- Documentation Coverage: ...
+#### Audit Highlights
 - System Health: ...
+- Key Warnings: ...
+- Documentation / Error Handling: ...
 
-#### Critical Issues
-- ...
-
-#### Key Metrics
-- Function Complexity: ...
-- Error Handling Coverage: ...
-- Legacy References: ...
-- Unused Imports: ...
-- Documentation Sync: ...
-
-#### Immediate Action Items
+#### Recommended Actions
 1. ...
 2. ...
 3. ...
 
-#### Next Steps
-- ...
+#### Notes
+- If coverage or unused import data looks stale, schedule `/full-audit`.

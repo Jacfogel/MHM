@@ -1,45 +1,34 @@
 # Regenerate Documentation
 
 ## Overview
-Refresh generated documentation assets and verify that version metadata stays in sync.
+Rebuild generated documentation assets and verify sync; does not touch legacy or unused-import reports.
 
 ## Steps
-1. Regenerate the documentation artifacts.
+1. Confirm the latest audit output is still valid (rerun `/audit` if metrics are stale).
+2. Run docs regeneration:
    ```powershell
    python ai_development_tools/ai_tools_runner.py docs
-   if ($LASTEXITCODE -ne 0) { Write-Host "Documentation update failed" -ForegroundColor Red }
+   if ($LASTEXITCODE -ne 0) { Write-Host "Docs regeneration failed" -ForegroundColor Red; exit 1 }
    ```
-2. Synchronise version headers for AI documentation.
-   ```powershell
-   python ai_development_tools/ai_tools_runner.py version-sync ai_docs
-   if ($LASTEXITCODE -ne 0) { Write-Host "Version sync failed" -ForegroundColor Red }
-   ```
-3. Validate documentation alignment.
-   ```powershell
-   python ai_development_tools/ai_tools_runner.py doc-sync
-   if ($LASTEXITCODE -ne 0) { Write-Host "Documentation sync check failed" -ForegroundColor Red }
-   ```
-4. Inspect the updated files:
+3. Inspect refreshed files:
    - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
    - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
    - `development_docs/DIRECTORY_TREE.md`
-   - `development_docs/UNUSED_IMPORTS_REPORT.md`
-   - `ai_development_tools/consolidated_report.txt`
-
-Cross-reference `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` for pairing expectations and formatting standards.
+   - Doc-sync summary in `ai_development_tools`
+4. Run targeted checks when needed:
+   ```powershell
+   python ai_development_tools/ai_tools_runner.py doc-sync
+   python ai_development_tools/ai_tools_runner.py version-sync ai_docs
+   ```
+5. Check paired documentation requirements via `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
 
 ## Response Template
-When summarising, cover:
-
-#### Documentation Updates
+#### Updated Assets
 - Function Registry: ...
 - Module Dependencies: ...
 - Directory Tree: ...
-- Version Sync: ...
+- Doc Sync Summary: ...
 
-#### Validation Notes
-- Doc Sync Status: ...
-- Outstanding Issues: ...
-
-#### Follow-up Actions
-- ...
+#### Follow-up
+- Manual edits needed: ...
+- Next audit/validation recommended: ...

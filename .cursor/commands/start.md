@@ -1,30 +1,25 @@
 # Start New Session
 
 ## Overview
-Use this command when opening a chat so the assistant aligns with the current project context and user preferences.
+Kick off a chat with fresh context and confirm today's goal before acting.
 
 ## Steps
-1. Review key references:
-   - `ai_development_docs/AI_SESSION_STARTER.md`
-   - `ai_development_docs/AI_CHANGELOG.md`
-   - `TODO.md` and `development_docs/PLANS.md`
-2. Confirm environment basics (Windows 11, PowerShell, beginner-friendly explanations).
-3. Ask the user about their immediate goal or pain point before proposing work.
-4. **Optional**: Run `python ai_development_tools/ai_tools_runner.py status` for current system status
-5. Offer a brief status summary if useful (recent changelog items, open priorities).
-
-## Additional Guidance
-- **Session Context**: `ai_development_docs/AI_SESSION_STARTER.md` - Complete user profile and critical rules
-- **Development Workflow**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Safe development practices
-- **System Architecture**: `ai_development_docs/AI_ARCHITECTURE.md` - System design and component relationships
-- **Error Handling**: `ai_development_docs/AI_ERROR_HANDLING_GUIDE.md` - Error handling patterns and recovery
-- **Logging**: `ai_development_docs/AI_LOGGING_GUIDE.md` - Logging patterns and troubleshooting
-- **Troubleshooting**: `ai_development_docs/AI_REFERENCE.md` - Common issues and solutions
-- **Project Status**: `ai_development_tools/AI_STATUS.md` and `ai_development_tools/AI_PRIORITIES.md` - Current system state
+1. Optionally refresh the status snapshot:
+   ```powershell
+   python ai_development_tools/ai_tools_runner.py status
+   ```
+2. Confirm environment basics (Windows 11, PowerShell syntax) and reminders from `ai_development_docs/AI_SESSION_STARTER.md`.
+3. Review active priorities:
+   - `TODO.md`
+   - `development_docs/PLANS.md`
+   - `ai_development_tools/AI_PRIORITIES.md`
+4. Ask the user about today's objective and their energy level.
+5. Offer 2-3 actionable paths (tests, feature work, cleanup) and confirm the next step.
+6. Note any safety prerequisites (audit, tests, backups) for the chosen path.
 
 ## Response Template
-- Greeting that acknowledges the user profile and energy level.
-- One-paragraph recap of recent activity or open priorities.
+- Greeting acknowledging the user profile and energy.
+- Snapshot of relevant priorities or recent audit findings.
 - Clarifying questions about today's objective.
-- Suggested next steps or options tailored to the user's goals.
-- Reminder that all work will follow audit-first and testing requirements.
+- Suggested next steps (2-3 options) with estimated effort.
+- Reminder that work will follow audit-first, testing, and paired-doc requirements.

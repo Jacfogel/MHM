@@ -1,0 +1,11 @@
+---
+description: "Communication channel integration guidance"
+globs: ["communication/**"]
+alwaysApply: false
+---
+# Communication Module Guidance
+
+- Respect channel contracts in `communication/communication_channels`; review channel docs (for example `communication/communication_channels/discord/DISCORD.md`) before modifying handlers.
+- Prefer slash-command workflows over legacy `!` commands; deprecate and instrument legacy paths with warnings when touched.
+- Ensure message handling remains idempotent and logged via the channel-specific logger.
+- Update schema or payload changes across channel adapters and tests; consult `ai_development_docs/AI_REFERENCE.md` for protocol expectations.

@@ -1,35 +1,35 @@
-# Run Tests and Handle Failures
+# Run Tests
 
 ## Overview
-Execute the full test suite, investigate failures and fix any failing tests.
+Execute the full test suite, maintain isolation, and report outcomes.
 
 ## Steps
-1. Run the complete test suite.
+1. Run tests:
    ```powershell
    python run_tests.py
    if ($LASTEXITCODE -ne 0) { Write-Host "Tests failed" -ForegroundColor Red; exit 1 }
    ```
-2. For failing runs, capture output, categorise the failures (flaky, broken, new), consult `tests/TESTING_GUIDE.md` and fix any failing tests.
-3. Confirm that no artefacts are written outside the test data directories.
+2. For failures:
+   - Capture failing output.
+   - Categorize (flaky/new/regression).
+   - Consult `ai_development_docs/AI_TESTING_GUIDE.md` and `tests/TESTING_GUIDE.md`.
+3. Confirm no files were written outside `tests/`.
+4. Document fixes and rerun as needed.
 
 ## Additional Guidance
-- **Testing Guide**: `ai_development_docs/AI_TESTING_GUIDE.md` - Fast testing patterns and troubleshooting
-- **Test Strategy**: `ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md` - Testing patterns and incremental testing
-- **Troubleshooting**: `ai_development_docs/AI_REFERENCE.md` - Common test failure patterns and solutions
-- **Manual Testing**: `tests/MANUAL_TESTING_GUIDE.md` - UI testing procedures and checklists
-- **Test Coverage**: `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` - Coverage improvement strategies
+- `ai_development_docs/AI_REFERENCE.md` for troubleshooting patterns.
+- `tests/MANUAL_TESTING_GUIDE.md` for UI walkthroughs when behaviour changes.
+- `development_docs/TEST_COVERAGE_EXPANSION_PLAN.md` when planning coverage improvements.
 
 ## Response Template
 #### Test Results
-- Status: ...
-- Total / Passed / Failed / Skipped: ...
+- Status: Passed / Failed
+- Totals (Passed/Failed/Skipped): ...
 
-#### Failures
-- ...
-
-#### Fixes Applied
-- ...
+#### Failures (if any)
+- Test: ...
+- Root Cause: ...
+- Fix Applied: ...
 
 #### Follow-up
-- Outstanding Work: ...
-- Additional Tests Needed: ...
+- Remaining tasks / additional tests.

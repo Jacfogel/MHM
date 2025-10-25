@@ -1,21 +1,21 @@
 # Close Session
 
 ## Overview
-Use this command to wrap up a session and record follow-up tasks.
+Wrap up the session, record follow-ups, and confirm next steps.
 
 ## Steps
-1. Review and update planning files:
-   - **Check `TODO.md`**: Remove any completed items and add any outstanding items from this session
-   - **Update `development_docs/PLANS.md`**: Add/update entries for ongoing work
-   - **Remember**: `TODO.md` is **ONLY for pending tasks** (completed work goes in CHANGELOG files)
-2. If there are related entries from today add to them, otherwise add to a new entry to each of the CHANGELOGs:
-   - `ai_development_docs/AI_CHANGELOG.md`
+1. Update planning files:
+   - `TODO.md` (outstanding tasks only)
+   - `development_docs/PLANS.md` (for multi-step work)
+2. Log work in both changelog tracks:
    - `development_docs/CHANGELOG_DETAIL.md`
-3. Summarise outstanding To-dos, required follow-up testing, and deployment actions.
-4. If all work is complete, request confirmation from user to add/commit/push changes.
+   - `ai_development_docs/AI_CHANGELOG.md`
+3. Summarize remaining tasks, validation status, and deployment considerations.
+4. Confirm whether git actions are needed (`/git`).
 
 ## Response Template
-- Summary of Work Completed: ...
-- Outstanding Actions (with owners or next steps): ...
+- Work Completed: ...
+- Outstanding Tasks / Owners: ...
+- Tests & Validation: ...
 - Documentation Updates: ...
-- Next Steps: ...
+- Next Steps / Follow-up: ...

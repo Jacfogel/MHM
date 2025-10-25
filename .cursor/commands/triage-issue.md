@@ -1,23 +1,22 @@
 # Triage an Issue
 
 ## Overview
-Investigate a failure or unexpected behaviour methodically before proposing fixes.
+Investigate failures methodically before proposing fixes.
 
 ## Steps
-1. Gather symptoms: logs, stack traces, failing commands, and recent changes.
-2. Run a fast audit to capture current metrics.
+1. Capture symptoms (logs, stack traces, commands, recent changes).
+2. Run a fast audit if metrics are stale:
    ```powershell
    python ai_development_tools/ai_tools_runner.py audit
-   if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red }
    ```
-3. Cross-reference troubleshooting guidance in `ai_development_docs/AI_REFERENCE.md`.
-4. Identify the most likely root causes, list evidence, and outline verification steps.
-5. Suggest a minimal, end-to-end plan that respects the no-legacy preference.
+3. Consult `ai_development_docs/AI_REFERENCE.md` for likely causes.
+4. Develop hypotheses with evidence and outline verification steps.
+5. Propose a minimal fix plan that matches the "no unnecessary legacy" rule.
 
 ## Response Template
 - Issue Summary: ...
-- Observed Evidence: ...
-- Working Hypotheses: ...
-- Immediate Tests or Diagnostics: ...
+- Evidence Collected: ...
+- Hypotheses: ...
+- Diagnostics Planned: ...
 - Recommended Fix Plan: ...
 - Risks / Follow-up: ...

@@ -24,8 +24,18 @@ lastUpdated: "2025-10-24"
 - Log usage of legacy paths to aid future cleanup.
 - Document a removal plan (conditions and steps) and add detection patterns to `ai_development_tools/legacy_reference_cleanup.py` when introducing new legacy code.
 
+## Error Handling
+- Use the centralized decorators and exception hierarchy from `core.error_handling` (e.g., `@handle_errors`, `MHMError`, `DataError`) rather than ad hoc try/except blocks.
+- Validate inputs early and return safe defaults when data is missing or malformed, logging through the component logger.
+- Route file/config issues through the specialized helpers (`handle_file_error`, `handle_network_error`) to ensure consistent logging and recovery.
+
 ## Communication Style
 - Provide step-by-step guidance with explanations of why each step matters.
 - Offer constructive corrections when the user's plan can be improved; ask clarifying questions instead of guessing intent.
 - Keep instructions focused on one concept at a time.
 - Example clarifying prompts: "What's your goal for this change?", "Have you considered <alternative>?", "What risks are you most concerned about?"
+
+## Logging Expectations
+- Use component loggers via `core.logger.get_component_logger(__name__)` rather than creating ad hoc loggers.
+- Check `logs/errors.log` first when diagnosing failures, then drill into component logs (discord, ai, communication_manager, scheduler, etc.).
+- Avoid leaving debug logging in production paths; downgrade to INFO/WARNING or remove once issues are resolved.

@@ -1,18 +1,22 @@
 # Explore Work Options
 
 ## Overview
-Help the user decide what to work on when priorities are unclear.
+Help choose the next task by comparing effort, impact, and prerequisites.
 
 ## Steps
-1. Scan `../../TODO.md`, `../../development_docs/PLANS.md`, and `../../ai_development_tools/AI_PRIORITIES.md` for open items.
-2. Categorise opportunities (bug fixes, refactors, documentation, automation).
-3. Estimate effort and prerequisites for each option.
-4. Highlight dependencies or audits that should run first.
-5. Invite the user to choose, or suggest a small, low-risk starting point.
+1. Review current queues:
+   - `TODO.md`
+   - `development_docs/PLANS.md`
+   - `ai_development_tools/AI_PRIORITIES.md`
+2. Build an option table (impact, effort, dependencies).
+3. Flag required prep (audits, tests, backups).
+4. Recommend a starting option and confirm with the user.
 
 ## Response Template
-- Option 1: goal, expected effort, required prep.
-- Option 2: ...
-- Option 3: ...
+| Option | Impact | Effort | Dependencies / Prep |
+|--------|--------|--------|----------------------|
+| ...    | ...    | ...    | ...                  |
+
 - Suggested Starting Point: ...
-- Checks to schedule (tests, audits, backups): ...
+- Checks to schedule (tests/audits/backups): ...
+- Notes / Risks: ...
