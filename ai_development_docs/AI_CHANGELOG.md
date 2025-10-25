@@ -8,6 +8,11 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-24 - AI Quick Reference Cleanup **COMPLETED**
+- Normalized `AI_SESSION_STARTER.md`, `AI_REFERENCE.md`, and `AI_LOGGING_GUIDE.md` to plain ASCII and tightened section headings/paired-doc links.
+- Trimmed advice duplicated by the Cursor rules, keeping the quick references focused on troubleshooting, communication cues, logging workflows, and maintenance.
+- Highlighted follow-up considerations (e.g., potential PowerShell cheat sheet) without adding new tasks.
+
 ### 2025-10-23 - UI Service Management Integration **COMPLETED**
 - **Service Detection Fix**: Updated UI's `is_service_running()` method to use centralized `get_service_processes()` function, enabling detection of both UI-managed and headless services.
 - **Service Startup Fix**: Fixed `prepare_launch_environment()` in `run_mhm.py` to include `PYTHONPATH = script_dir`, resolving `ModuleNotFoundError: No module named 'core'` when UI starts services.

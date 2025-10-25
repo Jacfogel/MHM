@@ -1,189 +1,27 @@
 ---
 alwaysApply: true
-description: "Critical development rules - always apply these for safety and consistency"
+description: "Essential project rules that must always be followed"
 globs: ["**/*"]
 priority: 1
-version: "--scope=docs"
-lastUpdated: "2025-07-21"
-relatedFiles: ["AI_REFERENCE.md", "AI_SESSION_STARTER.md"]
+lastUpdated: "2025-10-22"
 ---
 
 # Critical Rules - Always Apply
 
-## Core Context
+## Who You're Helping
+- Beginner programmer with ADHD/depression, building a personal mental health assistant.
+- PowerShell commands required
+- User prefers step-by-step explanations, and constructive correction.
+- Values learning and efficiency over being "right"; relies on the assistant for thoroughness.
 
-### **User Profile**
-- **Beginner programmer** with ADHD/depression
-- **Windows 11** environment, PowerShell syntax required
-- **Personal project** - building mental health assistant for own use
-- **Values learning and efficiency** over being right
-- **Will miss things** and fail to consider things - relies on AI for thoroughness
-- **Prefers correction** over inefficient approaches
-
-### **Project Purpose**
-Building a personal mental health assistant that helps manage executive functioning deficits and health needs, staying connected to life priorities and goals, providing motivation and hope for the future.
-
-### **Project Vision**
-- **Communication-First Design**: All user interactions through channels (Discord, email, etc.)
-- **AI-Powered Interface**: Users interact primarily through AI chatbot with optional menus
-- **No Required User UI**: Admin interface exists for management, but users never need separate UI
-- **Channel-Agnostic Architecture**: Features work across all communication channels
-
-## Core Development Rules
-
-### **Safety First**
-- **Test**: `python run_headless_service.py start` must work after changes (for AI collaborators)
-- **Backup**: `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`
-- **Incremental**: Make small, tested changes
-- **Document**: Update `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` for all changes
-- **Dependencies**: Update `requirements.txt` for new dependencies
-
-### **Key Files**
-- `run_headless_service.py` - Main entry point for AI collaborators
-- `run_mhm.py` - UI entry point for human users
-- `core/service.py` - Background service
-- `ui/ui_app_qt.py` - Admin interface (admin only)
-- `core/config.py` - Configuration
-- `core/user_data_handlers.py`, `core/user_data_validation.py` - User data management
-- `communication/` - Communication channel implementations
-- `data/users/` - User data
-
-### **Development Workflow**
-1. **Test current state**: `python run_headless_service.py start`
-2. **Create backup**: PowerShell backup command
-3. **Make incremental changes**
-4. **Test after each change**
-5. **Update documentation**: `CHANGELOG_DETAIL.md` and `AI_CHANGELOG` 
-
-## Communication Guidelines
-
-### **Response Style**
-- **Simple explanations** - focus on one concept at a time
-- **Step-by-step instructions** - break complex tasks into steps
-- **Explain WHY** - always explain why changes are needed
-- **Be patient and encouraging** - acknowledge progress and successes
-- **Question assumptions** - suggest better alternatives when appropriate
-
-### **Beginner Programmer Support**
-**CRITICAL**: User prefers correction over inefficient approaches.
-
-**When User Suggests Something:**
-- Question their goals and reasoning
-- Suggest better alternatives if you see them
-- Educate about relevant concepts they might not know
-- Point out potential problems or inefficiencies
-- Ask clarifying questions when unsure
-
-**Key Questions to Ask:**
-- "What's your goal with this approach?"
-- "Are you aware of [alternative]?"
-- "What's driving this decision?"
-- "Have you considered [potential issue]?"
-- "Would you like me to explain [concept]?"
-
-## Development Approach
-
-### **Thoroughness**
-- Always be thorough and check for consistency
-- If changing a function or moving a file, check all references
-- Update all related places appropriately
-- Repeat as needed to ensure consistency
-- You can always ask if deviating from a rule would be better
-
-### **Completeness and Consistency Standards**
-**CRITICAL**: User values completeness and consistency above all else.
-
-**Completeness Requirements:**
-- **Full Scope**: When making changes, consider ALL affected areas, not just the immediate target
-- **Cross-Reference Check**: Always verify that changes don't break other parts of the system
-- **Documentation Updates**: Update ALL relevant documentation files when making changes
-- **Test Coverage**: Ensure tests cover the full scope of changes, not just happy path
-- **Edge Cases**: Consider and handle edge cases, error conditions, and failure modes
-
-**Consistency Requirements:**
-- **Pattern Matching**: Follow established patterns in the codebase, don't create new patterns without justification
-- **Naming Conventions**: Maintain consistent naming across all files and functions
-- **Code Style**: Follow the existing code style and formatting patterns
-- **Error Handling**: Use consistent error handling patterns throughout the codebase
-- **Logging**: Use consistent logging patterns and component loggers as established
-
-**When Making Changes:**
-- **Before Starting**: Identify ALL files, functions, and systems that might be affected
-- **During Changes**: Check for consistency with existing patterns and conventions
-- **After Changes**: Verify that ALL related systems still work correctly
-- **Documentation**: Update ALL relevant documentation to reflect changes
-- **Testing**: Test ALL affected functionality, not just the primary change
-
-**Completeness Checklist:**
-- [ ] Have I identified ALL affected files and functions?
-- [ ] Have I updated ALL relevant documentation?
-- [ ] Have I considered ALL edge cases and error conditions?
-- [ ] Have I tested ALL affected functionality?
-- [ ] Have I maintained consistency with existing patterns?
-- [ ] Have I checked for any unintended side effects?
-
-### **Safety First**
-- Backup before major changes
-- Test incrementally
-- Make small, tested changes
-- Explain the reasoning behind suggestions
-- Prioritize reliability over cleverness
-
-## Flexibility
-You can always ask if you think deviating from a rule would be a better option.
-
-## Legacy Code Standards
-
-### **User's Legacy Code Preferences**
-The user has **strong preferences** about legacy and backward compatibility code:
-
-**Core Principle**: "I always prefer the code to be cleaner and more honest about what it actually needs. Backwards compatibility is fine, if it's necessary, clearly marked, and usage logged for future removal."
-
-**Requirements for ANY Legacy Code:**
-1. **Necessary**: Must serve an actual purpose, not just defensive programming
-2. **Clearly Marked**: Must have explicit `LEGACY COMPATIBILITY` comments
-3. **Usage Logged**: Must log warnings when legacy code paths are accessed
-4. **Removal Plan**: Must have documented removal plan with timeline
-5. **Monitoring**: Must monitor usage and remove when no longer needed
-
-**When Encountering Legacy Code:**
-- **Question necessity**: "Is this actually needed or just defensive programming?"
-- **Add proper marking**: Include `LEGACY COMPATIBILITY` headers and removal plans
-- **Add usage logging**: Log warnings when legacy interfaces are accessed
-- **Document removal**: Create clear removal plans with timelines
-- **Monitor and remove**: Track usage and remove when safe
-
-**Legacy Code Documentation Format:**
-```python
-# LEGACY COMPATIBILITY: [Brief description]
-# TODO: Remove after [specific condition]
-# REMOVAL PLAN:
-# 1. [Step 1]
-# 2. [Step 2]
-# 3. [Step 3]
-```
-
-**Legacy Reference Cleanup Tool Maintenance:**
-- **Tool Location**: `ai_development_tools/legacy_reference_cleanup.py`
-- **Usage**: `python ai_development_tools/ai_tools_runner.py legacy`
-- **Report**: `development_docs/LEGACY_REFERENCE_REPORT.md`
-
-**When Adding New Legacy Patterns to Tool:**
-1. **Add Specific Patterns**: Only add patterns that match actual legacy code, not broad terms
-2. **Include Replacement Mappings**: Provide automated cleanup suggestions
-3. **Test for False Positives**: Ensure patterns don't match legitimate code
-4. **Document in Tool**: Update the tool's docstring with new patterns
-5. **Update Tool When Legacy Code Identified**: Add new patterns as legacy code is discovered
-
-**Current Tool Patterns:**
-- Old bot/ directory references: `bot/`, `from bot.`, `import bot.`
-- Deprecated functions: `get_last_10_messages(`, `channel_registry`, `LegacyChannelWrapper`
-- Legacy compatibility markers: `# LEGACY COMPATIBILITY:`, `LEGACY COMPATIBILITY:`
-
-**Tool Maintenance Requirements:**
-- **Weekly**: Run legacy reference cleanup tool
-- **When Adding Legacy Code**: Add patterns to the tool
-- **During Code Review**: Check for proper legacy code documentation
-- **Monthly**: Review legacy code usage and plan removals
-
-
+## Safety & Workflow
+- Use PowerShell-safe syntax (`;`, `-and`, `$LASTEXITCODE`). Never assume a command succeeded; verify and report the outcome.
+- Maintain test isolation: tests must not write outside the `tests/` directory and the full suite must pass before declaring success.
+- Keep the Python virtual environment active; do not install dependencies globally (`venv\Scripts\activate`, `pip install -r requirements.txt`).
+- Validate runtime health after changes with `python run_headless_service.py start` when functionality is affected.
+- Work in small, tested increments; take a backup before risky edits when practical (for example `Copy-Item -Path "." -Destination "../backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Recurse`).
+- Follow the audit-first protocol: run `python ai_development_tools/ai_tools_runner.py audit` (or `--full` when required) before producing documentation or broad assessments.
+- Confirm with the user before launching documentation or broad analysis work as part of the audit-first protocol.
+- Keep paired documentation in sync (human and AI guides, changelog pairs) whenever any member of a pair changes.
+- Legacy code is allowed only when strictly necessary, clearly labelled `LEGACY COMPATIBILITY`, logged on use, and paired with a removal plan.
+- Ask rather than guess. If intent or scope is unclear, pause and clarify instead of assuming; escalate questions early with concrete context if requirements or safety steps are unclear.

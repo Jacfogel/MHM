@@ -17,6 +17,33 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-24 - AI Quick Reference Cleanup **COMPLETED**
+
+**Context**: The AI-facing documentation had accumulated mojibake/unicode artifacts and repeated guidance that is now enforced through Cursor rules, making the quick references noisy and harder to scan during collaboration.
+
+**Goals**:
+- Restore ASCII-only formatting to the core AI quick-reference docs.
+- Keep the AI guides focused on unique troubleshooting/logging cues while delegating general rules to `.cursor/rules`.
+
+**Technical Updates**:
+- `ai_development_docs/AI_SESSION_STARTER.md`
+  - Removed mojibake characters, normalized paired-document references to ASCII `<->` notation, and smoothed section headings.
+- `ai_development_docs/AI_REFERENCE.md`
+  - Rewrote troubleshooting sections to stress audit-to-action steps, condensed communication prompts, refreshed system overview/dataflow notes, and eliminated redundant instructions now covered by rules.
+- `ai_development_docs/AI_LOGGING_GUIDE.md`
+  - Re-centered the guide on directory structure, component loggers, triage workflow, key PowerShell snippets, recurring scenarios, maintenance, and best practices; stripped legacy duplication with rule content.
+
+**Documentation**:
+- ASCII compliance verified across the three updated AI docs (`AI_SESSION_STARTER.md`, `AI_REFERENCE.md`, `AI_LOGGING_GUIDE.md`).
+- Linked guides now reference the rule-set for logging/error expectations rather than repeating them inline.
+
+**Testing**:
+- Not run (documentation-only change). No code paths touched.
+
+**Follow-up Considerations**:
+- Author a short AI-facing PowerShell/environment cheat sheet if collaborators continue requesting examples.
+- Consider lightweight quick references for scheduler or communication specifics should future work highlight the need.
+
 ### 2025-10-23 - UI Service Management Integration **COMPLETED**
 
 **Context**: The UI application was unable to properly detect or manage the MHM service. When users tried to start/restart services via the UI, it would fail with `ModuleNotFoundError: No module named 'core'`, even though the headless service manager worked correctly.

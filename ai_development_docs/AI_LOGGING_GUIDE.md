@@ -1,223 +1,81 @@
 # AI Logging Guide - Quick Reference
 
-> **Purpose**: Fast logging patterns and troubleshooting for AI collaborators  
-> **Style**: Concise, pattern-focused, actionable  
+> **Purpose**: Fast logging patterns and troubleshooting tips for AI collaborators  
 > **For details**: See [LOGGING_GUIDE.md](../logs/LOGGING_GUIDE.md)
 
-## Overview
-
-The MHM logging system uses component-based separation with structured logging. Each component has its own log file for better organization and troubleshooting.
-
 ## Directory Structure
-
 ```
 logs/
-├── app.log                    # Main application logs (active)
-├── discord.log               # Discord bot specific logs (active)
-├── ai.log                    # AI interactions and processing (active)
-├── user_activity.log         # User actions and check-ins (active)
-├── errors.log                # Error and critical messages only (active)
-├── communication_manager.log # Communication orchestration (active)
-├── email.log                 # Email bot operations (active)
-├── file_ops.log              # File operations (active)
-├── scheduler.log             # Scheduler operations (active)
-├── ui.log                    # UI operations (active)
-├── message.log               # Message processing (active)
-├── backups/                  # Rotated log files (daily rotation)
-└── archive/                  # Compressed old logs (>7 days old)
+|- app.log                  # Main application flow
+|- discord.log              # Discord bot activity
+|- ai.log                   # AI interactions and processing
+|- user_activity.log        # User actions and check-ins
+|- errors.log               # Critical errors (check first)
+|- communication_manager.log
+|- email.log
+|- file_ops.log
+|- scheduler.log
+|- ui.log
+|- message.log
+|- backups/                 # Rotated logs (7-day retention)
+`- archive/                 # Compressed archives (>7 days)
 ```
 
-## Configuration
-
-### **Log Levels (Priority)**
-- **ERROR/CRITICAL** - System failures, data corruption
-- **WARNING** - Recoverable issues, deprecated usage
-- **INFO** - Normal operations, user actions
-- **DEBUG** - Detailed debugging information
-
-### **Component Loggers**
+## Component Loggers
 ```python
 from core.logger import get_component_logger
 
-# Component loggers (use these)
-logger = get_component_logger(__name__)  # Automatic component detection
-discord_logger = get_component_logger("discord")
-ai_logger = get_component_logger("ai")
-```
-
-## Quick Reference
-
-### **Log Files (Priority Order)**
-- `errors.log` - Critical errors and failures (check first)
-- `logs/app.log` - Main application flow and operations
-- `discord.log` - Communication channel issues
-- `ai.log` - AI processing and chatbot interactions
-- `user_activity.log` - User actions and check-ins
-
-### **Logging Commands**
-```powershell
-# Check recent errors (most important)
-Get-Content "logs/errors.log" -Tail 20
-
-# Check application status
-Get-Content "logs/app.log" -Tail 20
-
-# Monitor live logs
-Get-Content "logs/app.log" -Wait -Tail 10
-```
-
-## Common Logging Patterns
-
-### **Error Investigation**
-1. **Check errors.log first** - Critical issues and failures
-2. **Check logs/app.log** - Application flow and context
-3. **Check specific component logs** - Discord, AI, user activity
-4. **Look for patterns** - Repeated errors, timing issues
-
-### **Component Loggers**
-```python
-# Use component-specific loggers
-from core.logger import get_logger
-
-# Component loggers (use these)
-logger = get_logger(__name__)  # Automatic component detection
-discord_logger = get_logger("discord")
-ai_logger = get_logger("ai")
-```
-
-### **Log Levels (Priority)**
-- **ERROR/CRITICAL** - System failures, data corruption
-- **WARNING** - Recoverable issues, deprecated usage
-- **INFO** - Normal operations, user actions
-- **DEBUG** - Detailed troubleshooting information
-
-## Troubleshooting Patterns
-
-### **If System Won't Start**
-1. Check `errors.log` for startup failures
-2. Check `logs/app.log` for configuration issues
-3. Look for missing dependencies or permissions
-
-### **If Communication Fails**
-1. Check `discord.log` for bot connection issues
-2. Check `errors.log` for authentication failures
-3. Verify environment variables and tokens
-
-### **If AI Features Don't Work**
-1. Check `ai.log` for processing errors
-2. Check `errors.log` for model or API issues
-3. Verify AI configuration and dependencies
-
-## Log Analysis Commands
-
-### **PowerShell Log Analysis**
-```powershell
-# Find errors in last hour
-Get-Content "logs/errors.log" | Where-Object { $_ -match "$(Get-Date -Format 'yyyy-MM-dd HH')" }
-
-# Count error types
-Get-Content "logs/errors.log" | Group-Object | Sort-Object Count -Descending
-
-# Search for specific patterns
-Select-String -Path "logs/*.log" -Pattern "ERROR|CRITICAL" -SimpleMatch
-```
-
-### **Common Error Patterns**
-- **ImportError** - Missing dependencies
-- **FileNotFoundError** - Configuration or data files missing
-- **PermissionError** - File system access issues
-- **ConnectionError** - Network or service connectivity
-- **ValueError** - Data validation or parsing issues
-
-## Log Maintenance
-
-### **Log Rotation**
-- Logs are automatically rotated when they reach size limits
-- Old logs are archived in `logs/archive/`
-- Keep recent logs for troubleshooting
-
-### **Log Cleanup**
-```powershell
-# Check log sizes
-Get-ChildItem "logs/*.log" | Select-Object Name, Length
-
-# Archive old logs (if needed)
-Move-Item "logs/*.log" "logs/archive/" -Force
-```
-
-## Component Loggers Reference
-
-### **Available Component Loggers**
-- `main` - Main application operations
-- `discord` - Discord bot operations
-- `ai` - AI processing and chatbot interactions
-- `user_activity` - User actions and check-ins
-- `communication_manager` - Communication orchestration
-- `email` - Email bot operations
-- `file_ops` - File operations
-- `scheduler` - Scheduler operations
-- `ui` - UI operations
-- `message` - Message processing
-- `errors` - Error and critical messages
-
-### **Usage Pattern**
-```python
-from core.logger import get_component_logger
-
-# Get component-specific loggers
-main_logger = get_component_logger("main")
+logger = get_component_logger(__name__)
 discord_logger = get_component_logger("discord")
 ai_logger = get_component_logger("ai")
 user_logger = get_component_logger("user_activity")
-
-# Use appropriate logger for each component
-main_logger.info("Service started")
-discord_logger.info("Discord bot connected")
-ai_logger.info("AI request processed")
-user_logger.info("User check-in completed")
 ```
 
-## Log Rotation and Archival
+- Use component loggers instead of creating ad hoc `logging.getLogger` instances.
+- Include context (user id, operation, status) in each message, but avoid sensitive data.
 
-### **Rotation Schedule**
-- **Daily Rotation**: Logs rotate at midnight
-- **Size-based Rotation**: 5MB per file maximum
-- **Retention**: 7 days for backups, 30 days for archives
+## Triage Workflow
+1. Start with `logs/errors.log` to see recent failures.
+2. Read `logs/app.log` for surrounding context.
+3. Drill into the relevant component log (discord, ai, scheduler, etc.).
+4. Look for repeating patterns, missing entries, or timing correlations.
 
-### **Archival Process**
-- **Backups**: Daily rotated files kept for 7 days
-- **Archive**: Compressed files older than 7 days
-- **Cleanup**: Automatic removal after 30 days
+## Handy PowerShell Snippets
+```powershell
+# Tail recent errors
+Get-Content "logs/errors.log" -Tail 20
+
+# Follow the app log live
+Get-Content "logs/app.log" -Wait -Tail 10
+
+# Search for critical messages
+Select-String -Path "logs/*.log" -Pattern "ERROR|CRITICAL" -SimpleMatch
+
+# Check log sizes
+Get-ChildItem "logs/*.log" | Select-Object Name, Length
+```
+
+## Common Scenarios
+- **Service fails to start**: check `errors.log`, then `app.log` for configuration errors or missing dependencies.
+- **Discord issues**: inspect `discord.log` for authentication or connectivity problems.
+- **AI processing failures**: review `ai.log` and confirm external dependencies or API access.
+- **Scheduler anomalies**: read `scheduler.log` and verify that Windows tasks were not created unintentionally.
+
+## Maintenance
+- Logs rotate daily and when they reach 5 MB. Rotated files move to `logs/backups/`; archives older than a week are compressed into `logs/archive/`.
+- Cleanup runs automatically, but you can archive manually:
+  ```powershell
+  Move-Item "logs/*.log" "logs/archive/" -Force
+  ```
+- Keep the `logs/` directory out of version control.
 
 ## Best Practices
+1. Choose appropriate levels: ERROR/CRITICAL for failures, WARNING for recoverable issues, INFO for normal operations, DEBUG for temporary tracing.
+2. Structure messages with identifiers to help search and correlation.
+3. Remove or downgrade noisy DEBUG logs once an issue is resolved.
+4. Pair logging with error handling utilities (`core.error_handling`) so callers receive meaningful feedback.
 
-### **Logging Guidelines**
-1. **Use appropriate log levels** - ERROR for failures, INFO for operations
-2. **Include context** - User ID, operation type, relevant data
-3. **Avoid sensitive data** - No passwords, tokens, or personal information
-4. **Use structured logging** - Consistent format for parsing
-5. **Component separation** - Use component-specific loggers
-
-### **Performance Considerations**
-- **Async logging** - Non-blocking log operations
-- **Buffered writes** - Efficient disk I/O
-- **Rotation management** - Automatic cleanup and compression
-
-## Migration from Old System
-
-### **Key Changes**
-- **Component-based separation** - Each component has its own log file
-- **Structured logging** - Consistent format across all components
-- **Automatic rotation** - Daily and size-based rotation
-- **Enhanced filtering** - Better error detection and analysis
-
-### **Migration Steps**
-1. **Update imports** - Use `get_component_logger` instead of `get_logger`
-2. **Component identification** - Specify component name for better organization
-3. **Log level review** - Ensure appropriate levels for each message
-4. **Performance testing** - Verify logging performance under load
-
-## Resources
-- **Full Guide**: `logs/LOGGING_GUIDE.md` - Complete logging system documentation
-- **Error Handling**: `core/ERROR_HANDLING_GUIDE.md` - Exception handling patterns
-- **Troubleshooting**: `ai_development_docs/AI_REFERENCE.md` - General troubleshooting patterns
+## Related References
+- `core/ERROR_HANDLING_GUIDE.md` for exception hierarchy and decorators.
+- `AI_REFERENCE.md` for broader troubleshooting workflows.
+- `.cursor/rules/quality-standards.mdc` for logging expectations enforced by the ruleset.
