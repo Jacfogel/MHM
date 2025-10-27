@@ -117,7 +117,8 @@ QUICK_AUDIT = {
         'audit_function_registry.py',
         'audit_module_dependencies.py',
         'analyze_documentation.py',
-        'error_handling_coverage.py'
+        'error_handling_coverage.py',
+        'documentation_sync_checker.py'
     ],
     'concise_output': True,
     'prioritize_issues': True

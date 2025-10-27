@@ -25,6 +25,11 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
+**Investigate Permission Test Environment Issue**
+- *What it means*: Investigate why `test_save_json_data_permission_error` can write to `/root` on Windows - this suggests elevated permissions or test environment issues
+- *Why it helps*: Ensures test environment is properly isolated and permission tests work as expected
+- *Estimated effort*: Small
+
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.

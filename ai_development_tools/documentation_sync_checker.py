@@ -14,26 +14,33 @@ Usage:
 
 import re
 import argparse
+import sys
 from pathlib import Path
 from typing import Dict, List, Set
 from collections import defaultdict
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from core.logger import get_component_logger
 
-from .standard_exclusions import should_exclude_file
-from .services.constants import (
-    ALTERNATIVE_DIRECTORIES,
-    COMMAND_PATTERNS,
-    COMMON_CLASS_NAMES,
-    COMMON_CODE_PATTERNS,
-    COMMON_FUNCTION_NAMES,
-    COMMON_VARIABLE_NAMES,
-    IGNORED_PATH_PATTERNS,
-    PAIRED_DOCS,
-    STANDARD_LIBRARY_MODULES,
-    TEMPLATE_PATTERNS,
-    THIRD_PARTY_LIBRARIES,
-)
+# Handle both relative and absolute imports
+try:
+    from .services.standard_exclusions import should_exclude_file
+    from .services.constants import (
+        ALTERNATIVE_DIRECTORIES, COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
+        COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
+        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
+    )
+except ImportError:
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
+    from ai_development_tools.services.constants import (
+        ALTERNATIVE_DIRECTORIES, COMMAND_PATTERNS, COMMON_CLASS_NAMES, COMMON_CODE_PATTERNS,
+        COMMON_FUNCTION_NAMES, COMMON_VARIABLE_NAMES, DEFAULT_DOCS, IGNORED_PATH_PATTERNS,
+        PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
+    )
 
 logger = get_component_logger(__name__)
 
@@ -433,15 +440,9 @@ class DocumentationSyncChecker:
         
         lines = result.stdout.split('\n')
         
-        # Define placeholders
-        placeholders = {
-            '__pycache__': '    (Python cache files)',
-            '.pytest_cache': '    (pytest cache files)',
-            '.venv': '    (virtual environment files)',
-            'backups': '    (backup files)',
-            'htmlcov': '    (HTML coverage reports)',
-            'archive': '    (archived files)'
-        }
+        # Import constants from services
+        from ai_development_tools.services.standard_exclusions import DOC_SYNC_PLACEHOLDERS
+        placeholders = DOC_SYNC_PLACEHOLDERS
         
         # Process lines
         processed_lines = []
@@ -508,17 +509,9 @@ class DocumentationSyncChecker:
         """Check for non-ASCII characters in documentation files."""
         ascii_issues = defaultdict(list)
         
-        # Files to check for ASCII compliance
-        files_to_check = [
-            'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
-            'ai_development_docs/AI_ARCHITECTURE.md',
-            'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
-            'ai_development_docs/AI_CHANGELOG.md',
-            'DEVELOPMENT_WORKFLOW.md',
-            'ARCHITECTURE.md',
-            'DOCUMENTATION_GUIDE.md',
-            'development_docs/CHANGELOG_DETAIL.md',
-        ]
+        # Import constants from services.constants
+        from ai_development_tools.services.constants import ASCII_COMPLIANCE_FILES
+        files_to_check = list(ASCII_COMPLIANCE_FILES)
         
         for file_path in files_to_check:
             full_path = self.project_root / file_path

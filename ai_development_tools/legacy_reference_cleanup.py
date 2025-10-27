@@ -25,9 +25,15 @@ legacy patterns, follow these requirements:
 
 import re
 import argparse
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 from collections import defaultdict
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from core.logger import get_component_logger
 
@@ -70,19 +76,9 @@ class LegacyReferenceCleanup:
         }
         
         # Files that should be preserved (historical context)
-        self.preserve_files = {
-            'CHANGELOG_DETAIL.md',
-            'AI_CHANGELOG.md',
-            'archive/',
-            'development_docs/',
-            'ai_development_docs/',
-            'logs/',
-            'TODO.md',
-            'PLANS.md',
-            'FUNCTION_REGISTRY',
-            'MODULE_DEPENDENCIES',
-            'LEGACY_REFERENCE_REPORT.md',
-        }
+        # Import constants from services
+        from ai_development_tools.services.standard_exclusions import LEGACY_PRESERVE_FILES
+        self.preserve_files = set(LEGACY_PRESERVE_FILES)
         
         # File extensions to skip entirely
         self.skip_extensions = {'.md', '.txt', '.json', '.log'}
@@ -152,11 +148,9 @@ class LegacyReferenceCleanup:
         file_str = str(file_path)
         
         # Skip certain directories
-        skip_dirs = [
-            '__pycache__', '.git', '.venv', 'node_modules', 'htmlcov',
-            'ai_development_docs', 'ai_development_tools', 'archive', 
-            'development_docs', 'scripts'
-        ]
+        # Import constants from services
+        from ai_development_tools.services.standard_exclusions import STANDARD_EXCLUSION_PATTERNS
+        skip_dirs = [pattern.rstrip('/') for pattern in STANDARD_EXCLUSION_PATTERNS if not pattern.startswith('*')]
         for skip_dir in skip_dirs:
             if skip_dir in file_str:
                 return True

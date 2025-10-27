@@ -8,12 +8,23 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterable, Iterator, Sequence, Tuple, Dict, Any
 
-from ai_development_tools.standard_exclusions import (
+from ai_development_tools.services.standard_exclusions import (
     get_exclusions,
     should_exclude_file,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Command categories for help display
+COMMAND_CATEGORIES = {
+    "System Status": ["status", "config"],
+    "Audit & Analysis": ["audit", "quick-audit", "decision-support"],
+    "Documentation": ["docs", "doc-sync"],
+    "Code Quality": ["validate", "unused-imports", "legacy"],
+    "Coverage & Metrics": ["coverage"],
+    "Workflow": ["workflow", "version-sync"],
+    "Utilities": ["trees", "help"]
+}
 
 
 @dataclass(frozen=True)
@@ -48,6 +59,27 @@ def write_text(path: Path, content: str) -> None:
 
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def setup_ai_tools_imports():
+    """Setup imports for AI tools - handles both relative and absolute imports cleanly."""
+    import sys
+    from pathlib import Path
+    
+    # Add project root to path for core module imports
+    project_root = Path(__file__).parent.parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+    
+    return project_root
+
+
+def safe_import(relative_import, absolute_import):
+    """Safely import modules, trying relative first, then absolute."""
+    try:
+        return __import__(relative_import, fromlist=[''])
+    except ImportError:
+        return __import__(absolute_import, fromlist=[''])
 
 
 def iter_python_sources(directories: Sequence[Path | str], *, tool_type: str = "analysis", context: str = "development") -> Iterator[Path]:

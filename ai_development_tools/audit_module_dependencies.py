@@ -6,13 +6,28 @@ Scans all .py files and extracts import information for comparison.
 
 import ast
 import re
+import sys
 from pathlib import Path
 from typing import Dict, List
-from standard_exclusions import should_exclude_file
-from services.constants import (
-    is_local_module as _is_local_module,
-    is_standard_library_module as _is_stdlib_module,
-)
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Handle both relative and absolute imports
+try:
+    from .services.standard_exclusions import should_exclude_file
+    from .services.constants import (
+        is_local_module as _is_local_module,
+        is_standard_library_module as _is_stdlib_module,
+    )
+except ImportError:
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
+    from ai_development_tools.services.constants import (
+        is_local_module as _is_local_module,
+        is_standard_library_module as _is_stdlib_module,
+    )
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
     """Extract all imports from a Python file."""

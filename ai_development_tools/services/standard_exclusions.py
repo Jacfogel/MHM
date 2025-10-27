@@ -6,13 +6,15 @@ This module provides standardized exclusion patterns that can be reused
 across all development tools to ensure consistent file filtering.
 
 Usage:
-    from ai_development_tools.standard_exclusions import get_exclusions
+    from ai_development_tools.services.standard_exclusions import get_exclusions
     
     # Get exclusions for a specific tool type
     exclusions = get_exclusions('coverage')
     exclusions = get_exclusions('analysis')
     exclusions = get_exclusions('documentation')
 """
+
+from typing import Tuple, Dict
 
 # Universal exclusions - should be excluded from almost everything
 UNIVERSAL_EXCLUSIONS = [
@@ -87,6 +89,26 @@ TOOL_EXCLUSIONS = {
 
 # Context-specific exclusions
 CONTEXT_EXCLUSIONS = {
+    'recent_changes': [
+        # Exclude generated files from recent changes
+        'ai_development_tools/AI_PRIORITIES.md',
+        'ai_development_tools/AI_STATUS.md',
+        'ai_development_tools/consolidated_report.txt',
+        'ai_development_tools/ai_audit_detailed_results.json',
+        'ai_development_docs/AI_MODULE_DEPENDENCIES.md',
+        'ai_development_docs/AI_FUNCTION_REGISTRY.md',
+        'ui/generated/*',
+        '*/ui/generated/*',
+        # Windows path variants
+        'ai_development_tools\\AI_PRIORITIES.md',
+        'ai_development_tools\\AI_STATUS.md',
+        'ai_development_tools\\consolidated_report.txt',
+        'ai_development_tools\\ai_audit_detailed_results.json',
+        'ai_development_docs\\AI_MODULE_DEPENDENCIES.md',
+        'ai_development_docs\\AI_FUNCTION_REGISTRY.md',
+        'ui\\generated\\*',
+        '*\\ui\\generated\\*',
+    ],
     'production': [
         # Production should exclude development files
         'ai_development_tools/*',
@@ -146,12 +168,12 @@ def get_exclusions(tool_type: str = None, context: str = 'development') -> list:
     
     return exclusions
 
-def should_exclude_file(file_path: str, tool_type: str = None, context: str = 'development') -> bool:
+def should_exclude_file(file_path, tool_type: str = None, context: str = 'development') -> bool:
     """
     Check if a file should be excluded based on standard patterns.
     
     Args:
-        file_path: Path to the file to check
+        file_path: Path to the file to check (str or Path object)
         tool_type: Type of tool
         context: Context
     
@@ -161,9 +183,12 @@ def should_exclude_file(file_path: str, tool_type: str = None, context: str = 'd
     import fnmatch
     exclusions = get_exclusions(tool_type, context)
     
+    # Convert Path object to string if needed
+    file_path_str = str(file_path)
+    
     for pattern in exclusions:
         # Handle wildcard patterns with fnmatch
-        if fnmatch.fnmatch(file_path, pattern) or pattern in file_path:
+        if fnmatch.fnmatch(file_path_str, pattern) or pattern in file_path_str:
             return True
     
     return False
@@ -187,6 +212,89 @@ def get_version_sync_exclusions() -> list:
 def get_file_operations_exclusions() -> list:
     """Get exclusions specifically for file operations."""
     return get_exclusions('file_operations', 'development')
+
+# =============================================================================
+# GENERATED FILES & EXCLUSIONS
+# =============================================================================
+
+# Generated AI status files (always excluded from recent changes)
+GENERATED_AI_FILES: Tuple[str, ...] = (
+    'ai_development_tools/AI_PRIORITIES.md',
+    'ai_development_tools/AI_STATUS.md', 
+    'ai_development_tools/consolidated_report.txt',
+    'ai_development_tools/ai_audit_detailed_results.json',
+)
+
+# Generated documentation files (excluded from most tools)
+GENERATED_DOC_FILES: Tuple[str, ...] = (
+    'development_docs/UNUSED_IMPORTS_REPORT.md',
+    'development_docs/TEST_COVERAGE_EXPANSION_PLAN.md',
+    'development_docs/MODULE_DEPENDENCIES_DETAIL.md',
+    'development_docs/LEGACY_REFERENCE_REPORT.md',
+    'development_docs/FUNCTION_REGISTRY_DETAIL.md',
+    'development_docs/DIRECTORY_TREE.md',
+    'development_docs/CHANGELOG_DETAIL.md',
+    'ai_development_docs/AI_MODULE_DEPENDENCIES.md',
+    'ai_development_docs/AI_FUNCTION_REGISTRY.md'
+)
+
+# All generated files (combination of AI and doc files)
+ALL_GENERATED_FILES: Tuple[str, ...] = GENERATED_AI_FILES + GENERATED_DOC_FILES
+
+# Standard exclusion patterns (used by multiple tools)
+STANDARD_EXCLUSION_PATTERNS: Tuple[str, ...] = (
+    'logs/',
+    'data/',
+    'resources/',
+    'coverage_html/',
+    '__pycache__/',
+    '.pytest_cache/',
+    'venv/',
+    '.venv/',
+    'htmlcov/',
+    'scripts/',
+    'archive/',
+    'ui/generated/',
+    '*.log',
+    '.coverage',
+    'coverage.xml',
+    '*.html'
+)
+
+# =============================================================================
+# TOOL-SPECIFIC EXCLUSIONS
+# =============================================================================
+
+# Unused imports checker specific files
+UNUSED_IMPORTS_INIT_FILES: Tuple[str, ...] = (
+    'ai_development_tools/__init__.py',
+    'ai_development_tools/services/__init__.py',
+)
+
+# Legacy cleanup preserve files
+LEGACY_PRESERVE_FILES: Tuple[str, ...] = (
+    'CHANGELOG_DETAIL.md',
+    'AI_CHANGELOG.md',
+    'archive/',
+    'development_docs/',
+    'ai_development_docs/',
+    'logs/',
+    'TODO.md',
+    'PLANS.md',
+    'FUNCTION_REGISTRY',
+    'MODULE_DEPENDENCIES',
+    'LEGACY_REFERENCE_REPORT.md',
+)
+
+# Documentation sync checker placeholders
+DOC_SYNC_PLACEHOLDERS: Dict[str, str] = {
+    '__pycache__': '    (Python cache files)',
+    '.pytest_cache': '    (pytest cache files)',
+    '.venv': '    (virtual environment files)',
+    'backups': '    (backup files)',
+    'htmlcov': '    (HTML coverage reports)',
+    'archive': '    (archived files)'
+}
 
 # Example usage
 if __name__ == "__main__":

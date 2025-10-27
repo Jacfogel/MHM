@@ -21,8 +21,18 @@ from typing import Dict, List, Optional
 from collections import defaultdict
 from datetime import datetime
 
-from .standard_exclusions import should_exclude_file
-from core.logger import get_component_logger
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Handle both relative and absolute imports
+try:
+    from .services.standard_exclusions import should_exclude_file
+    from core.logger import get_component_logger
+except ImportError:
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
+    from core.logger import get_component_logger
 
 logger = get_component_logger(__name__)
 
@@ -34,20 +44,16 @@ class UnusedImportsChecker:
         self.project_root = Path(project_root).resolve()
         
         # Files to skip entirely
-        self.skip_patterns = {
-            'scripts/',
-            '__pycache__/',
-            '.pytest_cache/',
-            'venv/',
-            '.venv/',
-            'htmlcov/',
-        }
+        # Import constants from services
+        from ai_development_tools.services.standard_exclusions import (
+            STANDARD_EXCLUSION_PATTERNS,
+            UNUSED_IMPORTS_INIT_FILES
+        )
+        
+        self.skip_patterns = set(STANDARD_EXCLUSION_PATTERNS)
         
         # Special handling files
-        self.init_files = {
-            'ai_development_tools/__init__.py',
-            'ai_development_tools/services/__init__.py',
-        }
+        self.init_files = set(UNUSED_IMPORTS_INIT_FILES)
         
         # Results storage
         self.findings = {

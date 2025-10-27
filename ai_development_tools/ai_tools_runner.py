@@ -9,6 +9,7 @@ from .services.operations import (
     COMMAND_REGISTRY,
     list_commands,
 )
+from .services.common import COMMAND_CATEGORIES
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -23,9 +24,17 @@ def _build_parser() -> argparse.ArgumentParser:
 
 def _print_available_commands() -> None:
     print("Available commands:\n")
-    for entry in list_commands():
-        print(f"  {entry.name:<14} {entry.help}")
-    print("\nUse `python ai_development_tools/ai_tools_runner.py <command> --help` for command-specific options.")
+
+    for category, commands in COMMAND_CATEGORIES.items():
+        print(f"  {category}:")
+        for cmd_name in commands:
+            if cmd_name in COMMAND_REGISTRY:
+                cmd = COMMAND_REGISTRY[cmd_name]
+                print(f"    {cmd.name:<16} {cmd.help}")
+        print()
+    
+    print("Use `python ai_development_tools/ai_tools_runner.py <command> --help` for command-specific options.")
+    print("Use `python ai_development_tools/ai_tools_runner.py help` for comprehensive help.")
 
 
 

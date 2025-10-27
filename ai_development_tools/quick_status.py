@@ -9,17 +9,22 @@ Optimized for AI assistants to get essential information quickly.
 import sys
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List
 
-import config
+# Add project root to path for imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core import config
 
 class QuickStatus:
     """Quick status checker for AI collaboration."""
     
     def __init__(self):
-        self.project_root = config.get_project_root()
-        self.ai_config = config.get_ai_collaboration_config()
+        self.project_root = Path(__file__).parent.parent
+        # Note: ai_config functionality removed for simplicity
     
     def get_quick_status(self) -> Dict:
         """Get quick status overview"""
@@ -158,10 +163,17 @@ class QuickStatus:
         return actions
     
     def _get_recent_activity(self) -> Dict:
-        """Get information about recent activity"""
+        """Get information about recent activity using shared utilities."""
+        # Handle both relative and absolute imports
+        try:
+            from .services.common import should_exclude_file
+        except ImportError:
+            # Running directly, use absolute imports
+            from ai_development_tools.services.common import should_exclude_file
+        
         activity = {
             'last_audit': None,
-            'recent_changes': []
+            'recent_changes': set()  # Use set to avoid duplicates
         }
         
         # Check for recent audit
@@ -174,20 +186,89 @@ class QuickStatus:
             except:
                 pass
         
-        # Check for recent changes in key files
-        key_files = ['ai_development_docs/AI_CHANGELOG.md', '../TODO.md']
-        for file_path in key_files:
-            full_path = self.project_root / file_path
-            if full_path.exists():
+        # Get git-based "recent" threshold (24 hours before last commit)
+        recent_threshold = self._get_git_recent_threshold()
+        
+        # Check for recent changes in key directories
+        # Import constants from services
+        from ai_development_tools.services.constants import PROJECT_DIRECTORIES
+        from ai_development_tools.services.standard_exclusions import (
+            ALL_GENERATED_FILES, 
+            STANDARD_EXCLUSION_PATTERNS
+        )
+        
+        key_directories = list(PROJECT_DIRECTORIES)
+        
+        # Additional files to exclude (beyond standard exclusions)
+        additional_excluded_files = set(ALL_GENERATED_FILES)
+        
+        # Additional patterns to exclude (beyond standard exclusions)
+        additional_excluded_patterns = set(STANDARD_EXCLUSION_PATTERNS)
+        
+        for dir_path in key_directories:
+            full_dir_path = self.project_root / dir_path
+            if full_dir_path.exists() and full_dir_path.is_dir():
                 try:
-                    mtime = full_path.stat().st_mtime
-                    mtime_dt = datetime.fromtimestamp(mtime)
-                    if (datetime.now() - mtime_dt).days < 7:  # Modified in last 7 days
-                        activity['recent_changes'].append(f"{file_path} modified recently")
+                    # Walk through all files in the directory
+                    for file_path in full_dir_path.rglob('*'):
+                        if file_path.is_file():
+                            # Convert to relative path for exclusion checking
+                            rel_path = file_path.relative_to(self.project_root)
+                            rel_path_str = str(rel_path).replace('\\', '/')
+                            
+                            # Skip if file should be excluded by standard exclusions
+                            if should_exclude_file(rel_path_str):
+                                continue
+                                
+                            # Skip if file is in additional excluded files list
+                            if rel_path_str in additional_excluded_files:
+                                continue
+                                
+                            # Skip if file matches additional excluded patterns
+                            if any(rel_path_str.startswith(pattern.rstrip('*')) or 
+                                   rel_path_str.endswith(pattern.lstrip('*')) or
+                                   pattern in rel_path_str for pattern in additional_excluded_patterns):
+                                continue
+                                
+                            # Check if modified since git threshold
+                            try:
+                                mtime = file_path.stat().st_mtime
+                                mtime_dt = datetime.fromtimestamp(mtime)
+                                if mtime_dt >= recent_threshold:
+                                    activity['recent_changes'].add(rel_path_str)
+                            except:
+                                pass
                 except:
                     pass
         
+        # Convert set to sorted list and limit to reasonable number
+        activity['recent_changes'] = sorted(list(activity['recent_changes']), reverse=True)[:15]
+        
         return activity
+    
+    def _get_git_recent_threshold(self) -> datetime:
+        """Get git-based threshold for 'recent' changes (24 hours before last commit)."""
+        try:
+            import subprocess
+            # Get the last commit date
+            result = subprocess.run(
+                ['git', 'log', '-1', '--format=%ci'],
+                capture_output=True, text=True, cwd=self.project_root
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                last_commit_str = result.stdout.strip()
+                # Parse the commit date and make it timezone-aware
+                last_commit = datetime.fromisoformat(last_commit_str.replace(' ', 'T'))
+                # Make it timezone-naive for comparison with file timestamps
+                if last_commit.tzinfo is not None:
+                    last_commit = last_commit.replace(tzinfo=None)
+                # Return 24 hours before the last commit
+                return last_commit - timedelta(hours=24)
+        except Exception:
+            pass
+        
+        # Fallback to 7 days ago if git fails
+        return datetime.now() - timedelta(days=7)
     
     def print_concise_status(self):
         """Print comprehensive status for AI consumption"""

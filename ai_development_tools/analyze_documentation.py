@@ -4,22 +4,23 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Sequence, Tuple
 
-from .services.common import (
-    ProjectPaths,
-    ensure_ascii,
-    load_text,
-    run_cli,
-    summary_block,
-)
-from .services.constants import (
-    CORRUPTED_ARTIFACT_PATTERNS,
-    DEFAULT_DOCS,
-    PAIRED_DOCS,
-)
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Handle both relative and absolute imports
+try:
+    from .services.common import ProjectPaths, ensure_ascii, load_text, run_cli, summary_block
+    from .services.constants import CORRUPTED_ARTIFACT_PATTERNS, DEFAULT_DOCS, PAIRED_DOCS
+except ImportError:
+    from services.common import ProjectPaths, ensure_ascii, load_text, run_cli, summary_block
+    from services.constants import CORRUPTED_ARTIFACT_PATTERNS, DEFAULT_DOCS, PAIRED_DOCS
 
 PATHS = ProjectPaths()
 

@@ -17,6 +17,63 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-27 - AI Development Tools Comprehensive Refactoring and Test Fixes **COMPLETED**
+
+**Context**: Major refactoring session to fix import issues, improve command structure, centralize constants, and fix failing tests in the AI development tools system.
+
+**Problem**: The `ai_tools_runner.py` had import issues preventing commands from working, help output was unhelpful, and there were 2 failing UI generation tests. Additionally, the system had scattered hardcoded constants and inconsistent exclusion patterns.
+
+**Technical Changes**:
+
+1. **Fixed Import Issues**:
+   - Added `sys.path` manipulation to `ai_tools_runner.py` for robust imports
+   - Fixed relative/absolute import handling across all 14 AI tools
+   - Added missing `import os` to `ui/generate_ui_files.py` (critical fix for test failures)
+
+2. **Improved Command Structure**:
+   - Moved `COMMAND_CATEGORIES` to `ai_development_tools/services/common.py` for centralized management
+   - Enhanced help output with categorized, detailed, and example-rich information
+   - Fixed command logic for `status` vs `audit` commands
+
+3. **Centralized Constants and Exclusions**:
+   - Created `ai_development_tools/services/constants.py` for project-specific constants
+   - Moved `standard_exclusions.py` to `ai_development_tools/services/standard_exclusions.py`
+   - Consolidated various hardcoded lists and patterns across tools
+   - Created comprehensive generated files exclusion system
+
+4. **Enhanced Status and Audit System**:
+   - Created `system_signals.py` tool for independent system health monitoring
+   - Integrated system signals into status and audit commands
+   - Implemented cached data reading for status command performance
+   - Fixed all "unavailable" placeholders in `AI_STATUS.md`
+
+5. **Fixed Test Failures**:
+   - Resolved 2 failing UI generation tests by adding missing `import os`
+   - All 1874 tests now pass (2 skipped due to Windows environment)
+
+**Files Modified**:
+- `ai_development_tools/ai_tools_runner.py` - Fixed imports and help system
+- `ai_development_tools/services/operations.py` - Major refactoring and integration
+- `ai_development_tools/services/common.py` - New centralized helpers
+- `ai_development_tools/services/constants.py` - New constants management
+- `ai_development_tools/services/standard_exclusions.py` - Moved and enhanced
+- `ui/generate_ui_files.py` - Fixed missing import causing test failures
+- `ai_development_tools/system_signals.py` - New system health monitoring tool
+- `ai_development_tools/README.md` - Updated with new features and complete output list
+
+**Documentation Updates**:
+- Updated `ai_development_tools/README.md` with comprehensive feature documentation
+- Added complete "Generated Outputs" list including all audit and docs command outputs
+- Enhanced command descriptions and usage examples
+
+**Testing Evidence**:
+- Full test suite passes: 1874 passed, 2 skipped, 0 failed
+- All AI development tools commands working correctly
+- Status and audit commands generating complete reports
+- System signals providing real-time health monitoring
+
+**Outcome**: AI development tools are now fully functional with robust import handling, centralized configuration, comprehensive status reporting, and 100% test pass rate.
+
 ### 2025-10-24 - AI Quick Reference Cleanup **COMPLETED**
 
 **Context**: The AI-facing documentation had accumulated mojibake/unicode artifacts and repeated guidance that is now enforced through Cursor rules, making the quick references noisy and harder to scan during collaboration.

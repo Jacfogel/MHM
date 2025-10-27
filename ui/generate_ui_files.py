@@ -6,6 +6,7 @@ This script wraps pyside6-uic to generate UI files with proper generated file he
 following the project's documentation standards.
 """
 
+import os
 import subprocess
 import sys
 from pathlib import Path

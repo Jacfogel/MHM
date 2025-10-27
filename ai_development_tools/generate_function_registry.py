@@ -225,7 +225,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract function/class information."""
     import config
-    from standard_exclusions import should_exclude_file
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
     project_root = config.get_project_root()
     results = {}
     

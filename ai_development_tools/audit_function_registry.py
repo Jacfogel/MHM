@@ -5,20 +5,27 @@ from __future__ import annotations
 
 import argparse
 import ast
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple, Set
 
-from . import config
-from .services.common import (
-    ProjectPaths,
-    ensure_ascii,
-    iter_python_sources,
-    run_cli,
-)
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Handle both relative and absolute imports
+try:
+    from . import config
+    from .services.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
+except ImportError:
+    import config
+    from services.common import ProjectPaths, ensure_ascii, iter_python_sources, run_cli, summary_block, write_text
 
 PATHS = ProjectPaths()
 REGISTRY_PATH = PATHS.dev_docs / "FUNCTION_REGISTRY_DETAIL.md"
+CURRENT_DIR = Path(__file__).parent
 
 FUNCTION_CFG = config.get_function_discovery_config()
 HANDLER_KEYWORDS = tuple(keyword.lower() for keyword in FUNCTION_CFG.get("handler_keywords", []))

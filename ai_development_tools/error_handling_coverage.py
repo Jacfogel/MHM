@@ -18,7 +18,16 @@ from typing import Dict, List, Any
 from collections import defaultdict
 import re
 
-from .standard_exclusions import should_exclude_file
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# Handle both relative and absolute imports
+try:
+    from .services.standard_exclusions import should_exclude_file
+except ImportError:
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
 
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""

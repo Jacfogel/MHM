@@ -21,6 +21,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from core.logger import get_component_logger
 
 logger = get_component_logger(__name__)
@@ -44,14 +49,9 @@ class CoverageMetricsRegenerator:
         self.coverage_logs_dir.mkdir(parents=True, exist_ok=True)
         
         # Core modules to track coverage for
-        self.core_modules = [
-            'core',
-            'communication', 
-            'ui',
-            'tasks',
-            'user',
-            'ai'
-        ]
+        # Import constants from services.constants
+        from ai_development_tools.services.constants import CORE_MODULES
+        self.core_modules = list(CORE_MODULES)
         
     def _configure_coverage_paths(self) -> None:
         """Load coverage configuration paths from coverage.ini."""
@@ -92,14 +92,14 @@ class CoverageMetricsRegenerator:
             self.pytest_stderr_log = None
             
             coverage_output = self.project_root / "ai_development_tools" / "coverage.json"
+            # Build coverage arguments dynamically from core modules
+            cov_args = []
+            for module in self.core_modules:
+                cov_args.extend(['--cov', module])
+            
             cmd = [
                 sys.executable, '-m', 'pytest',
-                '--cov=core',
-                '--cov=communication',
-                '--cov=ui',
-                '--cov=tasks',
-                '--cov=user',
-                '--cov=ai',
+                *cov_args,
                 '--cov-report=term-missing',
                 f'--cov-report=json:{coverage_output}',
                 '--cov-config=coverage.ini',

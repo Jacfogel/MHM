@@ -187,6 +187,83 @@ TEMPLATE_PATTERNS: Tuple[str, ...] = (
     'test_<', '>.py', '{', '}', '*', '?'
 )
 
+# AI Development Tools Constants
+
+# =============================================================================
+# PROJECT STRUCTURE
+# =============================================================================
+
+# Core project directories (used by multiple tools)
+PROJECT_DIRECTORIES: Tuple[str, ...] = (
+    '.',  # Root directory
+    'ai',
+    'communication', 
+    'core',
+    'tasks',
+    'ui',
+    'user',
+    'tests'
+)
+
+# Core modules for coverage and analysis (subset of PROJECT_DIRECTORIES)
+CORE_MODULES: Tuple[str, ...] = (
+    'core',
+    'communication', 
+    'ui',
+    'tasks',
+    'user',
+    'ai'
+)
+
+# =============================================================================
+# TOOL-SPECIFIC CONSTANTS
+# =============================================================================
+
+# Files to check for ASCII compliance (AI collaborator facing docs)
+ASCII_COMPLIANCE_FILES: Tuple[str, ...] = (
+    # AI development docs (most critical for AI collaboration)
+    'ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md',
+    'ai_development_docs/AI_ARCHITECTURE.md',
+    'ai_development_docs/AI_DOCUMENTATION_GUIDE.md',
+    'ai_development_docs/AI_CHANGELOG.md',
+    'ai_development_docs/AI_ERROR_HANDLING_GUIDE.md',
+    'ai_development_docs/AI_LOGGING_GUIDE.md',
+    'ai_development_docs/AI_TESTING_GUIDE.md',
+    'ai_development_docs/AI_REFERENCE.md',
+    'ai_development_docs/AI_SESSION_STARTER.md',
+    
+    # Core development docs (important for AI collaboration)
+    'DEVELOPMENT_WORKFLOW.md',
+    'ARCHITECTURE.md',
+    'DOCUMENTATION_GUIDE.md',
+    
+    # Development docs (important for AI collaboration)
+    'development_docs/CHANGELOG_DETAIL.md',
+    'development_docs/PLANS.md',
+    
+    # Project management files (important for AI collaboration)
+    'TODO.md',
+)
+
+# Version sync key directories
+VERSION_SYNC_DIRECTORIES: Dict[str, str] = {
+    'ai_development_tools': 'ai_development_tools/',
+    'ai_development_docs': 'ai_development_docs/',
+    'development_docs': 'development_docs/',
+    'core': 'core/',
+    'communication': 'communication/',
+    'ui': 'ui/',
+    'tests': 'tests/',
+    'logs': 'logs/',
+    'scripts': 'scripts/',
+    'data': 'data/',
+    'resources': 'resources/',
+    'styles': 'styles/',
+    'tasks': 'tasks/',
+    'user': 'user/',
+    'ai': 'ai/'
+}
+
 # Common alternative directory paths for file resolution
 ALTERNATIVE_DIRECTORIES: Tuple[str, ...] = (
     'ai_development_docs', 'development_docs', 'ai_development_tools',
@@ -219,20 +296,24 @@ def is_local_module(module_name: str) -> bool:
 
 __all__ = [
     'ALTERNATIVE_DIRECTORIES',
+    'ASCII_COMPLIANCE_FILES',
     'COMMAND_PATTERNS',
     'COMMON_CLASS_NAMES',
     'COMMON_CODE_PATTERNS',
     'COMMON_FUNCTION_NAMES',
     'COMMON_VARIABLE_NAMES',
     'CORRUPTED_ARTIFACT_PATTERNS',
+    'CORE_MODULES',
     'DEFAULT_DOCS',
     'IGNORED_PATH_PATTERNS',
     'LOCAL_MODULE_PREFIXES',
     'PAIRED_DOCS',
+    'PROJECT_DIRECTORIES',
     'STANDARD_LIBRARY_MODULES',
     'STANDARD_LIBRARY_PREFIXES',
     'TEMPLATE_PATTERNS',
     'THIRD_PARTY_LIBRARIES',
+    'VERSION_SYNC_DIRECTORIES',
     'is_local_module',
     'is_standard_library_module',
 ]

@@ -180,23 +180,9 @@ def update_version_info(content, new_version, new_date):
 
 def get_key_directories():
     """Get single source of truth for key directories in the project."""
-    return {
-        'ai_development_tools': 'ai_development_tools/',
-        'ai_development_docs': 'ai_development_docs/',
-        'development_docs': 'development_docs/',
-        'core': 'core/',
-        'communication': 'communication/',
-        'ui': 'ui/',
-        'tests': 'tests/',
-        'logs': 'logs/',
-        'scripts': 'scripts/',
-        'data': 'data/',
-        'resources': 'resources/',
-        'styles': 'styles/',
-        'tasks': 'tasks/',
-        'user': 'user/',
-        'ai': 'ai/'
-    }
+    # Import constants from services.constants
+    from ai_development_tools.services.constants import VERSION_SYNC_DIRECTORIES
+    return VERSION_SYNC_DIRECTORIES
 
 def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
@@ -233,136 +219,56 @@ def validate_referenced_paths():
         }
 
 def sync_todo_with_changelog():
-    """Automatically move completed entries from TODO.md when AI_CHANGELOG gains new items."""
+    """Check for completed entries in TODO.md that should be reviewed for changelog documentation."""
     todo_path = "TODO.md"
     changelog_path = "ai_development_docs/AI_CHANGELOG.md"
 
     if not os.path.exists(todo_path) or not os.path.exists(changelog_path):
-        return {'status': 'ok', 'message': 'TODO.md or AI_CHANGELOG.md not found', 'moved_entries': 0}
+        return {'status': 'ok', 'message': 'TODO.md or AI_CHANGELOG.md not found', 'completed_entries': 0}
 
     try:
         # Read TODO.md
         with open(todo_path, 'r', encoding='utf-8') as f:
             todo_content = f.read()
 
-        # Read AI_CHANGELOG.md
-        with open(changelog_path, 'r', encoding='utf-8') as f:
-            changelog_content = f.read()
+        # Find completed entries in TODO.md
+        completed_entries = []
+        lines = todo_content.split('\n')
+        
+        for i, line in enumerate(lines):
+            # Look for lines with COMPLETED, completed, DONE, or done markers
+            if re.search(r'\*\*.*\*\*.*\*\*COMPLETED\*\*', line, re.IGNORECASE) or \
+               re.search(r'\*\*.*\*\*.*\*\*DONE\*\*', line, re.IGNORECASE) or \
+               re.search(r'COMPLETED', line, re.IGNORECASE) or \
+               re.search(r'DONE', line, re.IGNORECASE):
+                
+                # Extract the task title and context
+                task_title = line.strip()
+                completed_entries.append({
+                    'line_number': i + 1,
+                    'title': task_title,
+                    'context': lines[max(0, i-2):i+3]  # Include 2 lines before and after for context
+                })
 
-        # Extract recent changelog entries (last 5 entries)
-        lines = changelog_content.split('\n')
-        recent_entries = []
-        in_recent_section = False
-        entry_count = 0
-
-        for line in lines:
-            if "## Recent Changes (Most Recent First)" in line:
-                in_recent_section = True
-                continue
-            elif in_recent_section and line.startswith('### '):
-                if entry_count >= 5:  # Only check last 5 entries
-                    break
-                recent_entries.append(line)
-                entry_count += 1
-            elif in_recent_section and line.startswith('##') and not line.startswith('###'):
-                break
-
-        # Extract TODO entries
-        todo_lines = todo_content.split('\n')
-        todo_entries = []
-        current_entry = []
-
-        for line in todo_lines:
-            if line.strip().startswith('- **') or line.strip().startswith('* **'):
-                if current_entry:
-                    todo_entries.append('\n'.join(current_entry))
-                current_entry = [line]
-            elif current_entry and (line.strip().startswith('- ') or line.strip().startswith('* ') or line.strip() == ''):
-                current_entry.append(line)
-            elif current_entry and line.strip():
-                current_entry.append(line)
-            else:
-                if current_entry:
-                    todo_entries.append('\n'.join(current_entry))
-                current_entry = []
-
-        if current_entry:
-            todo_entries.append('\n'.join(current_entry))
-
-        # Check for matches between changelog entries and TODO entries
-        moved_entries = []
-        remaining_todo_entries = []
-
-        for todo_entry in todo_entries:
-            todo_text = todo_entry.lower()
-            is_completed = False
-
-            # Check if this TODO entry matches any recent changelog entry
-            for changelog_entry in recent_entries:
-                changelog_text = changelog_entry.lower()
-
-                # Extract key words from both entries for comparison
-                todo_words = set(re.findall(r'\b\w+\b', todo_text))
-                changelog_words = set(re.findall(r'\b\w+\b', changelog_text))
-
-                # Check for significant overlap (at least 3 common words)
-                common_words = todo_words.intersection(changelog_words)
-                if len(common_words) >= 3:
-                    is_completed = True
-                    break
-
-            if is_completed:
-                moved_entries.append(todo_entry)
-            else:
-                remaining_todo_entries.append(todo_entry)
-
-        # Update TODO.md if entries were moved
-        if moved_entries:
-            # Rebuild TODO.md content
-            new_todo_content = []
-            in_todo_section = False
-
-            for line in todo_lines:
-                if line.strip().startswith('## TODO') or line.strip().startswith('# TODO'):
-                    in_todo_section = True
-                    new_todo_content.append(line)
-                elif in_todo_section and line.strip().startswith('##') and not line.strip().startswith('###'):
-                    # End of TODO section
-                    new_todo_content.append(line)
-                    in_todo_section = False
-                elif in_todo_section:
-                    # Skip lines that are part of moved entries
-                    skip_line = False
-                    for moved_entry in moved_entries:
-                        if line in moved_entry:
-                            skip_line = True
-                            break
-                    if not skip_line:
-                        new_todo_content.append(line)
-                else:
-                    new_todo_content.append(line)
-
-            # Write updated TODO.md
-            with open(todo_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(new_todo_content))
-
+        if completed_entries:
             return {
                 'status': 'ok',
-                'message': f'Moved {len(moved_entries)} completed entries from TODO.md',
-                'moved_entries': len(moved_entries)
+                'message': f'Found {len(completed_entries)} completed entries in TODO.md that need review',
+                'completed_entries': len(completed_entries),
+                'entries': completed_entries
             }
         else:
             return {
                 'status': 'ok',
-                'message': 'No completed entries found to move',
-                'moved_entries': 0
+                'message': 'No completed entries found in TODO.md',
+                'completed_entries': 0
             }
 
     except Exception as e:
         return {
             'status': 'error',
-            'message': f'Error syncing TODO with changelog: {e}',
-            'moved_entries': 0
+            'message': f'Error checking TODO entries: {str(e)}',
+            'completed_entries': 0
         }
 
 def check_changelog_entry_count(max_entries=15):
@@ -805,8 +711,13 @@ if __name__ == "__main__":
         elif command == "sync-todo":
             result = sync_todo_with_changelog()
             print(f"TODO sync: {result['message']}")
-            if result['moved_entries'] > 0:
-                print(f"Moved {result['moved_entries']} completed entries from TODO.md")
+            if result.get('completed_entries', 0) > 0:
+                print(f"Found {result['completed_entries']} completed entries that need manual review:")
+                for entry in result.get('entries', []):
+                    print(f"  Line {entry['line_number']}: {entry['title']}")
+                print("  -> Please check if these are documented in AI_CHANGELOG.md")
+                print("  -> If documented, remove them from TODO.md")
+                print("  -> If not documented, add them to AI_CHANGELOG.md first")
         else:
             print("Usage:")
             print("  python ai_development_tools/version_sync.py show                    # Show AI doc versions")

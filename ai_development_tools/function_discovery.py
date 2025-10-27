@@ -7,13 +7,24 @@ Finds all functions, categorizes them (handler, utility, test, etc.), and shows 
 
 import os
 import ast
+import sys
 from pathlib import Path
 from typing import Dict, List
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 from core.error_handling import handle_errors
 
-from . import config
-from .standard_exclusions import should_exclude_file
+# Handle both relative and absolute imports
+try:
+    from . import config
+    from .services.standard_exclusions import should_exclude_file
+except ImportError:
+    import config
+    from ai_development_tools.services.standard_exclusions import should_exclude_file
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES

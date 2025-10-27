@@ -8,6 +8,15 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-27 - AI Development Tools Comprehensive Refactoring **COMPLETED**
+- Fixed import issues across all 14 AI tools with robust `sys.path` handling
+- Centralized constants and exclusions in `services/` directory structure
+- Created `system_signals.py` tool for independent system health monitoring
+- Enhanced status/audit commands with cached data reading and complete report generation
+- Fixed 2 failing UI generation tests (missing `import os` in `generate_ui_files.py`)
+- Updated `ai_development_tools/README.md` with comprehensive feature documentation
+- **Result**: 100% test pass rate (1874 passed, 2 skipped), all AI tools functional
+
 ### 2025-10-24 - AI Quick Reference Cleanup **COMPLETED**
 - Normalized `AI_SESSION_STARTER.md`, `AI_REFERENCE.md`, and `AI_LOGGING_GUIDE.md` to plain ASCII and tightened section headings/paired-doc links.
 - Trimmed advice duplicated by the Cursor rules, keeping the quick references focused on troubleshooting, communication cues, logging workflows, and maintenance.
