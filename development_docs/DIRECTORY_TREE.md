@@ -5,7 +5,6 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
-|   .coverage
 |   .env
 |   .gitattributes
 |   .gitignore
@@ -15,6 +14,7 @@ C:.
 |   DOCUMENTATION_GUIDE.md
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
+|   pyproject.toml
 |   pytest.ini
 |   QUICK_REFERENCE.md
 |   README.md
@@ -22,7 +22,6 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
-|   shutdown_request.flag
 |   TODO.md
 |   
 +---.cursor
@@ -33,19 +32,21 @@ C:.
 |   |       explore-options.md
 |   |       full-audit.md
 |   |       git.md
-|   |       improve-system.md
-|   |       README.md
 |   |       refactor.md
 |   |       review.md
 |   |       start.md
-|   |       status.md
 |   |       test.md
 |   |       triage-issue.md
 |   |       
 |   \---rules
-|           audit.mdc
+|           ai-tools.mdc
+|           communication-guidelines.mdc
 |           context.mdc
+|           core-guidelines.mdc
 |           critical.mdc
+|           quality-standards.mdc
+|           testing-guidelines.mdc
+|           ui-guidelines.mdc
 |           
 +---.pytest_cache
     (pytest cache files)
@@ -59,6 +60,7 @@ C:.
 |   |   chatbot.py
 |   |   context_builder.py
 |   |   conversation_history.py
+|   |   lm_studio_manager.py
 |   |   prompt_manager.py
 |   |   
 |   \---__pycache__
@@ -103,6 +105,7 @@ C:.
 |   |   regenerate_coverage_metrics.py
 |   |   standard_exclusions.py
 |   |   tool_guide.py
+|   |   unused_imports_checker.py
 |   |   validate_ai_work.py
 |   |   version_sync.py
 |   |   __init__.py
@@ -112,6 +115,9 @@ C:.
 +---archive
     (archived files)
 +---communication
+|   |   __init__.py
+|   |   
+|   +---.cursor
 |   +---command_handlers
 |   |   |   analytics_handler.py
 |   |   |   base_handler.py
@@ -121,6 +127,7 @@ C:.
 |   |   |   schedule_handler.py
 |   |   |   shared_types.py
 |   |   |   task_handler.py
+|   |   |   __init__.py
 |   |   |   
 |   |   \---__pycache__
     (Python cache files)
@@ -149,10 +156,13 @@ C:.
 |   |   user_data_manager.py
 |   |   user_data_validation.py
 |   |   user_management.py
+|   |   __init__.py
 |   |   
+|   +---.cursor
 |   \---__pycache__
     (Python cache files)
 +---data
+|   |   .last_cache_cleanup
 |   |   conversation_states.json
 |   |   user_index.json
 |   |   
@@ -169,16 +179,12 @@ C:.
 |       PLANS.md
 |       TEST_COVERAGE_EXPANSION_PLAN.md
 |       UI_COMPONENT_TESTING_STRATEGY.md
+|       unused_imports_cleanup_complete.md
+|       UNUSED_IMPORTS_REPORT.md
 |       
-+---htmlcov
-    (HTML coverage reports)
 +---logs
-|   |   .last_cache_cleanup
 |   |   ai.log
-|   |   analytics.log
 |   |   app.log
-|   |   backup.log
-|   |   checkin_dynamic.log
 |   |   communication_manager.log
 |   |   discord.log
 |   |   email.log
@@ -187,7 +193,6 @@ C:.
 |   |   LOGGING_GUIDE.md
 |   |   message.log
 |   |   scheduler.log
-|   |   schedule_utilities.log
 |   |   ui.log
 |   |   user_activity.log
 |   |   
@@ -211,6 +216,7 @@ C:.
 |           
 +---scripts
 |   |   audit_legacy_channels.py
+|   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
 |   |   focused_legacy_audit.py
@@ -226,6 +232,8 @@ C:.
 |   |   script_test_enhanced_parser_direct.py
 |   |   script_test_network_connectivity.py
 |   |   script_test_task_response_formatting.py
+|   |   test_auto_model_loading.py
+|   |   test_lm_studio_management.py
 |   |   update_imports.py
 |   |   
 |   +---debug
@@ -308,17 +316,21 @@ C:.
 |       
 +---tasks
 |   |   task_management.py
+|   |   __init__.py
 |   |   
 |   \---__pycache__
     (Python cache files)
 +---tests
+|   |   .coverage
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   MANUAL_TESTING_GUIDE.md
 |   |   TESTING_GUIDE.md
+|   |   test_error_handling_improvements.py
 |   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
+|   +---.cursor
 |   +---ai
 |   |   |   test_cache_manager.py
 |   |   |   
@@ -328,7 +340,9 @@ C:.
 |   |   generate_ui_files.py
 |   |   README.md
 |   |   ui_app_qt.py
+|   |   __init__.py
 |   |   
+|   +---.cursor
 |   +---designs
 |   |       account_creator_dialog.ui
 |   |       admin_panel.ui
@@ -340,6 +354,7 @@ C:.
 |   |       checkin_management_dialog.ui
 |   |       checkin_settings_widget.ui
 |   |       dynamic_list_field_template.ui
+|   |       message_editor_dialog.ui
 |   |       period_row_template.ui
 |   |       schedule_editor_dialog.ui
 |   |       tag_widget.ui
@@ -348,6 +363,7 @@ C:.
 |   |       task_edit_dialog.ui
 |   |       task_management_dialog.ui
 |   |       task_settings_widget.ui
+|   |       user_analytics_dialog.ui
 |   |       user_profile_management_dialog.ui
 |   |       user_profile_settings_widget.ui
 |   |       
@@ -357,15 +373,25 @@ C:.
 |   |   |   category_management_dialog.py
 |   |   |   channel_management_dialog.py
 |   |   |   checkin_management_dialog.py
+|   |   |   message_editor_dialog.py
 |   |   |   process_watcher_dialog.py
 |   |   |   schedule_editor_dialog.py
 |   |   |   task_completion_dialog.py
 |   |   |   task_crud_dialog.py
 |   |   |   task_edit_dialog.py
 |   |   |   task_management_dialog.py
+|   |   |   user_analytics_dialog.py
 |   |   |   user_profile_dialog.py
+|   |   |   __init__.py
 |   |   |   
 |   |   \---__pycache__
+    (Python cache files)
++---user
+|   |   context_manager.py
+|   |   user_context.py
+|   |   user_preferences.py
+|   |   
+|   \---__pycache__
     (Python cache files)
 
 ---
