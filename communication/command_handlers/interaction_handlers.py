@@ -10,6 +10,9 @@ all communication channels (Discord, email, etc.).
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Any
+
+# Pending confirmations (simple in-memory store)
+PENDING_DELETIONS: Dict[str, str] = {}
 from datetime import datetime
 
 from core.logger import get_component_logger
@@ -497,7 +500,12 @@ class TaskManagementHandler(InteractionHandler):
             # If no last reminder or task already completed, suggest the most likely task
             tasks = load_active_tasks(user_id)
             if not tasks:
-                return InteractionResponse("You have no active tasks to complete! 🎉", True)
+                return InteractionResponse(
+                    "Which task would you like to complete? You currently have no active tasks. "
+                    "You can create a task or list your tasks to choose one.",
+                    completed=False,
+                    suggestions=["list tasks", "cancel"]
+                )
             
             # Find the most urgent task (overdue, then high priority, then due soon)
             suggested_task = self._handle_complete_task__find_most_urgent_task(tasks)
@@ -529,9 +537,14 @@ class TaskManagementHandler(InteractionHandler):
                     completed=False
                 )
         
-        # Try to find the task
+        # Try to find task with disambiguation
         tasks = load_active_tasks(user_id)
-        task = self._handle_complete_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'complete task <number>'."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -547,23 +560,83 @@ class TaskManagementHandler(InteractionHandler):
         """Handle task deletion"""
         task_identifier = entities.get('task_identifier')
         if not task_identifier:
-            return InteractionResponse(
-                "Which task would you like to delete? Please specify the task number or name.",
-                completed=False
-            )
+            # If user confirms without identifier, use pending deletion if available
+            pending_id = PENDING_DELETIONS.pop(user_id, None)
+            if pending_id:
+                if delete_task(user_id, pending_id):
+                    return InteractionResponse("🗑️ Deleted.", True)
+                return InteractionResponse("❌ Failed to delete task. Please try again.", True)
+            else:
+                return InteractionResponse(
+                    "Which task would you like to delete? Please specify the task number or name.",
+                    completed=False
+                )
         
-        # Try to find the task
+        # Try to find task with disambiguation
         tasks = load_active_tasks(user_id)
-        task = self._handle_delete_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'delete task <number>'."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
         
-        # Delete the task
+        # For name-based selection, require a simple confirmation step
+        identifier_str = str(task_identifier).strip().lower()
+        is_numeric = identifier_str.isdigit()
+        is_exact_id = identifier_str in [str(task.get('task_id','')).lower(), str(task.get('id','')).lower()]
+        if not is_numeric and not is_exact_id:
+            PENDING_DELETIONS[user_id] = task.get('task_id', task.get('id'))
+            title = task.get('title', 'this task')
+            return InteractionResponse(
+                f"Confirm delete: {title}. Reply 'confirm delete' to proceed.",
+                completed=False
+            )
+
+        # Delete immediately for numeric or id-based selection
         if delete_task(user_id, task.get('task_id', task.get('id'))):
             return InteractionResponse(f"🗑️ Deleted: {task['title']}", True)
         else:
             return InteractionResponse("❌ Failed to delete task. Please try again.", True)
+
+    def _get_task_candidates(self, tasks: List[Dict], identifier: str) -> List[Dict]:
+        """Return candidate tasks matching identifier by id, number, or name."""
+        matches: List[Dict] = []
+        # Exact id
+        for t in tasks:
+            if identifier == t.get('task_id') or identifier == t.get('id'):
+                return [t]
+        # Short id
+        if isinstance(identifier, str) and len(identifier) == 8:
+            for t in tasks:
+                tid = t.get('task_id', '')
+                if tid.startswith(identifier):
+                    matches.append(t)
+            if matches:
+                return matches
+        # Number
+        try:
+            n = int(identifier)
+            if 1 <= n <= len(tasks):
+                return [tasks[n-1]]
+        except Exception:
+            pass
+        # Name-based
+        ident = str(identifier).lower().strip()
+        exact = [t for t in tasks if t.get('title','').lower() == ident]
+        if exact:
+            return exact
+        contains = [t for t in tasks if ident in t.get('title','').lower()]
+        if contains:
+            return contains
+        words = set(ident.split())
+        word_hits = [t for t in tasks if words & set(t.get('title','').lower().split())]
+        if word_hits:
+            return word_hits
+        return []
     
     @handle_errors("updating task", default_return=InteractionResponse("I'm having trouble updating your task. Please try again.", True))
     def _handle_update_task(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -577,7 +650,12 @@ class TaskManagementHandler(InteractionHandler):
         
         # Try to find the task
         tasks = load_active_tasks(user_id)
-        task = self._handle_update_task__find_task_by_identifier(tasks, task_identifier)
+        candidates = self._get_task_candidates(tasks, task_identifier)
+        if len(candidates) > 1:
+            preview = "\n".join([f"{i+1}. {t['title']}" for i, t in enumerate(candidates[:5])])
+            suffix = "\nIf you meant one of these, reply with 'update task <number> due date <date>' (or other field)."
+            return InteractionResponse(f"I found multiple matching tasks:\n{preview}{suffix}", completed=False)
+        task = candidates[0] if candidates else None
         
         if not task:
             return InteractionResponse("❌ Task not found. Please check the task number or name.", True)
@@ -2106,6 +2184,13 @@ class ScheduleManagementHandler(InteractionHandler):
                 completed=False,
                 suggestions=["Edit morning period", "Edit work period", "Show my schedule"]
             )
+        # Curated suggestions when target is identified but times/days/active are missing
+        if category and period_name and not any([new_start_time, new_end_time, new_days, new_active]):
+            return InteractionResponse(
+                f"What would you like to update for '{period_name}' in {category.title()}?",
+                completed=False,
+                suggestions=["from 9am to 11am", "days Monday,Tuesday"]
+            )
         
         try:
             from core.schedule_management import get_schedule_time_periods, set_schedule_periods
@@ -2115,9 +2200,9 @@ class ScheduleManagementHandler(InteractionHandler):
             
             if period_name not in periods:
                 return InteractionResponse(
-                    f"Schedule period '{period_name}' not found in {category.title()}. "
-                    f"Available periods: {', '.join(periods.keys())}",
-                    True
+                    f"I couldn't find a '{period_name}' period in {category.title()}. What times should it use?",
+                    completed=False,
+                    suggestions=["from 9am to 11am", "from 7pm to 9pm"]
                 )
             
             # Get current period data
@@ -2176,7 +2261,8 @@ class ScheduleManagementHandler(InteractionHandler):
                 return InteractionResponse(
                     f"No changes specified for period '{period_name}'. "
                     f"Current settings: {current_period['start_time']} - {current_period['end_time']}",
-                    True
+                    completed=False,
+                    suggestions=["from 9am to 11am", "active off"]
                 )
                 
         except Exception as e:

@@ -17,6 +17,27 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-30 - Parser reliability and curated schedule/task prompts
+
+Context: Improve natural language reliability and user guidance around schedule edits and task completion.
+
+Problem: Phrases like "edit the morning period in my task schedule" were not consistently recognized; schedule edits without times did not always offer actionable suggestions; plain "complete task" with zero tasks produced a celebratory terminal message instead of helpful guidance.
+
+Technical Changes:
+- Command parsing: expanded rule-based patterns and added an early shortcut in `communication/message_processing/interaction_manager.py` to coerce schedule edit phrases into `edit_schedule_period` intent with extracted `period_name` and `category`.
+- Schedule edits: adjusted `_handle_edit_schedule_period` to emit curated time suggestions before existence validation and added a generic "which field to update?" prompt (times/days/active) with actionable suggestions.
+- Task completion: when no identifier and no active tasks, `_handle_complete_task` now returns a guidance prompt with suggestions (e.g., "list tasks", "cancel") rather than a terminal celebration message.
+- Suggestion augmentation: ensured schedule edit prompts retain time-oriented suggestions instead of generic task update suggestions.
+
+Testing Evidence:
+- Behavior and full suite both green after changes: 1888 passed, 2 skipped.
+
+Files Modified (high-level):
+- `communication/message_processing/command_parser.py`
+- `communication/message_processing/interaction_manager.py`
+- `communication/command_handlers/interaction_handlers.py`
+- Tests under `tests/behavior/` updated and added to validate curated suggestions and completion guidance
+
 ### 2025-01-27 - AI Development Tools Comprehensive Refactoring and Test Fixes **COMPLETED**
 
 **Context**: Major refactoring session to fix import issues, improve command structure, centralize constants, and fix failing tests in the AI development tools system.

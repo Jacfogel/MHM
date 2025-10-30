@@ -25,6 +25,13 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
+**Improve generation of ai_development_docs\AI_FUNCTION_REGISTRY.md**
+- It should provide more dynamic information, less preset text
+- Accept slightly longer generation time if it yields concise, high-signal docs
+
+**Restore MANUAL ENHANCEMENT details to development_docs\MODULE_DEPENDENCIES_DETAIL.md**
+- Ensure manual enhancements are preserved through regeneration 
+
 **Investigate Permission Test Environment Issue**
 - *What it means*: Investigate why `test_save_json_data_permission_error` can write to `/root` on Windows - this suggests elevated permissions or test environment issues
 - *Why it helps*: Ensures test environment is properly isolated and permission tests work as expected
@@ -177,6 +184,13 @@ When adding new tasks, follow this format:
   - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
   - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
 
+## High Priority
+
+**AI Chatbot Actionability Sprint** - Plan and implement actionable AI responses
+- *What it means*: Improve AI chat quality and enable robust task/message/profile CRUD, with awareness of recent automated messages and targeted, non-conflicting suggestions.
+- *Why it helps*: Addresses the user's biggest friction and increases real utility.
+- *Estimated effort*: Large
+
 ## Medium Priority
 
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
@@ -232,6 +246,21 @@ When adding new tasks, follow this format:
 - Subtasks:
   - [ ] Reflect new slash/bang commands and central command list
   - [ ] Note that `/checkin` is a flow; others are single-turn for now
+
+**Legacy Removal “Search-and-Close” Framework** - Tooling and checklist
+- *What it means*: Build a checklist and helper tooling to update all references before removing legacy flags/paths; avoid fixed time windows.
+- *Why it helps*: Safe deprecations without relying on rare usage logs.
+- *Estimated effort*: Medium
+
+**Testing Policy: Targeted Runs by Area (skip scripts/)**
+- *What it means*: Default to running relevant test sections; consistently exclude `scripts/` tests.
+- *Why it helps*: Faster feedback while preserving isolation requirements.
+- *Estimated effort*: Small
+
+**Help/Docs: Prefer Slash Commands, keep Bang Commands**
+- *What it means*: Update help/UX text to prefer `/` commands with auto-suggested slash equivalents, while keeping `!` commands supported.
+- *Why it helps*: Better Discord-native discoverability without breaking habits.
+- *Estimated effort*: Small
 
 ### User Experience Improvements
 

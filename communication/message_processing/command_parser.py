@@ -109,6 +109,11 @@ class EnhancedCommandParser:
                 r'task\s+trends',
                 r'my\s+task\s+analytics',
             ],
+            'edit_schedule_period': [
+                # Edit schedule period even without times, capturing period name and category
+                r'edit\s+(?:the\s+)?([\w\-]+)\s+period\s+in\s+my\s+(tasks?|check.?ins?|messages?)\s+schedule',
+                r'edit\s+schedule\s+period\s+([\w\-]+)\s+(tasks?|check.?ins?|messages?)',
+            ],
             'start_checkin': [
                 r'start\s+(?:a\s+)?check.?in',
                 r'begin\s+(?:a\s+)?check.?in',
@@ -654,6 +659,13 @@ class EnhancedCommandParser:
             due_match = re.search(r'(?:due\s+date|due)\s+(.+)', update_text, re.IGNORECASE)
             if due_match:
                 entities['due_date'] = due_match.group(1)
+
+            # Extract title (support: title New Name, title "New Name", rename to New Name)
+            title_match = re.search(r'(?:title\s+"([^"]+)"|title\s+([^\n]+)|rename\s+(?:task\s+)?(?:to\s+)?"?([^"\n]+)"?)', update_text, re.IGNORECASE)
+            if title_match:
+                new_title = title_match.group(1) or title_match.group(2) or title_match.group(3)
+                if new_title:
+                    entities['title'] = new_title.strip()
             
             return entities
         except Exception as e:

@@ -10,6 +10,31 @@
 
 ## 📋 **Current Active Plans**
 
+### **AI Chatbot Actionability Sprint** **PLANNING**
+
+**Status**: **PLANNING**  
+**Priority**: High  
+**Effort**: Large  
+**Date**: 2025-10-30
+
+**Objective**: Improve chat quality and enable robust action handling (task/message/profile CRUD) with context from recent automated messages and targeted, non-conflicting suggestions.
+
+**Scope (first slices)**:
+- [ ] Parser reliability for common natural phrases (done: schedule edit without times)
+- [ ] Curated prompts for disambiguation/confirmations (done: delete/complete; extend as needed)
+- [ ] AI context: recent automated message awareness, check-in summaries (done; monitor)
+- [ ] Task CRUD completeness: name-based update extraction for title/priority/due (done; watch)
+- [ ] Suggestions: targeted + minimal, non-conflicting (in place; extend coverage)
+
+**Success Criteria**:
+- [ ] Users can ask for common operations in natural language with minimal friction
+- [ ] Prompts always offer actionable next steps
+- [ ] No regressions (full suite remains green)
+
+**Notes**:
+- Tests by area are acceptable to iterate faster; full suite before shipping changes.
+- Keep both `!` and `/` commands; prefer slash in help/UX with auto-suggests.
+
 ### **Error Handling Coverage Expansion** ?? **IN PROGRESS**
 
 **Status**: ?? **IN PROGRESS**  

@@ -325,7 +325,7 @@ class TestTaskManagementHandlerCoverage:
         response = handler.handle(user_id, parsed_command)
 
         assert isinstance(response, InteractionResponse)
-        assert response.completed  # Should say no tasks to complete
+        assert not response.completed  # Now prompts with guidance when no tasks
         assert "no active tasks" in response.message.lower()
     
     def test_handle_complete_task_not_found(self, test_data_dir):
@@ -1187,7 +1187,7 @@ class TestTaskManagementAdvancedCoverage:
         response = handler.handle(user_id, parsed_command)
         
         assert isinstance(response, InteractionResponse)
-        assert response.completed  # Actually returns completed=True for no tasks
+        assert not response.completed  # Now prompts with guidance when no tasks
         assert "no active tasks" in response.message.lower()
     
     def test_handle_edit_task_with_invalid_task_id(self, test_data_dir):

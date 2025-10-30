@@ -314,12 +314,14 @@ class ConversationManager:
             return ("No check-in questions are enabled. Please configure your check-in settings.", True)
         
         # Initialize user state with dynamic question order
+        from datetime import datetime
         user_state = {
             "flow": FLOW_CHECKIN,
             "state": CHECKIN_START,
             "data": {},
             "question_order": question_order,
-            "current_question_index": 0
+            "current_question_index": 0,
+            "last_activity": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         self.user_states[user_id] = user_state
         logger.info(f"FLOW_STATE_CREATE: Created new check-in flow for user {user_id} | Questions: {len(question_order)} | Order: {question_order[:3]}...")
@@ -416,15 +418,50 @@ class ConversationManager:
         """
         Enhanced check-in flow with dynamic questions and better validation
         """
+        from datetime import datetime, timedelta
+
+        # Idle expiry: 45 minutes since last activity
+        try:
+            last_ts = user_state.get('last_activity')
+            if last_ts:
+                last_dt = datetime.strptime(last_ts, '%Y-%m-%d %H:%M:%S')
+                if datetime.now() - last_dt > timedelta(minutes=45):
+                    # Expire flow due to inactivity
+                    self.user_states.pop(user_id, None)
+                    self._save_user_states()
+                    return ("The previous check-in expired due to inactivity. You can start a new one with /checkin.", True)
+        except Exception:
+            pass
+
         if message_text.lower().startswith("/cancel"):
             self.user_states.pop(user_id, None)
             self._save_user_states()
             return ("Check-in canceled. You can start again anytime with /checkin", True)
-        
-        # Handle common commands even while in checkin flow
-        if message_text.lower().startswith("/") or message_text.lower().startswith("!"):
-            # Handle common commands directly to avoid circular dependency
-            return self._handle_command_during_checkin(user_id, message_text)
+
+        # If the user sends a clear slash/bang command unrelated to check-in, expire and hand off
+        stripped = message_text.strip().lower()
+        if stripped.startswith("/") or stripped.startswith("!"):
+            # Allow restarting or canceling without expiry message here
+            if stripped.startswith("/checkin") or stripped.startswith("!checkin"):
+                return ("You're already in a check-in. Type /cancel to cancel the current one, or continue answering.", False)
+            if stripped.startswith("/cancel") or stripped.startswith("!cancel"):
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+                return ("Check-in canceled. You can start again anytime with /checkin", True)
+
+            # Expire current check-in and delegate to interaction manager
+            try:
+                self.user_states.pop(user_id, None)
+                self._save_user_states()
+            except Exception:
+                pass
+            try:
+                from communication.message_processing.interaction_manager import handle_user_message
+                response = handle_user_message(user_id, message_text, "discord")
+                return (response.message, response.completed)
+            except Exception:
+                # Fallback help if delegation fails
+                return ("I've closed the current check-in. What would you like to do? Try /tasks, /messages, /profile, or /status.", True)
 
         state = user_state["state"]
         data = user_state["data"]
@@ -435,19 +472,23 @@ class ConversationManager:
             return self._complete_checkin(user_id, user_state)
 
         question_key = question_order[current_index]
-        
+
         # Validate and store the response
         validation_result = self._validate_response(question_key, message_text)
         if not validation_result['valid']:
             return (validation_result['message'], False)
-        
+
         # Store the validated response
         data[question_key] = validation_result['value']
-        
-        # Move to next question
+
+        # Move to next question and update activity
         user_state['current_question_index'] = current_index + 1
+        try:
+            user_state['last_activity'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        except Exception:
+            pass
         self._save_user_states()
-        
+
         # Get next question or complete
         return self._get_next_question(user_id, user_state)
 

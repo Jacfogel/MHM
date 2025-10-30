@@ -32,6 +32,7 @@ from ai.prompt_manager import get_prompt_manager
 from ai.cache_manager import get_response_cache
 from datetime import datetime
 from core.error_handling import handle_errors
+from core.message_management import get_recent_messages
 
 
 
@@ -531,6 +532,73 @@ class AIChatBotSingleton:
                 user_msg = exchange.get('user_message', '')[:50]
                 if user_msg:
                     context_parts.append(f"- User asked about: {user_msg}...")
+
+        # Check-in awareness: include whether today's check-in is completed (AI doesn't run the flow)
+        try:
+            from datetime import date
+            recent_checkins = get_recent_responses(user_id, limit=1)
+            completed_today = False
+            completed_at = ""
+            if recent_checkins:
+                ts = recent_checkins[0].get('timestamp', '')
+                mood_val = recent_checkins[0].get('mood')
+                energy_val = recent_checkins[0].get('energy')
+                if ts:
+                    try:
+                        dt = datetime.strptime(ts, '%Y-%m-%d %H:%M:%S')
+                        if dt.date() == date.today():
+                            completed_today = True
+                            completed_at = dt.strftime('%H:%M')
+                    except Exception:
+                        pass
+            if completed_today:
+                if mood_val is not None or energy_val is not None:
+                    details = []
+                    if mood_val is not None:
+                        details.append(f"mood {mood_val}/5")
+                    if energy_val is not None:
+                        details.append(f"energy {energy_val}/5")
+                    details_str = ", ".join(details)
+                    context_parts.append(f"Check-in today: completed at {completed_at} ({details_str})")
+                else:
+                    context_parts.append(f"Check-in today: completed at {completed_at}")
+            else:
+                context_parts.append("Check-in today: not completed")
+        except Exception:
+            pass
+
+        # Recent automated/sent messages (include full text for the most recent; concise for the rest). Exclude 'checkin' prompts.
+        try:
+            recent_sent_all = get_recent_messages(user_id, category=None, limit=5)
+            recent_sent = [m for m in recent_sent_all if m.get('category') != 'checkin'][:3]
+            if recent_sent:
+                context_parts.append("Recent automated messages (most recent first):")
+                for idx, msg in enumerate(recent_sent[:3]):
+                    category = msg.get('category', 'general')
+                    text = (msg.get('message') or '')
+                    timestamp = msg.get('timestamp', '')
+                    if idx == 0:
+                        # Full text for most recent message
+                        context_parts.append(f"- [{category}] {text} ({timestamp})")
+                    else:
+                        # Concise snippet for older items to control token usage
+                        words = text.split()
+                        snippet = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
+                        context_parts.append(f"- [{category}] {snippet} ({timestamp})")
+        except Exception:
+            # Non-blocking: if anything goes wrong, just skip this context addition
+            pass
+
+        # Most recent task reminder (separate for clarity)
+        try:
+            task_msgs = [m for m in recent_sent_all if m.get('category') == 'task_reminders'] if 'recent_sent_all' in locals() else []
+            if task_msgs:
+                latest_task = task_msgs[0]
+                t_text = (latest_task.get('message') or '')
+                t_ts = latest_task.get('timestamp', '')
+                context_parts.append(f"Recent task reminder: {t_text} ({t_ts})")
+        except Exception:
+            pass
         
         # Create comprehensive context string (but don't include in user message to prevent leakage)
         context_str = "\n".join(context_parts) if context_parts else "New user with no data"

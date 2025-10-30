@@ -8,6 +8,12 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-10-30 - Parser + curated prompts for schedule edits and task completion
+- Parser reliably detects “edit the morning period in my task schedule” as `edit_schedule_period` (even without times).
+- Schedule edit now prompts with actionable time suggestions before existence checks; added “which field to update?” path (times/days/active).
+- "Complete task" with zero tasks returns a guidance prompt + suggestions instead of a terminal celebration.
+- All tests green (1888 passed, 2 skipped).
+
 ### 2025-01-27 - AI Development Tools Comprehensive Refactoring **COMPLETED**
 - Fixed import issues across all 14 AI tools with robust `sys.path` handling
 - Centralized constants and exclusions in `services/` directory structure
