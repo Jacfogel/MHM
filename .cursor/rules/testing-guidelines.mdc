@@ -1,11 +1,8 @@
 ---
-alwaysApply: false
 description: "Testing conventions"
-globs: ["tests/**"]
-priority: 2
-lastUpdated: "2025-10-22"
+globs: tests/**,ai_development_docs\AI_TESTING_GUIDE.md
+alwaysApply: false
 ---
-
 # Test Suite Guidance
 
 - Use helpers from `tests/test_utilities.py` for fixtures, fake data, and shared assertions.
@@ -14,3 +11,4 @@ lastUpdated: "2025-10-22"
 - Mock scheduler integrations to prevent real Windows scheduled tasks (e.g., patch `set_wake_timer` and related methods).
 - Review `ai_development_docs/AI_TESTING_GUIDE.md` when adding or changing tests; for additional detail see `tests/TESTING_GUIDE.md`.
 - Keep test data inside `tests/data/` and remove any generated artefacts during cleanup.
+- **AI Functionality Tests**: Run with `python tests/ai/run_ai_functionality_tests.py`. These are manual review tests that automatically validate AI responses for quality issues. Results in `tests/ai/results/`, logs in `tests/logs/test_consolidated.log` and `test_run.log`.

@@ -8,6 +8,8 @@ import json
 import os
 from core.checkin_analytics import CheckinAnalytics
 from core.user_data_handlers import get_user_data, save_user_data
+from core.config import get_user_file_path
+from core.user_management import get_user_id_by_identifier
 from tests.test_utilities import TestUserFactory
 
 
@@ -24,6 +26,10 @@ class TestQuantitativeAnalyticsExpansion:
         
         # Arrange - Create user with comprehensive check-in settings
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
         
         # Enable multiple quantitative fields
         checkin_settings = {
@@ -42,14 +48,16 @@ class TestQuantitativeAnalyticsExpansion:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create sample check-in data with all quantitative fields
+        # Create sample check-in data with all quantitative fields (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4,
                 "energy": 3,
                 "stress_level": 2,
@@ -61,7 +69,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "exercise": "no"
             },
             {
-                "timestamp": "2025-10-02 08:00:00", 
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 3,
                 "energy": 4,
                 "stress_level": 3,
@@ -73,7 +81,7 @@ class TestQuantitativeAnalyticsExpansion:
                 "exercise": "yes"
             },
             {
-                "timestamp": "2025-10-03 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 5,
                 "energy": 5,
                 "stress_level": 1,
@@ -86,16 +94,16 @@ class TestQuantitativeAnalyticsExpansion:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify all quantitative fields are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -136,6 +144,10 @@ class TestQuantitativeAnalyticsExpansion:
         # Arrange - Create user with selective check-in settings
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
         # Enable only some quantitative fields
         checkin_settings = {
             "questions": {
@@ -150,14 +162,16 @@ class TestQuantitativeAnalyticsExpansion:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create sample check-in data
+        # Create sample check-in data (use recent date)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4,
                 "energy": 3,  # Should be ignored
                 "stress_level": 2,
@@ -168,16 +182,16 @@ class TestQuantitativeAnalyticsExpansion:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'stress_level', 'anxiety_level', 'sleep_hours']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only enabled fields are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -202,6 +216,10 @@ class TestQuantitativeAnalyticsExpansion:
         # Arrange - Create user with check-in data missing some fields
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
         # Enable all quantitative fields
         checkin_settings = {
             "questions": {
@@ -216,20 +234,22 @@ class TestQuantitativeAnalyticsExpansion:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create check-in data with missing fields
+        # Create check-in data with missing fields (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4,
                 "energy": 3,
                 # Missing: stress_level, sleep_quality, anxiety_level, focus_level, sleep_hours
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 3,
                 "stress_level": 2,
                 "sleep_quality": 4,
@@ -237,16 +257,16 @@ class TestQuantitativeAnalyticsExpansion:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only fields with data are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -277,6 +297,10 @@ class TestQuantitativeAnalyticsExpansion:
         # Arrange - Create user with check-in data in responses dict format
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
         # Enable quantitative fields
         checkin_settings = {
             "questions": {
@@ -287,14 +311,16 @@ class TestQuantitativeAnalyticsExpansion:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create check-in data with responses dict format
+        # Create check-in data with responses dict format (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S'),
                 "responses": {
                     "mood": "4",
                     "energy": "3",
@@ -302,7 +328,7 @@ class TestQuantitativeAnalyticsExpansion:
                 }
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "responses": {
                     "mood": "3",
                     "energy": "4",
@@ -311,16 +337,16 @@ class TestQuantitativeAnalyticsExpansion:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify fields are processed correctly
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -346,6 +372,10 @@ class TestQuantitativeAnalyticsExpansion:
         # Arrange - Create user with invalid data
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
         # Enable quantitative fields
         checkin_settings = {
             "questions": {
@@ -355,39 +385,41 @@ class TestQuantitativeAnalyticsExpansion:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create check-in data with invalid values
+        # Create check-in data with invalid values (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": "invalid",  # Invalid value
                 "energy": 3
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4,
                 "energy": "not_a_number"  # Invalid value
             },
             {
-                "timestamp": "2025-10-03 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 5,
                 "energy": 4
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 'focus_level', 'sleep_hours', 'ate_breakfast', 'exercise']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify only valid data is processed
         assert "error" not in summaries, f"Should not have error: {summaries}"

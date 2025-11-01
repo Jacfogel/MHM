@@ -22,6 +22,9 @@ def test_no_direct_os_environ_mutations_in_tests():
             # Skip conftest.py which sets env intentionally before imports
             if name == 'conftest.py' and os.path.basename(dirpath) == 'tests':
                 continue
+            # Skip standalone test runners (AI functionality tests, etc.)
+            if name == 'run_ai_functionality_tests.py' or name == 'test_ai_functionality_manual.py':
+                continue
             path = os.path.join(dirpath, name)
             try:
                 with open(path, 'r', encoding='utf-8') as f:

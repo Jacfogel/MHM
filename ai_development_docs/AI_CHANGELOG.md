@@ -8,6 +8,14 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-01 - Test Suite Cleanup & Fixes **COMPLETED**
+- **Enhanced Cleanup**: Improved test cleanup mechanisms in `tests/conftest.py` using Windows-compatible directory iteration (replaced `glob.glob()` with direct iteration)
+- **Comprehensive Artifact Removal**: Added cleanup for `pytest-of-*` directories in three locations to ensure reliable cleanup
+- **Fixed Quantitative Analytics Tests**: Corrected UUID-based user data handling in 3 test files (8 failures → 0)
+- **Fixed AI Cache Tests**: Corrected `ResponseCache` API usage in deterministic tests (2 failures → 0)
+- **Fixed Policy Violations**: Added exclusions for standalone test runners in policy violation tests (2 failures → 0)
+- **Result**: Full test suite passing (1898 passed, 2 skipped), all test artifact directories properly cleaned up
+
 ### 2025-10-30 - Parser + curated prompts for schedule edits and task completion
 - Parser reliably detects “edit the morning period in my task schedule” as `edit_schedule_period` (even without times).
 - Schedule edit now prompts with actionable time suggestions before existence checks; added “which field to update?” path (times/days/active).

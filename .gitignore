@@ -143,6 +143,7 @@ app.log.*
 tests/data/user_index.json
 tests/data/backups/
 tests/logs/ 
+tests/ai/results/
 archive/
 
 # Coverage files

@@ -1,6 +1,6 @@
 ---
 description: "Communication channel integration guidance"
-globs: ["communication/**"]
+globs: communication/**
 alwaysApply: false
 ---
 # Communication Module Guidance

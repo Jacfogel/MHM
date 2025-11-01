@@ -146,7 +146,12 @@ LOG_BACKUP_COUNT = int(os.getenv('LOG_BACKUP_COUNT', '5'))  # Keep 5 backup file
 LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'true'  # Compress old logs
 
 # New organized logging structure
-LOGS_DIR = _normalize_path(os.getenv('LOGS_DIR', 'logs'))  # Main logs directory
+# In test mode, route all logs to tests/logs/ instead of logs/
+if os.getenv('MHM_TESTING') == '1':
+    _default_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+else:
+    _default_logs_dir = 'logs'
+LOGS_DIR = _normalize_path(os.getenv('LOGS_DIR', _default_logs_dir))  # Main logs directory
 LOG_BACKUP_DIR = _normalize_path(os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups')))  # Backup directory for rotated logs
 LOG_ARCHIVE_DIR = _normalize_path(os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive')))  # Archive directory for old logs
 
@@ -631,6 +636,10 @@ def print_configuration_report():
 def get_user_data_dir(user_id: str) -> str:
     """Get the data directory for a specific user."""
     try:
+        if not user_id:
+            logger.error(f"Invalid user_id: {user_id}")
+            # Return empty string to prevent creating files in root
+            return ""
         return os.path.join(BASE_DATA_DIR, 'users', user_id)
     except Exception as e:
         logger.error(f"Error getting user data directory for user {user_id}: {e}")
@@ -651,6 +660,11 @@ def get_backups_dir() -> str:
 def get_user_file_path(user_id: str, file_type: str) -> str:
     """Get the file path for a specific user file type."""
     user_dir = get_user_data_dir(user_id)
+    
+    # Prevent creating files in root directory
+    if not user_dir or not user_dir.strip():
+        logger.error(f"Invalid user_id: {user_id} - cannot create file path")
+        return ""
     
     file_mapping = {
         # New structure

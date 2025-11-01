@@ -16,6 +16,9 @@ python -m pytest tests/unit/ -v
 python -m pytest tests/integration/ -v
 python -m pytest tests/behavior/ -v
 python -m pytest tests/ui/ -v
+
+# Run AI functionality tests (manual review tests)
+python tests/ai/run_ai_functionality_tests.py
 ```
 
 ### **Test Categories (Priority Order)**
@@ -23,6 +26,7 @@ python -m pytest tests/ui/ -v
 2. **Integration Tests** - Component interaction testing
 3. **Behavior Tests** - End-to-end user scenarios
 4. **UI Tests** - Interface and dialog testing
+5. **AI Functionality Tests** - Manual review tests for AI response quality
 
 ## Common Testing Patterns
 
@@ -114,6 +118,13 @@ python -m pytest tests/behavior/test_*discord* -v
 - Test PySide6 dialogs and widgets
 - User interaction scenarios
 - Visual and functional testing
+
+#### **AI Functionality Tests** (`tests/ai/`)
+- Manual review tests for AI response quality
+- Automatic validation for meta-text, code fragments, and quality issues
+- Performance metrics and edge case testing
+- Results written to `tests/ai/results/ai_functionality_test_results_latest.md`
+- Logs consolidated to `tests/logs/test_consolidated.log` and `test_run.log`
 
 ## Troubleshooting Patterns
 
@@ -240,6 +251,7 @@ def test_user_profile_saves_correctly(self, test_data_dir):
 
 ## Resources
 - **Full Guide**: `tests/TESTING_GUIDE.md` - Complete testing framework documentation
+- **AI Functionality Tests**: `tests/AI_FUNCTIONALITY_TEST_PLAN.md` - AI functionality test plan and results
 - **Manual Testing**: `tests/MANUAL_TESTING_GUIDE.md` - UI testing procedures
 - **Discord Testing**: `tests/MANUAL_DISCORD_TESTING_GUIDE.md` - Discord command testing procedures
 - **Discord Automation**: `tests/behavior/test_discord_automation_complete.py` - Automated Discord testing

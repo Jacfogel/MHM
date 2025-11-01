@@ -1,6 +1,6 @@
 ---
 description: "UI development guidance"
-globs: ["ui/**"]
+globs: ui/**
 alwaysApply: false
 ---
 # UI Module Guidance

@@ -10,6 +10,8 @@ import json
 import os
 from unittest.mock import patch
 from core.checkin_analytics import CheckinAnalytics
+from core.config import get_user_file_path
+from core.user_management import get_user_id_by_identifier
 # Removed unused imports: get_user_data, save_user_data
 from tests.test_utilities import TestUserFactory
 
@@ -24,26 +26,33 @@ class TestLegacyEnabledFieldsCompatibility:
         user_id = "test-user-legacy-enabled-fields"
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-        # Create sample check-in data
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+
+        # Create sample check-in data (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4, "energy": 3, "sleep_hours": 7.5
             },
             {
-                "timestamp": "2025-10-02 08:00:00", 
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'), 
                 "mood": 5, "energy": 4, "sleep_hours": 8.0
             }
         ]
 
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
 
-        # Test legacy format by directly passing enabled_fields
+        # Test legacy format by directly passing enabled_fields (use actual_user_id)
         analytics = CheckinAnalytics()
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=["mood", "energy", "sleep_hours"])
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=["mood", "energy", "sleep_hours"])
 
         assert "error" not in summaries, f"Should not have error: {summaries}"
         
@@ -64,12 +73,19 @@ class TestLegacyEnabledFieldsCompatibility:
         user_id = "test-user-legacy-mocked"
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-        # Create minimal check-in data
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+
+        # Create minimal check-in data (use recent date)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
-            {"timestamp": "2025-10-01 08:00:00", "mood": 4, "energy": 3}
+            {"timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'), "mood": 4, "energy": 3}
         ]
 
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
@@ -85,7 +101,7 @@ class TestLegacyEnabledFieldsCompatibility:
             }
             
             analytics = CheckinAnalytics()
-            summaries = analytics.get_quantitative_summaries(user_id, days=30)
+            summaries = analytics.get_quantitative_summaries(actual_user_id, days=30)
 
         # Should work with legacy format
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -99,15 +115,22 @@ class TestLegacyEnabledFieldsCompatibility:
         user_id = "test-user-mixed-formats"
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
 
-        # Create sample check-in data
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+
+        # Create sample check-in data (use recent date)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "mood": 4, "energy": 3, "sleep_hours": 7.5
             }
         ]
 
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
@@ -127,7 +150,7 @@ class TestLegacyEnabledFieldsCompatibility:
             }
             
             analytics = CheckinAnalytics()
-            summaries = analytics.get_quantitative_summaries(user_id, days=30)
+            summaries = analytics.get_quantitative_summaries(actual_user_id, days=30)
 
         assert "error" not in summaries, f"Should not have error: {summaries}"
         

@@ -8,6 +8,8 @@ import json
 import os
 from core.checkin_analytics import CheckinAnalytics
 from core.user_data_handlers import get_user_data, save_user_data
+from core.config import get_user_file_path
+from core.user_management import get_user_id_by_identifier
 from tests.test_utilities import TestUserFactory
 
 
@@ -24,6 +26,10 @@ class TestComprehensiveQuantitativeAnalytics:
         
         # Arrange - Create user with all quantitative questions enabled
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
         
         # Enable ALL quantitative questions from questions.json
         checkin_settings = {
@@ -50,14 +56,16 @@ class TestComprehensiveQuantitativeAnalytics:
         }
         
         # Save user preferences
-        user_data = get_user_data(user_id, 'preferences') or {}
+        user_data = get_user_data(actual_user_id, 'preferences') or {}
         user_data['preferences'] = {'checkin_settings': checkin_settings}
-        save_user_data(user_id, 'preferences', user_data)
+        save_user_data(actual_user_id, 'preferences', user_data)
         
-        # Create sample check-in data with all quantitative fields
+        # Create sample check-in data with all quantitative fields (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 # Scale 1-5 questions
                 "mood": 4,
                 "energy": 3,
@@ -78,7 +86,7 @@ class TestComprehensiveQuantitativeAnalytics:
                 "daily_reflection": "Feeling good today"
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 # Scale 1-5 questions
                 "mood": 3,
                 "energy": 4,
@@ -100,20 +108,20 @@ class TestComprehensiveQuantitativeAnalytics:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries with explicit enabled fields
+        # Act - Get quantitative summaries with explicit enabled fields (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = [
             'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 
             'focus_level', 'sleep_hours', 'ate_breakfast', 'brushed_teeth', 
             'medication_taken', 'exercise', 'hydration', 'social_interaction'
         ]
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify all quantitative fields are included
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -171,24 +179,30 @@ class TestComprehensiveQuantitativeAnalytics:
         # Arrange - Create user with yes/no questions
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
-        # Create check-in data with various yes/no formats
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
+        # Create check-in data with various yes/no formats (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S'),
                 "ate_breakfast": "yes",
                 "exercise": "no",
                 "medication_taken": "y",
                 "hydration": "n"
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "ate_breakfast": "YES",
                 "exercise": "NO",
                 "medication_taken": "true",
                 "hydration": "false"
             },
             {
-                "timestamp": "2025-10-03 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "ate_breakfast": "1",
                 "exercise": "0",
                 "medication_taken": "Yes",
@@ -196,16 +210,16 @@ class TestComprehensiveQuantitativeAnalytics:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries
+        # Act - Get quantitative summaries (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['ate_breakfast', 'exercise', 'medication_taken', 'hydration']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify yes/no questions are converted correctly
         assert "error" not in summaries, f"Should not have error: {summaries}"
@@ -242,10 +256,16 @@ class TestComprehensiveQuantitativeAnalytics:
         # Arrange - Create user with responses dict format
         test_user = TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
         
-        # Create check-in data with responses dict format
+        # Get the actual UUID for the user
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "User should be created and resolvable"
+        
+        # Create check-in data with responses dict format (use recent dates)
+        from datetime import datetime, timedelta
+        now = datetime.now()
         sample_checkins = [
             {
-                "timestamp": "2025-10-01 08:00:00",
+                "timestamp": (now - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S'),
                 "responses": {
                     "mood": "4",
                     "energy": "3",
@@ -254,7 +274,7 @@ class TestComprehensiveQuantitativeAnalytics:
                 }
             },
             {
-                "timestamp": "2025-10-02 08:00:00",
+                "timestamp": now.strftime('%Y-%m-%d %H:%M:%S'),
                 "responses": {
                     "mood": "3",
                     "energy": "4",
@@ -264,16 +284,16 @@ class TestComprehensiveQuantitativeAnalytics:
             }
         ]
         
-        # Store check-in data
-        checkin_file = os.path.join(test_data_dir, "users", user_id, "checkins.json")
+        # Store check-in data in the correct UUID directory
+        checkin_file = get_user_file_path(actual_user_id, 'checkins')
         os.makedirs(os.path.dirname(checkin_file), exist_ok=True)
         with open(checkin_file, 'w', encoding='utf-8') as f:
             json.dump(sample_checkins, f, indent=2)
         
-        # Act - Get quantitative summaries
+        # Act - Get quantitative summaries (use actual_user_id)
         analytics = CheckinAnalytics()
         enabled_fields = ['mood', 'energy', 'ate_breakfast', 'exercise']
-        summaries = analytics.get_quantitative_summaries(user_id, days=30, enabled_fields=enabled_fields)
+        summaries = analytics.get_quantitative_summaries(actual_user_id, days=30, enabled_fields=enabled_fields)
         
         # Assert - Verify fields are processed correctly
         assert "error" not in summaries, f"Should not have error: {summaries}"

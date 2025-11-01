@@ -984,10 +984,15 @@ def prune_test_artifacts_before_and_after_session():
     # Pre-run purge of stray pytest-of-* under tests/data and leftover tmp children
     data_dir = project_root_path / "tests" / "data"
     try:
-        stray = data_dir / "pytest-of-Julie"
-        if stray.exists():
-            shutil.rmtree(stray, ignore_errors=True)
-            test_logger.info(f"Removed stray directory: {stray}")
+        # Remove any pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+        import glob
+        pytest_pattern = str(data_dir / "pytest-of-*")
+        pytest_dirs = glob.glob(pytest_pattern)
+        for stray in pytest_dirs:
+            stray_path = Path(stray)
+            if stray_path.exists():
+                shutil.rmtree(stray_path, ignore_errors=True)
+                test_logger.info(f"Removed stray directory: {stray_path}")
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
@@ -1024,9 +1029,22 @@ def prune_test_artifacts_before_and_after_session():
         if removed:
             test_logger.info(f"Post-run prune removed {removed} old test backup files from {test_backups_dir}")
 
-    # Session-end purge: flags and tmp children
+    # Session-end purge: flags, tmp children, and pytest-of-* directories
     try:
         data_dir = project_root_path / "tests" / "data"
+        
+        # Remove pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+        # Use direct directory iteration instead of glob for Windows compatibility
+        if data_dir.exists():
+            for item in data_dir.iterdir():
+                try:
+                    if item.is_dir() and item.name.startswith("pytest-of-"):
+                        shutil.rmtree(item, ignore_errors=True)
+                        test_logger.info(f"Removed pytest directory: {item}")
+                except Exception:
+                    pass
+        
+        # Clear flags directory
         flags_dir = data_dir / "flags"
         if flags_dir.exists():
             for child in flags_dir.iterdir():
@@ -1038,6 +1056,8 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             test_logger.info(f"Cleared children of {flags_dir}")
+        
+        # Clear tmp directory
         tmp_dir = data_dir / "tmp"
         if tmp_dir.exists():
             for child in tmp_dir.iterdir():
@@ -1049,6 +1069,19 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             test_logger.info(f"Cleared children of {tmp_dir}")
+        
+        # Clear requests directory
+        requests_dir = data_dir / "requests"
+        if requests_dir.exists():
+            for child in requests_dir.iterdir():
+                try:
+                    if child.is_dir():
+                        shutil.rmtree(child, ignore_errors=True)
+                    else:
+                        child.unlink(missing_ok=True)
+                except Exception:
+                    pass
+            test_logger.info(f"Cleared children of {requests_dir}")
     except Exception:
         pass
 
@@ -2066,17 +2099,72 @@ def cleanup_test_users_after_session():
         try:
             for item in os.listdir(backup_dir):
                 item_path = os.path.join(backup_dir, item)
-                if os.path.isfile(item_path) and item.startswith("user_backup_"):
-                    os.remove(item_path)
+                try:
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path, ignore_errors=True)
+                except Exception:
+                    pass
+    
+    # Clean up pytest-of-* directories (pytest creates these when using tmpdir fixtures)
+    # Use direct directory iteration instead of glob for Windows compatibility
+    try:
+        if os.path.exists(test_data_dir):
+            for item in os.listdir(test_data_dir):
+                item_path = os.path.join(test_data_dir, item)
+                try:
+                    if os.path.isdir(item_path) and item.startswith("pytest-of-"):
+                        shutil.rmtree(item_path, ignore_errors=True)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+    
+    # Clean up flags directory
+    flags_dir = os.path.join(test_data_dir, "flags")
+    if os.path.exists(flags_dir):
+        try:
+            for item in os.listdir(flags_dir):
+                item_path = os.path.join(flags_dir, item)
+                try:
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path, ignore_errors=True)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    
+    # Clean up tmp directory
+    tmp_dir = os.path.join(test_data_dir, "tmp")
+    if os.path.exists(tmp_dir):
+        try:
+            for item in os.listdir(tmp_dir):
+                item_path = os.path.join(tmp_dir, item)
+                try:
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path, ignore_errors=True)
+                except Exception:
+                    pass
         except Exception:
             pass
     
     # Clean up other test artifacts according to cleanup standards
     try:
-        # Remove pytest temporary directories
-        pytest_dir = os.path.join(test_data_dir, "pytest-of-Julie")
-        if os.path.exists(pytest_dir):
-            shutil.rmtree(pytest_dir, ignore_errors=True)
+        # Remove pytest temporary directories (pytest-of-* directories created by pytest's tmpdir plugin)
+        # Use direct directory iteration instead of glob for Windows compatibility
+        if os.path.exists(test_data_dir):
+            for item in os.listdir(test_data_dir):
+                item_path = os.path.join(test_data_dir, item)
+                try:
+                    if os.path.isdir(item_path) and item.startswith("pytest-of-"):
+                        shutil.rmtree(item_path, ignore_errors=True)
+                except Exception:
+                    pass
         
         # Remove stray config directory
         config_dir = os.path.join(test_data_dir, "config")
@@ -2101,23 +2189,55 @@ def cleanup_test_users_after_session():
                 if os.path.isfile(item_path):
                     os.remove(item_path)
         
-        # Clear tmp directory
+        # Clear tmp directory completely - remove all subdirectories and files
         tmp_dir = os.path.join(test_data_dir, "tmp")
         if os.path.exists(tmp_dir):
-            for item in os.listdir(tmp_dir):
-                item_path = os.path.join(tmp_dir, item)
-                if os.path.isdir(item_path):
-                    shutil.rmtree(item_path, ignore_errors=True)
-                else:
-                    os.remove(item_path)
+            try:
+                # Remove all contents (subdirectories and files)
+                for item in os.listdir(tmp_dir):
+                    item_path = os.path.join(tmp_dir, item)
+                    try:
+                        if os.path.isdir(item_path):
+                            shutil.rmtree(item_path, ignore_errors=True)
+                        else:
+                            os.remove(item_path)
+                    except Exception:
+                        pass
+                # Directory itself stays but is now empty
+            except Exception:
+                pass
         
-        # Clear flags directory
+        # Clear flags directory completely
         flags_dir = os.path.join(test_data_dir, "flags")
         if os.path.exists(flags_dir):
-            for item in os.listdir(flags_dir):
-                item_path = os.path.join(flags_dir, item)
-                if os.path.isfile(item_path):
-                    os.remove(item_path)
+            try:
+                for item in os.listdir(flags_dir):
+                    item_path = os.path.join(flags_dir, item)
+                    try:
+                        if os.path.isfile(item_path):
+                            os.remove(item_path)
+                        elif os.path.isdir(item_path):
+                            shutil.rmtree(item_path, ignore_errors=True)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+        
+        # Clear requests directory completely
+        requests_dir = os.path.join(test_data_dir, "requests")
+        if os.path.exists(requests_dir):
+            try:
+                for item in os.listdir(requests_dir):
+                    item_path = os.path.join(requests_dir, item)
+                    try:
+                        if os.path.isfile(item_path):
+                            os.remove(item_path)
+                        elif os.path.isdir(item_path):
+                            shutil.rmtree(item_path, ignore_errors=True)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         
         # Clear logs directory
         logs_dir = os.path.join(test_data_dir, "logs")
@@ -2267,6 +2387,16 @@ def mock_schedule_data():
 def pytest_configure(config):
     """Configure pytest for MHM testing."""
     test_logger.info("Configuring pytest for MHM testing")
+    
+    # Configure pytest tmpdir to use tests/data/tmp instead of creating pytest-of-* directories
+    # This ensures all temporary files stay within tests/data
+    try:
+        import pytest
+        # Set the base temporary directory for pytest's tmpdir fixture
+        if hasattr(config, 'option') and hasattr(config.option, 'tmp_path_factory'):
+            config.option.tmp_path_factory = str(tests_data_dir / 'tmp')
+    except Exception:
+        pass  # Ignore if pytest version doesn't support this
     
     # Core test type markers
     config.addinivalue_line(
