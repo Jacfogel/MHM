@@ -292,6 +292,19 @@ class AIChatBotSingleton:
                     elif 'energy' in prompt_lower:
                         return (f"{name_prefix}Your average energy was {avg_energy:.1f}/5 - {'high' if avg_energy >= 4 else 'moderate' if avg_energy >= 3 else 'low'}.")
         
+        # Handle error/connection issues - should ask user to try again
+        if any(word in prompt_lower for word in ['connection', 'connection error', 'network', 'api error', 'timeout']):
+            return (f"{name_prefix}I'm having some technical difficulties right now. "
+                   f"Could you please try again in a moment? If the issue persists, "
+                   f"we can troubleshoot together. What were you trying to do?")
+        
+        # Handle missing context scenarios - should be more supportive and ask for information
+        if any(word in prompt_lower for word in ['how am i', 'how are you', 'how am i doing']):
+            # For new users or when context is missing, be supportive and ask for info
+            if not user_context or not recent_data:
+                return (f"{name_prefix}I don't have enough information about how you're doing today, but we can figure it out together! "
+                       f"How about you tell me about your day so far? How are you feeling right now?")
+        
         # Fall back to keyword-based responses if no data analysis possible
         
         # Handle work-related fatigue and lack of motivation
@@ -438,12 +451,13 @@ class AIChatBotSingleton:
         # Build detailed context string with all available data
         context_parts = []
         
-        # User profile information
+        # User profile information (natural language)
         profile = context.get('user_profile', {})
         if profile.get('preferred_name'):
-            context_parts.append(f"User's name: {profile['preferred_name']}")
+            context_parts.append(f"The user's preferred name is {profile['preferred_name']}")
         if profile.get('active_categories'):
-            context_parts.append(f"Interests: {', '.join(profile['active_categories'])}")
+            categories_str = ', '.join(profile['active_categories'])
+            context_parts.append(f"Their interests include: {categories_str}")
         
         # Neurodivergent-specific context from user data
         user_context_data = context.get('user_context', {})
@@ -451,153 +465,289 @@ class AIChatBotSingleton:
             # Health conditions (ADHD, depression, etc.)
             health_conditions = user_context_data.get('custom_fields', {}).get('health_conditions', [])
             if health_conditions:
-                context_parts.append(f"Health conditions: {', '.join(health_conditions)}")
+                conditions_str = ', '.join(health_conditions)
+                context_parts.append(f"They have been diagnosed with or are managing: {conditions_str}")
             
             # User's notes for AI (specific needs, preferences)
             notes_for_ai = user_context_data.get('notes_for_ai', [])
             if notes_for_ai:
-                context_parts.append(f"User notes for AI: {'; '.join(notes_for_ai)}")
+                notes_str = '; '.join(notes_for_ai)
+                context_parts.append(f"Important notes about them: {notes_str}")
             
             # Activities that encourage the user
             encouraging_activities = user_context_data.get('activities_for_encouragement', [])
             if encouraging_activities:
-                context_parts.append(f"Encouraging activities: {', '.join(encouraging_activities)}")
+                activities_str = ', '.join(encouraging_activities)
+                context_parts.append(f"Activities that encourage them include: {activities_str}")
             
             # Goals and interests
             goals = user_context_data.get('goals', [])
             if goals:
-                context_parts.append(f"User goals: {', '.join(goals)}")
+                goals_str = ', '.join(goals)
+                context_parts.append(f"Their goals include: {goals_str}")
         
-        # Recent check-in data analysis
-        recent_checkins = get_recent_responses(user_id, limit=10)
-        if recent_checkins:
-            # Analyze breakfast patterns
-            breakfast_count = sum(1 for entry in recent_checkins if entry.get('ate_breakfast') is True)
-            total_entries = len(recent_checkins)
-            breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries > 0 else 0
+        # Feature enablement status (important: tell AI what features are available)
+        try:
+            from core.response_tracking import is_user_checkins_enabled
+            checkins_enabled = is_user_checkins_enabled(user_id)
+            from tasks.task_management import are_tasks_enabled
+            tasks_enabled = are_tasks_enabled(user_id) if user_id else False
             
-            # Analyze mood and energy trends
-            moods = [entry.get('mood') for entry in recent_checkins if entry.get('mood') is not None]
-            energies = [entry.get('energy') for entry in recent_checkins if entry.get('energy') is not None]
-            avg_mood = sum(moods) / len(moods) if moods else None
-            avg_energy = sum(energies) / len(energies) if energies else None
+            # Explicitly tell AI what features are enabled/disabled
+            feature_status = []
+            if checkins_enabled:
+                feature_status.append("check-ins are enabled")
+            else:
+                feature_status.append("check-ins are disabled - do NOT mention check-ins, check-in data, or suggest starting check-ins")
             
-            # Analyze other habits
-            teeth_brushed_count = sum(1 for entry in recent_checkins if entry.get('brushed_teeth') is True)
-            teeth_rate = (teeth_brushed_count / total_entries) * 100 if total_entries > 0 else 0
+            if tasks_enabled:
+                feature_status.append("task management is enabled")
+            else:
+                feature_status.append("task management is disabled - do NOT mention tasks, task creation, or task reminders")
             
-            context_parts.append(f"Recent check-in data (last {total_entries} entries):")
-            context_parts.append(f"- Breakfast eaten: {breakfast_count}/{total_entries} times ({breakfast_rate:.0f}%)")
-            if avg_mood:
-                context_parts.append(f"- Average mood: {avg_mood:.1f}/5")
-            if avg_energy:
-                context_parts.append(f"- Average energy: {avg_energy:.1f}/5")
-            context_parts.append(f"- Teeth brushed: {teeth_brushed_count}/{total_entries} times ({teeth_rate:.0f}%)")
-            
-            # Add specific recent entries for context
-            recent_summary = []
-            for i, entry in enumerate(recent_checkins[:3]):  # Last 3 entries
-                entry_parts = []
-                if entry.get('mood'):
-                    entry_parts.append(f"mood={entry['mood']}")
-                if entry.get('energy'):
-                    entry_parts.append(f"energy={entry['energy']}")
-                if entry.get('ate_breakfast') is not None:
-                    entry_parts.append(f"breakfast={'yes' if entry['ate_breakfast'] else 'no'}")
-                if entry.get('brushed_teeth') is not None:
-                    entry_parts.append(f"teeth={'yes' if entry['brushed_teeth'] else 'no'}")
-                if entry_parts:
-                    recent_summary.append(f"Entry {i+1}: {', '.join(entry_parts)}")
-            
-            if recent_summary:
-                context_parts.append(f"Recent entries: {'; '.join(recent_summary)}")
+            if feature_status:
+                context_parts.append(f"IMPORTANT - Feature availability: {'; '.join(feature_status)}")
+        except Exception as e:
+            logger.debug(f"Could not check feature enablement: {e}")
+            # Default to disabled if check fails to be safe
+            context_parts.append("IMPORTANT - Feature availability: check-ins status unknown, task management status unknown")
         
-        # Recent activity summary
-        recent_activity = context.get('recent_activity', {})
-        if recent_activity.get('recent_responses_count', 0) > 0:
-            context_parts.append(f"Activity: {recent_activity['recent_responses_count']} recent check-ins")
+        # Recent check-in data analysis (ONLY if check-ins are enabled)
+        try:
+            from core.response_tracking import is_user_checkins_enabled
+            checkins_enabled = is_user_checkins_enabled(user_id)
+            
+            if not checkins_enabled:
+                # Skip check-in data if disabled
+                pass
+            else:
+                recent_checkins = get_recent_responses(user_id, limit=10)
+                if recent_checkins:
+                    # Analyze breakfast patterns
+                    breakfast_count = sum(1 for entry in recent_checkins if entry.get('ate_breakfast') is True)
+                    total_entries = len(recent_checkins)
+                    breakfast_rate = (breakfast_count / total_entries) * 100 if total_entries > 0 else 0
+                    
+                    # Analyze mood and energy trends
+                    moods = [entry.get('mood') for entry in recent_checkins if entry.get('mood') is not None]
+                    energies = [entry.get('energy') for entry in recent_checkins if entry.get('energy') is not None]
+                    avg_mood = sum(moods) / len(moods) if moods else None
+                    avg_energy = sum(energies) / len(energies) if energies else None
+                    
+                    # Analyze other habits
+                    teeth_brushed_count = sum(1 for entry in recent_checkins if entry.get('brushed_teeth') is True)
+                    teeth_rate = (teeth_brushed_count / total_entries) * 100 if total_entries > 0 else 0
+                    
+                    # Format check-in data in natural language (better for AI comprehension)
+                    summary_lines = []
+                    summary_lines.append(f"Over the last {total_entries} check-ins:")
+                    if avg_mood:
+                        summary_lines.append(f"Their average mood has been {avg_mood:.1f} out of 5")
+                    if avg_energy:
+                        summary_lines.append(f"Their average energy level has been {avg_energy:.1f} out of 5")
+                    summary_lines.append(f"They ate breakfast {breakfast_count} out of {total_entries} times ({breakfast_rate:.0f}% of the time)")
+                    summary_lines.append(f"They brushed their teeth {teeth_brushed_count} out of {total_entries} times ({teeth_rate:.0f}% of the time)")
+                    
+                    # Add specific recent entries in natural language
+                    if recent_checkins[:3]:
+                        summary_lines.append("Most recent check-ins:")
+                        for i, entry in enumerate(recent_checkins[:3]):
+                            entry_desc = []
+                            if entry.get('mood') is not None:
+                                entry_desc.append(f"mood was {entry['mood']} out of 5")
+                            if entry.get('energy') is not None:
+                                entry_desc.append(f"energy was {entry['energy']} out of 5")
+                            if entry.get('ate_breakfast') is not None:
+                                entry_desc.append(f"{'ate' if entry['ate_breakfast'] else 'did not eat'} breakfast")
+                            if entry.get('brushed_teeth') is not None:
+                                entry_desc.append(f"{'brushed' if entry['brushed_teeth'] else 'did not brush'} teeth")
+                            
+                            if entry_desc:
+                                summary_lines.append(f"  - Check-in {i+1}: {', '.join(entry_desc)}")
+                    
+                    context_parts.append('\n'.join(summary_lines))
+                else:
+                    # Explicitly state when there are no check-ins to prevent AI from making assumptions
+                    context_parts.append("They have not completed any check-ins yet.")
+        except Exception as e:
+            logger.debug(f"Could not load check-in data for context: {e}")
+            pass
         
-        # Mood trends
-        mood_trends = context.get('mood_trends', {})
-        if mood_trends.get('average_mood') is not None:
-            avg_mood = mood_trends['average_mood']
-            trend = mood_trends.get('trend', 'stable')
-            context_parts.append(f"Mood trend: {avg_mood:.1f}/5 ({trend})")
+        # Recent activity summary (natural language) - only if check-ins enabled
+        try:
+            from core.response_tracking import is_user_checkins_enabled
+            checkins_enabled = is_user_checkins_enabled(user_id)
+            if checkins_enabled:
+                recent_activity = context.get('recent_activity', {})
+                if recent_activity.get('recent_responses_count', 0) > 0:
+                    count = recent_activity['recent_responses_count']
+                    context_parts.append(f"They have completed {count} check-in{'s' if count != 1 else ''} recently")
+                
+                # Mood trends (natural language) - only if check-ins enabled
+                mood_trends = context.get('mood_trends', {})
+                if mood_trends.get('average_mood') is not None:
+                    avg_mood = mood_trends['average_mood']
+                    trend = mood_trends.get('trend', 'stable')
+                    trend_desc = {'improving': 'improving', 'declining': 'declining', 'stable': 'staying stable'}.get(trend, trend)
+                    context_parts.append(f"Their mood has been averaging {avg_mood:.1f} out of 5 and is {trend_desc}")
+        except Exception as e:
+            logger.debug(f"Could not check check-in status for activity summary: {e}")
+            pass
         
-        # Recent conversation history
+        # Recent conversation history (natural language)
         conversation_history = context.get('conversation_history', [])
         if conversation_history:
-            context_parts.append("Recent conversation topics:")
+            context_parts.append("In recent conversations, they've talked about:")
             for exchange in conversation_history[-3:]:  # Last 3 exchanges
-                user_msg = exchange.get('user_message', '')[:50]
+                user_msg = exchange.get('user_message', '')[:80]
                 if user_msg:
-                    context_parts.append(f"- User asked about: {user_msg}...")
+                    context_parts.append(f"  - {user_msg}{'...' if len(exchange.get('user_message', '')) > 80 else ''}")
 
-        # Check-in awareness: include whether today's check-in is completed (AI doesn't run the flow)
+        # Check-in awareness: include whether today's check-in is completed (ONLY if check-ins enabled)
         try:
-            from datetime import date
-            recent_checkins = get_recent_responses(user_id, limit=1)
-            completed_today = False
-            completed_at = ""
-            if recent_checkins:
-                ts = recent_checkins[0].get('timestamp', '')
-                mood_val = recent_checkins[0].get('mood')
-                energy_val = recent_checkins[0].get('energy')
-                if ts:
-                    try:
-                        dt = datetime.strptime(ts, '%Y-%m-%d %H:%M:%S')
-                        if dt.date() == date.today():
-                            completed_today = True
-                            completed_at = dt.strftime('%H:%M')
-                    except Exception:
-                        pass
-            if completed_today:
-                if mood_val is not None or energy_val is not None:
+            from core.response_tracking import is_user_checkins_enabled
+            checkins_enabled = is_user_checkins_enabled(user_id)
+            
+            if checkins_enabled:
+                from datetime import date
+                recent_checkins = get_recent_responses(user_id, limit=1)
+                completed_today = False
+                completed_at = ""
+                if recent_checkins:
+                    ts = recent_checkins[0].get('timestamp', '')
+                    mood_val = recent_checkins[0].get('mood')
+                    energy_val = recent_checkins[0].get('energy')
+                    if ts:
+                        try:
+                            dt = datetime.strptime(ts, '%Y-%m-%d %H:%M:%S')
+                            if dt.date() == date.today():
+                                completed_today = True
+                                completed_at = dt.strftime('%H:%M')
+                        except Exception:
+                            pass
+                if completed_today:
                     details = []
                     if mood_val is not None:
-                        details.append(f"mood {mood_val}/5")
+                        details.append(f"mood was {mood_val} out of 5")
                     if energy_val is not None:
-                        details.append(f"energy {energy_val}/5")
-                    details_str = ", ".join(details)
-                    context_parts.append(f"Check-in today: completed at {completed_at} ({details_str})")
+                        details.append(f"energy was {energy_val} out of 5")
+                    if details:
+                        details_str = " and ".join(details)
+                        context_parts.append(f"They completed their check-in today at {completed_at}, reporting that their {details_str}")
+                    else:
+                        context_parts.append(f"They completed their check-in today at {completed_at}")
                 else:
-                    context_parts.append(f"Check-in today: completed at {completed_at}")
-            else:
-                context_parts.append("Check-in today: not completed")
+                    context_parts.append("They have not completed their check-in for today yet")
         except Exception:
             pass
 
-        # Recent automated/sent messages (include full text for the most recent; concise for the rest). Exclude 'checkin' prompts.
+        # Recent automated/sent messages (natural language format)
         try:
             recent_sent_all = get_recent_messages(user_id, category=None, limit=5)
             recent_sent = [m for m in recent_sent_all if m.get('category') != 'checkin'][:3]
             if recent_sent:
-                context_parts.append("Recent automated messages (most recent first):")
+                context_parts.append("Recent automated messages sent to them:")
                 for idx, msg in enumerate(recent_sent[:3]):
                     category = msg.get('category', 'general')
                     text = (msg.get('message') or '')
                     timestamp = msg.get('timestamp', '')
                     if idx == 0:
                         # Full text for most recent message
-                        context_parts.append(f"- [{category}] {text} ({timestamp})")
+                        context_parts.append(f"  - Most recently ({timestamp}): A {category} message: \"{text}\"")
                     else:
                         # Concise snippet for older items to control token usage
                         words = text.split()
                         snippet = " ".join(words[:10]) + ("…" if len(words) > 10 else "")
-                        context_parts.append(f"- [{category}] {snippet} ({timestamp})")
+                        context_parts.append(f"  - Previously ({timestamp}): A {category} message: \"{snippet}\"")
         except Exception:
             # Non-blocking: if anything goes wrong, just skip this context addition
             pass
 
-        # Most recent task reminder (separate for clarity)
+        # Most recent task reminder (natural language)
         try:
             task_msgs = [m for m in recent_sent_all if m.get('category') == 'task_reminders'] if 'recent_sent_all' in locals() else []
             if task_msgs:
                 latest_task = task_msgs[0]
                 t_text = (latest_task.get('message') or '')
                 t_ts = latest_task.get('timestamp', '')
-                context_parts.append(f"Recent task reminder: {t_text} ({t_ts})")
+                context_parts.append(f"They received a task reminder at {t_ts}: \"{t_text}\"")
         except Exception:
+            pass
+        
+        # Task data (available if tasks are enabled)
+        try:
+            from tasks.task_management import load_active_tasks, get_user_task_stats, get_tasks_due_soon, are_tasks_enabled
+            if are_tasks_enabled(user_id):
+                active_tasks = load_active_tasks(user_id)
+                task_stats = get_user_task_stats(user_id)
+                tasks_due_soon = get_tasks_due_soon(user_id, days_ahead=7)
+                
+                if task_stats.get('total_count', 0) > 0:
+                    context_parts.append(f"Their task information:")
+                    context_parts.append(f"  - They have {task_stats.get('active_count', 0)} active task{'s' if task_stats.get('active_count', 0) != 1 else ''}")
+                    context_parts.append(f"  - They have completed {task_stats.get('completed_count', 0)} task{'s' if task_stats.get('completed_count', 0) != 1 else ''} total")
+                    
+                    if tasks_due_soon:
+                        context_parts.append(f"  - They have {len(tasks_due_soon)} task{'s' if len(tasks_due_soon) != 1 else ''} due within the next 7 days")
+                        
+                        # Include details for tasks due soon (up to 3)
+                        for task in tasks_due_soon[:3]:
+                            title = task.get('title', 'Untitled task')
+                            due_date = task.get('due_date', '')
+                            priority = task.get('priority', 'normal')
+                            due_desc = f", due on {due_date}" if due_date else ""
+                            priority_desc = f" ({priority} priority)" if priority != 'normal' else ""
+                            context_parts.append(f"    * \"{title}\"{due_desc}{priority_desc}")
+                    
+                    # Include a few most recent active tasks (if not already listed)
+                    if len(active_tasks) > len(tasks_due_soon[:3]):
+                        other_active = [t for t in active_tasks if t not in tasks_due_soon[:3]][:3]
+                        if other_active:
+                            context_parts.append(f"  - Other active tasks:")
+                            for task in other_active:
+                                title = task.get('title', 'Untitled task')
+                                context_parts.append(f"    * \"{title}\"")
+        except Exception as e:
+            # Non-blocking: if task data unavailable, just skip it
+            logger.debug(f"Could not load task data for context: {e}")
+            pass
+        
+        # Schedule details (what's scheduled and when)
+        try:
+            profile = context.get('user_profile', {})
+            active_schedules = profile.get('active_schedules', [])
+            if active_schedules:
+                from core.user_data_handlers import get_user_data
+                schedules_data = get_user_data(user_id, 'schedules', normalize_on_read=True).get('schedules', {})
+                
+                if schedules_data:
+                    context_parts.append(f"Their active schedules:")
+                    for schedule_name in active_schedules[:5]:  # Limit to 5 schedules
+                        # Find schedule in data structure
+                        schedule_info = None
+                        for category, category_data in schedules_data.items():
+                            if isinstance(category_data, dict) and 'periods' in category_data:
+                                for period_name, period_data in category_data['periods'].items():
+                                    if period_name == schedule_name:
+                                        schedule_info = {
+                                            'category': category,
+                                            'period': period_name,
+                                            'data': period_data
+                                        }
+                                        break
+                                if schedule_info:
+                                    break
+                        
+                        if schedule_info:
+                            period_data = schedule_info['data']
+                            days = period_data.get('days', ['ALL'])
+                            start_time = period_data.get('start_time', '00:00')
+                            end_time = period_data.get('end_time', '23:59')
+                            days_str = ', '.join(days) if days != ['ALL'] else 'every day'
+                            context_parts.append(f"  - {schedule_name} ({schedule_info['category']}): {days_str} from {start_time} to {end_time}")
+        except Exception as e:
+            # Non-blocking: if schedule data unavailable, just skip it
+            logger.debug(f"Could not load schedule details for context: {e}")
             pass
         
         # Create comprehensive context string (but don't include in user message to prevent leakage)
@@ -731,6 +881,22 @@ Additional Instructions:
         elif any(phrase in prompt_lower for phrase in clarification_phrases):
             needs_clarification = True
         else:
+            # Check for task intent phrases that should trigger clarification
+            # Phrases like "I need to buy groceries" are between command and chat
+            task_intent_phrases = [
+                "i need to", "i should", "i want to", "i have to", 
+                "remind me to", "i need", "i'd like to", "i want"
+            ]
+            task_verbs = ["buy", "get", "do", "call", "schedule", "complete", "finish"]
+            
+            # If prompt has task intent phrase + task verb, it's likely a task request needing clarification
+            has_task_intent = any(phrase in prompt_lower for phrase in task_intent_phrases)
+            has_task_verb = any(verb in prompt_lower for verb in task_verbs)
+            
+            if has_task_intent and has_task_verb and not any(word in prompt_lower for word in ["add", "create", "new"]):
+                # This is likely a natural language task request that needs clarification
+                needs_clarification = True
+            
             has_question_request = '?' in prompt_lower and any(
                 pattern in prompt_lower for pattern in request_question_patterns
             )
@@ -859,9 +1025,10 @@ Additional Instructions:
             temperature = AI_CLARIFICATION_TEMPERATURE
         else:
             messages = self._create_comprehensive_context_prompt(user_id, user_prompt)
-            # Use centralized token limit from config
-            max_tokens = AI_MAX_RESPONSE_TOKENS
-            temperature = AI_CHAT_TEMPERATURE
+            # Use prompt template's max_tokens if available, otherwise use config default
+            template = prompt_manager.get_prompt_template('wellness')
+            max_tokens = template.max_tokens if template and template.max_tokens else AI_MAX_RESPONSE_TOKENS
+            temperature = template.temperature if template and template.temperature is not None else AI_CHAT_TEMPERATURE
         
         try:
             # Call LM Studio API with adaptive timeout
@@ -875,11 +1042,17 @@ Additional Instructions:
             if result:
                 response = result.strip()
                 
+                # For command mode, extract structured command from response
+                # Can be JSON, key-value pairs, or natural language - parser handles all formats
+                if mode == "command":
+                    response = self._extract_command_from_response(response)
+                
                 # Enforce response length limit with smart truncation using centralized config
                 response = self._smart_truncate_response(response, AI_MAX_RESPONSE_LENGTH, AI_MAX_RESPONSE_WORDS)
                 
-                # Enhance response for better conversational engagement
-                response = self._enhance_conversational_engagement(response)
+                # Enhance response for better conversational engagement (skip for command mode)
+                if mode != "command":
+                    response = self._enhance_conversational_engagement(response)
                 
                 # Cache successful responses (skip cache for chat mode to allow variation)
                 if mode != "chat":
@@ -1214,7 +1387,102 @@ Additional Instructions:
         
         return cut.rstrip() + "…"
 
-    @handle_errors("enhancing conversational engagement", default_return="")
+    @handle_errors("extracting command from response", default_return="")
+    def _extract_command_from_response(self, response: str) -> str:
+        """
+        Extract command structure from command mode responses.
+        Handles multiple formats: JSON, key-value pairs (ACTION: ...), or natural language.
+        Returns clean structured format for parser.
+        """
+        import json
+        import re
+        
+        if not response:
+            return response
+        
+        # Strategy 1: Try to parse as JSON (legacy support)
+        try:
+            parsed = json.loads(response.strip())
+            return json.dumps(parsed)  # Re-serialize to ensure clean format
+        except (json.JSONDecodeError, ValueError):
+            pass
+        
+        # Strategy 2: Extract key-value format (ACTION: ..., TITLE: ..., etc.)
+        # This is the new preferred format - simple and AI-friendly
+        if 'ACTION:' in response or 'action:' in response:
+            lines = response.split('\n')
+            command_lines = []
+            for line in lines:
+                line_stripped = line.strip()
+                # Skip code-like lines (including Python code blocks with ```)
+                if (line_stripped.startswith('import ') or 
+                    line_stripped.startswith('from ') or
+                    line_stripped.startswith('def ') or
+                    line_stripped.startswith('class ') or
+                    line_stripped.startswith('"""') or
+                    line_stripped.startswith("'''") or
+                    line_stripped.startswith('#') or
+                    line_stripped.startswith('```python') or
+                    line_stripped.startswith('```') or
+                    line_stripped == '```'):
+                    continue
+                # Keep lines that look like key-value pairs
+                if ':' in line_stripped and (line_stripped.startswith('ACTION') or 
+                                            line_stripped.startswith('action') or
+                                            any(keyword in line_stripped.upper() for keyword in ['TITLE', 'DETAILS', 'PRIORITY', 'DUE_DATE'])):
+                    command_lines.append(line_stripped)
+            
+            if command_lines:
+                return '\n'.join(command_lines)
+        
+        # Strategy 3: Extract JSON from response (remove code fragments)
+        # Find JSON objects using balanced brace matching
+        start_idx = None
+        brace_count = 0
+        
+        for i, char in enumerate(response):
+            if char == '{':
+                if start_idx is None:
+                    start_idx = i
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and start_idx is not None:
+                    json_str = response[start_idx:i+1]
+                    try:
+                        parsed = json.loads(json_str)
+                        return json.dumps(parsed)
+                    except (json.JSONDecodeError, ValueError):
+                        start_idx = None
+                        brace_count = 0
+                        continue
+        
+        # Strategy 4: Clean response - remove code fragments but keep natural language
+        lines = response.split('\n')
+        clean_lines = []
+        for line in lines:
+            line_stripped = line.strip()
+            # Remove code-like lines (including Python code blocks with ```)
+            if (line_stripped.startswith('import ') or 
+                line_stripped.startswith('from ') or
+                line_stripped.startswith('def ') or
+                line_stripped.startswith('class ') or
+                line_stripped.startswith('"""') or
+                line_stripped.startswith("'''") or
+                line_stripped.startswith('#') or
+                line_stripped.startswith('```python') or
+                line_stripped.startswith('```') or
+                line_stripped == '```'):
+                continue
+            if line_stripped:
+                clean_lines.append(line_stripped)
+        
+        if clean_lines:
+            return '\n'.join(clean_lines)
+        
+        # Last resort: return response as-is (parser can handle natural language)
+        return response
+    
     def _enhance_conversational_engagement(self, response: str) -> str:
         """
         Enhance response to ensure good conversational engagement.

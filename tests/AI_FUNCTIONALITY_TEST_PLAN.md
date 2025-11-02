@@ -9,10 +9,10 @@
 
 This document outlines a comprehensive test plan for validating all AI functionality in the MHM system. The test suite has been refactored into modular test files for better maintainability.
 
-**Latest Test Results**: 38 passed, 1 partial, 0 failed (out of 39+ tests)  
+**Latest Test Results**: 38 passed, 3 partial, 11 failed (out of 52 tests)  
 **Test Runner**: `python tests/ai/run_ai_functionality_tests.py`  
 **Reports Location**: `tests/ai/results/ai_functionality_test_results_latest.md`  
-**Test Suite Structure**: Modular (split across 7 test modules + base utilities)
+**Test Suite Structure**: Modular (split across 8 test modules + base utilities)
 
 ## Test Suite Architecture
 
@@ -25,6 +25,7 @@ The test suite has been refactored from a single large file into focused, mainta
 - **`test_ai_cache.py`**: Cache behavior and isolation tests
 - **`test_ai_performance.py`**: Performance metrics and response time validation
 - **`test_ai_quality.py`**: Response quality validation and edge cases
+- **`test_ai_advanced.py`**: Advanced tests (multi-turn conversations, personality consistency, error recovery)
 - **`run_ai_functionality_tests.py`**: Main runner that orchestrates all tests
 
 ## Test Categories
@@ -310,22 +311,28 @@ python tests\ai\run_ai_functionality_tests.py
 - `test_ai_cache.py` - Cache tests (Categories 1.5, 11)
 - `test_ai_performance.py` - Performance tests (Category 9)
 - `test_ai_quality.py` - Quality and edge cases (Categories 12-13)
+- `test_ai_advanced.py` - Advanced tests (Categories 14-16: multi-turn, coherence, personality, error recovery)
 
 **Features**:
 - Modular test organization for maintainability
-- Automatic test execution across 13 test categories
+- Automatic test execution across 16 test categories (13 original + 3 advanced)
 - Detailed logging with prompts and responses
+- **No response duplication**: Notes sections don't repeat response text (already in Response field)
+- **Complete multi-turn conversations**: All responses included separated by `|`
+- **Prompt-response matching validation**: Tests verify responses match prompts (e.g., "Tell me a short story" should mention stories)
+- **AI fabrication detection**: Tests detect when AI makes up data (e.g., claims check-ins exist when none do)
+- **Context validation**: Tests verify context was actually provided to AI before AI references it
 - Performance metrics tracking (response times)
-- Report generation to `tests/ai/results/`
+- Report generation to `tests/ai/results/` with context information
 - Test result file rotation (keeps last 10 files)
 - Automatic test data directory cleanup
 - Windows console encoding safety (Unicode handling)
 
 **Test Results Summary**:
-- **Total Tests**: 39+
-- **Passed**: 38+
-- **Partial**: 1 (T-5.5 natural language command detection)
-- **Failed**: 0
+- **Total Tests**: 52 (16 test categories: 13 original + 3 advanced)
+- **Passed**: 38
+- **Partial**: 3 (T-2.1 missing context handling, T-5.5 natural language command detection, T-13.3 Unicode handling)
+- **Failed**: 11 (primarily truncation issues, AI fabricating data, response-prompt mismatches)
 
 **Test Result File Rotation**: Automatically keeps only the 10 most recent timestamped result files
 
@@ -369,12 +376,23 @@ python tests\ai\run_ai_functionality_tests.py
 13. ✅ Username validation updated (allows conversational name usage)
 
 ### To Do ⏳
-1. Improve natural language command detection (T-5.5)
-2. Add integration tests with conversation manager
-3. Add concurrent request handling tests
-4. Add memory usage monitoring tests
-5. Add timeout handling tests with actual timeouts
-6. ✅ Route test logs to `tests/logs/` instead of main `logs/` directory (implemented)
-7. ✅ Clean up old test temp directories (old directories cleaned up)
+1. **Improve natural language command detection** (T-5.5) - Add to PLANS.md for review/rework
+2. **Fix AI fabricating check-in data** (T-4.1) - AI claims check-ins exist when there are none
+3. **Fix AI referencing non-existent conversation history** (T-2.3) - AI mentions "you mentioned in recent conversation" when no history exists
+4. **Fix response-prompt mismatches** (T-9.3, T-12.2) - Responses should match prompts (e.g., "Tell me a short story" should actually tell a story)
+5. **Improve missing context fallback responses** (T-2.1) - Should be more supportive and explicit
+6. **Fix code fragment extraction** (T-11.1) - Python code blocks (```python) still appearing in command responses
+7. **Address response truncation** (10 tests) - Many responses cutting off at 200/300 chars
+8. Add integration tests with conversation manager
+9. Add concurrent request handling tests
+10. Add memory usage monitoring tests
+11. Add timeout handling tests with actual timeouts
+12. ✅ Route test logs to `tests/logs/` instead of main `logs/` directory (implemented)
+13. ✅ Clean up old test temp directories (old directories cleaned up)
+14. ✅ Add advanced test categories (multi-turn conversations, response coherence, personality consistency, error recovery) - IMPLEMENTED
+15. ✅ Remove response duplication from notes (implemented)
+16. ✅ Ensure all multi-turn conversations include all responses (implemented)
+17. ✅ Add prompt-response matching validation (implemented)
+18. ✅ Add AI fabrication detection (implemented)
 
 

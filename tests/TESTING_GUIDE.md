@@ -69,6 +69,8 @@ python -m pytest tests/behavior/test_discord_advanced_automation.py -v
 
 # Run AI functionality tests (manual review tests)
 python tests/ai/run_ai_functionality_tests.py
+# Results: tests/ai/results/ai_functionality_test_results_latest.md
+# Logs: tests/logs/test_consolidated.log and tests/logs/test_run.log
 ```
 
 ### **CRITICAL: Windows Task Prevention**
@@ -87,6 +89,9 @@ python scripts/cleanup_windows_tasks.py
 - **UI Tests**: User interface functionality
 - **Automation Tests**: Comprehensive automated testing for UI and Discord scenarios
 - **AI Functionality Tests**: Manual review tests for AI response quality (see `tests/AI_FUNCTIONALITY_TEST_PLAN.md`)
+  - Validates response quality, context usage, prompt matching, and detects AI fabrication
+  - Results include full responses, context information, and validation issues
+  - Tests automatically check for truncation, code fragments, fabrication, and prompt mismatches
 
 The testing framework prioritizes **real behavior testing**, **side effect verification**, and **integration scenarios** to ensure system reliability and catch issues early.
 

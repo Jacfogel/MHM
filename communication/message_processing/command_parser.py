@@ -392,7 +392,22 @@ class EnhancedCommandParser:
             
             logger.debug(f"AI response: {ai_response}")
             
-            # Try to parse AI response as JSON
+            # Try to parse AI response - support multiple formats:
+            # 1. JSON format (legacy): {"action": "...", "details": {...}}
+            # 2. Key-value format (preferred): ACTION: ... \n TITLE: ...
+            # 3. Natural language (fallback)
+            
+            # Strategy 1: Try key-value format (new preferred format - AI-friendly)
+            if 'ACTION:' in ai_response or 'action:' in ai_response:
+                intent, entities = self._parse_key_value_format(ai_response)
+                if intent and self._is_valid_intent(intent):
+                    confidence = AI_AI_PARSING_BASE_CONFIDENCE
+                    return ParsingResult(
+                        ParsedCommand(intent, entities, confidence, message),
+                        confidence, "ai_enhanced"
+                    )
+            
+            # Strategy 2: Try JSON format (legacy support)
             try:
                 parsed_data = json.loads(ai_response)
                 intent = parsed_data.get('action', 'unknown')
@@ -450,6 +465,53 @@ class EnhancedCommandParser:
             ParsedCommand("unknown", {}, 0.0, message),
             0.0, "ai_enhanced"
         )
+    
+    @handle_errors("parsing key-value format")
+    def _parse_key_value_format(self, response: str) -> tuple:
+        """
+        Parse key-value format (ACTION: ..., TITLE: ..., etc.)
+        Returns (intent, entities) tuple
+        """
+        intent = None
+        entities = {}
+        
+        lines = response.split('\n')
+        for line in lines:
+            line_stripped = line.strip()
+            if ':' not in line_stripped:
+                continue
+            
+            key, value = line_stripped.split(':', 1)
+            key = key.strip().upper()
+            value = value.strip()
+            
+            if key == 'ACTION':
+                intent = value.lower().strip()
+                # Map common variations
+                if intent == 'create task':
+                    intent = 'create_task'
+                elif intent == 'list tasks':
+                    intent = 'list_tasks'
+                elif intent == 'complete task':
+                    intent = 'complete_task'
+                # Add other common mappings as needed
+            elif key == 'TITLE':
+                entities['title'] = value
+            elif key == 'TASK_ID' or key == 'TASKID':
+                entities['task_identifier'] = value
+            elif key == 'PRIORITY':
+                entities['priority'] = value.lower()
+            elif key == 'DUE_DATE' or key == 'DUEDATE':
+                entities['due_date'] = value
+            elif key == 'DETAILS':
+                # Details might be a JSON string or key-value pairs
+                try:
+                    entities.update(json.loads(value))
+                except:
+                    # If not JSON, just store as string
+                    entities['details'] = value
+        
+        return (intent, entities)
     
     @handle_errors("extracting entities from rule-based patterns")
     def _extract_entities_rule_based(self, intent: str, match: re.Match, message: str) -> Dict[str, Any]:

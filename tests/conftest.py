@@ -2106,6 +2106,8 @@ def cleanup_test_users_after_session():
                         shutil.rmtree(item_path, ignore_errors=True)
                 except Exception:
                     pass
+        except Exception:
+            pass
     
     # Clean up pytest-of-* directories (pytest creates these when using tmpdir fixtures)
     # Use direct directory iteration instead of glob for Windows compatibility

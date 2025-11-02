@@ -303,8 +303,16 @@ def _get_cleanup_status__calculate_days_since_cleanup(last_cleanup_timestamp):
 def _get_cleanup_status__format_next_cleanup_date(last_date):
     """Format the next cleanup date or return 'Overdue'."""
     next_cleanup_date = last_date + timedelta(days=DEFAULT_CLEANUP_INTERVAL_DAYS)
+    now = datetime.now()
     # Show "Overdue" if the next cleanup date is today or in the past
-    return next_cleanup_date.strftime('%Y-%m-%d') if next_cleanup_date > datetime.now() else 'Overdue'
+    # Use date comparison (ignoring time) to avoid microsecond timing issues
+    next_date_only = next_cleanup_date.date()
+    now_date_only = now.date()
+    # If next cleanup date is today or earlier, it's overdue
+    if next_date_only <= now_date_only:
+        return 'Overdue'
+    # Otherwise return the formatted date
+    return next_cleanup_date.strftime('%Y-%m-%d')
 
 @handle_errors("building status response", default_return={})
 def _get_cleanup_status__build_status_response(last_date, days_since, next_cleanup):

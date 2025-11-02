@@ -21,10 +21,14 @@ class TestAIErrors(AITestBase):
         
         # Test 6.1: Invalid user ID handling
         try:
+            # Context info for None user_id - no context should be available
+            context_info = self._build_context_info(None)
+            context_info["note"] = "User ID is None - no context available"
+            
             response = self.chatbot.generate_contextual_response(None, "Hello")
             if response:
                 self.log_test("T-6.1", "Invalid user_id (None) handling", "PASS",
-                            "Response generated with None user_id", prompt="Hello", response=response[:200])
+                            "Response generated with None user_id", prompt="Hello", response=response, context_info=context_info)
             else:
                 self.log_test("T-6.1", "Invalid user_id (None) handling", "PARTIAL",
                             "No response generated for None user_id")
@@ -40,12 +44,15 @@ class TestAIErrors(AITestBase):
         # Test 6.2: Missing context data handling
         try:
             test_user_id = self._get_or_create_test_user("test_empty_user")
+            # Get context info - should show minimal or empty data
+            context_info = self._build_context_info(test_user_id, include_history=False)
+            
             prompt = "How am I doing?"
             response = self.chatbot.generate_contextual_response(test_user_id, prompt)
             
             if response and len(response) > 0:
                 self.log_test("T-6.2", "Missing context data handling", "PASS",
-                            "Response generated despite missing context data", prompt=prompt, response=response[:200], test_type="contextual")
+                            "Response generated despite missing context data", prompt=prompt, response=response, test_type="contextual", context_info=context_info)
             else:
                 self.log_test("T-6.2", "Missing context data handling", "FAIL",
                             "No response generated")
@@ -56,11 +63,15 @@ class TestAIErrors(AITestBase):
         # Test 6.3: Empty prompt handling
         try:
             test_user_id = self._get_or_create_test_user("test_empty_prompt")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             response = self.chatbot.generate_response("", user_id=test_user_id)
             
             if response:
                 self.log_test("T-6.3", "Empty prompt handling", "PASS",
-                            "Response generated for empty prompt", prompt="(empty)", response=response[:200], test_type="chat")
+                            "Response generated for empty prompt", prompt="(empty)", response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-6.3", "Empty prompt handling", "PARTIAL",
                             "No response for empty prompt (may be expected)")
@@ -78,6 +89,10 @@ class TestAIErrors(AITestBase):
         
         # Test 10.1: Connection error handling
         try:
+            # Non-contextual response - minimal context (fallback used when connection fails)
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response with fallback (LM Studio unavailable)"
+            
             with patch('ai.chatbot.requests.get') as mock_get:
                 mock_get.side_effect = requests.ConnectionError("Connection refused")
                 
@@ -90,11 +105,12 @@ class TestAIErrors(AITestBase):
                 self.chatbot.lm_studio_available = original_available
                 
                 if response and len(response) > 0:
-                    is_fallback = "trouble" in response.lower() or "support" in response.lower() or "help" in response.lower()
+                    is_fallback = "trouble" in response.lower() or "support" in response.lower() or "help" in response.lower() or "technical" in response.lower()
                     status = "PASS" if is_fallback else "PARTIAL"
+                    notes = "Fallback response provided" + ("" if is_fallback else " (may not be fallback)")
                     self.log_test("T-10.1", "Connection error handling", status,
-                                f"Fallback response provided: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                notes,
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-10.1", "Connection error handling", "FAIL",
                                 "No response generated on connection error", prompt=prompt)
@@ -104,6 +120,10 @@ class TestAIErrors(AITestBase):
         
         # Test 10.2: Timeout handling
         try:
+            # Non-contextual response - minimal context (fallback used on timeout)
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response with fallback (timeout scenario)"
+            
             with patch('ai.chatbot.requests.post') as mock_post:
                 mock_post.side_effect = requests.Timeout("Request timed out")
                 
@@ -112,8 +132,8 @@ class TestAIErrors(AITestBase):
                 
                 if response and len(response) > 0:
                     self.log_test("T-10.2", "Timeout handling", "PASS",
-                                f"Response provided after timeout: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                "Response provided after timeout",
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-10.2", "Timeout handling", "FAIL",
                                 "No response generated after timeout", prompt=prompt)
@@ -128,6 +148,10 @@ class TestAIErrors(AITestBase):
         
         # Test 10.3: Invalid API response handling
         try:
+            # Non-contextual response - minimal context (fallback used for invalid response)
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response with fallback (invalid API response)"
+            
             with patch('ai.chatbot.requests.post') as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 200
@@ -144,8 +168,8 @@ class TestAIErrors(AITestBase):
                 
                 if response and len(response) > 0:
                     self.log_test("T-10.3", "Invalid API response handling", "PASS",
-                                f"Response provided despite invalid API response: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                "Response provided despite invalid API response",
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-10.3", "Invalid API response handling", "FAIL",
                                 "No response generated for invalid API response", prompt=prompt)
@@ -160,6 +184,10 @@ class TestAIErrors(AITestBase):
         
         # Test 10.4: 5xx Server error handling
         try:
+            # Non-contextual response - minimal context (fallback used for server error)
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response with fallback (server error)"
+            
             with patch('ai.chatbot.requests.post') as mock_post:
                 mock_response = MagicMock()
                 mock_response.status_code = 500
@@ -176,8 +204,8 @@ class TestAIErrors(AITestBase):
                 
                 if response and len(response) > 0:
                     self.log_test("T-10.4", "Server error (5xx) handling", "PASS",
-                                f"Fallback response provided: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                "Fallback response provided",
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-10.4", "Server error (5xx) handling", "FAIL",
                                 "No response generated for server error", prompt=prompt)

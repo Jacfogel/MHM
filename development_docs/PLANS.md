@@ -35,6 +35,32 @@
 - Tests by area are acceptable to iterate faster; full suite before shipping changes.
 - Keep both `!` and `/` commands; prefer slash in help/UX with auto-suggests.
 
+### **Natural Language Command Detection Review & Rework** ⚠️ **PLANNING**
+
+**Status**: ⚠️ **PLANNING**  
+**Priority**: Medium  
+**Effort**: Medium  
+**Date**: 2025-11-01
+
+**Objective**: Review and potentially completely rework natural language command detection patterns to better recognize task intent in natural language (e.g., "I need to buy groceries" should trigger clarification mode, not chat mode).
+
+**Current Issues**:
+- "I need to buy groceries" detected as `chat` mode instead of `command_with_clarification`
+- Some natural language task requests not properly recognized
+- Mode detection may need more comprehensive pattern matching or AI-based classification
+
+**Scope**:
+- [ ] Analyze current mode detection patterns in `ai/chatbot.py` `_detect_mode()` method
+- [ ] Review test results for natural language command detection (T-5.5)
+- [ ] Consider expanding pattern matching or using AI-powered classification for ambiguous cases
+- [ ] Test improvements with various natural language task request patterns
+- [ ] Ensure backward compatibility with existing command patterns
+
+**Success Criteria**:
+- [ ] Natural language task requests (e.g., "I need to...", "I should...") properly trigger clarification mode
+- [ ] No regressions in existing command detection (clear commands still work)
+- [ ] Test suite passes with improved detection
+
 ### **Error Handling Coverage Expansion** ?? **IN PROGRESS**
 
 **Status**: ?? **IN PROGRESS**  
@@ -399,6 +425,21 @@
   - [ ] Support for "I need to call the dentist this week"
   - [ ] Support for "Schedule a task for cleaning the kitchen every Sunday"
   - [ ] Smart parsing of natural language into structured task data
+
+**4a. Interactive Task Creation Follow-up Questions** ⚠️ **PLANNED**
+- **Why it matters**: Allows users to provide additional task information (due date, priority, reminders) without requiring all details upfront
+- **Implementation**:
+  - [ ] Implement follow-up question system in conversation manager/command handler
+  - [ ] After initial task creation, ask for optional information:
+    - [ ] Due date (with 2-3 quick selectable options + custom input + skip)
+    - [ ] Priority level (with 2-3 quick selectable options + custom input + skip)
+    - [ ] Reminder preferences (with 2-3 quick selectable options + custom input + skip)
+  - [ ] Provide skip option for individual questions and "skip all" option
+  - [ ] Store task with minimal info initially, update as user provides additional details
+  - [ ] Integrate with command parser to recognize task creation commands
+  - [ ] Add conversation state tracking for multi-turn task creation flow
+- **Dependencies**: Conversation manager enhancements, command handler improvements
+- **Notes**: This is a larger feature that requires integration between AI chatbot, conversation manager, and command handlers
 
 #### **Phase 2: Intelligence & Workflow Improvements (Medium Impact, Medium Effort)** ⚠️ **PLANNED**
 

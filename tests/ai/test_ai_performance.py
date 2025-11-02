@@ -26,6 +26,10 @@ class TestAIPerformance(AITestBase):
         
         # Test 9.1: Simple query response time
         try:
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Hello"
             start_time = time.time()
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
@@ -35,7 +39,7 @@ class TestAIPerformance(AITestBase):
                 status = "PASS" if response_time < 5.0 else "PARTIAL"
                 self.log_test("T-9.1", "Simple query response time", status,
                             f"Response time: {response_time:.2f}s (target <5s)", 
-                            prompt=prompt, response=response[:200], response_time=response_time, test_type="chat")
+                            prompt=prompt, response=response, response_time=response_time, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-9.1", "Simple query response time", "FAIL" if response_time >= 10.0 else "PARTIAL",
                             f"Response time too slow: {response_time:.2f}s" if response_time >= 10.0 else f"Response time: {response_time:.2f}s",
@@ -59,6 +63,9 @@ class TestAIPerformance(AITestBase):
                     contextual_user_id = get_user_id_by_identifier("test_perf_contextual")
                     
                     if contextual_user_id:
+                        # Get context info before generating response
+                        context_info = self._build_context_info(contextual_user_id, include_history=False)
+                        
                         prompt = "How am I doing today?"
                         start_time = time.time()
                         response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
@@ -68,7 +75,7 @@ class TestAIPerformance(AITestBase):
                             status = "PASS" if response_time < 10.0 else "PARTIAL"
                             self.log_test("T-9.2", "Contextual query response time", status,
                                         f"Response time: {response_time:.2f}s (target <10s)", 
-                                        prompt=prompt, response=response[:200], response_time=response_time, test_type="contextual")
+                                        prompt=prompt, response=response, response_time=response_time, test_type="contextual", context_info=context_info)
                         else:
                             self.log_test("T-9.2", "Contextual query response time", "FAIL" if response_time >= 15.0 else "PARTIAL",
                                         f"Response time too slow: {response_time:.2f}s" if response_time >= 15.0 else f"Response time: {response_time:.2f}s",
@@ -86,6 +93,10 @@ class TestAIPerformance(AITestBase):
         # Test 9.3: Response length validation
         try:
             test_user_id = self._get_or_create_test_user("test_response_length")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Tell me a short story"
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
             
@@ -93,10 +104,18 @@ class TestAIPerformance(AITestBase):
                 min_length = 10
                 max_length = 2000
                 
+                # Validate response actually matches prompt (should mention story or storytelling)
+                story_indicators = ["story", "tale", "once", "narrative"]
+                matches_prompt = any(indicator in response.lower() for indicator in story_indicators)
+                
                 if min_length <= len(response) <= max_length:
-                    self.log_test("T-9.3", "Response length validation", "PASS",
-                                f"Response length: {len(response)} chars (acceptable range: {min_length}-{max_length})",
-                                prompt=prompt, response=response[:300], test_type="chat")
+                    notes = f"Response length: {len(response)} chars (acceptable range: {min_length}-{max_length})"
+                    if not matches_prompt:
+                        notes += ". Response may not match prompt ('Tell me a short story')"
+                    status = "PASS" if matches_prompt else "PARTIAL"
+                    self.log_test("T-9.3", "Response length validation", status,
+                                notes,
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     status = "PARTIAL" if len(response) < min_length else "FAIL"
                     self.log_test("T-9.3", "Response length validation", status,

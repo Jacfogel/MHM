@@ -6,6 +6,7 @@ Tests for context with check-ins, conversation history, and integration features
 
 import os
 from unittest.mock import patch
+from datetime import datetime
 
 from tests.ai.ai_test_base import AITestBase
 from tests.test_utilities import TestUserFactory
@@ -52,13 +53,46 @@ class TestAIIntegration(AITestBase):
                 context = user_context_manager.get_ai_context(actual_user_id, include_conversation_history=False)
                 has_checkins = 'recent_activity' in context or 'checkins' in str(context).lower()
                 
+                # Get check-in status information
+                from core.response_tracking import get_recent_checkins
+                recent_checkins = get_recent_checkins(actual_user_id, limit=10) if actual_user_id else []  # get_recent_checkins uses limit, not days
+                checkins_today = [c for c in recent_checkins if c.get('timestamp', '').startswith(datetime.now().strftime('%Y-%m-%d'))]
+                
                 prompt = "How have I been doing with my check-ins?"
                 response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
                 
-                status = "PASS" if has_checkins else "PARTIAL"
-                self.log_test("T-4.1", "Context includes check-in data", status,
-                            "Check-in data found in context" if has_checkins else "Check-in data may not be in context structure",
-                            prompt=prompt, response=response[:300] if response else "", test_type="contextual")
+                # Build context info for report
+                context_info = {
+                    "has_checkin_data": has_checkins,
+                    "checkins_today": len(checkins_today),
+                    "recent_checkins_count": len(recent_checkins),
+                    "context_keys": list(context.keys()) if isinstance(context, dict) else []
+                }
+                
+                # Validate that AI doesn't claim check-ins exist when there are none
+                has_incorrect_claim = False
+                if len(recent_checkins) == 0 and len(checkins_today) == 0:
+                    # Check if AI incorrectly claims they've been checking in
+                    incorrect_phrases = [
+                        "you've been checking in",
+                        "checking in consistently",
+                        "your check-ins",
+                        "been doing check-ins"
+                    ]
+                    response_lower = response.lower() if response else ""
+                    has_incorrect_claim = any(phrase in response_lower for phrase in incorrect_phrases)
+                
+                # Test passes if context structure includes check-in fields, but fails if AI makes incorrect claims
+                if has_incorrect_claim:
+                    status = "FAIL"
+                    notes = f"AI incorrectly claims check-ins exist when there are none (0 recent, 0 today). Check-in context structure exists: {has_checkins}"
+                else:
+                    status = "PASS" if has_checkins else "PARTIAL"
+                    notes = f"Check-in context structure: {has_checkins}. Today's check-ins: {len(checkins_today)}, Recent: {len(recent_checkins)}"
+                
+                self.log_test("T-4.1", "Context includes check-in data", status, notes,
+                            prompt=prompt, response=response, 
+                            test_type="contextual", context_info=context_info)
             except Exception as e:
                 self.log_test("T-4.1", "Context includes check-in data", "FAIL",
                             "", f"Exception: {str(e)}")
@@ -99,24 +133,39 @@ class TestAIIntegration(AITestBase):
             
             # Test 7.1: Conversation history affects subsequent responses
             try:
+                # Get context info before generating responses
+                context_info_before = self._build_context_info(actual_user_id, include_history=True)
+                
                 prompt1 = "My favorite color is blue"
                 response1 = self.chatbot.generate_contextual_response(actual_user_id, prompt1)
                 
                 prompt2 = "What's my favorite color?"
                 response2 = self.chatbot.generate_contextual_response(actual_user_id, prompt2)
                 
+                # Update context info after first exchange
+                context_info_after = self._build_context_info(actual_user_id, include_history=True)
+                context_info = {
+                    **context_info_before,
+                    "conversation_history_after_first": context_info_after.get("conversation_history_count", 0)
+                }
+                
                 mentions_blue = "blue" in response2.lower()
                 
                 status = "PASS" if mentions_blue else "PARTIAL"
+                # Include all responses for multi-turn conversations (separated by |)
+                all_responses = f"{response1} | {response2}"
+                notes = f"Subsequent response shows awareness of previous conversation" if mentions_blue else f"Subsequent response may not reference previous conversation"
                 self.log_test("T-7.1", "Conversation history affects responses", status,
-                            "Subsequent response shows awareness of previous conversation" if mentions_blue else "Subsequent response may not reference previous conversation",
+                            notes,
                             prompt=f"{prompt1} | {prompt2}",
-                            response=f"Response 1: {response1[:100]}... | Response 2: {response2[:100]}...", test_type="contextual")
+                            response=all_responses, test_type="contextual", context_info=context_info)
             except Exception as e:
                 self.log_test("T-7.1", "Conversation history affects responses", "FAIL",
                             "", f"Exception: {str(e)}")
             
             # Test 7.2: Conversation history included in context
+            # NOTE: This is a deterministic test that verifies context structure includes conversation_history.
+            # It could potentially be moved to unit tests, but remains here to verify integration with context manager.
             try:
                 context = user_context_manager.get_ai_context(
                     actual_user_id, include_conversation_history=True
@@ -172,6 +221,11 @@ class TestAIIntegration(AITestBase):
             
             # Test 8.1: Store conversation exchange
             try:
+                # Check if check-in data exists before first response
+                from core.response_tracking import get_recent_checkins
+                from datetime import datetime
+                checkins_before = get_recent_checkins(actual_user_id, limit=10) if actual_user_id else []
+                
                 prompt1 = "How are you doing today?"
                 response1 = self.chatbot.generate_contextual_response(actual_user_id, prompt1)
                 
@@ -182,12 +236,42 @@ class TestAIIntegration(AITestBase):
                     actual_user_id, include_conversation_history=True
                 ).get('conversation_history', [])
                 
-                exchange_details = f"Exchange 1: '{prompt1}' -> {response1[:80]}... | Exchange 2: '{prompt2}' -> {response2[:80]}..."
+                # Check if AI inappropriately references check-in data that doesn't exist
+                checkin_issues = []
+                if len(checkins_before) == 0:
+                    # No check-in data exists - AI should not reference specific check-in stats
+                    inappropriate_claims = [
+                        "you've been eating breakfast",
+                        "eating breakfast 90",
+                        "breakfast 90%",
+                        "90% of the time"
+                    ]
+                    combined_responses = f"{response1} {response2}".lower()
+                    for claim in inappropriate_claims:
+                        if claim in combined_responses:
+                            checkin_issues.append(f"AI references breakfast stats when no check-in data exists")
+                            break
+                
+                # Include all responses for multi-turn conversations
+                all_responses = f"{response1} | {response2}"
                 
                 status = "PASS" if len(history) >= 2 else "PARTIAL"
+                if checkin_issues:
+                    status = "FAIL"
+                    notes = f"Stored {len(history)} exchanges. Issues: {'; '.join(checkin_issues)}"
+                else:
+                    notes = f"Stored {len(history)} exchanges"
+                
+                # Include context info about check-ins
+                context_info = {
+                    "checkins_before_prompts": len(checkins_before),
+                    "history_count": len(history)
+                }
+                
                 self.log_test("T-8.1", "Store conversation exchanges", status,
-                            f"Stored {len(history)} exchanges" if len(history) >= 2 else f"Stored {len(history)} exchanges (expected 2+)",
-                            prompt=f"{prompt1} | {prompt2}", response=exchange_details, test_type="contextual")
+                            notes,
+                            prompt=f"{prompt1} | {prompt2}", response=all_responses, 
+                            test_type="contextual", context_info=context_info)
             except Exception as e:
                 self.log_test("T-8.1", "Store conversation exchanges", "FAIL",
                             "", f"Exception: {str(e)}", prompt=prompt1 if 'prompt1' in locals() else "")

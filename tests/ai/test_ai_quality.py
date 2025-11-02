@@ -26,6 +26,10 @@ class TestAIQuality(AITestBase):
         
         # Test 12.1: Response should not be empty or whitespace-only
         try:
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Tell me something helpful"
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
             
@@ -37,12 +41,12 @@ class TestAIQuality(AITestBase):
                 if not is_empty and not is_only_whitespace and len(response_trimmed) >= 5:
                     self.log_test("T-12.1", "Response non-empty validation", "PASS",
                                 f"Response has meaningful content: {len(response_trimmed)} chars",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     status = "FAIL" if is_empty or is_only_whitespace else "PARTIAL"
                     self.log_test("T-12.1", "Response non-empty validation", status,
                                 f"Response may be too short or empty: {len(response_trimmed)} chars",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-12.1", "Response non-empty validation", "FAIL",
                             "No response generated", prompt=prompt)
@@ -52,6 +56,10 @@ class TestAIQuality(AITestBase):
         
         # Test 12.2: Response should not contain obvious error messages
         try:
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "How are you?"
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
             
@@ -64,20 +72,33 @@ class TestAIQuality(AITestBase):
                 helpful_errors = ["i'm having trouble", "please try again", "help", "support"]
                 is_helpful_error = any(phrase in response.lower() for phrase in helpful_errors)
                 
+                # Validate response matches prompt ("How are you?" should get a greeting/wellness response, not generic)
+                greeting_indicators = ["good", "well", "great", "fine", "doing", "feeling", "thanks", "thank"]
+                matches_prompt = any(indicator in response.lower() for indicator in greeting_indicators)
+                
                 if not error_found or is_helpful_error:
-                    self.log_test("T-12.2", "Response error message validation", "PASS",
-                                f"Response does not contain unexpected errors: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                    notes = "Response does not contain unexpected errors"
+                    if not matches_prompt:
+                        notes += ". Response may not match prompt ('How are you?')"
+                    status = "PASS" if matches_prompt else "PARTIAL"
+                    self.log_test("T-12.2", "Response error message validation", status,
+                                notes,
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-12.2", "Response error message validation", "PARTIAL",
-                                f"Response may contain error patterns: {response[:100]}...",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                "Response may contain error patterns",
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-12.2", "Response error message validation", "FAIL",
                             "No response generated", prompt=prompt)
         except Exception as e:
+            # Safely encode exception message for Windows console (avoid Unicode errors)
+            try:
+                error_msg = str(e).encode('ascii', errors='replace').decode('ascii')
+            except:
+                error_msg = f"Exception occurred: {type(e).__name__}"
             self.log_test("T-12.2", "Response error message validation", "FAIL",
-                        "", f"Exception: {str(e)}", prompt=prompt if 'prompt' in locals() else "")
+                        "", error_msg, prompt=prompt if 'prompt' in locals() else "")
         
         # Test 12.3: Contextual response should reference user context
         try:
@@ -96,6 +117,9 @@ class TestAIQuality(AITestBase):
                     if contextual_user_id:
                         save_user_data(contextual_user_id, {"context": {"preferred_name": "QualityTest"}})
                         
+                        # Get context info before generating response
+                        context_info = self._build_context_info(contextual_user_id, include_history=False)
+                        
                         prompt = "How am I doing?"
                         response = self.chatbot.generate_contextual_response(contextual_user_id, prompt)
                         
@@ -108,8 +132,8 @@ class TestAIQuality(AITestBase):
                             is_contextual = has_user_ref or has_contextual_language
                             status = "PASS" if is_contextual else "PARTIAL"
                             self.log_test("T-12.3", "Contextual response quality", status,
-                                        f"Response appears {'contextual' if is_contextual else 'generic'}: {response[:100]}...",
-                                        prompt=prompt, response=response[:300], test_type="contextual")
+                                        f"Response appears {'contextual' if is_contextual else 'generic'}",
+                                        prompt=prompt, response=response, test_type="contextual", context_info=context_info)
                         else:
                             self.log_test("T-12.3", "Contextual response quality", "FAIL",
                                         "No response generated", prompt=prompt)
@@ -126,6 +150,10 @@ class TestAIQuality(AITestBase):
         # Test 12.4: Response format validation
         try:
             test_user_id = self._get_or_create_test_user("test_format_validation")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Tell me a fact"
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
             
@@ -149,11 +177,11 @@ class TestAIQuality(AITestBase):
                 if not issues:
                     self.log_test("T-12.4", "Response format validation", "PASS",
                                 "Response format is clean",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
                 else:
                     self.log_test("T-12.4", "Response format validation", "PARTIAL",
                                 f"Format issues detected: {', '.join(issues)}",
-                                prompt=prompt, response=response[:200], test_type="chat")
+                                prompt=prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-12.4", "Response format validation", "FAIL",
                             "No response generated", prompt=prompt)
@@ -188,13 +216,17 @@ class TestAIQuality(AITestBase):
         # Test 13.2: Special characters in prompt
         try:
             test_user_id = self._get_or_create_test_user("test_special_chars")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             special_prompt = "What do you think about: !@#$%^&*()[]{}|\\/:;\"'<>?,."
             response = self.chatbot.generate_response(special_prompt, user_id=test_user_id)
             
             if response and len(response) > 0:
                 self.log_test("T-13.2", "Special characters handling", "PASS",
-                            f"Response generated with special chars: {response[:100]}...",
-                            prompt=special_prompt, response=response[:200], test_type="chat")
+                            "Response generated with special characters",
+                            prompt=special_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.2", "Special characters handling", "FAIL",
                             "No response to special character prompt", prompt=special_prompt)
@@ -205,14 +237,18 @@ class TestAIQuality(AITestBase):
         # Test 13.3: Unicode/emoji in prompt (skip emoji to avoid Windows console encoding issues)
         try:
             test_user_id = self._get_or_create_test_user("test_unicode")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             # Use Unicode text instead of emoji to avoid Windows console encoding errors
             unicode_prompt = "How are you feeling? (with special characters: é, ñ, ü)"
             response = self.chatbot.generate_response(unicode_prompt, user_id=test_user_id)
             
             if response and len(response) > 0:
                 self.log_test("T-13.3", "Unicode character handling", "PASS",
-                            f"Response generated with unicode: {response[:100]}...",
-                            prompt=unicode_prompt, response=response[:200], test_type="chat")
+                            "Response generated with unicode",
+                            prompt=unicode_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.3", "Unicode character handling", "FAIL",
                             "No response to unicode prompt", prompt=unicode_prompt)
@@ -228,13 +264,17 @@ class TestAIQuality(AITestBase):
         # Test 13.4: Multiple consecutive spaces/normalization
         try:
             test_user_id = self._get_or_create_test_user("test_normalization")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             messy_prompt = "Hello     there    how   are   you?"
             response = self.chatbot.generate_response(messy_prompt, user_id=test_user_id)
             
             if response and len(response) > 0:
                 self.log_test("T-13.4", "Prompt normalization", "PASS",
-                            f"Response generated despite messy spacing: {response[:100]}...",
-                            prompt=messy_prompt, response=response[:200], test_type="chat")
+                            "Response generated despite messy spacing",
+                            prompt=messy_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.4", "Prompt normalization", "FAIL",
                             "No response to messy prompt", prompt=messy_prompt)
@@ -245,17 +285,34 @@ class TestAIQuality(AITestBase):
         # Test 13.5: Numeric-only prompt
         try:
             test_user_id = self._get_or_create_test_user("test_numeric")
+            # Non-contextual response - minimal context (no check-ins or conversation data should exist)
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided - no check-ins/conversation data)"
+            
             numeric_prompt = "123456789"
             response = self.chatbot.generate_response(numeric_prompt, user_id=test_user_id)
             
             if response and len(response) > 0:
-                self.log_test("T-13.5", "Numeric-only prompt", "PASS",
-                            f"Response generated to numeric prompt: {response[:100]}...",
-                            prompt=numeric_prompt, response=response[:200], test_type="chat")
+                # Check if AI inappropriately references check-ins or conversation history that doesn't exist
+                inappropriate_refs = []
+                if any(phrase in response.lower() for phrase in ["feeling down", "lately", "recent", "been feeling", "your check-ins"]):
+                    # This is a simple numeric prompt - no context should be provided
+                    # Need to check if context was actually provided to AI
+                    inappropriate_refs.append("AI may reference non-existent check-in/conversation data")
+                
+                notes = "Response generated to numeric prompt"
+                if inappropriate_refs:
+                    notes += f". Issues: {'; '.join(inappropriate_refs)}"
+                
+                status = "PASS" if not inappropriate_refs else "PARTIAL"
+                self.log_test("T-13.5", "Numeric-only prompt", status,
+                            notes,
+                            prompt=numeric_prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-13.5", "Numeric-only prompt", "PARTIAL",
                             "No response to numeric prompt (may be expected)", prompt=numeric_prompt)
         except Exception as e:
+            numeric_prompt_local = "123456789"  # Define in case of exception before assignment
             self.log_test("T-13.5", "Numeric-only prompt", "FAIL",
-                        "", f"Exception: {str(e)}", prompt=numeric_prompt)
+                        "", f"Exception: {str(e)}", prompt=numeric_prompt if 'numeric_prompt' in locals() else numeric_prompt_local)
 

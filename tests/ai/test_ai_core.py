@@ -28,11 +28,15 @@ class TestAICore(AITestBase):
         # Test 1.1: Simple prompt
         try:
             test_user_id = self._get_or_create_test_user("test_basic_1")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Hello, how are you?"
             response = self.chatbot.generate_response(prompt, user_id=test_user_id)
             if response and isinstance(response, str) and len(response) > 0:
                 self.log_test("T-1.1", "generate_response() with simple prompt", "PASS",
-                            f"Generated response: {response[:100]}...", prompt=prompt, response=response[:200], test_type="chat")
+                            "Response generated successfully", prompt=prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-1.1", "generate_response() with simple prompt", "FAIL",
                             "Response was empty or invalid", prompt=prompt)
@@ -43,11 +47,15 @@ class TestAICore(AITestBase):
         # Test 1.2: Chat mode
         try:
             test_user_id = self._get_or_create_test_user("test_basic_2")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "Tell me about your capabilities"
             response = self.chatbot.generate_response(prompt, mode="chat", user_id=test_user_id)
             if response and isinstance(response, str):
                 self.log_test("T-1.2", "generate_response() in chat mode", "PASS",
-                            f"Chat mode response generated: {response[:80]}...", prompt=prompt, response=response[:200], test_type="chat")
+                            "Chat mode response generated", prompt=prompt, response=response, test_type="chat", context_info=context_info)
             else:
                 self.log_test("T-1.2", "generate_response() in chat mode", "FAIL",
                             "No response generated", prompt=prompt)
@@ -58,11 +66,15 @@ class TestAICore(AITestBase):
         # Test 1.3: Command mode
         try:
             test_user_id = self._get_or_create_test_user("test_basic_3")
+            # Non-contextual response - minimal context
+            context_info = self._build_context_info(None)
+            context_info["note"] = "Non-contextual response (minimal context provided)"
+            
             prompt = "add task buy groceries"
             response = self.chatbot.generate_response(prompt, mode="command", user_id=test_user_id)
             if response and isinstance(response, str):
                 self.log_test("T-1.3", "generate_response() in command mode", "PASS",
-                            f"Command mode response generated: {response[:80]}...", prompt=prompt, response=response[:200], test_type="command")
+                            "Command mode response generated", prompt=prompt, response=response, test_type="command", context_info=context_info)
             else:
                 self.log_test("T-1.3", "generate_response() in command mode", "FAIL",
                             "No response generated", prompt=prompt)
@@ -112,11 +124,23 @@ class TestAICore(AITestBase):
             
             # Test 2.1: Contextual response with new user
             try:
+                # Get context info before generating response
+                context_info = self._build_context_info(actual_user_id, include_history=False)
+                
                 prompt = "How am I doing today?"
                 response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
                 if response and isinstance(response, str) and len(response) > 0:
+                    # Check if this looks like a fallback response
+                    fallback_indicators = [
+                        "Hi! It's great to hear from you",
+                        "I'm here to listen and support you",
+                        "I don't have enough information",
+                        "How about you tell me about your day"
+                    ]
+                    is_fallback = any(indicator in response for indicator in fallback_indicators)
+                    notes = "Response generated" + (" (appears to be fallback)" if is_fallback else "")
                     self.log_test("T-2.1", "generate_contextual_response() with new user", "PASS",
-                                f"Response generated: {response[:100]}...", prompt=prompt, response=response[:300], test_type="contextual")
+                                notes, prompt=prompt, response=response, test_type="contextual", context_info=context_info)
                 else:
                     self.log_test("T-2.1", "generate_contextual_response() with new user", "FAIL",
                                 "No response generated", prompt=prompt)
@@ -143,15 +167,41 @@ class TestAICore(AITestBase):
                 context_data = {"context": {"preferred_name": "TestUser"}}
                 save_user_data(actual_user_id, context_data)
                 
+                # Get context for reporting
+                context = user_context_manager.get_ai_context(actual_user_id, include_conversation_history=False)
+                
                 prompt = "Hello!"
                 response = self.chatbot.generate_contextual_response(actual_user_id, prompt)
                 
+                # Build context info
+                context_info = {
+                    "user_name": "TestUser",
+                    "has_context": context is not None,
+                    "context_keys": list(context.keys()) if isinstance(context, dict) else [],
+                    "response_length": len(response) if response else 0
+                }
+                
                 if response and ("TestUser" in response or "test" in response.lower()):
-                    self.log_test("T-2.3", "User name in contextual response", "PASS",
-                                f"Response: {response[:100]}...", prompt=prompt, response=response[:300], test_type="contextual")
+                    # Check if AI references non-existent conversation history
+                    conversation_issues = []
+                    if "you mentioned" in response.lower() and "recent conversation" in response.lower():
+                        # Check if conversation history actually exists
+                        conversation_history = context.get('conversation_history', []) if isinstance(context, dict) else []
+                        if len(conversation_history) == 0:
+                            conversation_issues.append("AI references non-existent conversation history")
+                    
+                    notes = "User name included in response"
+                    if conversation_issues:
+                        notes += f". Issues: {'; '.join(conversation_issues)}"
+                    
+                    status = "FAIL" if conversation_issues else "PASS"
+                    self.log_test("T-2.3", "User name in contextual response", status,
+                                notes, prompt=prompt, response=response, 
+                                test_type="contextual", context_info=context_info)
                 else:
                     self.log_test("T-2.3", "User name in contextual response", "PARTIAL",
-                                f"Name may not be included (response: {response[:80]}...)", prompt=prompt, response=response[:300], test_type="contextual")
+                                "User name may not be included", prompt=prompt, 
+                                response=response, test_type="contextual", context_info=context_info)
             except Exception as e:
                 self.log_test("T-2.3", "User name in contextual response", "FAIL",
                             "", f"Exception: {str(e)}", prompt=prompt if 'prompt' in locals() else "")
@@ -246,9 +296,10 @@ class TestAICore(AITestBase):
             has_structure = ('{' in response and '}' in response) or ('action' in response.lower()) or isinstance(response, dict)
             
             status = "PASS" if has_structure else "PARTIAL"
+            notes = "Response appears structured (key-value or JSON format)" if has_structure else "Response may not be structured"
             self.log_test("T-5.6", "Command parsing creates structured output", status,
-                        f"Response appears structured: {response[:100]}..." if has_structure else "Response may not be structured JSON",
-                        prompt=prompt, response=str(response)[:300], test_type="command")
+                        notes,
+                        prompt=prompt, response=str(response), test_type="command")
         except Exception as e:
             self.log_test("T-5.6", "Command parsing creates structured output", "FAIL",
                         "", f"Exception: {str(e)}", prompt=prompt if 'prompt' in locals() else "")

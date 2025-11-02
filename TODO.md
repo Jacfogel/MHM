@@ -191,6 +191,40 @@ When adding new tasks, follow this format:
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
 
+**Improve missing context fallback responses**
+- *What it means*: Enhance `_get_contextual_fallback` in `ai/chatbot.py` to provide more explicit and supportive responses when user context is missing, asking users to provide information rather than giving generic responses
+- *Why it helps*: Improves user experience when AI doesn't have context data, making interactions more helpful and engaging
+- *Estimated effort*: Small
+
+**Fix AI response quality issues identified in test results**
+- *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
+- *Why it helps*: Improves AI response quality and ensures responses actually address user prompts appropriately
+- *Estimated effort*: Medium
+- *Current Status*: Issues documented in `tests/ai/results/ai_functionality_test_results_latest.md` - AI Review section
+- *Specific Issues*:
+  - T-1.1, T-8.1, T-9.3, T-13.3: Prompt-response mismatches (greetings redirected, questions not answered)
+  - T-11.1: Code fragments in command responses
+  - T-12.1: Generic motivational content instead of helpful information
+  - T-12.4: Incorrect fact with self-contradiction (claims X but provides data showing NOT X)
+  - T-14.1, T-16.2: Fabricated check-in details/statistics when no check-in data exists
+  - T-15.1: System prompt instructions leaked into response + repetitive phrasing
+
+**Enhance AI response validator for prompt-response mismatches**
+- *What it means*: Improve `tests/ai/ai_response_validator.py` to better detect greeting acknowledgment failures, fabricated data, and self-contradictions (claims X but provides data showing NOT X)
+- *Why it helps*: Catches more quality issues automatically, reducing manual review burden and ensuring consistent response quality
+- *Estimated effort*: Medium
+- *Current Status*: Enhanced validator added some checks but still misses greeting acknowledgment and some fabricated data patterns
+- *Specific Improvements Needed*:
+  - Better detection of greeting acknowledgment failures (T-1.1, T-8.1 still passed)
+  - Detection of fabricated check-in details when no check-in data exists (T-14.1, T-16.2)
+  - Self-contradiction detection (T-12.4: claims X but provides data showing NOT X)
+
+**Fix system prompt leak into AI responses**
+- *What it means*: Investigate and fix why system prompt instructions ("User Context:", "IMPORTANT - Feature availability", etc.) are leaking into actual AI responses (T-15.1)
+- *Why it helps*: Prevents meta-text from appearing in user-facing responses, improving response quality
+- *Estimated effort*: Small
+- *Current Status*: System prompt text appearing in response - may be prompt formatting issue
+
 ## Medium Priority
 
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report

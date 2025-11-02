@@ -246,18 +246,38 @@ class AITestResultsCollector:
             print("FAILED TESTS:")
             for r in self.results:
                 if r["status"] == "FAIL":
-                    print(f"  - {r['test_id']}: {r['test_name']}")
+                    # Safely encode test name for Windows console
+                    try:
+                        safe_name = r['test_name'].encode('ascii', errors='replace').decode('ascii')
+                    except:
+                        safe_name = r['test_name']
+                    print(f"  - {r['test_id']}: {safe_name}")
                     if r["issues"]:
-                        print(f"    Issues: {r['issues']}")
+                        # Safely encode issues for Windows console
+                        try:
+                            safe_issues = r["issues"].encode('ascii', errors='replace').decode('ascii')
+                        except:
+                            safe_issues = "[Issues contain non-displayable characters]"
+                        print(f"    Issues: {safe_issues}")
             print()
         
         if partial > 0:
             print("PARTIAL TESTS (needs review):")
             for r in self.results:
                 if r["status"] == "PARTIAL":
-                    print(f"  - {r['test_id']}: {r['test_name']}")
+                    # Safely encode test name for Windows console
+                    try:
+                        safe_name = r['test_name'].encode('ascii', errors='replace').decode('ascii')
+                    except:
+                        safe_name = r['test_name']
+                    print(f"  - {r['test_id']}: {safe_name}")
                     if r["notes"]:
-                        print(f"    Notes: {r['notes']}")
+                        # Safely encode notes for Windows console
+                        try:
+                            safe_notes = r["notes"].encode('ascii', errors='replace').decode('ascii')
+                        except:
+                            safe_notes = "[Notes contain non-displayable characters]"
+                        print(f"    Notes: {safe_notes}")
             print()
         
         # Write detailed report
@@ -285,13 +305,36 @@ class AITestResultsCollector:
             
             f.write("## Detailed Results\n\n")
             
-            for r in self.results:
+            # Sort results by test_id (numerical order: T-1.1, T-1.2, T-2.1, etc.)
+            def sort_key(r):
+                """Extract numeric parts from test_id for proper sorting"""
+                test_id = r.get('test_id', '')
+                if not test_id or not test_id.startswith('T-'):
+                    return (999, 999)  # Put invalid IDs at the end
+                try:
+                    # Split T-X.Y into (X, Y) for numeric sorting
+                    parts = test_id[2:].split('.')
+                    if len(parts) == 2:
+                        return (int(parts[0]), int(parts[1]))
+                    elif len(parts) == 1:
+                        return (int(parts[0]), 0)
+                    else:
+                        return (int(parts[0]), int(parts[1]) if len(parts) > 1 else 0)
+                except (ValueError, IndexError):
+                    return (999, 999)  # Put invalid formats at the end
+            
+            sorted_results = sorted(self.results, key=sort_key)
+            
+            for r in sorted_results:
                 status_symbol = {"PASS": "✅", "FAIL": "❌", "PARTIAL": "⚠️"}.get(r["status"], "❓")
                 f.write(f"### {status_symbol} {r['test_id']}: {r['test_name']}\n\n")
                 f.write(f"- **Status**: {r['status']}\n")
                 if r.get('prompt'):
-                    f.write(f"- **Prompt**: `{r['prompt']}`\n")
+                    # Safely handle Unicode in prompt (files use UTF-8, so this should work)
+                    prompt = r['prompt']
+                    f.write(f"- **Prompt**: `{prompt}`\n")
                 if r.get('response'):
+                    # Safely handle Unicode in response (files use UTF-8, so this should work)
                     response = r['response']
                     if len(response) > 500:
                         response = response[:500] + "... (truncated)"
@@ -301,10 +344,29 @@ class AITestResultsCollector:
                     f.write(f"- **Response Time**: {r['response_time']:.2f}s\n")
                 if r.get('metrics'):
                     f.write(f"- **Metrics**: {r['metrics']}\n")
+                if r.get('context_info'):
+                    context = r['context_info']
+                    # Only show fields with meaningful values (not False, 0, empty lists, empty strings, or None)
+                    meaningful_context = {
+                        k: v for k, v in context.items() 
+                        if k != 'context_keys' and v not in (False, 0, [], '', None) and not (isinstance(v, (list, dict, str)) and len(v) == 0)
+                    }
+                    
+                    # Only show context_keys if they exist and are not empty
+                    context_keys = context.get('context_keys', [])
+                    if context_keys:
+                        meaningful_context['context_keys'] = context_keys
+                    
+                    if meaningful_context:
+                        f.write(f"- **Context Available**:\n")
+                        for key, value in meaningful_context.items():
+                            f.write(f"  - {key}: {value}\n")
                 if r['notes']:
                     f.write(f"- **Notes**: {r['notes']}\n")
                 if r['issues']:
                     f.write(f"- **Issues**: {r['issues']}\n")
+                if r.get('manual_review_notes'):
+                    f.write(f"- **Manual Review Notes**: {r['manual_review_notes']}\n")
                 f.write(f"- **Timestamp**: {r['timestamp']}\n\n")
         
         # Copy to latest
@@ -405,6 +467,14 @@ def main():
         quality_tests = TestAIQuality(test_data_dir, collector)
         quality_tests.test_response_quality()
         quality_tests.test_edge_cases()
+        
+        # Advanced tests (multi-turn, coherence, personality, error recovery)
+        test_logger.info("Running advanced tests...")
+        from tests.ai.test_ai_advanced import TestAIAdvanced
+        advanced_tests = TestAIAdvanced(test_data_dir, collector)
+        advanced_tests.test_multi_turn_conversations()
+        advanced_tests.test_personality_consistency()
+        advanced_tests.test_error_recovery_scenarios()
         
         test_logger.info("All test modules completed")
         
