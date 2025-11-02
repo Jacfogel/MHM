@@ -2386,6 +2386,36 @@ def mock_schedule_data():
     }
 
 # Configure pytest
+def pytest_collection_modifyitems(config, items):
+    """Exclude AI test files that are run via run_ai_functionality_tests.py from pytest collection."""
+    # These test classes are designed to be run via run_ai_functionality_tests.py, not pytest
+    # They have __init__ constructors that require parameters, which causes pytest collection warnings
+    ai_test_files = [
+        'tests/ai/test_ai_core.py',
+        'tests/ai/test_ai_integration.py',
+        'tests/ai/test_ai_errors.py',
+        'tests/ai/test_ai_cache.py',
+        'tests/ai/test_ai_performance.py',
+        'tests/ai/test_ai_quality.py',
+        'tests/ai/test_ai_advanced.py',
+    ]
+    
+    items_to_remove = []
+    for item in items:
+        # Get the file path from the item
+        item_path = str(item.fspath) if hasattr(item, 'fspath') else str(Path(item.nodeid.split('::')[0]))
+        # Normalize path separators
+        normalized_item_path = item_path.replace('\\', os.sep).replace('/', os.sep)
+        
+        for ai_file in ai_test_files:
+            normalized_ai_file = ai_file.replace('\\', os.sep).replace('/', os.sep)
+            if normalized_ai_file in normalized_item_path or os.path.basename(normalized_ai_file) == os.path.basename(normalized_item_path):
+                items_to_remove.append(item)
+                break
+    
+    for item in items_to_remove:
+        items.remove(item)
+
 def pytest_configure(config):
     """Configure pytest for MHM testing."""
     test_logger.info("Configuring pytest for MHM testing")

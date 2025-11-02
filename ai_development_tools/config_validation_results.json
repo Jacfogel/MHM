@@ -1,6 +1,6 @@
 {
   "generated_by": "config_validator.py - Configuration Validation Tool",
-  "last_generated": "2025-10-27 00:26:47",
+  "last_generated": "2025-11-02 02:24:20",
   "source": "python ai_development_tools/config_validator.py",
   "note": "This file is auto-generated. Do not edit manually.",
   "validation_results": {
@@ -122,7 +122,7 @@
         "config_functions_used": [],
         "issues": []
       },
-      "standard_exclusions.py": {
+      "system_signals.py": {
         "imports_config": false,
         "uses_config_functions": false,
         "hardcoded_values": [],
@@ -207,8 +207,8 @@
       "Fix issues in file_rotation.py: Does not import config module",
       "Update legacy_reference_cleanup.py to import config module",
       "Fix issues in legacy_reference_cleanup.py: Does not import config module",
-      "Update standard_exclusions.py to import config module",
-      "Fix issues in standard_exclusions.py: Does not import config module",
+      "Update system_signals.py to import config module",
+      "Fix issues in system_signals.py: Does not import config module",
       "Update tool_guide.py to import config module",
       "Fix issues in tool_guide.py: Does not import config module",
       "Update unused_imports_checker.py to import config module",

@@ -12,6 +12,7 @@ C:.
 |   coverage.ini
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
+|   fix_ascii.py
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
 |   pyproject.toml
@@ -26,6 +27,7 @@ C:.
 |   
 +---.cursor
 |   +---commands
+|   |       ai-functionality-tests.md
 |   |       audit.md
 |   |       close.md
 |   |       docs.md
@@ -56,15 +58,14 @@ C:.
 |       settings.json
 |       
 +---ai
-|   |   cache_manager.py
-|   |   chatbot.py
-|   |   context_builder.py
-|   |   conversation_history.py
-|   |   lm_studio_manager.py
-|   |   prompt_manager.py
-|   |   
-|   \---__pycache__
-    (Python cache files)
+|       cache_manager.py
+|       chatbot.py
+|       context_builder.py
+|       conversation_history.py
+|       lm_studio_manager.py
+|       prompt_manager.py
+|       README.md
+|       
 +---ai_development_docs
 |       AI_ARCHITECTURE.md
 |       AI_CHANGELOG.md
@@ -103,7 +104,7 @@ C:.
 |   |   quick_status.py
 |   |   README.md
 |   |   regenerate_coverage_metrics.py
-|   |   standard_exclusions.py
+|   |   system_signals.py
 |   |   tool_guide.py
 |   |   unused_imports_checker.py
 |   |   validate_ai_work.py
@@ -119,18 +120,48 @@ C:.
 |   |   
 |   +---.cursor
 |   +---command_handlers
-|   |   |   analytics_handler.py
-|   |   |   base_handler.py
-|   |   |   checkin_handler.py
-|   |   |   interaction_handlers.py
-|   |   |   profile_handler.py
-|   |   |   schedule_handler.py
-|   |   |   shared_types.py
-|   |   |   task_handler.py
+|   |       analytics_handler.py
+|   |       base_handler.py
+|   |       checkin_handler.py
+|   |       interaction_handlers.py
+|   |       profile_handler.py
+|   |       schedule_handler.py
+|   |       shared_types.py
+|   |       task_handler.py
+|   |       __init__.py
+|   |       
+|   +---communication_channels
 |   |   |   __init__.py
 |   |   |   
-|   |   \---__pycache__
-    (Python cache files)
+|   |   +---base
+|   |   |       base_channel.py
+|   |   |       command_registry.py
+|   |   |       message_formatter.py
+|   |   |       rich_formatter.py
+|   |   |       
+|   |   +---discord
+|   |   |       api_client.py
+|   |   |       bot.py
+|   |   |       DISCORD.md
+|   |   |       event_handler.py
+|   |   |       
+|   |   \---email
+|   |           bot.py
+|   |           
+|   +---core
+|   |       channel_monitor.py
+|   |       channel_orchestrator.py
+|   |       factory.py
+|   |       retry_manager.py
+|   |       __init__.py
+|   |       
+|   \---message_processing
+|           command_parser.py
+|           conversation_flow_manager.py
+|           interaction_manager.py
+|           message_router.py
+|           __init__.py
+|           
 +---core
 |   |   auto_cleanup.py
 |   |   backup_manager.py
@@ -179,7 +210,6 @@ C:.
 |       PLANS.md
 |       TEST_COVERAGE_EXPANSION_PLAN.md
 |       UI_COMPONENT_TESTING_STRATEGY.md
-|       unused_imports_cleanup_complete.md
 |       UNUSED_IMPORTS_REPORT.md
 |       
 +---logs
@@ -315,13 +345,12 @@ C:.
 |       admin_theme.qss
 |       
 +---tasks
-|   |   task_management.py
-|   |   __init__.py
-|   |   
-|   \---__pycache__
-    (Python cache files)
+|       task_management.py
+|       __init__.py
+|       
 +---tests
 |   |   .coverage
+|   |   AI_FUNCTIONALITY_TEST_PLAN.md
 |   |   conftest.py
 |   |   debug_file_paths.py
 |   |   MANUAL_TESTING_GUIDE.md
@@ -332,10 +361,106 @@ C:.
 |   |   
 |   +---.cursor
 |   +---ai
+|   |   |   ai_response_validator.py
+|   |   |   ai_test_base.py
+|   |   |   run_ai_functionality_tests.py
+|   |   |   test_ai_advanced.py
+|   |   |   test_ai_cache.py
+|   |   |   test_ai_core.py
+|   |   |   test_ai_errors.py
+|   |   |   test_ai_functionality_manual.py
+|   |   |   test_ai_integration.py
+|   |   |   test_ai_performance.py
+|   |   |   test_ai_quality.py
 |   |   |   test_cache_manager.py
+|   |   |   test_context_includes_recent_messages.py
 |   |   |   
-|   |   \---__pycache__
-    (Python cache files)
+|   |   \---results
+|   |           ai_functionality_test_results_20251101_151421.md
+|   |           ai_functionality_test_results_20251101_161241.md
+|   |           ai_functionality_test_results_20251101_185143.md
+|   |           ai_functionality_test_results_20251101_192239.md
+|   |           ai_functionality_test_results_20251101_193105.md
+|   |           ai_functionality_test_results_20251101_194630.md
+|   |           ai_functionality_test_results_20251101_201430.md
+|   |           ai_functionality_test_results_20251101_201859.md
+|   |           ai_functionality_test_results_20251101_203148.md
+|   |           ai_functionality_test_results_20251101_210054.md
+|   |           ai_functionality_test_results_latest.md
+|   |           
+|   +---behavior
+|   |       test_account_management_real_behavior.py
+|   |       test_ai_chatbot_behavior.py
+|   |       test_ai_context_builder_behavior.py
+|   |       test_ai_context_builder_coverage_expansion.py
+|   |       test_ai_conversation_history_behavior.py
+|   |       test_auto_cleanup_behavior.py
+|   |       test_backup_manager_behavior.py
+|   |       test_chat_interaction_storage_real_scenarios.py
+|   |       test_checkin_analytics_behavior.py
+|   |       test_checkin_expiry_semantics.py
+|   |       test_command_discovery_help.py
+|   |       test_command_parser_coverage_expansion_phase3_simple.py
+|   |       test_communication_behavior.py
+|   |       test_communication_command_parser_behavior.py
+|   |       test_communication_factory_coverage_expansion.py
+|   |       test_communication_interaction_manager_behavior.py
+|   |       test_communication_manager_coverage_expansion.py
+|   |       test_comprehensive_quantitative_analytics.py
+|   |       test_config_coverage_expansion_phase3_simple.py
+|   |       test_conversation_behavior.py
+|   |       test_core_message_management_coverage_expansion.py
+|   |       test_core_service_coverage_expansion.py
+|   |       test_discord_advanced_automation.py
+|   |       test_discord_automation_complete.py
+|   |       test_discord_bot_behavior.py
+|   |       test_dynamic_checkin_behavior.py
+|   |       test_email_bot_behavior.py
+|   |       test_enhanced_command_parser_behavior.py
+|   |       test_error_handling_coverage_expansion_phase3_final.py
+|   |       test_interaction_handlers_behavior.py
+|   |       test_interaction_handlers_coverage_expansion.py
+|   |       test_legacy_enabled_fields_compatibility.py
+|   |       test_logger_behavior.py
+|   |       test_logger_coverage_expansion.py
+|   |       test_logger_coverage_expansion_phase3_simple.py
+|   |       test_message_behavior.py
+|   |       test_observability_logging.py
+|   |       test_profile_display_formatting.py
+|   |       test_quantitative_analytics_expansion.py
+|   |       test_response_tracking_behavior.py
+|   |       test_scheduler_behavior.py
+|   |       test_scheduler_coverage_expansion.py
+|   |       test_schedule_management_behavior.py
+|   |       test_schedule_suggestions.py
+|   |       test_service_behavior.py
+|   |       test_service_utilities_behavior.py
+|   |       test_static_logging_check.py
+|   |       test_task_behavior.py
+|   |       test_task_crud_disambiguation.py
+|   |       test_task_management_coverage_expansion.py
+|   |       test_ui_app_behavior.py
+|   |       test_ui_automation_complete.py
+|   |       test_user_context_behavior.py
+|   |       test_user_management_coverage_expansion.py
+|   |       test_utilities_demo.py
+|   |       
+|   +---communication
+|   |       test_channel_monitor.py
+|   |       test_retry_manager.py
+|   |       
+|   +---core
+|   |       test_file_auditor.py
+|   |       test_message_management.py
+|   |       test_python_interpreter_selection.py
+|   |       test_schedule_utilities.py
+|   |       
+|   +---data
+|   |   |   .last_cache_cleanup
+|   |   |   conversation_states.json
+|   |   |   
+|   |   +---backups
+    (backup files)
 +---ui
 |   |   generate_ui_files.py
 |   |   README.md
@@ -368,31 +493,65 @@ C:.
 |   |       user_profile_settings_widget.ui
 |   |       
 |   +---dialogs
-|   |   |   account_creator_dialog.py
-|   |   |   admin_panel.py
-|   |   |   category_management_dialog.py
-|   |   |   channel_management_dialog.py
-|   |   |   checkin_management_dialog.py
-|   |   |   message_editor_dialog.py
-|   |   |   process_watcher_dialog.py
-|   |   |   schedule_editor_dialog.py
-|   |   |   task_completion_dialog.py
-|   |   |   task_crud_dialog.py
-|   |   |   task_edit_dialog.py
-|   |   |   task_management_dialog.py
-|   |   |   user_analytics_dialog.py
-|   |   |   user_profile_dialog.py
-|   |   |   __init__.py
-|   |   |   
-|   |   \---__pycache__
-    (Python cache files)
-+---user
-|   |   context_manager.py
-|   |   user_context.py
-|   |   user_preferences.py
-|   |   
-|   \---__pycache__
-    (Python cache files)
+|   |       account_creator_dialog.py
+|   |       admin_panel.py
+|   |       category_management_dialog.py
+|   |       channel_management_dialog.py
+|   |       checkin_management_dialog.py
+|   |       message_editor_dialog.py
+|   |       process_watcher_dialog.py
+|   |       schedule_editor_dialog.py
+|   |       task_completion_dialog.py
+|   |       task_crud_dialog.py
+|   |       task_edit_dialog.py
+|   |       task_management_dialog.py
+|   |       user_analytics_dialog.py
+|   |       user_profile_dialog.py
+|   |       __init__.py
+|   |       
+|   +---generated
+|   |       account_creator_dialog_pyqt.py
+|   |       admin_panel_pyqt.py
+|   |       category_management_dialog_pyqt.py
+|   |       category_selection_widget_pyqt.py
+|   |       channel_management_dialog_pyqt.py
+|   |       channel_selection_widget_pyqt.py
+|   |       checkin_element_template_pyqt.py
+|   |       checkin_management_dialog_pyqt.py
+|   |       checkin_settings_widget_pyqt.py
+|   |       dynamic_list_field_template_pyqt.py
+|   |       message_editor_dialog_pyqt.py
+|   |       period_row_template_pyqt.py
+|   |       schedule_editor_dialog_pyqt.py
+|   |       tag_widget_pyqt.py
+|   |       task_completion_dialog_pyqt.py
+|   |       task_crud_dialog_pyqt.py
+|   |       task_edit_dialog_pyqt.py
+|   |       task_management_dialog_pyqt.py
+|   |       task_settings_widget_pyqt.py
+|   |       user_analytics_dialog_pyqt.py
+|   |       user_profile_management_dialog_pyqt.py
+|   |       user_profile_settings_widget_pyqt.py
+|   |       __init__.py
+|   |       
+|   \---widgets
+|           category_selection_widget.py
+|           channel_selection_widget.py
+|           checkin_settings_widget.py
+|           dynamic_list_container.py
+|           dynamic_list_field.py
+|           period_row_widget.py
+|           tag_widget.py
+|           task_settings_widget.py
+|           user_profile_settings_widget.py
+|           __init__.py
+|           
+\---user
+        context_manager.py
+        user_context.py
+        user_preferences.py
+        
+
 
 ---
 
