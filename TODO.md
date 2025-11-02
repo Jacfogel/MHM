@@ -168,10 +168,6 @@ When adding new tasks, follow this format:
   - [ ] Document command list in QUICK_REFERENCE.md
   - [ ] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
 
-**Throttler Bug Fix**
-- *What it means*: Fix Service Utilities Throttler first-call behavior
-- *Why it helps*: Ensure `last_run` is set on first call so throttling works from initial invocation
-- *Estimated effort*: Small
 
 **Schedule Editor Validation - Prevent Dialog Closure**
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
@@ -198,10 +194,6 @@ When adding new tasks, follow this format:
 - *Why it helps*: Addresses the user's biggest friction and increases real utility.
 - *Estimated effort*: Large
 
-**Improve missing context fallback responses**
-- *What it means*: Enhance `_get_contextual_fallback` in `ai/chatbot.py` to provide more explicit and supportive responses when user context is missing, asking users to provide information rather than giving generic responses
-- *Why it helps*: Improves user experience when AI doesn't have context data, making interactions more helpful and engaging
-- *Estimated effort*: Small
 
 **Fix AI response quality issues identified in test results**
 - *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
@@ -226,11 +218,6 @@ When adding new tasks, follow this format:
   - Detection of fabricated check-in details when no check-in data exists (T-14.1, T-16.2)
   - Self-contradiction detection (T-12.4: claims X but provides data showing NOT X)
 
-**Fix system prompt leak into AI responses**
-- *What it means*: Investigate and fix why system prompt instructions ("User Context:", "IMPORTANT - Feature availability", etc.) are leaking into actual AI responses (T-15.1)
-- *Why it helps*: Prevents meta-text from appearing in user-facing responses, improving response quality
-- *Estimated effort*: Small
-- *Current Status*: System prompt text appearing in response - may be prompt formatting issue
 
 ## Medium Priority
 
@@ -255,12 +242,6 @@ When adding new tasks, follow this format:
   - Add suggestion categories (tasks, health, motivation, etc.)
   - Test suggestion relevance and personalization
 
-**Discord Application ID Configuration Docs**
-- *What it means*: Document optional `DISCORD_APPLICATION_ID` to prevent slash command sync warnings.
-- *Why it helps*: Cleaner logs and fewer false alarms.
-- *Estimated effort*: Small
-- Subtasks:
-  - [ ] Add a note in `QUICK_REFERENCE.md` and `README.md` about setting `DISCORD_APPLICATION_ID`
 
 **Pathlib Migration Completion**
 - *What it means*: Finish converting remaining path joins to `pathlib.Path` where appropriate.

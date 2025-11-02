@@ -8,6 +8,13 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - AI Response Quality Improvements & Documentation Updates **COMPLETED**
+- **System Prompt Leak Fix**: Added `_clean_system_prompt_leaks()` method to remove metadata text and instruction lines from AI responses; integrated into response pipeline
+- **Missing Context Improvements**: Enhanced `_get_contextual_fallback()` with better detection and explicit requests for information when context is missing
+- **Test Quality**: Fixed Throttler test to verify `last_run` is set on first call and removed outdated comment
+- **Documentation**: Added optional `DISCORD_APPLICATION_ID` configuration docs to prevent slash command sync warnings
+- **Result**: Improved response quality (no system prompt leaks, better missing context handling), better test coverage, cleaner logs with optional config
+
 ### 2025-11-02 - Documentation Sync Fixes & Test Warning Resolution **COMPLETED**
 - **Registry Generator**: Fixed import errors preventing function registry updates; added special handling for entry point files (run_mhm.py, run_tests.py)
 - **Path Drift**: Fixed file path references in ai/README.md and tests/AI_FUNCTIONALITY_TEST_PLAN.md (4 files -> 0 issues)

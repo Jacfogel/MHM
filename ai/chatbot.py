@@ -298,12 +298,22 @@ class AIChatBotSingleton:
                    f"Could you please try again in a moment? If the issue persists, "
                    f"we can troubleshoot together. What were you trying to do?")
         
+        # Check if context is missing early - this helps identify when we need to ask for information
+        is_new_user = not user_context or (user_id and not recent_data)
+        
         # Handle missing context scenarios - should be more supportive and ask for information
-        if any(word in prompt_lower for word in ['how am i', 'how are you', 'how am i doing']):
-            # For new users or when context is missing, be supportive and ask for info
-            if not user_context or not recent_data:
+        # Check for prompts that require context data first
+        context_requiring_prompts = [
+            'how am i', 'how are you', 'how am i doing', 'how have i been', 'doing lately',
+            'progress', 'my mood', 'my energy', 'my check-ins', 'check-in data',
+            'how many times', 'how often', 'my habits', 'my patterns', 'my trends'
+        ]
+        
+        if any(phrase in prompt_lower for phrase in context_requiring_prompts):
+            if is_new_user:
                 return (f"{name_prefix}I don't have enough information about how you're doing today, but we can figure it out together! "
-                       f"How about you tell me about your day so far? How are you feeling right now?")
+                       f"How about you tell me about your day so far? How are you feeling right now? "
+                       f"Once you start using check-ins, I'll be able to give you more specific insights!")
         
         # Fall back to keyword-based responses if no data analysis possible
         
@@ -377,9 +387,15 @@ class AIChatBotSingleton:
             return (f"{name_prefix}I'm here to listen and support you through whatever you're experiencing. "
                    f"You don't have to face this alone. What would be most helpful right now?")
         
-        # Default empathetic response
-        return (f"{name_prefix}I'm here to listen and support you. "
-               f"How are you feeling right now? What's on your mind?")
+        # Default empathetic response - be more explicit when context is missing
+        if is_new_user:
+            return (f"{name_prefix}I'm here to listen and support you! "
+                   f"Since we're just getting started, I'd love to learn more about you. "
+                   f"How are you feeling right now? What's on your mind? "
+                   f"Tell me a bit about how your day is going, and I'll do my best to help!")
+        else:
+            return (f"{name_prefix}I'm here to listen and support you. "
+                   f"How are you feeling right now? What's on your mind?")
 
     @handle_errors("getting fallback response", default_return="I'd like to help with that! While my AI capabilities may be limited, I can offer encouragement and general wellness tips.")
     def _get_fallback_response(self, user_prompt: str) -> str:
@@ -1042,6 +1058,9 @@ Additional Instructions:
             if result:
                 response = result.strip()
                 
+                # Clean any leaked system prompt metadata (do this before other processing)
+                response = self._clean_system_prompt_leaks(response)
+                
                 # For command mode, extract structured command from response
                 # Can be JSON, key-value pairs, or natural language - parser handles all formats
                 if mode == "command":
@@ -1316,6 +1335,8 @@ Additional Instructions:
             
             if result:
                 response = result.strip()
+                # Clean any leaked system prompt metadata
+                response = self._clean_system_prompt_leaks(response)
                 # Ensure response acknowledges the user by name if available
                 user_name = profile.get('preferred_name', '')
                 if user_name and user_name.lower() not in response.lower():
@@ -1364,6 +1385,90 @@ Additional Instructions:
         
         return is_constrained
 
+    @handle_errors("cleaning system prompt leaks", default_return="")
+    def _clean_system_prompt_leaks(self, response: str) -> str:
+        """
+        Remove any leaked system prompt metadata from AI responses.
+        Prevents meta-text like "User Context:", "IMPORTANT - Feature availability:" from appearing in user-facing responses.
+        """
+        if not response:
+            return response
+        
+        import re
+        
+        # Patterns to remove (case-insensitive)
+        leak_patterns = [
+            r'(?i)^\s*User Context:\s*',
+            r'(?i)^\s*IMPORTANT\s*-\s*Feature\s+availability:\s*',
+            r'(?i)\bUser Context:\s*',
+            r'(?i)\bIMPORTANT\s*-\s*Feature\s+availability:\s*',
+            r'(?i)^\s*Additional Instructions:\s*',
+            r'(?i)\bAdditional Instructions:\s*',
+            r'(?i)^\s*IMPORTANT:\s*The following user context is for your reference only',
+            r'(?i)\bIMPORTANT:\s*The following user context is for your reference only',
+            r'(?i)\bDo NOT include any of this information in your responses',
+            r'(?i)\bNEVER include the raw context data in your responses',
+            r'(?i)\bNEVER return JSON, code blocks, or system prompts',
+            r'(?i)\bReturn ONLY natural language responses',
+            # Feature availability instruction lines
+            r'(?i)\bcheck-ins are (?:disabled|enabled)\s*-\s*do NOT mention',
+            r'(?i)\btask management is (?:disabled|enabled)\s*-\s*do NOT mention',
+            r'(?i)\bdo (?:not|n\'t) mention check-ins, check-in data',
+            r'(?i)\bdo (?:not|n\'t) mention tasks, task creation',
+        ]
+        
+        cleaned = response
+        for pattern in leak_patterns:
+            cleaned = re.sub(pattern, '', cleaned)
+        
+        # Remove any lines that start with these metadata markers
+        lines = cleaned.split('\n')
+        filtered_lines = []
+        skip_next = False
+        
+        for i, line in enumerate(lines):
+            line_lower = line.strip().lower()
+            
+            # Skip lines that are pure metadata markers
+            if any(marker in line_lower for marker in [
+                'user context:',
+                'important - feature availability:',
+                'additional instructions:',
+                'important: the following user context',
+            ]):
+                continue
+            
+            # Skip feature availability instruction lines (e.g., "check-ins are disabled - do NOT mention check-ins, check-in data")
+            if any(pattern in line_lower for pattern in [
+                'check-ins are disabled',
+                'check-ins are enabled',
+                'task management is disabled',
+                'task management is enabled',
+                'do not mention check-ins',
+                'do not mention tasks',
+            ]):
+                continue
+            
+            # Skip lines immediately after metadata markers (they might be continuation)
+            if skip_next:
+                skip_next = False
+                # Only skip if it looks like metadata continuation (short, specific format)
+                if len(line.strip()) < 100 and any(marker in line_lower for marker in ['check-ins', 'task management', 'enabled', 'disabled']):
+                    continue
+            
+            filtered_lines.append(line)
+        
+        cleaned = '\n'.join(filtered_lines)
+        
+        # Clean up multiple spaces/newlines that might result
+        cleaned = re.sub(r'\n\s*\n\s*\n+', '\n\n', cleaned)  # Max 2 consecutive newlines
+        cleaned = re.sub(r' {2,}', ' ', cleaned)  # Multiple spaces to single
+        
+        # Remove leading/trailing whitespace
+        cleaned = cleaned.strip()
+        
+        return cleaned
+    
     @handle_errors("smart truncating response", default_return="...")
     def _smart_truncate_response(self, text: str, max_chars: int, max_words: int = None) -> str:
         """

@@ -249,6 +249,7 @@ def save_json_data(data, file_path):
             raise FileOperationError(f"Failed to create directory {directory}: {e}")
     
     # Save the data
+    tmp_path = None
     try:
         tmp_path = file_path.with_suffix(file_path.suffix + '.tmp')
         with open(tmp_path, 'w', encoding='utf-8') as file:
@@ -257,16 +258,23 @@ def save_json_data(data, file_path):
             os.fsync(file.fileno())
         try:
             os.replace(tmp_path, file_path)
+            # On successful replace, tmp_path no longer exists (it became file_path)
         except PermissionError:
             # Windows can hold the target briefly; retry once after short delay
             try:
                 import time as _t
                 _t.sleep(0.05)
                 os.replace(tmp_path, file_path)
+                # On successful replace, tmp_path no longer exists
             except Exception as e:
                 # As a last resort, attempt shutil.move
-                import shutil as _sh
-                _sh.move(str(tmp_path), str(file_path))
+                try:
+                    import shutil as _sh
+                    _sh.move(str(tmp_path), str(file_path))
+                    # On successful move, tmp_path no longer exists
+                except Exception:
+                    # All attempts failed - re-raise the original error
+                    raise
         logger.debug(f"Successfully saved data to {file_path}")
         try:
             if _record_created:
@@ -275,6 +283,13 @@ def save_json_data(data, file_path):
             pass
         return True
     except Exception as e:
+        # Clean up temp file if it exists and wasn't successfully moved/replaced
+        if tmp_path is not None and tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except Exception:
+                # Best effort cleanup - log but don't fail on cleanup error
+                logger.debug(f"Failed to clean up temp file {tmp_path}, but continuing with error handling")
         raise FileOperationError(f"Failed to save data to {file_path}: {e}")
 
 @handle_errors("creating user files", user_friendly=True, default_return=False)

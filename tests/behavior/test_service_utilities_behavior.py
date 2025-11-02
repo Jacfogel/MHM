@@ -37,7 +37,7 @@ class TestServiceUtilitiesBehavior:
     @pytest.mark.service
     @pytest.mark.critical
     def test_throttler_should_run_returns_true_on_first_call(self, test_data_dir):
-        """Test that Throttler should_run returns True on first call."""
+        """Test that Throttler should_run returns True on first call and sets last_run."""
         # Arrange
         throttler = Throttler(60)
         
@@ -46,7 +46,7 @@ class TestServiceUtilitiesBehavior:
         
         # Assert
         assert should_run is True, "Should return True on first call"
-        # Note: last_run is only set when interval has passed, not on first call
+        assert throttler.last_run is not None, "last_run should be set on first call to enable throttling"
     
     @pytest.mark.behavior
     @pytest.mark.service

@@ -163,6 +163,11 @@ If you see two service processes when using the play/debug button in VS Code or 
 3. Check bot permissions in Discord
 4. Check log file for error messages
 
+#### **Discord Slash Command Warnings**
+If you see warnings about slash command syncing, you can optionally set `DISCORD_APPLICATION_ID` in your `.env` file to prevent these warnings. This is not required - the bot works fine without it, but setting it will result in cleaner logs.
+- **Optional**: Add `DISCORD_APPLICATION_ID=your_application_id_here` to your `.env` file
+- Get your application ID from the Discord Developer Portal (your bot's application ID)
+
 ### Getting Help
 - **Quick Reference**: See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for common commands
 - **Development Workflow**: See [DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md) for safe practices

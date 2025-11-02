@@ -17,6 +17,69 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - AI Response Quality Improvements & Documentation Updates **COMPLETED**
+
+**Context**: Comprehensive improvements to AI response quality, including system prompt leak fixes, missing context fallback enhancements, test improvements, and documentation updates.
+
+**Problems Addressed**:
+
+1. **System Prompt Leak**: System prompt instructions like "User Context:", "IMPORTANT - Feature availability:", and "Additional Instructions:" were appearing in AI responses (identified in test T-15.1), making responses look unprofessional
+2. **Missing Context Handling**: When user context was missing, fallback responses were generic rather than explicitly asking users for information, making interactions less helpful for new users
+3. **Test Coverage**: Throttler test had outdated comment and didn't verify that `last_run` is set on first call
+4. **Documentation Gap**: Users needed guidance on optional `DISCORD_APPLICATION_ID` to prevent slash command sync warnings
+
+**Technical Changes**:
+
+1. **System Prompt Leak Cleanup**:
+   - Created `_clean_system_prompt_leaks()` method in `ai/chatbot.py` to post-process AI responses
+   - Removes metadata markers: "User Context:", "IMPORTANT - Feature availability:", "Additional Instructions:", etc.
+   - Removes feature availability instruction lines: "check-ins are disabled - do NOT mention check-ins, check-in data", etc.
+   - Uses regex patterns and line filtering to remove both standalone markers and embedded metadata text
+   - Cleans up resulting whitespace artifacts (multiple spaces, excessive newlines)
+   - Integrated cleanup into both `generate_response()` and `generate_contextual_response()` methods
+   - Enhanced after testing to handle instruction lines appearing at end of responses (T-16.2 pattern)
+
+2. **Missing Context Fallback Improvements**:
+   - Enhanced `_get_contextual_fallback()` method with early missing context detection (`is_new_user`)
+   - Expanded context-requiring prompt detection to include: 'how am i', 'how have i been', 'doing lately', 'progress', 'my mood', 'my energy', 'my check-ins', 'check-in data', 'how many times', 'how often', 'my habits', 'my patterns', 'my trends'
+   - Improved responses for missing context to explicitly ask users for information: "I don't have enough information about how you're doing today, but we can figure it out together! How about you tell me about your day so far? How are you feeling right now? Once you start using check-ins, I'll be able to give you more specific insights!"
+   - Enhanced default response for new users to be more supportive and explicitly invite sharing
+
+3. **Test Improvements**:
+   - Updated `test_throttler_should_run_returns_true_on_first_call()` in `tests/behavior/test_service_utilities_behavior.py` to assert that `last_run` is set on first call
+   - Removed outdated comment that incorrectly stated "last_run is only set when interval has passed, not on first call"
+   - Updated test docstring to reflect that it verifies both return value and `last_run` being set
+
+4. **Documentation Updates**:
+   - Added `DISCORD_APPLICATION_ID` to configuration section in `QUICK_REFERENCE.md` with note that it's optional and prevents slash command sync warnings
+   - Added troubleshooting section for "Discord Slash Command Warnings" in `README.md`
+   - Included instructions on where to find application ID (Discord Developer Portal)
+
+**Files Modified**:
+- `ai/chatbot.py` - Added `_clean_system_prompt_leaks()` method, enhanced `_get_contextual_fallback()` method, integrated cleanup into response pipeline
+- `tests/behavior/test_service_utilities_behavior.py` - Updated Throttler test to verify `last_run` is set on first call and fixed outdated comment
+- `QUICK_REFERENCE.md` - Added `DISCORD_APPLICATION_ID` to configuration section
+- `README.md` - Added troubleshooting section for slash command warnings
+
+**Testing**:
+- AI functionality tests: 39 passed, 4 partial, 7 failed out of 50 tests
+- System prompt leak fix verified: No "User Context:", "IMPORTANT - Feature availability:", or "Additional Instructions:" found in any responses
+- Missing context improvements verified: T-2.1 improved from FAIL → PASS, T-6.2 improved from PARTIAL → PASS
+- Throttler test passes and properly verifies first-call behavior
+- Full behavior test suite: All service utilities behavior tests passing
+
+**Results and Impact**:
+- **System Prompt Leak Fix**: System prompt metadata no longer appears in user-facing responses; improved response quality and professionalism
+- **Missing Context Improvements**: Better user experience when AI doesn't have context data; more engaging interactions for new users; responses explicitly guide users to provide information
+- **Test Quality**: Test coverage improved; test consistency improved (both first-call tests now verify `last_run` is set)
+- **Documentation**: Users now have clear guidance on optional `DISCORD_APPLICATION_ID` configuration
+
+**Documentation Updates**:
+- Updated `TODO.md` (removed completed tasks: system prompt leak fix, missing context fallback, Throttler test fix, Discord Application ID documentation)
+- Both changelogs updated with consolidated entry
+
+**Impact**: Significantly improved AI response quality and user experience. System prompt leaks are prevented, missing context responses are more helpful and engaging, test coverage is improved, and users have better documentation. All improvements verified through AI functionality testing.
+
 ### 2025-11-02 - Documentation Sync Fixes & Test Warning Resolution **COMPLETED**
 
 **Context**: Comprehensive resolution of documentation synchronization issues and test suite warnings identified during full audit.

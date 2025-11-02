@@ -160,6 +160,9 @@ Create a `.env` file in the project root:
 # Discord Bot Token (required)
 DISCORD_BOT_TOKEN=your_discord_bot_token_here
 
+# Optional: Discord Application ID (prevents slash command sync warnings)
+DISCORD_APPLICATION_ID=your_application_id_here
+
 # Optional: Email Configuration
 EMAIL_SMTP_SERVER=smtp.gmail.com
 EMAIL_SMTP_USERNAME=your_email@gmail.com
