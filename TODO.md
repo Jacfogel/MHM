@@ -42,6 +42,13 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
 - *Estimated effort*: Small
 
+**Monitor Test Warning Status**
+- *What it means*: Monitor test suite warnings to ensure they remain at expected levels (4 external library deprecation warnings expected: 3 Discord + 1 audioop). The 7 pytest collection warnings have been resolved.
+- *Why it helps*: Ensures test suite health and prevents warnings from masking real issues
+- *Estimated effort*: Small
+- *Current Status*: 
+  - ✅ Resolved: Fixed 7 pytest collection warnings by adding `__test__ = False` to all AI test classes
+  - ✅ Expected: 4 external library deprecation warnings remain (cannot be fixed - from Discord library and audioop)
 
 **Continue Error Handling Coverage Expansion**
 - *What it means*: Continue expanding error handling coverage beyond current 92.0% to 93%+ by adding @handle_errors decorators to remaining 115 functions
@@ -166,7 +173,7 @@ When adding new tasks, follow this format:
 - *Why it helps*: Ensure `last_run` is set on first call so throttling works from initial invocation
 - *Estimated effort*: Small
 
-**Schedule Editor Validation � Prevent Dialog Closure**
+**Schedule Editor Validation - Prevent Dialog Closure**
 - *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
 - *Why it helps*: Prevents data loss and improves UX
 - *Estimated effort*: Small
@@ -179,7 +186,7 @@ When adding new tasks, follow this format:
 - *Subtasks*:
   - [ ] Monitor logs for legacy compatibility warnings related to check-ins (`start_checkin`, `FLOW_CHECKIN`, `get_recent_checkins`, `store_checkin_response`)
   - [ ] Verify Discord behavior: after a check-in prompt goes out, send a motivational or task reminder and confirm the flow expires
-  - [ ] Consider inactivity-based expiration (30–60 minutes) in addition to outbound-triggered expiry (optional)
+  - [ ] Consider inactivity-based expiration (30-60 minutes) in addition to outbound-triggered expiry (optional)
   - [ ] Add behavior test for flow expiration after unrelated outbound message
   - [ ] **Test fixes with real Discord check-in flow and verify flow state persistence** - Restart service and test that check-in flows persist through scheduled message checks
   - [ ] **Monitor logs for MESSAGE_SELECTION debug info** - Understand why sometimes no messages match (review matching_periods, current_days, and message filtering)
@@ -281,7 +288,7 @@ When adding new tasks, follow this format:
   - [ ] Reflect new slash/bang commands and central command list
   - [ ] Note that `/checkin` is a flow; others are single-turn for now
 
-**Legacy Removal “Search-and-Close” Framework** - Tooling and checklist
+**Legacy Removal "Search-and-Close" Framework** - Tooling and checklist
 - *What it means*: Build a checklist and helper tooling to update all references before removing legacy flags/paths; avoid fixed time windows.
 - *Why it helps*: Safe deprecations without relying on rare usage logs.
 - *Estimated effort*: Medium

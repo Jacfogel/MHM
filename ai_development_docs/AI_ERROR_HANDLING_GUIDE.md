@@ -13,10 +13,10 @@ from core.error_handling import handle_errors, MHMError, DataError, FileOperatio
 
 # Exception hierarchy (use these)
 MHMError (base)
-├── DataError (data issues)
-├── FileOperationError (file system issues)
-├── ConfigError (configuration issues)
-└── CommunicationError (network/service issues)
++-- DataError (data issues)
++-- FileOperationError (file system issues)
++-- ConfigError (configuration issues)
++-- CommunicationError (network/service issues)
 ```
 
 ### **Enhanced Error Handling Patterns**

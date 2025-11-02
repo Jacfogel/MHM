@@ -11,6 +11,7 @@ from tests.ai.ai_test_base import AITestBase
 
 
 class TestAIErrors(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI error handling and fallbacks"""
     
     def test_error_handling(self):

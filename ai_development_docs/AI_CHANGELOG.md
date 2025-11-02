@@ -8,6 +8,14 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - Documentation Sync Fixes & Test Warning Resolution **COMPLETED**
+- **Registry Generator**: Fixed import errors preventing function registry updates; added special handling for entry point files (run_mhm.py, run_tests.py)
+- **Path Drift**: Fixed file path references in ai/README.md and tests/AI_FUNCTIONALITY_TEST_PLAN.md (4 files -> 0 issues)
+- **Non-ASCII Characters**: Replaced Unicode characters with ASCII equivalents in 7 documentation files (86% reduction)
+- **Registry Gaps**: Resolved 6 missing registry entries for run_mhm.py and run_tests.py (0 remaining)
+- **Pytest Warnings**: Added `__test__ = False` to 7 AI test classes to prevent pytest collection warnings (7 warnings eliminated)
+- **Result**: Documentation coverage improved to 93.68%, all critical sync issues resolved, test warnings reduced from 11 to 4 (only external library warnings remain)
+
 ### 2025-11-01 - AI Functionality Test Review Process Enhancements **COMPLETED**
 - **Enhanced Context Display**: Modified test results to show actual context details (user_name, mood_trend, recent_topics, checkins_enabled, etc.) instead of just context_keys with verbose explanations
 - **Manual Review Notes**: Added `manual_review_notes` field to test results for documenting issues found during AI review
@@ -19,14 +27,14 @@
 ### 2025-11-01 - Test Suite Cleanup & Fixes **COMPLETED**
 - **Enhanced Cleanup**: Improved test cleanup mechanisms in `tests/conftest.py` using Windows-compatible directory iteration (replaced `glob.glob()` with direct iteration)
 - **Comprehensive Artifact Removal**: Added cleanup for `pytest-of-*` directories in three locations to ensure reliable cleanup
-- **Fixed Quantitative Analytics Tests**: Corrected UUID-based user data handling in 3 test files (8 failures → 0)
-- **Fixed AI Cache Tests**: Corrected `ResponseCache` API usage in deterministic tests (2 failures → 0)
-- **Fixed Policy Violations**: Added exclusions for standalone test runners in policy violation tests (2 failures → 0)
+- **Fixed Quantitative Analytics Tests**: Corrected UUID-based user data handling in 3 test files (8 failures -> 0)
+- **Fixed AI Cache Tests**: Corrected `ResponseCache` API usage in deterministic tests (2 failures -> 0)
+- **Fixed Policy Violations**: Added exclusions for standalone test runners in policy violation tests (2 failures -> 0)
 - **Result**: Full test suite passing (1898 passed, 2 skipped), all test artifact directories properly cleaned up
 
 ### 2025-10-30 - Parser + curated prompts for schedule edits and task completion
-- Parser reliably detects “edit the morning period in my task schedule” as `edit_schedule_period` (even without times).
-- Schedule edit now prompts with actionable time suggestions before existence checks; added “which field to update?” path (times/days/active).
+- Parser reliably detects "edit the morning period in my task schedule" as `edit_schedule_period` (even without times).
+- Schedule edit now prompts with actionable time suggestions before existence checks; added "which field to update?" path (times/days/active).
 - "Complete task" with zero tasks returns a guidance prompt + suggestions instead of a terminal celebration.
 - All tests green (1888 passed, 2 skipped).
 
@@ -58,7 +66,7 @@
 
 ### 2025-10-21 - Documentation & Testing Improvements **COMPLETED**
 - **ASCII Compliance**: Fixed all non-ASCII characters in documentation files (CHANGELOG_DETAIL.md, AI_CHANGELOG.md) by replacing smart quotes, arrows, and special characters with ASCII equivalents.
-- **Path Drift Resolution**: Improved documentation sync checker with 87.5% reduction in false positives (8→1 path drift issues) through enhanced pattern matching and context-aware extraction.
+- **Path Drift Resolution**: Improved documentation sync checker with 87.5% reduction in false positives (8->1 path drift issues) through enhanced pattern matching and context-aware extraction.
 - **Test Suite Stabilization**: Fixed 9 logging violations in `regenerate_coverage_metrics.py` by converting old-style string formatting to f-strings, ensuring all 1866 tests pass.
 - **Error Handling Progress**: Added @handle_errors decorators to service_utilities.py Throttler class, improving error handling coverage from 91.6% to 91.7%.
 - **Documentation Sync Enhancement**: Implemented code block detection, advanced filtering for method calls/Python operators, and context-aware path extraction to reduce false positives.

@@ -15,6 +15,7 @@ from user.context_manager import user_context_manager
 
 
 class TestAIAdvanced(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test advanced AI functionality: multi-turn, coherence, personality, error recovery"""
     
     def test_multi_turn_conversations(self):

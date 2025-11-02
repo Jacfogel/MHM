@@ -18,6 +18,7 @@ from user.context_manager import user_context_manager
 
 class TestAICore(AITestBase):
     """Test core AI functionality"""
+    __test__ = False  # Not a pytest test class - run via custom runner
     
     def test_basic_response_generation(self):
         """Test 1: Basic AI Response Generation"""

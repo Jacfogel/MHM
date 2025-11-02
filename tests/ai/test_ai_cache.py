@@ -11,6 +11,7 @@ from tests.ai.ai_test_base import AITestBase
 
 
 class TestAICache(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI response caching"""
     
     def test_cache_basic(self):

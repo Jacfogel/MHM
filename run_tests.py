@@ -73,6 +73,15 @@ def print_test_mode_info():
     print("="*60)
 
 def main():
+    """
+    Main entry point for MHM test runner.
+    
+    Parses command-line arguments and executes pytest with appropriate configuration
+    based on the selected test mode (all, fast, unit, integration, behavior, ui, slow).
+    
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     parser = argparse.ArgumentParser(description="MHM Test Runner")
     parser.add_argument(
         "--mode", 

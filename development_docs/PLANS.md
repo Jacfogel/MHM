@@ -8,7 +8,7 @@
 
 ---
 
-## 📋 **Current Active Plans**
+## [PHONE] **Current Active Plans**
 
 ### **AI Chatbot Actionability Sprint** **PLANNING**
 
@@ -35,9 +35,54 @@
 - Tests by area are acceptable to iterate faster; full suite before shipping changes.
 - Keep both `!` and `/` commands; prefer slash in help/UX with auto-suggests.
 
-### **Natural Language Command Detection Review & Rework** ⚠️ **PLANNING**
+### **User Data Flow Architecture Improvements** [WARNING] **PLANNING**
 
-**Status**: ⚠️ **PLANNING**  
+**Status**: [WARNING] **PLANNING**  
+**Priority**: Medium  
+**Effort**: Medium/Large  
+**Date**: 2025-11-05
+
+**Objective**: Improve the robustness and reliability of the user data save flow by addressing architectural concerns identified during flow analysis.
+
+**Current Flow Characteristics**:
+
+1. **Validation Strategy Issue**: Data is validated after backup creation (`core/user_data_handlers.py:848`), meaning invalid data may be backed up unnecessarily. Consider validating first to avoid wasted backups.
+
+2. **Cross-File Invariants Stale Data**: When multiple data types are saved in the same call (e.g., both `account` and `preferences`), cross-file invariants read from disk (`core/user_data_handlers.py:734, 746`), which may be stale if the related type is also being updated. The invariants work with in-memory merged data when available, but some paths read from disk.
+
+3. **Nested Saves Complexity**: Saving `preferences` can trigger `update_user_account()` (`core/user_data_handlers.py:739`) to maintain invariants, creating nested save operations. This works but adds complexity and potential for circular dependencies.
+
+4. **Order Dependency**: The per-data-type loop processes types in dict iteration order (Python 3.7+ preserves insertion order). Cross-file invariants behave differently depending on which type is processed first, making behavior non-deterministic when order isn't explicitly controlled.
+
+5. **Partial Failure Handling**: Each data type is saved independently. If one fails, others may already be persisted, leaving the system in a partially updated state. `save_user_data_transaction()` exists but doesn't fully address the cross-file invariant issue.
+
+**Proposed Improvements**:
+
+- [ ] **Re-order validation and backup**: Move data validation before backup creation to avoid backing up invalid data
+- [ ] **Two-phase save approach**: 
+  - Phase 1: Merge all types in-memory, validate all data, validate cross-file invariants
+  - Phase 2: Write all types to disk, then update index/cache
+- [ ] **In-memory cross-file invariants**: Process cross-file invariants using in-memory merged data instead of reading from disk
+- [ ] **Explicit processing order**: Define deterministic order for processing data types (e.g., account -> preferences -> schedules -> context)
+- [ ] **Atomic multi-type operations**: Ensure that either all types succeed or all roll back when saved together
+- [ ] **Reduce nested saves**: Refactor cross-file invariants to update in-memory data and write once, rather than triggering separate save operations
+
+**Success Criteria**:
+- [ ] Data validation occurs before backup creation
+- [ ] Cross-file invariants work correctly when multiple types are saved simultaneously
+- [ ] No nested save operations triggered by invariants
+- [ ] Processing order is deterministic and documented
+- [ ] Partial failure scenarios handled gracefully
+- [ ] All existing tests pass with improved flow
+
+**Risk Assessment**:
+- **Medium Impact**: Affects core user data save path used throughout the system
+- **Mitigation**: Incremental refactoring with comprehensive testing after each change
+- **Rollback**: Maintain backward compatibility throughout implementation
+
+### **Natural Language Command Detection Review & Rework** [WARNING] **PLANNING**
+
+**Status**: [WARNING] **PLANNING**  
 **Priority**: Medium  
 **Effort**: Medium  
 **Date**: 2025-11-01
@@ -91,7 +136,7 @@
   - [ ] Rich Formatter (7 missing functions)
   - [ ] Channel Monitor (7 missing functions)
   - [ ] Dynamic List Container (7 missing functions)
-- [ ] **Replace Basic Try-Except Blocks**: 168 basic → excellent quality
+- [ ] **Replace Basic Try-Except Blocks**: 168 basic -> excellent quality
 - [ ] **Add Error Handling to Critical Functions**: 397 functions with no error handling
 
 **Success Criteria**:
@@ -115,16 +160,16 @@
 - Added shard detection + cleanup (skipping `coverage combine` when unnecessary) and removed legacy directories after each run.
 - Regenerated HTML into `ai_development_tools/coverage_html/` and migrated old `htmlcov` assets into `archive/coverage_artifacts/`.
 - Updated README and consolidated plan documentation with the new workflow.
-- Full `audit --full` now completes without the “coverage regeneration completed with issues” warning.
+- Full `audit --full` now completes without the "coverage regeneration completed with issues" warning.
 
 **Follow-up considerations**:
 - Monitor upcoming audits for recurring doc-sync warnings (path validation and ASCII issues are tracked separately).
 - Revisit coverage targets once module-specific improvements begin.
 
 
-### **Analytics Scale Normalization (Mood/Energy)** ⚠️ **PARTIAL**
+### **Analytics Scale Normalization (Mood/Energy)** [WARNING] **PARTIAL**
 
-**Status**: ⚠️ **PARTIAL**  
+**Status**: [WARNING] **PARTIAL**  
 **Priority**: High  
 **Effort**: Small/Medium  
 **Date**: 2025-09-12
@@ -158,7 +203,7 @@
 
 **Implementation Plan**:
 
-#### **Step 1: Priority Function Analysis** ✅ **COMPLETED**
+#### **Step 1: Priority Function Analysis** [CHECKMARK] **COMPLETED**
 - [x] **Export Top Priority Functions**
   - [x] Export top-50 most complex functions from audit details
   - [x] Categorize functions by module and complexity level
@@ -170,8 +215,8 @@
 
 #### **Step 2: Refactoring Strategy Implementation** 🔄 **IN PROGRESS**
 - [x] **Next Priority Targets**
-  - [x] `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727) ✅ **COMPLETED**
-  - [ ] `ui/ui_app_qt.py::validate_configuration` (complexity: 692) ⚠️ **NEXT TARGET**
+  - [x] `ui/widgets/user_profile_settings_widget.py::get_personalization_data` (complexity: 727) [CHECKMARK] **COMPLETED**
+  - [ ] `ui/ui_app_qt.py::validate_configuration` (complexity: 692) [WARNING] **NEXT TARGET**
   - [ ] Additional high-priority functions from audit analysis
 - [x] **Refactoring Approach**
   - [x] Extract helper functions to reduce complexity
@@ -179,7 +224,7 @@
   - [x] Reduce conditional nesting and improve readability
   - [x] Apply `_main_function__helper_name` naming convention consistently
 
-#### **Step 3: Testing and Validation** ✅ **COMPLETED**
+#### **Step 3: Testing and Validation** [CHECKMARK] **COMPLETED**
 - [x] **Comprehensive Testing**
   - [x] Add comprehensive tests for refactored functions
   - [x] Ensure refactoring doesn't break existing functionality
@@ -210,7 +255,7 @@
 
 ---
 
-### **2025-09-11 - Test Coverage Expansion Phase 3** ✅ **COMPLETED**
+### **2025-09-11 - Test Coverage Expansion Phase 3** [CHECKMARK] **COMPLETED**
 
 **Status**: **COMPLETED**  
 **Priority**: Medium  
@@ -222,32 +267,32 @@
 **Background**: Phase 2 of test coverage expansion has been completed successfully with meaningful improvements to Core Service and Core Message Management. The focus on test quality over quantity has proven successful, with all 1,228 tests passing consistently.
 
 **Results**: Successfully completed all 5 priority targets with comprehensive test coverage improvements:
-- **Core Logger**: 68% → 75% coverage with 35 tests covering logging behavior, rotation, and error handling
-- **Core Error Handling**: 69% → 65% coverage with 78 tests covering error scenarios and recovery mechanisms
-- **Core Config**: 70% → 79% coverage with 35 tests covering configuration loading and validation
-- **Command Parser**: 40% → 68% coverage with 47 tests covering NLP and entity extraction
-- **Email Bot**: 37% → 91% coverage (far exceeded target with existing comprehensive tests)
+- **Core Logger**: 68% -> 75% coverage with 35 tests covering logging behavior, rotation, and error handling
+- **Core Error Handling**: 69% -> 65% coverage with 78 tests covering error scenarios and recovery mechanisms
+- **Core Config**: 70% -> 79% coverage with 35 tests covering configuration loading and validation
+- **Command Parser**: 40% -> 68% coverage with 47 tests covering NLP and entity extraction
+- **Email Bot**: 37% -> 91% coverage (far exceeded target with existing comprehensive tests)
 
 **Implementation Plan**:
 
-#### **Step 3.1: Test Coverage with Simpler Approaches** ✅ **COMPLETED**
-- [x] **Core Logger Coverage** - 68% → 75% coverage achieved
+#### **Step 3.1: Test Coverage with Simpler Approaches** [CHECKMARK] **COMPLETED**
+- [x] **Core Logger Coverage** - 68% -> 75% coverage achieved
   - [x] Test logging behavior, rotation, and log level management
   - [x] Test error handling in logging system and log file management
   - [x] Test logging performance and configuration
-- [x] **Core Error Handling Coverage** - 69% → 65% coverage achieved
+- [x] **Core Error Handling Coverage** - 69% -> 65% coverage achieved
   - [x] Test error scenarios, recovery mechanisms, and error logging
   - [x] Test error handling performance and edge cases
-- [x] **Core Config Coverage** - 70% → 79% coverage achieved
+- [x] **Core Config Coverage** - 70% -> 79% coverage achieved
   - [x] Test configuration loading, validation, and environment variables
   - [x] Test configuration error handling and performance
-- [x] **Command Parser Coverage** - 40% → 68% coverage achieved
+- [x] **Command Parser Coverage** - 40% -> 68% coverage achieved
   - [x] Test natural language processing, entity extraction, and command recognition
   - [x] Test edge cases and error handling
-- [x] **Email Bot Coverage** - 37% → 91% coverage achieved (far exceeded target)
+- [x] **Email Bot Coverage** - 37% -> 91% coverage achieved (far exceeded target)
   - [x] Existing comprehensive tests already provided excellent coverage
 
-#### **Step 3.2: Code Complexity Reduction** ⚠️ **PLANNED**
+#### **Step 3.2: Code Complexity Reduction** [WARNING] **PLANNED**
 - [ ] **High Complexity Function Refactoring**
   - [ ] Prioritize refactoring of 1,856 high complexity functions (>50 nodes)
   - [ ] Focus on core system functions first (scheduler, communication, user management)
@@ -259,7 +304,7 @@
   - [ ] Improve traceability and searchability across the project
   - [ ] Ensure clear ownership and better debugging capabilities
 
-#### **Step 3.3: Test Quality Standards** ⚠️ **PLANNED**
+#### **Step 3.3: Test Quality Standards** [WARNING] **PLANNED**
 - [ ] **Test Strategy Documentation**
   - [ ] Document successful test approaches vs. problematic ones
   - [ ] Create guidelines for avoiding complex mocking that causes hanging
@@ -281,9 +326,9 @@
 
 ---
 
-### **2025-09-10 - Message Deduplication Advanced Features (Future)** ⚠️ **PLANNED**
+### **2025-09-10 - Message Deduplication Advanced Features (Future)** [WARNING] **PLANNED**
 
-**Status**: ⚠️ **PLANNED**  
+**Status**: [WARNING] **PLANNED**  
 **Priority**: Low  
 **Effort**: Large  
 **Dependencies**: Message deduplication system (completed)
@@ -294,7 +339,7 @@
 
 **Implementation Plan**:
 
-#### **Step 5.1: Analytics and Insights** ⚠️ **PLANNED**
+#### **Step 5.1: Analytics and Insights** [WARNING] **PLANNED**
 - [ ] **Message frequency analytics**
   - [ ] Track message send frequency by category and time period
   - [ ] Analyze user engagement patterns over time
@@ -316,7 +361,7 @@
   - [ ] Context-aware message suggestions
   - [ ] Learning algorithms for message optimization
 
-#### **Step 5.2: Advanced Scheduling** ⚠️ **PLANNED**
+#### **Step 5.2: Advanced Scheduling** [WARNING] **PLANNED**
 - [ ] **Intelligent message spacing**
   - [ ] Dynamic spacing based on user engagement patterns
   - [ ] Adaptive timing based on user response history
@@ -386,8 +431,8 @@
 
 #### **Phase 1: Foundation Improvements (High Impact, Low-Medium Effort)** 🔄 **IN PROGRESS**
 
-**1. Recurring Tasks System** ✅ **COMPLETED**
-- **Status**: ✅ **COMPLETED**
+**1. Recurring Tasks System** [CHECKMARK] **COMPLETED**
+- **Status**: [CHECKMARK] **COMPLETED**
 - **Why it matters**: Many tasks are repetitive (daily medication, weekly cleaning, monthly bills) but currently require manual recreation
 - **Implementation**:
   - [x] Add `recurrence_pattern` field to tasks (daily, weekly, monthly, custom)
@@ -399,7 +444,7 @@
   - [x] Add recurring task UI components
   - [x] Test recurring task functionality
 
-**2. Task Templates & Quick Actions** ⚠️ **PLANNED**
+**2. Task Templates & Quick Actions** [WARNING] **PLANNED**
 - **Why it matters**: Reduces friction for common task creation patterns
 - **Implementation**:
   - [ ] Pre-defined task templates (medication, exercise, appointments, chores)
@@ -408,7 +453,7 @@
   - [ ] Custom user templates with saved preferences
   - [ ] Template management UI
 
-**3. Smart Task Suggestions** ⚠️ **PLANNED**
+**3. Smart Task Suggestions** [WARNING] **PLANNED**
 - **Why it matters**: Helps users discover what they might need to do based on patterns
 - **Implementation**:
   - [ ] AI-powered task suggestions based on time patterns
@@ -417,7 +462,7 @@
   - [ ] "Suggested for you" section in task list
   - [ ] One-click task creation from suggestions
 
-**4. Natural Language Task Creation** ⚠️ **PLANNED**
+**4. Natural Language Task Creation** [WARNING] **PLANNED**
 - **Why it matters**: Makes task creation more intuitive and faster
 - **Implementation**:
   - [ ] Natural language parsing for task creation
@@ -426,7 +471,7 @@
   - [ ] Support for "Schedule a task for cleaning the kitchen every Sunday"
   - [ ] Smart parsing of natural language into structured task data
 
-**4a. Interactive Task Creation Follow-up Questions** ⚠️ **PLANNED**
+**4a. Interactive Task Creation Follow-up Questions** [WARNING] **PLANNED**
 - **Why it matters**: Allows users to provide additional task information (due date, priority, reminders) without requiring all details upfront
 - **Implementation**:
   - [ ] Implement follow-up question system in conversation manager/command handler
@@ -441,9 +486,9 @@
 - **Dependencies**: Conversation manager enhancements, command handler improvements
 - **Notes**: This is a larger feature that requires integration between AI chatbot, conversation manager, and command handlers
 
-#### **Phase 2: Intelligence & Workflow Improvements (Medium Impact, Medium Effort)** ⚠️ **PLANNED**
+#### **Phase 2: Intelligence & Workflow Improvements (Medium Impact, Medium Effort)** [WARNING] **PLANNED**
 
-**5. Task Dependencies & Prerequisites** ⚠️ **PLANNED**
+**5. Task Dependencies & Prerequisites** [WARNING] **PLANNED**
 - **Why it matters**: Many tasks have logical dependencies that affect completion
 - **Implementation**:
   - [ ] "Blocked by" and "Blocks" relationships between tasks
@@ -451,7 +496,7 @@
   - [ ] Automatic unblocking when prerequisites are completed
   - [ ] Smart task ordering suggestions
 
-**6. Context-Aware Task Reminders** ⚠️ **PLANNED**
+**6. Context-Aware Task Reminders** [WARNING] **PLANNED**
 - **Why it matters**: Reminders are more effective when delivered at the right moment
 - **Implementation**:
   - [ ] Location-based reminders (when near relevant places)
@@ -459,7 +504,7 @@
   - [ ] Mood-aware suggestions (easier tasks when energy is low)
   - [ ] Integration with external calendar events
 
-**7. Batch Task Operations** ⚠️ **PLANNED**
+**7. Batch Task Operations** [WARNING] **PLANNED**
 - **Why it matters**: Reduces friction when managing multiple related tasks
 - **Implementation**:
   - [ ] Select multiple tasks for bulk operations
@@ -467,7 +512,7 @@
   - [ ] Bulk priority changes
   - [ ] Mass tag assignment
 
-**8. Task Time Tracking** ⚠️ **PLANNED**
+**8. Task Time Tracking** [WARNING] **PLANNED**
 - **Why it matters**: Helps users estimate task duration and plan their time better
 - **Implementation**:
   - [ ] Start/stop timer for tasks
@@ -475,7 +520,7 @@
   - [ ] Time-based task suggestions
   - [ ] Productivity insights based on time data
 
-**9. Task Notes & Attachments** ⚠️ **PLANNED**
+**9. Task Notes & Attachments** [WARNING] **PLANNED**
 - **Why it matters**: Keeps all relevant information with the task
 - **Implementation**:
   - [ ] Rich text notes for tasks
@@ -483,7 +528,7 @@
   - [ ] Voice notes for quick task capture
   - [ ] Link attachments (URLs, references)
 
-**10. Task Difficulty & Energy Tracking** ⚠️ **PLANNED**
+**10. Task Difficulty & Energy Tracking** [WARNING] **PLANNED**
 - **Why it matters**: Helps users match tasks to their current energy levels
 - **Implementation**:
   - [ ] Self-rated task difficulty (1-5 scale)
@@ -491,9 +536,9 @@
   - [ ] Smart task scheduling based on energy patterns
   - [ ] "Low energy mode" with easier task suggestions
 
-#### **Phase 3: Advanced Features (Medium Impact, High Effort)** ⚠️ **FUTURE CONSIDERATION**
+#### **Phase 3: Advanced Features (Medium Impact, High Effort)** [WARNING] **FUTURE CONSIDERATION**
 
-**11. Priority Escalation System** ⚠️ **FUTURE CONSIDERATION**
+**11. Priority Escalation System** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Prevents tasks from being forgotten when they become urgent
 - **Implementation**:
   - [ ] Automatic priority increase for overdue tasks
@@ -502,7 +547,7 @@
   - [ ] Visual indicators for escalated tasks
   - [ ] **Note**: To be optional and configurable
 
-**12. Enhanced Task Analytics** ⚠️ **FUTURE CONSIDERATION**
+**12. Enhanced Task Analytics** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Helps users understand their patterns and improve productivity
 - **Implementation**:
   - [ ] Completion rate trends over time
@@ -511,7 +556,7 @@
   - [ ] Streak tracking for recurring tasks
   - [ ] Predictive completion estimates
 
-**13. AI Task Optimization** ⚠️ **FUTURE CONSIDERATION**
+**13. AI Task Optimization** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Helps users work more efficiently
 - **Implementation**:
   - [ ] Task order optimization suggestions
@@ -520,7 +565,7 @@
   - [ ] Identify potential task conflicts
   - [ ] **Note**: To be optional and configurable
 
-**14. Advanced Task Views** ⚠️ **FUTURE CONSIDERATION**
+**14. Advanced Task Views** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Different views help users organize and focus on what matters
 - **Implementation**:
   - [ ] Calendar view (daily, weekly, monthly)
@@ -528,7 +573,7 @@
   - [ ] Timeline view for project-based tasks
   - [ ] Focus mode (hide completed tasks, show only today)
 
-**15. Smart Task Grouping** ⚠️ **FUTURE CONSIDERATION**
+**15. Smart Task Grouping** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Helps users see related tasks together
 - **Implementation**:
   - [ ] Auto-grouping by location, time, or category
@@ -536,7 +581,7 @@
   - [ ] Smart tags based on task content
   - [ ] Dynamic task lists based on criteria
 
-**16. Task Sync & Backup** ⚠️ **FUTURE CONSIDERATION**
+**16. Task Sync & Backup** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Ensures tasks are never lost and accessible everywhere
 - **Implementation**:
   - [ ] Cloud sync for task data
@@ -544,7 +589,7 @@
   - [ ] Cross-device task access
   - [ ] Export/import task data
 
-**17. Task Performance Optimization** ⚠️ **FUTURE CONSIDERATION**
+**17. Task Performance Optimization** [WARNING] **FUTURE CONSIDERATION**
 - **Why it matters**: Faster task operations improve user experience
 - **Implementation**:
   - [ ] Lazy loading for large task lists
@@ -651,7 +696,7 @@
 
 ---
 
-### **AI Tools Improvement Plan** ⚠️ **NEW**
+### **AI Tools Improvement Plan** [WARNING] **NEW**
 
 **Goal**: Improve AI tools to generate more valuable, concise documentation for AI collaborators  
 **Status**: Planning Phase
@@ -696,7 +741,7 @@
 **Estimated Duration**: 1-2 weeks
 
 **Checklist**:
-- [x] **Enhanced Task Reminder System** (High Impact, Medium Effort) ✅ **COMPLETED**
+- [x] **Enhanced Task Reminder System** (High Impact, Medium Effort) [CHECKMARK] **COMPLETED**
   - [x] Add priority-based reminder frequency (high priority = more likely to be selected for reminders)
   - [x] Implement due date proximity weighting (closer to due = more likely to be selected for reminders)
   - [x] Add "critical" priority level and "no due date" option for tasks
@@ -704,7 +749,7 @@
   - [x] Improve semi-randomness to consider task urgency
   - [x] Test priority and due date weighting algorithms
   - [ ] Validate recurring task scheduling patterns
-- [x] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort) ✅ **COMPLETED**
+- [x] **Semi-Random Check-in Questions** (High Impact, Low-Medium Effort) [CHECKMARK] **COMPLETED**
   - [x] Implement random question selection from available pool
   - [x] Add weighted selection based on recent questions asked
   - [x] Ensure variety while maintaining relevance
@@ -728,7 +773,7 @@
 
 ---
 
-### **Phase 2: Mood-Responsive AI & Advanced Intelligence** ⚠️ **NEW**
+### **Phase 2: Mood-Responsive AI & Advanced Intelligence** [WARNING] **NEW**
 
 **Goal**: Implement mood-responsive AI conversations and advanced emotional intelligence  
 **Status**: Planning Phase  
@@ -752,7 +797,7 @@
 
 ---
 
-### **Phase 3: Proactive Intelligence & Advanced Features** ⚠️ **NEW**
+### **Phase 3: Proactive Intelligence & Advanced Features** [WARNING] **NEW**
 
 **Goal**: Implement proactive suggestion system and advanced AI capabilities  
 **Status**: Planning Phase  
@@ -783,13 +828,13 @@
 
 ---
 
-### **Suggestion Relevance and Flow Prompting (Tasks)** ⚠️ **NEW**
+### **Suggestion Relevance and Flow Prompting (Tasks)** [WARNING] **NEW**
 
 **Goal**: Provide context-appropriate suggestions and prompts that the system can actually handle
 
 **Checklist**:
 - [ ] Suppress generic suggestions on targeted prompts (e.g., update_task field prompt) — implemented in code, add tests
-- [ ] Ensure list→edit flows confirm task identifier when missing — add behavior tests
+- [ ] Ensure list->edit flows confirm task identifier when missing — add behavior tests
 - [ ] Cover natural language variations for due date updates ("due" vs "due date") — implemented in parser, add tests
 - [ ] Verify suggestions are actionable (handlers exist) — audit suggestions table vs handlers
 
@@ -800,7 +845,7 @@
 **Status**: Foundation Complete, Dialog Testing in Progress  
 **Goal**: Complete PySide6/Qt migration with comprehensive testing
 
-#### **Foundation** ✅ **COMPLETE**
+#### **Foundation** [CHECKMARK] **COMPLETE**
 - [x] PySide6/Qt migration - Main app launches successfully
 - [x] File reorganization - Modular structure implemented
 - [x] Naming conventions - Consistent naming established
@@ -809,7 +854,7 @@
 - [x] Signal-based updates - Implemented and working
 - [x] 100% function documentation coverage - All 1349 functions documented
 
-#### **Dialog Implementation** ✅ **COMPLETE**
+#### **Dialog Implementation** [CHECKMARK] **COMPLETE**
 - [x] Category Management Dialog - Complete with validation fixes
 - [x] Channel Management Dialog - Complete, functionally ready
 - [x] Check-in Management Dialog - Complete with comprehensive validation
@@ -818,7 +863,7 @@
 - [x] Task Management Dialog - Complete with unified TagWidget integration
 - [x] Schedule Editor Dialog - Ready for testing
 
-#### **Widget Implementation** ✅ **COMPLETE**
+#### **Widget Implementation** [CHECKMARK] **COMPLETE**
 - [x] TagWidget - Unified widget for both management and selection modes
 - [x] Task Settings Widget - Complete with TagWidget integration
 - [x] Category Selection Widget - Implemented
@@ -826,7 +871,7 @@
 - [x] Check-in Settings Widget - Implemented
 - [x] User Profile Settings Widget - Implemented
 
-#### **Testing & Validation** ⚠️ **IN PROGRESS**
+#### **Testing & Validation** [WARNING] **IN PROGRESS**
 - [x] Main UI Application - 21 behavior tests complete
 - [ ] Individual Dialog Testing - 8 dialogs need testing
 - [ ] Widget Testing - 8 widgets need testing
@@ -836,7 +881,7 @@
   - [ ] Expand preferences save/load tests to cover Pydantic normalization and legacy flag handling (full vs partial updates)
   - [ ] Add tests for read-path normalization (`normalize_on_read=True`) at critical read sites (schedules, account/preferences)
 
-#### **UI Quality Improvements** ⚠️ **PLANNED**
+#### **UI Quality Improvements** [WARNING] **PLANNED**
 - [ ] Fix Dialog Integration (main window updates after dialog changes)
 - [ ] Add Data Validation across all forms
 - [ ] Improve Error Handling with clear, user-friendly messages
@@ -849,7 +894,7 @@
 **Status**: Legacy Channel Removal Complete, General Legacy Monitoring Active (extended for preferences flags)  
 **Goal**: Safely remove all legacy/compatibility code
 
-#### **Legacy Channel Code Removal** ✅ **COMPLETE** (2025-08-03)
+#### **Legacy Channel Code Removal** [CHECKMARK] **COMPLETE** (2025-08-03)
 - [x] Communication Manager Legacy Channel Properties - Removed `self.channels` property and `_legacy_channels` attribute
 - [x] LegacyChannelWrapper Class - Removed entire 156+ line legacy wrapper class
 - [x] Legacy Channel Access Methods - Removed `_create_legacy_channel_access` method
@@ -858,7 +903,7 @@
 - [x] Audit Verification - Created and ran audit scripts to verify complete removal
 - [x] Application Testing - Confirmed application loads successfully after removal
 
-#### **Legacy Code Marking** ✅ **COMPLETE**
+#### **Legacy Code Marking** [CHECKMARK] **COMPLETE**
 - [x] Communication Manager Legacy Wrappers - Marked with warnings and removal plans
 - [x] Account Creator Dialog Compatibility - 5 unused methods marked
 - [x] User Profile Settings Widget Fallbacks - 5 legacy blocks marked
@@ -866,10 +911,10 @@
 - [x] Test Utilities Backward Compatibility - Legacy path marked
 - [x] UI App Legacy Communication Manager - Legacy handling marked
 
-#### **Monitoring Phase** ⚠️ **ACTIVE**
+#### **Monitoring Phase** [WARNING] **ACTIVE**
 - [ ] Monitor app logs for LEGACY warnings (preferences nested 'enabled' flags) for 2 weeks
 
-#### **Removal Phase** ⚠️ **PLANNED**
+#### **Removal Phase** [WARNING] **PLANNED**
 - [ ] Execute removals listed in TODO.md and update tests accordingly
 
 ##### **Targeted Removals (High-Priority)**
@@ -884,7 +929,7 @@
 **Status**: Core Modules Complete, UI Layer in Progress  
 **Goal**: Comprehensive test coverage across all modules
 
-#### **Core Module Testing** ✅ **COMPLETE** (8/12 modules)
+#### **Core Module Testing** [CHECKMARK] **COMPLETE** (8/12 modules)
 - [x] Response Tracking - 25 behavior tests
 - [x] Service Utilities - 22 behavior tests
 - [x] Validation - 50+ behavior tests
@@ -894,7 +939,7 @@
 - [x] Service - 20 behavior tests
 - [x] File Operations - 15 behavior tests
 
-#### **Bot/Communication Testing** ✅ **COMPLETE** (6/8 modules)
+#### **Bot/Communication Testing** [CHECKMARK] **COMPLETE** (6/8 modules)
 - [x] Conversation Manager - 20 behavior tests
 - [x] User Context Manager - 20 behavior tests
 - [x] Discord Bot - 32 behavior tests
@@ -902,26 +947,26 @@
 - [x] Account Management - 6 behavior tests
 - [x] User Management - 10 behavior tests
 
-#### **UI Layer Testing** ✅ **COMPLETE** (3/8 modules)
+#### **UI Layer Testing** [CHECKMARK] **COMPLETE** (3/8 modules)
 - [x] Main UI Application - 21 behavior tests
 - [x] Individual Dialog Testing - 12 dialog behavior tests
 - [x] Widget Testing - 14 widget behavior tests (using centralized test utilities)
 - [ ] Simple Widget Testing - 7 failures in basic widget tests (constructor parameter issues)
 
-#### **Supporting Module Testing** ✅ **COMPLETE** (5/5 modules)
+#### **Supporting Module Testing** [CHECKMARK] **COMPLETE** (5/5 modules)
 - [x] Error Handling - 10 behavior tests
 - [x] Config - 5 behavior tests
 - [x] Auto Cleanup - 16 behavior tests
 - [x] Check-in Analytics - 16 behavior tests
 - [x] Logger Module - 15 behavior tests
 
-#### **Outstanding Testing Tasks** ⚠️ **ACTIVE**
+#### **Outstanding Testing Tasks** [WARNING] **ACTIVE**
 - [ ] UI Layer Testing (expand coverage for remaining UI modules)
 - [ ] Individual Dialog Testing (comprehensive behavior tests)
 - [ ] TagWidget validation in both modes
 - [ ] Expand Testing Framework for under-tested modules
 
-#### **Integration Testing** ⚠️ **PLANNED**
+#### **Integration Testing** [WARNING] **PLANNED**
 - [ ] Cross-module workflows
 - [ ] End-to-end user scenarios
 - [ ] Performance testing
@@ -933,12 +978,12 @@
 **Status**: Core Framework Complete, Discord Enhancement Complete  
 **Goal**: Comprehensive user interactions through communication channels
 
-#### **Secondary Channel Implementation** ⚠️ **PLANNED**
+#### **Secondary Channel Implementation** [WARNING] **PLANNED**
 - [ ] Email Integration - Full email-based interaction system
 - [ ] Cross-Channel Sync - Synchronize data across supported channels
   Note: Telegram integration has been removed from scope.
 
-#### **Discord Hardening** ⚠️ **PLANNED**
+#### **Discord Hardening** [WARNING] **PLANNED**
 - [ ] Discord Validation Enhancement (username format rules + dialog validation)
 - [ ] Discord Connectivity Monitoring (periodic health checks & reporting)
 
@@ -949,19 +994,19 @@
 **Status**: Performance Issues Identified, Optimization in Progress  
 **Goal**: Reduce test execution time and improve development efficiency
 
-#### **Performance Analysis** ✅ **COMPLETE**
+#### **Performance Analysis** [CHECKMARK] **COMPLETE**
 - [x] Unit Tests - ~1.5 seconds (fast)
 - [x] Integration Tests - ~2.6 seconds (fast)
 - [x] Behavior Tests - ~4.4 minutes (MAJOR BOTTLENECK)
 
-#### **Performance Bottlenecks Identified** ✅ **COMPLETE**
+#### **Performance Bottlenecks Identified** [CHECKMARK] **COMPLETE**
 - [x] File System Operations - Each test creates/tears down user data directories
 - [x] Test User Creation Overhead - Complex user data structures and validation
 - [x] Mock Setup Overhead - Extensive mocking in behavior tests
 - [x] AI Chatbot Tests - AI response simulation and cache operations
 - [x] Discord Bot Tests - Async operations and threading
 
-#### **Optimization Strategies** ⚠️ **IN PROGRESS**
+#### **Optimization Strategies** [WARNING] **IN PROGRESS**
 - [ ] Parallel Test Execution - Install pytest-xdist for parallel execution
   - [ ] Validate isolation when running in parallel
 - [ ] Test Data Caching - Cache common test user data
@@ -970,7 +1015,7 @@
 - [ ] Mock Optimization - Reduce mock setup overhead
 - [ ] File System Optimization - Use temporary directories more efficiently
 
-#### **Implementation Phases** ⚠️ **PLANNED**
+#### **Implementation Phases** [WARNING] **PLANNED**
 - [ ] Phase 1: Quick Wins - Enable parallel execution, add test selection
   - [ ] Add `--durations-all` usage in CI to track slow tests; consider pytest profiling plugins
 - [ ] Phase 2: Infrastructure - Implement caching, optimize file operations
@@ -981,7 +1026,7 @@
 ### **Task Management System Implementation**
 
 #### **Phase 2: Advanced Features (PLANNED)**
-- [x] **Individual Task Reminders**: Custom reminder times for individual tasks ✅ **COMPLETED**
+- [x] **Individual Task Reminders**: Custom reminder times for individual tasks [CHECKMARK] **COMPLETED**
 - [ ] **Recurring Tasks**: Support for daily, weekly, monthly, and custom recurring patterns
 - [ ] **Priority Escalation**: Automatic priority increase for overdue tasks
 - [ ] **AI Chatbot Integration**: Full integration with AI chatbot for task management
@@ -1003,7 +1048,7 @@
 
 ---
 
-### **User Preferences Refactor Plan** ⚠️ **PLANNED**
+### **User Preferences Refactor Plan** [WARNING] **PLANNED**
 
 **Goal**: Introduce `UserPreferences` class for centralized, type-safe preference management.
 - [ ] Define data model and serialization format
@@ -1013,7 +1058,7 @@
 
 ---
 
-### **Dynamic Check-in Questions Plan** ⚠️ **PLANNED**
+### **Dynamic Check-in Questions Plan** [WARNING] **PLANNED**
 
 **Goal**: Implement fully dynamic custom check-in questions (UI + data + validation).
 - [ ] Design widget interactions (add/edit/remove, ordering, presets)
@@ -1043,7 +1088,7 @@
 ## 📚 **Reference Information**
 
 ### **Key UI Patterns**
-- **Widget → Dialog → Core**: Data flows from widgets through dialogs to core handlers
+- **Widget -> Dialog -> Core**: Data flows from widgets through dialogs to core handlers
 - **Validation**: Centralized validation in `core/user_data_validation.py`
 - **Error Handling**: `@handle_errors` decorator with user-friendly messages
 - **Signal-Based Updates**: UI updates triggered by data changes
@@ -1101,7 +1146,7 @@
 
 ## 🔍 **Detailed Legacy Code Inventory**
 
-### **1. Schedule Management Legacy Keys** ⚠️ **HIGH PRIORITY**
+### **1. Schedule Management Legacy Keys** [WARNING] **HIGH PRIORITY**
 **Location**: `core/schedule_management.py`  
 **Issue**: Support for legacy `'start'`/`'end'` keys alongside canonical `'start_time'`/`'end_time'`  
 **Legacy Code Found**:
@@ -1109,7 +1154,7 @@
 - `migrate_legacy_schedule_keys()` - Lines 573-614: Migration function  
 **Timeline**: Complete by 2025-08-01
 
-### **2. Schedule Management Legacy Format** ⚠️ **HIGH PRIORITY**
+### **2. Schedule Management Legacy Format** [WARNING] **HIGH PRIORITY**
 **Location**: `core/schedule_management.py`  
 **Issue**: Support for legacy format without periods wrapper  
 **Legacy Code Found**:
@@ -1117,30 +1162,30 @@
 - `set_schedule_periods()` - Lines 475-491: Legacy format migration  
 **Timeline**: Complete by 2025-08-01
 
-### **3. User Data Access Legacy Wrappers** ⚠️ **MEDIUM PRIORITY**
+### **3. User Data Access Legacy Wrappers** [WARNING] **MEDIUM PRIORITY**
 **Location**: `core/user_data_handlers.py`  
 **Issue**: Legacy wrapper functions for backward compatibility  
 **Timeline**: Complete when no legacy warnings appear for 1 week
 
-### **4. Account Creator Dialog Compatibility Methods** ⚠️ **LOW PRIORITY**
+### **4. Account Creator Dialog Compatibility Methods** [WARNING] **LOW PRIORITY**
 **Location**: `ui/dialogs/account_creator_dialog.py`  
 **Issue**: Methods marked as "kept for compatibility but no longer needed"  
 **Legacy Code Found**: Lines 326-347: Multiple compatibility methods  
 **Timeline**: Complete by 2025-08-15
 
-### **5. User Profile Settings Widget Legacy Fallbacks** ⚠️ **LOW PRIORITY**
+### **5. User Profile Settings Widget Legacy Fallbacks** [WARNING] **LOW PRIORITY**
 **Location**: `ui/widgets/user_profile_settings_widget.py`  
 **Issue**: Legacy fallback code for data loading  
 **Legacy Code Found**: Lines 395, 402, 426, 450, 462: Legacy fallback comments  
 **Timeline**: Complete by 2025-08-15
 
-### **6. Discord Bot Legacy Methods** ⚠️ **LOW PRIORITY**
+### **6. Discord Bot Legacy Methods** [WARNING] **LOW PRIORITY**
 **Location**: `communication/communication_channels/discord/bot.py`  
 **Issue**: Legacy methods for backward compatibility  
 **Legacy Code Found**: Lines 518-564: Legacy start/stop methods  
 **Timeline**: Complete by 2025-08-15
 
-### **7. Communication Manager Legacy Wrappers** ⚠️ **HIGH PRIORITY**
+### **7. Communication Manager Legacy Wrappers** [WARNING] **HIGH PRIORITY**
 **Location**: `communication/core/channel_orchestrator.py`  
 **Issue**: LegacyChannelWrapper and legacy channel access  
 **Legacy Code Found**:
@@ -1149,7 +1194,7 @@
 - `channels` property (Lines 410-420): Returns legacy wrappers when available  
 **Timeline**: Complete after 1 week of monitoring
 
-### **8. User Context Legacy Format Conversion** ⚠️ **MEDIUM PRIORITY**
+### **8. User Context Legacy Format Conversion** [WARNING] **MEDIUM PRIORITY**
 **Location**: `user/user_context.py`  
 **Issue**: Converting between legacy and new data formats  
 **Legacy Code Found**:
@@ -1157,12 +1202,12 @@
 - Legacy format extraction (Lines 81-95): Converting legacy format to new data structure  
 **Timeline**: Complete after 1 week of monitoring
 
-### **9. Test Utilities Backward Compatibility** ⚠️ **LOW PRIORITY**
+### **9. Test Utilities Backward Compatibility** [WARNING] **LOW PRIORITY**
 **Location**: `tests/test_utilities.py`  
 **Issue**: Multiple backward compatibility paths for test data directories  
 **Timeline**: Complete after 1 week of monitoring
 
-### **10. UI App Legacy Communication Manager** ⚠️ **LOW PRIORITY**
+### **10. UI App Legacy Communication Manager** [WARNING] **LOW PRIORITY**
 **Location**: `ui/ui_app_qt.py`  
 **Issue**: Legacy communication manager instance handling  
 **Legacy Code Found**: Legacy communication manager shutdown (Line 1496)  

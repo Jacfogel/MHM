@@ -14,6 +14,7 @@ from core.user_data_handlers import save_user_data
 
 
 class TestAIQuality(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI response quality and edge cases"""
     
     def test_response_quality(self):

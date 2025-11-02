@@ -17,6 +17,75 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - Documentation Sync Fixes & Test Warning Resolution **COMPLETED**
+
+**Context**: Comprehensive resolution of documentation synchronization issues and test suite warnings identified during full audit.
+
+**Problem**: Multiple documentation issues were affecting codebase health:
+- Registry generator had import errors preventing function registry updates
+- 58 documentation sync issues including path drift, non-ASCII characters, and registry gaps
+- 7 pytest collection warnings from AI test classes being incorrectly collected by pytest
+- Documentation coverage at 93.25% with 6 missing registry entries
+
+**Technical Changes**:
+
+1. **Fixed Registry Generator Import Issue**:
+   - Modified `ai_development_tools/generate_function_registry.py` to add parent directory to sys.path before importing
+   - Fixed `ModuleNotFoundError: No module named 'ai_development_tools'` by ensuring proper path setup
+   - Added special handling for `run_mhm.py` and `run_tests.py` to include them in registry despite universal exclusions
+   - Result: Registry generation now works successfully, documentation coverage improved to 93.68%
+
+2. **Fixed Path Drift Issues**:
+   - Updated `ai/README.md` to use full paths for file references (e.g., `chatbot.py` -> `ai/chatbot.py`)
+   - Fixed `tests/AI_FUNCTIONALITY_TEST_PLAN.md` to use proper test file paths (e.g., `ai_test_base.py` -> `tests/ai/ai_test_base.py`)
+   - Result: Path drift reduced from 4 files to 0 issues
+
+3. **Fixed Non-ASCII Character Issues**:
+   - Created and ran script to replace Unicode characters with ASCII equivalents in 7 files:
+     - `ai_development_docs/AI_CHANGELOG.md`, `AI_ERROR_HANDLING_GUIDE.md`, `AI_TESTING_GUIDE.md`
+     - `ARCHITECTURE.md`, `development_docs/CHANGELOG_DETAIL.md`, `PLANS.md`, `TODO.md`
+   - Replaced arrows, quotes, emojis, box-drawing characters with ASCII equivalents
+   - Result: Reduced non-ASCII issues from 7 files to 1 file (86% reduction)
+
+4. **Resolved Registry Gaps**:
+   - Enhanced `generate_function_registry.py` to explicitly include `run_mhm.py` and `run_tests.py` despite being in universal exclusions
+   - These entry point files should be documented in the registry as they're important for users
+   - Result: Registry gaps resolved from 6 functions to 0
+
+5. **Fixed Pytest Collection Warnings**:
+   - Added `__test__ = False` attribute to all 7 AI test classes to prevent pytest from collecting them
+   - Classes affected: `TestAICore`, `TestAICache`, `TestAIAdvanced`, `TestAIErrors`, `TestAIIntegration`, `TestAIPerformance`, `TestAIQuality`
+   - These classes are run via custom runner `run_ai_functionality_tests.py`, not pytest
+   - Root cause: Classes inherit from `AITestBase` which has `__init__` requiring `test_data_dir` and `results_collector` parameters
+   - Result: 7 pytest collection warnings eliminated
+
+**Files Modified**:
+- `ai_development_tools/generate_function_registry.py` - Fixed imports and added registry inclusion for entry point files
+- `ai/README.md` - Fixed path references
+- `tests/AI_FUNCTIONALITY_TEST_PLAN.md` - Fixed test file path references
+- `tests/ai/test_ai_core.py`, `test_ai_cache.py`, `test_ai_advanced.py`, `test_ai_errors.py`, `test_ai_integration.py`, `test_ai_performance.py`, `test_ai_quality.py` - Added `__test__ = False`
+- 7 documentation files - Fixed non-ASCII characters
+
+**Testing**:
+- Full test suite: 1898 passed, 2 skipped (100% pass rate)
+- All tests isolated properly (no files written outside `tests/`)
+- Documentation changes did not introduce any regressions
+
+**Results and Impact**:
+- **Documentation Coverage**: Improved from 93.25% to 93.68% (+0.43%)
+- **Registry Gaps**: Reduced from 6 to 0 (100% resolved)
+- **Path Drift**: Reduced from 4 files to 0 (100% resolved)
+- **Non-ASCII Issues**: Reduced from 7 files to 1 file (86% reduction)
+- **Doc Sync Issues**: Reduced from 58 to 23 (60% reduction)
+- **Test Warnings**: Reduced from 11 to 4 (64% reduction - 7 pytest collection warnings eliminated)
+- **Remaining Warnings**: 4 external library deprecation warnings (Discord + audioop) - cannot be fixed
+
+**Documentation Updates**:
+- Updated `TODO.md` with test warning investigation status
+- Both changelogs updated with this entry
+
+**Impact**: Significantly improved documentation health and test suite cleanliness. All critical documentation sync issues resolved, registry gaps closed, and test warnings reduced to only external library warnings that cannot be fixed.
+
 ### 2025-11-01 - AI Functionality Test Review Process Enhancements
 
 **Context**: Comprehensive improvements to AI functionality test review process, enhanced context display in test results, improved AI response validator, and identification of 10 critical issues in test results.
@@ -37,12 +106,12 @@ This file is the authoritative source for every meaningful change to the project
 
 3. **Enhanced AI Response Validator**:
    - Improved `tests/ai/ai_response_validator.py` `_check_response_appropriateness()` method to detect prompt-response mismatches:
-     - "How are you?" → Should acknowledge greeting, not redirect
-     - "Tell me something helpful" → Should provide info, not ask questions
-     - "How are you feeling?" → Should answer, not redirect
-     - "Tell me about yourself" → Should describe AI, not ask for user info
-     - "Hello" → Should not assume negative mental state
-     - "How am I doing?" → Should ask explicitly, not use vague references
+     - "How are you?" -> Should acknowledge greeting, not redirect
+     - "Tell me something helpful" -> Should provide info, not ask questions
+     - "How are you feeling?" -> Should answer, not redirect
+     - "Tell me about yourself" -> Should describe AI, not ask for user info
+     - "Hello" -> Should not assume negative mental state
+     - "How am I doing?" -> Should ask explicitly, not use vague references
    - Enhanced `_check_missing_context_handling()` to flag vague references ("that", "it") when context is missing
    - Updated critical issues detection to include prompt-response mismatch issues
 
@@ -115,9 +184,9 @@ This file is the authoritative source for every meaningful change to the project
 **Testing Evidence**:
 - Full test suite passes: 1898 passed, 2 skipped, 10 warnings
 - All previously failing tests now pass:
-  - Quantitative Analytics Tests: 8 failures → 0 failures
-  - AI Cache Deterministic Tests: 2 failures → 0 failures
-  - Policy Violation Tests: 2 failures → 0 failures
+  - Quantitative Analytics Tests: 8 failures -> 0 failures
+  - AI Cache Deterministic Tests: 2 failures -> 0 failures
+  - Policy Violation Tests: 2 failures -> 0 failures
 - Cleanup verification: All test artifact directories properly cleaned up after test runs
 - Manual cleanup performed for existing artifacts (`tests/data/pytest-of-Julie`, `tests/data/tmp`)
 
@@ -297,17 +366,17 @@ Files Modified (high-level):
 
 **Solutions Implemented**:
 - **ASCII Compliance**: Created and executed multiple Python scripts to systematically replace all non-ASCII characters with ASCII equivalents:
-  - Fixed smart quotes ('', "") → regular quotes (', ")
-  - Fixed arrows (→) → ASCII arrows (->)
-  - Fixed check marks (✓) → ASCII check marks (✓)
-  - Fixed pause buttons (⏸) → ASCII equivalents
-  - Fixed variation selectors (️) → removed
+  - Fixed smart quotes ('', "") -> regular quotes (', ")
+  - Fixed arrows (->) -> ASCII arrows (->)
+  - Fixed check marks ([OK]) -> ASCII check marks ([OK])
+  - Fixed pause buttons ([PAUSED]) -> ASCII equivalents
+  - Fixed variation selectors () -> removed
 - **Path Drift Resolution**: Significantly improved `ai_development_tools/documentation_sync_checker.py`:
   - Enhanced regex patterns to be more precise for actual file paths
   - Added code block detection to skip paths within markdown code blocks
   - Implemented advanced filtering for method calls, Python operators, and keywords
   - Added context-aware path extraction with `_is_likely_code_snippet` helper
-  - Reduced false positives by 87.5% (8→1 path drift issues)
+  - Reduced false positives by 87.5% (8->1 path drift issues)
 - **Test Suite Stabilization**: Fixed all 9 logging violations in `regenerate_coverage_metrics.py`:
   - Converted old-style string formatting (`logger.warning("message %s", var)`) to f-strings (`logger.warning(f"message {var}")`)
   - Fixed violations on lines 133, 193, 382, 408, 440, 485, 504, 543, 555
@@ -330,12 +399,12 @@ Files Modified (high-level):
 - ASCII compliance verified in all documentation files
 
 **Outcomes**:
-- ✅ All tests passing (1866/1866)
-- ✅ ASCII compliance achieved in all documentation
-- ✅ Path drift issues reduced by 87.5%
-- ✅ Error handling coverage improved to 91.7%
-- ✅ Documentation sync checker significantly more accurate
-- ✅ System audit shows improved health metrics
+- [CHECKMARK] All tests passing (1866/1866)
+- [CHECKMARK] ASCII compliance achieved in all documentation
+- [CHECKMARK] Path drift issues reduced by 87.5%
+- [CHECKMARK] Error handling coverage improved to 91.7%
+- [CHECKMARK] Documentation sync checker significantly more accurate
+- [CHECKMARK] System audit shows improved health metrics
 
 **Next Steps**:
 - Continue error handling expansion to reach 93%+ coverage target
@@ -688,10 +757,10 @@ elif isinstance(v_raw, str):
 - Maintained test functionality while reducing import clutter
 
 **Testing**:
-- [[✓]] All 7 individual test files pass after cleanup
-- [[✓]] Full test suite: 1848 passed, 1 skipped, 0 failed
-- [[✓]] Service starts successfully: `python run_headless_service.py start`
-- [[✓]] No regressions introduced
+- [[[OK]]] All 7 individual test files pass after cleanup
+- [[[OK]]] Full test suite: 1848 passed, 1 skipped, 0 failed
+- [[[OK]]] Service starts successfully: `python run_headless_service.py start`
+- [[[OK]]] No regressions introduced
 
 **Documentation Updates**:
 - Updated `TODO.md` with Phase 2.12 next steps
@@ -732,10 +801,10 @@ elif isinstance(v_raw, str):
   - Updated Fast Mode vs Full Mode description to include unused imports checker optimization
 
 **Testing**:
-- [[✓]] Fast audit tested successfully - shows skip message for unused imports checker
-- [[✓]] All tests passing (1848 passed, 1 skipped, 4 warnings)
-- [[✓]] UI import test successful - no more AttributeError
-- [[✓]] Generated reports reflect changes - AI_STATUS.md shows appropriate messaging
+- [[[OK]]] Fast audit tested successfully - shows skip message for unused imports checker
+- [[[OK]]] All tests passing (1848 passed, 1 skipped, 4 warnings)
+- [[[OK]]] UI import test successful - no more AttributeError
+- [[[OK]]] Generated reports reflect changes - AI_STATUS.md shows appropriate messaging
 
 **Results**:
 - **Performance**: Fast audit now completes in ~30 seconds (previously took longer due to unused imports checker)
@@ -990,10 +1059,10 @@ Some imports must remain at module level for `@patch` to work in tests:
 - 1847/1848 tests passing (1 pre-existing flaky UI test not caused by cleanup)
 
 **Testing**:
-[[✓]] Service startup: `python run_headless_service.py start` - SUCCESS
-[[✓]] Full test suite after each batch
-[[✓]] Import-related test failures fixed (3 tests needed imports restored for mocking)
-[[✓]] Unused imports report regenerated
+[[[OK]]] Service startup: `python run_headless_service.py start` - SUCCESS
+[[[OK]]] Full test suite after each batch
+[[[OK]]] Import-related test failures fixed (3 tests needed imports restored for mocking)
+[[[OK]]] Unused imports report regenerated
 
 **Files Modified**:
 - UI Dialogs (10 files): account_creator_dialog.py, checkin_management_dialog.py, process_watcher_dialog.py, schedule_editor_dialog.py, task_completion_dialog.py, task_crud_dialog.py, task_edit_dialog.py, task_management_dialog.py, user_profile_dialog.py
@@ -1002,10 +1071,10 @@ Some imports must remain at module level for `@patch` to work in tests:
 - Production (3 files): channel_orchestrator.py, schedule_utilities.py, scheduler.py
 
 **Documentation Updated**:
-- [[✓]] `development_docs/ui_unused_imports_cleanup_summary.md` - Complete session summary
-- [[✓]] `development_docs/CHANGELOG_DETAIL.md` - This detailed entry
-- [[✓]] `ai_development_docs/AI_CHANGELOG.md` - Concise AI-friendly summary
-- [[✓]] `development_docs/UNUSED_IMPORTS_REPORT.md` - Regenerated with current stats
+- [[[OK]]] `development_docs/ui_unused_imports_cleanup_summary.md` - Complete session summary
+- [[[OK]]] `development_docs/CHANGELOG_DETAIL.md` - This detailed entry
+- [[[OK]]] `ai_development_docs/AI_CHANGELOG.md` - Concise AI-friendly summary
+- [[[OK]]] `development_docs/UNUSED_IMPORTS_REPORT.md` - Regenerated with current stats
 
 **Remaining Work**:
 - Test files (~90 files with ~500 unused imports) - deferred to future session
@@ -1121,10 +1190,10 @@ Production code cleaned (47 files, ~170 imports removed):
 - Updated `scripts/unused_imports_cleanup_review.md`: Detailed analysis and proposed actions
 
 **Testing**:
-- [[✓]] Compiled all production files after each directory batch
-- [[✓]] Full test suite: 1848 passed, 1 skipped, 0 failures
-- [[✓]] Service startup: `python run_headless_service.py start` successful
-- [[✓]] No import-related errors
+- [[[OK]]] Compiled all production files after each directory batch
+- [[[OK]]] Full test suite: 1848 passed, 1 skipped, 0 failures
+- [[[OK]]] Service startup: `python run_headless_service.py start` successful
+- [[[OK]]] No import-related errors
 
 **Outcomes**:
 - 47/47 production files cleaned (100% of scope)
@@ -1136,7 +1205,7 @@ Production code cleaned (47 files, ~170 imports removed):
 - ui/, tests/, and ai_development_tools/ excluded (to be addressed separately)
 
 **Scope**:
-- [[✓]] Included: Production code (ai/, core/, communication/, tasks/, user/)
+- [[[OK]]] Included: Production code (ai/, core/, communication/, tasks/, user/)
 - [PAUSE] Excluded: UI code (generated code has many unused imports), tests (defensive imports), ai_development_tools
 
 ---
@@ -1206,12 +1275,12 @@ Production code cleaned (47 files, ~170 imports removed):
 - `ai_development_tools/README.md` - Commands and outputs documentation
 
 **Testing**:
-- [[✓]] Tool successfully scans all Python files (excluding scripts/)
-- [[✓]] Report generated with proper formatting and standard header
-- [[✓]] Categorization working correctly
-- [[✓]] Integration with AI tools pipeline confirmed
-- [[✓]] Command registered and accessible via ai_tools_runner.py
-- [[✓]] Progress updates working (every 10 files, shows percentage and files with issues)
+- [[[OK]]] Tool successfully scans all Python files (excluding scripts/)
+- [[[OK]]] Report generated with proper formatting and standard header
+- [[[OK]]] Categorization working correctly
+- [[[OK]]] Integration with AI tools pipeline confirmed
+- [[[OK]]] Command registered and accessible via ai_tools_runner.py
+- [[[OK]]] Progress updates working (every 10 files, shows percentage and files with issues)
 
 **User Experience Enhancement**:
 - Added progress updates every 10 files during scan
@@ -1471,7 +1540,7 @@ Production code cleaned (47 files, ~170 imports removed):
 - Added clarifying comments in code about rotation timing
 
 **Testing**:
-- Full test suite: 1848 passed, 1 skipped in 6m 30s [[✓]]
+- Full test suite: 1848 passed, 1 skipped in 6m 30s [[[OK]]]
 - Verified `test_run.log` shows "Test Execution Logging Active" header with proper formatting
 - Verified `test_consolidated.log` shows "Component Logging Active" header with proper formatting
 - Verified production `data/conversation_states.json` is NOT created during tests (False)
@@ -1480,10 +1549,10 @@ Production code cleaned (47 files, ~170 imports removed):
 - No production directory pollution detected
 
 **Impact**: 
-- Test logs now have proper formatted headers, making them readable and informative [[✓]]
-- Tests properly isolated - no more production directory pollution [[✓]]
-- Log rotation timing is predictable and only happens between test runs [[✓]]
-- All tests pass with clean separation between test and production environments [[✓]]
+- Test logs now have proper formatted headers, making them readable and informative [[[OK]]]
+- Tests properly isolated - no more production directory pollution [[[OK]]]
+- Log rotation timing is predictable and only happens between test runs [[[OK]]]
+- All tests pass with clean separation between test and production environments [[[OK]]]
 
 ---
 
@@ -1651,11 +1720,11 @@ data = load_json_data(file_path)  # Expects string, gets Path
 ```
 
 **Testing Performed**:
-- [[✓]] All 1,848 tests passing (100% success rate)
-- [[✓]] No regressions in error handling module (28/28 tests passing)
-- [[✓]] Discord bot starts without "event registered" errors
-- [[✓]] Discord bot receives messages correctly (verified in logs)
-- [[✓]] Service runs cleanly without initialization errors
+- [[[OK]]] All 1,848 tests passing (100% success rate)
+- [[[OK]]] No regressions in error handling module (28/28 tests passing)
+- [[[OK]]] Discord bot starts without "event registered" errors
+- [[[OK]]] Discord bot receives messages correctly (verified in logs)
+- [[[OK]]] Service runs cleanly without initialization errors
 
 **Documentation Updates**:
 - Updated `ai_development_docs/AI_CHANGELOG.md` with concise entry
@@ -1748,12 +1817,12 @@ data = load_json_data(file_path)  # Expects string, gets Path
            FLOW_STATE_SAVE: Saved 1 user states to disk
            
 1:41 PM  - System checks for motivational message, finds none
-           No message sent - preserving any active check-in flow [[✓]]
+           No message sent - preserving any active check-in flow [[[OK]]]
            
 3:18 PM  - User sends "2"
            DISCORD_MESSAGE_RECEIVED: content='2'
            FLOW_CHECK: User flow state: 1 (check-in)
-           Processes as check-in response [[✓]]
+           Processes as check-in response [[[OK]]]
 ```
 
 **Testing Required**:
@@ -1768,7 +1837,7 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - communication/message_processing/conversation_flow_manager.py - Flow state lifecycle logging
 - communication/communication_channels/discord/bot.py - Discord message reception logging
 
-**Backward Compatibility**: [[✓]] All changes are backward compatible, no breaking changes to API or data structures
+**Backward Compatibility**: [[[OK]]] All changes are backward compatible, no breaking changes to API or data structures
 
 **Known Issues to Monitor**:
 - Discord message "2" was never logged - new logging will help diagnose
@@ -2121,12 +2190,12 @@ data = load_json_data(file_path)  # Expects string, gets Path
 - `tests/logs/test_consolidated.log`: Now contains clean component logs without test context
 
 **Testing Evidence**:
-- [[✓]] **Perfect log separation**: Component logs completely clean of test context
-- [[✓]] **Session headers**: Clear markers at start of each test session
-- [[✓]] **Session separators**: Clean "---" separators between sessions
-- [[✓]] **History preservation**: Previous test runs preserved without duplication
-- [[✓]] **Synchronized rotation**: Both files rotate together at 5MB threshold
-- [[✓]] **Simple and reliable**: Direct logging approach eliminates complex post-processing
+- [[[OK]]] **Perfect log separation**: Component logs completely clean of test context
+- [[[OK]]] **Session headers**: Clear markers at start of each test session
+- [[[OK]]] **Session separators**: Clean "---" separators between sessions
+- [[[OK]]] **History preservation**: Previous test runs preserved without duplication
+- [[[OK]]] **Synchronized rotation**: Both files rotate together at 5MB threshold
+- [[[OK]]] **Simple and reliable**: Direct logging approach eliminates complex post-processing
 
 **Outcome**: Achieved exactly what was requested - a simple, clean, consolidated logging system that separates component logs from test execution logs with proper headers, separators, and rotation. The system is much more reliable than the previous complex splitting approach.
 

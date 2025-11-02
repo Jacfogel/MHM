@@ -14,6 +14,7 @@ from core.user_management import get_user_id_by_identifier
 
 
 class TestAIPerformance(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI performance metrics"""
     
     def test_performance_metrics(self):

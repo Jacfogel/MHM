@@ -17,7 +17,17 @@ from core.error_handling import (
 
 
 def resolve_python_interpreter(script_dir):
-    """Return the preferred Python executable for the given project directory."""
+    """
+    Return the preferred Python executable for the given project directory.
+    
+    Checks for virtual environment Python first, then falls back to system Python.
+    
+    Args:
+        script_dir (str): The project directory path
+        
+    Returns:
+        str: Path to Python executable
+    """
     candidates = [
         os.path.join(script_dir, '.venv', 'Scripts', 'python.exe'),
         os.path.join(script_dir, '.venv', 'bin', 'python'),
@@ -31,7 +41,18 @@ def resolve_python_interpreter(script_dir):
 
 
 def prepare_launch_environment(script_dir):
-    """Create an environment dict that prefers the project's virtualenv."""
+    """
+    Create an environment dict that prefers the project's virtualenv.
+    
+    Sets up PATH and PYTHONPATH to ensure the virtual environment is used
+    and project imports work correctly.
+    
+    Args:
+        script_dir (str): The project directory path
+        
+    Returns:
+        dict: Environment dictionary with PATH and PYTHONPATH configured
+    """
     env = os.environ.copy()
     path_entries = []
 
@@ -55,7 +76,15 @@ def prepare_launch_environment(script_dir):
 
 @handle_errors("launching MHM Manager", default_return=1)
 def main():
-    """Launch the MHM Manager UI"""
+    """
+    Launch the MHM Manager UI.
+    
+    Main entry point for the MHM Manager application. Resolves the Python
+    interpreter, sets up the environment, and launches the UI application.
+    
+    Returns:
+        int: Exit code (0 for success, 1 for failure)
+    """
     # Get the directory where this script is located
     script_dir = os.path.dirname(os.path.abspath(__file__))
     

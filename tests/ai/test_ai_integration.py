@@ -16,6 +16,7 @@ from user.context_manager import user_context_manager
 
 
 class TestAIIntegration(AITestBase):
+    __test__ = False  # Not a pytest test class - run via custom runner
     """Test AI integration with other system components"""
     
     def test_context_with_checkins(self):

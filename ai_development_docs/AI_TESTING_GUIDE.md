@@ -207,7 +207,7 @@ python -m pytest tests/behavior/test_discord_automation_complete.py -v
 python -m pytest tests/behavior/test_discord_advanced_automation.py -v
 ```
 
-**Status**: ✅ **Profile/Help** automated, ⚠️ **Task/Flow/Error** need real implementation
+**Status**: [CHECKMARK] **Profile/Help** automated, [WARNING] **Task/Flow/Error** need real implementation
 
 ## UI Test Automation
 
@@ -216,7 +216,7 @@ python -m pytest tests/behavior/test_discord_advanced_automation.py -v
 python -m pytest tests/behavior/test_ui_automation_complete.py -v
 ```
 
-**Status**: ⚠️ **All UI dialogs** need real implementation
+**Status**: [WARNING] **All UI dialogs** need real implementation
 
 ## Best Practices
 

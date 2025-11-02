@@ -18,15 +18,15 @@ This document outlines a comprehensive test plan for validating all AI functiona
 
 The test suite has been refactored from a single large file into focused, maintainable modules:
 
-- **`ai_test_base.py`**: Shared utilities (logging, user management, base class)
-- **`test_ai_core.py`**: Core functionality (basic responses, contextual, mode detection, commands)
-- **`test_ai_integration.py`**: Integration tests (context with check-ins, conversation history)
+- **`tests/ai/ai_test_base.py`**: Shared utilities (logging, user management, base class)
+- **`tests/ai/test_ai_core.py`**: Core functionality (basic responses, contextual, mode detection, commands)
+- **`tests/ai/test_ai_integration.py`**: Integration tests (context with check-ins, conversation history)
 - **`test_ai_errors.py`**: Error handling and API error scenarios
 - **`test_ai_cache.py`**: Cache behavior and isolation tests
 - **`test_ai_performance.py`**: Performance metrics and response time validation
 - **`test_ai_quality.py`**: Response quality validation and edge cases
 - **`test_ai_advanced.py`**: Advanced tests (multi-turn conversations, personality consistency, error recovery)
-- **`run_ai_functionality_tests.py`**: Main runner that orchestrates all tests
+- **`tests/ai/run_ai_functionality_tests.py`**: Main runner that orchestrates all tests
 
 ## Test Categories
 
@@ -304,9 +304,9 @@ python tests\ai\run_ai_functionality_tests.py
 ```
 
 **Test Module Structure**:
-- `ai_test_base.py` - Base class with shared utilities
-- `test_ai_core.py` - Core functionality tests (Categories 1-3, 5)
-- `test_ai_integration.py` - Integration tests (Categories 4, 7-8)
+- `tests/ai/ai_test_base.py` - Base class with shared utilities
+- `tests/ai/test_ai_core.py` - Core functionality tests (Categories 1-3, 5)
+- `tests/ai/test_ai_integration.py` - Integration tests (Categories 4, 7-8)
 - `test_ai_errors.py` - Error handling tests (Categories 6, 10)
 - `test_ai_cache.py` - Cache tests (Categories 1.5, 11)
 - `test_ai_performance.py` - Performance tests (Category 9)

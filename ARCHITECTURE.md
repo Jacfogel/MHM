@@ -23,6 +23,111 @@
 - **Configuration**: `.env` -> `core/config.py` -> runtime components.
 - **UI Rendering**: `.ui` files -> `ui/generated/` classes -> `ui/dialogs/` implementations -> `ui/ui_app_qt.py` shell.
 
+### User Data Flow Diagram
+
+The following diagram illustrates how user data flows through the system from entry points (UI, Discord, Email) through validation and processing to final storage:
+
+```mermaid
+flowchart TD
+    subgraph Entry["Entry Points"]
+        UI["UI Dialogs<br/>& Widgets"]
+        Discord["Discord<br/>Bot"]
+        Email["Email<br/>Channel"]
+    end
+    
+    subgraph Routing["Message Routing"]
+        IntMgr["Interaction<br/>Manager"]
+        Parser["Command Parser<br/>(+ AI Chatbot)"]
+        Handlers["Command<br/>Handlers"]
+    end
+    
+    subgraph DataProc["Data Processing"]
+        DataHandlers["User Data<br/>Handlers"]
+        InputVal["Input<br/>Validation"]
+        Backup["Create<br/>Backup"]
+        DataVal["Data<br/>Validation"]
+        Merge["Merge with<br/>Current Data"]
+        Legacy["Legacy<br/>Compatibility"]
+        Normalize["Normalize<br/>(Pydantic)"]
+        Invariants["Cross-file<br/>Invariants"]
+    end
+    
+    subgraph Storage["Storage Layer"]
+        FileOps["File<br/>Operations"]
+        Files[("JSON Files<br/>account.json<br/>preferences.json<br/>schedules.json<br/>context.json")]
+        Index["Update<br/>User Index"]
+        Cache["Invalidate<br/>Cache"]
+    end
+    
+    UI --> DataHandlers
+    Discord --> IntMgr
+    Email --> IntMgr
+    IntMgr --> Parser
+    Parser --> Handlers
+    Handlers --> DataHandlers
+    
+    DataHandlers --> InputVal
+    InputVal --> Backup
+    Backup --> DataVal
+    DataVal --> Loop["For Each<br/>Data Type"]
+    Loop --> Merge
+    Merge --> Legacy
+    Legacy --> Normalize
+    Normalize --> Invariants
+    Invariants --> FileOps
+    FileOps --> Files
+    Files --> Index
+    Index --> Cache
+    
+    Files -.->|"Read"| DataHandlers
+    DataHandlers -.->|"Return"| UI
+    DataHandlers -.->|"Return"| Handlers
+    Handlers -.->|"Return"| IntMgr
+    IntMgr -.->|"Return"| Discord
+    IntMgr -.->|"Return"| Email
+    
+    classDef entryPoint fill:#e1f5ff,stroke:#01579b,stroke-width:2px,color:#000000
+    classDef routing fill:#fff9c4,stroke:#f57f17,stroke-width:2px,color:#000000
+    classDef processing fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000000
+    classDef storage fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#000000
+    
+    class UI,Discord,Email entryPoint
+    class IntMgr,Parser,Handlers routing
+    class DataHandlers,InputVal,Backup,DataVal,Loop,Merge,Legacy,Normalize,Invariants processing
+    class FileOps,Files,Index,Cache storage
+```
+
+**Detailed Flow Steps:**
+
+1. **Entry Points**: 
+   - **UI Dialogs/Widgets**: Call `save_user_data()` directly
+   - **Discord/Email**: Send messages through channels
+
+2. **Message Routing** (Discord/Email only):
+   - **Interaction Manager**: Routes messages to appropriate handlers
+   - **Command Parser**: Parses natural language using AI Chatbot for enhanced parsing
+   - **Command Handlers**: Execute commands (task_handler, profile_handler, etc.)
+
+3. **Data Processing**:
+   - **Input Validation**: Validates user_id and data structure (once for all types)
+   - **Backup Creation**: Creates backup before modifications (once for all types, if enabled)
+   - **Data Validation**: Validates data against schema rules (once for all types)
+   - **Per-Data-Type Loop**: The following steps run for each data type (account, preferences, schedules, etc.):
+     - **Merge Current Data**: Merges updates with existing data from disk
+     - **Legacy Compatibility**: Handles backward-compatible field mappings
+     - **Normalization**: Applies Pydantic schema validation and normalization
+     - **Cross-file Invariants**: Ensures consistency across related files (e.g., categories <-> schedules, automated_messages <-> account features)
+     - **File Operations**: Writes validated data to JSON files
+
+4. **Storage** (after loop completes):
+   - **JSON Files**: All data types written to `data/users/{user_id}/` (account.json, preferences.json, schedules.json, context.json)
+   - **Update Index**: Updates user index for fast lookup (once after all types saved)
+   - **Invalidate Cache**: Clears cached data to ensure freshness (once after index update)
+
+**Read Flow**: Data retrieval follows the reverse path - handlers read from files and return data to entry points (shown as dotted lines).
+
+**Note**: The AI Chatbot is used internally by the Command Parser for AI-enhanced command parsing and contextual chat responses, not as a separate entry point.
+
 ### Critical Files
 - `run_mhm.py` -> main entry point.
 - `core/service.py` -> background service lifecycle.

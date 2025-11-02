@@ -6,9 +6,18 @@ Enhanced with automatic template generation for various function types.
 """
 
 import ast
+import sys
+import os
 from pathlib import Path
 from typing import Dict, List, Any
 from datetime import datetime
+
+# Ensure we can import from ai_development_tools
+# Add parent directory to path if running as script
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_parent_dir = os.path.dirname(_script_dir)
+if _parent_dir not in sys.path:
+    sys.path.insert(0, _parent_dir)
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:
     """Detect the type of function for template generation."""
@@ -224,7 +233,11 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
 
 def scan_all_python_files() -> Dict[str, Dict]:
     """Scan all Python files in the project and extract function/class information."""
-    import config
+    # Import config - try relative import first, fallback to absolute
+    try:
+        from . import config
+    except ImportError:
+        import config
     from ai_development_tools.services.standard_exclusions import should_exclude_file
     project_root = config.get_project_root()
     results = {}
@@ -257,21 +270,35 @@ def scan_all_python_files() -> Dict[str, Dict]:
     
     # Also scan root directory for .py files
     for py_file in project_root.glob('*.py'):
-        # Use production context exclusions to match audit behavior
-        if should_exclude_file(str(py_file), 'analysis', 'production'):
+        if py_file.name in ['generate_function_registry.py', 'generate_module_dependencies.py']:
             continue
-        if py_file.name not in ['generate_function_registry.py', 'generate_module_dependencies.py']:
+        # Include run_mhm.py and run_tests.py in registry even though they're in exclusions
+        # They are important entry points and should be documented
+        if py_file.name in ['run_mhm.py', 'run_tests.py']:
             file_key = py_file.name
-            
             functions = extract_functions_from_file(str(py_file))
             classes = extract_classes_from_file(str(py_file))
-            
             results[file_key] = {
                 'functions': functions,
                 'classes': classes,
                 'total_functions': len(functions),
                 'total_classes': len(classes)
             }
+            continue
+        # Use production context exclusions to match audit behavior
+        if should_exclude_file(str(py_file), 'analysis', 'production'):
+            continue
+        file_key = py_file.name
+        
+        functions = extract_functions_from_file(str(py_file))
+        classes = extract_classes_from_file(str(py_file))
+        
+        results[file_key] = {
+            'functions': functions,
+            'classes': classes,
+            'total_functions': len(functions),
+            'total_classes': len(classes)
+        }
     
     return results
 

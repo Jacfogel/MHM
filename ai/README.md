@@ -11,11 +11,11 @@ The MHM AI system provides intelligent, context-aware responses for mental healt
 
 ### Core Components
 
-1. **`chatbot.py`** - Main AI chatbot logic and LM Studio integration
-2. **`prompt_manager.py`** - Manages AI prompts and templates
-3. **`cache_manager.py`** - Response and context caching
-4. **`context_manager.py`** (in `user/`) - Builds comprehensive user context
-5. **`lm_studio_manager.py`** - LM Studio connection management
+1. **`ai/chatbot.py`** - Main AI chatbot logic and LM Studio integration
+2. **`ai/prompt_manager.py`** - Manages AI prompts and templates
+3. **`ai/cache_manager.py`** - Response and context caching
+4. **`user/context_manager.py`** - Builds comprehensive user context
+5. **`ai/lm_studio_manager.py`** - LM Studio connection management
 
 ### Singleton Pattern
 
@@ -416,7 +416,7 @@ AI functionality tests are in `tests/ai/`:
 ### Poor Response Quality
 - Check prompt customization (`resources/assistant_system_prompt.txt`)
 - Verify context includes relevant data
-- Review prompt templates in `prompt_manager.py`
+- Review prompt templates in `ai/prompt_manager.py`
 - Check if AI is fabricating data (run AI functionality tests)
 - Verify responses match prompts (run AI functionality tests)
 
@@ -443,7 +443,7 @@ AI functionality tests are in `tests/ai/`:
 
 ## Module Reference
 
-### `chatbot.py`
+### `ai/chatbot.py`
 - `AIChatBotSingleton` - Main chatbot class
 - `get_ai_chatbot()` - Get singleton instance
 - `generate_response()` - Basic response generation
@@ -451,13 +451,13 @@ AI functionality tests are in `tests/ai/`:
 - `_detect_mode()` - Mode detection logic
 - `_create_comprehensive_context_prompt()` - Context prompt builder
 
-### `prompt_manager.py`
+### `ai/prompt_manager.py`
 - `PromptManager` - Prompt template management
 - `get_prompt_manager()` - Get singleton instance
 - `get_prompt()` - Get prompt for type
 - `get_prompt_template()` - Get full template object
 
-### `cache_manager.py`
+### `ai/cache_manager.py`
 - `ResponseCache` - Response caching
 - `ContextCache` - Context caching
 - `get_response_cache()` - Get response cache instance
