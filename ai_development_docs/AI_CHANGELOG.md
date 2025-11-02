@@ -8,6 +8,13 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - UI Validation Fixes, Import Detection Improvements, and AI Validator Enhancements **COMPLETED**
+- **Schedule Editor Validation**: Overrode `accept()` to prevent dialog closure on validation errors; added `close_dialog()` that only closes after successful save; users can now fix errors without data loss
+- **UI Import Detection Fix**: Fixed path separator normalization and case-insensitive checking in `_is_ui_import()`; Qt imports in UI files now correctly categorized as `ui_imports`
+- **Permission Test Environment**: Added elevated privilege detection to permission test on Windows; test skips when running with admin privileges to avoid false negatives
+- **AI Validator Enhancements**: Added `context_info` parameter support; detects fabricated check-in data when no check-in data exists; detects self-contradictions (positive claims followed by negative evidence); enhanced greeting acknowledgment detection with position-based validation
+- **Result**: Improved UI validation UX, better import categorization, more reliable test environment, enhanced AI response quality validation (1899 passed, 1 skipped)
+
 ### 2025-11-02 - AI Response Quality Improvements & Documentation Updates **COMPLETED**
 - **System Prompt Leak Fix**: Added `_clean_system_prompt_leaks()` method to remove metadata text and instruction lines from AI responses; integrated into response pipeline
 - **Missing Context Improvements**: Enhanced `_get_contextual_fallback()` with better detection and explicit requests for information when context is missing

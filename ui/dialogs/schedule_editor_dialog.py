@@ -278,7 +278,7 @@ class ScheduleEditorDialog(QDialog):
         try:
             if self.save_schedule():
                 # Only close dialog if save was successful
-                self.accept()
+                self.close_dialog()
         except Exception as e:
             logger.error(f"Error handling save: {e}")
             raise
@@ -366,6 +366,18 @@ class ScheduleEditorDialog(QDialog):
         except Exception as e:
             logger.error(f"Error creating reschedule request: {e}")
             # Don't fail the save operation if rescheduling fails
+    
+    @handle_errors("accepting dialog")
+    def accept(self):
+        """Override accept to prevent automatic dialog closing."""
+        # Don't call super().accept() - this prevents the dialog from closing
+        # The dialog will only close when we explicitly call self.close_dialog() after successful validation
+        pass
+    
+    @handle_errors("closing dialog")
+    def close_dialog(self):
+        """Close the dialog properly after successful save."""
+        super().accept()
     
     @handle_errors("canceling dialog")
     def cancel(self):

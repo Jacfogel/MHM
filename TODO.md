@@ -32,10 +32,6 @@ When adding new tasks, follow this format:
 **Restore MANUAL ENHANCEMENT details to development_docs\MODULE_DEPENDENCIES_DETAIL.md**
 - Ensure manual enhancements are preserved through regeneration 
 
-**Investigate Permission Test Environment Issue**
-- *What it means*: Investigate why `test_save_json_data_permission_error` can write to `/root` on Windows - this suggests elevated permissions or test environment issues
-- *Why it helps*: Ensures test environment is properly isolated and permission tests work as expected
-- *Estimated effort*: Small
 
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
@@ -62,16 +58,6 @@ When adding new tasks, follow this format:
   - [ ] **Replace Basic Try-Except Blocks**
     - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
-
-**Fix UI Import Detection in Unused Imports Checker**
-- *What it means*: The UI import detection function in unused_imports_checker.py is not working properly - Qt imports in UI files are not being categorized as 'ui_imports'
-- *Why it helps*: Proper categorization prevents false positives and ensures Qt imports in UI files are correctly identified as needed
-- *Estimated effort*: Small
-- *Current Status*: Function is called but Qt imports not being detected properly
-- *Next Steps*:
-  - [ ] Debug why Qt imports are not being detected in UI files
-  - [ ] Fix the path detection or import name matching logic
-  - [ ] Test with UI files to ensure proper categorization
 
 **Complete Remaining Unused Imports Analysis**
 - *What it means*: Analyze the remaining 45 "obvious unused" imports to determine if they can be safely removed or need different categorization
@@ -168,13 +154,6 @@ When adding new tasks, follow this format:
   - [ ] Document command list in QUICK_REFERENCE.md
   - [ ] Ensure user-facing help uses in-app "commands"/slash-commands (no dev-doc references)
 
-
-**Schedule Editor Validation - Prevent Dialog Closure**
-- *What it means*: Validation error popups must not close the edit schedule dialog; allow user to fix and retry
-- *Why it helps*: Prevents data loss and improves UX
-- *Estimated effort*: Small
-
-
 **Check-in Flow Behavior & Stability**
 - *What it means*: Ensure active check-ins expire correctly and legacy shims are not used in live flows
 - *Why it helps*: Prevents stale states and confusing interactions during conversations
@@ -208,15 +187,6 @@ When adding new tasks, follow this format:
   - T-14.1, T-16.2: Fabricated check-in details/statistics when no check-in data exists
   - T-15.1: System prompt instructions leaked into response + repetitive phrasing
 
-**Enhance AI response validator for prompt-response mismatches**
-- *What it means*: Improve `tests/ai/ai_response_validator.py` to better detect greeting acknowledgment failures, fabricated data, and self-contradictions (claims X but provides data showing NOT X)
-- *Why it helps*: Catches more quality issues automatically, reducing manual review burden and ensuring consistent response quality
-- *Estimated effort*: Medium
-- *Current Status*: Enhanced validator added some checks but still misses greeting acknowledgment and some fabricated data patterns
-- *Specific Improvements Needed*:
-  - Better detection of greeting acknowledgment failures (T-1.1, T-8.1 still passed)
-  - Detection of fabricated check-in details when no check-in data exists (T-14.1, T-16.2)
-  - Self-contradiction detection (T-12.4: claims X but provides data showing NOT X)
 
 
 ## Medium Priority

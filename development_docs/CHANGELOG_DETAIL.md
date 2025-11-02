@@ -17,6 +17,76 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-02 - UI Validation Fixes, Import Detection Improvements, and AI Validator Enhancements **COMPLETED**
+
+**Context**: Multiple quality improvements across UI validation, import detection, test environment handling, and AI response validation.
+
+**Problems Addressed**:
+
+1. **Schedule Editor Dialog Closure**: Validation error popups were closing the edit schedule dialog, preventing users from fixing validation errors and potentially causing data loss
+2. **UI Import Detection**: The UI import detection function in `unused_imports_checker.py` was not properly identifying Qt imports in UI files due to path separator and case-sensitivity issues
+3. **Permission Test Environment**: Permission test could write to protected system directories on Windows when running with elevated privileges, invalidating the test
+4. **AI Response Validator Gaps**: Validator was missing several quality issues including greeting acknowledgment failures, fabricated check-in data when no check-in data exists, and self-contradictions
+
+**Technical Changes**:
+
+1. **Schedule Editor Validation Fix**:
+   - Overrode `accept()` method in `ui/dialogs/schedule_editor_dialog.py` to prevent automatic dialog closing
+   - Added `close_dialog()` method that explicitly calls `super().accept()` only after successful validation
+   - Modified `handle_save()` to call `close_dialog()` only if `save_schedule()` returns `True` (indicating successful validation and save)
+   - Result: Validation errors no longer close the dialog; users can fix errors and retry without data loss
+
+2. **UI Import Detection Fix**:
+   - Modified `_is_ui_import()` method in `ai_development_tools/unused_imports_checker.py` to normalize path separators to forward slashes for cross-platform consistency
+   - Added case-insensitive path checking for test file detection (`'test'`, `'tests/'`)
+   - Added case-insensitive checking for UI directory (`'ui/'`)
+   - Added debug logging to confirm UI import detection
+   - Result: Qt imports in UI files are now correctly categorized as `ui_imports` instead of false positives
+
+3. **Permission Test Environment Fix**:
+   - Modified `test_save_json_data_permission_error()` in `tests/unit/test_file_operations.py` to detect elevated privileges on Windows
+   - Added detection logic that attempts to write to `C:\Windows\System32` to identify admin privileges
+   - Test is skipped when elevated privileges are detected because it cannot reliably simulate permission errors in system directories
+   - Added documentation explaining the elevated privilege detection behavior
+   - Result: Test no longer produces false negatives when running with admin privileges
+
+4. **AI Response Validator Enhancements**:
+   - Enhanced `validate_response()` to accept optional `context_info` parameter for better detection
+   - Added `_check_fabricated_checkin_data()` method to detect check-in statistics/details when `context_info` indicates no check-in data exists
+   - Added `_check_self_contradictions()` method to detect positive claims followed by contradictory negative evidence (e.g., "You've been doing great!" followed by "You haven't completed any tasks")
+   - Enhanced `_check_response_appropriateness()` with improved greeting acknowledgment detection:
+     - Checks position of greeting indicators vs redirect indicators
+     - Flags immediate redirects (within ~60 chars) as insufficient acknowledgment
+     - Validates greeting acknowledgment length and position before redirect
+   - Updated `critical_issues` list to include "fabricated" and "self-contradiction" as failure conditions
+   - Updated `review_response()` to accept and pass through `context_info` parameter
+
+**Files Modified**:
+- `ui/dialogs/schedule_editor_dialog.py` - Overrode `accept()`, added `close_dialog()`, modified `handle_save()`
+- `ai_development_tools/unused_imports_checker.py` - Fixed path normalization and case-insensitive checking in `_is_ui_import()`
+- `tests/unit/test_file_operations.py` - Added elevated privilege detection to permission test
+- `tests/ai/ai_response_validator.py` - Added `context_info` parameter, fabricated data detection, self-contradiction detection, enhanced greeting acknowledgment detection
+- `tests/ai/ai_test_base.py` - Updated to pass `context_info` to validator
+
+**Testing**:
+- Full test suite: 1899 passed, 1 skipped
+- Schedule editor validation: Dialog no longer closes on validation errors (verified manually)
+- UI import detection: Qt imports correctly categorized (verified in unused imports report)
+- Permission test: Correctly skips when running with elevated privileges (verified on Windows)
+- AI validator: Created and ran test cases confirming fabricated data and self-contradiction detection work correctly
+
+**Results and Impact**:
+- **UI Validation**: Improved user experience - validation errors can be fixed without dialog closing, preventing data loss
+- **Import Detection**: Reduced false positives in unused imports report, better categorization of UI imports
+- **Test Environment**: More reliable permission tests that account for elevated privileges on Windows
+- **AI Validator**: Enhanced quality control - catches fabricated data, self-contradictions, and greeting acknowledgment failures automatically, reducing manual review burden
+
+**Documentation Updates**:
+- Updated `TODO.md` (removed completed tasks: Schedule Editor Validation, UI Import Detection Fix, Permission Test Environment Issue, AI Validator Enhancements)
+- Both changelogs updated with consolidated entry
+
+**Impact**: Improved UI validation behavior, better import categorization, more reliable test environment handling, and enhanced AI response quality validation. All changes verified through testing.
+
 ### 2025-11-02 - AI Response Quality Improvements & Documentation Updates **COMPLETED**
 
 **Context**: Comprehensive improvements to AI response quality, including system prompt leak fixes, missing context fallback enhancements, test improvements, and documentation updates.

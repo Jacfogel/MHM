@@ -150,6 +150,11 @@ class TestFileOperations:
         
         On Windows: Tests against a path that should fail (invalid path or system directory).
         On Unix: Creates a read-only directory to test permission handling.
+        
+        Note: This test validates that permission errors are handled correctly. If running
+        with elevated privileges (admin on Windows), the test may be able to write to protected
+        locations, which would invalidate the permission test. The test detects this and
+        adjusts accordingly.
         """
         import platform
         import stat
@@ -172,10 +177,21 @@ class TestFileOperations:
                     f.write('existing')
                 os.chmod(protected_path, stat.S_IREAD)  # Read-only file
             except Exception:
-                # If we can't create a read-only file, try using a system directory path
-                # that's unlikely to be writable
-                protected_path = 'C:\\Windows\\System32\\test_permission_check.json'
-                protected_dir = 'C:\\Windows\\System32'
+                # If we can't create a read-only file, check if we have elevated privileges
+                # by attempting to write to a system directory
+                test_system_path = 'C:\\Windows\\System32\\test_permission_check_temp.json'
+                try:
+                    # Try to write to System32 to detect elevated privileges
+                    with open(test_system_path, 'w') as f:
+                        f.write('test')
+                    os.remove(test_system_path)
+                    # If we can write to System32, we're running with elevated privileges
+                    # In this case, use a read-only file approach instead
+                    pytest.skip("Running with elevated privileges - cannot reliably test permission errors with system directories")
+                except (PermissionError, OSError):
+                    # Good - we don't have elevated privileges, can use System32 path for test
+                    protected_path = 'C:\\Windows\\System32\\test_permission_check.json'
+                    protected_dir = 'C:\\Windows\\System32'
         else:
             # Unix: Create a read-only directory
             protected_dir = tempfile.mkdtemp(dir=test_data_dir)

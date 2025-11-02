@@ -385,14 +385,20 @@ class UnusedImportsChecker:
     
     def _is_ui_import(self, file_path: Path, import_name: str, file_content: str) -> bool:
         """Check if import is required for UI files (not test files)."""
-        # Check if it's a UI file (not test file)
-        file_path_str = str(file_path)
+        # Normalize path separators to forward slashes for consistent checking
+        try:
+            rel_path = file_path.relative_to(self.project_root)
+            file_path_str = str(rel_path).replace('\\', '/')
+        except ValueError:
+            # If not relative to project root, use absolute path
+            file_path_str = str(file_path).replace('\\', '/')
         
-        if 'test' in file_path_str or 'tests/' in file_path_str:
+        # Check if it's a UI file (not test file)
+        if 'test' in file_path_str.lower() or 'tests/' in file_path_str.lower():
             return False
         
-        # Check if it's in ui/ directory
-        if 'ui/' not in file_path_str:
+        # Check if it's in ui/ directory (normalized path separator)
+        if 'ui/' not in file_path_str.lower():
             return False
         
         # Check for Qt imports
@@ -405,6 +411,8 @@ class UnusedImportsChecker:
         if import_name in qt_imports:
             # For UI files, assume Qt imports are needed even if not explicitly used
             # as they might be used in ways not easily detected by static analysis
+            if logger:
+                logger.debug(f"UI import detected: {import_name} in {file_path_str}")
             return True
         
         return False

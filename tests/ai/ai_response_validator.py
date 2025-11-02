@@ -50,7 +50,7 @@ class AIResponseValidator:
     ]
     
     @classmethod
-    def validate_response(cls, response: str, prompt: str = "", test_type: str = "") -> Dict[str, any]:
+    def validate_response(cls, response: str, prompt: str = "", test_type: str = "", context_info: Optional[Dict] = None) -> Dict[str, any]:
         """
         Validate an AI response for quality issues.
         
@@ -58,6 +58,7 @@ class AIResponseValidator:
             response: The AI response to validate
             prompt: The original prompt (optional, for context)
             test_type: Type of test (e.g., "command", "chat", "contextual") (optional)
+            context_info: Optional context information dict (e.g., has_checkin_data, checkins_count, etc.)
         
         Returns:
             Dict with:
@@ -131,6 +132,16 @@ class AIResponseValidator:
         if role_issues:
             issues.extend(role_issues)
         
+        # NEW: Check for fabricated check-in data (when no check-in data exists)
+        fabricated_issues = cls._check_fabricated_checkin_data(response, prompt, context_info)
+        if fabricated_issues:
+            issues.extend(fabricated_issues)
+        
+        # NEW: Check for self-contradictions (claims X but provides data showing NOT X)
+        contradiction_issues = cls._check_self_contradictions(response, prompt)
+        if contradiction_issues:
+            issues.extend(contradiction_issues)
+        
         # Check for username prefixes in responses (skip - names are fine in any response)
         # The AI can use user names conversationally, so we don't flag this
         # We only flag if it's clearly a test artifact (like "User1:" prefix), which is handled by meta-text patterns
@@ -141,7 +152,7 @@ class AIResponseValidator:
             critical_issues = [i for i in issues if any(critical in i.lower() for critical in 
                                                        ["meta-text", "code fragment", "truncated", "past date", "inappropriate assumption",
                                                         "should acknowledge", "should provide", "should answer", "should describe",
-                                                        "should not assume", "should ask for information"])]
+                                                        "should not assume", "should ask for information", "fabricated", "self-contradiction"])]
             if critical_issues:
                 status = "FAIL"
             else:
@@ -337,16 +348,61 @@ class AIResponseValidator:
         
         # Check prompt-response matching
         
-        # "How are you doing today?" / "How are you?" - should get greeting/wellness response
-        if re.search(r'\bhow are you (doing|feeling)?( today)?\??', prompt.lower()):
-            # Response should acknowledge the question, not just redirect
-            greeting_indicators = ["good", "well", "great", "fine", "doing", "feeling", "thanks", "thank", "here"]
+        # "Hello, how are you?" / "How are you doing today?" / "How are you?" - should get greeting/wellness response
+        greeting_prompts = [
+            r'\bhello,?\s*how are you\??',
+            r'\bhi,?\s*how are you\??',
+            r'\bhow are you (doing|feeling)?( today)?\??'
+        ]
+        
+        if any(re.search(pattern, prompt.lower()) for pattern in greeting_prompts):
+            # Response should acknowledge the greeting FIRST, then can redirect
+            greeting_indicators = ["good", "well", "great", "fine", "doing", "feeling", "thanks", "thank", "thank you", "doing well"]
             has_greeting_response = any(indicator in response.lower() for indicator in greeting_indicators)
-            # Should not just ask what's on their mind or redirect
-            redirect_indicators = ["what's on your mind", "what's on your", "how can i help", "tell me more", "what's up"]
+            
+            # Should not just ask what's on their mind or redirect immediately
+            redirect_indicators = ["what's on your mind", "what's on your", "how can i help", "tell me more", "what's up", "how can i help you"]
             redirects = any(indicator in response.lower() for indicator in redirect_indicators)
-            if redirects and not has_greeting_response:
-                issues.append("Response to 'How are you?' should acknowledge the greeting, not just redirect or ask questions")
+            
+            # Check if redirect happens BEFORE or WITHOUT proper greeting acknowledgment
+            # Find positions of greeting indicators and redirect indicators
+            response_lower = response.lower()
+            greeting_positions = [response_lower.find(ind) for ind in greeting_indicators if ind in response_lower]
+            redirect_positions = [response_lower.find(ind) for ind in redirect_indicators if ind in response_lower]
+            
+            # If there's a redirect but no greeting, or redirect comes before greeting acknowledgment
+            if redirects:
+                if not has_greeting_response:
+                    issues.append("Response to greeting ('Hello, how are you?') should acknowledge the greeting before redirecting or asking questions")
+                elif greeting_positions and redirect_positions:
+                    # Check if first redirect appears before or very close to first greeting
+                    first_greeting = min(greeting_positions)
+                    first_redirect = min(redirect_positions)
+                    
+                    # Calculate greeting acknowledgment length
+                    # Look for sentence boundaries after greeting
+                    greeting_segment = response_lower[max(0, first_greeting - 5):first_redirect + 50]
+                    sentence_endings = []
+                    for punct in ['. ', '! ', '? ']:
+                        pos = greeting_segment.find(punct)
+                        if pos > 0:
+                            sentence_endings.append(pos)
+                    
+                    greeting_end = first_greeting + 35  # Default: assume greeting phrase is ~35 chars
+                    if sentence_endings:
+                        # Use first sentence boundary after greeting as the end
+                        greeting_end = first_greeting + min(sentence_endings) + 1
+                    
+                    # If redirect is too close after greeting acknowledgment (within 60 chars), it's too immediate
+                    # This catches responses like "I'm doing well, thank you for asking. How can I help you today?"
+                    # where the greeting acknowledgment is brief and redirect is immediate
+                    if first_redirect < greeting_end + 60:
+                        # Also check if the greeting acknowledgment is substantial enough
+                        greeting_length = greeting_end - first_greeting
+                        if greeting_length < 25:  # Greeting acknowledgment is too brief
+                            issues.append("Response to greeting acknowledges it but immediately redirects - should acknowledge greeting more fully before redirecting")
+                        elif first_redirect < greeting_end + 40:  # Redirect is very immediate
+                            issues.append("Response to greeting acknowledges it but immediately redirects - should acknowledge greeting more fully before redirecting")
         
         # "Tell me something helpful" - should provide helpful information, not ask questions
         if "tell me something helpful" in prompt.lower() or "something helpful" in prompt.lower():
@@ -456,7 +512,122 @@ class AIResponseValidator:
         return issues
     
     @classmethod
-    def review_response(cls, response: str, prompt: str, test_name: str, test_type: str = "") -> Tuple[str, List[str], List[str]]:
+    def _check_fabricated_checkin_data(cls, response: str, prompt: str, context_info: Optional[Dict] = None) -> List[str]:
+        """Check for fabricated check-in data (statistics/details when no check-in data exists)"""
+        issues = []
+        
+        # Check if response mentions check-in statistics/details
+        checkin_stat_patterns = [
+            r'\b\d+%\s+(?:of\s+)?(?:the\s+)?time',
+            r'\b\d+%\s+(?:of\s+)?(?:your\s+)?(?:check-?in|checkin)',
+            r'\byou\'ve been\s+(?:eating|sleeping|doing)\s+\w+\s+\d+%',
+            r'\b\d+%\s+(?:breakfast|lunch|dinner|sleep|exercise)',
+            r'\byou\'ve been\s+\w+\s+\d+%',
+            r'\b\d+\s+times?\s+(?:per\s+)?(?:day|week|month)',
+            r'\b(?:most|some|few)\s+(?:of\s+)?(?:your\s+)?(?:check-?in|checkin)',
+        ]
+        
+        has_checkin_stats = any(re.search(pattern, response.lower()) for pattern in checkin_stat_patterns)
+        
+        if has_checkin_stats:
+            # Check if context_info indicates no check-in data exists
+            if context_info:
+                # Check various indicators of no check-in data
+                has_checkin_data = context_info.get('has_checkin_data', True)  # Default to True if not specified
+                checkins_count = context_info.get('checkins_count', None)
+                checkins_today = context_info.get('checkins_today', None)
+                recent_checkins_count = context_info.get('recent_checkins_count', None)
+                
+                # If explicitly stated no check-in data, or counts are zero
+                if not has_checkin_data or \
+                   (checkins_count is not None and checkins_count == 0) or \
+                   (checkins_today is not None and checkins_today == 0) or \
+                   (recent_checkins_count is not None and recent_checkins_count == 0):
+                    issues.append("Response contains fabricated check-in statistics/details when no check-in data exists")
+            # Also check for context notes that suggest no check-in data (even if context_info not provided)
+            if context_info and 'note' in context_info:
+                context_note = context_info.get('note', '')
+                if 'no check-in' in context_note.lower() or 'no checkin' in context_note.lower() or \
+                   'minimal context' in context_note.lower() or \
+                   (context_info.get('checkins_count', None) == 0) or \
+                   (context_info.get('checkins_today', None) == 0):
+                    # Flag as potentially fabricated
+                    issues.append("Response mentions check-in statistics but context suggests no check-in data may exist")
+        
+        return issues
+    
+    @classmethod
+    def _check_self_contradictions(cls, response: str, prompt: str) -> List[str]:
+        """Check for self-contradictions (claims X but provides data showing NOT X)"""
+        issues = []
+        
+        # Pattern: Claims something is true but then provides data/evidence that contradicts it
+        # Example: "You've been doing great" followed by "You haven't completed any tasks"
+        
+        # Check for positive claims followed by negative evidence
+        positive_claims = [
+            r'\b(?:you\'ve|you have|you\'re|you are)\s+(?:been|doing)\s+(?:great|well|good|excellent|amazing|good)',
+            r'\b(?:you\'ve|you have)\s+(?:made|shown|demonstrated)\s+(?:great|excellent|amazing)\s+(?:progress|improvement)',
+            r'\b(?:you\'re|you are)\s+(?:on\s+)?(?:track|schedule)',
+            r'\bdoing\s+(?:great|well|good|excellent|amazing)',
+        ]
+        
+        negative_evidence = [
+            r'\b(?:you|you\'ve|you have)\s+(?:haven\'t|have not|not)\s+(?:completed|done|finished)',
+            r'\b(?:no|zero|none)\s+(?:tasks|check-?in|checkin|progress)',
+            r'\b(?:you|you\'re)\s+(?:behind|late|off\s+track)',
+            r'\b(?:you|you\'ve)\s+(?:missed|skipped|not\s+done)',
+            r'\b(?:haven\'t|have not)\s+(?:completed|done|finished)',
+            r'\b(?:not|no)\s+(?:tasks|check-?in|checkin|progress)',
+        ]
+        
+        response_lower = response.lower()
+        
+        # Find positions of positive claims and negative evidence
+        for pos_pattern in positive_claims:
+            pos_matches = list(re.finditer(pos_pattern, response_lower))
+            if pos_matches:
+                for pos_match in pos_matches:
+                    pos_end = pos_match.end()
+                    # Look for negative evidence after the positive claim
+                    for neg_pattern in negative_evidence:
+                        neg_matches = list(re.finditer(neg_pattern, response_lower[pos_end:]))
+                        if neg_matches:
+                            # Found contradiction: positive claim followed by negative evidence
+                            issues.append("Self-contradiction detected: Response claims positive outcome but then provides contradictory negative evidence")
+                            return issues  # Only report once
+        
+        # Check for claims about capabilities but then provides data showing they don't work
+        # Example: "I can help with X" but then "I can't do X right now"
+        capability_claims = [
+            r'\bi can\s+(?:help|assist|do)',
+            r'\bi\'m\s+(?:here|able)\s+(?:to\s+)?(?:help|assist)',
+            r'\b(?:i|we)\s+(?:can|will)\s+(?:handle|manage|do)',
+        ]
+        
+        inability_statements = [
+            r'\bi can\'t\s+(?:help|assist|do)',
+            r'\bi\'m\s+(?:not|unable)\s+(?:to\s+)?(?:help|assist|do)',
+            r'\b(?:i|we)\s+(?:can\'t|cannot|won\'t)\s+(?:handle|manage|do)',
+        ]
+        
+        # Check for capability claims followed by inability statements
+        for cap_pattern in capability_claims:
+            cap_matches = list(re.finditer(cap_pattern, response_lower))
+            if cap_matches:
+                for cap_match in cap_matches:
+                    cap_end = cap_match.end()
+                    # Look for inability statements after the capability claim
+                    for inab_pattern in inability_statements:
+                        inab_matches = list(re.finditer(inab_pattern, response_lower[cap_end:]))
+                        if inab_matches:
+                            issues.append("Self-contradiction detected: Response claims capability but then states inability")
+                            return issues  # Only report once
+        
+        return issues
+    
+    @classmethod
+    def review_response(cls, response: str, prompt: str, test_name: str, test_type: str = "", context_info: Optional[Dict] = None) -> Tuple[str, List[str], List[str]]:
         """
         Review a response and return status, issues, and warnings.
         
@@ -465,11 +636,12 @@ class AIResponseValidator:
             prompt: The original prompt
             test_name: Name of the test
             test_type: Type of test (optional)
+            context_info: Optional context information dict (e.g., has_checkin_data, checkins_count, etc.)
         
         Returns:
             Tuple of (status, issues_list, warnings_list)
         """
-        validation = cls.validate_response(response, prompt, test_type)
+        validation = cls.validate_response(response, prompt, test_type, context_info)
         
         # Format issues and warnings for reporting
         issues_text = validation["issues"]
