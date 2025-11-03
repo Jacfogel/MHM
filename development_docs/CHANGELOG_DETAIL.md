@@ -17,6 +17,106 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-03 - Package-Level Exports Migration (Phase 0-2 Complete) **IN PROGRESS**
+
+**Context**: Migrating to package-level imports to enable easier refactoring and clearer API boundaries by systematically exporting public API items from package `__init__.py` files.
+
+**Problems Addressed**:
+1. **Limited Package-Level Exports**: Most packages had minimal or no package-level exports, requiring direct module imports
+2. **Refactoring Difficulty**: Module renaming required updating all imports across the codebase
+3. **Unclear Public API**: No centralized location showing what's intended to be public vs internal
+
+**Technical Changes**:
+
+1. **Created Audit Script (`ai_development_tools/audit_package_exports.py`)**:
+   - Systematically identifies what should be exported at package level based on:
+     - Actual imports across the codebase (what's actually used)
+     - Public API items (not starting with `_`)
+     - Cross-module usage patterns
+     - FUNCTION_REGISTRY_DETAIL.md documented functions
+     - Module-level public functions/classes
+   - Supports `--package <name>` or `--all` flags
+   - Provides recommendations prioritized by usage (high ≥5, medium 2-4, low 0-1)
+
+2. **Created Migration Plan (`development_docs/PLANS.md`)**:
+   - Detailed 10-phase plan for migrating all packages to package-level exports
+   - Includes verification steps, risk assessment, and timeline (14-24 hours estimated)
+   - Documents circular dependency handling strategy
+
+3. **Phase 0: High-Priority Exports (Complete)**:
+   - **Core package**: Added 7 high-usage exports (≥5 imports):
+     - `CheckinAnalytics`, `update_user_index`, `handle_ai_error`, `get_user_data_dir`, `get_user_categories`, `get_user_file_path`, `dynamic_checkin_manager`
+     - Note: `get_schedule_time_periods`, `set_schedule_periods` documented as lazy imports due to circular dependencies
+   - **Communication package**: Added 5 high-usage exports:
+     - `ParsedCommand`, `handle_user_message`, `CommunicationManager`, `InteractionResponse`, `conversation_manager`
+   - **UI package**: Added 2 high-usage exports:
+     - `DynamicListContainer`, `PeriodRowWidget`
+   - **Tasks package**: Added 1 high-usage export:
+     - `are_tasks_enabled`
+
+4. **Phase 1: Core Package Medium Usage Exports (Complete)**:
+   - Added 17 medium-usage exports (2-4 imports):
+     - Error handling: `handle_network_error`
+     - User data validation: `is_valid_email`
+     - Config constants: `DISCORD_BOT_TOKEN`, `EMAIL_SMTP_SERVER`, `EMAIL_IMAP_SERVER`, `EMAIL_SMTP_USERNAME`, `LM_STUDIO_BASE_URL`, `LM_STUDIO_API_KEY`, `LM_STUDIO_MODEL`, `SCHEDULER_INTERVAL`
+     - Config functions: `get_available_channels`
+     - UI management: `collect_period_data_from_widgets`, `load_period_widgets_for_category`
+     - User management: `ensure_all_categories_have_schedules`, `get_user_id_by_identifier`
+     - Schema validation: `validate_account_dict`, `validate_preferences_dict`
+     - Note: `clear_schedule_periods_cache`, `get_scheduler_manager`, `SchedulerManager` documented as lazy imports due to circular dependencies
+
+5. **Phase 2: Core Package Low Usage & Public API Items (Complete)**:
+   - Added 92 low-usage/public API exports:
+     - Schema models (9): `AccountModel`, `ChannelModel`, `PreferencesModel`, `CategoryScheduleModel`, `FeaturesModel`, `PeriodModel`, `MessagesFileModel`, `MessageModel`, `SchedulesModel`
+     - Schema validation (2): `validate_schedules_dict`, `validate_messages_file_dict`
+     - Config constants (3): `CONTEXT_CACHE_TTL`, `DISCORD_APPLICATION_ID`, `EMAIL_SMTP_PASSWORD`
+     - Config functions (15): validation functions, path management, config reporting
+     - Error handling classes (4): `ErrorHandler`, `ErrorRecoveryStrategy`, `ConfigurationRecovery`, `ConfigValidationError`
+     - Service classes (2): `MHMService`, `InitializationError`
+     - Service utilities (10): `Throttler`, `InvalidTimeFormatError`, service status functions, `wait_for_network`, `load_and_localize_datetime`
+     - Headless service (1): `HeadlessServiceManager`
+     - File operations (1): `create_user_files`
+     - File auditor (4): `FileAuditor`, `start_auditor`, `stop_auditor`, `record_created`
+     - Schedule utilities (3): `get_active_schedules`, `is_schedule_active`, `get_current_active_schedules`
+     - Auto cleanup (7): cleanup management functions
+     - Backup manager (1): `BackupManager`
+     - Dynamic check-in manager (1): `DynamicCheckinManager`
+     - Logger utilities (11): `BackupDirectoryRotatingFileHandler`, `ExcludeLoggerNamesFilter`, logging management functions
+     - User data manager (13): `UserDataManager` class and related functions
+     - User management (7): additional utility functions
+
+6. **Updated Package `__init__.py` Files**:
+   - `core/__init__.py`: Now exports 175 items (was 59)
+   - `communication/__init__.py`: Now exports 11 items (was 6)
+   - `ui/__init__.py`: Now exports 8 items (was 6)
+   - `tasks/__init__.py`: Now exports 15 items (was 14)
+   - All packages maintain backward compatibility (module-level imports still work)
+
+**Documentation Updates**:
+- Added comprehensive migration plan to `development_docs/PLANS.md`
+- Updated Phase 0-2 status with completion checklists
+- Documented circular dependency handling strategy
+
+**Testing**:
+- All new imports tested and verified working
+- Full test suite: 1899 passed, 1 skipped (no regressions)
+- All packages import successfully with new exports
+
+**Results**:
+- **Core package**: 175 exports (was 59), 185 missing (was 300) - reduced by 115
+- **Communication package**: 11 exports (was 6), 173 missing (was 178) - reduced by 5
+- **UI package**: 8 exports (was 6), 297 missing (was 299) - reduced by 2
+- **Tasks package**: 15 exports (was 14), 5 missing (was 6) - reduced by 1
+- **Total**: 124 exports added across Phase 0-2
+- All tests passing, no regressions introduced
+- Circular dependencies properly documented with lazy import patterns
+
+**Remaining Work**:
+- Phase 3-4: Communication package medium/low usage exports
+- Phase 5-6: UI package medium/low usage exports
+- Phase 7-9: Tasks, AI, User packages
+- Phase 10: Final verification and cleanup
+
 ### 2025-11-03 - Test Artifact Cleanup Enhancements and Coverage Log Management **COMPLETED**
 
 **Context**: Improved test cleanup mechanisms and automated log management to prevent persistent test artifacts and log accumulation.

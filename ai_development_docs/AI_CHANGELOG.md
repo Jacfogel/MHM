@@ -8,6 +8,17 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-03 - Package-Level Exports Migration (Phase 0-2 Complete) **IN PROGRESS**
+- **Audit Script**: Created `ai_development_tools/audit_package_exports.py` to systematically identify what should be exported at package level based on actual imports, public API items, cross-module usage, and function registry
+- **Migration Plan**: Created detailed 10-phase plan in `development_docs/PLANS.md` for migrating all packages to package-level exports (14-24 hours estimated)
+- **Phase 0 Complete**: Added 15 high-usage exports (≥5 imports) across core, communication, ui, and tasks packages
+- **Phase 1 Complete**: Added 17 medium-usage exports (2-4 imports) from core package
+- **Phase 2 Complete**: Added 92 low-usage/public API exports from core package (schema models, config functions, error handling classes, service utilities, file auditor, schedule utilities, auto cleanup, logger utilities, user data manager, user management)
+- **Progress**: Core package now has 175 exports (was 59), reducing missing exports from 300 to 185; Total 124 exports added across Phase 0-2
+- **Circular Dependencies**: Documented lazy import patterns for items with circular dependencies (schedule_management, service, scheduler)
+- **Testing**: All tests passing (1899 passed, 1 skipped), all new imports verified working, backward compatibility maintained
+- **Result**: Package-level imports now available for high/medium usage items, enabling easier refactoring and clearer API boundaries; Remaining work: Phase 3-10 for communication, ui, tasks, ai, user packages
+
 ### 2025-11-03 - Test Artifact Cleanup Enhancements and Coverage Log Management **COMPLETED**
 - **Test Cleanup Enhancements**: Added pre-run cleanup for `pytest-of-*` directories and `conversation_states.json` in `tests/conftest.py`; enhanced session-end cleanup to handle `flags/`, `requests/`, `backups/`, `tmp/` subdirectories and `conversation_states.json`; improved Windows compatibility using `Path.iterdir()` instead of `glob.glob()`
 - **Cleanup Script Updates**: Enhanced `scripts/cleanup_project.py` to clean up test data subdirectories (`flags/`, `requests/`, `backups/`) and `conversation_states.json`

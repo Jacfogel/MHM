@@ -1,1 +1,47 @@
-"""Task management utilities for MHM."""
+"""Task management package.
+
+Contains task management utilities and operations for creating,
+updating, and managing user tasks within the MHM system.
+"""
+
+# Main public API - package-level exports for easier refactoring
+from .task_management import (
+    TaskManagementError,
+    create_task,
+    update_task,
+    complete_task,
+    delete_task,
+    load_active_tasks,
+    save_active_tasks,
+    get_task_by_id,
+    get_tasks_due_soon,
+    get_user_task_stats,
+    ensure_task_directory,
+    add_user_task_tag,
+    remove_user_task_tag,
+    setup_default_task_tags,
+    are_tasks_enabled,  # High usage
+)
+
+__all__ = [
+    # Error class
+    'TaskManagementError',
+    # Task CRUD operations
+    'create_task',
+    'update_task',
+    'complete_task',
+    'delete_task',
+    # Task loading/saving
+    'load_active_tasks',
+    'save_active_tasks',
+    'get_task_by_id',
+    'get_tasks_due_soon',
+    # Task utilities
+    'get_user_task_stats',
+    'ensure_task_directory',
+    'add_user_task_tag',
+    'remove_user_task_tag',
+    'setup_default_task_tags',
+    # High usage
+    'are_tasks_enabled',
+]
