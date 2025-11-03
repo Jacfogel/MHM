@@ -1,10 +1,9 @@
 import os
-import re
 
 from ai.chatbot import get_ai_chatbot
 from core.message_management import store_sent_message
 from core.response_tracking import store_user_response
-from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
+from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment
 
 
 class TestAIContextRecentMessages:

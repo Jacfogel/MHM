@@ -20,7 +20,7 @@ import requests
 
 from ai.chatbot import AIChatBotSingleton
 from ai.cache_manager import get_response_cache
-from tests.test_utilities import TestUserFactory, setup_test_data_environment
+from tests.test_utilities import TestUserFactory
 from core.user_data_handlers import get_user_data
 from core.response_tracking import get_recent_chat_interactions
 from core.user_management import get_user_id_by_identifier

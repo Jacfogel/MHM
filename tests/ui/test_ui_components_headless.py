@@ -9,7 +9,6 @@ from tests.conftest import ensure_qt_runtime
 ensure_qt_runtime()
 
 
-import pytest
 from unittest.mock import patch
 
 

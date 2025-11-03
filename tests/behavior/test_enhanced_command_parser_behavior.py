@@ -8,7 +8,6 @@ Tests real behavior and side effects of command parsing functionality.
 import json
 from unittest.mock import patch
 from communication.message_processing.command_parser import EnhancedCommandParser
-from communication.command_handlers.shared_types import ParsedCommand as SharedParsedCommand
 
 
 class TestEnhancedCommandParserBehavior:

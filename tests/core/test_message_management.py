@@ -6,7 +6,7 @@ import pytest
 import os
 import json
 from unittest.mock import patch, Mock
-from datetime import datetime, timezone
+from datetime import datetime
 from core.message_management import (
     get_message_categories,
     load_default_messages,

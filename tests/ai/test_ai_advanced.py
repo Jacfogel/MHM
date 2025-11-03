@@ -11,7 +11,6 @@ from unittest.mock import patch
 from tests.ai.ai_test_base import AITestBase
 from tests.test_utilities import TestUserFactory
 from core.user_management import get_user_id_by_identifier
-from user.context_manager import user_context_manager
 
 
 class TestAIAdvanced(AITestBase):

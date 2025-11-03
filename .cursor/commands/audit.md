@@ -6,7 +6,7 @@ Refresh code health metrics without running coverage or heavy hygiene checks.
 ## Steps
 1. Execute the fast audit:
    ```powershell
-   python ai_development_tools/ai_tools_runner.py audit
+   python -m ai_development_tools.ai_tools_runner audit
    if ($LASTEXITCODE -ne 0) { Write-Host "Audit failed" -ForegroundColor Red; exit 1 }
    ```
 2. Review updated artifacts:

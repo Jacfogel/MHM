@@ -6,7 +6,7 @@ Kick off a chat with fresh context and confirm today's goal before acting.
 ## Steps
 1. Optionally refresh the status snapshot:
    ```powershell
-   python ai_development_tools/ai_tools_runner.py status
+   python -m ai_development_tools.ai_tools_runner status
    ```
 2. Confirm environment basics (Windows 11, PowerShell syntax) and reminders from `ai_development_docs/AI_SESSION_STARTER.md`.
 3. Review active priorities:

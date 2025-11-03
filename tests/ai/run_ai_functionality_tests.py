@@ -175,7 +175,6 @@ test_logger.propagate = False
 
 # Now import modules after logging is configured
 from tests.test_utilities import setup_test_data_environment
-from tests.ai.ai_test_base import AITestBase
 
 
 class AITestResultsCollector:

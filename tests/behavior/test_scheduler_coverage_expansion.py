@@ -19,7 +19,6 @@ from core.scheduler import (
     process_category_schedule
 )
 from core.user_management import get_user_categories
-from tests.test_isolation import IsolationManager
 
 @pytest.fixture
 def mock_communication_manager():

@@ -136,7 +136,6 @@ tests_data_dir.mkdir(exist_ok=True)
 os.environ['TEST_DATA_DIR'] = os.environ.get('TEST_DATA_DIR', str(tests_data_dir))
 
 # Import core modules for testing (after logging isolation is set up)
-from core.config import BASE_DATA_DIR, USER_INFO_DIR_PATH
 # Force core config paths to tests/data early so all modules see test isolation
 import core.config as _core_config
 _core_config.BASE_DATA_DIR = str(tests_data_dir)

@@ -5,7 +5,6 @@ Enhanced function search and relationship mapping for AI-optimized development.
 Finds all functions, categorizes them (handler, utility, test, etc.), and shows relationships.
 """
 
-import os
 import ast
 import sys
 from pathlib import Path

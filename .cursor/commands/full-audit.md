@@ -6,7 +6,7 @@ Regenerate complete health metrics, including coverage, legacy scans, and unused
 ## Steps
 1. Execute the full audit:
    ```powershell
-   python ai_development_tools/ai_tools_runner.py audit --full
+   python -m ai_development_tools.ai_tools_runner audit --full
    if ($LASTEXITCODE -ne 0) { Write-Host "Full audit failed" -ForegroundColor Red; exit 1 }
    ```
 2. Review outputs (includes fast audit artifacts plus):

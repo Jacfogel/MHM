@@ -8,6 +8,12 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-03 - Unused Imports Cleanup, AI Function Registry Dynamic Improvements, and Command File Syntax Fixes **COMPLETED**
+- **Unused Imports Cleanup**: Removed unused imports from 21 files (AI tools: function_discovery.py, quick_status.py, ai_tools_runner.py; Test files: test_isolation.py, conftest.py, and 16 additional test files) - improved code quality and maintainability
+- **AI Function Registry Dynamic Improvements**: Added `get_file_stats()`, `format_file_entry()`, and `find_files_needing_attention()` helper functions; transformed `AI_FUNCTION_REGISTRY.md` from static placeholders to dynamic, data-driven content with real-time statistics, function counts, coverage metrics, decision trees, and pattern examples; replaced Unicode characters with ASCII equivalents
+- **Command File Syntax Fixes**: Updated 6 command files (docs.md, audit.md, full-audit.md, triage-issue.md, start.md, refactor.md) to use `python -m ai_development_tools.ai_tools_runner` instead of direct script execution - prevents ImportError when commands are executed
+- **Result**: Improved code quality (21 files cleaned), enhanced AI tooling effectiveness (dynamic registry content), and fixed command execution issues (all commands work reliably) - 1899 tests passing
+
 ### 2025-11-02 - UI Validation Fixes, Import Detection Improvements, and AI Validator Enhancements **COMPLETED**
 - **Schedule Editor Validation**: Overrode `accept()` to prevent dialog closure on validation errors; added `close_dialog()` that only closes after successful save; users can now fix errors without data loss
 - **UI Import Detection Fix**: Fixed path separator normalization and case-insensitive checking in `_is_ui_import()`; Qt imports in UI files now correctly categorized as `ui_imports`

@@ -7,7 +7,7 @@ Rebuild generated documentation assets and verify sync; does not touch legacy or
 1. Confirm the latest audit output is still valid (rerun `/audit` if metrics are stale).
 2. Run docs regeneration:
    ```powershell
-   python ai_development_tools/ai_tools_runner.py docs
+   python -m ai_development_tools.ai_tools_runner docs
    if ($LASTEXITCODE -ne 0) { Write-Host "Docs regeneration failed" -ForegroundColor Red; exit 1 }
    ```
 3. Inspect refreshed files:
@@ -17,8 +17,8 @@ Rebuild generated documentation assets and verify sync; does not touch legacy or
    - Doc-sync summary in `ai_development_tools`
 4. Run targeted checks when needed:
    ```powershell
-   python ai_development_tools/ai_tools_runner.py doc-sync
-   python ai_development_tools/ai_tools_runner.py version-sync ai_docs
+   python -m ai_development_tools.ai_tools_runner doc-sync
+   python -m ai_development_tools.ai_tools_runner version-sync ai_docs
    ```
 5. Check paired documentation requirements via `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`.
 

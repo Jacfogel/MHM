@@ -7,7 +7,6 @@ import sys
 from .services.operations import (
     AIToolsService,
     COMMAND_REGISTRY,
-    list_commands,
 )
 from .services.common import COMMAND_CATEGORIES
 
