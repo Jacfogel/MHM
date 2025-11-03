@@ -144,8 +144,7 @@ archive/
 .coverage
 coverage.json
 coverage_html/
-ai_development_tools/logs/coverage_regeneration/*.log
-!ai_development_tools/logs/coverage_regeneration/*.latest.log
+ai_development_tools/logs/
 
 # IDE files
 .vscode/
