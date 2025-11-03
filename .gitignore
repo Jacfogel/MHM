@@ -111,12 +111,6 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
 
 # OS generated files
 .DS_Store
@@ -150,3 +144,13 @@ archive/
 .coverage
 coverage.json
 coverage_html/
+ai_development_tools/logs/coverage_regeneration/*.log
+!ai_development_tools/logs/coverage_regeneration/*.latest.log
+
+# IDE files
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+*~

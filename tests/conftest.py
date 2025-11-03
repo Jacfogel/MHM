@@ -983,6 +983,15 @@ def prune_test_artifacts_before_and_after_session():
     # Pre-run purge of stray pytest-of-* under tests/data and leftover tmp children
     data_dir = project_root_path / "tests" / "data"
     try:
+        # Clean up conversation_states.json before tests
+        conversation_states_file = data_dir / "conversation_states.json"
+        if conversation_states_file.exists():
+            try:
+                conversation_states_file.unlink(missing_ok=True)
+                test_logger.info("Pre-run: Removed conversation_states.json")
+            except Exception:
+                pass
+        
         # Remove any pytest-of-* directories (pytest creates these when using tmpdir fixtures)
         import glob
         pytest_pattern = str(data_dir / "pytest-of-*")
@@ -1081,6 +1090,15 @@ def prune_test_artifacts_before_and_after_session():
                 except Exception:
                     pass
             test_logger.info(f"Cleared children of {requests_dir}")
+        
+        # Clean up conversation_states.json
+        conversation_states_file = data_dir / "conversation_states.json"
+        if conversation_states_file.exists():
+            try:
+                conversation_states_file.unlink(missing_ok=True)
+                test_logger.info(f"Removed conversation_states.json")
+            except Exception:
+                pass
     except Exception:
         pass
 
@@ -2237,6 +2255,14 @@ def cleanup_test_users_after_session():
                             shutil.rmtree(item_path, ignore_errors=True)
                     except Exception:
                         pass
+            except Exception:
+                pass
+        
+        # Clean up conversation_states.json
+        conversation_states_file = os.path.join(test_data_dir, "conversation_states.json")
+        if os.path.exists(conversation_states_file):
+            try:
+                os.remove(conversation_states_file)
             except Exception:
                 pass
         

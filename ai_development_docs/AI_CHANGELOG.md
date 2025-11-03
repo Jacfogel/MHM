@@ -8,6 +8,15 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-03 - Test Artifact Cleanup Enhancements and Coverage Log Management **COMPLETED**
+- **Test Cleanup Enhancements**: Added pre-run cleanup for `pytest-of-*` directories and `conversation_states.json` in `tests/conftest.py`; enhanced session-end cleanup to handle `flags/`, `requests/`, `backups/`, `tmp/` subdirectories and `conversation_states.json`; improved Windows compatibility using `Path.iterdir()` instead of `glob.glob()`
+- **Cleanup Script Updates**: Enhanced `scripts/cleanup_project.py` to clean up test data subdirectories (`flags/`, `requests/`, `backups/`) and `conversation_states.json`
+- **Coverage Log Management**: Added `_cleanup_old_logs()` method to `ai_development_tools/regenerate_coverage_metrics.py` to automatically remove old coverage regeneration logs (keeps only 2 most recent timestamped logs per type plus `.latest.log` files); integrated into `finalize_coverage_outputs()` for automatic cleanup
+- **Gitignore Updates**: Added exclusions for `ai_development_tools/logs/coverage_regeneration/*.log` (timestamped logs) while keeping `!ai_development_tools/logs/coverage_regeneration/*.latest.log` tracked if needed
+- **Documentation Updates**: Updated `scripts/README.md` to document archiving of one-time migration/audit scripts
+- **AI Test Review**: Manually reviewed AI functionality test results and corrected T-1.1 status from PASS to FAIL due to critical prompt-response mismatch (response ignored greeting and direct question); added detailed "Manual Review Notes" explaining the mismatch
+- **Result**: Improved test isolation (persistent artifacts cleaned up), automated log management (logs no longer accumulate), better Windows compatibility, and enhanced AI test validation (1899 passed, 1 skipped; AI tests: 37 passed, 4 partial, 9 failed after manual correction)
+
 ### 2025-11-03 - Unused Imports Cleanup, AI Function Registry Dynamic Improvements, and Command File Syntax Fixes **COMPLETED**
 - **Unused Imports Cleanup**: Removed unused imports from 21 files (AI tools: function_discovery.py, quick_status.py, ai_tools_runner.py; Test files: test_isolation.py, conftest.py, and 16 additional test files) - improved code quality and maintainability
 - **AI Function Registry Dynamic Improvements**: Added `get_file_stats()`, `format_file_entry()`, and `find_files_needing_attention()` helper functions; transformed `AI_FUNCTION_REGISTRY.md` from static placeholders to dynamic, data-driven content with real-time statistics, function counts, coverage metrics, decision trees, and pattern examples; replaced Unicode characters with ASCII equivalents

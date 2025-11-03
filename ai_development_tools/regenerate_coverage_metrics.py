@@ -401,6 +401,7 @@ class CoverageMetricsRegenerator:
         self._cleanup_coverage_shards()
         self._archive_legacy_html_dirs()
         self._cleanup_shutdown_flag()
+        self._cleanup_old_logs()
 
     def _write_command_log(self, command_name: str, result: subprocess.CompletedProcess) -> None:
         """Persist stdout/stderr for coverage helper commands."""
@@ -540,6 +541,73 @@ class CoverageMetricsRegenerator:
             except OSError as exc:
                 if logger:
                     logger.warning(f"Unable to remove shutdown_request.flag: {exc}")
+    
+    def _cleanup_old_logs(self) -> None:
+        """Remove old coverage regeneration logs, keeping only the latest files."""
+        if not self.coverage_logs_dir.exists():
+            return
+        
+        # Group log files by base name (e.g., pytest_stdout, coverage_html)
+        log_groups = {}
+        for log_file in self.coverage_logs_dir.glob("*.log"):
+            # Skip .latest.log files - always keep these
+            if log_file.name.endswith(".latest.log"):
+                continue
+            
+            # Extract base name (e.g., "pytest_stdout_20251103-010734.log" -> "pytest_stdout")
+            base_name = log_file.stem
+            # Remove timestamp pattern (YYYYMMDD-HHMMSS)
+            parts = base_name.split("_")
+            # Try to find the base name by removing timestamp
+            if len(parts) >= 3:
+                # Pattern: name_20251103_010734 or name_20251103-010734
+                possible_base = "_".join(parts[:-2])  # Remove last two parts if timestamp
+                if not (len(parts[-2]) == 8 and len(parts[-1]) == 6):  # Not a timestamp
+                    possible_base = base_name
+            else:
+                possible_base = base_name
+            
+            # More robust: check if last part looks like a timestamp
+            if "_" in base_name:
+                parts = base_name.rsplit("_", 1)
+                if len(parts) == 2 and len(parts[1]) in [15, 14]:  # timestamp length
+                    possible_base = parts[0]
+                else:
+                    possible_base = base_name
+            else:
+                possible_base = base_name
+            
+            if "-" in possible_base:
+                # Handle hyphenated timestamps like "20251103-010734"
+                possible_base = possible_base.rsplit("-", 1)[0]
+                if "_" in possible_base:
+                    possible_base = possible_base.rsplit("_", 1)[0]
+            
+            if possible_base not in log_groups:
+                log_groups[possible_base] = []
+            log_groups[possible_base].append(log_file)
+        
+        removed_count = 0
+        # For each group, keep only the 2 most recent files (plus the .latest.log)
+        for base_name, log_files in log_groups.items():
+            if len(log_files) <= 2:
+                continue  # Keep all if we have 2 or fewer
+            
+            # Sort by modification time (newest first)
+            log_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+            # Keep only the 2 most recent, remove the rest
+            files_to_remove = log_files[2:]
+            
+            for log_file in files_to_remove:
+                try:
+                    log_file.unlink()
+                    removed_count += 1
+                except Exception as exc:
+                    if logger:
+                        logger.warning(f"Unable to remove old log {log_file}: {exc}")
+        
+        if logger and removed_count > 0:
+            logger.info(f"Cleaned up {removed_count} old coverage log files")
     
     def categorize_modules(self, coverage_data: Dict[str, Dict[str, any]]) -> Dict[str, List[str]]:
         """Categorize modules by coverage level."""

@@ -23,10 +23,12 @@ python scripts/debug/debug_user_data.py
 ```
 
 ### **Script Categories**
-- **Migration**: One-time data structure changes
+- **Migration**: One-time data structure changes (archived after completion)
 - **Testing**: Test utilities and validation
 - **Debug**: Troubleshooting and analysis
 - **Utilities**: Admin and maintenance tools
+
+**Note**: Duplicate test scripts have been removed - all tests should be in `/tests` directory. One-time migration/audit scripts have been archived to `archive/scripts/one-time/`.
 
 Utility scripts, migration tools, and testing scripts for the MHM system.
 

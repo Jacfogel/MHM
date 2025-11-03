@@ -17,6 +17,80 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-03 - Test Artifact Cleanup Enhancements and Coverage Log Management **COMPLETED**
+
+**Context**: Improved test cleanup mechanisms and automated log management to prevent persistent test artifacts and log accumulation.
+
+**Problems Addressed**:
+
+1. **Persistent Test Artifacts**: Test-related subdirectories and files (`tests/data/backups`, `tests/data/flags`, `tests/data/pytest-of-*`, `tests/data/requests`, `tests/data/tmp`, `tests/data/users`, `tests/data/conversation_states.json`) were repeatedly appearing and not being cleaned up after test runs
+2. **Coverage Log Accumulation**: Old coverage regeneration logs were accumulating in `ai_development_tools/logs/coverage_regeneration` without automatic cleanup
+3. **Incomplete Cleanup**: Test cleanup in `tests/conftest.py` only ran at session end, missing cleanup if tests were interrupted
+
+**Technical Changes**:
+
+1. **Enhanced Test Cleanup in `tests/conftest.py`**:
+   - Added pre-run cleanup for `pytest-of-*` directories and `conversation_states.json` to handle cases where previous test runs were interrupted
+   - Enhanced session-end cleanup to explicitly handle:
+     - `pytest-of-*` directories (using direct directory iteration for Windows compatibility)
+     - `flags/` directory (clear all children)
+     - `requests/` directory (clear all children)
+     - `backups/` directory (clear all children)
+     - `tmp/` directory (clear all children)
+     - `conversation_states.json` file
+   - Improved Windows compatibility by using `Path.iterdir()` instead of `glob.glob()`
+
+2. **Enhanced `scripts/cleanup_project.py`**:
+   - Added cleanup for `conversation_states.json` in test data directory
+   - Added cleanup for contents of `flags/`, `requests/`, and `backups/` directories within `tests/data`
+   - Improved cleanup logic to handle nested test artifacts
+
+3. **Coverage Log Management in `ai_development_tools/regenerate_coverage_metrics.py`**:
+   - Added `_cleanup_old_logs()` method that automatically removes old coverage regeneration logs
+   - Keeps only the 2 most recent timestamped logs per type plus `.latest.log` files
+   - Groups logs by base name (e.g., `pytest_stdout`, `coverage_html`) and removes older files
+   - Integrated into `finalize_coverage_outputs()` to run automatically after coverage regeneration
+   - Result: Log files no longer accumulate indefinitely
+
+4. **Updated `.gitignore`**:
+   - Added exclusion for `ai_development_tools/logs/coverage_regeneration/*.log` (timestamped logs)
+   - Added exception for `!ai_development_tools/logs/coverage_regeneration/*.latest.log` to keep latest files tracked if needed
+
+5. **Updated `scripts/README.md`**:
+   - Documented archiving of one-time migration/audit scripts
+   - Clarified script categories and lifecycle management
+
+6. **AI Functionality Test Review**:
+   - Manually reviewed AI functionality test results
+   - Corrected T-1.1 status from PASS to FAIL due to critical prompt-response mismatch
+   - Added detailed "Manual Review Notes" explaining the mismatch (response ignored greeting and direct question)
+   - Updated overall test summary: 37 passed, 4 partial, 9 failed (was: 38 passed, 4 partial, 8 failed)
+
+**Files Modified**:
+- `tests/conftest.py` - Enhanced test cleanup with pre-run and post-run artifact removal
+- `scripts/cleanup_project.py` - Added cleanup for test data subdirectories
+- `ai_development_tools/regenerate_coverage_metrics.py` - Added automatic log cleanup
+- `.gitignore` - Added coverage log exclusions
+- `scripts/README.md` - Updated to reflect archiving of one-time scripts
+- `tests/ai/results/ai_functionality_test_results_latest.md` - Corrected T-1.1 status and added manual review notes
+
+**Testing**:
+- Full test suite: 1899 passed, 1 skipped (all tests passing)
+- AI functionality tests: 37 passed, 4 partial, 9 failed (after manual correction)
+- Verified test artifacts are cleaned up after test runs
+- Verified coverage logs are automatically cleaned (keeps only 2 most recent plus .latest.log)
+
+**Results and Impact**:
+- **Test Isolation**: Persistent test artifacts are now properly cleaned up, preventing state pollution between runs
+- **Log Management**: Coverage logs no longer accumulate indefinitely, reducing disk usage
+- **Windows Compatibility**: Improved cleanup reliability on Windows using direct directory iteration
+- **AI Test Quality**: Manual review process identified critical prompt-response mismatch that automated validator missed
+- **Maintainability**: Cleanup scripts and mechanisms are now more comprehensive and automated
+
+**Documentation Updates**: Both changelogs updated with comprehensive entry covering all work.
+
+**Impact**: Improved test reliability and isolation, automated log management, and enhanced AI test validation process.
+
 ### 2025-11-03 - Unused Imports Cleanup, AI Function Registry Dynamic Improvements, and Command File Syntax Fixes **COMPLETED**
 
 **Context**: Comprehensive code quality improvements including unused imports cleanup, AI Function Registry dynamic content generation, and command file syntax fixes.
