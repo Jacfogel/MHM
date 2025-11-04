@@ -98,6 +98,7 @@ deactivate
 - Confirm user-facing features continue to work through every communication channel.
 - Keep functions focused and remove unnecessary wrappers.
 - All user data access must go through `get_user_data()` and related helpers.
+- Prefer package-level imports: Use `from core import CheckinAnalytics` pattern when available (e.g., `from communication import CommunicationManager`, `from ui import TaskEditDialog`). Module-level imports (`from core.checkin_analytics import CheckinAnalytics`) still work for backward compatibility. See `development_docs/PLANS.md` for migration details.
 
 ### Step 3: Test
 - Test the feature you just touched.
@@ -149,6 +150,7 @@ deactivate
 3. Keep functions purposeful-remove redundant wrappers.
 4. Run targeted and regression tests after each step.
 5. Update imports, references, and docs to match the new structure.
+6. **Package-level imports advantage**: When using package-level imports (`from core import CheckinAnalytics`), module renaming requires fewer import updates since most code imports from the package level. Module-level imports still work for backward compatibility.
 
 ## Emergency Procedures
 

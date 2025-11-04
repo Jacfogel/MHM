@@ -70,6 +70,8 @@ from .message_management import (
     store_sent_message,
     get_message_categories,
     load_user_messages,
+    add_message,
+    archive_old_messages,
 )
 
 # Response tracking exports (no circular dependencies)
@@ -247,8 +249,8 @@ from .checkin_dynamic_manager import dynamic_checkin_manager
 # Schedule management exports - lazy import due to circular dependencies (medium usage)
 # Note: schedule_management has circular dependencies with user package
 # Functions available: get_schedule_time_periods, set_schedule_periods (high usage),
-# clear_schedule_periods_cache (medium usage)
-# Use: from core.schedule_management import clear_schedule_periods_cache
+# clear_schedule_periods_cache (medium usage), add_schedule_period (low usage)
+# Note: add_schedule_period has circular dependencies, documented as lazy import
 
 # User data manager exports (high usage)
 # Note: user_data_manager may have circular dependencies
@@ -302,8 +304,17 @@ from .user_management import (
 # Other functions: rebuild_user_index (use: from core.user_data_manager import rebuild_user_index)
 
 # Scheduler exports - lazy import due to circular dependencies (medium usage)
-# Note: SchedulerManager has circular dependencies
-# Use: from core.scheduler import SchedulerManager
+# Note: SchedulerManager and add_schedule_period have circular dependencies
+# Use lazy import pattern for these items
+def __getattr__(name: str):
+    """Lazy import handler for items with circular dependencies"""
+    if name == 'SchedulerManager':
+        from .scheduler import SchedulerManager
+        return SchedulerManager
+    elif name == 'add_schedule_period':
+        from .schedule_management import add_schedule_period
+        return add_schedule_period
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     # Logger
@@ -379,6 +390,10 @@ __all__ = [
     # User management additional (medium usage)
     'ensure_all_categories_have_schedules',
     'get_user_id_by_identifier',
+    # Schedule management - lazy import (circular dependencies)
+    'add_schedule_period',
+    # Scheduler - lazy import (circular dependencies)
+    'SchedulerManager',
     # Schema validation (medium usage)
     'validate_account_dict',
     'validate_preferences_dict',

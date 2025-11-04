@@ -36,6 +36,7 @@
 
 ### Technical Reference
 - `development_docs/FUNCTION_REGISTRY_DETAIL.md`, `development_docs/MODULE_DEPENDENCIES_DETAIL.md` -> deep API and dependency maps.
+- `ai_development_tools/audit_package_exports.py` -> audit tool for package-level exports (`--package <name>` or `--all`).
 
 ## Standards and Templates
 
@@ -54,6 +55,7 @@
 - Helper functions follow `_main_function__helper_name`.
 - Public APIs should stay wrapper-free; consolidate duplicates.
 - Reference canonical module paths when documenting behaviour.
+- Package-level imports: Prefer `from <package> import <item>` (e.g., `from core import CheckinAnalytics`). Module-level imports still work for backward compatibility.
 
 ## Main Sections
 - Mirror the human guide's section order (Quick Reference, Main Sections, maintenance notes).

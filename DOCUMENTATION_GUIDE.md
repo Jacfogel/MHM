@@ -53,6 +53,7 @@
 ### Technical Reference
 - **`development_docs/FUNCTION_REGISTRY_DETAIL.md`**: Documentation for functions organized by module.
 - **`development_docs/MODULE_DEPENDENCIES_DETAIL.md`**: Dependency mapping and architectural coupling notes.
+- **`ai_development_tools/audit_package_exports.py`**: Audit tool for verifying package-level exports (use `--package <name>` or `--all`).
 - **`.cursor/rules/*.mdc`**: Cursor rule files that govern AI behaviour.
 
 ## Standards and Templates
@@ -87,6 +88,7 @@ Maintain a consistent structure for readability and automation:
 - **Helper functions** follow `_main_function__helper_name` pattern for traceability.
 - **Implementation modules** should expose clear public APIs instead of wrappers.
 - **Documentation** should refer to the canonical module or function name that appears in code.
+- **Package-level imports**: Use `from <package> import <item>` pattern when available (e.g., `from core import CheckinAnalytics`). Module-level imports (`from core.checkin_analytics import CheckinAnalytics`) still work for backward compatibility. See `development_docs/PLANS.md` for migration details.
 
 ## Audience-Specific Optimization
 

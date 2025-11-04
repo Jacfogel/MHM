@@ -65,6 +65,7 @@ pip freeze > requirements.txt
 ### Step 2: Implement
 - Ship the smallest safe slice.
 - Use `get_user_data()` helpers-wrappers were removed.
+- Prefer package-level imports: `from core import CheckinAnalytics` (module-level imports still work).
 - Verify behaviour after each slice.
 
 ### Step 3: Test

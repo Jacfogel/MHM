@@ -42,9 +42,10 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
         imports = {
             'from_imports': [],  # from package.module import item
             'direct_imports': [],  # import package
-            'module_items': []  # Functions/classes defined in module
+            'module_items': []  # Functions/classes defined in module (module-level only)
         }
         
+        # Process all nodes for imports (these can appear anywhere)
         for node in ast.walk(tree):
             # From imports: from package.module import item
             if isinstance(node, ast.ImportFrom) and node.module:
@@ -66,14 +67,49 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
                         'asname': alias.asname if alias.asname else alias.name,
                         'package': module_parts[0] if module_parts else None
                     })
-            
-            # Module-level definitions (public API)
-            elif isinstance(node, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)):
-                if node.name and not node.name.startswith('_'):
+        
+        # Only process module-level definitions (not methods inside classes)
+        # Iterate over the module body directly to get top-level definitions only
+        def process_node(node: ast.AST, is_module_level: bool = True):
+            """Recursively process nodes, tracking if we're at module level."""
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                # Only include if at module level and public
+                if is_module_level and node.name and not node.name.startswith('_'):
                     imports['module_items'].append({
                         'name': node.name,
-                        'type': 'class' if isinstance(node, ast.ClassDef) else 'function'
+                        'type': 'function'
                     })
+                # Don't recurse into function bodies - we only care about definitions
+            elif isinstance(node, ast.ClassDef):
+                # Include class if at module level and public
+                if is_module_level and node.name and not node.name.startswith('_'):
+                    imports['module_items'].append({
+                        'name': node.name,
+                        'type': 'class'
+                    })
+                # Process class body but mark that we're no longer at module level
+                for item in node.body:
+                    process_node(item, is_module_level=False)
+            elif isinstance(node, (ast.Module, ast.If, ast.Try, ast.With, ast.For, ast.While)):
+                # Process child nodes at same level
+                for child in node.body if hasattr(node, 'body') else []:
+                    process_node(child, is_module_level)
+                # Process else/except/finally blocks if present
+                if hasattr(node, 'orelse') and node.orelse:
+                    for child in node.orelse:
+                        process_node(child, is_module_level)
+                if hasattr(node, 'handlers') and node.handlers:
+                    for handler in node.handlers:
+                        if hasattr(handler, 'body'):
+                            for child in handler.body:
+                                process_node(child, is_module_level)
+                if hasattr(node, 'finalbody') and node.finalbody:
+                    for child in node.finalbody:
+                        process_node(child, is_module_level)
+        
+        # Process the module body
+        for node in tree.body:
+            process_node(node, is_module_level=True)
         
         return imports
     except Exception as e:
@@ -97,6 +133,11 @@ def scan_package_modules(package_name: str) -> Dict[str, List[str]]:
         
         # Skip generated files
         if should_exclude_file(str(py_file), 'analysis', 'production'):
+            continue
+        
+        # Skip generated UI classes (ui.generated module)
+        # These are auto-generated from .ui files and not intended for direct import
+        if 'generated' in str(py_file) or 'generated' in str(py_file.parent):
             continue
         
         rel_path = py_file.relative_to(package_path.parent)
@@ -292,7 +333,13 @@ def generate_audit_report(package_name: str) -> Dict:
     }
     
     # Items in function registry (documented public API)
-    should_export.update(registry_items)
+    # But only include items that are actually module-level (not instance methods)
+    # Filter registry items to only those that are module-level or actually imported
+    registry_items_module_level = {
+        item for item in registry_items
+        if item in all_package_items or item in import_usage
+    }
+    should_export.update(registry_items_module_level)
     
     # Items imported from package modules (actual usage) - these are clearly public API
     should_export.update(import_usage.keys())
@@ -303,6 +350,20 @@ def generate_audit_report(package_name: str) -> Dict:
     
     # Filter out items starting with _ (private/internal)
     should_export = {item for item in should_export if not item.startswith('_')}
+    
+    # Filter out generated UI classes (ui.generated module)
+    # These are auto-generated from .ui files and not intended for direct import
+    if package_name == 'ui':
+        # Exclude items that start with Ui_ (generated UI classes)
+        # and items that are imported from ui.generated modules
+        generated_ui_classes = {
+            item for item in should_export
+            if item.startswith('Ui_') or (
+                item in import_usage and 
+                import_usage[item].get('module_path', '').startswith('ui.generated')
+            )
+        }
+        should_export -= generated_ui_classes
     
     # Filter out config constants if we export config module (package-specific logic)
     if package_name == 'core':

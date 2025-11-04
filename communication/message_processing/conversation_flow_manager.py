@@ -564,8 +564,8 @@ class ConversationManager:
         
         # Handle tasks command
         elif message_lower in ["/tasks", "!tasks"]:
-            from communication.command_handlers.task_handler import TaskHandler
-            handler = TaskHandler()
+            from communication.command_handlers.task_handler import TaskManagementHandler
+            handler = TaskManagementHandler()
             response = handler.handle_list_tasks(user_id, {})
             return (response.message, False)
         
@@ -592,8 +592,8 @@ class ConversationManager:
         
         # Handle schedule command
         elif message_lower in ["/schedule", "!schedule"]:
-            from communication.command_handlers.schedule_handler import ScheduleHandler
-            handler = ScheduleHandler()
+            from communication.command_handlers.schedule_handler import ScheduleManagementHandler
+            handler = ScheduleManagementHandler()
             response = handler.handle_show_schedule(user_id, {})
             return (response.message, False)
         

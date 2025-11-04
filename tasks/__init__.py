@@ -21,6 +21,11 @@ from .task_management import (
     remove_user_task_tag,
     setup_default_task_tags,
     are_tasks_enabled,  # High usage
+    load_completed_tasks,  # Medium usage
+    restore_task,  # Low usage
+    save_completed_tasks,  # Public API
+    schedule_task_reminders,  # Public API
+    cleanup_task_reminders,  # Public API
 )
 
 __all__ = [
@@ -44,4 +49,12 @@ __all__ = [
     'setup_default_task_tags',
     # High usage
     'are_tasks_enabled',
+    # Medium usage
+    'load_completed_tasks',
+    # Low usage
+    'restore_task',
+    # Public API
+    'save_completed_tasks',
+    'schedule_task_reminders',
+    'cleanup_task_reminders',
 ]
