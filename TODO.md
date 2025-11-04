@@ -25,9 +25,6 @@ When adding new tasks, follow this format:
 - Don't include priority field since tasks are already grouped by priority
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
-**Improve generation of ai_development_docs\AI_FUNCTION_REGISTRY.md**
-- It should provide more dynamic information, less preset text
-- Accept slightly longer generation time if it yields concise, high-signal docs
 
 **Restore MANUAL ENHANCEMENT details to development_docs\MODULE_DEPENDENCIES_DETAIL.md**
 - Ensure manual enhancements are preserved through regeneration 
@@ -59,19 +56,6 @@ When adding new tasks, follow this format:
     - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
 
-**Complete Remaining Unused Imports Analysis**
-- *What it means*: Analyze the remaining 45 "obvious unused" imports to determine if they can be safely removed or need different categorization
-- *Why it helps*: Completes the unused imports cleanup and improves code quality
-- *Estimated effort*: Small/Medium
-- *Current Status*: 23 imports successfully recategorized, 45 remaining
-- *Next Steps*:
-  - [ ] Review remaining 45 imports systematically
-  - [ ] Determine if they are truly unused or need different categorization
-  - [ ] Update categorization logic if needed
-  - [ ] Remove truly unused imports
-
-
-
 **Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
@@ -94,18 +78,6 @@ When adding new tasks, follow this format:
     - [ ] Create more sophisticated personalization algorithms
     - [ ] Test context enhancement effectiveness
     - [ ] Validate personalization improvements
-
-**AI Tools Improvement - Generated Documentation Quality** ?? **NEW PRIORITY**
-- *What it means*: Improve the AI tools that generate `AI_FUNCTION_REGISTRY.md` and `AI_MODULE_DEPENDENCIES.md` to provide more valuable, concise information
-- *Why it helps*: Generated documentation should be truly AI-optimized with essential patterns and decision trees, not verbose listings
-- *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Analyze current AI tools output quality and identify improvement areas
-  - [ ] Redesign function registry generation to focus on patterns over listings
-  - [ ] Redesign module dependencies generation to highlight key relationships
-  - [ ] Add pattern recognition to identify common function/module categories
-  - [ ] Implement concise summary generation with cross-references to detailed docs
-  - [ ] Test generated documentation usability for AI collaborators
 
 **Discord Send Retry Monitoring**
 - *What it means*: Verify queued retry behavior on disconnects and that check-in starts log only after successful delivery.

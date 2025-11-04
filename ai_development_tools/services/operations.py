@@ -882,7 +882,7 @@ class AIToolsService:
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""
         try:
-            from version_sync import validate_referenced_paths  # type: ignore
+            from ..version_sync import validate_referenced_paths  # type: ignore
             result = validate_referenced_paths()
             status = result.get('status') if isinstance(result, dict) else None
             message = result.get('message') if isinstance(result, dict) else None
@@ -927,7 +927,7 @@ class AIToolsService:
     def _check_ascii_compliance(self) -> None:
         """Check for non-ASCII characters in documentation files."""
         try:
-            from documentation_sync_checker import DocumentationSyncChecker  # type: ignore
+            from ..documentation_sync_checker import DocumentationSyncChecker  # type: ignore
             checker = DocumentationSyncChecker()
             results = checker.run_checks()
             ascii_issues = results.get('ascii_compliance', {}) if isinstance(results, dict) else {}
@@ -943,7 +943,7 @@ class AIToolsService:
     def _sync_todo_with_changelog(self) -> None:
         """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
         try:
-            from version_sync import sync_todo_with_changelog  # type: ignore
+            from ..version_sync import sync_todo_with_changelog  # type: ignore
             result = sync_todo_with_changelog()
             status = result.get('status') if isinstance(result, dict) else None
             if status == 'ok':

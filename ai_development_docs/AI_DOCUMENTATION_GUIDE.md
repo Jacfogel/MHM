@@ -95,6 +95,7 @@
 
 ### Maintenance Rules
 - Never hand-edit generated outputs; update the generating tool and regenerate.
+- **Exception**: `MODULE_DEPENDENCIES_DETAIL.md` preserves manual enhancements between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` markers.
 - Archive or rotate outputs as needed for audits.
 
 ### Known Generated Files

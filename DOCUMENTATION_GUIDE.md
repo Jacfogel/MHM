@@ -52,7 +52,7 @@
 
 ### Technical Reference
 - **`development_docs/FUNCTION_REGISTRY_DETAIL.md`**: Documentation for functions organized by module.
-- **`development_docs/MODULE_DEPENDENCIES_DETAIL.md`**: Dependency mapping and architectural coupling notes.
+- **`development_docs/MODULE_DEPENDENCIES_DETAIL.md`**: Dependency mapping and architectural coupling notes (hybrid auto-generated with manual enhancements preserved - see Maintenance Rules).
 - **`ai_development_tools/audit_package_exports.py`**: Audit tool for verifying package-level exports (use `--package <name>` or `--all`).
 - **`.cursor/rules/*.mdc`**: Cursor rule files that govern AI behaviour.
 
@@ -139,6 +139,7 @@ Every generated file must open with:
 
 ### Maintenance Rules
 - Regenerate files by running the tool-never edit generated content manually.
+- **Exception**: `MODULE_DEPENDENCIES_DETAIL.md` uses a hybrid approach: content between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is preserved during regeneration, allowing manual enhancements (descriptions, key functions, special considerations) alongside auto-generated dependency information.
 - Update tool metadata whenever the generator changes behaviour.
 - Archive prior outputs when trimming or rotating files to keep history auditable.
 
@@ -147,7 +148,7 @@ Every generated file must open with:
 - `ai_development_tools/AI_PRIORITIES.md`
 - `development_docs/DIRECTORY_TREE.md`
 - `development_docs/FUNCTION_REGISTRY_DETAIL.md`
-- `development_docs/MODULE_DEPENDENCIES_DETAIL.md`
+- `development_docs/MODULE_DEPENDENCIES_DETAIL.md` (hybrid: auto-generated with manual enhancements preserved)
 - `development_docs/LEGACY_REFERENCE_REPORT.md`
 - `development_docs/UNUSED_IMPORTS_REPORT.md`
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md`

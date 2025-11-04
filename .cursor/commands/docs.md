@@ -14,6 +14,7 @@ Rebuild generated documentation assets and verify sync; does not touch legacy or
    - `ai_development_docs/AI_FUNCTION_REGISTRY.md`
    - `ai_development_docs/AI_MODULE_DEPENDENCIES.md`
    - `development_docs/DIRECTORY_TREE.md`
+   - `development_docs/MODULE_DEPENDENCIES_DETAIL.md` (manual enhancements preserved)
    - Doc-sync summary in `ai_development_tools`
 4. Run targeted checks when needed:
    ```powershell

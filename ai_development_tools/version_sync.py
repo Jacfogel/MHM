@@ -10,7 +10,7 @@ import os
 import re
 from datetime import datetime, timedelta
 
-import config
+from . import config
 
 # Configuration - File Categories from config
 AI_DOCS = config.VERSION_SYNC['ai_docs']
@@ -188,7 +188,7 @@ def validate_referenced_paths():
     """Validate that all referenced paths in documentation exist."""
     try:
         # Import the documentation sync checker
-        from documentation_sync_checker import DocumentationSyncChecker
+        from .documentation_sync_checker import DocumentationSyncChecker
 
         checker = DocumentationSyncChecker()
         results = checker.run_checks()

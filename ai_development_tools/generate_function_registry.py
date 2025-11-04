@@ -740,118 +740,118 @@ def find_files_needing_attention(actual_functions: Dict[str, Dict], threshold: f
     return needing_attention
 
 def generate_pattern_section(patterns: Dict[str, List], actual_functions: Dict[str, Dict]) -> str:
-    """Generate dynamic pattern section based on detected patterns."""
+    """Generate dynamic pattern section based on ALL detected patterns - concise and high-signal."""
     section = ""
     
-    # Handler Pattern
-    if patterns['handlers']:
-        handler_count = len(patterns['handlers'])
-        handler_files = sorted(set(h['file'] for h in patterns['handlers']))[:5]  # Top 5 unique files
-        handler_classes = sorted(set(h['class'] for h in patterns['handlers']))[:5]  # Top 5 classes
-        
-        locations = ", ".join([f"`{f}`" for f in handler_files[:3]])
-        if len(handler_files) > 3:
-            locations += f" (+{len(handler_files)-3} more files)"
-        
-        examples = "\n".join([f"- `{cls}`" for cls in handler_classes[:5]])
-        if len(handler_classes) > 5:
-            examples += f"\n- ... and {len(handler_classes)-5} more handlers"
-        
-        section += f"""### **Handler Pattern** ({handler_count} found)
-**Purpose**: Handle specific user intents or operations
+    # Pattern definitions with concise descriptions
+    pattern_defs = {
+        'handlers': {
+            'title': 'Handler Pattern',
+            'purpose': 'Handle specific user intents or operations',
+            'pattern': ['`can_handle(intent)` - Check if handler supports intent', '`handle(user_id, parsed_command)` - Process the command', '`get_help()` - Return help text'],
+            'min_examples': 3
+        },
+        'managers': {
+            'title': 'Manager Pattern',
+            'purpose': 'Centralized management of system components',
+            'pattern': ['Singleton instance management', 'Lifecycle methods (`start()`, `stop()`, `initialize()`)', 'Status reporting methods'],
+            'min_examples': 3
+        },
+        'factories': {
+            'title': 'Factory Pattern',
+            'purpose': 'Create instances of related objects',
+            'pattern': ['`register_*(name, class)` - Register types', '`create_*(name, config)` - Create instances', '`get_available_*()` - List available types'],
+            'min_examples': 2
+        },
+        'widgets': {
+            'title': 'Widget Pattern',
+            'purpose': 'Reusable UI components',
+            'pattern': ['Inherit from QWidget', 'Implement `get_*()` and `set_*()` methods', 'Signal-based updates'],
+            'min_examples': 3
+        },
+        'dialogs': {
+            'title': 'Dialog Pattern',
+            'purpose': 'Modal user interaction windows',
+            'pattern': ['Inherit from QDialog', 'Use widgets for data entry', 'Return result on accept/reject'],
+            'min_examples': 3
+        },
+        'validators': {
+            'title': 'Validator Pattern',
+            'purpose': 'Data validation and sanitization',
+            'pattern': ['`validate_*(data)` - Validate input', 'Return validation results', 'Centralized validation logic'],
+            'min_examples': 2
+        },
+        'schemas': {
+            'title': 'Schema Pattern',
+            'purpose': 'Data models with validation (Pydantic)',
+            'pattern': ['Pydantic BaseModel classes', 'Type-safe data structures', 'Automatic validation'],
+            'min_examples': 2
+        },
+        'context_managers': {
+            'title': 'Context Manager Pattern',
+            'purpose': 'Safe resource management',
+            'pattern': ['`__enter__()` and `__exit__()` methods', 'Automatic cleanup', 'Used with `with` statements'],
+            'min_examples': 2
+        },
+        'decorators': {
+            'title': 'Decorator Pattern',
+            'purpose': 'Function/method decoration (error handling, logging)',
+            'pattern': ['`@handle_errors` - Error handling decorator', '`@<name>` - Custom decorators', 'Applied to functions/methods'],
+            'min_examples': 1
+        }
+    }
+    
+    # Generate sections for all detected patterns (in priority order)
+    pattern_order = ['handlers', 'managers', 'factories', 'widgets', 'dialogs', 'validators', 'schemas', 'context_managers', 'decorators']
+    
+    for pattern_key in pattern_order:
+        if patterns.get(pattern_key) and len(patterns[pattern_key]) > 0:
+            pattern_list = patterns[pattern_key]
+            pattern_def = pattern_defs.get(pattern_key, {})
+            
+            count = len(pattern_list)
+            # Get unique files and classes (prioritize files with documentation)
+            items_with_doc = [p for p in pattern_list if p.get('has_doc', False)]
+            items_without_doc = [p for p in pattern_list if not p.get('has_doc', False)]
+            sorted_items = items_with_doc + items_without_doc
+            
+            # Get unique files (top 3)
+            unique_files = []
+            seen_files = set()
+            for item in sorted_items:
+                file_path = item.get('file', '')
+                if file_path and file_path not in seen_files:
+                    unique_files.append(file_path)
+                    seen_files.add(file_path)
+                    if len(unique_files) >= 3:
+                        break
+            
+            locations = ", ".join([f"`{f}`" for f in unique_files[:3]])
+            if len(seen_files) > 3:
+                locations += f" (+{len(seen_files)-3} more)"
+            
+            # Get class/function names (top examples)
+            if 'class' in pattern_list[0]:
+                examples = sorted_items[:pattern_def.get('min_examples', 3)]
+                example_text = "\n".join([f"- `{ex['class']}` ({ex['file']})" for ex in examples])
+                if len(sorted_items) > pattern_def.get('min_examples', 3):
+                    example_text += f"\n- ... and {len(sorted_items) - pattern_def.get('min_examples', 3)} more"
+            else:
+                examples = sorted_items[:pattern_def.get('min_examples', 3)]
+                example_text = "\n".join([f"- `{ex.get('function', ex.get('class', 'unknown'))}` ({ex['file']})" for ex in examples])
+                if len(sorted_items) > pattern_def.get('min_examples', 3):
+                    example_text += f"\n- ... and {len(sorted_items) - pattern_def.get('min_examples', 3)} more"
+            
+            pattern_lines = "\n".join([f"- {p}" for p in pattern_def.get('pattern', [])])
+            
+            section += f"""### **{pattern_def.get('title', pattern_key)}** ({count} found)
+**Purpose**: {pattern_def.get('purpose', 'Pattern implementation')}
 **Location**: {locations}
 **Pattern**: 
-- `can_handle(intent)` - Check if handler supports intent
-- `handle(user_id, parsed_command)` - Process the command
-- `get_help()` - Return help text
-- `get_examples()` - Return usage examples
+{pattern_lines}
 
 **Examples**:
-{examples}
-
-"""
-    
-    # Manager Pattern
-    if patterns['managers']:
-        manager_count = len(patterns['managers'])
-        manager_files = sorted(set(m['file'] for m in patterns['managers']))[:5]
-        manager_classes = sorted(set(m['class'] for m in patterns['managers']))[:5]
-        
-        locations = ", ".join([f"`{f}`" for f in manager_files[:3]])
-        if len(manager_files) > 3:
-            locations += f" (+{len(manager_files)-3} more files)"
-        
-        examples = "\n".join([f"- `{cls}`" for cls in manager_classes[:5]])
-        if len(manager_classes) > 5:
-            examples += f"\n- ... and {len(manager_classes)-5} more managers"
-        
-        section += f"""### **Manager Pattern** ({manager_count} found)
-**Purpose**: Centralized management of system components
-**Location**: {locations}
-**Pattern**:
-- Singleton instance management
-- Lifecycle methods (`start()`, `stop()`, `initialize()`)
-- Status reporting methods
-
-**Examples**:
-{examples}
-
-"""
-    
-    # Factory Pattern
-    if patterns['factories']:
-        factory_count = len(patterns['factories'])
-        factory_files = sorted(set(f['file'] for f in patterns['factories']))[:3]
-        factory_classes = sorted(set(f['class'] for f in patterns['factories']))[:3]
-        
-        locations = ", ".join([f"`{f}`" for f in factory_files])
-        
-        examples = "\n".join([f"- `{cls}`" for cls in factory_classes])
-        
-        section += f"""### **Factory Pattern** ({factory_count} found)
-**Purpose**: Create instances of related objects
-**Location**: {locations}
-**Pattern**:
-- `register_channel(name, channel_class)` - Register channel types
-- `create_channel(name, config)` - Create channel instances
-- `get_available_channels()` - List available types
-
-**Examples**:
-{examples}
-
-"""
-    
-    # Context Manager Pattern (detect from classes with __enter__ and __exit__)
-    context_managers = []
-    for file_path, data in actual_functions.items():
-        for cls in data['classes']:
-            methods = [m['name'] for m in cls['methods']]
-            if '__enter__' in methods and '__exit__' in methods:
-                context_managers.append({
-                    'file': file_path,
-                    'class': cls['name']
-                })
-    
-    if context_managers:
-        cm_files = sorted(set(cm['file'] for cm in context_managers))[:3]
-        cm_classes = sorted(set(cm['class'] for cm in context_managers))[:3]
-        
-        locations = ", ".join([f"`{f}`" for f in cm_files])
-        
-        examples = "\n".join([f"- `{cls}`" for cls in cm_classes])
-        if len(context_managers) > 3:
-            examples += f"\n- ... and {len(context_managers)-3} more context managers"
-        
-        section += f"""### **Context Manager Pattern** ({len(context_managers)} found)
-**Purpose**: Safe resource management
-**Location**: {locations}
-**Pattern**:
-- `__enter__()` and `__exit__()` methods
-- Automatic cleanup and error handling
-- Used with `with` statements
-
-**Examples**:
-{examples}
+{example_text}
 
 """
     
@@ -918,47 +918,104 @@ def generate_entry_points_section(patterns: Dict[str, List], actual_functions: D
     return "\n".join(entry_points[:10])  # Top 10 entry points
 
 def generate_common_operations_section(actual_functions: Dict[str, Dict], patterns: Dict[str, List]) -> str:
-    """Generate dynamic common operations section based on actual codebase patterns."""
-    operations = []
-    
-    # Find key functions by pattern matching
-    key_functions = {
-        'handle_message': 'User Message Handling',
-        'generate_response': 'AI Response Generation',
-        'get_user_data': 'User Data Access',
-        'save_json_data': 'File Save Operations',
-        'handle_errors': 'Error Handling'
-    }
-    
-    # Build operations list from patterns and key functions
+    """Generate dynamic common operations section - comprehensive and based on actual patterns."""
     found_ops = {}
-    for ep in patterns['entry_points']:
+    
+    # Priority 1: Entry points (most common operations)
+    for ep in patterns.get('entry_points', []):
         func_name = ep['function']
         file_path = ep['file']
         if func_name == 'handle_message':
             found_ops['User Message'] = f"`{file_path}::{func_name}()`"
         elif func_name == 'generate_response':
             found_ops['AI Response'] = f"`{file_path}::{func_name}()`"
+        elif func_name == 'main' and 'run_' in file_path:
+            if 'Main Entry' not in found_ops:
+                found_ops['Main Entry'] = f"`{file_path}::{func_name}()`"
     
-    # Look for data access functions
-    for da in patterns['data_access'][:3]:
-        if 'get_user' in da['function'].lower():
-            if 'User Data' not in found_ops:
-                found_ops['User Data'] = f"`{da['file']}::{da['function']}()`"
-        elif 'save' in da['function'].lower():
-            if 'File Save' not in found_ops:
-                found_ops['File Save'] = f"`{da['file']}::{da['function']}()`"
+    # Priority 2: Data access operations (skip internal helpers)
+    for da in patterns.get('data_access', [])[:10]:
+        func_name = da['function']
+        file_lower = func_name.lower()
+        # Skip internal helper functions (double underscore prefix or internal patterns)
+        if func_name.startswith('_') and '__' in func_name:
+            continue
+        if 'get_user_data' in func_name or (func_name == 'get_user_data' or 'get_user' in func_name and not func_name.startswith('_')):
+            if 'User Data Access' not in found_ops:
+                found_ops['User Data Access'] = f"`{da['file']}::{func_name}()`"
+        elif 'save_user' in func_name or ('save' in func_name and 'user' in da['file'] and not func_name.startswith('_')):
+            if 'User Data Save' not in found_ops:
+                found_ops['User Data Save'] = f"`{da['file']}::{func_name}()`"
+        elif 'load' in func_name and 'user' in da['file'] and not func_name.startswith('_'):
+            if 'User Data Load' not in found_ops:
+                found_ops['User Data Load'] = f"`{da['file']}::{func_name}()`"
     
-    # Look for error handling decorators
+    # Priority 3: Communication operations
+    for comm in patterns.get('communication', [])[:5]:
+        func_name = comm['function']
+        func_lower = func_name.lower()
+        if 'send_' in func_lower and 'message' not in found_ops:
+            found_ops['Send Message'] = f"`{comm['file']}::{func_name}()`"
+        elif 'receive' in func_lower and 'Receive Message' not in found_ops:
+            found_ops['Receive Message'] = f"`{comm['file']}::{func_name}()`"
+    
+    # Priority 4: Error handling
+    for eh in patterns.get('error_handlers', [])[:3]:
+        if 'Error Handling' not in found_ops:
+            found_ops['Error Handling'] = f"`{eh['file']}::{eh['function']}()`"
+    
+    # Priority 5: Scheduling operations (skip internal helpers)
+    for sched in patterns.get('schedulers', [])[:5]:
+        func_name = sched['function']
+        # Skip internal helper functions
+        if not func_name.startswith('_') and 'Scheduling' not in found_ops:
+            # Prefer scheduler.py over file_operations.py
+            if 'scheduler' in sched['file'].lower():
+                found_ops['Scheduling'] = f"`{sched['file']}::{func_name}()`"
+                break
+    
+    # Priority 6: Look for common utility functions by searching actual functions
+    utility_patterns = {
+        'validate': 'Validation',
+        'parse_command': 'Command Parsing',
+        'get_config': 'Configuration',
+        'log': 'Logging'
+    }
+    
     for file_path, data in actual_functions.items():
+        if 'test' in file_path.lower():
+            continue
         for func in data['functions']:
-            if 'handle_errors' in func.get('decorators', []) or func['name'] == 'handle_errors':
-                if 'Error Handling' not in found_ops:
-                    found_ops['Error Handling'] = f"`{file_path}::handle_errors` decorator"
-                    break
+            func_name = func['name']
+            func_lower = func_name.lower()
+            
+            # Command parsing (skip internal helpers)
+            if (('parse' in func_lower and 'command' in func_lower) or func_name == 'parse_command') and not func_name.startswith('_'):
+                if 'Command Parsing' not in found_ops:
+                    found_ops['Command Parsing'] = f"`{file_path}::{func_name}()`"
+            
+            # Validation (skip internal helper functions)
+            if 'validate' in func_lower and 'Validation' not in found_ops and 'test' not in func_lower:
+                # Skip internal helper functions (those with double underscores or specific patterns)
+                if not func_name.startswith('_') and 'validate' in file_path.lower():
+                    if 'core' in file_path or 'user_data' in file_path:
+                        found_ops['Validation'] = f"`{file_path}::{func_name}()`"
+                        break
+            
+            # Configuration
+            if 'get_config' in func_lower or 'get_user_data_dir' in func_lower:
+                if 'Configuration' not in found_ops:
+                    found_ops['Configuration'] = f"`{file_path}::{func_name}()`"
     
-    # Build numbered list with sequential numbering
-    priority_order = ['User Message', 'AI Response', 'User Data', 'File Save', 'Error Handling']
+    # Build numbered list with priority order
+    priority_order = [
+        'User Message', 'AI Response', 'Main Entry',
+        'User Data Access', 'User Data Save', 'User Data Load',
+        'Send Message', 'Receive Message',
+        'Command Parsing', 'Validation',
+        'Error Handling', 'Scheduling', 'Configuration'
+    ]
+    
     numbered_ops = []
     counter = 1
     
@@ -967,17 +1024,8 @@ def generate_common_operations_section(actual_functions: Dict[str, Dict], patter
             numbered_ops.append(f"{counter}. **{op_name}**: {found_ops[op_name]}")
             counter += 1
     
-    # If we didn't find enough, add fallback defaults
-    if len(numbered_ops) < 3:
-        numbered_ops = [
-            "1. **User Message**: `communication/message_processing/interaction_manager.py::handle_message()`",
-            "2. **AI Response**: `ai/chatbot.py::generate_response()`",
-            "3. **User Data**: `core/user_data_handlers.py::get_user_data()`",
-            "4. **File Save**: `core/file_operations.py::save_json_data()`",
-            "5. **Error Handling**: `core/error_handling.py::handle_errors` decorator"
-        ]
-    
-    return "\n".join(numbered_ops[:5])
+    # Return all found operations (no fallbacks - dynamic only)
+    return "\n".join(numbered_ops) if numbered_ops else "*No common operations detected - patterns may need updating*"
 
 def generate_complexity_section(actual_functions: Dict[str, Dict]) -> str:
     """Generate complexity metrics section showing most complex functions."""
@@ -1128,83 +1176,174 @@ def generate_communication_patterns_section(patterns: Dict[str, List], actual_fu
         parse_func = parse_funcs[0][1]
         comm_patterns.append(f"- **Command Parsing**: `{parse_func['file']}::{parse_func['function']}()`")
     
-    # If we found communication patterns, return them
+    # Return detected patterns (no fallbacks - dynamic only)
     if comm_patterns:
         return "\n".join(comm_patterns)
     
-    # Fallback to common patterns if not found
-    return """- **Message Sending**: `communication/core/channel_orchestrator.py::send_message_sync()`
-- **Channel Status**: `communication/core/channel_orchestrator.py::is_channel_ready()`
-- **Command Parsing**: `communication/message_processing/command_parser.py::parse()`"""
+    # Return empty if no patterns found (no preset text)
+    return ""
 
 def analyze_function_patterns(actual_functions: Dict[str, Dict]) -> Dict[str, Any]:
-    """Analyze function patterns for AI consumption."""
+    """Analyze function patterns for AI consumption - enhanced with more pattern detection."""
     patterns = {
         'handlers': [],
         'managers': [],
         'factories': [],
         'context_managers': [],
+        'widgets': [],
+        'dialogs': [],
+        'validators': [],
+        'decorators': [],
+        'schemas': [],
         'entry_points': [],
         'data_access': [],
-        'communication': []
+        'communication': [],
+        'error_handlers': [],
+        'schedulers': []
     }
     
     for file_path, data in actual_functions.items():
+        file_lower = file_path.lower()
+        
         # Analyze classes for patterns
         for cls in data['classes']:
             class_name = cls['name']
             methods = [m['name'] for m in cls['methods']]
+            decorators = [d for d in cls.get('decorators', [])]
             
             # Handler pattern
-            if class_name.endswith('Handler') and 'can_handle' in methods and 'handle' in methods:
+            if class_name.endswith('Handler') and ('can_handle' in methods or 'handle' in methods):
                 patterns['handlers'].append({
                     'file': file_path,
                     'class': class_name,
-                    'methods': len(methods)
+                    'methods': len(methods),
+                    'has_doc': cls.get('has_docstring', False)
                 })
             
             # Manager pattern
-            elif class_name.endswith('Manager') and ('start' in methods or 'initialize' in methods):
-                patterns['managers'].append({
-                    'file': file_path,
-                    'class': class_name,
-                    'methods': len(methods)
-                })
+            elif class_name.endswith('Manager') or 'Manager' in class_name:
+                if any(m in methods for m in ['start', 'stop', 'initialize', 'shutdown', 'get_instance']):
+                    patterns['managers'].append({
+                        'file': file_path,
+                        'class': class_name,
+                        'methods': len(methods),
+                        'has_doc': cls.get('has_docstring', False)
+                    })
             
             # Factory pattern
-            elif 'Factory' in class_name and ('create' in methods or 'register' in methods):
-                patterns['factories'].append({
+            elif 'Factory' in class_name:
+                if any(m in methods for m in ['create', 'register', 'get', 'build']):
+                    patterns['factories'].append({
+                        'file': file_path,
+                        'class': class_name,
+                        'methods': len(methods),
+                        'has_doc': cls.get('has_docstring', False)
+                    })
+            
+            # Widget pattern
+            elif 'Widget' in class_name or file_lower.endswith('_widget.py'):
+                patterns['widgets'].append({
                     'file': file_path,
                     'class': class_name,
-                    'methods': len(methods)
+                    'methods': len(methods),
+                    'has_doc': cls.get('has_docstring', False)
+                })
+            
+            # Dialog pattern
+            elif 'Dialog' in class_name or file_lower.endswith('_dialog.py'):
+                patterns['dialogs'].append({
+                    'file': file_path,
+                    'class': class_name,
+                    'methods': len(methods),
+                    'has_doc': cls.get('has_docstring', False)
+                })
+            
+            # Validator pattern
+            elif 'Validator' in class_name or 'validate' in class_name.lower():
+                if any('validate' in m.lower() for m in methods):
+                    patterns['validators'].append({
+                        'file': file_path,
+                        'class': class_name,
+                        'methods': len(methods),
+                        'has_doc': cls.get('has_docstring', False)
+                    })
+            
+            # Schema pattern (Pydantic models)
+            elif 'Schema' in class_name or 'Model' in class_name:
+                if any(d in decorators for d in ['BaseModel', 'pydantic']):
+                    patterns['schemas'].append({
+                        'file': file_path,
+                        'class': class_name,
+                        'methods': len(methods),
+                        'has_doc': cls.get('has_docstring', False)
+                    })
+            
+            # Context manager pattern
+            if '__enter__' in methods and '__exit__' in methods:
+                patterns['context_managers'].append({
+                    'file': file_path,
+                    'class': class_name,
+                    'methods': len(methods),
+                    'has_doc': cls.get('has_docstring', False)
                 })
         
         # Analyze functions for patterns
         for func in data['functions']:
             func_name = func['name']
+            func_lower = func_name.lower()
+            decorators = func.get('decorators', [])
             
             # Entry points
             if func_name in ['handle_message', 'generate_response', 'main', '__init__']:
                 patterns['entry_points'].append({
                     'file': file_path,
                     'function': func_name,
-                    'has_doc': func['has_docstring']
+                    'has_doc': func.get('has_docstring', False)
                 })
             
             # Data access
-            elif any(keyword in func_name for keyword in ['get_user', 'save_user', 'load_', 'save_']):
-                patterns['data_access'].append({
-                    'file': file_path,
-                    'function': func_name,
-                    'has_doc': func['has_docstring']
-                })
+            elif any(keyword in func_lower for keyword in ['get_user', 'save_user', 'load_user', 'save_', 'load_']):
+                if 'test' not in file_lower:
+                    patterns['data_access'].append({
+                        'file': file_path,
+                        'function': func_name,
+                        'has_doc': func.get('has_docstring', False)
+                    })
             
             # Communication
-            elif any(keyword in func_name for keyword in ['send_', 'receive_', 'connect_', 'disconnect_']):
-                patterns['communication'].append({
+            elif any(keyword in func_lower for keyword in ['send_', 'receive_', 'connect_', 'disconnect_', 'message']):
+                if 'test' not in file_lower:
+                    patterns['communication'].append({
+                        'file': file_path,
+                        'function': func_name,
+                        'has_doc': func.get('has_docstring', False)
+                    })
+            
+            # Error handlers
+            elif 'handle_errors' in func_lower or 'handle_error' in func_lower:
+                if 'test' not in file_lower:
+                    patterns['error_handlers'].append({
+                        'file': file_path,
+                        'function': func_name,
+                        'has_doc': func.get('has_docstring', False)
+                    })
+            
+            # Schedulers
+            elif 'schedule' in func_lower and ('add' in func_lower or 'create' in func_lower or 'run' in func_lower):
+                if 'test' not in file_lower:
+                    patterns['schedulers'].append({
+                        'file': file_path,
+                        'function': func_name,
+                        'has_doc': func.get('has_docstring', False)
+                    })
+            
+            # Decorators - check if function is used as a decorator
+            # Look for functions that are commonly used as decorators
+            if func_name in ['handle_errors', 'handle_error', 'log_execution']:
+                patterns['decorators'].append({
                     'file': file_path,
                     'function': func_name,
-                    'has_doc': func['has_docstring']
+                    'has_doc': func.get('has_docstring', False)
                 })
     
     return patterns

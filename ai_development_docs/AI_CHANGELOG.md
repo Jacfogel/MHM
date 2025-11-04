@@ -8,6 +8,16 @@
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-04 - AI Documentation Generators Enhancement **COMPLETED**
+- **AI Function Registry**: Enhanced pattern detection (9 patterns: handlers, managers, factories, widgets, dialogs, validators, schemas, context managers, decorators), dynamic pattern section showing all detected patterns, expanded common operations (9+ vs 4-5), removed all preset text
+- **AI Module Dependencies**: Dynamic decision trees from actual imports, automatic risk detection (high coupling, circular dependencies, third-party risks), dynamic critical dependencies, removed all hardcoded text
+- **Dependency Formatting**: Fixed duplicate module names in AI version, fixed duplicate entries in detail version, improved deduplication and formatting
+- **Manual Enhancement Restoration**: Restored 82 of 85 manual enhancements from backup (9 for renamed modules, 3 lost because modules don't exist), fixed 69 duplicate enhancement tags, verified preservation through regeneration
+- **Result**: Both generators now produce truly dynamic, data-driven documentation with comprehensive pattern detection - all preset text removed, high-signal content generated from actual codebase analysis, manual enhancements preserved
+- **Testing**: Full test suite passes (1899 passed, 1 skipped), no regressions
+
+---
+
 ### 2025-11-03 - Package-Level Exports Migration (Phases 3-10 Complete) **COMPLETED**
 - **This Session**: Completed Phases 3-10, adding 93 total exports across all packages
 - **Phase 3-4 (Communication Package)**: Added 49 exports (7 medium + 42 low/public API) - reduced missing from 173 to 0 (60 total exports)

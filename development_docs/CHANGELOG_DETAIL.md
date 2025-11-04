@@ -17,6 +17,78 @@ This file is the authoritative source for every meaningful change to the project
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-04 - AI Documentation Generators Enhancement **COMPLETED**
+
+**Objective**: Improve AI documentation generators to produce more dynamic, concise, and high-signal documentation for AI collaborators.
+
+**Background**: The AI Function Registry and AI Module Dependencies generators were producing static content with hardcoded text and limited pattern detection. The TODO.md requested improvements to make generated documentation more dynamic and valuable.
+
+**Changes Made**:
+
+1. **AI Function Registry Generator Improvements** (`ai_development_tools/generate_function_registry.py`):
+   - **Enhanced Pattern Detection**: Expanded from 4 patterns to 9 patterns (added widgets, dialogs, validators, schemas, decorators, error handlers, schedulers)
+   - **Dynamic Pattern Section**: Now shows ALL detected patterns dynamically instead of only 2 (handlers and context managers)
+   - **Improved Common Operations**: Expanded from 4-5 operations to 9+ operations, all dynamically detected
+   - **Removed Fallback Defaults**: Eliminated all preset text; all content is now generated from actual codebase analysis
+   - **Better Function Selection**: Filters out internal helper functions to show only public APIs
+
+2. **AI Module Dependencies Generator Improvements** (`ai_development_tools/generate_module_dependencies.py`):
+   - **Dynamic Decision Trees**: Built from actual imports instead of hardcoded text
+   - **Dynamic Dependency Patterns**: Detected from actual codebase relationships
+   - **Automatic Risk Detection**: High coupling, circular dependencies, and third-party risks detected automatically
+   - **Dynamic Critical Dependencies**: Entry points, data flow, and communication flow generated from actual code
+   - **Removed All Hardcoded Text**: All sections are now data-driven
+
+3. **Dependency Formatting Fixes**:
+   - **AI Version**: Fixed duplicate module names (e.g., "config, config, config" → "config")
+   - **Detail Version**: Fixed duplicate entries by merging imports by module name
+   - **Improved Formatting**: Proper deduplication, sorted dependencies, cleaner output
+
+4. **Manual Enhancement Restoration**:
+   - **Restored from Backup**: Found 85 manual enhancements in `archive/MODULE_DEPENDENCIES_preadjustment.md`
+   - **Initial Restoration**: Restored 73 enhancements directly (modules with same paths)
+   - **Renamed Module Mapping**: Created restoration script to map 9 renamed modules:
+     - `bot/ai_chatbot.py` → `ai/chatbot.py`
+     - `bot/base_channel.py` → `communication/communication_channels/base/base_channel.py`
+     - `bot/channel_factory.py` → `communication/core/factory.py`
+     - `bot/channel_registry.py` → `communication/communication_channels/base/command_registry.py`
+     - `bot/communication_manager.py` → `communication/core/channel_orchestrator.py`
+     - `bot/conversation_manager.py` → `communication/message_processing/conversation_flow_manager.py`
+     - `bot/discord_bot.py` → `communication/communication_channels/discord/bot.py`
+     - `bot/email_bot.py` → `communication/communication_channels/email/bot.py`
+     - `bot/user_context_manager.py` → `user/context_manager.py`
+   - **Final Result**: 82 of 85 enhancements preserved (9 restored for renamed modules, 3 lost because modules no longer exist: `bot/telegram_bot.py`, `core/validation.py`, `tests/task_management.py`)
+   - **Duplicate Tag Fix**: Fixed 69 duplicate `<!-- MANUAL_ENHANCEMENT_END -->` tags introduced during restoration
+   - **Preservation Verified**: Regenerated documentation confirmed 82 enhancements preserved through generation process
+
+**Technical Details**:
+- Added `deduplicate_imports()` helper function to merge imports by module
+- Enhanced `analyze_function_patterns()` to detect 9 pattern types instead of 4
+- Created helper functions: `_build_dynamic_decision_trees()`, `_find_critical_dependencies()`, `_detect_risk_areas()`, `_generate_dependency_patterns_section()`, `_generate_quick_reference()`
+- Updated `format_import_details()` to handle both list and set formats
+- Improved `_format_module_dependencies()` to properly deduplicate and format dependencies
+- Created restoration scripts: `scripts/restore_manual_enhancements.py` (initial restoration) and `scripts/restore_missing_enhancements.py` (renamed module mapping)
+- Fixed duplicate enhancement tags using regex replacement to remove duplicate `<!-- MANUAL_ENHANCEMENT_END -->` markers
+
+**Files Modified**:
+- `ai_development_tools/generate_function_registry.py`: Enhanced pattern detection and generation
+- `ai_development_tools/generate_module_dependencies.py`: Complete rewrite of AI content generation to be dynamic
+
+**Testing**:
+- Full test suite: 1899 passed, 1 skipped, 4 warnings (expected Discord deprecation warnings)
+- Generated documentation verified: Both AI_FUNCTION_REGISTRY.md and AI_MODULE_DEPENDENCIES.md now contain dynamic, high-signal content
+- No regressions: All existing functionality preserved
+
+**Documentation Updates**:
+- Updated `TODO.md`: Marked AI Tools Improvement as completed and removed from TODO
+- Updated `development_docs/PLANS.md`: Marked AI Tools Improvement Plan as completed with results, removed completed plan
+- Updated `development_docs/PLANS.md`: Updated Error Handling Coverage Expansion status (92.0% achieved, 1,285 functions protected, 1899 tests passing)
+- Updated `development_docs/MODULE_DEPENDENCIES_DETAIL.md`: Restored 82 manual enhancements from backup, verified preservation through regeneration
+
+**Result**: AI documentation generators now produce truly dynamic, data-driven documentation that provides high-signal, actionable information for AI collaborators. All preset text removed, comprehensive pattern detection implemented, and formatting issues resolved. Manual enhancements (82 of 85) successfully restored and preserved through regeneration process, ensuring valuable manual documentation is maintained alongside auto-generated content.
+
+---
+
 ### 2025-11-03 - Package-Level Exports Migration (Phases 3-10 Complete) **COMPLETED**
 
 **Phases 3-10 Completion (This Session)**:
