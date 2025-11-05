@@ -68,7 +68,10 @@ The `docs` command additionally generates:
 - `ai_development_docs/AI_FUNCTION_REGISTRY.md` - AI-optimized function registry
 - `ai_development_docs/AI_MODULE_DEPENDENCIES.md` - AI-optimized module dependencies
 
-**Manual Enhancement Preservation**: The `generate_module_dependencies.py` script preserves manual enhancements in `MODULE_DEPENDENCIES_DETAIL.md`. Content marked between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is automatically preserved during regeneration, allowing you to add detailed descriptions, key functions, and special considerations without losing them when dependencies are updated.
+**Manual Enhancement Preservation**: The `generate_module_dependencies.py` script preserves manual enhancements in `MODULE_DEPENDENCIES_DETAIL.md`. Content marked between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is automatically preserved during regeneration, allowing you to add detailed descriptions, key functions, and special considerations without losing them when dependencies are updated. The generator now includes validation and reporting:
+- Reports which manual enhancements were found and preserved (with module names and summaries)
+- Validates that preserved enhancements are actually present in the written file
+- Warns if any enhancements are missing, helping ensure preservation works correctly
 
 ## Key Scripts
 - `function_discovery.py`, `decision_support.py`, `audit_function_registry.py`, `audit_module_dependencies.py`

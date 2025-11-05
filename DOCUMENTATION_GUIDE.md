@@ -139,7 +139,7 @@ Every generated file must open with:
 
 ### Maintenance Rules
 - Regenerate files by running the tool-never edit generated content manually.
-- **Exception**: `MODULE_DEPENDENCIES_DETAIL.md` uses a hybrid approach: content between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is preserved during regeneration, allowing manual enhancements (descriptions, key functions, special considerations) alongside auto-generated dependency information.
+- **Exception**: `MODULE_DEPENDENCIES_DETAIL.md` uses a hybrid approach: content between `<!-- MANUAL_ENHANCEMENT_START -->` and `<!-- MANUAL_ENHANCEMENT_END -->` is preserved during regeneration, allowing manual enhancements (descriptions, key functions, special considerations) alongside auto-generated dependency information. The generator now includes validation and reporting to ensure enhancements are preserved correctly.
 - Update tool metadata whenever the generator changes behaviour.
 - Archive prior outputs when trimming or rotating files to keep history auditable.
 

@@ -9,13 +9,115 @@
 ## Overview
 This file is the authoritative source for every meaningful change to the project. Entries appear in reverse chronological order and include background, goals, technical changes, documentation updates, testing steps, and outcomes.
 
-## How to Update This File
-1. Add a new entry at the top using the existing structure.
-2. Include context, the problem being solved, technical changes, documentation updates, and testing evidence.
-3. Reference affected files or directories explicitly so future readers can trace history.
-4. Add a concise summary of the same change to ai_development_docs/AI_CHANGELOG.md.
+### How to Add Changes
+
+When adding new changes, follow this format:
+
+```markdown
+### YYYY-MM-DD - Brief Title
+- **Feature**: What was added/changed, include context, technical changes, documentation updates, and testing evidence. Reference affected files or directories explicitly so future readers can trace history.
+- **Impact**: the problem being solved, what this improves or fixes
+```
+
+**Important Notes:**
+- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
+- Entries should generally be limited to a maximum of 1 per day, if an entry already exists for the current day you can edit it to include additional updates. Exceptions may be made for multiple unrelated changes
+- **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
+- **Paired document maintenance**: When updating human-facing documents, check if corresponding AI-facing documents need updates:
+  - **../DEVELOPMENT_WORKFLOW.md** ? **../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md**
+  - **../ARCHITECTURE.md** ? **../ai_development_docs/AI_ARCHITECTURE.md**
+  - **../DOCUMENTATION_GUIDE.md** ? **../ai_development_docs/AI_DOCUMENTATION_GUIDE.md**
+  - **CHANGELOG_DETAIL.md** ? **../ai_development_docs/AI_CHANGELOG.md**
+- Keep entries **concise** and **action-oriented**
+- Maintain **chronological order** (most recent first)
+
+------------------------------------------------------------------------------------------
 
 ## Recent Changes (Most Recent First)
+
+### 2025-11-04 - Documentation Maintenance, Error Messages, and AI Prompt Improvements **COMPLETED**
+
+**Objective**: Review and update key documentation files, enhance documentation generation tools with validation, improve error messages in UI dialogs to be more actionable and user-friendly, and strengthen AI system prompt instructions to address prompt-response mismatches identified in test review.
+
+**Background**: Multiple documentation maintenance tasks were needed: ensuring ARCHITECTURE.md reflects current system architecture, adding validation to the module dependencies generator to ensure manual enhancements are preserved through regeneration, improving error messages throughout the UI to provide clearer, actionable guidance to users when issues occur, and addressing prompt-response mismatches found in AI functionality test review (6 tests with incorrect grading due to greetings not being answered, information requests not being fulfilled, and role reversal patterns).
+
+**Changes Made**:
+
+1. **ARCHITECTURE.md Review and Update**:
+   - Added "Last Updated: 2025-11-04" to document header for tracking
+   - Added reference to `ai/README.md` in the document header for comprehensive AI system documentation
+   - Added new "AI System Integration" section explaining how the AI system integrates into the communication flow
+   - Documented AI components (`ai/chatbot.py`, `ai/prompt_manager.py`, `ai/cache_manager.py`, `ai/lm_studio_manager.py`)
+   - Explained context building and fallback mechanisms
+   - Verified all critical file paths exist and are accurate
+   - Confirmed all module references are current
+   - Validated data flow diagram accurately represents current architecture
+
+2. **Manual Enhancement Preservation Validation** (`ai_development_tools/generate_module_dependencies.py`):
+   - Enhanced `preserve_manual_enhancements()` function to return both final content and preservation information
+   - Changed return type from `str` to `Tuple[str, Dict[str, str]]` to track preserved enhancements
+   - Added tracking of preserved enhancements with summaries (first line of each enhancement) for reporting
+   - Enhanced extraction logic to identify actual manual enhancements (excluding placeholders)
+   - Added reporting section that lists all preserved manual enhancements with their module names and summaries
+   - Added validation step that verifies preserved enhancements are actually present in the written file
+   - Reports success when all enhancements are verified, or warning if any are missing
+   - Updated `update_module_dependencies()` to handle the new return type and use preserved enhancement information for reporting
+
+**Files Modified**:
+- `ARCHITECTURE.md`: Added last updated date, AI system integration section, and documentation references
+- `ai_development_tools/generate_module_dependencies.py`: Enhanced preservation function with validation and reporting
+- `TODO.md`: Removed completed tasks
+
+**Testing**:
+- Import test passed: Function successfully imports and type hints are correct
+- All file paths verified to exist: `communication/core/channel_orchestrator.py`, `core/message_management.py`, `core/user_management.py`, etc.
+- All module references confirmed accurate
+- No linter errors introduced
+
+3. **Enhanced Error Messages in UI Dialogs**:
+   - Improved error messages in `schedule_editor_dialog.py`, `account_creator_dialog.py`, `user_profile_dialog.py`, and `message_editor_dialog.py`
+   - Changed from technical error messages to actionable, user-friendly messages
+   - Added bullet-point lists of specific things to check
+   - Included guidance on next steps (e.g., "try closing and reopening the dialog")
+   - Made validation messages clearer with context about what needs to be fixed
+
+4. **Strengthened AI System Prompt Instructions** (based on test review findings):
+   - Enhanced "Greeting Handling" instructions with explicit BAD/GOOD examples showing how to answer "How are you?" before redirecting
+   - Enhanced "Question Handling" instructions with BAD/GOOD examples showing how to answer questions before redirecting
+   - Enhanced "Requests for Information" instructions with BAD/GOOD examples for:
+     - "Tell me something helpful" → Should provide helpful info, not ask questions
+     - "Tell me about yourself" → Should describe AI capabilities, not ask user for info
+     - "Tell me a fact" → Should provide a fact, not ask questions
+     - "Tell me about your capabilities" → Should describe capabilities, not ask questions
+   - Updated instructions in `resources/assistant_system_prompt.txt`, `ai/prompt_manager.py` (fallback prompt), and `ai/chatbot.py` (`_create_comprehensive_context_prompt` method)
+   - Added explicit examples showing what NOT to do (BAD examples) and what TO do (GOOD examples) to make instructions clearer
+
+**Files Modified**:
+- `ARCHITECTURE.md`: Added last updated date, AI system integration section, and documentation references
+- `ai_development_tools/generate_module_dependencies.py`: Enhanced preservation function with validation and reporting
+- `ui/dialogs/schedule_editor_dialog.py`: Improved error messages to be more actionable
+- `ui/dialogs/account_creator_dialog.py`: Enhanced error messages with specific guidance
+- `ui/dialogs/user_profile_dialog.py`: Improved save error messages
+- `ui/dialogs/message_editor_dialog.py`: Enhanced load error messages
+- `resources/assistant_system_prompt.txt`: Strengthened prompt instructions with BAD/GOOD examples
+- `ai/prompt_manager.py`: Enhanced fallback prompt with strengthened instructions
+- `ai/chatbot.py`: Updated `_create_comprehensive_context_prompt` method with strengthened instructions
+- `.cursor/commands/docs.md`: Added note about validation/reporting for manual enhancements
+- `ai_development_tools/README.md`: Added details about validation/reporting for manual enhancements
+- `ai/README.md`: Added prompt instructions section documenting system prompt features
+- `DOCUMENTATION_GUIDE.md`: Updated to mention validation/reporting for manual enhancements
+- `ai_development_docs/AI_DOCUMENTATION_GUIDE.md`: Updated to mention validation/reporting for manual enhancements
+- `TODO.md`: Removed completed tasks
+
+**Testing**:
+- Import test passed: Function successfully imports and type hints are correct
+- All file paths verified to exist: `communication/core/channel_orchestrator.py`, `core/message_management.py`, `core/user_management.py`, etc.
+- All module references confirmed accurate
+- No linter errors introduced
+
+**Result**: ARCHITECTURE.md now accurately reflects current system architecture with AI integration details, manual enhancement preservation includes validation and reporting to ensure enhancements are not lost during regeneration, UI error messages are now clearer and more actionable to help users resolve issues faster, and AI system prompt instructions are strengthened with explicit BAD/GOOD examples to address prompt-response mismatches identified in test review. All improvements enhance documentation quality, user experience, and AI response quality.
+
+---
 
 ### 2025-11-04 - AI Documentation Generators Enhancement **COMPLETED**
 
@@ -4440,31 +4542,6 @@ except Exception as truncate_error:
 
 **Impact**: Complete legacy code management system with focused detection, mandatory tool maintenance, and integration with existing standards.
 
-### ?? How to Add Changes
-
-When adding new changes, follow this format:
-
-```markdown
-### YYYY-MM-DD - Brief Title
-- **Feature**: What was added/changed
-- **Impact**: What this improves or fixes
-```
-
-**Important Notes:**
-- **Outstanding tasks** should be documented in TODO.md, not in changelog entries
-- Entries should generally be limited to a maximum of 1 per day, if an entry already exists for the current day you can edit it to include additional updates. Exceptions may be made for multiple unrelated changes
-- **Always add a corresponding entry** to AI_CHANGELOG.md when adding to this detailed changelog
-- **Paired document maintenance**: When updating human-facing documents, check if corresponding AI-facing documents need updates:
-  - **../DEVELOPMENT_WORKFLOW.md** ? **../ai_development_docs/AI_DEVELOPMENT_WORKFLOW.md**
-  - **../ARCHITECTURE.md** ? **../ai_development_docs/AI_ARCHITECTURE.md**
-  - **../DOCUMENTATION_GUIDE.md** ? **../ai_development_docs/AI_DOCUMENTATION_GUIDE.md**
-  - **CHANGELOG_DETAIL.md** ? **../ai_development_docs/AI_CHANGELOG.md**
-- Keep entries **concise** and **action-oriented**
-- Maintain **chronological order** (most recent first)
-
-------------------------------------------------------------------------------------------
-
-##  Recent Changes (Most Recent First)
 
 ### 2025-09-17 - Test Artifact Cleanup and Fixture Fixes  **COMPLETED**
 

@@ -6,7 +6,40 @@
 
 > **See [CHANGELOG_DETAIL.md](../development_docs/CHANGELOG_DETAIL.md) for the full history**
 
+
+## How to Update This File
+1. Add a new entry at the top summarising the change in 2-4 bullets.
+2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".
+3. Reference affected areas only when essential for decision-making.
+4. Move older entries to ai_development_tools\archive\AI_CHANGELOG_ARCHIVE.md to stay within 10-15 total.
+
+Template:
+```markdown
+### YYYY-MM-DD - Brief Title **COMPLETED**
+- Key accomplishment in one sentence
+- Extra critical detail if needed
+- User impact or follow-up note
+```
+
+Guidelines:
+- Keep entries concise
+- Focus on what was accomplished and why it matters
+- Limit entries to 1 per chat session. Exceptions may be made for multiple unrelated changes
+- Maintain chronological order (most recent first)
+- REMOVE OLDER ENTRIES when adding new ones to keep context short
+- Target 10-15 recent entries maximum for optimal AI context window usage
+
 ## Recent Changes (Most Recent First)
+
+### 2025-11-04 - Documentation Maintenance, Error Messages, and AI Prompt Improvements **COMPLETED**
+- **ARCHITECTURE.md**: Added last updated date, AI system integration section, and documentation references; verified all file paths and module references are accurate
+- **Manual Enhancement Preservation**: Enhanced `preserve_manual_enhancements()` to return preservation info and added validation/reporting to ensure manual enhancements are not lost during regeneration
+- **Enhanced Error Messages**: Improved error messages in UI dialogs (schedule editor, account creator, user profile, message editor) to be more actionable with specific guidance and bullet-point lists of things to check
+- **Strengthened AI Prompt Instructions**: Enhanced system prompt instructions with explicit BAD/GOOD examples for greeting handling, question handling, and information requests to address prompt-response mismatches found in test review (6 tests with incorrect grading)
+- **Documentation Updates**: Updated `.cursor/commands/docs.md`, `ai_development_tools/README.md`, `ai/README.md`, `DOCUMENTATION_GUIDE.md`, and `ai_development_docs/AI_DOCUMENTATION_GUIDE.md` to reflect validation/reporting features and prompt instructions
+- **Result**: ARCHITECTURE.md now accurately reflects current system architecture, documentation generation tools include validation, UI error messages are clearer and more actionable, AI prompt instructions are strengthened to address test review findings, and all related documentation is updated
+
+---
 
 ### 2025-11-04 - AI Documentation Generators Enhancement **COMPLETED**
 - **AI Function Registry**: Enhanced pattern detection (9 patterns: handlers, managers, factories, widgets, dialogs, validators, schemas, context managers, decorators), dynamic pattern section showing all detected patterns, expanded common operations (9+ vs 4-5), removed all preset text
@@ -211,29 +244,6 @@
 - Progress: 77 files cleaned, ~171 imports removed (from original 489)
 - Remaining: 73 files with 302 unused imports for Phase 2.12
 
-## How to Update This File
-1. Add a new entry at the top summarising the change in 2-4 bullets.
-2. Keep the title short: "YYYY-MM-DD - Brief Title **COMPLETED**".
-3. Reference affected areas only when essential for decision-making.
-4. Move older entries to ai_development_tools\archive\AI_CHANGELOG_ARCHIVE.md to stay within 10-15 total.
-
-Template:
-```markdown
-### YYYY-MM-DD - Brief Title **COMPLETED**
-- Key accomplishment in one sentence
-- Extra critical detail if needed
-- User impact or follow-up note
-```
-
-Guidelines:
-- Keep entries concise
-- Focus on what was accomplished and why it matters
-- Limit entries to 1 per chat session. Exceptions may be made for multiple unrelated changes
-- Maintain chronological order (most recent first)
-- REMOVE OLDER ENTRIES when adding new ones to keep context short
-- Target 10-15 recent entries maximum for optimal AI context window usage
-
-## Recent Changes (Most Recent First)
 
 ### 2025-10-21 - Coverage Workflow Stabilisation & AI Report Refresh **COMPLETED**
 - **Coverage Regeneration**: Reworked `regenerate_coverage_metrics.py` to capture pytest logs, skip redundant combines, consolidate shard databases, and publish HTML to `ai_development_tools/coverage_html/` while migrating legacy assets.

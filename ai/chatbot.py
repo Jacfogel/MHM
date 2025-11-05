@@ -781,6 +781,37 @@ User Context:
 {context_str}
 
 Additional Instructions:
+- **GREETING HANDLING**: When the user greets you (Hello, Hi, Hey) or asks "How are you?" (referring to you, the AI):
+  * ALWAYS acknowledge the greeting first (e.g., "Hello!" or "Hi there!")
+  * If they ask "How are you?" about you, answer that question first (e.g., "I'm doing well, thank you for asking!" or "I'm here and ready to help!")
+  * THEN you can redirect to asking about them (e.g., "How are you doing today?")
+  * NEVER skip acknowledging greetings or redirecting without answering questions about you first
+  * BAD examples (NEVER do this): "How are you doing today?" (redirects without answering), "What's on your mind?" (ignores the greeting/question)
+  * GOOD examples: "I'm doing well, thank you for asking! How are you doing today?" (answers first, then redirects), "Hello! I'm here and ready to help. How are you doing today?" (acknowledges greeting, then asks about user)
+- **QUESTION HANDLING**: When the user asks a direct question, answer it before redirecting or asking follow-up questions:
+  * BAD examples (NEVER do this): "How can I help?" (ignores the question), "What's on your mind?" (redirects without answering)
+  * GOOD examples: "I'm doing well, thank you! How are you doing?" (answers first, then asks), "I'm here to support you with mental health and wellness. What would you like to know?" (answers, then invites follow-up)
+- **REQUESTS FOR INFORMATION**: When the user requests specific information (e.g., "Tell me something helpful", "Tell me about yourself", "Tell me a fact", "Tell me about your capabilities"), provide that information directly rather than redirecting with questions:
+  * BAD examples (NEVER do this): "Tell me something helpful" → "How are you doing today?" (asks questions instead of providing info), "Tell me about yourself" → "How can I help?" (redirects instead of describing), "Tell me a fact" → "What's on your mind?" (asks questions instead of providing fact), "Tell me about your capabilities" → "How are you feeling?" (asks questions instead of describing capabilities)
+  * GOOD examples: "Tell me something helpful" → "Here's something helpful: Taking deep breaths can help reduce stress. Try the 4-7-8 breathing technique..." (provides helpful info), "Tell me about yourself" → "I'm an AI assistant designed to support mental health and wellness. I can help with check-ins, task management, scheduling, and providing emotional support..." (describes capabilities), "Tell me a fact" → "Here's an interesting fact: Regular exercise can boost mood by releasing endorphins..." (provides a fact), "Tell me about your capabilities" → "I can help with task management (create, list, update, complete tasks), managing automated messages, scheduling reminders, check-in support, and providing emotional support..." (describes capabilities)
+  * NEVER redirect with "How can I help?" when they're asking for specific information - provide the information first, THEN you can ask follow-up questions if appropriate
+- **VAGUE REFERENCES**: NEVER use vague references like "it", "that", "this" when there is no prior context or clear antecedent. When context is missing or unclear:
+  * BAD examples (avoid these): "I'm here if you want to talk more about it", "How are you feeling about that?", "I'm here if you want to talk more about this"
+  * GOOD examples (use these instead): "What would you like to talk about?", "How are you feeling today?", "I'm here if you want to talk more about what's on your mind"
+  * Only use vague references when the user JUST mentioned something specific in the current conversation (e.g., if they said "I'm stressed about work", you can say "How are you feeling about that work stress?" because "that" clearly refers to "work stress")
+  * But if the user just said "Hello" or "How am I doing?" with no prior context, DO NOT use vague references - be explicit
+  * If you don't have context to answer a question, ask for clarification explicitly instead of using vague references
+- **DATA ACCURACY**: NEVER fabricate, invent, or assume data that doesn't exist. ONLY reference data that is explicitly provided in the User Context:
+  * If the context says "They have not completed any check-ins yet" or "They have 0 check-ins", DO NOT claim they have check-in data or statistics
+  * If the context says "New user with no data", DO NOT make claims about their habits, patterns, or check-in history
+  * ONLY use data that is explicitly provided - if check-in data is missing or empty, say so honestly (e.g., "I don't have check-in data yet, but we can start tracking that!")
+  * NEVER make up statistics, percentages, or patterns that aren't in the context
+- **LOGICAL CONSISTENCY**: NEVER make self-contradictory statements. If you claim something positive (e.g., "You're doing great!"), do NOT immediately provide contradictory negative evidence (e.g., "You haven't completed any check-ins"). Be honest and consistent:
+  * If data shows positive patterns, acknowledge them positively
+  * If data shows negative patterns, acknowledge them honestly but supportively
+  * If data is missing, acknowledge the lack of data - don't make positive claims and then contradict them
+  * Example BAD: "You're doing great! You've been checking in regularly. However, you haven't completed any check-ins yet." (contradictory)
+  * Example GOOD: "I don't have check-in data yet, but we can start tracking that! How are you feeling today?"
 - Use the user's actual data to provide personalized, specific responses
 - Reference specific numbers, percentages, and trends from their check-in data
 - Be encouraging and supportive while being honest about their patterns
@@ -994,6 +1025,14 @@ Additional Instructions:
         if mode != "chat":
             cached_response = self.response_cache.get(prompt_for_key, uid_for_key, prompt_type=ptype)
             if cached_response and not cached_response.startswith("I'm here to listen and support you"):
+                # Clean cached command responses to remove any code fragments that may have been cached
+                if mode == "command":
+                    cleaned_response = self._extract_command_from_response(cached_response)
+                    ai_logger.debug("AI response served from cache (cleaned)", 
+                                   user_id=user_id, 
+                                   mode=mode, 
+                                   prompt_length=len(user_prompt))
+                    return cleaned_response
                 ai_logger.debug("AI response served from cache", 
                                user_id=user_id, 
                                mode=mode, 
@@ -1426,6 +1465,14 @@ Additional Instructions:
         filtered_lines = []
         skip_next = False
         
+        # Instruction keywords that indicate leaked system prompt content
+        instruction_keywords = [
+            'use the', 'reference specific', 'be encouraging', 'keep responses',
+            'provide meaningful', 'if they ask', 'never include', 'never return',
+            'return only', 'stop when', 'adapt your', 'for health advice',
+            'be supportive and engaging', 'conversational and helpful'
+        ]
+        
         for i, line in enumerate(lines):
             line_lower = line.strip().lower()
             
@@ -1448,6 +1495,12 @@ Additional Instructions:
                 'do not mention tasks',
             ]):
                 continue
+            
+            # Skip lines that look like bullet-point instructions (starts with -, *, or • followed by instruction keywords)
+            line_stripped = line.strip()
+            if line_stripped and line_stripped[0] in ['-', '*', '•']:
+                if any(keyword in line_lower for keyword in instruction_keywords):
+                    continue
             
             # Skip lines immediately after metadata markers (they might be continuation)
             if skip_next:
@@ -1568,6 +1621,7 @@ Additional Instructions:
         for line in lines:
             line_stripped = line.strip()
             # Remove code-like lines (including Python code blocks with ```)
+            # Also remove function documentation lines and variable names
             if (line_stripped.startswith('import ') or 
                 line_stripped.startswith('from ') or
                 line_stripped.startswith('def ') or
@@ -1577,7 +1631,13 @@ Additional Instructions:
                 line_stripped.startswith('#') or
                 line_stripped.startswith('```python') or
                 line_stripped.startswith('```') or
-                line_stripped == '```'):
+                line_stripped == '```' or
+                'This function takes' in line_stripped or  # Function documentation
+                'This function' in line_stripped or  # Function documentation
+                'takes in a message' in line_stripped.lower() or  # Function doc fragments
+                'returns the user' in line_stripped.lower() or  # Function doc fragments
+                line_stripped.endswith('_re') or  # Function/variable names like "create_task_re"
+                (len(line_stripped.split()) == 1 and '_' in line_stripped and not line_stripped.startswith('ACTION'))):  # Single-word identifiers like "create_task_re"
                 continue
             if line_stripped:
                 clean_lines.append(line_stripped)

@@ -6,7 +6,7 @@ Scans all .py files and creates comprehensive module dependency documentation.
 
 import ast
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple
 from datetime import datetime
 import sys
 from pathlib import Path
@@ -624,10 +624,17 @@ def generate_module_section(file_path: str, data: Dict, all_modules: Dict[str, D
     
     return content
 
-def preserve_manual_enhancements(existing_content: str, new_content: str) -> str:
-    """Preserve manual enhancements from existing content when regenerating."""
+def preserve_manual_enhancements(existing_content: str, new_content: str) -> Tuple[str, Dict[str, str]]:
+    """
+    Preserve manual enhancements from existing content when regenerating.
+    
+    Returns:
+        tuple: (final_content, preserved_enhancements)
+            - final_content: The new content with manual enhancements preserved
+            - preserved_enhancements: Dict mapping module names to their preserved enhancement content (without markers)
+    """
     if not existing_content:
-        return new_content
+        return new_content, {}
     
     # Extract general manual enhancement section from existing content
     general_manual_enhancement = ""
@@ -675,6 +682,8 @@ def preserve_manual_enhancements(existing_content: str, new_content: str) -> str
     
     # Extract manual enhancements
     manual_enhancements = {}
+    preserved_info = {}  # Track preserved enhancements for reporting
+    
     for section_name, section_content in sections.items():
         start_marker = "<!-- MANUAL_ENHANCEMENT_START -->"
         end_marker = "<!-- MANUAL_ENHANCEMENT_END -->"
@@ -685,9 +694,15 @@ def preserve_manual_enhancements(existing_content: str, new_content: str) -> str
         if start_pos != -1 and end_pos != -1:
             # Extract the entire manual enhancement content including markers
             manual_content = section_content[start_pos:end_pos + len(end_marker)]
+            # Extract content without markers for reporting
+            content_without_markers = section_content[start_pos + len(start_marker):end_pos].strip()
             # Preserve if it contains any content beyond the placeholder
             if "Add any additional context" not in manual_content or len(manual_content.strip()) > len("<!-- MANUAL_ENHANCEMENT_START -->\n<!-- MANUAL_ENHANCEMENT_END -->"):
                 manual_enhancements[section_name] = manual_content
+                if content_without_markers and content_without_markers != "<!-- Add any additional context, key functions, or special considerations here -->":
+                    # Store first line or summary for reporting
+                    first_line = content_without_markers.split('\n')[0].strip()
+                    preserved_info[section_name] = first_line[:100] + "..." if len(first_line) > 100 else first_line
             else:
                 pass # No manual enhancement content found
     
@@ -735,7 +750,7 @@ def preserve_manual_enhancements(existing_content: str, new_content: str) -> str
         result_lines.append("")
         result_lines.append(general_manual_enhancement)
     
-    return '\n'.join(result_lines)
+    return '\n'.join(result_lines), preserved_info
 
 def identify_modules_needing_enhancement(existing_content: str, actual_imports: Dict[str, Dict]) -> Dict[str, str]:
     """Identify modules that need manual enhancements or updates."""
@@ -1317,7 +1332,7 @@ def update_module_dependencies():
     enhancement_status = identify_modules_needing_enhancement(existing_content, actual_imports)
     
     # Preserve manual enhancements
-    final_detail_content = preserve_manual_enhancements(existing_content, detail_content)
+    final_detail_content, preserved_enhancements = preserve_manual_enhancements(existing_content, detail_content)
     
     # Write the DETAIL file
     try:
@@ -1340,6 +1355,14 @@ def update_module_dependencies():
         print(ensure_ascii(f"   Coverage: 100% (all files documented)"))
         print(ensure_ascii(f"   Detail file: {detail_path}"))
         print(ensure_ascii(f"   AI file: {ai_path}"))
+        
+        # Report preserved manual enhancements
+        if preserved_enhancements:
+            print(ensure_ascii(f"\n[PRESERVED] Manual Enhancements Preserved ({len(preserved_enhancements)}):"))
+            for module_name, enhancement_summary in sorted(preserved_enhancements.items()):
+                print(ensure_ascii(f"   {module_name}: {enhancement_summary}"))
+        else:
+            print(ensure_ascii(f"\n[PRESERVED] No manual enhancements found to preserve"))
         
         # Report enhancement status
         print(ensure_ascii(f"\n[ENHANCEMENT] Manual Enhancement Status:"))
@@ -1370,6 +1393,25 @@ def update_module_dependencies():
                     'dependencies_changed': '[CHG]'
                 }.get(status, '[?]')
                 print(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
+        
+        # Validate that preserved enhancements are actually in the written file
+        if preserved_enhancements:
+            try:
+                with open(detail_path, 'r', encoding='utf-8') as f:
+                    written_content = f.read()
+                
+                preserved_count = 0
+                for module_name, enhancement_summary in preserved_enhancements.items():
+                    # Check if the enhancement content appears in the written file
+                    if enhancement_summary.split('\n')[0] in written_content:
+                        preserved_count += 1
+                
+                if preserved_count == len(preserved_enhancements):
+                    print(ensure_ascii(f"\n[VALIDATION] All {preserved_count} manual enhancements verified in written file"))
+                else:
+                    print(ensure_ascii(f"\n[VALIDATION] Warning: Only {preserved_count}/{len(preserved_enhancements)} manual enhancements found in written file"))
+            except Exception as e:
+                print(ensure_ascii(f"\n[VALIDATION] Could not validate preserved enhancements: {e}"))
         
         return True
         

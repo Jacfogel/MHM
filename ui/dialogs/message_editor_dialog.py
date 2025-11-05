@@ -228,7 +228,16 @@ class MessageEditorDialog(QDialog):
             
         except Exception as e:
             logger.error(f"Error loading messages for user {self.user_id}, category {self.category}: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to load messages: {str(e)}")
+            QMessageBox.critical(
+                self,
+                "Load Failed",
+                "Unable to load messages for this category.\n\n"
+                "Please check that:\n"
+                "• The user data files are accessible\n"
+                "• The category exists and is enabled\n"
+                "• You have permission to read files\n\n"
+                "Try closing and reopening the dialog, or check the logs for details."
+            )
     
     def show_no_messages_state(self):
         """Show state when no messages are found."""

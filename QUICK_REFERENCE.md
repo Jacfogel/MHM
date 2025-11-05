@@ -58,7 +58,29 @@ pip freeze > requirements.txt
 
 ## Discord Commands
 
-For a complete, up-to-date command list and examples, see `communication/communication_channels/discord/DISCORD.md`.
+**Primary Method**: Use natural language - the bot understands context and intent!
+
+**Available Commands** (both `/command` and `!command` work):
+- `/tasks` or `!tasks` - Show your tasks
+- `/profile` or `!profile` - Show your profile
+- `/schedule` or `!schedule` - Show your schedules
+- `/messages` or `!messages` - Show your messages
+- `/analytics` or `!analytics` - Show wellness analytics
+- `/status` or `!status` - Show system/user status
+- `/help` or `!help` - Show help and examples
+- `/checkin` or `!checkin` - **Start a check-in flow** (conversational - bot asks questions)
+- `/cancel` or `!cancel` - Cancel current flow
+
+**Note**: `/checkin` is a conversational flow (multi-turn). All other commands are single-turn responses.
+
+**Natural Language Examples**:
+- "create a task to buy groceries due tomorrow"
+- "show my tasks"
+- "how am I feeling today?" (starts check-in)
+- "show my analytics"
+
+For complete command documentation and examples, see `communication/communication_channels/discord/DISCORD.md`.
+
 ### User Data
 - `data/users/` - User profiles and preferences
 - `data/users/{user_id}/messages/` - Per-user custom messages by category

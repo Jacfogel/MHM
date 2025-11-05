@@ -2,10 +2,12 @@
 
 > **Audience**: Human developers building or maintaining the platform  
 > **Purpose**: Explain system design, module responsibilities, and data flow  
-> **Style**: Technical, detailed, reference-oriented
+> **Style**: Technical, detailed, reference-oriented  
+> **Last Updated**: 2025-11-04
 
 > **See [README.md](README.md) for complete navigation and project overview**  
-> **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**
+> **See [AI_ARCHITECTURE.md](ai_development_docs/AI_ARCHITECTURE.md) for AI-optimized quick reference**  
+> **See [ai/README.md](ai/README.md) for comprehensive AI system documentation**
 
 ## Quick Reference
 
@@ -127,6 +129,15 @@ flowchart TD
 **Read Flow**: Data retrieval follows the reverse path - handlers read from files and return data to entry points (shown as dotted lines).
 
 **Note**: The AI Chatbot is used internally by the Command Parser for AI-enhanced command parsing and contextual chat responses, not as a separate entry point.
+
+### AI System Integration
+
+The AI system (`ai/`) provides intelligent, context-aware responses and is integrated into the communication flow:
+- **Entry Point**: Called by the Command Parser for enhanced parsing and contextual responses
+- **Components**: `ai/chatbot.py` (main logic), `ai/prompt_manager.py` (prompts), `ai/cache_manager.py` (caching), `ai/lm_studio_manager.py` (LM Studio connection)
+- **Context Building**: Uses `user/context_manager.py` to build comprehensive user context from user data
+- **Fallback**: Falls back to contextual responses if LM Studio is unavailable
+- **See**: [ai/README.md](ai/README.md) for detailed AI system architecture
 
 ### Critical Files
 - `run_mhm.py` -> main entry point.

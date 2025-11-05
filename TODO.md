@@ -26,10 +26,6 @@ When adding new tasks, follow this format:
 - **TODO.md is for TODOs only** - completed tasks should be documented in CHANGELOG files and removed from TODO.md
 
 
-**Restore MANUAL ENHANCEMENT details to development_docs\MODULE_DEPENDENCIES_DETAIL.md**
-- Ensure manual enhancements are preserved through regeneration 
-
-
 **Nightly No-Shim Validation Runs**
 - *What it means*: Run the full suite with `ENABLE_TEST_DATA_SHIM=0` nightly to validate underlying stability.
 - *Why it helps*: Ensures we're not masking issues behind the test-only shim and maintains long-term robustness.
@@ -150,14 +146,26 @@ When adding new tasks, follow this format:
 - *What it means*: Address 10 issues identified in AI functionality test results: prompt-response mismatches (greetings not acknowledged, questions redirected), fabricated check-in data, incorrect facts, repetitive responses, code fragments in command responses, and system prompt leaks
 - *Why it helps*: Improves AI response quality and ensures responses actually address user prompts appropriately
 - *Estimated effort*: Medium
-- *Current Status*: Issues documented in `tests/ai/results/ai_functionality_test_results_latest.md` - AI Review section
+- *Current Status*: ✅ **IN PROGRESS** - Significant improvements made:
+  - ✅ T-1.1, T-12.2: Greeting handling instructions strengthened with BAD/GOOD examples (prompt updated, monitoring)
+  - ✅ T-1.2, T-12.4, T-15.2: Information request handling strengthened with explicit BAD/GOOD examples for "Tell me about your capabilities", "Tell me a fact", and "Tell me about yourself" (prompt updated, monitoring)
+  - ✅ T-2.1, T-2.3, T-8.1, T-14.1: Vague reference instructions strengthened (improved, still some remaining)
+  - ✅ T-4.1, T-9.2, T-13.3: Fabricated data prevention added
+  - ✅ T-13.3: Meta-text leak cleaning enhanced
+  - ✅ T-12.1: Information request handling added (should provide helpful info, not redirect)
+  - ✅ T-15.2: "Tell me about yourself" handling strengthened with explicit examples
+  - ✅ T-11.1: Code fragments in command responses - FIXED (added cleaning for cached responses and enhanced fragment detection)
+  - ✅ T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED (logical consistency instructions)
+  - ⚠️ T-15.1: System prompt instructions leaked (cleaning added, monitor)
 - *Specific Issues*:
-  - T-1.1, T-8.1, T-9.3, T-13.3: Prompt-response mismatches (greetings redirected, questions not answered)
-  - T-11.1: Code fragments in command responses
-  - T-12.1: Generic motivational content instead of helpful information
-  - T-12.4: Incorrect fact with self-contradiction (claims X but provides data showing NOT X)
-  - T-14.1, T-16.2: Fabricated check-in details/statistics when no check-in data exists
-  - T-15.1: System prompt instructions leaked into response + repetitive phrasing
+  - ✅ T-1.1, T-12.2: Prompt-response mismatches (greetings) - PROMPT UPDATED with BAD/GOOD examples (monitoring)
+  - ✅ T-1.2, T-12.4, T-15.2: Prompt-response mismatches (information requests) - PROMPT UPDATED with explicit BAD/GOOD examples (monitoring)
+  - ⚠️ T-8.1, T-9.3: Prompt-response mismatches (questions redirected) - IMPROVED (still monitoring)
+  - ✅ T-11.1: Code fragments in command responses - FIXED
+  - ✅ T-12.1: Generic motivational content instead of helpful information - IMPROVED
+  - ✅ T-12.4: Incorrect fact with self-contradiction - PREVENTION ADDED
+  - ✅ T-14.1, T-16.2: Fabricated check-in details/statistics - PREVENTION ADDED
+  - ✅ T-13.3: System prompt instructions leaked - CLEANING ENHANCED
 
 
 
@@ -202,14 +210,13 @@ When adding new tasks, follow this format:
   - [ ] Grep code for legacy-format consumers and migrate if any are found
   - [ ] Remove legacy bridge and update tests
 
-**Review and Update ARCHITECTURE.md** - Check for outdated information
-- *Estimated effort*: Small
 
 **Review and Update QUICK_REFERENCE.md** - Check for outdated commands
 - *Estimated effort*: Small
+- *Status*: ✅ **COMPLETED** - Updated with command list, slash/bang command support, and flow notes
 - Subtasks:
-  - [ ] Reflect new slash/bang commands and central command list
-  - [ ] Note that `/checkin` is a flow; others are single-turn for now
+  - [x] Reflect new slash/bang commands and central command list
+  - [x] Note that `/checkin` is a flow; others are single-turn for now
 
 **Legacy Removal "Search-and-Close" Framework** - Tooling and checklist
 - *What it means*: Build a checklist and helper tooling to update all references before removing legacy flags/paths; avoid fixed time windows.
@@ -228,10 +235,6 @@ When adding new tasks, follow this format:
 
 ### User Experience Improvements
 
-**Enhanced Error Messages**
-- *What it means*: Provide clearer, actionable dialog and system error messages everywhere users interact
-- *Why it helps*: Reduces confusion and guides users to resolve problems faster
-- *Estimated effort*: Small
 
 **Improve Natural Language Processing Accuracy**
 - *What it means*: Refine parsing patterns and thresholds to better recognize intents and entities

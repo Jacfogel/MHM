@@ -490,7 +490,16 @@ class UserProfileDialog(QDialog):
                 
         except Exception as e:
             logger.error(f"Error saving personalization data: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save personalization data: {str(e)}")
+            QMessageBox.critical(
+                self,
+                "Save Failed",
+                "Unable to save your personalization changes.\n\n"
+                "Please check that:\n"
+                "• All required fields are filled in\n"
+                "• Your user data files are accessible\n"
+                "• You have permission to modify files\n\n"
+                "If the problem persists, try closing and reopening the dialog."
+            )
     
     @handle_errors("canceling dialog")
     def cancel(self):

@@ -296,8 +296,9 @@ class ScheduleEditorDialog(QDialog):
                 # Use information instead of warning to avoid modal issues
                 QMessageBox.information(
                     self,
-                    "Validation Error",
-                    f"Schedule validation failed:\n\n{errors[0]}",
+                    "Schedule Validation",
+                    f"Please fix the following issue before saving:\n\n{errors[0]}\n\n"
+                    "The dialog will remain open so you can make corrections."
                 )
                 # Ensure dialog stays active
                 self.raise_()
@@ -322,7 +323,16 @@ class ScheduleEditorDialog(QDialog):
             
         except Exception as e:
             logger.error(f"Error saving schedule: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save schedule: {str(e)}")
+            QMessageBox.critical(
+                self,
+                "Save Failed",
+                "Unable to save your schedule changes.\n\n"
+                "Please check that:\n"
+                "• All required fields are filled in\n"
+                "• Your user data files are accessible\n"
+                "• You have permission to modify files\n\n"
+                "If the problem persists, try closing and reopening the dialog."
+            )
             return False
     
     @handle_errors("triggering rescheduling")

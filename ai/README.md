@@ -222,6 +222,18 @@ Custom prompts can be loaded from `resources/assistant_system_prompt.txt` (contr
 2. Built-in template for requested type
 3. Default `wellness` prompt
 
+### Prompt Instructions
+
+The system prompts include detailed instructions for:
+- **Greeting Handling**: Answer "How are you?" before redirecting, acknowledge greetings
+- **Question Handling**: Answer direct questions before redirecting
+- **Requests for Information**: Provide requested information (e.g., "Tell me something helpful", "Tell me about yourself") instead of redirecting with questions
+- **Vague References**: Avoid vague references ("it", "that", "this") when context is missing
+- **Data Accuracy**: Never fabricate data - only reference explicitly provided information
+- **Logical Consistency**: Avoid self-contradictory statements
+
+All instructions include explicit BAD/GOOD examples to guide AI behavior. See `resources/assistant_system_prompt.txt` for the complete custom prompt with all instructions.
+
 ### Command Mode Prompt Format
 
 Command mode uses a **key-value format** (not JSON) for better AI compatibility:

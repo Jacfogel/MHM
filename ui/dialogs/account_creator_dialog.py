@@ -703,10 +703,26 @@ class AccountCreatorDialog(QDialog):
             if success:
                 self._validate_and_accept__handle_success(account_data['username'])
             else:
-                self._validate_and_accept__show_error_dialog("Account Creation Failed", "Failed to create account. Please try again.")
+                self._validate_and_accept__show_error_dialog(
+                    "Account Creation Failed",
+                    "Unable to create the account.\n\n"
+                    "Please check that:\n"
+                    "• All required fields are filled in\n"
+                    "• The username is not already taken\n"
+                    "• You have permission to create user accounts\n\n"
+                    "Try again with different information if needed."
+                )
         except Exception as e:
             logger.error(f"Error during account creation: {e}")
-            self._validate_and_accept__show_error_dialog("Account Creation Error", f"An error occurred while creating the account: {str(e)}")
+            self._validate_and_accept__show_error_dialog(
+                "Account Creation Error",
+                "An unexpected error occurred while creating the account.\n\n"
+                "Please try:\n"
+                "• Checking that all fields are valid\n"
+                "• Using a different username\n"
+                "• Closing and reopening the dialog\n\n"
+                "If the problem continues, check the logs for details."
+            )
     
     @handle_errors("checking input errors")
     def _validate_and_accept__input_errors(self) -> bool:
