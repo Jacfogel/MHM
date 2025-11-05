@@ -1,38 +1,33 @@
 # Test Coverage Expansion Plan
 
-> **Last Updated**: 2025-11-04
+> **Last Updated**: 2025-11-05
 
 ## Current Status
 
-### **Overall Coverage: 59%**
-- **Total Statements**: 23,428
-- **Covered Statements**: 13,821
-- **Uncovered Statements**: 9,607
+### **Overall Coverage: 63%**
+- **Total Statements**: 23,437
+- **Covered Statements**: 14,683
+- **Uncovered Statements**: 8,754
 - **Goal**: Expand to **80%+ coverage** for comprehensive reliability
 
 ### **Coverage Summary by Category**
-- **Excellent (93% avg)**: 29 modules
-- **Good (70% avg)**: 31 modules
-- **Moderate (50% avg)**: 16 modules
-- **Needs_Work (28% avg)**: 6 modules
-- **Critical (10% avg)**: 8 modules
+- **Excellent (93% avg)**: 30 modules
+- **Good (71% avg)**: 35 modules
+- **Moderate (51% avg)**: 15 modules
+- **Needs_Work (27% avg)**: 5 modules
+- **Critical (11% avg)**: 5 modules
 
 ### **Detailed Module Coverage**
 - **X communication\command_handlers\checkin_handler.py**: 0% (0/71 lines)
-- **X communication\command_handlers\schedule_handler.py**: 0% (0/262 lines)
-- **X communication\command_handlers\analytics_handler.py**: 9% (40/423 lines)
 - **X communication\__init__.py**: 11% (12/106 lines)
 - **X ui\dialogs\process_watcher_dialog.py**: 13% (38/302 lines)
 - **X core\headless_service.py**: 14% (29/211 lines)
 - **X ui\dialogs\user_analytics_dialog.py**: 15% (41/272 lines)
-- **X communication\command_handlers\task_handler.py**: 17% (69/415 lines)
 - **X ai\lm_studio_manager.py**: 21% (24/112 lines)
 - **X ui\dialogs\message_editor_dialog.py**: 21% (43/209 lines)
 - **X communication\core\__init__.py**: 30% (3/10 lines)
 - **X ui\dialogs\admin_panel.py**: 31% (15/49 lines)
-- **X ui\ui_app_qt.py**: 32% (354/1095 lines)
-- **X communication\command_handlers\profile_handler.py**: 35% (89/252 lines)
-- **X communication\command_handlers\base_handler.py**: 41% (24/59 lines)
+- **X ui\ui_app_qt.py**: 33% (356/1095 lines)
 - **X core\user_data_manager.py**: 42% (310/735 lines)
 - **X communication\message_processing\message_router.py**: 44% (52/119 lines)
 - **X ui\dialogs\checkin_management_dialog.py**: 44% (52/118 lines)
@@ -40,28 +35,28 @@
 - **X ui\dialogs\account_creator_dialog.py**: 48% (276/574 lines)
 - **X ui\dialogs\category_management_dialog.py**: 48% (56/117 lines)
 - **X user\user_context.py**: 48% (51/106 lines)
-- **X communication\message_processing\interaction_manager.py**: 50% (241/483 lines)
+- **X communication\message_processing\interaction_manager.py**: 51% (246/483 lines)
 - **X ui\dialogs\task_management_dialog.py**: 53% (49/93 lines)
 - **X ui\widgets\task_settings_widget.py**: 54% (99/183 lines)
-- **X communication\core\channel_orchestrator.py**: 55% (468/851 lines)
-- **X ai\chatbot.py**: 58% (479/822 lines)
+- **X ai\chatbot.py**: 55% (455/831 lines)
+- **X communication\core\channel_orchestrator.py**: 55% (466/851 lines)
+- **X communication\message_processing\command_parser.py**: 55% (203/367 lines)
 - **X communication\command_handlers\interaction_handlers.py**: 58% (866/1499 lines)
 - **X user\user_preferences.py**: 58% (28/48 lines)
-- **X TOTAL**: 59% (13821/23428 lines)
-- **! core\logger.py**: 61% (371/608 lines)
 - **! ui\dialogs\task_crud_dialog.py**: 61% (137/224 lines)
 - **! ui\widgets\checkin_settings_widget.py**: 61% (106/173 lines)
-- **! communication\message_processing\command_parser.py**: 62% (229/367 lines)
+- **! core\logger.py**: 62% (378/608 lines)
 - **! ui\widgets\channel_selection_widget.py**: 62% (51/82 lines)
 - **! ui\widgets\dynamic_list_container.py**: 62% (126/203 lines)
-- **! core\file_operations.py**: 63% (246/391 lines)
-- **! core\user_data_handlers.py**: 63% (436/689 lines)
+- **! core\user_data_handlers.py**: 63% (433/689 lines)
 - **! ui\dialogs\schedule_editor_dialog.py**: 63% (149/236 lines)
 - **! ui\widgets\dynamic_list_field.py**: 63% (76/120 lines)
-- **! core\scheduler.py**: 64% (557/874 lines)
+- **! TOTAL**: 63% (14683/23437 lines)
 - **! ai\prompt_manager.py**: 65% (73/113 lines)
 - **! communication\message_processing\conversation_flow_manager.py**: 65% (260/397 lines)
-- **! core\message_management.py**: 69% (262/377 lines)
+- **! core\scheduler.py**: 65% (570/874 lines)
+- **! core\file_operations.py**: 67% (263/391 lines)
+- **! core\message_management.py**: 70% (264/377 lines)
 - **! ui\widgets\user_profile_settings_widget.py**: 70% (201/286 lines)
 - **! core\ui_management.py**: 72% (60/83 lines)
 - **! core\service_utilities.py**: 73% (105/144 lines)
@@ -69,15 +64,19 @@
 - **! ui\generate_ui_files.py**: 73% (46/63 lines)
 - **! core\user_management.py**: 74% (513/690 lines)
 - **! core\config.py**: 75% (316/419 lines)
+- **! communication\command_handlers\analytics_handler.py**: 76% (322/423 lines)
+- **! communication\command_handlers\task_handler.py**: 76% (314/415 lines)
+- **! communication\command_handlers\profile_handler.py**: 77% (193/252 lines)
 - **! core\file_auditor.py**: 77% (70/91 lines)
-- **! core\service.py**: 77% (394/513 lines)
+- **! core\service.py**: 77% (395/513 lines)
 - **! tasks\task_management.py**: 77% (425/553 lines)
 - **! ui\dialogs\task_edit_dialog.py**: 77% (300/392 lines)
 - **! ai\conversation_history.py**: 78% (160/206 lines)
 - **! communication\core\channel_monitor.py**: 78% (105/134 lines)
+- **! core\error_handling.py**: 78% (273/348 lines)
 - **! core\schemas.py**: 78% (218/280 lines)
+- **! communication\command_handlers\schedule_handler.py**: 79% (207/262 lines)
 - **! core\checkin_dynamic_manager.py**: 79% (157/199 lines)
-- **! core\error_handling.py**: 79% (276/348 lines)
 - **! ui\dialogs\user_profile_dialog.py**: 79% (207/261 lines)
 - *** core\checkin_analytics.py**: 80% (314/394 lines)
 - *** core\schedule_management.py**: 81% (239/294 lines)
@@ -99,6 +98,7 @@
 - *** ai\cache_manager.py**: 99% (173/174 lines)
 - *** ai\__init__.py**: 100% (7/7 lines)
 - *** communication\command_handlers\__init__.py**: 100% (3/3 lines)
+- *** communication\command_handlers\base_handler.py**: 100% (59/59 lines)
 - *** communication\command_handlers\shared_types.py**: 100% (15/15 lines)
 - *** communication\communication_channels\__init__.py**: 100% (1/1 lines)
 - *** communication\message_processing\__init__.py**: 100% (2/2 lines)
