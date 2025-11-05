@@ -171,28 +171,19 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
-**Investigate Flaky test_validate_and_raise_if_invalid_failure**
-- *What it means*: The test `test_validate_and_raise_if_invalid_failure` in `tests/unit/test_config.py` fails intermittently in the full test suite but passes consistently when run individually. This suggests an environment state dependency or timing issue that needs investigation.
-- *Why it helps*: Ensures test suite reliability and prevents flaky tests from masking real issues or causing false failures in CI/CD
-- *Estimated effort*: Small
-- *Subtasks*:
-  - [ ] Run the test multiple times individually to confirm it consistently passes
-  - [ ] Run the test in isolation with different test orders to identify state dependencies
-  - [ ] Check if the test is affected by other tests modifying environment variables or configuration state
-  - [ ] Review test fixtures and setup/teardown to ensure proper isolation
-  - [ ] Consider marking the test as `@pytest.mark.flaky` if the root cause cannot be easily fixed
-  - [ ] Document findings and fix if possible, or mark as known flaky test
 
-**Investigate base_handler.py _create_error_response Bug**
-- *What it means*: The `_create_error_response` method in `base_handler.py` attempts to pass `success=False` and `user_id` parameters to `InteractionResponse`, but `InteractionResponse` doesn't accept these fields (only accepts: message, completed, rich_data, suggestions, error). This causes a TypeError that is caught by `@handle_errors`, returning None instead of a proper error response.
-- *Why it helps*: Fixes broken error handling in the base handler class, ensuring error responses are properly created and returned to users
-- *Estimated effort*: Small
+**Investigate Log Files Backing Up and Clearing Prematurely**
+- *What it means*: Log files appear to be backing up and clearing after only one line of content, resulting in lost log data. This suggests log rotation or backup logic is triggering too early or incorrectly
+- *Why it helps*: Ensures log data is preserved for debugging and prevents loss of important diagnostic information
+- *Estimated effort*: Medium
 - *Subtasks*:
-  - [ ] Review `InteractionResponse` dataclass definition to confirm available fields
-  - [ ] Fix `_create_error_response` to use `completed=False` instead of `success=False`
-  - [ ] Remove `user_id` parameter from `InteractionResponse` constructor call (not a field)
-  - [ ] Update tests to verify error response creation works correctly after fix
-  - [ ] Verify all handlers that inherit from `InteractionHandler` still work correctly
+  - [ ] Review log rotation and backup logic in `core/logger.py` or logging configuration
+  - [ ] Check log file size thresholds and rotation triggers
+  - [ ] Verify log backup directory creation and file naming
+  - [ ] Test log rotation with multiple log entries to reproduce the issue
+  - [ ] Review any log clearing or truncation logic that might be running too early
+  - [ ] Check if log files are being overwritten instead of appended
+  - [ ] Fix rotation logic to preserve all log data before clearing/rotating
 
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
 - *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.

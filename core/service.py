@@ -754,6 +754,15 @@ class MHMService:
         except Exception as e:
             logger.error(f"Error stopping scheduler manager: {e}")
         
+        # Clean up shutdown request file if it exists
+        shutdown_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'shutdown_request.flag')
+        try:
+            if os.path.exists(shutdown_file):
+                os.remove(shutdown_file)
+                logger.info("Cleanup: Removed shutdown request file")
+        except Exception as e:
+            logger.warning(f"Could not remove shutdown file: {e}")
+        
         logger.info("MHM Backend Service shutdown complete")
 
         # Stop file auditor last

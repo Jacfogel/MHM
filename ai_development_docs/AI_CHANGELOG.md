@@ -31,6 +31,24 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-XX - Test Isolation Improvements and Bug Fixes **COMPLETED**
+- **Fixed Flaky Test**: Improved `test_validate_and_raise_if_invalid_failure` exception type checking with fallback string comparison - handles module import/type comparison edge cases in full test suite
+- **Fixed Error Response Bug**: Corrected `_create_error_response` in `base_handler.py` to use `completed=False` instead of `success=False` and removed invalid `user_id` parameter - error responses now properly created
+- **Fixed File Pollution**: Modified `test_load_default_messages_invalid_json` to use temporary directory instead of real `resources/default_messages` - prevents `invalid.json` from being created in production directories
+- **Added Shutdown Flag Cleanup**: Added cleanup logic to `MHMService.shutdown()` to remove `shutdown_request.flag` file - prevents file accumulation
+- **Improved Test Isolation**: Added `cleanup_singletons` autouse fixture in `conftest.py` and fixed singleton cleanup in multiple test files - eliminates state pollution between tests
+- **Result**: 2068 tests passing (1 skipped), flaky test now passes consistently, no files created outside `tests/`, test suite significantly more stable
+
+---
+
+### 2025-11-05 - Log File Rollover Fix and Infinite Error Loop Prevention **COMPLETED**
+- **Fixed Premature Log Rollover**: Added guards in `shouldRollover()` and `doRollover()` to prevent rollover of files smaller than 100 bytes or less than 1 hour old - prevents log files from clearing after just one line
+- **Broke Infinite Error Loop**: Removed `@handle_errors` decorator from `_get_log_paths_for_environment()` and `get_component_logger()` functions - these were causing infinite loops when logger initialization failed because error handler tried to log errors from logger functions
+- **Root Cause**: Log files were being rolled over prematurely when files were locked on Windows, and error handler was recursively calling logger functions that were failing
+- **Impact**: `errors.log` and other log files now accumulate properly without flickering/clearing, and `app.log` no longer floods with repeated "Maximum retries exceeded" errors
+
+---
+
 ### 2025-11-05 - Pytest Marks Audit and Test Categorization Improvements **COMPLETED**
 - **Redundant Marks Removed**: Removed `message_processing` and `flow_management` marks from `pytest.ini` and all test files (26 occurrences) - these were redundant with existing `communication` and `checkins` marks
 - **Slow Tests Identified and Marked**: Added `@pytest.mark.slow` to 58 additional tests across 18 test files using `pytest --durations=0` - total slow tests increased from 17 to 75

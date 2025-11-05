@@ -366,18 +366,28 @@ class TestGlobalCacheInstances:
     
     def test_global_cache_configuration(self):
         """Test global cache configuration."""
-        with patch('ai.cache_manager.AI_RESPONSE_CACHE_TTL', 600):
-            with patch('ai.cache_manager.CONTEXT_CACHE_TTL', 1800):
-                # Reset global instances
-                import ai.cache_manager
-                ai.cache_manager._response_cache = None
-                ai.cache_manager._context_cache = None
-                
-                response_cache = get_response_cache()
-                context_cache = get_context_cache()
-                
-                assert response_cache.ttl == 600
-                assert context_cache.ttl == 1800
+        import ai.cache_manager as cache_module
+        
+        # Store original cache instances for cleanup
+        original_response_cache = getattr(cache_module, '_response_cache', None)
+        original_context_cache = getattr(cache_module, '_context_cache', None)
+        
+        try:
+            with patch('ai.cache_manager.AI_RESPONSE_CACHE_TTL', 600):
+                with patch('ai.cache_manager.CONTEXT_CACHE_TTL', 1800):
+                    # Reset global instances
+                    cache_module._response_cache = None
+                    cache_module._context_cache = None
+                    
+                    response_cache = get_response_cache()
+                    context_cache = get_context_cache()
+                    
+                    assert response_cache.ttl == 600
+                    assert context_cache.ttl == 1800
+        finally:
+            # Restore original cache instances to prevent state pollution
+            cache_module._response_cache = original_response_cache
+            cache_module._context_cache = original_context_cache
 
 
 class TestCacheEntry:

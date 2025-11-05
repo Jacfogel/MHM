@@ -2622,3 +2622,60 @@ def cleanup_conversation_manager():
         conversation_manager.clear_all_states()
     except Exception as e:
         test_logger.warning(f"Error clearing conversation manager state: {e}")
+
+@pytest.fixture(autouse=True)
+def cleanup_singletons():
+    """Clean up singleton instances before each test to ensure isolation."""
+    # Store original singleton instances
+    original_instances = {}
+    
+    try:
+        # Store AI Chatbot singleton
+        try:
+            from ai.chatbot import AIChatBotSingleton
+            original_instances['ai_chatbot'] = AIChatBotSingleton._instance
+        except (ImportError, AttributeError):
+            pass
+        
+        # Store MessageRouter singleton
+        try:
+            import communication.message_processing.message_router as router_module
+            original_instances['message_router'] = router_module._message_router
+        except (ImportError, AttributeError):
+            pass
+        
+        # Store cache instances
+        try:
+            import ai.cache_manager as cache_module
+            original_instances['response_cache'] = getattr(cache_module, '_response_cache', None)
+            original_instances['context_cache'] = getattr(cache_module, '_context_cache', None)
+        except (ImportError, AttributeError):
+            pass
+        
+        yield
+        
+    finally:
+        # Restore original singleton instances to prevent state pollution
+        try:
+            from ai.chatbot import AIChatBotSingleton
+            if 'ai_chatbot' in original_instances:
+                AIChatBotSingleton._instance = original_instances['ai_chatbot']
+        except (ImportError, AttributeError):
+            pass
+        
+        try:
+            import communication.message_processing.message_router as router_module
+            if 'message_router' in original_instances:
+                router_module._message_router = original_instances['message_router']
+        except (ImportError, AttributeError):
+            pass
+        
+        # Clear cache instances (not restore - caches should be fresh for each test)
+        try:
+            import ai.cache_manager as cache_module
+            if hasattr(cache_module, '_response_cache'):
+                cache_module._response_cache = None
+            if hasattr(cache_module, '_context_cache'):
+                cache_module._context_cache = None
+        except (ImportError, AttributeError):
+            pass

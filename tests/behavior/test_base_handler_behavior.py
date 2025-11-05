@@ -243,12 +243,7 @@ class TestBaseHandlerBehavior:
     @pytest.mark.behavior
     @pytest.mark.communication
     def test_base_handler_create_error_response_valid(self):
-        """Test that _create_error_response creates valid error response.
-        
-        Note: The current implementation has a bug where it tries to pass 'success' and 'user_id'
-        to InteractionResponse, which doesn't accept these fields. This causes an exception
-        that is caught by @handle_errors, returning None. This test documents the current behavior.
-        """
+        """Test that _create_error_response creates valid error response."""
         handler = ConcreteTestHandler()
         
         error_message = "Test error message"
@@ -256,31 +251,29 @@ class TestBaseHandlerBehavior:
         
         response = handler._create_error_response(error_message, user_id)
         
-        # Current implementation returns None due to TypeError from invalid kwargs
-        # When the bug is fixed, this should return a valid InteractionResponse
-        # TODO: Fix base_handler.py to use completed=False instead of success=False
-        # and remove user_id parameter from InteractionResponse constructor
-        assert response is None, "Currently returns None due to invalid InteractionResponse kwargs"
+        # Should return a valid InteractionResponse with completed=False
+        assert response is not None, "Should return a valid InteractionResponse"
+        assert isinstance(response, InteractionResponse), "Should return InteractionResponse instance"
+        assert response.completed is False, "Error response should have completed=False"
+        assert response.error == error_message, "Error response should contain the error message"
+        assert "error" in response.message.lower(), "Error message should mention error"
     
     @pytest.mark.behavior
     @pytest.mark.communication
     def test_base_handler_create_error_response_without_user_id(self):
-        """Test that _create_error_response works without user_id.
-        
-        Note: The current implementation has a bug where it tries to pass 'success'
-        to InteractionResponse, which doesn't accept this field. This causes an exception
-        that is caught by @handle_errors, returning None. This test documents the current behavior.
-        """
+        """Test that _create_error_response works without user_id."""
         handler = ConcreteTestHandler()
         
         error_message = "Test error message"
         
         response = handler._create_error_response(error_message)
         
-        # Current implementation returns None due to TypeError from invalid kwargs
-        # When the bug is fixed, this should return a valid InteractionResponse
-        # TODO: Fix base_handler.py to use completed=False instead of success=False
-        assert response is None, "Currently returns None due to invalid InteractionResponse kwargs"
+        # Should return a valid InteractionResponse with completed=False
+        assert response is not None, "Should return a valid InteractionResponse"
+        assert isinstance(response, InteractionResponse), "Should return InteractionResponse instance"
+        assert response.completed is False, "Error response should have completed=False"
+        assert response.error == error_message, "Error response should contain the error message"
+        assert "error" in response.message.lower(), "Error message should mention error"
     
     @pytest.mark.behavior
     @pytest.mark.communication

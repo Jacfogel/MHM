@@ -26,16 +26,23 @@ class TestAIChatBotBehavior:
     @pytest.mark.ai
     def test_singleton_behavior_creates_single_instance(self, test_data_dir):
         """Test that AI chatbot singleton actually creates only one instance."""
-        # Clear any existing instance
-        AIChatBotSingleton._instance = None
+        # Store original instance for cleanup
+        original_instance = AIChatBotSingleton._instance
         
-        # Create first instance
-        instance1 = AIChatBotSingleton()
-        instance2 = AIChatBotSingleton()
-        
-        # Verify both references point to the same object
-        assert instance1 is instance2, "Singleton should return the same instance"
-        assert id(instance1) == id(instance2), "Singleton instances should have same ID"
+        try:
+            # Clear any existing instance
+            AIChatBotSingleton._instance = None
+            
+            # Create first instance
+            instance1 = AIChatBotSingleton()
+            instance2 = AIChatBotSingleton()
+            
+            # Verify both references point to the same object
+            assert instance1 is instance2, "Singleton should return the same instance"
+            assert id(instance1) == id(instance2), "Singleton instances should have same ID"
+        finally:
+            # Restore original instance to prevent state pollution
+            AIChatBotSingleton._instance = original_instance
     
     @pytest.mark.ai
     @pytest.mark.critical

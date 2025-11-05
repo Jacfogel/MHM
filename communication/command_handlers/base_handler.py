@@ -169,15 +169,14 @@ class InteractionHandler(ABC):
             
             return InteractionResponse(
                 message=f"I'm sorry, I encountered an error: {error_message}",
-                success=False,
-                error=error_message,
-                user_id=user_id
+                completed=False,
+                error=error_message
             )
         except Exception as e:
             logger.error(f"Error creating error response: {e}")
             # Return minimal response as fallback
             return InteractionResponse(
                 message="I'm sorry, I encountered an error processing your request.",
-                success=False,
+                completed=False,
                 error="Response creation failed"
             )

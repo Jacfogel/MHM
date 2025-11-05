@@ -47,21 +47,33 @@ class TestBackupManagerBehavior:
         TestUserFactory.create_basic_user(self.test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
         
         # Apply configuration patches for backup manager
-        with patch.object(core.config, 'get_backups_dir', return_value=self.backup_dir), \
-             patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir), \
-             patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir):
-            
+        # patch.object() will automatically restore values when the context exits
+        # We need to keep the patches active during the fixture's lifetime
+        self.patches = [
+            patch.object(core.config, 'get_backups_dir', return_value=self.backup_dir),
+            patch.object(core.config, 'USER_INFO_DIR_PATH', self.user_data_dir),
+            patch.object(core.config, 'BASE_DATA_DIR', self.test_data_dir)
+        ]
+        
+        # Start all patches
+        for p in self.patches:
+            p.start()
+        
+        try:
             # Initialize backup manager in the patched environment
             self.backup_manager = BackupManager()
-        
-        # Store the original config values for restoration tests
-        self.original_base_data_dir = core.config.BASE_DATA_DIR
-        self.original_user_info_dir = core.config.USER_INFO_DIR_PATH
-        
-        yield
-        
-        # Cleanup
-        self._cleanup_test_files()
+            
+            yield
+        finally:
+            # Stop all patches (restores original values)
+            for p in self.patches:
+                try:
+                    p.stop()
+                except Exception:
+                    pass  # Best effort cleanup
+            
+            # Cleanup test files
+            self._cleanup_test_files()
     
     def _create_test_config_files(self):
         """Create test configuration files."""

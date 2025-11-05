@@ -34,10 +34,26 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.fixture
     def comm_manager(self):
         """Create a CommunicationManager instance for testing."""
-        # Clear the singleton instance to ensure fresh state
-        CommunicationManager._instance = None
-        CommunicationManager._lock = threading.Lock()
-        return CommunicationManager()
+        # Store original instance for cleanup
+        original_instance = CommunicationManager._instance
+        original_lock = getattr(CommunicationManager, '_lock', None)
+        
+        try:
+            # Clear the singleton instance to ensure fresh state
+            CommunicationManager._instance = None
+            CommunicationManager._lock = threading.Lock()
+            yield CommunicationManager()
+        finally:
+            # Restore original instance to prevent state pollution
+            if original_instance is not None:
+                try:
+                    if hasattr(original_instance, 'stop_all'):
+                        original_instance.stop_all()
+                except Exception:
+                    pass  # Best effort cleanup
+            CommunicationManager._instance = original_instance
+            if original_lock is not None:
+                CommunicationManager._lock = original_lock
     
     @pytest.fixture
     def mock_channel_config(self):

@@ -111,21 +111,35 @@ class TestDefaultMessages:
     
     @pytest.mark.messages
     @pytest.mark.regression
-    def test_load_default_messages_invalid_json(self, test_data_dir, mock_config):
+    def test_load_default_messages_invalid_json(self, test_data_dir, mock_config, test_path_factory):
         """Test loading default messages with invalid JSON."""
         category = "invalid"
         
-        # Create test default messages file with invalid JSON
-        # Use the path that mock_config sets up
+        # Create test default messages directory in test path factory to avoid polluting real resources
+        test_default_messages_dir = os.path.join(test_path_factory, 'resources', 'default_messages')
+        os.makedirs(test_default_messages_dir, exist_ok=True)
+        
+        # Temporarily patch DEFAULT_MESSAGES_DIR_PATH to use test directory
+        from unittest.mock import patch
         from core.config import DEFAULT_MESSAGES_DIR_PATH
-        os.makedirs(DEFAULT_MESSAGES_DIR_PATH, exist_ok=True)
         
-        with open(os.path.join(DEFAULT_MESSAGES_DIR_PATH, f'{category}.json'), 'w') as f:
-            f.write("invalid json content")
-        
-        # The mock_config fixture already patches DEFAULT_MESSAGES_DIR_PATH
-        messages = load_default_messages(category)
-        assert messages == []
+        with patch('core.config.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
+            with patch('core.message_management.DEFAULT_MESSAGES_DIR_PATH', test_default_messages_dir):
+                # Create test default messages file with invalid JSON
+                invalid_file = os.path.join(test_default_messages_dir, f'{category}.json')
+                with open(invalid_file, 'w') as f:
+                    f.write("invalid json content")
+                
+                # Load default messages - should handle invalid JSON gracefully
+                messages = load_default_messages(category)
+                assert messages == []
+                
+                # Clean up test file
+                try:
+                    if os.path.exists(invalid_file):
+                        os.remove(invalid_file)
+                except Exception:
+                    pass  # Best effort cleanup
 
 
 class TestMessageCRUD:

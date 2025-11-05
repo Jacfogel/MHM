@@ -344,18 +344,26 @@ class TestMessageRouterBehavior:
     @pytest.mark.communication
     def test_get_message_router_singleton(self):
         """Test that get_message_router returns singleton instance."""
-        # Clear any existing router
         import communication.message_processing.message_router as router_module
-        router_module._message_router = None
         
-        # Get first instance
-        router1 = get_message_router()
-        assert router1 is not None, "Should return router instance"
-        assert isinstance(router1, MessageRouter), "Should be MessageRouter instance"
+        # Store original router for cleanup
+        original_router = router_module._message_router
         
-        # Get second instance - should be same
-        router2 = get_message_router()
-        assert router2 is router1, "Should return same instance (singleton)"
+        try:
+            # Clear any existing router
+            router_module._message_router = None
+            
+            # Get first instance
+            router1 = get_message_router()
+            assert router1 is not None, "Should return router instance"
+            assert isinstance(router1, MessageRouter), "Should be MessageRouter instance"
+            
+            # Get second instance - should be same
+            router2 = get_message_router()
+            assert router2 is router1, "Should return same instance (singleton)"
+        finally:
+            # Restore original router to prevent state pollution
+            router_module._message_router = original_router
     
     @pytest.mark.behavior
     @pytest.mark.communication

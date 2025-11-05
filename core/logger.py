@@ -65,7 +65,8 @@ def apply_test_context_formatter_to_all_loggers():
     if count > 0:
         print(f"DEBUG: Applied TestContextFormatter to {count} handlers", file=sys.stderr)
 
-@handle_errors("getting log paths for environment")
+# NOTE: No @handle_errors decorator here - this function is called by error handler
+# and logging setup, so decorating it would create infinite loops
 def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
     if _is_testing_environment():
@@ -352,7 +353,34 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
     def shouldRollover(self, record):
         """
         Determine if rollover should occur based on both time and size.
+        Prevents rollover for files that are too small or too recently created.
         """
+        # First check if file has meaningful content before considering rollover
+        # This prevents premature rollover of empty or tiny files
+        if os.path.exists(self.baseFilename):
+            try:
+                current_time = int(time.time())
+                file_size = os.path.getsize(self.baseFilename)
+                file_mtime = os.path.getmtime(self.baseFilename)
+                file_age_seconds = current_time - file_mtime
+                
+                # Minimum file size threshold (100 bytes) - prevents rollover of empty or tiny files
+                MIN_FILE_SIZE = 100
+                # Minimum file age (1 hour) - prevents rollover of recently created files
+                MIN_FILE_AGE_SECONDS = 3600
+                
+                # Skip rollover if file is too small or too recently created
+                if file_size < MIN_FILE_SIZE:
+                    return False
+                
+                if file_age_seconds < MIN_FILE_AGE_SECONDS:
+                    return False
+                    
+            except (OSError, IOError):
+                # If we can't check file stats, proceed with normal rollover checks
+                # This is safer than blocking rollover on stat errors
+                pass
+        
         # Check time-based rollover first
         if super().shouldRollover(record):
             return True
@@ -387,8 +415,42 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         time_tuple = time.localtime(dst_time)
         dfn = self.rotation_filename(self.baseFilename + "." + time.strftime(self.suffix, time_tuple))
         
+        # Minimum file size threshold (100 bytes) - prevents rollover of empty or tiny files
+        MIN_FILE_SIZE = 100
+        # Minimum file age (1 hour) - prevents rollover of recently created files
+        MIN_FILE_AGE_SECONDS = 3600
+        
         # Try to handle the rollover with Windows-safe logic
         if os.path.exists(self.baseFilename):
+            # Check if file has meaningful content before rollover
+            # Prevent rollover for files that are too small or too recently created
+            try:
+                file_size = os.path.getsize(self.baseFilename)
+                file_mtime = os.path.getmtime(self.baseFilename)
+                file_age_seconds = current_time - file_mtime
+                
+                # Skip rollover if file is too small or too recently created
+                if file_size < MIN_FILE_SIZE:
+                    # File is too small, don't rollover - just reopen and continue
+                    try:
+                        self.stream = self._open()
+                    except Exception:
+                        pass
+                    return
+                
+                if file_age_seconds < MIN_FILE_AGE_SECONDS:
+                    # File was recently created, don't rollover - just reopen and continue
+                    try:
+                        self.stream = self._open()
+                    except Exception:
+                        pass
+                    return
+                    
+            except (OSError, IOError) as check_error:
+                # If we can't check file stats, proceed with rollover anyway
+                # This is safer than blocking rollover on stat errors
+                pass
+            
             backup_name = f"{os.path.basename(self.baseFilename)}.{time.strftime(self.suffix, time_tuple)}"
             backup_path = os.path.join(self.backup_dir, backup_name)
             
@@ -416,19 +478,37 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
             except PermissionError as e:
                 # File is locked, try alternative approach
                 try:
-                    # Try to copy the file instead of moving it
-                    shutil.copy2(self.baseFilename, backup_path)
-                    print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
-                    
-                    # CRITICAL: Truncate the original file after successful backup
-                    # This ensures the log file is properly reset for the new day
+                    # Check file size again before copying (in case it changed)
+                    file_size = 0
                     try:
-                        with open(self.baseFilename, 'w', encoding='utf-8') as f:
-                            f.truncate(0)  # Truncate to 0 bytes
-                        print(f"Info: Successfully truncated original log file: {self.baseFilename}")
-                    except Exception as truncate_error:
-                        print(f"Warning: Could not truncate original log file: {truncate_error}")
-                        # Continue anyway - the backup was successful
+                        file_size = os.path.getsize(self.baseFilename)
+                    except (OSError, IOError):
+                        pass
+                    
+                    # Only copy if file has meaningful content
+                    if file_size >= MIN_FILE_SIZE:
+                        # Try to copy the file instead of moving it
+                        shutil.copy2(self.baseFilename, backup_path)
+                        print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
+                        
+                        # CRITICAL: Truncate the original file after successful backup
+                        # This ensures the log file is properly reset for the new day
+                        # But only if the file has meaningful content
+                        try:
+                            with open(self.baseFilename, 'w', encoding='utf-8') as f:
+                                f.truncate(0)  # Truncate to 0 bytes
+                            print(f"Info: Successfully truncated original log file: {self.baseFilename}")
+                        except Exception as truncate_error:
+                            print(f"Warning: Could not truncate original log file: {truncate_error}")
+                            # Continue anyway - the backup was successful
+                    else:
+                        # File is too small, skip rollover - just reopen and continue
+                        print(f"Info: Skipping rollover for small file ({file_size} bytes): {self.baseFilename}")
+                        try:
+                            self.stream = self._open()
+                        except Exception:
+                            pass
+                        return
                         
                 except (PermissionError, OSError) as copy_error:
                     # Even copy failed, skip rollover for this time
@@ -562,7 +642,8 @@ def ensure_logs_directory():
     os.makedirs(log_paths['archive_dir'], exist_ok=True)
 
 
-@handle_errors("getting component logger")
+# NOTE: No @handle_errors decorator here - this function is called by error handler
+# and other logging functions, so decorating it would create infinite loops
 def get_component_logger(component_name: str) -> ComponentLogger:
     """
     Get or create a component-specific logger.

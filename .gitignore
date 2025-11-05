@@ -132,6 +132,8 @@ app.log.*
 *.log
 *.log.*
 .last_cache_cleanup
+shutdown_request.flag
+resources/default_messages/invalid.json
 
 # Test data and backups
 tests/data/user_index.json
