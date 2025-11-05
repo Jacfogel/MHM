@@ -171,6 +171,30 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
+**Investigate Test Coverage Regeneration Not Reflecting Improvements**
+- *What it means*: The full audit (`python ai_development_tools/ai_tools_runner.py audit --full`) is supposed to include test coverage regeneration, but after creating comprehensive tests for 6 handler modules (checkin_handler, schedule_handler, analytics_handler, task_handler, profile_handler, base_handler), the `TEST_COVERAGE_EXPANSION_PLAN.md` still shows old coverage numbers (e.g., checkin_handler.py at 0%, schedule_handler.py at 0%). The coverage regeneration should update these numbers but appears not to be working correctly.
+- *Why it helps*: Ensures coverage metrics accurately reflect test improvements, allowing proper tracking of progress toward 80%+ coverage goal
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Review `ai_development_tools/ai_tools_runner.py` to understand how coverage regeneration works
+  - [ ] Check if coverage regeneration is actually running during full audit
+  - [ ] Verify that pytest coverage collection is working correctly
+  - [ ] Check if `TEST_COVERAGE_EXPANSION_PLAN.md` is being updated by the coverage regeneration tool
+  - [ ] Run coverage report manually (`pytest --cov=communication --cov-report=term-missing`) to verify actual coverage numbers
+  - [ ] Fix coverage regeneration tool if it's not updating the plan file correctly
+  - [ ] Verify coverage improvements are reflected after fix
+
+**Investigate base_handler.py _create_error_response Bug**
+- *What it means*: The `_create_error_response` method in `base_handler.py` attempts to pass `success=False` and `user_id` parameters to `InteractionResponse`, but `InteractionResponse` doesn't accept these fields (only accepts: message, completed, rich_data, suggestions, error). This causes a TypeError that is caught by `@handle_errors`, returning None instead of a proper error response.
+- *Why it helps*: Fixes broken error handling in the base handler class, ensuring error responses are properly created and returned to users
+- *Estimated effort*: Small
+- *Subtasks*:
+  - [ ] Review `InteractionResponse` dataclass definition to confirm available fields
+  - [ ] Fix `_create_error_response` to use `completed=False` instead of `success=False`
+  - [ ] Remove `user_id` parameter from `InteractionResponse` constructor call (not a field)
+  - [ ] Update tests to verify error response creation works correctly after fix
+  - [ ] Verify all handlers that inherit from `InteractionHandler` still work correctly
+
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
 - *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.
 - *Why it helps*: Reduces long-term maintenance burden while keeping compatibility decisions intentional.
