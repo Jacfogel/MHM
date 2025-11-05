@@ -563,6 +563,7 @@ class TestEmailBotIntegration:
                 assert shutdown_result is True, "Should shutdown successfully"
     
     @pytest.mark.asyncio
+    @pytest.mark.slow
     async def test_email_bot_error_recovery_with_real_operations(self, test_data_dir):
         """Test error recovery when working with real operations."""
         # Arrange - Mock email configuration

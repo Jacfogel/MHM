@@ -96,6 +96,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_retry_thread_management_real_behavior(self, comm_manager):
         """Test retry thread start/stop functionality."""
         # Test starting retry thread
@@ -112,6 +113,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_restart_monitor_management_real_behavior(self, comm_manager):
         """Test restart monitor thread start/stop functionality."""
         # Test starting restart monitor
@@ -240,6 +242,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_channel_initialization_with_retry_real_behavior(self, comm_manager, realistic_mock_channel, mock_channel_config):
         """Test channel initialization with retry logic."""
         # Mock channel to fail initially, then succeed
@@ -589,6 +592,7 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_send_ai_generated_message_real_behavior(self, comm_manager, test_data_dir):
         """Test sending AI generated message functionality."""
         # Create test user

@@ -526,6 +526,7 @@ class TestErrorHandlingImprovements:
         # Note: In a real test, you would verify that the error was logged
         # This is a simplified test to show the pattern
         
+    @pytest.mark.slow
     def test_error_handling_performance(self):
         """Test that error handling doesn't significantly impact performance."""
         import time

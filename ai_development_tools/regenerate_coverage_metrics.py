@@ -241,6 +241,10 @@ class CoverageMetricsRegenerator:
         coverage_data: Dict[str, Dict[str, any]] = {}
         
         for module_name, file_data in files.items():
+            # Normalize path to use backslashes (Windows format) to match plan file format
+            # Coverage JSON uses backslashes on Windows, but ensure consistency
+            normalized_name = module_name.replace('/', '\\')
+            
             summary = file_data.get('summary', {})
             statements = int(summary.get('num_statements', 0))
             covered = int(summary.get('covered_lines', statements - summary.get('missing_lines', 0)))
@@ -257,7 +261,7 @@ class CoverageMetricsRegenerator:
             missing_lines = file_data.get('missing_lines', [])
             missing_line_strings = [str(line) for line in missing_lines]
             
-            coverage_data[module_name] = {
+            coverage_data[normalized_name] = {
                 'statements': statements,
                 'missed': missed,
                 'coverage': percent_value,

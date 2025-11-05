@@ -1,3 +1,4 @@
+import pytest
 from communication.message_processing.interaction_manager import handle_user_message
 from tasks.task_management import load_active_tasks, save_active_tasks
 from tests.test_utilities import setup_test_data_environment, cleanup_test_data_environment, create_test_user
@@ -123,6 +124,7 @@ class TestTaskCrudDisambiguation:
         assert not resp.completed
         assert "multiple matching tasks" in resp.message.lower()
 
+    @pytest.mark.slow
     def test_update_priority_and_title_by_name(self, monkeypatch):
         user_id = "user_task_update_fields"
         monkeypatch.setenv("MHM_TEST_DATA_DIR", self.test_data_dir)

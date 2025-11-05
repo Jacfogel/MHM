@@ -135,6 +135,7 @@ class TestServiceManagerCore:
             # Should return the first running process
             assert result == (True, 12345)
     
+    @pytest.mark.slow
     def test_start_service_success(self, service_manager):
         """Test starting service successfully."""
         # Test the core logic by calling the method directly without decorator
@@ -172,6 +173,7 @@ class TestServiceManagerCore:
                     
                     assert result is True  # Returns True when already running
     
+    @pytest.mark.slow
     def test_stop_service_success(self, service_manager):
         """Test stopping service successfully."""
         with patch.object(service_manager, 'is_service_running', return_value=(True, 12345)):

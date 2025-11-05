@@ -586,6 +586,7 @@ class TestConversationManagerIntegration:
             # Check for any check-in related content (since question order is weighted/random)
             assert any(word in reply.lower() for word in ['check-in', 'feeling', 'mood', 'energy', 'stress', 'sleep', 'exercise', 'medication', 'breakfast', 'teeth', 'hydration', 'social', 'reflection']), f"Should ask first question, got: {reply[:100]}..."
     
+    @pytest.mark.slow
     def test_conversation_manager_error_recovery_with_real_files(self, test_data_dir):
         """Test ConversationManager error recovery with corrupted real files."""
         # Arrange

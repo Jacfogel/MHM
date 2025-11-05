@@ -505,6 +505,7 @@ class TestMHMService:
 
     @pytest.mark.service
     @pytest.mark.regression
+    @pytest.mark.slow
     def test_service_integration_with_managers_real_behavior(self, service):
         """REAL BEHAVIOR TEST: Test service integration with real manager objects."""
         # Create real mock managers

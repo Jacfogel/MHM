@@ -575,6 +575,7 @@ class TestAccountLifecycle:
         assert os.path.exists(os.path.join(user_dir, "tasks", "tasks.json")), "Tasks file should exist"
     
     @pytest.mark.integration
+    @pytest.mark.slow
     def test_add_message_category(self, update_user_index_for_test):
         """Test adding a new message category to user preferences."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -805,6 +806,7 @@ class TestAccountLifecycle:
         assert evening_period["end_time"] == "21:00", "Evening period should have correct end time"
     
     @pytest.mark.integration
+    @pytest.mark.slow
     def test_modify_schedule_period(self):
         """Test modifying an existing schedule period."""
         from core.user_data_handlers import save_user_data, get_user_data
@@ -935,6 +937,7 @@ class TestAccountLifecycle:
         assert "morning" in updated_data["schedules"]["motivational"]["periods"], "Morning period should remain"
     
     @pytest.mark.integration
+    @pytest.mark.slow
     def test_complete_account_lifecycle(self):
         """Test complete account lifecycle: create, modify, disable, re-enable, delete."""
         from core.user_data_handlers import save_user_data, get_user_data

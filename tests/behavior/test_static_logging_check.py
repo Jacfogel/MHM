@@ -6,6 +6,7 @@ import pytest
 
 
 @pytest.mark.behavior
+@pytest.mark.slow
 def test_repo_static_logging_check_passes():
     """Ensure the repository logging static check passes in CI/test runs."""
     # Run the static check script; it should exit 0

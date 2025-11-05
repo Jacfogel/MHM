@@ -532,6 +532,7 @@ class TestBackupManagerBehavior:
             user_files = [f for f in file_list if f.startswith('users/')]
             assert len(user_files) > 0
     
+    @pytest.mark.slow
     def test_backup_manager_error_handling_real_behavior(self):
         """Test backup manager error handling."""
         # Test with invalid backup directory

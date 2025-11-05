@@ -329,6 +329,7 @@ class TestDiscordBotBehavior:
 
     @pytest.mark.channels
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_discord_bot_initialize_creates_thread(self, test_data_dir):
         """Test that Discord bot initialize actually creates a thread"""
         bot = DiscordBot()
@@ -605,6 +606,7 @@ class TestDiscordBotIntegration:
 
     @pytest.mark.channels
     @pytest.mark.regression
+    @pytest.mark.slow
     def test_discord_bot_integration_with_user_management(self, test_data_dir, test_user_setup):
         """Test that Discord bot integrates properly with user management"""
         from core.user_management import get_all_user_ids, get_user_id_by_identifier

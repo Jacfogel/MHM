@@ -54,6 +54,7 @@ class TestSchedulerManagerLifecycle:
     @pytest.mark.behavior
     @pytest.mark.schedules
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_run_daily_scheduler_thread_creation_real_behavior(self, scheduler_manager):
         """Test that run_daily_scheduler creates a thread and starts it."""
         with patch('core.scheduler.get_all_user_ids') as mock_get_users:
@@ -84,6 +85,7 @@ class TestSchedulerManagerLifecycle:
     @pytest.mark.behavior
     @pytest.mark.schedules
     @pytest.mark.critical
+    @pytest.mark.slow
     def test_stop_scheduler_thread_cleanup_real_behavior(self, scheduler_manager):
         """Test that stop_scheduler properly cleans up the thread."""
         with patch('core.scheduler.get_all_user_ids') as mock_get_users:
@@ -950,6 +952,7 @@ class TestSchedulerLoopCoverage:
     
     @pytest.mark.behavior
     @pytest.mark.schedules
+    @pytest.mark.slow
     def test_scheduler_loop_daily_job_scheduling_real_behavior(self, scheduler_manager, test_data_dir):
         """Test that scheduler loop properly schedules daily jobs for all users."""
         user_id = 'test-scheduler-user'
@@ -993,6 +996,7 @@ class TestSchedulerLoopCoverage:
     @pytest.mark.behavior
     @pytest.mark.schedules
     @pytest.mark.filterwarnings("ignore::pytest.PytestUnhandledThreadExceptionWarning")
+    @pytest.mark.slow
     def test_scheduler_loop_error_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop error handling when scheduling fails."""
         with patch('core.scheduler.get_all_user_ids') as mock_get_users, \
@@ -1024,6 +1028,7 @@ class TestSchedulerLoopCoverage:
     
     @pytest.mark.behavior
     @pytest.mark.schedules
+    @pytest.mark.slow
     def test_scheduler_loop_stop_event_handling_real_behavior(self, scheduler_manager):
         """Test scheduler loop properly responds to stop events."""
         with patch('core.scheduler.get_all_user_ids') as mock_get_users, \

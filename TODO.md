@@ -171,18 +171,17 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
-**Investigate Test Coverage Regeneration Not Reflecting Improvements**
-- *What it means*: The full audit (`python ai_development_tools/ai_tools_runner.py audit --full`) is supposed to include test coverage regeneration, but after creating comprehensive tests for 6 handler modules (checkin_handler, schedule_handler, analytics_handler, task_handler, profile_handler, base_handler), the `TEST_COVERAGE_EXPANSION_PLAN.md` still shows old coverage numbers (e.g., checkin_handler.py at 0%, schedule_handler.py at 0%). The coverage regeneration should update these numbers but appears not to be working correctly.
-- *Why it helps*: Ensures coverage metrics accurately reflect test improvements, allowing proper tracking of progress toward 80%+ coverage goal
+**Investigate Flaky test_validate_and_raise_if_invalid_failure**
+- *What it means*: The test `test_validate_and_raise_if_invalid_failure` in `tests/unit/test_config.py` fails intermittently in the full test suite but passes consistently when run individually. This suggests an environment state dependency or timing issue that needs investigation.
+- *Why it helps*: Ensures test suite reliability and prevents flaky tests from masking real issues or causing false failures in CI/CD
 - *Estimated effort*: Small
 - *Subtasks*:
-  - [ ] Review `ai_development_tools/ai_tools_runner.py` to understand how coverage regeneration works
-  - [ ] Check if coverage regeneration is actually running during full audit
-  - [ ] Verify that pytest coverage collection is working correctly
-  - [ ] Check if `TEST_COVERAGE_EXPANSION_PLAN.md` is being updated by the coverage regeneration tool
-  - [ ] Run coverage report manually (`pytest --cov=communication --cov-report=term-missing`) to verify actual coverage numbers
-  - [ ] Fix coverage regeneration tool if it's not updating the plan file correctly
-  - [ ] Verify coverage improvements are reflected after fix
+  - [ ] Run the test multiple times individually to confirm it consistently passes
+  - [ ] Run the test in isolation with different test orders to identify state dependencies
+  - [ ] Check if the test is affected by other tests modifying environment variables or configuration state
+  - [ ] Review test fixtures and setup/teardown to ensure proper isolation
+  - [ ] Consider marking the test as `@pytest.mark.flaky` if the root cause cannot be easily fixed
+  - [ ] Document findings and fix if possible, or mark as known flaky test
 
 **Investigate base_handler.py _create_error_response Bug**
 - *What it means*: The `_create_error_response` method in `base_handler.py` attempts to pass `success=False` and `user_id` parameters to `InteractionResponse`, but `InteractionResponse` doesn't accept these fields (only accepts: message, completed, rich_data, suggestions, error). This causes a TypeError that is caught by `@handle_errors`, returning None instead of a proper error response.

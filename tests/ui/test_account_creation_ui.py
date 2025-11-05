@@ -226,6 +226,7 @@ class TestAccountCreationDialogRealBehavior:
         assert timezone_combo.currentText() == "America/New_York", "Valid timezone should be set"
     
     @pytest.mark.ui
+    @pytest.mark.slow
     def test_feature_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test feature validation with proper category requirements."""
         # Set up username and timezone first (required for validation to proceed past these checks)
@@ -286,6 +287,7 @@ class TestAccountCreationDialogRealBehavior:
         assert is_valid, "Only check-ins enabled should pass validation (no categories required)"
     
     @pytest.mark.ui
+    @pytest.mark.slow
     def test_messages_validation_real_behavior(self, dialog, test_data_dir):
         """REAL BEHAVIOR TEST: Test messages-specific validation when messages are enabled."""
         # Set up username and timezone first (required for validation to proceed past these checks)

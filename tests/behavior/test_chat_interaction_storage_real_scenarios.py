@@ -261,6 +261,7 @@ class TestChatInteractionStorageRealScenarios:
     
     @pytest.mark.behavior
     @pytest.mark.file_io
+    @pytest.mark.slow
     def test_chat_interaction_performance_with_large_history(self, test_data_dir, fix_user_data_loaders):
         """Test chat interaction storage performance with large conversation history."""
         user_id = "test-user-performance"

@@ -31,6 +31,15 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-05 - Pytest Marks Audit and Test Categorization Improvements **COMPLETED**
+- **Redundant Marks Removed**: Removed `message_processing` and `flow_management` marks from `pytest.ini` and all test files (26 occurrences) - these were redundant with existing `communication` and `checkins` marks
+- **Slow Tests Identified and Marked**: Added `@pytest.mark.slow` to 58 additional tests across 18 test files using `pytest --durations=0` - total slow tests increased from 17 to 75
+- **Functional Marks Added**: Added `@pytest.mark.ai` to AI-related tests and `@pytest.mark.network` to network-related tests where appropriate
+- **Missing Imports Fixed**: Added missing `import pytest` to `test_enhanced_command_parser_behavior.py` and `test_task_crud_disambiguation.py`
+- **Result**: 2067 tests passing (1 flaky pre-existing failure), all marks working correctly, test filtering improved (`-m "not slow"` excludes slow tests), test execution efficiency significantly improved
+
+---
+
 ### 2025-11-05 - Communication Module Test Coverage Expansion **COMPLETED**
 - **Handler Test Coverage**: Created/expanded comprehensive behavior tests for 6 handler modules (checkin_handler, schedule_handler, analytics_handler, task_handler, profile_handler, base_handler) - coverage increased from 0-41% to comprehensive
 - **Test Quality Improvements**: Enhanced all tests to follow best practices - verify actual system changes (data passed to functions), check side effects (data structure modifications), test data transformations (parsing, conversions)

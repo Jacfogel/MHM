@@ -6,6 +6,7 @@ Tests real behavior and side effects of command parsing functionality.
 """
 
 import json
+import pytest
 from unittest.mock import patch
 from communication.message_processing.command_parser import EnhancedCommandParser
 
@@ -75,6 +76,7 @@ class TestEnhancedCommandParserBehavior:
             # Verify entities were extracted
             assert "title" in result.parsed_command.entities, f"Pattern '{pattern}' should extract task title"
     
+    @pytest.mark.slow
     def test_enhanced_command_parser_task_listing_patterns_behavior(self, test_data_dir):
         """Test real behavior of task listing pattern matching."""
         # Test various task listing patterns
@@ -97,6 +99,7 @@ class TestEnhancedCommandParserBehavior:
             # The enhanced parser uses AI-enhanced parsing, not rule-based
             assert result.method in ["rule_based", "ai_enhanced"], f"Pattern '{pattern}' should use rule-based or AI-enhanced parsing"
     
+    @pytest.mark.slow
     def test_enhanced_command_parser_task_completion_patterns_behavior(self, test_data_dir):
         """Test real behavior of task completion pattern matching."""
         # Test various task completion patterns
@@ -139,6 +142,7 @@ class TestEnhancedCommandParserBehavior:
             # The enhanced parser uses AI-enhanced parsing, not rule-based
             assert result.method in ["rule_based", "ai_enhanced"], f"Pattern '{pattern}' should use rule-based or AI-enhanced parsing"
     
+    @pytest.mark.slow
     def test_enhanced_command_parser_help_patterns_behavior(self, test_data_dir):
         """Test real behavior of help pattern matching."""
         # Test various help patterns
@@ -336,6 +340,7 @@ class TestEnhancedCommandParserIntegration:
         """Set up test environment."""
         self.parser = EnhancedCommandParser()
     
+    @pytest.mark.slow
     def test_enhanced_command_parser_with_real_handlers_behavior(self, test_data_dir):
         """Test parser behavior with real interaction handlers."""
         # Verify parser has access to real handlers
@@ -349,6 +354,7 @@ class TestEnhancedCommandParserIntegration:
             result = self.parser.parse(f"test {intent} command")
             # Should not crash when validating intent
     
+    @pytest.mark.ai
     def test_enhanced_command_parser_with_real_ai_chatbot_behavior(self, test_data_dir):
         """Test parser behavior with real AI chatbot."""
         # Verify parser has access to AI chatbot

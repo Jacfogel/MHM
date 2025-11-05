@@ -68,6 +68,7 @@ class TestResponseCache:
         result = cache.get("test prompt", "user1", "different_type")  # Different type
         assert result is None
     
+    @pytest.mark.slow
     def test_cache_expiry(self):
         """Test cache entry expiry."""
         cache = ResponseCache(ttl=1)  # 1 second TTL
@@ -143,6 +144,7 @@ class TestResponseCache:
         assert len(cache.cache) == 0
         assert len(cache.access_times) == 0
     
+    @pytest.mark.slow
     def test_cache_clear_expired(self):
         """Test clearing expired entries."""
         cache = ResponseCache(ttl=1)
@@ -289,6 +291,7 @@ class TestContextCache:
         result = cache.get("non-existent-user")
         assert result is None
     
+    @pytest.mark.slow
     def test_context_cache_expiry(self):
         """Test context cache expiry."""
         cache = ContextCache(ttl=1)  # 1 second TTL
@@ -323,6 +326,7 @@ class TestContextCache:
         assert cache.get("user2") is None
         assert len(cache.cache) == 0
     
+    @pytest.mark.slow
     def test_context_cache_clear_expired(self):
         """Test clearing expired contexts."""
         cache = ContextCache(ttl=1)

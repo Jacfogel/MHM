@@ -172,6 +172,7 @@ class TestServiceUtilitiesBehavior:
             # Assert
             assert is_running is False, "Should return False when process check fails"
     
+    @pytest.mark.network
     def test_wait_for_network_returns_true_when_network_available(self, test_data_dir):
         """Test that wait_for_network returns True when network is available."""
         # Arrange - Mock socket to simulate successful connection
@@ -185,6 +186,8 @@ class TestServiceUtilitiesBehavior:
             assert network_available is True, "Should return True when network is available"
             mock_socket.assert_called_once_with(("8.8.8.8", 53))
     
+    @pytest.mark.slow
+    @pytest.mark.network
     def test_wait_for_network_returns_false_when_network_unavailable(self, test_data_dir):
         """Test that wait_for_network returns False when network is unavailable."""
         # Arrange - Mock socket to simulate connection failure
@@ -297,6 +300,7 @@ class TestServiceUtilitiesBehavior:
             result = _shared__title_case(input_text)
             assert result == expected_output, f"Failed for '{input_text}': expected '{expected_output}', got '{result}'"
     
+    @pytest.mark.slow
     def test_service_utilities_error_handling_preserves_system_stability(self, test_data_dir):
         """Test that service utilities error handling preserves system stability."""
         # Arrange - Test various error conditions
@@ -368,6 +372,7 @@ class TestServiceUtilitiesBehavior:
 class TestServiceUtilitiesIntegration:
     """Test integration between service utility functions."""
     
+    @pytest.mark.slow
     def test_service_utilities_integration_with_reschedule_workflow(self, test_data_dir):
         """Test integration between service utilities in reschedule workflow."""
         user_id = "test-user-integration"
@@ -393,6 +398,8 @@ class TestServiceUtilitiesIntegration:
                     assert call_args['user_id'] == user_id, "Should include user_id"
                     assert call_args['category'] == category, "Should include category"
     
+    @pytest.mark.slow
+    @pytest.mark.network
     def test_service_utilities_error_recovery_with_real_operations(self, test_data_dir):
         """Test error recovery when working with real operations."""
         # Test 1: Network recovery
