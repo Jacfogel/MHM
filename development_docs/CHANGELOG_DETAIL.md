@@ -35,6 +35,32 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**
+
+**Problem**: Two priority UI dialogs had low test coverage: `process_watcher_dialog.py` (13% coverage) and `user_analytics_dialog.py` (15% coverage). Tests also needed to follow explicit Arrange-Act-Assert patterns and include integration tests for complete workflows.
+
+**Solution**: Created comprehensive test suites for both dialogs with explicit Arrange-Act-Assert structure and integration tests. Refactored existing tests to follow best practices from `AI_TESTING_GUIDE.md` and `testing-guidelines.mdc`.
+
+**Technical Changes**:
+- **Process Watcher Dialog Tests**: Created `tests/ui/test_process_watcher_dialog.py` with 28 tests covering initialization, refresh workflows, auto-refresh, process selection, filtering, and error handling. Coverage increased from 13% to 87%.
+- **User Analytics Dialog Tests**: Created `tests/ui/test_user_analytics_dialog.py` with 34 tests covering initialization, data loading, time period changes, tab navigation, refresh workflows, and error handling.
+- **Test Structure Improvements**: Refactored all tests to explicitly use Arrange-Act-Assert pattern with clear comments for each section, improving readability and maintainability.
+- **Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh → update tables → display data, analytics loading → display overview → display specific data).
+- **Test Fix**: Corrected `test_disable_tasks_for_full_user` in `tests/integration/test_account_lifecycle.py` to verify that `task_settings` are preserved when task management feature is disabled (aligning with system design that preserves settings for future re-enablement).
+
+**Files Created**:
+- `tests/ui/test_process_watcher_dialog.py` (28 tests, 87% coverage achieved)
+- `tests/ui/test_user_analytics_dialog.py` (34 tests)
+
+**Files Modified**:
+- `tests/integration/test_account_lifecycle.py` (fixed test expectation to match system design)
+
+**Testing**: All 2,156 tests pass with no regressions. Test suite execution time: 427.34s (7:07). No files written outside `tests/` directory.
+
+**Impact**: Significantly improved test coverage for critical UI dialogs, established clear test structure patterns for future test development, and added integration tests to verify end-to-end workflows function correctly.
+
+---
+
 ### 2025-01-XX - Error Handling Coverage Expansion to 92.9% **COMPLETED**
 
 **Problem**: Error handling coverage was at 91.6%, with 123 functions missing error handling decorators. The goal was to reach 93%+ coverage to improve system robustness and reliability.

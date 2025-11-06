@@ -95,7 +95,23 @@ class CoverageMetricsRegenerator:
             # Build coverage arguments dynamically from core modules
             cov_args = []
             for module in self.core_modules:
-                cov_args.extend(['--cov', module])
+                # Validate module name before adding to arguments
+                if not module or not module.strip():
+                    error_msg = f"Invalid empty module name in core_modules: {self.core_modules}"
+                    if logger:
+                        logger.error(error_msg)
+                    raise ValueError(error_msg)
+                cov_args.extend(['--cov', module.strip()])
+            
+            # Validate no empty --cov arguments were created
+            if '--cov' in cov_args and cov_args.index('--cov') < len(cov_args) - 1:
+                # Check if any --cov is followed by another --cov (empty argument)
+                for i in range(len(cov_args) - 1):
+                    if cov_args[i] == '--cov' and cov_args[i + 1] == '--cov':
+                        error_msg = f"Detected empty --cov argument in command construction. cov_args: {cov_args}"
+                        if logger:
+                            logger.error(error_msg)
+                        raise ValueError(error_msg)
             
             cmd = [
                 sys.executable, '-m', 'pytest',
@@ -108,6 +124,18 @@ class CoverageMetricsRegenerator:
                 '--maxfail=5',
                 'tests/'
             ]
+            
+            # Log the command being run for debugging
+            cmd_str = ' '.join(cmd[:10]) + (' ...' if len(cmd) > 10 else '')
+            if logger:
+                logger.info(f"Running pytest coverage command: {cmd_str}")
+            
+            # Check for problematic environment variables
+            pytest_addopts = os.environ.get('PYTEST_ADDOPTS', '')
+            if pytest_addopts and '--cov' in pytest_addopts:
+                warning_msg = f"PYTEST_ADDOPTS contains --cov which may conflict: {pytest_addopts}"
+                if logger:
+                    logger.warning(warning_msg)
             
             env = os.environ.copy()
             env['COVERAGE_FILE'] = str(self.coverage_data_file)
@@ -122,10 +150,43 @@ class CoverageMetricsRegenerator:
             
             self._record_pytest_output(result)
             
-            if result.returncode != 0 and logger:
-                logger.warning(
-                    f"Coverage analysis completed with issues (exit code {result.returncode}). See {self.pytest_stderr_log} for stderr."
-                )
+            # Enhanced error detection and reporting
+            if result.returncode != 0:
+                error_details = []
+                
+                # Check for common error patterns
+                stderr_lower = result.stderr.lower() if result.stderr else ''
+                stdout_lower = result.stdout.lower() if result.stdout else ''
+                
+                if 'unrecognized arguments' in stderr_lower or 'unrecognized arguments' in stdout_lower:
+                    error_details.append("Unrecognized arguments error detected")
+                    # Extract the problematic arguments from stderr
+                    if result.stderr:
+                        for line in result.stderr.split('\n'):
+                            if 'unrecognized arguments' in line.lower():
+                                error_details.append(f"  Problematic arguments: {line.strip()}")
+                
+                # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+                if result.stderr and '--cov' in result.stderr:
+                    stderr_parts = result.stderr.split()
+                    for i in range(len(stderr_parts) - 1):
+                        if stderr_parts[i] == '--cov' and stderr_parts[i + 1] == '--cov':
+                            error_details.append("Detected empty --cov argument in pytest error output")
+                            break
+                
+                if 'error: usage' in stderr_lower:
+                    error_details.append("Pytest usage/argument error detected")
+                
+                error_msg = f"Coverage analysis failed (exit code {result.returncode})"
+                if error_details:
+                    error_msg += ":\n  - " + "\n  - ".join(error_details)
+                error_msg += f"\n  See {self.pytest_stderr_log} for full stderr output"
+                error_msg += f"\n  Command: {cmd_str}"
+                
+                if logger:
+                    logger.error(error_msg)
+                else:
+                    print(f"ERROR: {error_msg}")
             
             coverage_data = self.parse_coverage_output(result.stdout)
             if not coverage_data and coverage_output.exists():

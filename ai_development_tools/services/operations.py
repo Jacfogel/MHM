@@ -1406,6 +1406,44 @@ class AIToolsService:
 
             print("\nCoverage metrics regenerated and plan updated!")
 
+        else:
+
+            # Enhanced error reporting for coverage regeneration failures
+
+            error_msg = "Coverage regeneration failed"
+
+            if result.get('error'):
+
+                error_msg += f": {result['error']}"
+
+            if result.get('returncode') is not None:
+
+                error_msg += f" (exit code: {result['returncode']})"
+
+            # Check for common failure patterns in output
+
+            output = result.get('output', '')
+
+            if 'unrecognized arguments' in output.lower():
+
+                error_msg += "\n  - Detected pytest argument error (possibly empty --cov argument)"
+
+            # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+            if output and '--cov' in output:
+                output_parts = output.split()
+                for i in range(len(output_parts) - 1):
+                    if output_parts[i] == '--cov' and output_parts[i + 1] == '--cov':
+                        error_msg += "\n  - Detected empty --cov argument in error output"
+                        break
+
+            print(f"\nERROR: {error_msg}")
+
+            if result.get('error'):
+
+                print(f"  Full error: {result['error'][:500]}")  # Limit error length
+
+            print("  Check ai_development_tools/logs/coverage_regeneration/ for detailed logs")
+
         return result['success']
 
     def run_legacy_cleanup(self):
