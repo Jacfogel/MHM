@@ -151,7 +151,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'analytics_file': str(log_dir / "analytics.log"),
                 'message_file': str(log_dir / "message.log"),
                 'backup_file': str(log_dir / "backup.log"),
-                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log"),
+                'ai_dev_tools_file': str(log_dir / "ai_dev_tools.log")
             }
             
             # Clear any existing loggers
@@ -194,7 +195,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'analytics_file': str(log_dir / "analytics.log"),
                 'message_file': str(log_dir / "message.log"),
                 'backup_file': str(log_dir / "backup.log"),
-                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log"),
+                'ai_dev_tools_file': str(log_dir / "ai_dev_tools.log")
             }
             
             # Clear any existing loggers
@@ -462,7 +464,8 @@ class TestLoggerCoverageExpansionPhase3Simple:
                 'analytics_file': str(log_dir / "analytics.log"),
                 'message_file': str(log_dir / "message.log"),
                 'backup_file': str(log_dir / "backup.log"),
-                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log")
+                'checkin_dynamic_file': str(log_dir / "checkin_dynamic.log"),
+                'ai_dev_tools_file': str(log_dir / "ai_dev_tools.log")
             }
             
             # Create multiple component loggers

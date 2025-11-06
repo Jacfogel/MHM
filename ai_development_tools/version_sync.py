@@ -20,6 +20,15 @@ except ImportError:
     sys.path.insert(0, str(Path(__file__).parent))
     import config
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 # Configuration - File Categories from config
 AI_DOCS = config.VERSION_SYNC['ai_docs']
 GENERATED_AI_DOCS = config.VERSION_SYNC.get('generated_ai_docs', [])
@@ -508,11 +517,10 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
 
     current_date = get_current_date()
 
-    print(f"Synchronizing versions (scope: {scope})...")
-    print(f"   Target Version: {target_version}")
-    print(f"   Current Date: {current_date}")
-    print(f"   Force Date Update: {force_date_update}")
-    print()
+    logger.info(f"Synchronizing versions (scope: {scope})...")
+    logger.info(f"   Target Version: {target_version}")
+    logger.info(f"   Current Date: {current_date}")
+    logger.info(f"   Force Date Update: {force_date_update}")
 
     # Get files to process
     if scope == "ai_docs":
@@ -574,22 +582,20 @@ def sync_versions(target_version=None, force_date_update=False, scope="ai_docs")
         else:
             updated_files.append(f"{file_path} (not found)")
 
-    # Print results
-    print("Version Synchronization Results:")
+    # Log results
+    logger.info("Version Synchronization Results:")
     for result in updated_files:
-        print(f"   {result}")
+        logger.info(f"   {result}")
 
-    print()
-    print(f"Synchronization complete!")
-    print(f"   Files processed: {len(files_to_process)}")
-    print(f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}")
+    logger.info(f"Synchronization complete!")
+    logger.info(f"   Files processed: {len(files_to_process)}")
+    logger.info(f"   Files updated: {len([f for f in updated_files if 'UPDATED' in f])}")
 
     return updated_files
 
 def show_current_versions(scope="ai_docs"):
     """Show current versions of files based on scope"""
-    print(f"Current Versions (scope: {scope}):")
-    print()
+    logger.info(f"Current Versions (scope: {scope}):")
 
     if scope == "ai_docs":
         files_to_show = AI_DOCS + CURSOR_RULES
@@ -613,16 +619,15 @@ def show_current_versions(scope="ai_docs"):
                         status = "modified yesterday"
                 else:
                     status = "unchanged"
-                print(f"   {file_path}: v{version} (stated: {date}, {status})")
+                logger.info(f"   {file_path}: v{version} (stated: {date}, {status})")
             except Exception as e:
-                print(f"   {file_path}: Error reading file")
+                logger.error(f"   {file_path}: Error reading file: {e}")
         else:
-            print(f"   {file_path}:  File not found")
+            logger.warning(f"   {file_path}:  File not found")
 
 def show_modification_status(scope="ai_docs"):
     """Show which files were modified recently"""
-    print(f"File Modification Status (scope: {scope}):")
-    print()
+    logger.info(f"File Modification Status (scope: {scope}):")
 
     if scope == "ai_docs":
         files_to_check = AI_DOCS + CURSOR_RULES
@@ -647,21 +652,19 @@ def show_modification_status(scope="ai_docs"):
             unchanged.append(f"{file_path} (not found)")
 
     if modified_today:
-        print("Modified Today:")
+        logger.info("Modified Today:")
         for file_path in modified_today:
-            print(f"   UPDATED {file_path}")
-        print()
+            logger.info(f"   UPDATED {file_path}")
 
     if modified_yesterday:
-        print("Modified Yesterday:")
+        logger.info("Modified Yesterday:")
         for file_path in modified_yesterday:
-            print(f"   UPDATED {file_path}")
-        print()
+            logger.info(f"   UPDATED {file_path}")
 
     if unchanged:
-        print("Unchanged:")
+        logger.info("Unchanged:")
         for file_path in unchanged:
-            print(f"{file_path}")
+            logger.info(f"{file_path}")
 
 if __name__ == "__main__":
     import sys
@@ -693,40 +696,41 @@ if __name__ == "__main__":
                     max_entries = int(arg.split("=")[1])
             result = trim_ai_changelog_entries(days_to_keep, max_entries)
             if 'error' in result:
-                print(f"Error trimming changelog: {result['error']}")
+                logger.error(f"Error trimming changelog: {result['error']}")
             else:
-                print(f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept")
+                logger.info(f"Changelog trimmed: {result['trimmed_entries']} entries archived, {result['kept_entries']} entries kept")
                 if result['archive_created']:
-                    print(f"Archive created: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+                    logger.info(f"Archive created: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
         elif command == "check":
             max_entries = 15
             for arg in sys.argv:
                 if arg.startswith("--max="):
                     max_entries = int(arg.split("=")[1])
             result = check_changelog_entry_count(max_entries)
-            print(f"Changelog check: {result['message']}")
+            logger.info(f"Changelog check: {result['message']}")
             if result['status'] == 'fail':
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "validate":
             result = validate_referenced_paths()
-            print(f"Path validation: {result['message']}")
+            logger.info(f"Path validation: {result['message']}")
             if result['status'] == 'fail':
-                print(f"Found {result['issues_found']} path issues")
+                logger.warning(f"Found {result['issues_found']} path issues")
                 sys.exit(1)  # Exit with error code to fail audit
             elif result['status'] == 'error':
-                print(f"Path validation error: {result['message']}")
+                logger.error(f"Path validation error: {result['message']}")
                 sys.exit(1)  # Exit with error code to fail audit
         elif command == "sync-todo":
             result = sync_todo_with_changelog()
-            print(f"TODO sync: {result['message']}")
+            logger.info(f"TODO sync: {result['message']}")
             if result.get('completed_entries', 0) > 0:
-                print(f"Found {result['completed_entries']} completed entries that need manual review:")
+                logger.warning(f"Found {result['completed_entries']} completed entries that need manual review:")
                 for entry in result.get('entries', []):
-                    print(f"  Line {entry['line_number']}: {entry['title']}")
-                print("  -> Please check if these are documented in AI_CHANGELOG.md")
-                print("  -> If documented, remove them from TODO.md")
-                print("  -> If not documented, add them to AI_CHANGELOG.md first")
+                    logger.warning(f"  Line {entry['line_number']}: {entry['title']}")
+                logger.warning("  -> Please check if these are documented in AI_CHANGELOG.md")
+                logger.warning("  -> If documented, remove them from TODO.md")
+                logger.warning("  -> If not documented, add them to AI_CHANGELOG.md first")
         else:
+            # Usage messages go to stdout for user visibility
             print("Usage:")
             print("  python ai_development_tools/version_sync.py show                    # Show AI doc versions")
             print("  python ai_development_tools/version_sync.py show docs               # Show all doc versions")
@@ -747,6 +751,7 @@ if __name__ == "__main__":
     else:
         # Default: show current versions
         show_current_versions()
+        # Usage messages go to stdout for user visibility
         print()
         print("To synchronize versions, run:")
         print("   python ai_development_tools/version_sync.py sync")

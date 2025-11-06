@@ -29,6 +29,10 @@ except ImportError:
         is_standard_library_module as _is_stdlib_module,
     )
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
     """Extract all imports from a Python file."""
     imports = {
@@ -65,7 +69,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
                         imports['third_party'].append(module_name)
                 
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
     
     return imports
 
@@ -151,47 +155,47 @@ def parse_module_dependencies() -> Dict[str, List[str]]:
                     documented[file_path] = []
             
     except Exception as e:
-        print(f"Error parsing MODULE_DEPENDENCIES_DETAIL.md: {e}")
+        logger.error(f"Error parsing MODULE_DEPENDENCIES_DETAIL.md: {e}")
     
     return documented
 
 def generate_dependency_report():
     """Generate a comprehensive dependency audit report."""
-    print("[SCAN] Scanning all Python files for imports...")
+    logger.info("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
-    print("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
+    logger.info("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
     documented_deps = parse_module_dependencies()
     
-    print("\n" + "="*80)
-    print("MODULE DEPENDENCIES AUDIT REPORT")
-    print("="*80)
+    logger.info("="*80)
+    logger.info("MODULE DEPENDENCIES AUDIT REPORT")
+    logger.info("="*80)
     
     # Statistics
     total_files = len(actual_imports)
     total_actual_imports = sum(data['total_imports'] for data in actual_imports.values())
     total_documented_deps = sum(len(deps) for deps in documented_deps.values())
     
-    print(f"\n[STATS] OVERALL STATISTICS:")
-    print(f"   Files scanned: {total_files}")
-    print(f"   Total imports found: {total_actual_imports}")
-    print(f"   Dependencies documented: {total_documented_deps}")
+    logger.info(f"[STATS] OVERALL STATISTICS:")
+    logger.info(f"   Files scanned: {total_files}")
+    logger.info(f"   Total imports found: {total_actual_imports}")
+    logger.info(f"   Dependencies documented: {total_documented_deps}")
     
     # Import breakdown
     std_lib_count = sum(len(data['imports']['standard_library']) for data in actual_imports.values())
     third_party_count = sum(len(data['imports']['third_party']) for data in actual_imports.values())
     local_count = sum(len(data['imports']['local']) for data in actual_imports.values())
     
-    print(f"   Standard library imports: {std_lib_count}")
-    print(f"   Third-party imports: {third_party_count}")
-    print(f"   Local imports: {local_count}")
+    logger.info(f"   Standard library imports: {std_lib_count}")
+    logger.info(f"   Third-party imports: {third_party_count}")
+    logger.info(f"   Local imports: {local_count}")
     
     # Missing dependencies
-    print(f"\n[MISS] MISSING FROM DEPENDENCIES DOCUMENTATION:")
+    logger.warning(f"[MISS] MISSING FROM DEPENDENCIES DOCUMENTATION:")
     missing_count = 0
     for file_path, data in actual_imports.items():
         if file_path not in documented_deps:
-            print(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
+            logger.warning(f"   [DIR] {file_path} - ENTIRE FILE MISSING")
             missing_count += data['total_imports']
         else:
             documented_deps_set = set(documented_deps[file_path])
@@ -199,15 +203,15 @@ def generate_dependency_report():
             missing_deps = actual_deps - documented_deps_set
             
             if missing_deps:
-                print(f"   [FILE] {file_path}:")
+                logger.warning(f"   [FILE] {file_path}:")
                 for dep in sorted(missing_deps):
-                    print(f"      - {dep}")
+                    logger.warning(f"      - {dep}")
                     missing_count += 1
     
-    print(f"\n   Total missing dependencies: {missing_count}")
+    logger.warning(f"   Total missing dependencies: {missing_count}")
     
     # Detailed breakdown by directory
-    print(f"\n[DIR] BREAKDOWN BY DIRECTORY:")
+    logger.info(f"[DIR] BREAKDOWN BY DIRECTORY:")
     dir_stats = {}
     for file_path, data in actual_imports.items():
         dir_name = file_path.split('/')[0] if '/' in file_path else 'root'
@@ -218,28 +222,28 @@ def generate_dependency_report():
         dir_stats[dir_name]['local_deps'] += len(data['imports']['local'])
     
     for dir_name, stats in sorted(dir_stats.items()):
-        print(f"   {dir_name}/: {stats['files']} files, {stats['imports']} imports, {stats['local_deps']} local deps")
+        logger.info(f"   {dir_name}/: {stats['files']} files, {stats['imports']} imports, {stats['local_deps']} local deps")
     
     # Generate updated dependency sections
-    print(f"\n[DOC] GENERATING UPDATED DEPENDENCY SECTIONS...")
+    logger.info(f"[DOC] GENERATING UPDATED DEPENDENCY SECTIONS...")
     generate_updated_dependency_sections(actual_imports)
 
 def generate_updated_dependency_sections(actual_imports: Dict[str, Dict]):
     """Generate updated dependency sections for missing files."""
-    print("\n" + "="*80)
-    print("UPDATED DEPENDENCY SECTIONS TO ADD:")
-    print("="*80)
+    logger.info("="*80)
+    logger.info("UPDATED DEPENDENCY SECTIONS TO ADD:")
+    logger.info("="*80)
     
     for file_path, data in sorted(actual_imports.items()):
         if data['imports']['local']:  # Only show files with local dependencies
-            print(f"\n#### `{file_path}`")
-            print(f"- **Purpose**: [Add purpose description]")
-            print(f"- **Dependencies**: {', '.join(sorted(data['imports']['local']))}")
-            print(f"- **Used by**: [Add usage information]")
+            logger.info(f"#### `{file_path}`")
+            logger.info(f"- **Purpose**: [Add purpose description]")
+            logger.info(f"- **Dependencies**: {', '.join(sorted(data['imports']['local']))}")
+            logger.info(f"- **Used by**: [Add usage information]")
 
 def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
     """Analyze potential circular dependencies."""
-    print(f"\n[CIRC] CIRCULAR DEPENDENCY ANALYSIS:")
+    logger.info("CIRCULAR DEPENDENCY ANALYSIS:")
     
     # Build dependency graph
     dependency_graph = {}
@@ -256,11 +260,11 @@ def analyze_circular_dependencies(actual_imports: Dict[str, Dict]):
                     circular_deps.append((file_path, dep))
     
     if circular_deps:
-        print("   [WARN] POTENTIAL CIRCULAR DEPENDENCIES FOUND:")
+        logger.warning("POTENTIAL CIRCULAR DEPENDENCIES FOUND:")
         for file1, file2 in circular_deps:
-            print(f"      {file1} ↔ {file2}")
+            logger.warning(f"   {file1} ↔ {file2}")
     else:
-        print("   [OK] No circular dependencies detected")
+        logger.info("No circular dependencies detected")
 
 def identify_enhancement_needs(documented_deps: Dict[str, List[str]], actual_imports: Dict[str, Dict]) -> Dict[str, str]:
     """Identify modules that need manual enhancements or updates."""
@@ -396,10 +400,10 @@ def generate_enhanced_dependency_report(actual_imports: Dict[str, Dict], documen
 
 def generate_dependency_report():
     """Generate the main dependency audit report."""
-    print("[SCAN] Scanning all Python files for imports...")
+    logger.info("Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
-    print("[DOC] Parsing MODULE_DEPENDENCIES_DETAIL.md...")
+    logger.info("Parsing MODULE_DEPENDENCIES_DETAIL.md...")
     documented_deps = parse_module_dependencies()
     
     # Identify enhancement needs
@@ -481,7 +485,7 @@ def generate_dependency_report():
     generate_enhanced_dependency_report(actual_imports, documented_deps)
     
     # Generate updated dependency sections
-    print(f"\n[DOC] GENERATING UPDATED DEPENDENCY SECTIONS...")
+    logger.info("Generating updated dependency sections...")
     generate_updated_dependency_sections(actual_imports)
     
     # Also analyze circular dependencies

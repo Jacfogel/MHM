@@ -8,6 +8,16 @@ This helps AI assistants make better decisions about which tools to use and how 
 
 import sys
 import subprocess
+from pathlib import Path
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
 
 # Tool configurations with usage guidance
 TOOL_GUIDE = {
@@ -199,7 +209,8 @@ def show_tool_guide(tool_name=None):
             for i, criterion in enumerate(tool['success_criteria'], 1):
                 print(f"   {i}. {criterion}")
         else:
-            print(f"❌ Tool '{tool_name}' not found in guide")
+            logger.warning(f"Tool '{tool_name}' not found in guide")
+            # User-facing help messages stay as print() for immediate visibility
             print("Available tools:")
             for tool in TOOL_GUIDE.keys():
                 print(f"   • {tool}")
@@ -256,16 +267,19 @@ def show_recommendations(scenario):
             print(f"   Command: python ai_development_tools/{rec['tool']}")
             print()
     else:
-        print("❌ No specific tool recommendations found.")
+        logger.info("No specific tool recommendations found.")
+        # User-facing help messages stay as print() for immediate visibility
         print("💡 Try running the general audit first:")
         print("   python ai_development_tools/ai_tools_runner.py audit")
 
 def run_tool_with_guidance(tool_name):
     """Run a tool and provide guidance on interpreting results"""
     if tool_name not in TOOL_GUIDE:
-        print(f"❌ Tool '{tool_name}' not found")
+        logger.error(f"Tool '{tool_name}' not found")
         return
     
+    logger.info(f"Running {tool_name} with guidance...")
+    # User-facing help messages stay as print() for immediate visibility
     print(f"🚀 Running {tool_name} with guidance...")
     print("=" * 50)
     
@@ -287,9 +301,11 @@ def run_tool_with_guidance(tool_name):
         print("-" * 30)
         if result.stdout:
             print(result.stdout)
+            logger.debug(f"Tool stdout: {result.stdout[:500]}")  # Log first 500 chars
         if result.stderr:
             print("Errors:")
             print(result.stderr)
+            logger.warning(f"Tool stderr: {result.stderr}")
         
         print()
         print("✅ Success Criteria Check:")
@@ -297,8 +313,10 @@ def run_tool_with_guidance(tool_name):
             print(f"   • {criterion}")
         
     except subprocess.TimeoutExpired:
+        logger.error("Tool timed out after 60 seconds")
         print("⏰ Tool timed out after 60 seconds")
     except Exception as e:
+        logger.error(f"Error running tool: {e}")
         print(f"❌ Error running tool: {e}")
 
 if __name__ == "__main__":

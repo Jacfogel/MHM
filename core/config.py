@@ -166,6 +166,7 @@ LOG_EMAIL_FILE = _normalize_path(os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_D
 LOG_UI_FILE = _normalize_path(os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log')))  # UI interactions log
 LOG_FILE_OPS_FILE = _normalize_path(os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log')))  # File operations log
 LOG_SCHEDULER_FILE = _normalize_path(os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log')))  # Scheduler log
+LOG_AI_DEV_TOOLS_FILE = _normalize_path(os.getenv('LOG_AI_DEV_TOOLS_FILE', os.path.join(LOGS_DIR, 'ai_dev_tools.log')))  # AI development tools log
 
 # Set up logger after path definitions to avoid circular imports
 from core.logger import get_component_logger

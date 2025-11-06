@@ -19,6 +19,15 @@ _parent_dir = os.path.dirname(_script_dir)
 if _parent_dir not in sys.path:
     sys.path.insert(0, _parent_dir)
 
+# Add project root to path for core module imports
+project_root = Path(_parent_dir)
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:
     """Detect the type of function for template generation."""
     file_lower = file_path.lower()
@@ -164,7 +173,7 @@ def extract_functions_from_file(file_path: str) -> List[Dict]:
                 })
                 
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
     
     return functions
 
@@ -227,7 +236,7 @@ def extract_classes_from_file(file_path: str) -> List[Dict]:
                 })
                 
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
     
     return classes
 
@@ -1350,13 +1359,13 @@ def analyze_function_patterns(actual_functions: Dict[str, Dict]) -> Dict[str, An
 
 def update_function_registry():
     """Update FUNCTION_REGISTRY_DETAIL.md and AI_FUNCTION_REGISTRY.md with current codebase analysis."""
-    print("[SCAN] Scanning all Python files...")
+    logger.info("[SCAN] Scanning all Python files...")
     actual_functions = scan_all_python_files()
     
-    print("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")
+    logger.info("[GEN] Generating FUNCTION_REGISTRY_DETAIL.md content...")
     detail_content = generate_function_registry_content(actual_functions)
     
-    print("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
+    logger.info("[GEN] Generating AI_FUNCTION_REGISTRY.md content...")
     ai_content = generate_ai_function_registry_content(actual_functions)
     
     # Write DETAIL file
@@ -1394,26 +1403,26 @@ def update_function_registry():
     template_items = template_functions + template_methods
     coverage_percentage = (documented_items / total_items * 100) if total_items > 0 else 0
     
-    print(f"\n[SUCCESS] Both function registry files updated successfully!")
-    print(f"[FILES] Generated:")
-    print(f"   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry")
-    print(f"   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry")
-    print(f"[STATS] Statistics:")
-    print(f"   Files scanned: {total_files}")
-    print(f"   Functions found: {total_functions}")
-    print(f"   Methods found: {total_methods}")
-    print(f"   Total items: {total_items}")
-    print(f"   Functions documented: {documented_functions}")
-    print(f"   Methods documented: {documented_methods}")
-    print(f"   Total documented: {documented_items}")
-    print(f"   Template-generated: {template_items}")
-    print(f"   Coverage: {coverage_percentage:.1f}%")
-    print(f"   Detail file: {detail_path}")
-    print(f"   AI file: {ai_path}")
+    logger.info(f"[SUCCESS] Both function registry files updated successfully!")
+    logger.info(f"[FILES] Generated:")
+    logger.info(f"   development_docs/FUNCTION_REGISTRY_DETAIL.md - Complete detailed registry")
+    logger.info(f"   ai_development_docs/AI_FUNCTION_REGISTRY.md - Concise AI-focused registry")
+    logger.info(f"[STATS] Statistics:")
+    logger.info(f"   Files scanned: {total_files}")
+    logger.info(f"   Functions found: {total_functions}")
+    logger.info(f"   Methods found: {total_methods}")
+    logger.info(f"   Total items: {total_items}")
+    logger.info(f"   Functions documented: {documented_functions}")
+    logger.info(f"   Methods documented: {documented_methods}")
+    logger.info(f"   Total documented: {documented_items}")
+    logger.info(f"   Template-generated: {template_items}")
+    logger.info(f"   Coverage: {coverage_percentage:.1f}%")
+    logger.info(f"   Detail file: {detail_path}")
+    logger.info(f"   AI file: {ai_path}")
     
     # Template breakdown
     if template_items > 0:
-        print(f"\n[TEMPLATES] Template Breakdown:")
+        logger.info(f"[TEMPLATES] Template Breakdown:")
         template_types = {}
         for data in actual_functions.values():
             for func in data['functions']:
@@ -1427,7 +1436,7 @@ def update_function_registry():
                         template_types[method_type] = template_types.get(method_type, 0) + 1
         
         for template_type, count in sorted(template_types.items()):
-            print(f"   {template_type}: {count}")
+            logger.info(f"   {template_type}: {count}")
 
 if __name__ == "__main__":
     update_function_registry() 

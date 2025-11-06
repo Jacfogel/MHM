@@ -3,12 +3,22 @@
 
 import argparse
 import sys
+from pathlib import Path
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
 
 from .services.operations import (
     AIToolsService,
     COMMAND_REGISTRY,
 )
 from .services.common import COMMAND_CATEGORIES
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -22,6 +32,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _print_available_commands() -> None:
+    # User-facing help messages stay as print() for immediate visibility
     print("Available commands:\n")
 
     for category, commands in COMMAND_CATEGORIES.items():
@@ -51,6 +62,8 @@ def main(argv=None) -> int:
     commands = COMMAND_REGISTRY
 
     if command_name not in commands:
+        logger.error(f"Unknown command: {command_name}")
+        # User-facing error messages stay as print() for immediate visibility
         print(f"Unknown command: {command_name}")
         print()
         _print_available_commands()

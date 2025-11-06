@@ -36,6 +36,15 @@ from collections import OrderedDict, defaultdict
 
 from .. import config
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 SCRIPT_REGISTRY = {
 
     'analyze_documentation': 'analyze_documentation.py',
@@ -595,15 +604,15 @@ class AIToolsService:
 
         if fast:
 
-            print("Running FAST audit (core only)...")
+            logger.info("Running FAST audit (core only)...")
 
-            print("=" * 50)
+            logger.info("=" * 50)
 
         else:
 
-            print("Running comprehensive audit...")
+            logger.info("Running comprehensive audit...")
 
-            print("=" * 50)
+            logger.info("=" * 50)
 
         result = self.run_quick_audit()
 
@@ -664,25 +673,25 @@ class AIToolsService:
 
             # Audit completed
 
-            print("\n" + "=" * 50)
+            logger.info("=" * 50)
 
-            print("Audit completed successfully!")
+            logger.info("Audit completed successfully!")
 
-            print(f"* AI Status: {ai_status_file}")
+            logger.info(f"* AI Status: {ai_status_file}")
 
-            print(f"* AI Priorities: {ai_priorities_file}")
+            logger.info(f"* AI Priorities: {ai_priorities_file}")
 
-            print(f"* Consolidated Report: {consolidated_file}")
+            logger.info(f"* Consolidated Report: {consolidated_file}")
 
-            print(f"* JSON Data: ai_development_tools/ai_audit_detailed_results.json")
+            logger.info(f"* JSON Data: ai_development_tools/ai_audit_detailed_results.json")
 
-            print("* Check ai_development_tools/archive/ for previous runs")
+            logger.info("* Check ai_development_tools/archive/ for previous runs")
 
             return True
 
         else:
 
-            print("Audit failed!")
+            logger.error("Audit failed!")
 
             return False
 
@@ -729,18 +738,18 @@ class AIToolsService:
                 json.dump(cached_data, f, indent=2)
                 
         except Exception as e:
-            print(f"Warning: Failed to save additional tool results: {e}")
+            logger.warning(f"Failed to save additional tool results: {e}")
 
     def _run_essential_tools_only(self):
         """Run a minimal subset of tools for fast audit mode."""
-        print("Running AI development tools (fast mode - skipping test coverage and unused imports)...")
+        logger.info("Running AI development tools (fast mode - skipping test coverage and unused imports)...")
         try:
-            print("  - Running docs-sync for documentation status...")
+            logger.info("  - Running docs-sync for documentation status...")
             self._run_doc_sync_check()
         except Exception as exc:
-            print(f"  - Documentation sync failed: {exc}")
+            logger.error(f"  - Documentation sync failed: {exc}")
         try:
-            print("  - Refreshing quick status snapshot...")
+            logger.info("  - Refreshing quick status snapshot...")
             result = self.run_script('quick_status', 'json')
             if result.get('success'):
                 self.status_results = result
@@ -755,104 +764,104 @@ class AIToolsService:
                         pass
             else:
                 if result.get('output'):
-                    print(result['output'])
+                    logger.debug(result['output'])
                 if result.get('error'):
-                    print(result['error'])
+                    logger.error(result['error'])
         except Exception as exc:
-            print(f"  - Quick status failed: {exc}")
+            logger.error(f"  - Quick status failed: {exc}")
         try:
-            print("  - Running legacy-cleanup for cleanup priorities...")
+            logger.info("  - Running legacy-cleanup for cleanup priorities...")
             if self.run_legacy_cleanup():
-                print("  - Legacy reference scan completed!")
+                logger.info("  - Legacy reference scan completed!")
         except Exception as exc:
-            print(f"  - Legacy cleanup failed: {exc}")
+            logger.error(f"  - Legacy cleanup failed: {exc}")
         try:
-            print("  - Running validate-work for validation status...")
+            logger.info("  - Running validate-work for validation status...")
             self.run_validate()
         except Exception as exc:
-            print(f"  - Validation failed: {exc}")
+            logger.error(f"  - Validation failed: {exc}")
         try:
-            print("  - Running function discovery for complexity metrics...")
+            logger.info("  - Running function discovery for complexity metrics...")
             self.run_function_discovery()
         except Exception as exc:
-            print(f"  - Function discovery failed: {exc}")
+            logger.error(f"  - Function discovery failed: {exc}")
         try:
-            print("  - Running error handling coverage analysis...")
+            logger.info("  - Running error handling coverage analysis...")
             self.run_error_handling_coverage()
         except Exception as exc:
-            print(f"  - Error handling coverage failed: {exc}")
+            logger.error(f"  - Error handling coverage failed: {exc}")
         try:
-            print("  - Running system signals generator...")
+            logger.info("  - Running system signals generator...")
             self.run_system_signals()
         except Exception as exc:
-            print(f"  - System signals failed: {exc}")
+            logger.error(f"  - System signals failed: {exc}")
 
     def _run_contributing_tools(self) -> None:
         """Run the full suite of supporting tools for comprehensive audits."""
-        print("Running contributing AI development tools...")
+        logger.info("Running contributing AI development tools...")
         try:
-            print("  - Running docs-sync for documentation status...")
+            logger.info("  - Running docs-sync for documentation status...")
             if self._run_doc_sync_check():
-                print("  - Documentation sync completed (see summary above)")
+                logger.info("  - Documentation sync completed (see summary above)")
         except Exception as exc:
-            print(f"  - Documentation sync failed: {exc}")
+            logger.error(f"  - Documentation sync failed: {exc}")
         try:
-            print("  - Running legacy-cleanup for cleanup priorities...")
+            logger.info("  - Running legacy-cleanup for cleanup priorities...")
             if self.run_legacy_cleanup():
-                print("  - Legacy reference scan completed!")
+                logger.info("  - Legacy reference scan completed!")
         except Exception as exc:
-            print(f"  - Legacy cleanup failed: {exc}")
+            logger.error(f"  - Legacy cleanup failed: {exc}")
         try:
-            print("  - Running unused-imports checker for code quality...")
+            logger.info("  - Running unused-imports checker for code quality...")
             result = self.run_unused_imports_report()
             if isinstance(result, dict):
                 if result.get('success'):
                     summary = self.results_cache.get('unused_imports') or {}
                     total_unused = summary.get('total_unused')
                     if total_unused:
-                        print(f"  - Unused imports checker completed (found {total_unused} imports to review)")
+                        logger.info(f"  - Unused imports checker completed (found {total_unused} imports to review)")
                     else:
-                        print("  - Unused imports checker completed (no unused imports detected)")
+                        logger.info("  - Unused imports checker completed (no unused imports detected)")
         except Exception as exc:
-            print(f"  - Unused imports checker failed: {exc}")
+            logger.error(f"  - Unused imports checker failed: {exc}")
         try:
-            print("  - Running validate-work for validation status...")
+            logger.info("  - Running validate-work for validation status...")
             self.run_validate()
         except Exception as exc:
-            print(f"  - Validation workflow failed: {exc}")
+            logger.error(f"  - Validation workflow failed: {exc}")
         try:
-            print("  - Running quick-status for system status...")
+            logger.info("  - Running quick-status for system status...")
             quick_status = self.run_script('quick_status', 'json')
             if quick_status.get('success'):
                 self.status_results = quick_status
         except Exception as exc:
-            print(f"  - Quick status failed: {exc}")
+            logger.error(f"  - Quick status failed: {exc}")
         try:
-            print("  - Running documentation analysis...")
+            logger.info("  - Running documentation analysis...")
             self.run_analyze_documentation()
         except Exception as exc:
-            print(f"  - Documentation analysis failed: {exc}")
+            logger.error(f"  - Documentation analysis failed: {exc}")
         try:
-            print("  - Running configuration validation...")
+            logger.info("  - Running configuration validation...")
             self.run_script('config_validator')
         except Exception as exc:
-            print(f"  - Configuration validation failed: {exc}")
+            logger.error(f"  - Configuration validation failed: {exc}")
         try:
-            print("  - Running coverage regeneration (full test suite)...")
+            logger.info("  - Running coverage regeneration (full test suite)...")
             if self.run_coverage_regeneration():
-                print("  - Coverage regeneration completed successfully")
+                logger.info("  - Coverage regeneration completed successfully")
             else:
-                print("  - Coverage regeneration completed with issues")
+                logger.warning("  - Coverage regeneration completed with issues")
         except Exception as exc:
-            print(f"  - Coverage regeneration failed: {exc}")
+            logger.error(f"  - Coverage regeneration failed: {exc}")
         try:
-            print("  - Running version sync...")
+            logger.info("  - Running version sync...")
             result = self.run_version_sync(scope='all')
             if isinstance(result, dict) and result.get('success'):
                 self.version_sync_results = result
         except Exception as exc:
-            print(f"  - Version sync failed: {exc}")
-        print("  - Full audit tools completed (including coverage)")
+            logger.error(f"  - Version sync failed: {exc}")
+        logger.info("  - Full audit tools completed (including coverage)")
 
     def _check_and_trim_changelog_entries(self) -> None:
         """Check and trim AI_CHANGELOG entries to prevent bloat."""
@@ -868,16 +877,16 @@ class AIToolsService:
                     if status == 'ok':
                         trimmed = result.get('trimmed_entries')
                         archive_created = result.get('archive_created')
-                        if trimmed:
-                            print(f"   Trimmed {trimmed} old changelog entries")
-                        if archive_created:
-                            print("   Created archive: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
-                    else:
-                        print(f"   Warning: Changelog trim reported an issue: {result.get('message')}")
+                    if trimmed:
+                        logger.info(f"   Trimmed {trimmed} old changelog entries")
+                    if archive_created:
+                        logger.info("   Created archive: ai_development_docs/AI_CHANGELOG_ARCHIVE.md")
+                else:
+                    logger.warning(f"   Changelog trim reported an issue: {result.get('message')}")
             except Exception as exc:
-                print(f"   Warning: Changelog check/trim failed: {exc}")
+                logger.warning(f"   Changelog check/trim failed: {exc}")
         else:
-            print("   Changelog check: Tooling unavailable (skipping trim)")
+            logger.info("   Changelog check: Tooling unavailable (skipping trim)")
 
     def _validate_referenced_paths(self) -> None:
         """Validate that all referenced paths in documentation exist."""
@@ -887,15 +896,15 @@ class AIToolsService:
             status = result.get('status') if isinstance(result, dict) else None
             message = result.get('message') if isinstance(result, dict) else None
             if status == 'ok':
-                print(f"   Path validation: {message}")
+                logger.info(f"   Path validation: {message}")
             elif status == 'fail':
                 issues = result.get('issues_found', 'unknown') if isinstance(result, dict) else 'unknown'
-                print(f"   Path validation failed: {message}")
-                print(f"   Found {issues} path issues - consider running documentation sync checker")
+                logger.warning(f"   Path validation failed: {message}")
+                logger.warning(f"   Found {issues} path issues - consider running documentation sync checker")
             else:
-                print(f"   Warning: Path validation error: {message}")
+                logger.warning(f"   Path validation error: {message}")
         except Exception as exc:
-            print(f"   Warning: Path validation failed: {exc}")
+            logger.warning(f"   Path validation failed: {exc}")
 
     def _check_documentation_quality(self) -> None:
         """Check for documentation duplicates and placeholder content."""
@@ -910,19 +919,19 @@ class AIToolsService:
                 duplicates = data.get('duplicates') or []
                 placeholders = data.get('placeholders') or []
                 if duplicates:
-                    print(f"   Documentation quality: Found {len(duplicates)} verbatim duplicates")
-                    print("   -> Remove duplicates between AI and human docs")
+                    logger.warning(f"   Documentation quality: Found {len(duplicates)} verbatim duplicates")
+                    logger.warning("   -> Remove duplicates between AI and human docs")
                 else:
-                    print("   Documentation quality: No verbatim duplicates found")
+                    logger.info("   Documentation quality: No verbatim duplicates found")
                 if placeholders:
-                    print(f"   Documentation quality: Found {len(placeholders)} files with placeholders")
-                    print("   -> Replace placeholder content with actual content")
+                    logger.warning(f"   Documentation quality: Found {len(placeholders)} files with placeholders")
+                    logger.warning("   -> Replace placeholder content with actual content")
                 else:
-                    print("   Documentation quality: No placeholder content found")
+                    logger.info("   Documentation quality: No placeholder content found")
             else:
-                print("   Warning: Documentation quality check unavailable: no analysis data")
+                logger.warning("   Documentation quality check unavailable: no analysis data")
         except Exception as exc:
-            print(f"   Warning: Documentation quality check failed: {exc}")
+            logger.warning(f"   Documentation quality check failed: {exc}")
 
     def _check_ascii_compliance(self) -> None:
         """Check for non-ASCII characters in documentation files."""
@@ -933,12 +942,12 @@ class AIToolsService:
             ascii_issues = results.get('ascii_compliance', {}) if isinstance(results, dict) else {}
             total_issues = sum(len(issues) for issues in ascii_issues.values())
             if total_issues == 0:
-                print("   ASCII compliance: All documentation files use ASCII-only characters")
+                logger.info("   ASCII compliance: All documentation files use ASCII-only characters")
             else:
-                print(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(ascii_issues)} files")
-                print("   -> Replace non-ASCII characters with ASCII equivalents")
+                logger.warning(f"   ASCII compliance: Found {total_issues} non-ASCII characters in {len(ascii_issues)} files")
+                logger.warning("   -> Replace non-ASCII characters with ASCII equivalents")
         except Exception as exc:
-            print(f"   Warning: ASCII compliance check failed: {exc}")
+            logger.warning(f"   ASCII compliance check failed: {exc}")
 
     def _sync_todo_with_changelog(self) -> None:
         """Sync TODO.md with AI_CHANGELOG.md to move completed entries."""
@@ -949,23 +958,23 @@ class AIToolsService:
             if status == 'ok':
                 moved = result.get('moved_entries', 0)
                 if moved:
-                    print(f"   TODO sync: Moved {moved} completed entries from TODO.md")
+                    logger.info(f"   TODO sync: Moved {moved} completed entries from TODO.md")
                 else:
                     message = result.get('message')
-                    print(f"   TODO sync: {message}")
+                    logger.info(f"   TODO sync: {message}")
             else:
                 message = result.get('message') if isinstance(result, dict) else None
-                print(f"   Warning: TODO sync failed: {message}")
+                logger.warning(f"   TODO sync failed: {message}")
         except Exception as exc:
-            print(f"   Warning: TODO sync failed: {exc}")
+            logger.warning(f"   TODO sync failed: {exc}")
 
     def run_docs(self):
 
         """Update all documentation (OPTIONAL - not essential for audit)"""
 
-        print("Updating documentation...")
+        logger.info("Updating documentation...")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         success = True
 
@@ -973,23 +982,23 @@ class AIToolsService:
 
         try:
 
-            print("  - Generating function registry...")
+            logger.info("  - Generating function registry...")
 
             result = self.run_script("generate_function_registry")
 
             if result['success']:
 
-                print("  - Function registry generated successfully")
+                logger.info("  - Function registry generated successfully")
 
             else:
 
-                print(f"  - Function registry generation failed: {result['error']}")
+                logger.error(f"  - Function registry generation failed: {result['error']}")
 
                 success = False
 
         except Exception as exc:
 
-            print(f"  - Function registry generation failed: {exc}")
+            logger.error(f"  - Function registry generation failed: {exc}")
 
             success = False
 
@@ -997,23 +1006,23 @@ class AIToolsService:
 
         try:
 
-            print("  - Generating module dependencies...")
+            logger.info("  - Generating module dependencies...")
 
             result = self.run_script("generate_module_dependencies")
 
             if result['success']:
 
-                print("  - Module dependencies generated successfully")
+                logger.info("  - Module dependencies generated successfully")
 
             else:
 
-                print(f"  - Module dependencies generation failed: {result['error']}")
+                logger.error(f"  - Module dependencies generation failed: {result['error']}")
 
                 success = False
 
         except Exception as exc:
 
-            print(f"  - Module dependencies generation failed: {exc}")
+            logger.error(f"  - Module dependencies generation failed: {exc}")
 
             success = False
 
@@ -1021,13 +1030,13 @@ class AIToolsService:
 
         try:
 
-            print("  - Generating directory trees...")
+            logger.info("  - Generating directory trees...")
 
             self.generate_directory_trees()
 
         except Exception as exc:
 
-            print(f"  - Directory tree generation failed: {exc}")
+            logger.error(f"  - Directory tree generation failed: {exc}")
 
             success = False
 
@@ -1035,7 +1044,7 @@ class AIToolsService:
 
         try:
 
-            print("  - Checking documentation sync...")
+            logger.info("  - Checking documentation sync...")
 
             if not self._run_doc_sync_check('--check'):
 
@@ -1043,19 +1052,19 @@ class AIToolsService:
 
         except Exception as exc:
 
-            print(f"  - Documentation sync check failed: {exc}")
+            logger.error(f"  - Documentation sync check failed: {exc}")
 
             success = False
 
-        print("\n" + "=" * 50)
+        logger.info("=" * 50)
 
         if success:
 
-            print("Documentation generation completed successfully!")
+            logger.info("Documentation generation completed successfully!")
 
         else:
 
-            print("Documentation generation completed with issues.")
+            logger.warning("Documentation generation completed with issues.")
 
         return success
 
@@ -1063,9 +1072,9 @@ class AIToolsService:
 
         """Validate AI-generated work (simple command)"""
 
-        print("Validating AI work...")
+        logger.info("Validating AI work...")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         result = self.run_script('validate_ai_work')
 
@@ -1075,15 +1084,15 @@ class AIToolsService:
 
             self.validation_results = result
 
-            print("\n" + "=" * 50)
+            logger.info("=" * 50)
 
-            print("Validation completed successfully!")
+            logger.info("Validation completed successfully!")
 
             return True
 
         else:
 
-            print(f"Validation failed: {result['error']}")
+            logger.error(f"Validation failed: {result['error']}")
 
             return False
 
@@ -1091,25 +1100,25 @@ class AIToolsService:
 
         """Check configuration consistency (simple command)"""
 
-        print("Checking configuration...")
+        logger.info("Checking configuration...")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         result = self.run_script('config_validator')
 
         if result['success']:
 
-            print(result['output'])
+            logger.info(result['output'])
 
-            print("\n" + "=" * 50)
+            logger.info("=" * 50)
 
-            print("Configuration check completed!")
+            logger.info("Configuration check completed!")
 
             return True
 
         else:
 
-            print(f"Configuration check failed: {result['error']}")
+            logger.error(f"Configuration check failed: {result['error']}")
 
             return False
 
@@ -1119,9 +1128,9 @@ class AIToolsService:
 
         """Run workflow with audit-first protocol"""
 
-        print(f"Running workflow: {task_type}")
+        logger.info(f"Running workflow: {task_type}")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         # Check trigger requirements
 
@@ -1135,7 +1144,7 @@ class AIToolsService:
 
         if not audit_results['success']:
 
-            print(f"Audit failed: {audit_results['error']}")
+            logger.error(f"Audit failed: {audit_results['error']}")
 
             return False
 
@@ -1157,7 +1166,7 @@ class AIToolsService:
 
         """Run comprehensive audit with concise output"""
 
-        print("Running comprehensive audit...")
+        logger.info("Running comprehensive audit...")
 
         successful = []
 
@@ -1169,7 +1178,7 @@ class AIToolsService:
 
             script_name = script.replace('.py', '')
 
-            print(f"Running {script_name}...")
+            logger.info(f"Running {script_name}...")
 
             # Special handling for analyze_documentation
 
@@ -1229,7 +1238,7 @@ class AIToolsService:
 
                 error_msg = result.get('error', 'Unknown error') if isinstance(result, dict) else str(result)
 
-                print(f"  [ERROR] {script_name} failed: {error_msg}")
+                logger.error(f"  {script_name} failed: {error_msg}")
 
         # Save detailed results
 
@@ -1249,9 +1258,9 @@ class AIToolsService:
 
         """Get actionable insights for decision-making"""
 
-        print("Getting actionable insights...")
+        logger.info("Getting actionable insights...")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         result = self.run_script('decision_support')
 
@@ -1261,13 +1270,13 @@ class AIToolsService:
 
             insights = self._extract_actionable_insights(result['output'])
 
-            print(insights)
+            logger.info(insights)
 
             return True
 
         else:
 
-            print(f"Decision support failed: {result['error']}")
+            logger.error(f"Decision support failed: {result['error']}")
 
             return False
 
@@ -1275,9 +1284,9 @@ class AIToolsService:
 
         """Sync version numbers"""
 
-        print(f"Syncing versions for scope: {scope}")
+        logger.info(f"Syncing versions for scope: {scope}")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         result = self.run_script('version_sync', 'sync', '--scope', scope)
 
@@ -1287,13 +1296,13 @@ class AIToolsService:
 
             self.version_sync_results = result
 
-            print("Version sync completed!")
+            logger.info("Version sync completed!")
 
             return True
 
         else:
 
-            print(f"Version sync failed: {result['error']}")
+            logger.error(f"Version sync failed: {result['error']}")
 
             return False
 
@@ -1301,9 +1310,9 @@ class AIToolsService:
 
         """Get current system status - quick check that updates status files"""
 
-        print("Getting system status...")
+        logger.info("Getting system status...")
 
-        print("=" * 50)
+        logger.info("=" * 50)
 
         # Run quick status for basic system health
         result = self.run_script('quick_status', 'json')
@@ -1332,47 +1341,47 @@ class AIToolsService:
 
                 self.status_summary = parsed
 
-                print("Status check completed!")
+                logger.info("Status check completed!")
 
             else:
 
-                print("Status check completed, but output could not be parsed as JSON.")
+                logger.warning("Status check completed, but output could not be parsed as JSON.")
 
             # Run TODO sync check for status
-            print("Checking TODO sync status...")
+            logger.info("Checking TODO sync status...")
             self._sync_todo_with_changelog()
 
             # Run system signals generator
-            print("Generating system signals...")
+            logger.info("Generating system signals...")
             self.run_system_signals()
 
             # Generate all three status files with current data
-            print("Generating status files...")
+            logger.info("Generating status files...")
             
             # AI Status
             ai_status = self._generate_ai_status_document()
             ai_status_file = create_output_file("ai_development_tools/AI_STATUS.md", ai_status)
-            print(f"AI Status: {ai_status_file}")
+            logger.info(f"AI Status: {ai_status_file}")
             
             # AI Priorities
             ai_priorities = self._generate_ai_priorities_document()
             ai_priorities_file = create_output_file("ai_development_tools/AI_PRIORITIES.md", ai_priorities)
-            print(f"AI Priorities: {ai_priorities_file}")
+            logger.info(f"AI Priorities: {ai_priorities_file}")
             
             # Consolidated Report
             consolidated_report = self._generate_consolidated_report()
             consolidated_file = create_output_file("ai_development_tools/consolidated_report.txt", consolidated_report)
-            print(f"Consolidated Report: {consolidated_file}")
+            logger.info(f"Consolidated Report: {consolidated_file}")
 
             return True
 
         if result.get('output'):
 
-            print(result['output'])
+            logger.info(result['output'])
 
         if result.get('error'):
 
-            print(f"Status check failed: {result['error']}")
+            logger.error(f"Status check failed: {result['error']}")
 
         return False
 
@@ -1380,11 +1389,11 @@ class AIToolsService:
 
         """Run documentation synchronization checks"""
 
-        print("Running documentation synchronization checks...")
+        logger.info("Running documentation synchronization checks...")
 
         if self._run_doc_sync_check('--check'):
 
-            print("\nDocumentation sync check completed!")
+            logger.info("Documentation sync check completed!")
 
             return True
 
@@ -1394,7 +1403,7 @@ class AIToolsService:
 
         """Regenerate test coverage metrics"""
 
-        print("Regenerating test coverage metrics...")
+        logger.info("Regenerating test coverage metrics...")
 
         result = self.run_script('regenerate_coverage_metrics', '--update-plan', timeout=900)
 
@@ -1404,7 +1413,7 @@ class AIToolsService:
 
             self.coverage_results = result
 
-            print("\nCoverage metrics regenerated and plan updated!")
+            logger.info("Coverage metrics regenerated and plan updated!")
 
         else:
 
@@ -1436,13 +1445,13 @@ class AIToolsService:
                         error_msg += "\n  - Detected empty --cov argument in error output"
                         break
 
-            print(f"\nERROR: {error_msg}")
+            logger.error(f"ERROR: {error_msg}")
 
             if result.get('error'):
 
-                print(f"  Full error: {result['error'][:500]}")  # Limit error length
+                logger.error(f"  Full error: {result['error'][:500]}")  # Limit error length
 
-            print("  Check ai_development_tools/logs/coverage_regeneration/ for detailed logs")
+            logger.info("  Check ai_development_tools/logs/coverage_regeneration/ for detailed logs")
 
         return result['success']
 
@@ -1450,11 +1459,11 @@ class AIToolsService:
 
         """Run legacy reference cleanup"""
 
-        print("Running legacy reference cleanup...")
+        logger.info("Running legacy reference cleanup...")
 
         if self._run_legacy_cleanup_scan('--scan'):
 
-            print("\nLegacy reference scan completed!")
+            logger.info("Legacy reference scan completed!")
 
             return True
 
@@ -1462,7 +1471,7 @@ class AIToolsService:
 
     def run_system_signals(self):
         """Run system signals generator"""
-        print("Generating system signals...")
+        logger.info("Generating system signals...")
         
         result = self.run_script('system_signals', '--json')
         
@@ -1472,24 +1481,24 @@ class AIToolsService:
                 try:
                     import json
                     self.system_signals = json.loads(output)
-                    print("System signals generated successfully!")
+                    logger.info("System signals generated successfully!")
                     return True
                 except json.JSONDecodeError:
-                    print("Failed to parse system signals JSON output")
+                    logger.error("Failed to parse system signals JSON output")
                     return False
             else:
-                print("No output from system signals tool")
+                logger.warning("No output from system signals tool")
                 return False
         else:
             if result.get('error'):
-                print(f"System signals failed: {result['error']}")
+                logger.error(f"System signals failed: {result['error']}")
             return False
 
     def run_unused_imports_report(self):
 
         """Run unused imports checker and generate report"""
 
-        print("Running unused imports checker...")
+        logger.info("Running unused imports checker...")
 
         # Use longer timeout for this script (10 minutes) as it runs pylint on many files
 
@@ -1527,27 +1536,27 @@ class AIToolsService:
 
         except subprocess.TimeoutExpired:
 
-            print("Error: Unused imports checker timed out after 10 minutes")
+            logger.error("Unused imports checker timed out after 10 minutes")
 
             return False
 
         if result['success']:
 
-            print(result['output'])
+            logger.info(result['output'])
 
-            print("\nUnused imports scan completed!")
+            logger.info("Unused imports scan completed!")
 
             report_path = self.project_root / "development_docs" / "UNUSED_IMPORTS_REPORT.md"
 
             if report_path.exists():
 
-                print(f"Report saved to: {report_path}")
+                logger.info(f"Report saved to: {report_path}")
 
             return True
 
         else:
 
-            print(f"Error: {result.get('error', 'Unknown error')}")
+            logger.error(f"Error: {result.get('error', 'Unknown error')}")
 
             return False
 
@@ -1555,17 +1564,17 @@ class AIToolsService:
 
         """Generate directory trees for documentation"""
 
-        print("Generating directory trees...")
+        logger.info("Generating directory trees...")
 
         result = self.run_script('documentation_sync_checker', '--generate-trees')
 
         if result['success']:
 
-            print(result['output'])
+            logger.info(result['output'])
 
-            print("\n* Directory tree generated!")
+            logger.info("Directory tree generated!")
 
-            print("Check development_docs/DIRECTORY_TREE.md for project structure")
+            logger.info("Check development_docs/DIRECTORY_TREE.md for project structure")
 
         return result['success']
 
@@ -1579,7 +1588,7 @@ class AIToolsService:
 
         if not trigger_file.exists():
 
-            print("[WARN] TRIGGER.md not found - proceeding anyway")
+            logger.warning("TRIGGER.md not found - proceeding anyway")
 
             return True
 
@@ -1591,7 +1600,7 @@ class AIToolsService:
 
         """Run audit first as required by protocol"""
 
-        print("Running audit-first protocol...")
+        logger.info("Running audit-first protocol...")
 
         audit_success = self.run_quick_audit()
 
@@ -1621,7 +1630,7 @@ class AIToolsService:
 
         else:
 
-            print(f"Unknown task type: {task_type}")
+            logger.error(f"Unknown task type: {task_type}")
 
             return False
 
@@ -1629,7 +1638,7 @@ class AIToolsService:
 
         """Validate the work before presenting"""
 
-        print("Validating work...")
+        logger.info("Validating work...")
 
         result = self.run_script('validate_ai_work')
 
@@ -4431,7 +4440,7 @@ class AIToolsService:
 
         """Execute documentation update task"""
 
-        print("Updating documentation...")
+        logger.info("Updating documentation...")
 
         result = self.run_script('generate_documentation')
 
@@ -4441,7 +4450,7 @@ class AIToolsService:
 
         """Execute function registry task"""
 
-        print("Updating function registry...")
+        logger.info("Updating function registry...")
 
         result = self.run_script('generate_function_registry')
 
@@ -4451,7 +4460,7 @@ class AIToolsService:
 
         """Execute module dependencies task"""
 
-        print("Updating module dependencies...")
+        logger.info("Updating module dependencies...")
 
         result = self.run_script('generate_module_dependencies')
 
@@ -4477,11 +4486,11 @@ class AIToolsService:
 
         if result.get('output'):
 
-            print(result['output'])
+            logger.info(result['output'])
 
         if result.get('error'):
 
-            print(result['error'])
+            logger.error(result['error'])
 
         return False
 
@@ -4505,11 +4514,11 @@ class AIToolsService:
 
         if result.get('output'):
 
-            print(result['output'])
+            logger.info(result['output'])
 
         if result.get('error'):
 
-            print(result['error'])
+            logger.error(result['error'])
 
         return False
 

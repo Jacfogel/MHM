@@ -30,6 +30,10 @@ if str(project_root) not in sys.path:
 
 from ai_development_tools.services.standard_exclusions import should_exclude_file
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
     """Extract all imports from a Python file."""
@@ -113,7 +117,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[str]]:
         
         return imports
     except Exception as e:
-        print(f"Warning: Could not parse {file_path}: {e}")
+        logger.warning(f"Could not parse {file_path}: {e}")
         return {'from_imports': [], 'direct_imports': [], 'module_items': []}
 
 
@@ -251,7 +255,7 @@ def check_current_exports(package_name: str) -> Set[str]:
         
         return exports
     except Exception as e:
-        print(f"Warning: Could not parse {init_file}: {e}")
+        logger.warning(f"Could not parse {init_file}: {e}")
         return set()
 
 
@@ -287,41 +291,41 @@ def parse_function_registry() -> Dict[str, Set[str]]:
         
         return dict(package_functions)
     except Exception as e:
-        print(f"Warning: Could not parse function registry: {e}")
+        logger.warning(f"Could not parse function registry: {e}")
         return {}
 
 
 def generate_audit_report(package_name: str) -> Dict:
     """Generate comprehensive audit report for a package."""
-    print(f"\n{'='*80}")
-    print(f"AUDITING PACKAGE: {package_name}")
-    print(f"{'='*80}\n")
+    logger.info(f"{'='*80}")
+    logger.info(f"AUDITING PACKAGE: {package_name}")
+    logger.info(f"{'='*80}")
     
     # 1. Check current exports
     current_exports = check_current_exports(package_name)
-    print(f"[1/5] Current exports: {len(current_exports)} items")
+    logger.info(f"[1/5] Current exports: {len(current_exports)} items")
     
     # 2. Analyze actual imports
-    print(f"[2/5] Analyzing imports across codebase...")
+    logger.info(f"[2/5] Analyzing imports across codebase...")
     import_usage = analyze_imports_for_package(package_name)
-    print(f"   Found {len(import_usage)} unique items imported")
+    logger.info(f"   Found {len(import_usage)} unique items imported")
     
     # 3. Scan package modules for public API
-    print(f"[3/5] Scanning package modules for public API...")
+    logger.info(f"[3/5] Scanning package modules for public API...")
     package_api = scan_package_modules(package_name)
     all_package_items = set()
     for module_items in package_api.values():
         all_package_items.update(module_items)
-    print(f"   Found {len(all_package_items)} public items in package")
+    logger.info(f"   Found {len(all_package_items)} public items in package")
     
     # 4. Check function registry
-    print(f"[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
+    logger.info(f"[4/5] Checking FUNCTION_REGISTRY_DETAIL.md...")
     registry_functions = parse_function_registry()
     registry_items = registry_functions.get(package_name, set())
-    print(f"   Found {len(registry_items)} items in registry")
+    logger.info(f"   Found {len(registry_items)} items in registry")
     
     # 5. Identify what should be exported
-    print(f"[5/5] Identifying recommended exports...")
+    logger.info(f"[5/5] Identifying recommended exports...")
     
     # Items that should be exported:
     should_export = set()
@@ -449,54 +453,53 @@ def generate_recommended_exports(report: Dict) -> str:
 
 def print_report(report: Dict, show_recommendations: bool = False):
     """Print formatted audit report."""
-    print(f"\n{'='*80}")
-    print(f"AUDIT REPORT: {report['package']}")
-    print(f"{'='*80}\n")
+    logger.info(f"{'='*80}")
+    logger.info(f"AUDIT REPORT: {report['package']}")
+    logger.info(f"{'='*80}")
     
-    print(f"Current exports: {report['current_exports_count']}")
-    print(f"Should export: {report['should_export_count']}")
-    print(f"Already exported: {len(report['already_exported'])}")
-    print(f"Missing exports: {len(report['missing_exports'])}")
-    print(f"Potentially unnecessary: {len(report['potentially_unnecessary'])}")
+    logger.info(f"Current exports: {report['current_exports_count']}")
+    logger.info(f"Should export: {report['should_export_count']}")
+    logger.info(f"Already exported: {len(report['already_exported'])}")
+    logger.info(f"Missing exports: {len(report['missing_exports'])}")
+    logger.info(f"Potentially unnecessary: {len(report['potentially_unnecessary'])}")
     
     if report['missing_exports']:
-        print(f"\n[MISSING] Items that should be exported but aren't ({len(report['missing_exports'])}):")
+        logger.warning(f"[MISSING] Items that should be exported but aren't ({len(report['missing_exports'])}):")
         for item in sorted(report['missing_exports'])[:20]:  # Show first 20
             usage = report['import_usage_details'].get(item, {})
             count = usage.get('import_count', 0)
             module = usage.get('module_path', 'unknown')
-            print(f"  - {item} (imported {count} times from {module})")
+            logger.warning(f"  - {item} (imported {count} times from {module})")
         if len(report['missing_exports']) > 20:
-            print(f"  ... and {len(report['missing_exports']) - 20} more")
+            logger.warning(f"  ... and {len(report['missing_exports']) - 20} more")
     
     if report['cross_module_usage']:
-        print(f"\n[CROSS-MODULE] Items used across multiple modules ({len(report['cross_module_usage'])}):")
+        logger.info(f"[CROSS-MODULE] Items used across multiple modules ({len(report['cross_module_usage'])}):")
         sorted_cross = sorted(
             report['cross_module_usage'].items(),
             key=lambda x: x[1]['import_count'],
             reverse=True
         )
         for item, stats in sorted_cross[:10]:  # Show top 10
-            print(f"  - {item} (imported {stats['import_count']} times)")
+            logger.info(f"  - {item} (imported {stats['import_count']} times)")
         if len(sorted_cross) > 10:
-            print(f"  ... and {len(sorted_cross) - 10} more")
+            logger.info(f"  ... and {len(sorted_cross) - 10} more")
     
     if report['potentially_unnecessary']:
-        print(f"\n[UNNECESSARY] Items exported but not used elsewhere ({len(report['potentially_unnecessary'])}):")
-        print("  Note: These might be legacy compatibility names or internal exports")
+        logger.warning(f"[UNNECESSARY] Items exported but not used elsewhere ({len(report['potentially_unnecessary'])}):")
+        logger.info("  Note: These might be legacy compatibility names or internal exports")
         for item in sorted(report['potentially_unnecessary'])[:10]:
-            print(f"  - {item}")
+            logger.warning(f"  - {item}")
         if len(report['potentially_unnecessary']) > 10:
-            print(f"  ... and {len(report['potentially_unnecessary']) - 10} more")
+            logger.warning(f"  ... and {len(report['potentially_unnecessary']) - 10} more")
     
     if show_recommendations:
-        print(f"\n{'='*80}")
-        print("RECOMMENDED EXPORTS")
-        print(f"{'='*80}\n")
+        logger.info(f"{'='*80}")
+        logger.info("RECOMMENDED EXPORTS")
+        logger.info(f"{'='*80}")
         recommendations = generate_recommended_exports(report)
+        # User-facing recommendations stay as print() for immediate visibility
         print(recommendations)
-    
-    print()
 
 
 def main():
@@ -529,11 +532,14 @@ def main():
     
     if args.package:
         if args.package not in packages:
+            logger.error(f"Package '{args.package}' not recognized.")
+            # User-facing error messages stay as print() for immediate visibility
             print(f"Error: Package '{args.package}' not recognized.")
             print(f"Available packages: {', '.join(packages)}")
             sys.exit(1)
         packages = [args.package]
     elif not args.all:
+        # User-facing usage messages stay as print() for immediate visibility
         print("Specify --package <name> or --all to audit packages")
         sys.exit(1)
     
@@ -544,26 +550,25 @@ def main():
             print_report(report, show_recommendations=args.recommendations)
             reports.append(report)
         except Exception as e:
-            print(f"Error auditing {package}: {e}")
+            logger.error(f"Error auditing {package}: {e}")
             import traceback
             traceback.print_exc()
     
     # Summary
     if len(reports) > 1:
-        print(f"\n{'='*80}")
-        print("SUMMARY")
-        print(f"{'='*80}\n")
+        logger.info(f"{'='*80}")
+        logger.info("SUMMARY")
+        logger.info(f"{'='*80}")
         
         total_missing = sum(len(r['missing_exports']) for r in reports)
         total_unnecessary = sum(len(r['potentially_unnecessary']) for r in reports)
         
-        print(f"Total missing exports: {total_missing}")
-        print(f"Total potentially unnecessary exports: {total_unnecessary}")
-        print()
+        logger.info(f"Total missing exports: {total_missing}")
+        logger.info(f"Total potentially unnecessary exports: {total_unnecessary}")
         
         for report in reports:
             if report['missing_exports']:
-                print(f"{report['package']}: {len(report['missing_exports'])} missing exports")
+                logger.warning(f"{report['package']}: {len(report['missing_exports'])} missing exports")
 
 
 if __name__ == '__main__':

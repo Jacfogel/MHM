@@ -11,9 +11,19 @@ the project's patterns for handlers, utilities, and core functionality.
 """
 
 import ast
+import sys
 from pathlib import Path
 from typing import List
 from datetime import datetime
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
 
 def detect_function_type(file_path: str, func_name: str, decorators: List[str], args: List[str]) -> str:
     """Detect the type of function for template generation."""
@@ -120,7 +130,7 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
                 break
         
         if func_line is None:
-            print(f"[WARN] Could not find function {func_name} starting from line {line_number} in {file_path}")
+            logger.warning(f"Could not find function {func_name} starting from line {line_number} in {file_path}")
             return False
 
         # Check if function already has a docstring
@@ -128,7 +138,7 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
         if next_line_idx < len(lines):
             next_line = lines[next_line_idx].strip()
             if next_line.startswith('"""') or next_line.startswith("'''"):
-                print(f"[SKIP] Function {func_name} in {file_path} already has a docstring")
+                logger.info(f"Function {func_name} in {file_path} already has a docstring")
                 return False
 
         # Find the start of the function body (first indented line after function definition)
@@ -138,7 +148,7 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
             if line and not line.startswith('#'):  # Skip comments
                 if line.startswith('"""') or line.startswith("'''"):
                     # Already has a docstring
-                    print(f"[SKIP] Function {func_name} in {file_path} already has a docstring")
+                    logger.info(f"Function {func_name} in {file_path} already has a docstring")
                     return False
                 elif line.startswith('pass') or line.startswith('return') or line.startswith('raise'):
                     # Function body starts here
@@ -152,7 +162,7 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
         func_def_line = lines[func_line].strip()
         if ':' in func_def_line and ('return' in func_def_line or 'pass' in func_def_line or 'raise' in func_def_line):
             # This is a one-liner function, we can't add a docstring inside it
-            print(f"[SKIP] Function {func_name} in {file_path} is a one-liner, cannot add docstring")
+            logger.info(f"Function {func_name} in {file_path} is a one-liner, cannot add docstring")
             return False
 
         # Insert docstring at the beginning of the function body
@@ -165,11 +175,11 @@ def add_docstring_to_function(file_path: str, func_name: str, line_number: int, 
         with open(file_path, 'w', encoding='utf-8') as f:
             f.writelines(lines)
 
-        print(f"[ADD] Added docstring to {func_name} in {file_path}")
+        logger.info(f"Added docstring to {func_name} in {file_path}")
         return True
 
     except Exception as e:
-        print(f"[ERROR] Failed to add docstring to {func_name} in {file_path}: {e}")
+        logger.error(f"Failed to add docstring to {func_name} in {file_path}: {e}")
         return False
 
 def scan_and_document_functions():
@@ -235,44 +245,44 @@ def scan_and_document_functions():
                 results['files_processed'] += 1
                 
             except Exception as e:
-                print(f"[ERROR] Failed to process {file_key}: {e}")
+                logger.error(f"Failed to process {file_key}: {e}")
                 results['errors'] += 1
     
     return results
 
 def main():
     """Main function to run the automatic documentation process."""
-    print("[AUTO-DOC] Starting automatic function documentation...")
+    logger.info("[AUTO-DOC] Starting automatic function documentation...")
     
     # Create backup before making changes
     project_root = Path(__file__).parent.parent
     backup_dir = project_root.parent / f"backup_auto_doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     
-    print(f"[BACKUP] Creating backup at {backup_dir}")
+    logger.info(f"Creating backup at {backup_dir}")
     try:
         import shutil
         shutil.copytree(project_root, backup_dir)
-        print(f"[BACKUP] Backup created successfully")
+        logger.info("Backup created successfully")
     except Exception as e:
-        print(f"[ERROR] Failed to create backup: {e}")
+        logger.error(f"Failed to create backup: {e}")
         return
     
     # Process functions
     results = scan_and_document_functions()
     
     # Print results
-    print(f"\n[AUTO-DOC] Documentation process complete!")
-    print(f"[STATS] Results:")
-    print(f"   Files processed: {results['files_processed']}")
-    print(f"   Functions documented: {results['functions_documented']}")
-    print(f"   Functions skipped (already documented): {results['functions_skipped']}")
-    print(f"   Errors: {results['errors']}")
+    logger.info(f"[AUTO-DOC] Documentation process complete!")
+    logger.info(f"[STATS] Results:")
+    logger.info(f"   Files processed: {results['files_processed']}")
+    logger.info(f"   Functions documented: {results['functions_documented']}")
+    logger.info(f"   Functions skipped (already documented): {results['functions_skipped']}")
+    logger.info(f"   Errors: {results['errors']}")
     
     if results['functions_documented'] > 0:
-        print(f"\n[SUCCESS] Added docstrings to {results['functions_documented']} functions!")
-        print(f"[NOTE] Backup available at: {backup_dir}")
+        logger.info(f"[SUCCESS] Added docstrings to {results['functions_documented']} functions!")
+        logger.info(f"[NOTE] Backup available at: {backup_dir}")
     else:
-        print(f"\n[INFO] No new docstrings were added (all functions already documented or not eligible)")
+        logger.info(f"[INFO] No new docstrings were added (all functions already documented or not eligible)")
 
 if __name__ == "__main__":
     main() 

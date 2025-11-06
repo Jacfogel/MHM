@@ -7,12 +7,22 @@ and checks for configuration consistency and completeness.
 """
 
 import re
+import sys
 from pathlib import Path
 from typing import Dict, List
 import json
 from datetime import datetime
 
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
 import config
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
 
 class ConfigValidator:
     """Validates configuration usage across all AI tools."""
@@ -31,7 +41,7 @@ class ConfigValidator:
     
     def scan_tools_for_config_usage(self) -> Dict:
         """Scan all AI tools to check configuration usage."""
-        print("Scanning AI tools for configuration usage...")
+        logger.info("Scanning AI tools for configuration usage...")
         
         tools = {}
         for py_file in self.ai_tools_dir.glob('*.py'):
@@ -117,7 +127,7 @@ class ConfigValidator:
     
     def validate_configuration_consistency(self) -> Dict:
         """Validate that the configuration itself is consistent."""
-        print("Validating configuration consistency...")
+        logger.info("Validating configuration consistency...")
         
         validation = {
             'scan_directories_exist': [],
@@ -152,7 +162,7 @@ class ConfigValidator:
     
     def check_configuration_completeness(self) -> Dict:
         """Check if all configuration sections have required fields."""
-        print("Checking configuration completeness...")
+        logger.info("Checking configuration completeness...")
         
         completeness = {
             'sections_complete': True,
@@ -243,7 +253,7 @@ class ConfigValidator:
     
     def run_validation(self) -> Dict:
         """Run the complete configuration validation."""
-        print("Starting configuration validation...")
+        logger.info("Starting configuration validation...")
         
         # Scan tools for config usage
         tools_analysis = self.scan_tools_for_config_usage()
@@ -276,59 +286,64 @@ class ConfigValidator:
     
     def print_validation_report(self, results: Dict):
         """Print a comprehensive validation report."""
-        print("\n" + "="*80)
-        print("CONFIGURATION VALIDATION REPORT")
-        print("="*80)
+        logger.info("="*80)
+        logger.info("CONFIGURATION VALIDATION REPORT")
+        logger.info("="*80)
         
         summary = results['summary']
-        print(f"\nSUMMARY:")
-        print(f"   Tools using config: {summary['tools_using_config']}/{summary['total_tools']}")
-        print(f"   Configuration valid: {'YES' if summary['config_valid'] else 'NO'}")
-        print(f"   Configuration complete: {'YES' if summary['config_complete'] else 'NO'}")
-        print(f"   Recommendations: {summary['total_recommendations']}")
+        logger.info(f"SUMMARY:")
+        logger.info(f"   Tools using config: {summary['tools_using_config']}/{summary['total_tools']}")
+        logger.info(f"   Configuration valid: {'YES' if summary['config_valid'] else 'NO'}")
+        logger.info(f"   Configuration complete: {'YES' if summary['config_complete'] else 'NO'}")
+        logger.info(f"   Recommendations: {summary['total_recommendations']}")
         
         # Tool analysis
-        print(f"\nTOOL ANALYSIS:")
+        logger.info(f"TOOL ANALYSIS:")
         for tool_name, analysis in results['tools_analysis'].items():
             status = "OK" if analysis['imports_config'] and not analysis['issues'] else "WARN" if analysis['issues'] else "FAIL"
-            print(f"   {status} {tool_name}")
+            if status == "OK":
+                logger.info(f"   {status} {tool_name}")
+            elif status == "WARN":
+                logger.warning(f"   {status} {tool_name}")
+            else:
+                logger.error(f"   {status} {tool_name}")
             
             if analysis['config_functions_used']:
-                print(f"      Uses: {', '.join(analysis['config_functions_used'])}")
+                logger.info(f"      Uses: {', '.join(analysis['config_functions_used'])}")
             
             if analysis['hardcoded_values']:
-                print(f"      Hardcoded values: {len(analysis['hardcoded_values'])}")
+                logger.warning(f"      Hardcoded values: {len(analysis['hardcoded_values'])}")
             
             if analysis['issues']:
                 for issue in analysis['issues']:
-                    print(f"      Issue: {issue}")
+                    logger.warning(f"      Issue: {issue}")
         
         # Configuration validation
         config_validation = results['config_validation']
         if config_validation['missing_directories']:
-            print(f"\nMISSING DIRECTORIES:")
+            logger.warning(f"MISSING DIRECTORIES:")
             for directory in config_validation['missing_directories']:
-                print(f"   - {directory}")
+                logger.warning(f"   - {directory}")
         
         if config_validation['issues']:
-            print(f"\nCONFIGURATION ISSUES:")
+            logger.warning(f"CONFIGURATION ISSUES:")
             for issue in config_validation['issues']:
-                print(f"   - {issue}")
+                logger.warning(f"   - {issue}")
         
         # Completeness
         completeness = results['completeness']
         if completeness['missing_fields']:
-            print(f"\nMISSING CONFIGURATION FIELDS:")
+            logger.warning(f"MISSING CONFIGURATION FIELDS:")
             for field in completeness['missing_fields']:
-                print(f"   - {field}")
+                logger.warning(f"   - {field}")
         
         # Recommendations
         if results['recommendations']:
-            print(f"\nRECOMMENDATIONS:")
+            logger.info(f"RECOMMENDATIONS:")
             for i, rec in enumerate(results['recommendations'], 1):
-                print(f"   {i}. {rec}")
+                logger.info(f"   {i}. {rec}")
         
-        print(f"\nConfiguration validation complete!")
+        logger.info(f"Configuration validation complete!")
 
 def main():
     """Main function to run configuration validation."""
@@ -350,9 +365,9 @@ def main():
         
         with open(results_file, 'w', encoding='utf-8') as f:
             json.dump(results_with_headers, f, indent=2)
-        print(f"\nResults saved to: {results_file}")
+        logger.info(f"Results saved to: {results_file}")
     except Exception as e:
-        print(f"\nFailed to save results: {e}")
+        logger.error(f"Failed to save results: {e}")
 
 if __name__ == "__main__":
     main() 

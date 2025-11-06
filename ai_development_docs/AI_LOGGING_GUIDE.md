@@ -17,6 +17,7 @@ logs/
 |- scheduler.log
 |- ui.log
 |- message.log
+|- ai_dev_tools.log         # AI development tools (separate from core system)
 |- backups/                 # Rotated logs (7-day retention)
 `- archive/                 # Compressed archives (>7 days)
 ```
@@ -29,7 +30,10 @@ logger = get_component_logger(__name__)
 discord_logger = get_component_logger("discord")
 ai_logger = get_component_logger("ai")
 user_logger = get_component_logger("user_activity")
+ai_dev_tools_logger = get_component_logger("ai_development_tools")
 ```
+
+**Note**: AI development tools (`ai_development_tools/`) use a dedicated component logger (`ai_development_tools` or `ai_dev_tools`) that writes to `ai_dev_tools.log`, keeping development tooling logs separate from core system logs.
 
 - Use component loggers instead of creating ad hoc `logging.getLogger` instances.
 - Include context (user id, operation, status) in each message, but avoid sensitive data.

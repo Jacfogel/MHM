@@ -11,7 +11,7 @@ from typing import Optional
 
 from core.logger import get_component_logger
 
-logger = get_component_logger(__name__)
+logger = get_component_logger("ai_development_tools")
 
 
 class FileRotator:

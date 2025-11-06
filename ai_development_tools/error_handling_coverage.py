@@ -29,6 +29,10 @@ try:
 except ImportError:
     from ai_development_tools.services.standard_exclusions import should_exclude_file
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 class ErrorHandlingAnalyzer:
     """Analyzes error handling patterns in Python code."""
     
@@ -274,7 +278,7 @@ class ErrorHandlingAnalyzer:
 
     def analyze_project(self, include_tests: bool = False, include_dev_tools: bool = False) -> Dict[str, Any]:
         """Analyze error handling across the entire project."""
-        print("Analyzing error handling coverage...")
+        logger.info("Analyzing error handling coverage...")
         
         # Determine context based on configuration
         if include_tests and include_dev_tools:
@@ -297,7 +301,7 @@ class ErrorHandlingAnalyzer:
                     if not should_exclude_file(str(file_path), 'analysis', context):
                         python_files.append(file_path)
         
-        print(f"Found {len(python_files)} Python files to analyze")
+        logger.info(f"Found {len(python_files)} Python files to analyze")
         
         # Analyze each file
         file_results = []
@@ -439,36 +443,36 @@ class ErrorHandlingAnalyzer:
 
     def print_summary(self):
         """Print a summary of error handling analysis."""
-        print("\n" + "=" * 80)
-        print("ERROR HANDLING COVERAGE ANALYSIS")
-        print("=" * 80)
+        logger.info("=" * 80)
+        logger.info("ERROR HANDLING COVERAGE ANALYSIS")
+        logger.info("=" * 80)
         
-        print(f"Total Functions: {self.results['total_functions']}")
-        print(f"Functions with Try-Except: {self.results['functions_with_try_except']}")
-        print(f"Functions with Error Handling: {self.results['functions_with_error_handling']}")
-        print(f"Functions with Decorators: {self.results['functions_with_decorators']}")
-        print(f"Functions Missing Error Handling: {self.results['functions_missing_error_handling']}")
-        print(f"Error Handling Coverage: {self.results['error_handling_coverage']:.1f}%")
+        logger.info(f"Total Functions: {self.results['total_functions']}")
+        logger.info(f"Functions with Try-Except: {self.results['functions_with_try_except']}")
+        logger.info(f"Functions with Error Handling: {self.results['functions_with_error_handling']}")
+        logger.info(f"Functions with Decorators: {self.results['functions_with_decorators']}")
+        logger.info(f"Functions Missing Error Handling: {self.results['functions_missing_error_handling']}")
+        logger.info(f"Error Handling Coverage: {self.results['error_handling_coverage']:.1f}%")
         
-        print("\nError Handling Quality Distribution:")
+        logger.info("Error Handling Quality Distribution:")
         for quality, count in self.results['error_handling_quality'].items():
-            print(f"  {quality.title()}: {count}")
+            logger.info(f"  {quality.title()}: {count}")
         
-        print("\nError Patterns Found:")
+        logger.info("Error Patterns Found:")
         for pattern, count in self.results['error_patterns'].items():
-            print(f"  {pattern}: {count}")
+            logger.info(f"  {pattern}: {count}")
         
         if self.results['missing_error_handling']:
-            print(f"\nFunctions Missing Error Handling ({len(self.results['missing_error_handling'])}):")
+            logger.warning(f"Functions Missing Error Handling ({len(self.results['missing_error_handling'])}):")
             for func in self.results['missing_error_handling'][:10]:  # Show first 10
-                print(f"  {func['file']}:{func['function']} (line {func['line']})")
+                logger.warning(f"  {func['file']}:{func['function']} (line {func['line']})")
             if len(self.results['missing_error_handling']) > 10:
-                print(f"  ... and {len(self.results['missing_error_handling']) - 10} more")
+                logger.warning(f"  ... and {len(self.results['missing_error_handling']) - 10} more")
         
         if self.results['recommendations']:
-            print("\nRecommendations:")
+            logger.info("Recommendations:")
             for i, rec in enumerate(self.results['recommendations'], 1):
-                print(f"  {i}. {rec}")
+                logger.info(f"  {i}. {rec}")
 
 def main():
     """Main function for error handling coverage analysis."""
@@ -485,7 +489,7 @@ def main():
     # Get project root
     project_root = Path(args.project_root).resolve()
     if not project_root.exists():
-        print(f"Error: Project root {project_root} does not exist")
+        logger.error(f"Project root {project_root} does not exist")
         return 1
     
     # Run analysis
@@ -496,6 +500,7 @@ def main():
     )
     
     if args.json:
+        # JSON output stays as print() for programmatic consumption
         print(json.dumps(results, indent=2))
     else:
         analyzer.print_summary()

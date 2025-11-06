@@ -98,6 +98,7 @@ def _get_log_paths_for_environment():
             'message_file': os.path.join(base_dir, 'message.log'),
             'backup_file': os.path.join(base_dir, 'backup.log'),
             'checkin_dynamic_file': os.path.join(base_dir, 'checkin_dynamic.log'),
+            'ai_dev_tools_file': os.path.join(base_dir, 'ai_dev_tools.log'),
         }
     else:
         # Use centralized paths from config - import locally to avoid circular import
@@ -122,6 +123,7 @@ def _get_log_paths_for_environment():
             'message_file': os.path.join(config.LOGS_DIR, 'message.log'),
             'backup_file': os.path.join(config.LOGS_DIR, 'backup.log'),
             'checkin_dynamic_file': os.path.join(config.LOGS_DIR, 'checkin_dynamic.log'),
+            'ai_dev_tools_file': config.LOG_AI_DEV_TOOLS_FILE,
         }
 
 # FAILSAFE: If running tests, forcibly remove all handlers from root logger and main logger
@@ -764,6 +766,9 @@ def get_component_logger(component_name: str) -> ComponentLogger:
             'message': log_paths['message_file'],
             'backup': log_paths['backup_file'],
             'checkin_dynamic': log_paths['checkin_dynamic_file'],
+            # AI development tools (separate from core system logs)
+            'ai_development_tools': log_paths['ai_dev_tools_file'],
+            'ai_dev_tools': log_paths['ai_dev_tools_file'],
             # File rotation operations should go to file_ops.log
             'file_rotation': log_paths['file_ops_file']
         }

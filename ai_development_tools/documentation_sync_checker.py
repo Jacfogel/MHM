@@ -42,7 +42,7 @@ except ImportError:
         PAIRED_DOCS, STANDARD_LIBRARY_MODULES, TEMPLATE_PATTERNS, THIRD_PARTY_LIBRARIES
     )
 
-logger = get_component_logger(__name__)
+logger = get_component_logger("ai_development_tools")
 
 class DocumentationSyncChecker:
     """Checks and maintains documentation synchronization."""

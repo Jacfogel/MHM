@@ -25,6 +25,10 @@ except ImportError:
     from ai_development_tools.services.standard_exclusions import should_exclude_file
     from ai_development_tools.services.constants import PROJECT_DIRECTORIES
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 
 class SystemSignalsGenerator:
     """Generate system health and status signals"""
@@ -254,8 +258,11 @@ def main():
         output_file.parent.mkdir(parents=True, exist_ok=True)
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(output)
+        logger.info(f"System signals written to: {output_file}")
+        # User-facing confirmation stays as print() for immediate visibility
         print(f"System signals written to: {output_file}")
     else:
+        # User-facing output stays as print() for immediate visibility
         print(output)
 
 

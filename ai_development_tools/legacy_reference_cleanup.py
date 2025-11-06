@@ -37,7 +37,7 @@ if str(project_root) not in sys.path:
 
 from core.logger import get_component_logger
 
-logger = get_component_logger(__name__)
+logger = get_component_logger("ai_development_tools")
 
 class LegacyReferenceCleanup:
     """Identifies and cleans up legacy references in MHM."""

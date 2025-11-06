@@ -16,6 +16,7 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from core.error_handling import handle_errors
+from core.logger import get_component_logger
 
 # Handle both relative and absolute imports
 try:
@@ -24,6 +25,8 @@ try:
 except ImportError:
     import config
     from ai_development_tools.services.standard_exclusions import should_exclude_file
+
+logger = get_component_logger("ai_development_tools")
 
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES
@@ -228,7 +231,7 @@ def extract_functions(file_path: str) -> List[Dict]:
                     'file': file_path
                 })
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
     return functions
 
 
@@ -303,7 +306,7 @@ def categorize_functions(functions: List[Dict]) -> Dict[str, List[Dict]]:
 
 @handle_errors("printing function summary", default_return=None)
 def print_summary(categories: Dict[str, List[Dict]]):
-    print("\n=== FUNCTION DISCOVERY SUMMARY ===")
+    logger.info("=== FUNCTION DISCOVERY SUMMARY ===")
     
     # Print complexity categories with clear descriptions
     complexity_categories = {
@@ -319,29 +322,29 @@ def print_summary(categories: Dict[str, List[Dict]]):
     
     for cat, funcs in categories.items():
         if cat in complexity_categories:
-            print(f"\n{complexity_categories[cat]} ({len(funcs)}):")
+            logger.info(f"{complexity_categories[cat]} ({len(funcs)}):")
         else:
-            print(f"\n{cat.upper()} ({len(funcs)}):")
+            logger.info(f"{cat.upper()} ({len(funcs)}):")
             
         for func in funcs[:10]:
-            print(f"  - {func['name']} (file: {Path(func['file']).name}, complexity: {func['complexity']})")
+            logger.info(f"  - {func['name']} (file: {Path(func['file']).name}, complexity: {func['complexity']})")
         if len(funcs) > 10:
-            print(f"  ...and {len(funcs)-10} more.")
+            logger.info(f"  ...and {len(funcs)-10} more.")
     
     # Add summary of special methods excluded from undocumented count
     special_count = len(categories.get('special_methods', []))
     if special_count > 0:
-        print(f"\nNote: {special_count} special Python methods excluded from undocumented count")
+        logger.info(f"Note: {special_count} special Python methods excluded from undocumented count")
     
     # Add complexity summary
     total_complex = (len(categories.get('moderate_complex', [])) + 
                     len(categories.get('high_complex', [])) + 
                     len(categories.get('critical_complex', [])))
     if total_complex > 0:
-        print(f"\nComplexity Summary: {total_complex} functions need attention")
-        print(f"  - Moderate: {len(categories.get('moderate_complex', []))} functions")
-        print(f"  - High: {len(categories.get('high_complex', []))} functions") 
-        print(f"  - Critical: {len(categories.get('critical_complex', []))} functions")
+        logger.info(f"Complexity Summary: {total_complex} functions need attention")
+        logger.info(f"  - Moderate: {len(categories.get('moderate_complex', []))} functions")
+        logger.info(f"  - High: {len(categories.get('high_complex', []))} functions") 
+        logger.info(f"  - Critical: {len(categories.get('critical_complex', []))} functions")
 
 
 def validate_results(categories: Dict[str, List[Dict]]) -> bool:
@@ -358,7 +361,7 @@ def validate_results(categories: Dict[str, List[Dict]]) -> bool:
     
     # Check for reasonable function counts
     if total_functions > 10000:  # Unreasonably high
-        print(f"[WARNING] Total functions ({total_functions}) seems unreasonably high")
+        logger.warning(f"Total functions ({total_functions}) seems unreasonably high")
         return False
     
     # Check for inflated complexity counts
@@ -367,13 +370,13 @@ def validate_results(categories: Dict[str, List[Dict]]) -> bool:
                         len(categories.get('critical_complex', [])))
     
     if complex_functions > total_functions * 0.8:  # More than 80% complex
-        print(f"[WARNING] High percentage of complex functions ({complex_functions}/{total_functions})")
+        logger.warning(f"High percentage of complex functions ({complex_functions}/{total_functions})")
         return False
     
     # Check for reasonable critical complexity count
     critical_count = len(categories.get('critical_complex', []))
     if critical_count > total_functions * 0.3:  # More than 30% critical
-        print(f"[WARNING] High percentage of critical complexity functions ({critical_count}/{total_functions})")
+        logger.warning(f"High percentage of critical complexity functions ({critical_count}/{total_functions})")
         return False
     
     return True
@@ -386,20 +389,20 @@ def main():
     parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis')
     args = parser.parse_args()
     
-    print("[SCAN] Scanning for all functions...")
+    logger.info("[SCAN] Scanning for all functions...")
     all_functions = scan_all_functions(
         include_tests=args.include_tests,
         include_dev_tools=args.include_dev_tools
     )
-    print(f"Found {len(all_functions)} functions.")
+    logger.info(f"Found {len(all_functions)} functions.")
     categories = categorize_functions(all_functions)
     
     # Validate results before showing
     if not validate_results(categories):
-        print("\n[WARNING] Results may be inflated. Check auto-generated code detection.")
+        logger.warning("Results may be inflated. Check auto-generated code detection.")
     
     print_summary(categories)
-    print("\nTip: Use this output to quickly find handlers, tests, complex, or undocumented functions.")
+    logger.info("Tip: Use this output to quickly find handlers, tests, complex, or undocumented functions.")
 
 if __name__ == "__main__":
     main() 

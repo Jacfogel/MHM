@@ -22,6 +22,10 @@ except ImportError:
     import config
     from ai_development_tools.services.standard_exclusions import should_exclude_file
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 PROJECT_ROOT = Path(config.PROJECT_ROOT)
 SCAN_DIRECTORIES = config.SCAN_DIRECTORIES
 MODERATE_COMPLEXITY = config.FUNCTION_DISCOVERY['moderate_complexity_threshold']
@@ -52,7 +56,7 @@ def extract_functions(file_path: str):
                     'file': file_path
                 })
     except Exception as e:
-        print(f"Error parsing {file_path}: {e}")
+        logger.error(f"Error parsing {file_path}: {e}")
     return functions
 
 
@@ -105,8 +109,8 @@ def find_duplicate_names(functions):
 
 
 def print_dashboard(functions):
-    print("\n=== AI DECISION SUPPORT DASHBOARD ===")
-    print(f"Total functions: {len(functions)}")
+    logger.info("=== AI DECISION SUPPORT DASHBOARD ===")
+    logger.info(f"Total functions: {len(functions)}")
     moderate_complex, high_complex, critical_complex = find_complexity_functions(functions)
     undocumented_handlers = find_undocumented_handlers(functions)
     duplicates = find_duplicate_names(functions)
@@ -114,54 +118,56 @@ def print_dashboard(functions):
     # Complexity analysis with differentiated levels
     total_complex = len(moderate_complex) + len(high_complex) + len(critical_complex)
     if total_complex > 0:
-        print(f"\n[COMPLEXITY] Functions needing attention: {total_complex}")
+        logger.warning(f"[COMPLEXITY] Functions needing attention: {total_complex}")
         if critical_complex:
-            print(f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}")
+            logger.warning(f"  [CRITICAL] Critical Complexity (>{CRITICAL_COMPLEXITY-1} nodes): {len(critical_complex)}")
             for f in critical_complex[:5]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                logger.warning(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(critical_complex) > 5:
-                print(f"    ...and {len(critical_complex)-5} more.")
+                logger.warning(f"    ...and {len(critical_complex)-5} more.")
         
         if high_complex:
-            print(f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}")
+            logger.warning(f"  [HIGH] High Complexity ({HIGH_COMPLEXITY}-{CRITICAL_COMPLEXITY-1} nodes): {len(high_complex)}")
             for f in high_complex[:5]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                logger.warning(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(high_complex) > 5:
-                print(f"    ...and {len(high_complex)-5} more.")
+                logger.warning(f"    ...and {len(high_complex)-5} more.")
         
         if moderate_complex:
-            print(f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}")
+            logger.info(f"  [MODERATE] Moderate Complexity ({MODERATE_COMPLEXITY}-{HIGH_COMPLEXITY-1} nodes): {len(moderate_complex)}")
             for f in moderate_complex[:3]:
-                print(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
+                logger.info(f"    - {f['name']} (file: {Path(f['file']).name}, complexity: {f['complexity']})")
             if len(moderate_complex) > 3:
-                print(f"    ...and {len(moderate_complex)-3} more.")
+                logger.info(f"    ...and {len(moderate_complex)-3} more.")
 
-    print(f"\n[DOC] Undocumented Handlers: {len(undocumented_handlers)}")
-    for f in undocumented_handlers[:10]:
-        print(f"  - {f['name']} (file: {Path(f['file']).name})")
-    if len(undocumented_handlers) > 10:
-        print(f"  ...and {len(undocumented_handlers)-10} more.")
-
-    print(f"\n[DUPE] Duplicate Function Names: {len(duplicates)}")
-    for name, files in list(duplicates.items())[:5]:
-        print(f"  - {name}: {', '.join(Path(f).name for f in files)}")
-    if len(duplicates) > 5:
-        print(f"  ...and {len(duplicates)-5} more.")
-
-    print("\n=== SUGGESTED NEXT STEPS ===")
-    if critical_complex:
-        print("- [CRITICAL] Refactor critical complexity functions immediately.")
-    if high_complex:
-        print("- [HIGH] Refactor high complexity functions for maintainability.")
-    if moderate_complex:
-        print("- [MODERATE] Review moderate complexity functions when time permits.")
     if undocumented_handlers:
-        print("- Add docstrings to undocumented handler/utility functions.")
+        logger.warning(f"[DOC] Undocumented Handlers: {len(undocumented_handlers)}")
+        for f in undocumented_handlers[:10]:
+            logger.warning(f"  - {f['name']} (file: {Path(f['file']).name})")
+        if len(undocumented_handlers) > 10:
+            logger.warning(f"  ...and {len(undocumented_handlers)-10} more.")
+
     if duplicates:
-        print("- Review duplicate function names for possible consolidation or renaming.")
+        logger.warning(f"[DUPE] Duplicate Function Names: {len(duplicates)}")
+        for name, files in list(duplicates.items())[:5]:
+            logger.warning(f"  - {name}: {', '.join(Path(f).name for f in files)}")
+        if len(duplicates) > 5:
+            logger.warning(f"  ...and {len(duplicates)-5} more.")
+
+    logger.info("=== SUGGESTED NEXT STEPS ===")
+    if critical_complex:
+        logger.warning("- [CRITICAL] Refactor critical complexity functions immediately.")
+    if high_complex:
+        logger.warning("- [HIGH] Refactor high complexity functions for maintainability.")
+    if moderate_complex:
+        logger.info("- [MODERATE] Review moderate complexity functions when time permits.")
+    if undocumented_handlers:
+        logger.warning("- Add docstrings to undocumented handler/utility functions.")
+    if duplicates:
+        logger.warning("- Review duplicate function names for possible consolidation or renaming.")
     if not (total_complex or undocumented_handlers or duplicates):
-        print("- Codebase is in excellent shape! Proceed with confidence.")
-    print("\nTip: Use this dashboard before major refactoring, documentation, or architectural changes.")
+        logger.info("- Codebase is in excellent shape! Proceed with confidence.")
+    logger.info("Tip: Use this dashboard before major refactoring, documentation, or architectural changes.")
 
 
 def main():
@@ -172,7 +178,7 @@ def main():
     parser.add_argument('--include-dev-tools', action='store_true', help='Include ai_development_tools in analysis')
     args = parser.parse_args()
     
-    print("[SCAN] Gathering actionable insights for AI decision-making...")
+    logger.info("[SCAN] Gathering actionable insights for AI decision-making...")
     functions = scan_all_functions(
         include_tests=args.include_tests,
         include_dev_tools=args.include_dev_tools

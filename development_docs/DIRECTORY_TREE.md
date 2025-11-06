@@ -5,6 +5,7 @@
 Folder PATH listing
 Volume serial number is 5EAC-07BC
 C:.
+|   .coverage
 |   .env
 |   .gitattributes
 |   .gitignore
@@ -12,7 +13,6 @@ C:.
 |   coverage.ini
 |   DEVELOPMENT_WORKFLOW.md
 |   DOCUMENTATION_GUIDE.md
-|   fix_ascii.py
 |   HOW_TO_RUN.md
 |   PROJECT_VISION.md
 |   pyproject.toml
@@ -23,6 +23,7 @@ C:.
 |   run_headless_service.py
 |   run_mhm.py
 |   run_tests.py
+|   test.log
 |   TODO.md
 |   
 +---.cursor
@@ -54,18 +55,18 @@ C:.
     (pytest cache files)
 +---.venv
     (virtual environment files)
-+---.vscode
-|       settings.json
-|       
 +---ai
-|       cache_manager.py
-|       chatbot.py
-|       context_builder.py
-|       conversation_history.py
-|       lm_studio_manager.py
-|       prompt_manager.py
-|       README.md
-|       
+|   |   cache_manager.py
+|   |   chatbot.py
+|   |   context_builder.py
+|   |   conversation_history.py
+|   |   lm_studio_manager.py
+|   |   prompt_manager.py
+|   |   README.md
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+    (Python cache files)
 +---ai_development_docs
 |       AI_ARCHITECTURE.md
 |       AI_CHANGELOG.md
@@ -87,6 +88,7 @@ C:.
 |   |   analyze_documentation.py
 |   |   audit_function_registry.py
 |   |   audit_module_dependencies.py
+|   |   audit_package_exports.py
 |   |   auto_document_functions.py
 |   |   config.py
 |   |   config_validation_results.json
@@ -118,50 +120,19 @@ C:.
 +---communication
 |   |   __init__.py
 |   |   
-|   +---.cursor
 |   +---command_handlers
-|   |       analytics_handler.py
-|   |       base_handler.py
-|   |       checkin_handler.py
-|   |       interaction_handlers.py
-|   |       profile_handler.py
-|   |       schedule_handler.py
-|   |       shared_types.py
-|   |       task_handler.py
-|   |       __init__.py
-|   |       
-|   +---communication_channels
+|   |   |   analytics_handler.py
+|   |   |   base_handler.py
+|   |   |   checkin_handler.py
+|   |   |   interaction_handlers.py
+|   |   |   profile_handler.py
+|   |   |   schedule_handler.py
+|   |   |   shared_types.py
+|   |   |   task_handler.py
 |   |   |   __init__.py
 |   |   |   
-|   |   +---base
-|   |   |       base_channel.py
-|   |   |       command_registry.py
-|   |   |       message_formatter.py
-|   |   |       rich_formatter.py
-|   |   |       
-|   |   +---discord
-|   |   |       api_client.py
-|   |   |       bot.py
-|   |   |       DISCORD.md
-|   |   |       event_handler.py
-|   |   |       
-|   |   \---email
-|   |           bot.py
-|   |           
-|   +---core
-|   |       channel_monitor.py
-|   |       channel_orchestrator.py
-|   |       factory.py
-|   |       retry_manager.py
-|   |       __init__.py
-|   |       
-|   \---message_processing
-|           command_parser.py
-|           conversation_flow_manager.py
-|           interaction_manager.py
-|           message_router.py
-|           __init__.py
-|           
+|   |   \---__pycache__
+    (Python cache files)
 +---core
 |   |   auto_cleanup.py
 |   |   backup_manager.py
@@ -189,7 +160,6 @@ C:.
 |   |   user_management.py
 |   |   __init__.py
 |   |   
-|   +---.cursor
 |   \---__pycache__
     (Python cache files)
 +---data
@@ -214,6 +184,7 @@ C:.
 |       
 +---logs
 |   |   ai.log
+|   |   ai_dev_tools.log
 |   |   app.log
 |   |   communication_manager.log
 |   |   discord.log
@@ -239,32 +210,20 @@ C:.
 |   \---default_messages
 |           fun_facts.json
 |           health.json
-|           invalid.json
 |           motivational.json
 |           quotes_to_ponder.json
 |           word_of_the_day.json
 |           
 +---scripts
-|   |   audit_legacy_channels.py
+|   |   check_manual_enhancements.py
+|   |   cleanup_project.py
 |   |   cleanup_unused_imports.py
 |   |   cleanup_windows_tasks.py
 |   |   demo_dynamic_checkin.py
-|   |   focused_legacy_audit.py
-|   |   migrate_load_user_functions.py
 |   |   README.md
-|   |   script_test_ai_parsing.py
-|   |   script_test_ai_raw.py
-|   |   script_test_centralized_config.py
-|   |   script_test_comprehensive_fixes.py
-|   |   script_test_discord_commands.py
-|   |   script_test_discord_connection.py
-|   |   script_test_enhanced_discord_commands.py
-|   |   script_test_enhanced_parser_direct.py
+|   |   restore_manual_enhancements.py
+|   |   restore_missing_enhancements.py
 |   |   script_test_network_connectivity.py
-|   |   script_test_task_response_formatting.py
-|   |   test_auto_model_loading.py
-|   |   test_lm_studio_management.py
-|   |   update_imports.py
 |   |   
 |   +---debug
 |   |   |   debug_category_dialog.py
@@ -276,15 +235,6 @@ C:.
 |   |   |   script_test_dns_fallback.py
 |   |   |   
 |   |   \---diagnostics
-|   |           discord_diagnostic_20250730_004159.json
-|   |           discord_diagnostic_20250730_004326.json
-|   |           discord_diagnostic_20250730_004559.json
-|   |           discord_diagnostic_20250730_004608.json
-|   |           discord_diagnostic_20250730_004826.json
-|   |           discord_diagnostic_20250730_004859.json
-|   |           discord_diagnostic_20250730_005103.json
-|   |           discord_diagnostic_20250730_005309.json
-|   |           
 |   +---launchers
 |   |       start_service.bat
 |   |       start_service.sh
@@ -345,9 +295,11 @@ C:.
 |       admin_theme.qss
 |       
 +---tasks
-|       task_management.py
-|       __init__.py
-|       
+|   |   task_management.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+    (Python cache files)
 +---tests
 |   |   .coverage
 |   |   AI_FUNCTIONALITY_TEST_PLAN.md
@@ -359,7 +311,6 @@ C:.
 |   |   test_isolation.py
 |   |   test_utilities.py
 |   |   
-|   +---.cursor
 |   +---ai
 |   |   |   ai_response_validator.py
 |   |   |   ai_test_base.py
@@ -376,16 +327,16 @@ C:.
 |   |   |   test_context_includes_recent_messages.py
 |   |   |   
 |   |   \---results
-|   |           ai_functionality_test_results_20251101_151421.md
-|   |           ai_functionality_test_results_20251101_161241.md
-|   |           ai_functionality_test_results_20251101_185143.md
-|   |           ai_functionality_test_results_20251101_192239.md
-|   |           ai_functionality_test_results_20251101_193105.md
-|   |           ai_functionality_test_results_20251101_194630.md
 |   |           ai_functionality_test_results_20251101_201430.md
 |   |           ai_functionality_test_results_20251101_201859.md
 |   |           ai_functionality_test_results_20251101_203148.md
 |   |           ai_functionality_test_results_20251101_210054.md
+|   |           ai_functionality_test_results_20251102_031745.md
+|   |           ai_functionality_test_results_20251102_033626.md
+|   |           ai_functionality_test_results_20251103_032636.md
+|   |           ai_functionality_test_results_20251104_171625.md
+|   |           ai_functionality_test_results_20251104_171630.md
+|   |           ai_functionality_test_results_20251104_235559.md
 |   |           ai_functionality_test_results_latest.md
 |   |           
 |   +---behavior
@@ -394,11 +345,14 @@ C:.
 |   |       test_ai_context_builder_behavior.py
 |   |       test_ai_context_builder_coverage_expansion.py
 |   |       test_ai_conversation_history_behavior.py
+|   |       test_analytics_handler_behavior.py
 |   |       test_auto_cleanup_behavior.py
 |   |       test_backup_manager_behavior.py
+|   |       test_base_handler_behavior.py
 |   |       test_chat_interaction_storage_real_scenarios.py
 |   |       test_checkin_analytics_behavior.py
 |   |       test_checkin_expiry_semantics.py
+|   |       test_checkin_handler_behavior.py
 |   |       test_command_discovery_help.py
 |   |       test_command_parser_coverage_expansion_phase3_simple.py
 |   |       test_communication_behavior.py
@@ -409,6 +363,7 @@ C:.
 |   |       test_comprehensive_quantitative_analytics.py
 |   |       test_config_coverage_expansion_phase3_simple.py
 |   |       test_conversation_behavior.py
+|   |       test_conversation_flow_manager_behavior.py
 |   |       test_core_message_management_coverage_expansion.py
 |   |       test_core_service_coverage_expansion.py
 |   |       test_discord_advanced_automation.py
@@ -418,6 +373,7 @@ C:.
 |   |       test_email_bot_behavior.py
 |   |       test_enhanced_command_parser_behavior.py
 |   |       test_error_handling_coverage_expansion_phase3_final.py
+|   |       test_headless_service_behavior.py
 |   |       test_interaction_handlers_behavior.py
 |   |       test_interaction_handlers_coverage_expansion.py
 |   |       test_legacy_enabled_fields_compatibility.py
@@ -425,12 +381,15 @@ C:.
 |   |       test_logger_coverage_expansion.py
 |   |       test_logger_coverage_expansion_phase3_simple.py
 |   |       test_message_behavior.py
+|   |       test_message_router_behavior.py
 |   |       test_observability_logging.py
 |   |       test_profile_display_formatting.py
+|   |       test_profile_handler_behavior.py
 |   |       test_quantitative_analytics_expansion.py
 |   |       test_response_tracking_behavior.py
 |   |       test_scheduler_behavior.py
 |   |       test_scheduler_coverage_expansion.py
+|   |       test_schedule_handler_behavior.py
 |   |       test_schedule_management_behavior.py
 |   |       test_schedule_suggestions.py
 |   |       test_service_behavior.py
@@ -438,6 +397,7 @@ C:.
 |   |       test_static_logging_check.py
 |   |       test_task_behavior.py
 |   |       test_task_crud_disambiguation.py
+|   |       test_task_handler_behavior.py
 |   |       test_task_management_coverage_expansion.py
 |   |       test_ui_app_behavior.py
 |   |       test_ui_automation_complete.py
@@ -467,7 +427,6 @@ C:.
 |   |   ui_app_qt.py
 |   |   __init__.py
 |   |   
-|   +---.cursor
 |   +---designs
 |   |       account_creator_dialog.ui
 |   |       admin_panel.ui
@@ -493,65 +452,180 @@ C:.
 |   |       user_profile_settings_widget.ui
 |   |       
 |   +---dialogs
-|   |       account_creator_dialog.py
-|   |       admin_panel.py
-|   |       category_management_dialog.py
-|   |       channel_management_dialog.py
-|   |       checkin_management_dialog.py
-|   |       message_editor_dialog.py
-|   |       process_watcher_dialog.py
-|   |       schedule_editor_dialog.py
-|   |       task_completion_dialog.py
-|   |       task_crud_dialog.py
-|   |       task_edit_dialog.py
-|   |       task_management_dialog.py
-|   |       user_analytics_dialog.py
-|   |       user_profile_dialog.py
-|   |       __init__.py
-|   |       
-|   +---generated
-|   |       account_creator_dialog_pyqt.py
-|   |       admin_panel_pyqt.py
-|   |       category_management_dialog_pyqt.py
-|   |       category_selection_widget_pyqt.py
-|   |       channel_management_dialog_pyqt.py
-|   |       channel_selection_widget_pyqt.py
-|   |       checkin_element_template_pyqt.py
-|   |       checkin_management_dialog_pyqt.py
-|   |       checkin_settings_widget_pyqt.py
-|   |       dynamic_list_field_template_pyqt.py
-|   |       message_editor_dialog_pyqt.py
-|   |       period_row_template_pyqt.py
-|   |       schedule_editor_dialog_pyqt.py
-|   |       tag_widget_pyqt.py
-|   |       task_completion_dialog_pyqt.py
-|   |       task_crud_dialog_pyqt.py
-|   |       task_edit_dialog_pyqt.py
-|   |       task_management_dialog_pyqt.py
-|   |       task_settings_widget_pyqt.py
-|   |       user_analytics_dialog_pyqt.py
-|   |       user_profile_management_dialog_pyqt.py
-|   |       user_profile_settings_widget_pyqt.py
-|   |       __init__.py
-|   |       
-|   \---widgets
-|           category_selection_widget.py
-|           channel_selection_widget.py
-|           checkin_settings_widget.py
-|           dynamic_list_container.py
-|           dynamic_list_field.py
-|           period_row_widget.py
-|           tag_widget.py
-|           task_settings_widget.py
-|           user_profile_settings_widget.py
-|           __init__.py
-|           
-\---user
-        context_manager.py
-        user_context.py
-        user_preferences.py
-        
-
+|   |   |   account_creator_dialog.py
+|   |   |   admin_panel.py
+|   |   |   category_management_dialog.py
+|   |   |   channel_management_dialog.py
+|   |   |   checkin_management_dialog.py
+|   |   |   message_editor_dialog.py
+|   |   |   process_watcher_dialog.py
+|   |   |   schedule_editor_dialog.py
+|   |   |   task_completion_dialog.py
+|   |   |   task_crud_dialog.py
+|   |   |   task_edit_dialog.py
+|   |   |   task_management_dialog.py
+|   |   |   user_analytics_dialog.py
+|   |   |   user_profile_dialog.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+    (Python cache files)
++---user
+|   |   context_manager.py
+|   |   user_context.py
+|   |   user_preferences.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+    (Python cache files)
++---venv
+|   |   pyvenv.cfg
+|   |   
+|   +---Include
+|   +---Lib
+|   |   \---site-packages
+|   |       |   30fcd23745efe32ce681__mypyc.cp312-win_amd64.pyd
+|   |       |   mccabe.py
+|   |       |   mypy_extensions.py
+|   |       |   py.py
+|   |       |   typing_extensions.py
+|   |       |   _black_version.py
+|   |       |   _black_version.pyi
+|   |       |   
+|   |       +---aiohappyeyeballs
+|   |       |       impl.py
+|   |       |       py.typed
+|   |       |       types.py
+|   |       |       utils.py
+|   |       |       _staggered.py
+|   |       |       __init__.py
+|   |       |       
+|   |       +---aiohappyeyeballs-2.6.1.dist-info
+|   |       |       INSTALLER
+|   |       |       LICENSE
+|   |       |       METADATA
+|   |       |       RECORD
+|   |       |       WHEEL
+|   |       |       
+|   |       +---aiohttp
+|   |       |   |   abc.py
+|   |       |   |   base_protocol.py
+|   |       |   |   client.py
+|   |       |   |   client_exceptions.py
+|   |       |   |   client_middlewares.py
+|   |       |   |   client_middleware_digest_auth.py
+|   |       |   |   client_proto.py
+|   |       |   |   client_reqrep.py
+|   |       |   |   client_ws.py
+|   |       |   |   compression_utils.py
+|   |       |   |   connector.py
+|   |       |   |   cookiejar.py
+|   |       |   |   formdata.py
+|   |       |   |   hdrs.py
+|   |       |   |   helpers.py
+|   |       |   |   http.py
+|   |       |   |   http_exceptions.py
+|   |       |   |   http_parser.py
+|   |       |   |   http_websocket.py
+|   |       |   |   http_writer.py
+|   |       |   |   log.py
+|   |       |   |   multipart.py
+|   |       |   |   payload.py
+|   |       |   |   payload_streamer.py
+|   |       |   |   py.typed
+|   |       |   |   pytest_plugin.py
+|   |       |   |   resolver.py
+|   |       |   |   streams.py
+|   |       |   |   tcp_helpers.py
+|   |       |   |   test_utils.py
+|   |       |   |   tracing.py
+|   |       |   |   typedefs.py
+|   |       |   |   web.py
+|   |       |   |   web_app.py
+|   |       |   |   web_exceptions.py
+|   |       |   |   web_fileresponse.py
+|   |       |   |   web_log.py
+|   |       |   |   web_middlewares.py
+|   |       |   |   web_protocol.py
+|   |       |   |   web_request.py
+|   |       |   |   web_response.py
+|   |       |   |   web_routedef.py
+|   |       |   |   web_runner.py
+|   |       |   |   web_server.py
+|   |       |   |   web_urldispatcher.py
+|   |       |   |   web_ws.py
+|   |       |   |   worker.py
+|   |       |   |   _cookie_helpers.py
+|   |       |   |   _cparser.pxd
+|   |       |   |   _find_header.pxd
+|   |       |   |   _headers.pxi
+|   |       |   |   _http_parser.cp312-win_amd64.pyd
+|   |       |   |   _http_parser.pyx
+|   |       |   |   _http_writer.cp312-win_amd64.pyd
+|   |       |   |   _http_writer.pyx
+|   |       |   |   __init__.py
+|   |       |   |   
+|   |       |   +---.hash
+|   |       |   |       hdrs.py.hash
+|   |       |   |       _cparser.pxd.hash
+|   |       |   |       _find_header.pxd.hash
+|   |       |   |       _http_parser.pyx.hash
+|   |       |   |       _http_writer.pyx.hash
+|   |       |   |       
+|   |       |   \---_websocket
+|   |       |       |   helpers.py
+|   |       |       |   mask.cp312-win_amd64.pyd
+|   |       |       |   mask.pxd
+|   |       |       |   mask.pyx
+|   |       |       |   models.py
+|   |       |       |   reader.py
+|   |       |       |   reader_c.cp312-win_amd64.pyd
+|   |       |       |   reader_c.pxd
+|   |       |       |   reader_c.py
+|   |       |       |   reader_py.py
+|   |       |       |   writer.py
+|   |       |       |   __init__.py
+|   |       |       |   
+|   |       |       \---.hash
+|   |       |               mask.pxd.hash
+|   |       |               mask.pyx.hash
+|   |       |               reader_c.pxd.hash
+|   |       |               
+|   |       +---aiohttp-3.13.2.dist-info
+|   |       |   |   INSTALLER
+|   |       |   |   METADATA
+|   |       |   |   RECORD
+|   |       |   |   top_level.txt
+|   |       |   |   WHEEL
+|   |       |   |   
+|   |       |   \---licenses
+|   |       |       |   LICENSE.txt
+|   |       |       |   
+|   |       |       \---vendor
+|   |       |           \---llhttp
+|   |       |                   LICENSE
+|   |       |                   
+|   |       +---aiosignal
+|   |       |       py.typed
+|   |       |       __init__.py
+|   |       |       
+|   |       +---aiosignal-1.4.0.dist-info
+|   |       |   |   INSTALLER
+|   |       |   |   METADATA
+|   |       |   |   RECORD
+|   |       |   |   top_level.txt
+|   |       |   |   WHEEL
+|   |       |   |   
+|   |       |   \---licenses
+|   |       |           LICENSE
+|   |       |           
+|   |       +---annotated_types
+|   |       |   |   py.typed
+|   |       |   |   test_cases.py
+|   |       |   |   __init__.py
+|   |       |   |   
+|   |       |   \---__pycache__
+    (Python cache files)
 
 ---
 

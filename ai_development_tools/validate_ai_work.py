@@ -6,8 +6,18 @@ Helps verify completeness and accuracy before presenting to user.
 
 import ast
 import re
+import sys
 from pathlib import Path
 from typing import Dict, List
+
+# Add project root to path for core module imports
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
 
 def validate_documentation_completeness(doc_file: str, code_files: List[str]) -> Dict:
     """Validate that documentation covers all relevant code."""
@@ -272,6 +282,7 @@ def validate_ai_work(work_type: str, **kwargs) -> str:
 
 if __name__ == "__main__":
     # Example usage
-    print(validate_ai_work("documentation", 
-                          doc_file="README.md", 
-                          code_files=["core/config.py", "core/service.py"])) 
+    result = validate_ai_work("documentation", 
+                              doc_file="README.md", 
+                              code_files=["core/config.py", "core/service.py"])
+    logger.info(result) 

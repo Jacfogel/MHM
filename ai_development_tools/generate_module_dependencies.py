@@ -27,6 +27,10 @@ from ai_development_tools.services.constants import (
     is_standard_library_module as _is_stdlib_module,
 )
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 
 def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
     """Extract all imports from a Python file with detailed information."""
@@ -84,7 +88,7 @@ def extract_imports_from_file(file_path: str) -> Dict[str, List[Dict]]:
                         imports['third_party'].append(import_info)
                 
     except Exception as e:
-        print(ensure_ascii(f"Error parsing {file_path}: {e}"))
+        logger.error(ensure_ascii(f"Error parsing {file_path}: {e}"))
     
     return imports
 
@@ -1309,7 +1313,7 @@ def analyze_dependency_patterns(actual_imports: Dict[str, Dict]) -> Dict[str, An
 
 def update_module_dependencies():
     """Update MODULE_DEPENDENCIES_DETAIL.md and AI_MODULE_DEPENDENCIES.md with hybrid approach."""
-    print("[SCAN] Scanning all Python files for imports...")
+    logger.info("[SCAN] Scanning all Python files for imports...")
     actual_imports = scan_all_python_files()
     
     # Read existing content to preserve manual enhancements
@@ -1320,12 +1324,12 @@ def update_module_dependencies():
             with open(detail_path, 'r', encoding='utf-8') as f:
                 existing_content = f.read()
         except Exception as e:
-            print(ensure_ascii(f"[WARN] Could not read existing file: {e}"))
+            logger.warning(ensure_ascii(f"Could not read existing file: {e}"))
     
-    print("[GEN] Generating MODULE_DEPENDENCIES_DETAIL.md content...")
+    logger.info("[GEN] Generating MODULE_DEPENDENCIES_DETAIL.md content...")
     detail_content = generate_module_dependencies_content(actual_imports, existing_content)
     
-    print("[GEN] Generating AI_MODULE_DEPENDENCIES.md content...")
+    logger.info("[GEN] Generating AI_MODULE_DEPENDENCIES.md content...")
     ai_content = generate_ai_module_dependencies_content(actual_imports)
     
     # Identify modules needing enhancement
@@ -1344,28 +1348,28 @@ def update_module_dependencies():
         with open(ai_path, 'w', encoding='utf-8') as f:
             f.write(ai_content)
         
-        print(ensure_ascii(f"[SUCCESS] Both module dependency files updated successfully!"))
-        print(ensure_ascii(f"[FILES] Generated:"))
-        print(ensure_ascii(f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"))
-        print(ensure_ascii(f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"))
-        print(ensure_ascii(f"[STATS] Statistics:"))
-        print(ensure_ascii(f"   Files scanned: {len(actual_imports)}"))
-        print(ensure_ascii(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}"))
-        print(ensure_ascii(f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}"))
-        print(ensure_ascii(f"   Coverage: 100% (all files documented)"))
-        print(ensure_ascii(f"   Detail file: {detail_path}"))
-        print(ensure_ascii(f"   AI file: {ai_path}"))
+        logger.info(ensure_ascii(f"[SUCCESS] Both module dependency files updated successfully!"))
+        logger.info(ensure_ascii(f"[FILES] Generated:"))
+        logger.info(ensure_ascii(f"   development_docs/MODULE_DEPENDENCIES_DETAIL.md - Complete detailed dependencies"))
+        logger.info(ensure_ascii(f"   ai_development_docs/AI_MODULE_DEPENDENCIES.md - Concise AI-focused dependencies"))
+        logger.info(ensure_ascii(f"[STATS] Statistics:"))
+        logger.info(ensure_ascii(f"   Files scanned: {len(actual_imports)}"))
+        logger.info(ensure_ascii(f"   Total imports: {sum(data['total_imports'] for data in actual_imports.values())}"))
+        logger.info(ensure_ascii(f"   Local dependencies: {sum(len(data['imports']['local']) for data in actual_imports.values())}"))
+        logger.info(ensure_ascii(f"   Coverage: 100% (all files documented)"))
+        logger.info(ensure_ascii(f"   Detail file: {detail_path}"))
+        logger.info(ensure_ascii(f"   AI file: {ai_path}"))
         
         # Report preserved manual enhancements
         if preserved_enhancements:
-            print(ensure_ascii(f"\n[PRESERVED] Manual Enhancements Preserved ({len(preserved_enhancements)}):"))
+            logger.info(ensure_ascii(f"[PRESERVED] Manual Enhancements Preserved ({len(preserved_enhancements)}):"))
             for module_name, enhancement_summary in sorted(preserved_enhancements.items()):
-                print(ensure_ascii(f"   {module_name}: {enhancement_summary}"))
+                logger.info(ensure_ascii(f"   {module_name}: {enhancement_summary}"))
         else:
-            print(ensure_ascii(f"\n[PRESERVED] No manual enhancements found to preserve"))
+            logger.info(ensure_ascii(f"[PRESERVED] No manual enhancements found to preserve"))
         
         # Report enhancement status
-        print(ensure_ascii(f"\n[ENHANCEMENT] Manual Enhancement Status:"))
+        logger.info(ensure_ascii(f"[ENHANCEMENT] Manual Enhancement Status:"))
         status_counts = {}
         for status in enhancement_status.values():
             status_counts[status] = status_counts.get(status, 0) + 1
@@ -1378,21 +1382,21 @@ def update_module_dependencies():
                 'up_to_date': 'Modules with current enhancements',
                 'missing_enhancement': 'Modules missing enhancement markers'
             }.get(status, status)
-            print(ensure_ascii(f"   {status_display}: {count}"))
+            logger.info(ensure_ascii(f"   {status_display}: {count}"))
         
         # Show specific modules needing attention
         priority_modules = {k: v for k, v in enhancement_status.items() 
                           if v in ['new_module', 'needs_enhancement', 'dependencies_changed']}
         
         if priority_modules:
-            print(f"\n[PRIORITY] Modules needing manual attention:")
+            logger.warning(f"[PRIORITY] Modules needing manual attention: {len(priority_modules)}")
             for file_path, status in sorted(priority_modules.items()):
                 status_icon = {
                     'new_module': '[NEW]',
                     'needs_enhancement': '[ENH]',
                     'dependencies_changed': '[CHG]'
                 }.get(status, '[?]')
-                print(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
+                logger.warning(ensure_ascii(f"   {status_icon} {file_path} ({status})"))
         
         # Validate that preserved enhancements are actually in the written file
         if preserved_enhancements:
@@ -1407,16 +1411,16 @@ def update_module_dependencies():
                         preserved_count += 1
                 
                 if preserved_count == len(preserved_enhancements):
-                    print(ensure_ascii(f"\n[VALIDATION] All {preserved_count} manual enhancements verified in written file"))
+                    logger.info(ensure_ascii(f"[VALIDATION] All {preserved_count} manual enhancements verified in written file"))
                 else:
-                    print(ensure_ascii(f"\n[VALIDATION] Warning: Only {preserved_count}/{len(preserved_enhancements)} manual enhancements found in written file"))
+                    logger.warning(ensure_ascii(f"[VALIDATION] Warning: Only {preserved_count}/{len(preserved_enhancements)} manual enhancements found in written file"))
             except Exception as e:
-                print(ensure_ascii(f"\n[VALIDATION] Could not validate preserved enhancements: {e}"))
+                logger.error(ensure_ascii(f"[VALIDATION] Could not validate preserved enhancements: {e}"))
         
         return True
         
     except Exception as e:
-        print(ensure_ascii(f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}"))
+        logger.error(ensure_ascii(f"[ERROR] Failed to write development_docs/MODULE_DEPENDENCIES_DETAIL.md: {e}"))
         return False
 
 if __name__ == "__main__":

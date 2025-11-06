@@ -17,6 +17,10 @@ project_root = Path(__file__).parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from core.logger import get_component_logger
+
+logger = get_component_logger("ai_development_tools")
+
 class QuickStatus:
     """Quick status checker for AI collaboration."""
     
@@ -272,48 +276,59 @@ class QuickStatus:
         """Print comprehensive status for AI consumption"""
         status = self.get_quick_status()
         
-        # Remove headers - they'll be added by the consolidated report
+        logger.info(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        # User-facing output stays as print() for immediate visibility
         print(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
         
         # System Health
         health = status['system_health']
+        logger.info(f"[SYSTEM] Status: {health['overall_status']}")
         print(f"[SYSTEM] Status: {health['overall_status']}")
         if health['overall_status'] == 'ISSUES':
             missing_files = [f for f, s in health['core_files'].items() if s == 'MISSING']
             if missing_files:
+                logger.warning(f"Missing core files: {', '.join(missing_files)}")
                 print(f"  Missing: {', '.join(missing_files)}")
         print()
         
         # Documentation Status
         docs = status['documentation_status']
+        logger.info(f"[DOCS] Coverage: {docs['coverage']}")
         print(f"[DOCS] Coverage: {docs['coverage']}")
         if docs['recent_audit']:
+            logger.info(f"Last audit: {docs['recent_audit'][:19]}")
             print(f"  Last audit: {docs['recent_audit'][:19]}")
         
         # Check for missing documentation files
         missing_docs = [f for f, s in docs['key_files'].items() if s == 'MISSING']
         if missing_docs:
+            logger.warning(f"Missing documentation files: {', '.join(missing_docs[:3])}")
             print(f"  Missing docs: {', '.join(missing_docs[:3])}")
         print()
         
         # Critical Issues
         if status['critical_issues']:
+            logger.warning(f"Critical issues found: {len(status['critical_issues'])}")
             print("[CRITICAL ISSUES]")
             for issue in status['critical_issues']:
+                logger.warning(f"  {issue}")
                 print(f"  {issue}")
             print()
         
         # Action Items
         if status['action_items']:
+            logger.info(f"Action items: {len(status['action_items'])}")
             print("[PRIORITY ACTIONS]")
             for i, action in enumerate(status['action_items'][:3], 1):  # Top 3 with numbering
+                logger.info(f"  {i}. {action}")
                 print(f"  {i}. {action}")
             print()
         
         # Recent Activity
         activity = status['recent_activity']
         if activity['recent_changes']:
+            logger.info(f"Recent changes: {len(activity['recent_changes'])} files")
             print("[RECENT ACTIVITY]")
             for change in activity['recent_changes']:
                 print(f"  {change}")
@@ -328,11 +343,14 @@ class QuickStatus:
     def print_json_status(self):
         """Print status as JSON for programmatic consumption"""
         status = self.get_quick_status()
+        logger.info("Generating JSON status output")
+        # JSON output stays as print() for programmatic consumption
         print(json.dumps(status, indent=2))
 
 def main():
     """Main entry point"""
     if len(sys.argv) < 2:
+        # Usage messages go to stdout for user visibility
         print("Usage: python quick_status.py [concise|json]")
         print("  concise - Print concise status for AI consumption")
         print("  json    - Print status as JSON")
@@ -346,6 +364,8 @@ def main():
     elif command == 'json':
         status_checker.print_json_status()
     else:
+        logger.error(f"Unknown command: {command}")
+        # User-facing error messages stay as print() for immediate visibility
         print(f"Unknown command: {command}")
         print("Use 'concise' or 'json'")
         sys.exit(1)
