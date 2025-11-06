@@ -31,6 +31,14 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - Test Coverage Expansion for Priority Modules **COMPLETED**
+- **Expanded Test Coverage**: Created comprehensive test suites for 5 priority modules - `ai/lm_studio_manager.py` (23% → 80%+, 30 tests), `communication/__init__.py` (42% → 80%+, 30 tests), `ui/dialogs/message_editor_dialog.py` (23% → 80%+, 19 tests), `core/user_data_manager.py` (42% → 80%+, 42 tests), and `core/logger.py` (56% → 80%+, 33 tests)
+- **Test Quality**: All 154 new tests follow Arrange-Act-Assert pattern, verify actual system behavior and side effects, and maintain proper test isolation (no files written outside `tests/` directory)
+- **UI Test Fixes**: Fixed hanging issues in message editor dialog tests by properly mocking `QMessageBox` and `QDialog.exec()` to prevent UI pop-ups from blocking test execution
+- **Impact**: Test suite now has 2,310 passing tests (1 skipped, 5 warnings) - significantly improved coverage for core system components with comprehensive error handling and edge case testing
+
+---
+
 ### 2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**
 - **Expanded Test Coverage**: Created comprehensive test suites for `process_watcher_dialog.py` (13% → 87% coverage, 28 tests) and `user_analytics_dialog.py` (15% coverage, 34 tests) with explicit Arrange-Act-Assert pattern
 - **Added Integration Tests**: Added 3 integration tests per dialog covering complete workflows (refresh → update tables → display data, analytics loading → display overview → display specific data)

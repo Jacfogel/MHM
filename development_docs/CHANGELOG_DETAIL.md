@@ -35,6 +35,35 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - Test Coverage Expansion for Priority Modules **COMPLETED**
+
+**Problem**: Five priority modules had low test coverage: `ai/lm_studio_manager.py` (23%), `communication/__init__.py` (42%), `ui/dialogs/message_editor_dialog.py` (23%), `core/user_data_manager.py` (42%), and `core/logger.py` (56%). These modules needed comprehensive test coverage to reach 80%+ for improved reliability and change safety.
+
+**Solution**: Created comprehensive test suites for all five modules, adding 154 new tests covering initialization, success paths, edge cases, error handling, and integration scenarios. All tests follow project testing guidelines and maintain proper isolation.
+
+**Technical Changes**:
+- **LM Studio Manager Tests**: Created `tests/unit/test_lm_studio_manager.py` with 30 tests covering process detection, server status checking, model loading, connection testing, and error handling. Coverage increased from 23% to 80%+.
+- **Communication Init Tests**: Created `tests/unit/test_communication_init.py` with 30 tests covering lazy imports, public API exports, circular dependency handling, and module access patterns. Coverage increased from 42% to 80%+.
+- **Message Editor Dialog Tests**: Created `tests/ui/test_message_editor_dialog.py` with 19 tests covering dialog initialization, message validation, add/edit/delete operations, table population, and UI interactions. Fixed hanging issues by properly mocking `QMessageBox` and `QDialog.exec()`. Coverage increased from 23% to 80%+.
+- **User Data Manager Tests**: Created `tests/unit/test_user_data_manager.py` with 42 tests covering initialization, message reference management, backup/export functionality, user deletion, index management, search functionality, and convenience functions. Coverage increased from 42% to 80%+.
+- **Logger Unit Tests**: Created `tests/unit/test_logger_unit.py` with 33 tests covering testing environment detection, formatter classes, component logger functionality, backup handler behavior, filter classes, log compression/cleanup, and file lock clearing. Coverage increased from 56% to 80%+.
+
+**Files Created**:
+- `tests/unit/test_lm_studio_manager.py` (30 tests)
+- `tests/unit/test_communication_init.py` (30 tests)
+- `tests/ui/test_message_editor_dialog.py` (19 tests)
+- `tests/unit/test_user_data_manager.py` (42 tests)
+- `tests/unit/test_logger_unit.py` (33 tests)
+
+**Files Modified**:
+- `TODO.md` (updated test coverage expansion status)
+
+**Testing**: All 2,310 tests pass (1 skipped, 5 warnings). Test suite execution time: 401.14s (6:41). No files written outside `tests/` directory. All new tests follow Arrange-Act-Assert pattern and verify actual system behavior.
+
+**Impact**: Significantly improved test coverage for 5 priority modules, adding 154 comprehensive tests that verify actual behavior, side effects, and error handling. Test suite now has 2,310 passing tests with proper isolation and no regressions.
+
+---
+
 ### 2025-11-06 - UI Dialog Test Coverage Expansion and Test Quality Improvements **COMPLETED**
 
 **Problem**: Two priority UI dialogs had low test coverage: `process_watcher_dialog.py` (13% coverage) and `user_analytics_dialog.py` (15% coverage). Tests also needed to follow explicit Arrange-Act-Assert patterns and include integration tests for complete workflows.

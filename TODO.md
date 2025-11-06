@@ -294,20 +294,20 @@ When adding new tasks, follow this format:
 ### Testing
 
 **Continue Test Coverage Expansion**
-- *What it means*: Continue expanding test coverage for remaining low-coverage modules (scheduler.py, user_data_manager.py, logger.py)
+- *What it means*: Continue expanding test coverage for remaining low-coverage modules
 - *Why it helps*: Increases reliability and change safety for core system components
 - *Estimated effort*: Large
-- *Current Status*: Completed tests for `process_watcher_dialog.py` (13% → 87% coverage) and `user_analytics_dialog.py` (15% coverage) with explicit Arrange-Act-Assert pattern and integration tests
+- *Current Status*: Completed test coverage expansion for 5 priority modules (154 new tests added, all passing)
 - *Subtasks*:
   - [x] Expand coverage for `ui/dialogs/process_watcher_dialog.py` (13% → 87% coverage, 28 tests added)
   - [x] Expand coverage for `ui/dialogs/user_analytics_dialog.py` (15% coverage, 34 tests added)
-  - [ ] Expand coverage for `communication/__init__.py` (42% coverage, 106 lines) - Critical priority
-  - [ ] Expand coverage for `ai/lm_studio_manager.py` (23% coverage, 112 lines)
-  - [ ] Expand coverage for `ui/dialogs/message_editor_dialog.py` (23% coverage, 209 lines)
+  - [x] Expand coverage for `communication/__init__.py` (42% → 80%+, 30 tests added)
+  - [x] Expand coverage for `ai/lm_studio_manager.py` (23% → 80%+, 30 tests added)
+  - [x] Expand coverage for `ui/dialogs/message_editor_dialog.py` (23% → 80%+, 19 tests added)
+  - [x] Expand coverage for `core/user_data_manager.py` (42% → 80%+, 42 tests added)
+  - [x] Expand coverage for `core/logger.py` (56% → 80%+, 33 tests added)
   - [ ] Expand coverage for `ui/ui_app_qt.py` (32% coverage, 1095 lines) - Large module
-  - [ ] Expand coverage for `core/user_data_manager.py` (42% coverage, 735 lines)
-  - [ ] Expand coverage for `core/scheduler.py` (64% coverage, 276 missing lines)
-  - [ ] Expand coverage for `core/logger.py` (56% coverage, 181 missing lines)
+  - [ ] Expand coverage for `core/scheduler.py` (64% → 80%+)
   - [ ] Add comprehensive tests for remaining communication modules
   - [ ] Focus on error handling and edge case coverage
 

@@ -19,7 +19,7 @@ def _is_testing_environment():
             any('test' in arg.lower() for arg in os.sys.argv if arg.startswith('-')))
 
 
-class TestContextFormatter(logging.Formatter):
+class PytestContextLogFormatter(logging.Formatter):
     """Custom formatter that automatically prepends test names to log messages."""
     
     @handle_errors("formatting log record")
@@ -43,16 +43,16 @@ class TestContextFormatter(logging.Formatter):
 
 @handle_errors("applying test context formatter")
 def apply_test_context_formatter_to_all_loggers():
-    """Apply TestContextFormatter to all existing loggers when in test mode."""
+    """Apply PytestContextLogFormatter to all existing loggers when in test mode."""
     if not _is_testing_environment():
         return
     
-    test_formatter = TestContextFormatter(
+    test_formatter = PytestContextLogFormatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     
-    # Apply to all existing loggers - the TestContextFormatter will skip component loggers
+    # Apply to all existing loggers - the PytestContextLogFormatter will skip component loggers
     count = 0
     for logger_name in logging.Logger.manager.loggerDict:
         logger = logging.getLogger(logger_name)
@@ -63,7 +63,7 @@ def apply_test_context_formatter_to_all_loggers():
     
     # Debug: Print to stderr so we can see if this function is being called
     if count > 0:
-        print(f"DEBUG: Applied TestContextFormatter to {count} handlers", file=sys.stderr)
+        print(f"DEBUG: Applied PytestContextLogFormatter to {count} handlers", file=sys.stderr)
 
 # NOTE: No @handle_errors decorator here - this function is called by error handler
 # and logging setup, so decorating it would create infinite loops
@@ -183,9 +183,9 @@ class ComponentLogger:
                 consolidated_handler = logging.FileHandler(consolidated_log_file, encoding='utf-8')
                 consolidated_handler.setLevel(logging.DEBUG)
                 
-                # Use TestContextFormatter in test mode
+                # Use PytestContextLogFormatter in test mode
                 if _is_testing_environment():
-                    formatter = TestContextFormatter(
+                    formatter = PytestContextLogFormatter(
                         '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S'
                     )
@@ -220,9 +220,9 @@ class ComponentLogger:
             return
         
         # Create formatter with component name
-        # Use TestContextFormatter in test mode, regular formatter otherwise
+        # Use PytestContextLogFormatter in test mode, regular formatter otherwise
         if _is_testing_environment():
-            formatter = TestContextFormatter(
+            formatter = PytestContextLogFormatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S'
             )

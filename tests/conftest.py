@@ -363,21 +363,8 @@ def setup_qmessagebox_patches():
 # Set up QMessageBox patches
 setup_qmessagebox_patches()
 
-# Custom formatter that includes test context
-class TestContextFormatter(logging.Formatter):
-    """Custom formatter that automatically prepends test names to log messages."""
-    
-    def format(self, record):
-        # Get test name from pytest's environment variable
-        test_name = os.environ.get('PYTEST_CURRENT_TEST', '')
-        if test_name:
-            # Extract just the test function name from the full test path
-            test_name = test_name.split('::')[-1] if '::' in test_name else test_name
-            # Only add test context if it's not already there (avoid duplication)
-            if not record.msg.startswith(f"[{test_name}]"):
-                record.msg = f"[{test_name}] {record.msg}"
-        
-        return super().format(record)
+# Import the formatter from core.logger instead of duplicating it
+from core.logger import PytestContextLogFormatter
 
 # Global flag to prevent multiple test logging setups
 _test_logging_setup_done = False
@@ -424,7 +411,7 @@ def setup_test_logging():
     console_handler.setLevel(logging.ERROR)  # Minimize console spam during full runs
     
     # Create formatter with test context
-    formatter = TestContextFormatter(
+    formatter = PytestContextLogFormatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     file_handler.setFormatter(formatter)
@@ -709,8 +696,8 @@ def setup_consolidated_test_logging():
 
     # Create handler for test execution logs (with test context)
     test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
-    from core.logger import TestContextFormatter
-    test_formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    from core.logger import PytestContextLogFormatter
+    test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
                                         datefmt='%Y-%m-%d %H:%M:%S')
     test_handler.setFormatter(test_formatter)
 

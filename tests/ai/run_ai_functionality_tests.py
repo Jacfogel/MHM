@@ -73,11 +73,11 @@ def setup_consolidated_ai_test_logging():
     # Create handler for test execution logs (with test context)
     test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
     try:
-        from core.logger import TestContextFormatter
-        test_formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+        from core.logger import PytestContextLogFormatter
+        test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
                                             datefmt='%Y-%m-%d %H:%M:%S')
     except ImportError:
-        # Fallback if TestContextFormatter not available
+        # Fallback if PytestContextLogFormatter not available
         test_formatter = logging.Formatter('%(asctime)s - [AI-TEST] - %(name)s - %(levelname)s - %(message)s',
                                           datefmt='%Y-%m-%d %H:%M:%S')
     test_handler.setFormatter(test_formatter)
@@ -163,8 +163,8 @@ test_logger.setLevel(logging.DEBUG)
 test_run_log_file = Path(tests_logs_dir) / "test_run.log"
 test_handler = logging.FileHandler(str(test_run_log_file), mode='a', encoding='utf-8')
 try:
-    from core.logger import TestContextFormatter
-    test_formatter = TestContextFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    from core.logger import PytestContextLogFormatter
+    test_formatter = PytestContextLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
                                         datefmt='%Y-%m-%d %H:%M:%S')
 except ImportError:
     test_formatter = logging.Formatter('%(asctime)s - [AI-TEST] - %(name)s - %(levelname)s - %(message)s',
