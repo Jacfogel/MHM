@@ -24,6 +24,7 @@ logger = get_component_logger('ai')
 class LMStudioManager:
     """Detects LM Studio status and model availability"""
     
+    @handle_errors("initializing LM Studio manager", default_return=None)
     def __init__(self):
         """Initialize LM Studio status detector"""
         self.is_running = False
@@ -205,6 +206,7 @@ class LMStudioManager:
 # Global instance
 _lm_studio_manager = None
 
+@handle_errors("getting LM Studio manager instance", default_return=None)
 def get_lm_studio_manager() -> LMStudioManager:
     """Get the global LM Studio manager instance"""
     global _lm_studio_manager

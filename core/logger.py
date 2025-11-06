@@ -462,18 +462,32 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 os.rename(self.baseFilename, dfn)
                 
                 # Now move to backup directory
+                move_successful = False
                 try:
                     shutil.move(dfn, backup_path)
-                    # After successful move, the original file should be empty/truncated
-                    # But let's ensure it's properly reset by truncating it
-                    try:
-                        with open(self.baseFilename, 'w', encoding='utf-8') as f:
-                            f.truncate(0)  # Ensure file is properly reset
-                    except Exception as truncate_error:
-                        print(f"Warning: Could not truncate original log file after move: {truncate_error}")
+                    move_successful = True
+                    # After successful move, the original file location should be empty
+                    # Reopening the stream will create a new empty file, which is correct
                 except (PermissionError, OSError) as move_error:
-                    # If move to backup fails, at least we have the rotated file
+                    # If move to backup fails, we still have the rotated file at dfn
+                    # Don't truncate the original - we need to restore the file
                     print(f"Warning: Could not move rotated log to backup directory: {move_error}")
+                    # Try to restore the file by renaming it back
+                    try:
+                        if os.path.exists(dfn) and not os.path.exists(self.baseFilename):
+                            os.rename(dfn, self.baseFilename)
+                            print(f"Info: Restored log file after failed backup move")
+                            # Reopen the stream to continue logging to the restored file
+                            self.stream = self._open()
+                            return
+                    except Exception as restore_error:
+                        print(f"Warning: Could not restore log file after failed backup: {restore_error}")
+                        # If restore failed, try to reopen anyway
+                        try:
+                            self.stream = self._open()
+                        except Exception:
+                            pass
+                        return
                     
             except PermissionError as e:
                 # File is locked, try alternative approach
@@ -488,19 +502,28 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                     # Only copy if file has meaningful content
                     if file_size >= MIN_FILE_SIZE:
                         # Try to copy the file instead of moving it
-                        shutil.copy2(self.baseFilename, backup_path)
-                        print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
-                        
-                        # CRITICAL: Truncate the original file after successful backup
-                        # This ensures the log file is properly reset for the new day
-                        # But only if the file has meaningful content
                         try:
-                            with open(self.baseFilename, 'w', encoding='utf-8') as f:
-                                f.truncate(0)  # Truncate to 0 bytes
-                            print(f"Info: Successfully truncated original log file: {self.baseFilename}")
-                        except Exception as truncate_error:
-                            print(f"Warning: Could not truncate original log file: {truncate_error}")
-                            # Continue anyway - the backup was successful
+                            shutil.copy2(self.baseFilename, backup_path)
+                            # Verify backup was created successfully before truncating
+                            if os.path.exists(backup_path) and os.path.getsize(backup_path) > 0:
+                                print(f"Info: Copied log file to backup (original file is locked): {backup_path}")
+                                
+                                # CRITICAL: Truncate the original file only after successful backup verification
+                                # This ensures the log file is properly reset for the new day
+                                try:
+                                    with open(self.baseFilename, 'w', encoding='utf-8') as f:
+                                        f.truncate(0)  # Truncate to 0 bytes
+                                    print(f"Info: Successfully truncated original log file: {self.baseFilename}")
+                                except Exception as truncate_error:
+                                    print(f"Warning: Could not truncate original log file: {truncate_error}")
+                                    # Continue anyway - the backup was successful
+                            else:
+                                # Backup was not created successfully, don't truncate
+                                print(f"Warning: Backup file was not created successfully, skipping truncation")
+                                raise OSError("Backup verification failed")
+                        except (PermissionError, OSError) as copy_error:
+                            # Copy failed, raise to be caught by outer exception handler
+                            raise
                     else:
                         # File is too small, skip rollover - just reopen and continue
                         print(f"Info: Skipping rollover for small file ({file_size} bytes): {self.baseFilename}")
@@ -523,10 +546,29 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 self.stream = self._open()
                 return
         
-        # After successful file movement, reopen the original file
+        # After successful file movement, verify backup exists and reopen the original file
         # This ensures the log file is properly reset/truncated
         try:
-            self.stream = self._open()
+            # Verify backup was created successfully before reopening
+            if os.path.exists(backup_path) and os.path.getsize(backup_path) > 0:
+                # Backup exists, safe to reopen (will create new empty file)
+                self.stream = self._open()
+            else:
+                # Backup doesn't exist, something went wrong - try to restore
+                print(f"Warning: Backup file not found after rotation, attempting to restore")
+                # If dfn still exists, restore it
+                if os.path.exists(dfn):
+                    try:
+                        os.rename(dfn, self.baseFilename)
+                        self.stream = self._open()
+                        print(f"Info: Restored log file after backup verification failed")
+                    except Exception as restore_error:
+                        print(f"Warning: Could not restore log file: {restore_error}")
+                        # Try to reopen anyway
+                        self.stream = self._open()
+                else:
+                    # No backup and no dfn, just reopen (will create new file)
+                    self.stream = self._open()
         except Exception as e:
             print(f"Warning: Could not reopen log file after rotation: {e}")
             # Try to create a new file if reopening fails
@@ -621,7 +663,7 @@ _original_levels = {}
 _component_loggers = {}
 
 
-@handle_errors("getting log level from environment")
+@handle_errors("getting log level from environment", default_return=logging.WARNING)
 def get_log_level_from_env():
     """
     Get log level from environment variable, default to WARNING for quiet mode.
@@ -654,6 +696,22 @@ def get_component_logger(component_name: str) -> ComponentLogger:
     Returns:
         ComponentLogger: Logger for the specified component
     """
+    # Validate component_name to prevent TypeError
+    if not isinstance(component_name, str):
+        # Convert to string if possible, otherwise use default
+        try:
+            component_name = str(component_name)
+        except Exception:
+            # If conversion fails, use 'main' as safe default
+            component_name = 'main'
+    
+    # Normalize component_name (strip whitespace, lowercase)
+    if component_name:
+        component_name = component_name.strip().lower()
+    else:
+        # Empty string or None -> use 'main' as safe default
+        component_name = 'main'
+    
     # Testing mode: optionally enable verbose per-component logs under tests/logs
     if os.getenv('MHM_TESTING') == '1':
         if os.getenv('TEST_VERBOSE_LOGS') == '1':
@@ -1005,7 +1063,7 @@ def disable_module_logging(module_name):
         handler.setLevel(logging.WARNING)
 
 
-@handle_errors("getting log file info")
+@handle_errors("getting log file info", default_return=None)
 def get_log_file_info():
     """
     Get information about current log files and their sizes.

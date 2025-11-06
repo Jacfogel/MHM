@@ -12,7 +12,7 @@
 
 ### **Coverage Summary by Category**
 - **Excellent (93% avg)**: 30 modules
-- **Good (71% avg)**: 35 modules
+- **Good (71% avg)**: 34 modules
 - **Moderate (51% avg)**: 15 modules
 - **Needs_Work (27% avg)**: 5 modules
 - **Critical (11% avg)**: 5 modules
@@ -51,7 +51,6 @@
 - **! core\user_data_handlers.py**: 63% (433/689 lines)
 - **! ui\dialogs\schedule_editor_dialog.py**: 63% (149/236 lines)
 - **! ui\widgets\dynamic_list_field.py**: 63% (76/120 lines)
-- **! TOTAL**: 63% (14683/23437 lines)
 - **! ai\prompt_manager.py**: 65% (73/113 lines)
 - **! communication\message_processing\conversation_flow_manager.py**: 65% (260/397 lines)
 - **! core\scheduler.py**: 65% (570/874 lines)

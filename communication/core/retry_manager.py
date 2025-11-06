@@ -30,11 +30,18 @@ class RetryManager:
     """Manages message retry logic and failed message queuing"""
     
     @handle_errors("initializing retry manager", default_return=None)
-    def __init__(self):
-        """Initialize the retry manager"""
+    def __init__(self, send_callback=None):
+        """
+        Initialize the retry manager
+        
+        Args:
+            send_callback: Optional callable that takes (channel_name, recipient, message, **kwargs) 
+                          and returns bool indicating success. If None, retries will only be logged.
+        """
         self._failed_message_queue = queue.Queue()
         self._retry_thread = None
         self._retry_running = False
+        self._send_callback = send_callback
         
     @handle_errors("queueing failed message", default_return=None)
     def queue_failed_message(self, user_id: str, category: str, message: str, recipient: str, channel_name: str):
@@ -106,13 +113,33 @@ class RetryManager:
                     queued_message.retry_count += 1
                     logger.info(f"Retrying message for user {queued_message.user_id}, attempt {queued_message.retry_count}")
                     
-                    # Here we would call the actual send method
-                    # For now, we'll just log the retry attempt
-                    # In the full implementation, this would call back to the communication manager
+                    # Attempt to send the message using the callback if available
+                    retry_success = False
+                    if self._send_callback:
+                        try:
+                            # Call the send callback with message details
+                            retry_success = self._send_callback(
+                                queued_message.channel_name,
+                                queued_message.recipient,
+                                queued_message.message,
+                                user_id=queued_message.user_id,
+                                category=queued_message.category
+                            )
+                            if retry_success:
+                                logger.info(f"Successfully retried message for user {queued_message.user_id} on attempt {queued_message.retry_count}")
+                            else:
+                                logger.warning(f"Retry attempt {queued_message.retry_count} failed for user {queued_message.user_id}")
+                        except Exception as e:
+                            logger.error(f"Error during retry attempt {queued_message.retry_count} for user {queued_message.user_id}: {e}")
+                            retry_success = False
+                    else:
+                        # No callback available - just log the retry attempt
+                        logger.warning(f"Retry attempted but no send callback available for user {queued_message.user_id}")
                     
-                    # If retry fails, put back in queue with updated timestamp
-                    queued_message.timestamp = datetime.now()
-                    self._failed_message_queue.put(queued_message)
+                    # If retry failed, put back in queue with updated timestamp for next retry
+                    if not retry_success:
+                        queued_message.timestamp = datetime.now()
+                        self._failed_message_queue.put(queued_message)
                 else:
                     logger.warning(f"Max retries exceeded for message to user {queued_message.user_id}")
                     

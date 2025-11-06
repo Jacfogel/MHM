@@ -157,6 +157,7 @@ def is_user_checkins_enabled(user_id: str) -> bool:
 
 # Removed unnecessary wrapper function - use get_user_data() directly
 
+@handle_errors("getting user info for tracking", default_return={})
 def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
     """Get user information for response tracking."""
     try:
@@ -184,6 +185,7 @@ def get_user_info_for_tracking(user_id: str) -> Dict[str, Any]:
         logger.error(f"Error getting user info for tracking {user_id}: {e}")
         return {}
 
+@handle_errors("tracking user response", default_return=None)
 def track_user_response(user_id: str, category: str, response_data: Dict[str, Any]):
     """Track a user's response to a message."""
     try:

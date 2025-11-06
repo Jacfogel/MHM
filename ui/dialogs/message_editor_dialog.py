@@ -27,6 +27,7 @@ logger = get_component_logger('ui')
 class MessageEditDialog(QDialog):
     """Dialog for editing or adding a message."""
     
+    @handle_errors("initializing message edit dialog")
     def __init__(self, parent=None, user_id=None, category=None, message_data=None):
         """Initialize the message edit dialog."""
         super().__init__(parent)
@@ -139,35 +140,32 @@ class MessageEditDialog(QDialog):
             'time_periods': selected_periods
         }
         
-        try:
-            if self.is_edit:
-                # Edit existing message
-                message_id = self.message_data.get('message_id')
-                if message_id:
-                    edit_message(self.user_id, self.category, message_id, message_data)
-                    QMessageBox.information(self, "Success", "Message updated successfully.")
-                else:
-                    QMessageBox.critical(self, "Error", "Message ID not found.")
-                    return
+        # @handle_errors decorator handles exceptions
+        if self.is_edit:
+            # Edit existing message
+            message_id = self.message_data.get('message_id')
+            if message_id:
+                edit_message(self.user_id, self.category, message_id, message_data)
+                QMessageBox.information(self, "Success", "Message updated successfully.")
             else:
-                # Add new message
-                message_id = str(uuid.uuid4())
-                message_data['message_id'] = message_id
-                message_data['created_at'] = datetime.now().isoformat()
-                
-                add_message(self.user_id, self.category, message_data)
-                QMessageBox.information(self, "Success", "Message added successfully.")
+                QMessageBox.critical(self, "Error", "Message ID not found.")
+                return
+        else:
+            # Add new message
+            message_id = str(uuid.uuid4())
+            message_data['message_id'] = message_id
+            message_data['created_at'] = datetime.now().isoformat()
             
-            self.accept()
-            
-        except Exception as e:
-            logger.error(f"Error saving message: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save message: {str(e)}")
+            add_message(self.user_id, self.category, message_data)
+            QMessageBox.information(self, "Success", "Message added successfully.")
+        
+        self.accept()
 
 
 class MessageEditorDialog(QDialog):
     """Dialog for managing messages in a category."""
     
+    @handle_errors("initializing message editor dialog")
     def __init__(self, parent=None, user_id=None, category=None):
         """Initialize the message editor dialog."""
         super().__init__(parent)
@@ -215,30 +213,18 @@ class MessageEditorDialog(QDialog):
     @handle_errors("loading messages")
     def load_messages(self):
         """Load messages for the category."""
-        try:
-            self.messages = load_user_messages(self.user_id, self.category)
+        # @handle_errors decorator handles exceptions
+        self.messages = load_user_messages(self.user_id, self.category)
+        
+        if not self.messages:
+            # No messages found - show helpful message
+            self.show_no_messages_state()
+            return
             
-            if not self.messages:
-                # No messages found - show helpful message
-                self.show_no_messages_state()
-                return
-                
-            self.populate_table()
-            self.update_message_count()
-            
-        except Exception as e:
-            logger.error(f"Error loading messages for user {self.user_id}, category {self.category}: {e}")
-            QMessageBox.critical(
-                self,
-                "Load Failed",
-                "Unable to load messages for this category.\n\n"
-                "Please check that:\n"
-                "• The user data files are accessible\n"
-                "• The category exists and is enabled\n"
-                "• You have permission to read files\n\n"
-                "Try closing and reopening the dialog, or check the logs for details."
-            )
+        self.populate_table()
+        self.update_message_count()
     
+    @handle_errors("showing no messages state")
     def show_no_messages_state(self):
         """Show state when no messages are found."""
         self.ui.tableWidget_messages.setRowCount(1)
@@ -335,15 +321,13 @@ class MessageEditorDialog(QDialog):
             )
             
             if reply == QMessageBox.StandardButton.Yes:
-                try:
-                    delete_message(self.user_id, self.category, message_id)
-                    QMessageBox.information(self, "Success", "Message deleted successfully.")
-                    self.load_messages()
-                except Exception as e:
-                    logger.error(f"Error deleting message: {e}")
-                    QMessageBox.critical(self, "Error", f"Failed to delete message: {str(e)}")
+                # @handle_errors decorator handles exceptions
+                delete_message(self.user_id, self.category, message_id)
+                QMessageBox.information(self, "Success", "Message deleted successfully.")
+                self.load_messages()
 
 
+@handle_errors("opening message editor dialog")
 def open_message_editor_dialog(parent, user_id, category):
     """Open the message editor dialog."""
     dialog = MessageEditorDialog(parent, user_id, category)

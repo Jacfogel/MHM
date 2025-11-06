@@ -1648,6 +1648,7 @@ Additional Instructions:
         # Last resort: return response as-is (parser can handle natural language)
         return response
     
+    @handle_errors("enhancing conversational engagement", default_return="")
     def _enhance_conversational_engagement(self, response: str) -> str:
         """
         Enhance response to ensure good conversational engagement.

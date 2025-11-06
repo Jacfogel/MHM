@@ -1357,7 +1357,7 @@ class SchedulerManager:
     # No special cleanup function needed - they're handled by the main scheduler cleanup
 
 # Standalone functions for admin UI access
-@handle_errors("running full scheduler standalone")
+@handle_errors("running full scheduler standalone", default_return=False)
 def run_full_scheduler_standalone():
     """
     Standalone function to run the full scheduler for all users.
@@ -1480,6 +1480,7 @@ def clear_all_accumulated_jobs_standalone():
         logger.error(f"Standalone: Error clearing accumulated scheduler jobs: {e}")
         return False
 
+@handle_errors("processing user schedules", default_return=None)
 def process_user_schedules(user_id: str):
     """Process schedules for a specific user."""
     try:
@@ -1497,6 +1498,7 @@ def process_user_schedules(user_id: str):
     except Exception as e:
         logger.error(f"Error processing schedules for user {user_id}: {e}")
 
+@handle_errors("processing category schedule", default_return=None)
 def process_category_schedule(user_id: str, category: str):
     """Process schedule for a specific user and category."""
     try:

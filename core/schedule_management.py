@@ -338,6 +338,7 @@ def delete_schedule_period(category, period_name, scheduler_manager=None):
     else:
         logger.warning(f"Period {period_name} not found in category {category} for user {user_id}.")
 
+@handle_errors("clearing schedule periods cache", default_return=None)
 def clear_schedule_periods_cache(user_id=None, category=None):
     """Clear the schedule periods cache for a specific user/category or all."""
     global _schedule_periods_cache
@@ -465,6 +466,7 @@ def get_current_day_names():
 
 
 
+@handle_errors("setting schedule periods", default_return=False)
 def set_schedule_periods(user_id, category, periods_dict):
     """Replace all schedule periods for a category with the given dict (period_name: {active, days, start_time, end_time})."""
     # Get user schedules
@@ -513,6 +515,7 @@ def set_schedule_periods(user_id, category, periods_dict):
     update_user_schedules(user_id, schedules_data)
     clear_schedule_periods_cache(user_id, category)
 
+@handle_errors("getting schedule days", default_return=["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 def get_schedule_days(user_id, category):
     """
     Get the schedule days for a user and category.
@@ -529,6 +532,7 @@ def get_schedule_days(user_id, category):
     user_info = {'schedules': schedules_result.get('schedules', {})}
     return user_info.get('schedules', {}).get(category, {}).get('days', ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"])
 
+@handle_errors("setting schedule days", default_return=False)
 def set_schedule_days(user_id, category, days):
     """
     Set the schedule days for a user and category.

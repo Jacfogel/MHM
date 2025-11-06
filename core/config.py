@@ -554,6 +554,10 @@ def validate_all_configuration() -> Dict[str, any]:
 def validate_and_raise_if_invalid() -> List[str]:
     """Validate configuration and raise ConfigValidationError if invalid.
     
+    Note: This function intentionally does not use @handle_errors decorator
+    because it is designed to raise ConfigValidationError exceptions, which
+    should propagate to the caller for proper error handling.
+    
     Returns:
         List of available communication channels if validation passes.
     
@@ -680,6 +684,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
     }
     return os.path.join(user_dir, file_mapping.get(file_type, f'{file_type}.json'))
 
+@handle_errors("ensuring user directory exists", default_return=False)
 def ensure_user_directory(user_id: str) -> bool:
     """Ensure user directory exists if using subdirectories."""
     if not AUTO_CREATE_USER_DIRS:

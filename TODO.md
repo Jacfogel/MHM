@@ -40,19 +40,20 @@ When adding new tasks, follow this format:
   - ✅ Expected: 4 external library deprecation warnings remain (cannot be fixed - from Discord library and audioop)
 
 **Continue Error Handling Coverage Expansion**
-- *What it means*: Continue expanding error handling coverage beyond current 92.0% to 93%+ by adding @handle_errors decorators to remaining 115 functions
+- *What it means*: Continue expanding error handling coverage beyond current 92.9% to 93%+ by adding @handle_errors decorators to remaining 104 functions
 - *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
 - *Estimated effort*: Medium
-- *Current Status*: 92.0% coverage achieved (1,285 functions protected) - continue to 93%+
+- *Current Status*: 92.9% coverage achieved (1,352 functions protected) - continue to 93%+
+- *Progress*: Added error handling to 28 functions in this session (AI chatbot, LM Studio manager, UI dialogs, core utilities, tasks, user data manager, config, logger)
 - *Next Steps*:
-  - [ ] **Continue Expanding Beyond 92%**
-    - [ ] Add error handling to remaining 115 functions for 93%+ coverage
+  - [ ] **Continue Expanding Beyond 92.9%**
+    - [ ] Add error handling to remaining 104 functions for 93%+ coverage (~2-3 more functions needed)
     - [ ] Focus on UI modules and remaining utility functions
   - [ ] **Replace Basic Try-Except Blocks**
     - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
 
-**Phase 1: Enhanced Task & Check-in Systems** ?? **COMPLETED**
+**Phase 1: Enhanced Task & Check-in Systems** ?? **In Progress**
 - *What it means*: Implement priority-based task reminders, semi-random check-ins, and response analysis to align with project vision
 - *Why it helps*: Provides immediate improvements to core functionality that directly supports user's executive functioning needs
 - *Estimated effort*: Large (1-2 weeks)
@@ -84,13 +85,13 @@ When adding new tasks, follow this format:
   - [ ] Confirm single "User check-in started" entry after successful send
 
 **Legacy Preferences Flag Monitoring and Removal Plan**
-- *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`, and removes blocks on full updates when related features are disabled. We need to monitor usage and plan removal.
-- *Why it helps*: Keeps data truthful (feature states live in `account.features`) and simplifies preferences schema.
+- *What it means*: We added LEGACY COMPATIBILITY handling that warns when nested `enabled` flags are present under `preferences.task_settings`/`checkin_settings`. Settings blocks are preserved even when features are disabled to allow re-enablement with previous settings intact. We need to monitor usage and plan removal.
+- *Why it helps*: Keeps data truthful (feature states live in `account.features`) while preserving user settings for future re-enablement.
 - *Estimated effort*: Small/Medium
 - *Subtasks*:
   - [ ] Monitor logs for `LEGACY COMPATIBILITY: Found nested 'enabled' flags` warnings over 2 weeks
-  - [ ] If warnings stop, remove the legacy detection/removal code and update tests accordingly
-  - [ ] Add a behavior test that asserts preferences blocks are removed only on full updates when features are disabled
+  - [ ] If warnings stop, remove the legacy detection code and update tests accordingly
+  - [x] Add behavior tests that assert preferences blocks are preserved even when features are disabled (completed)
 
 **Pydantic Schema Adoption Follow-ups**
 - *What it means*: We added tolerant Pydantic models. Expand usage safely across other save/load paths.
@@ -224,13 +225,6 @@ When adding new tasks, follow this format:
   - [ ] Grep code for legacy-format consumers and migrate if any are found
   - [ ] Remove legacy bridge and update tests
 
-
-**Review and Update QUICK_REFERENCE.md** - Check for outdated commands
-- *Estimated effort*: Small
-- *Status*: ✅ **COMPLETED** - Updated with command list, slash/bang command support, and flow notes
-- Subtasks:
-  - [x] Reflect new slash/bang commands and central command list
-  - [x] Note that `/checkin` is a flow; others are single-turn for now
 
 **Legacy Removal "Search-and-Close" Framework** - Tooling and checklist
 - *What it means*: Build a checklist and helper tooling to update all references before removing legacy flags/paths; avoid fixed time windows.

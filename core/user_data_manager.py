@@ -1102,6 +1102,7 @@ def update_user_index(user_id: str) -> bool:
         logger.error(f"Error updating user index: {e}")
         return False
 
+@handle_errors("rebuilding user index", default_return=False)
 def rebuild_user_index() -> bool:
     """
     Rebuild the complete user index.
@@ -1313,6 +1314,7 @@ def get_all_user_summaries() -> List[Dict[str, Any]]:
         logger.error(f"Error getting all user summaries: {e}")
         return []
 
+@handle_errors("getting user analytics summary", default_return={"error": "Failed to get analytics summary"})
 def get_user_analytics_summary(user_id: str) -> Dict[str, Any]:
     """
     Get an analytics summary for a user including interaction patterns and data usage.

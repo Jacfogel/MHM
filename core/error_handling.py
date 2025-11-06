@@ -8,11 +8,19 @@ to make the application more robust and user-friendly.
 import os
 import sys
 import traceback
+import logging
 from typing import Optional, Dict, Any, Callable, List
 from datetime import datetime
-# Import logger locally to avoid circular imports
-# logger = get_component_logger('main')
-# error_logger = get_component_logger('errors')
+
+# Create a safe fallback logger that doesn't depend on get_component_logger
+# This prevents circular errors when logging fails
+_safe_logger = logging.getLogger('mhm.error_handler')
+if not _safe_logger.handlers:
+    # Add a simple console handler as fallback
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    _safe_logger.addHandler(handler)
+    _safe_logger.setLevel(logging.WARNING)
 
 # ============================================================================
 # CUSTOM EXCEPTIONS
@@ -437,12 +445,14 @@ class ErrorHandler:
         # Check if we've exceeded retry limits
         error_key = f"{type(error).__name__}:{operation}"
         if self.error_count.get(error_key, 0) >= self.max_retries:
+            # Use safe logger to avoid circular dependency when logging fails
             try:
                 from core.logger import get_component_logger
                 logger = get_component_logger('main')
                 logger.error(f"Maximum retries exceeded for {error_key}")
-            except Exception:
-                pass  # Don't let logger failures break error handling
+            except Exception as log_err:
+                # Fall back to safe logger if component logger fails
+                _safe_logger.error(f"Maximum retries exceeded for {error_key} (component logger failed: {log_err})")
             if user_friendly:
                 self._show_user_error(error, context, "Maximum retries exceeded")
             return False
@@ -454,23 +464,26 @@ class ErrorHandler:
                     from core.logger import get_component_logger
                     logger = get_component_logger('main')
                     logger.info(f"Attempting recovery with strategy: {strategy.name}")
-                except Exception:
-                    pass  # Don't let logger failures break error handling
+                except Exception as log_err:
+                    # Fall back to safe logger if component logger fails
+                    _safe_logger.info(f"Attempting recovery with strategy: {strategy.name} (component logger failed: {log_err})")
                 if strategy.recover(error, context):
                     try:
                         from core.logger import get_component_logger
                         logger = get_component_logger('main')
                         logger.info(f"Successfully recovered from error using {strategy.name}")
-                    except Exception:
-                        pass  # Don't let logger failures break error handling
+                    except Exception as log_err:
+                        # Fall back to safe logger if component logger fails
+                        _safe_logger.info(f"Successfully recovered from error using {strategy.name} (component logger failed: {log_err})")
                     return True
                 else:
                     try:
                         from core.logger import get_component_logger
                         logger = get_component_logger('main')
                         logger.warning(f"Recovery strategy {strategy.name} failed")
-                    except Exception:
-                        pass  # Don't let logger failures break error handling
+                    except Exception as log_err:
+                        # Fall back to safe logger if component logger fails
+                        _safe_logger.warning(f"Recovery strategy {strategy.name} failed (component logger failed: {log_err})")
         
         # Increment error count
         self.error_count[error_key] = self.error_count.get(error_key, 0) + 1
@@ -502,10 +515,8 @@ class ErrorHandler:
                              file_path=context.get('file_path'),
                              user_id=context.get('user_id'))
         except Exception as log_error:
-            # If logging fails, we don't want to break the error handling
-            # Just print to stderr as a fallback
-            print(f"Logging failed: {log_error}", file=sys.stderr)
-            print(f"Original error: {error_msg}", file=sys.stderr)
+            # If component logger fails, use safe logger to avoid circular dependency
+            _safe_logger.error(f"{error_msg} (component logger failed: {log_error})", exc_info=True)
     
     def _show_user_error(self, error: Exception, context: Dict[str, Any], 
                         custom_message: str = None):
@@ -522,10 +533,8 @@ class ErrorHandler:
             logger = get_component_logger('main')
             logger.error(f"User Error: {user_msg}")
         except Exception as log_error:
-            # If logging fails, we don't want to break the error handling
-            # Just print to stderr as a fallback
-            print(f"Logging failed: {log_error}", file=sys.stderr)
-            print(f"User Error: {user_msg}", file=sys.stderr)
+            # If component logger fails, use safe logger to avoid circular dependency
+            _safe_logger.error(f"User Error: {user_msg} (component logger failed: {log_error})")
     
     def _get_user_friendly_message(self, error: Exception, context: Dict[str, Any]) -> str:
         """Convert technical error to user-friendly message."""

@@ -562,6 +562,10 @@ def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[s
     """
     Handle legacy preferences with validation.
     
+    Note: task_settings and checkin_settings blocks are preserved even when features are disabled.
+    This allows users to re-enable features later and restore their previous settings.
+    Feature enablement is controlled by account.features, not by the presence of settings blocks.
+    
     Returns:
         bool: True if successful, False if failed
     """
@@ -573,48 +577,11 @@ def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[s
     if not isinstance(updated, dict):
         logger.error(f"Invalid updated data: {type(updated)}")
         return False
-    """Handle legacy preferences compatibility and cleanup."""
     
-    # If corresponding features are disabled, remove entire settings blocks only for "full" updates
-    # (heuristic: presence of 'categories' implies a full preferences payload). Partial updates preserve blocks.
-    try:
-        acct = get_user_data(user_id, 'account').get('account', {})
-        features = acct.get('features', {}) if isinstance(acct, dict) else {}
-        is_full_update = isinstance(updates, dict) and ('categories' in updates)
-        
-        # Task settings removal when feature disabled and caller did not re-provide the block
-        if (
-            is_full_update and
-            features.get('task_management') == 'disabled' and
-            'task_settings' not in updates and
-            'task_settings' in updated
-        ):
-            updated.pop('task_settings', None)
-            try:
-                logger.warning(
-                    "LEGACY COMPATIBILITY: Removed preferences.task_settings because tasks are disabled "
-                    "and a full preferences update omitted this block."
-                )
-            except Exception:
-                pass
-        
-        # Check-in settings removal when feature disabled and caller did not re-provide the block
-        if (
-            is_full_update and
-            features.get('checkins') == 'disabled' and
-            'checkin_settings' not in updates and
-            'checkin_settings' in updated
-        ):
-            updated.pop('checkin_settings', None)
-            try:
-                logger.warning(
-                    "LEGACY COMPATIBILITY: Removed preferences.checkin_settings because checkins are disabled "
-                    "and a full preferences update omitted this block."
-                )
-            except Exception:
-                pass
-    except Exception:
-        pass
+    # Settings blocks are preserved even when features are disabled to allow re-enablement with
+    # previous settings intact. Feature enablement is controlled by account.features.
+    # No block removal logic needed - settings are preserved for future use.
+    return True
 
 
 @handle_errors("normalizing user data", default_return=False)

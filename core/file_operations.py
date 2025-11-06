@@ -651,6 +651,7 @@ def _create_user_files__task_files(user_id):
         raise
 
 
+@handle_errors("creating checkins file", default_return=None)
 def _create_user_files__checkins_file(user_id):
     """Create checkins.json only if checkins are enabled."""
     checkins_file = get_user_file_path(user_id, 'checkins')
@@ -659,6 +660,7 @@ def _create_user_files__checkins_file(user_id):
         logger.debug(f"Created checkins file for user {user_id}")
 
 
+@handle_errors("creating message files", default_return=None)
 def _create_user_files__message_files(user_id, categories):
     """Create message files for each enabled category directly."""
     try:
@@ -684,6 +686,7 @@ def _create_user_files__message_files(user_id, categories):
         logger.error(f"Error creating message files for user {user_id}: {e}")
 
 
+@handle_errors("updating user references", default_return=None)
 def _create_user_files__update_user_references(user_id):
     """Auto-update message references and user index."""
     try:

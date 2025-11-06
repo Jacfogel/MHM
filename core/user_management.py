@@ -106,6 +106,7 @@ def register_data_loader(
 _DEFAULT_LOADERS_REGISTERED = False
 
 
+@handle_errors("registering default data loaders", default_return=None)
 def register_default_loaders() -> None:
     """Ensure required loaders are registered (idempotent).
 
@@ -141,16 +142,19 @@ def register_default_loaders() -> None:
         logger.info(f"Registered data loaders: {', '.join(registered_loaders)} ({len(registered_loaders)} total)")
 
 
+@handle_errors("ensuring default loaders are registered once", default_return=None)
 def _ensure_default_loaders_once() -> None:
     global _DEFAULT_LOADERS_REGISTERED
     if not _DEFAULT_LOADERS_REGISTERED:
         register_default_loaders()
         _DEFAULT_LOADERS_REGISTERED = True
 
+@handle_errors("getting available data types", default_return=[])
 def get_available_data_types() -> List[str]:
     """Get list of available data types."""
     return list(USER_DATA_LOADERS.keys())
 
+@handle_errors("getting data type info", default_return=None)
 def get_data_type_info(data_type: str) -> Optional[Dict[str, Any]]:
     """Get information about a specific data type."""
     return USER_DATA_LOADERS.get(data_type)
@@ -550,6 +554,7 @@ def update_user_schedules(user_id: str, schedules_data: Dict[str, Any]) -> bool:
     result = save_user_data(user_id, {'schedules': schedules_data})
     return result.get('schedules', False)
 
+@handle_errors("creating default schedule periods", default_return={})
 def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
     """Create default schedule periods for a new category."""
     if category:
@@ -584,6 +589,7 @@ def create_default_schedule_periods(category: str = None) -> Dict[str, Any]:
         }
     }
 
+@handle_errors("migrating legacy schedules structure", default_return={})
 def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[str, Any]:
     """Migrate legacy schedules structure to new format."""
     migrated_data = {}
@@ -622,6 +628,7 @@ def migrate_legacy_schedules_structure(schedules_data: Dict[str, Any]) -> Dict[s
     
     return migrated_data
 
+@handle_errors("ensuring category has default schedule", default_return=False)
 def ensure_category_has_default_schedule(user_id: str, category: str) -> bool:
     """Ensure a category has default schedule periods if it doesn't exist."""
     if not user_id or not category:

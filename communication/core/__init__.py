@@ -15,7 +15,11 @@ from .retry_manager import RetryManager, QueuedMessage
 
 # Lazy import for ChannelFactory and ChannelMonitor to avoid circular dependencies
 def __getattr__(name: str):
-    """Lazy import handler for items with circular dependencies"""
+    """Lazy import handler for items with circular dependencies.
+    
+    Note: This function intentionally does not use @handle_errors decorator
+    to avoid circular dependencies with error handling infrastructure.
+    """
     if name == 'ChannelFactory':
         from .factory import ChannelFactory
         return ChannelFactory

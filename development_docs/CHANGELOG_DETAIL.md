@@ -35,6 +35,70 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-XX - Error Handling Coverage Expansion to 92.9% **COMPLETED**
+
+**Problem**: Error handling coverage was at 91.6%, with 123 functions missing error handling decorators. The goal was to reach 93%+ coverage to improve system robustness and reliability.
+
+**Solution**: Added `@handle_errors` decorators to 28 functions across multiple modules, increasing coverage from 91.6% to 92.9% (1,352 functions now protected out of 1,456 total).
+
+**Technical Changes**:
+- **AI Module (3 functions)**: Added error handling to `_enhance_conversational_engagement` in `ai/chatbot.py`, and `__init__` and `get_lm_studio_manager` in `ai/lm_studio_manager.py`
+- **UI Module (3 functions)**: Added error handling to `MessageEditDialog.__init__` and `MessageEditorDialog.__init__` in `ui/dialogs/message_editor_dialog.py`, and `_get_personalization_data__extract_loved_ones` in `ui/widgets/user_profile_settings_widget.py`
+- **Core Module (17 functions)**: Added error handling to functions in `core/user_management.py` (7 functions), `core/schedule_management.py` (4 functions), `core/scheduler.py` (3 functions), `core/file_operations.py` (3 functions), and `core/response_tracking.py` (2 functions)
+- **Tasks Module (2 functions)**: Added error handling to `_create_next_recurring_task_instance` and `_calculate_next_due_date` in `tasks/task_management.py`
+- **User Data Manager (1 function)**: Added error handling to `rebuild_user_index` in `core/user_data_manager.py`
+- **Config Module (1 function)**: Added error handling to `ensure_user_directory` in `core/config.py`
+- **Logger Module (2 functions)**: Added error handling to `get_log_level_from_env` and `get_log_file_info` in `core/logger.py`
+- **Special Cases**: Documented why `validate_and_raise_if_invalid` in `core/config.py` intentionally does not use `@handle_errors` (designed to raise exceptions that should propagate)
+
+**Files Modified**:
+- `ai/chatbot.py`
+- `ai/lm_studio_manager.py`
+- `ui/dialogs/message_editor_dialog.py`
+- `ui/widgets/user_profile_settings_widget.py`
+- `core/user_management.py`
+- `core/schedule_management.py`
+- `core/scheduler.py`
+- `core/file_operations.py`
+- `core/response_tracking.py`
+- `tasks/task_management.py`
+- `core/user_data_manager.py`
+- `core/config.py`
+- `core/logger.py`
+- `TODO.md` (updated status)
+
+**Testing**:
+- All 2071 tests pass (1 skipped, 4 expected warnings)
+- No regressions introduced
+- Test isolation maintained (no files written outside `tests/` directory)
+
+**Impact**: System robustness improved with 92.9% error handling coverage. Functions are now protected against errors with consistent error handling patterns, improving reliability and maintainability.
+
+---
+
+### 2025-01-XX - Preferences Block Preservation When Features Disabled **COMPLETED**
+
+**Problem**: The system was removing `task_settings` and `checkin_settings` blocks from user preferences when features were disabled during full updates. This prevented users from re-enabling features with their previous settings intact.
+
+**Solution**: Removed the block removal logic from `_save_user_data__legacy_preferences` in `core/user_data_handlers.py`. Settings blocks are now preserved even when features are disabled, allowing users to re-enable features later and restore their previous settings.
+
+**Technical Changes**:
+- **Removed block removal logic**: Deleted the code that removed `task_settings` and `checkin_settings` blocks when features were disabled during full updates
+- **Updated function documentation**: Added clear documentation explaining that settings blocks are preserved for future re-enablement
+- **Updated tests**: Modified `test_preferences_block_removed_on_full_update_when_feature_disabled` to `test_preferences_block_preserved_on_full_update_when_feature_disabled` in `tests/behavior/test_legacy_enabled_fields_compatibility.py` to verify blocks are preserved
+- **Updated TODO**: Updated the "Legacy Preferences Flag Monitoring and Removal Plan" task to reflect that blocks are preserved, not removed
+
+**Files Modified**:
+- `core/user_data_handlers.py`: Removed block removal logic (lines 578-617), updated documentation
+- `tests/behavior/test_legacy_enabled_fields_compatibility.py`: Updated test to verify preservation instead of removal
+- `TODO.md`: Updated task description to reflect preservation behavior
+
+**Testing**: All 2071 tests passing - behavior tests verify that settings blocks are preserved on both full and partial updates even when features are disabled.
+
+**Impact**: Users can now disable features without losing their settings, allowing seamless re-enablement with previous preferences intact. Feature enablement is controlled by `account.features`, independent of the presence of settings blocks.
+
+---
+
 ### 2025-01-XX - Test Isolation Improvements and Bug Fixes **COMPLETED**
 
 **Problem**: Multiple test isolation issues were causing flaky tests and state pollution across the test suite. Additionally, several bugs were identified in error handling and file cleanup.

@@ -63,7 +63,8 @@ class CommunicationManager:
         self._last_task_reminders = {}  # Track last task reminder per user: {user_id: task_id}
         
         # Initialize extracted modules
-        self.retry_manager = RetryManager()
+        # Pass send_message_sync as callback for retry manager
+        self.retry_manager = RetryManager(send_callback=self.send_message_sync)
         self.channel_monitor = ChannelMonitor()
         
         # Set up event loop for async operations

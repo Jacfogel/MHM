@@ -791,6 +791,7 @@ def get_user_task_stats(user_id: str) -> Dict[str, int]:
             'total_count': 0
         } 
 
+@handle_errors("creating next recurring task instance", default_return=False)
 def _create_next_recurring_task_instance(user_id: str, completed_task: Dict[str, Any]) -> bool:
     """Create the next instance of a recurring task when the current one is completed."""
     try:
@@ -863,6 +864,7 @@ def _create_next_recurring_task_instance(user_id: str, completed_task: Dict[str,
         logger.error(f"Error creating next recurring task instance for user {user_id}: {e}")
         return False
 
+@handle_errors("calculating next due date for recurring task", default_return=None)
 def _calculate_next_due_date(completion_date: datetime, recurrence_pattern: str, 
                            recurrence_interval: int, repeat_after_completion: bool) -> Optional[datetime]:
     """Calculate the next due date for a recurring task."""

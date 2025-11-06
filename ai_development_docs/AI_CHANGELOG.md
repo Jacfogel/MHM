@@ -31,6 +31,21 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-XX - Error Handling Coverage Expansion to 92.9% **COMPLETED**
+- **Expanded Error Handling**: Added `@handle_errors` decorators to 28 functions across AI, UI, core, tasks, and utility modules - coverage increased from 91.6% to 92.9% (1,352/1,456 functions protected)
+- **Modules Enhanced**: AI chatbot, LM Studio manager, UI dialogs, user management, schedule management, scheduler, file operations, response tracking, task management, user data manager, config, and logger
+- **Testing**: All 2071 tests pass with no regressions - error handling changes verified and validated
+- **Impact**: System robustness significantly improved with consistent error handling patterns across codebase
+
+---
+
+### 2025-01-XX - Preferences Block Preservation When Features Disabled **COMPLETED**
+- **Preserved Settings Blocks**: Removed logic that deleted `task_settings` and `checkin_settings` blocks when features were disabled - settings now persist for future re-enablement
+- **Updated Behavior Tests**: Modified tests in `test_legacy_enabled_fields_compatibility.py` to verify blocks are preserved on full/partial updates even when features disabled
+- **Impact**: Users can disable features without losing settings, allowing seamless re-enablement with previous preferences intact
+
+---
+
 ### 2025-01-XX - Test Isolation Improvements and Bug Fixes **COMPLETED**
 - **Fixed Flaky Test**: Improved `test_validate_and_raise_if_invalid_failure` exception type checking with fallback string comparison - handles module import/type comparison edge cases in full test suite
 - **Fixed Error Response Bug**: Corrected `_create_error_response` in `base_handler.py` to use `completed=False` instead of `success=False` and removed invalid `user_id` parameter - error responses now properly created

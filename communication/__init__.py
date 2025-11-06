@@ -37,7 +37,11 @@ from .core.retry_manager import RetryManager, QueuedMessage
 from .core.channel_orchestrator import BotInitializationError, MessageSendError
 # Core channel monitor (low usage, lazy import due to circular dependencies)
 def __getattr__(name: str):
-    """Lazy import handler for items with circular dependencies"""
+    """Lazy import handler for items with circular dependencies.
+    
+    Note: This function intentionally does not use @handle_errors decorator
+    to avoid circular dependencies with error handling infrastructure.
+    """
     if name == 'CommunicationManager':
         from .core.channel_orchestrator import CommunicationManager
         return CommunicationManager

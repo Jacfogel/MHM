@@ -8,9 +8,17 @@ This prevents manual maintenance issues and ensures consistency.
 
 import os
 import re
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 
-from . import config
+# Handle both direct execution and module import
+try:
+    from . import config
+except ImportError:
+    # When run directly as a script, add parent directory to path
+    sys.path.insert(0, str(Path(__file__).parent))
+    import config
 
 # Configuration - File Categories from config
 AI_DOCS = config.VERSION_SYNC['ai_docs']
