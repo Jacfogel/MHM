@@ -2392,3 +2392,82 @@ class TestDataFactory:
             messages.append(message)
         
         return messages
+
+
+class TestLogPathMocks:
+    """Helper class for creating complete log path mocks for tests"""
+    
+    @staticmethod
+    def create_complete_log_paths_mock(base_dir: str) -> Dict[str, str]:
+        """
+        Create a complete mock dictionary for _get_log_paths_for_environment()
+        that includes all required keys including ai_dev_tools_file.
+        
+        Args:
+            base_dir: Base directory for logs (e.g., test_data_dir / "logs")
+            
+        Returns:
+            Dict with all log path keys required by the logger system
+        """
+        from pathlib import Path
+        base_path = Path(base_dir)
+        
+        return {
+            'base_dir': str(base_path),
+            'backup_dir': str(base_path / "backups"),
+            'archive_dir': str(base_path / "archive"),
+            'main_file': str(base_path / "app.log"),
+            'discord_file': str(base_path / "discord.log"),
+            'ai_file': str(base_path / "ai.log"),
+            'user_activity_file': str(base_path / "user_activity.log"),
+            'errors_file': str(base_path / "errors.log"),
+            'communication_manager_file': str(base_path / "communication_manager.log"),
+            'email_file': str(base_path / "email.log"),
+            'ui_file': str(base_path / "ui.log"),
+            'file_ops_file': str(base_path / "file_ops.log"),
+            'scheduler_file': str(base_path / "scheduler.log"),
+            'schedule_utilities_file': str(base_path / "schedule_utilities.log"),
+            'analytics_file': str(base_path / "analytics.log"),
+            'message_file': str(base_path / "message.log"),
+            'backup_file': str(base_path / "backup.log"),
+            'checkin_dynamic_file': str(base_path / "checkin_dynamic.log"),
+            'ai_dev_tools_file': str(base_path / "ai_dev_tools.log"),
+        }
+
+
+def retry_with_backoff(func, max_retries=3, initial_delay=0.1, backoff_factor=2, exceptions=(Exception,)):
+    """
+    Retry a function with exponential backoff to handle race conditions and transient failures.
+    
+    Args:
+        func: Function to retry (callable)
+        max_retries: Maximum number of retry attempts
+        initial_delay: Initial delay in seconds before first retry
+        backoff_factor: Multiplier for delay between retries
+        exceptions: Tuple of exception types to catch and retry on
+        
+    Returns:
+        Result of the function call
+        
+    Raises:
+        Last exception if all retries fail
+    """
+    import time
+    
+    delay = initial_delay
+    last_exception = None
+    
+    for attempt in range(max_retries + 1):
+        try:
+            return func()
+        except exceptions as e:
+            last_exception = e
+            if attempt < max_retries:
+                time.sleep(delay)
+                delay *= backoff_factor
+            else:
+                raise
+    
+    # Should never reach here, but just in case
+    if last_exception:
+        raise last_exception

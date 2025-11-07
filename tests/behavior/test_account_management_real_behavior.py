@@ -112,17 +112,25 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         from core.user_management import get_user_id_by_identifier
         
         # Get the UUID for the basic user (robust to index/materialization timing)
-        from tests.test_utilities import TestUserFactory
-        basic_user_id = (
-            get_user_id_by_identifier(f"test-user-basic-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-            or f"test-user-basic-{test_id}"
-        )
+        from tests.test_utilities import TestUserFactory, retry_with_backoff
         
-        # Materialize and load basic user
+        def _get_basic_user_id():
+            return (
+                get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                or f"test-user-basic-{test_id}"
+            )
+        
+        basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
+        
+        # Materialize and load basic user with retry logic
         from tests.conftest import materialize_user_minimal_via_public_apis
-        materialize_user_minimal_via_public_apis(basic_user_id)
-        basic_data = get_user_data(basic_user_id, "all")
+        
+        def _materialize_and_load():
+            materialize_user_minimal_via_public_apis(basic_user_id)
+            return get_user_data(basic_user_id, "all")
+        
+        basic_data = retry_with_backoff(_materialize_and_load, max_retries=3, initial_delay=0.1)
 
         # Verify actual data structure
         assert "account" in basic_data, "Account data should be loaded"
@@ -146,19 +154,25 @@ def test_user_data_loading_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Basic user data loading: Success")
         
-        # Get the UUID for the full user (robust to parallel execution)
-        from tests.test_utilities import TestUserFactory
-        full_user_id = (
-            get_user_id_by_identifier(f"test-user-full-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-            or f"test-user-full-{test_id}"
-        )
+        # Get the UUID for the full user (robust to parallel execution) with retry logic
+        from tests.test_utilities import retry_with_backoff
+        
+        def _get_full_user_id():
+            return (
+                get_user_id_by_identifier(f"test-user-full-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+                or f"test-user-full-{test_id}"
+            )
+        
+        full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Materialize and load full user
-        materialize_user_minimal_via_public_apis(full_user_id)
-        # Ensure expected features explicitly to avoid order-dependence with other tests
-        full_data = get_user_data(full_user_id, "all", auto_create=True)
+        # Materialize and load full user with retry logic
+        def _materialize_and_load_full():
+            materialize_user_minimal_via_public_apis(full_user_id)
+            return get_user_data(full_user_id, "all", auto_create=True)
+        
+        full_data = retry_with_backoff(_materialize_and_load_full, max_retries=3, initial_delay=0.1)
         try:
             # Force enable all features for full user
             from core.user_data_handlers import save_user_data
@@ -217,16 +231,23 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         from core.user_data_handlers import save_user_data, get_user_data
         from core.user_management import get_user_id_by_identifier
         
-        # Get the UUID for the basic user (robust to index/materialization timing)
-        from tests.test_utilities import TestUserFactory
-        basic_user_id = (
-            get_user_id_by_identifier(f"test-user-basic-{test_id}")
-            or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-            or f"test-user-basic-{test_id}"
-        )
+        # Get the UUID for the basic user (robust to index/materialization timing) with retry logic
+        from tests.test_utilities import TestUserFactory, retry_with_backoff
         
-        # Test enabling check-ins for basic user
-        basic_data = get_user_data(basic_user_id, "all", auto_create=True)
+        def _get_basic_user_id():
+            return (
+                get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                or f"test-user-basic-{test_id}"
+            )
+        
+        basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
+        
+        # Test enabling check-ins for basic user with retry logic
+        def _load_basic_data():
+            return get_user_data(basic_user_id, "all", auto_create=True)
+        
+        basic_data = retry_with_backoff(_load_basic_data, max_retries=3, initial_delay=0.1)
         
         # Enable check-ins
         basic_data["account"]["features"]["checkins"] = "enabled"
@@ -253,12 +274,20 @@ def test_feature_enablement_real_behavior(test_data_dir, mock_config):
         
         logging.getLogger("mhm_tests").debug("Enable check-ins: Success")
         
-        # Get the UUID for the full user
-        full_user_id = get_user_id_by_identifier(f"test-user-full-{test_id}")
+        # Get the UUID for the full user with retry logic
+        from tests.test_utilities import retry_with_backoff
+        
+        def _get_full_user_id():
+            return get_user_id_by_identifier(f"test-user-full-{test_id}")
+        
+        full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
         assert full_user_id is not None, "Should be able to get UUID for full user"
         
-        # Test disabling tasks for full user
-        full_data = get_user_data(full_user_id, "all")
+        # Test disabling tasks for full user with retry logic
+        def _load_full_data():
+            return get_user_data(full_user_id, "all")
+        
+        full_data = retry_with_backoff(_load_full_data, max_retries=3, initial_delay=0.1)
         
         # Disable tasks
         full_data["account"]["features"]["task_management"] = "disabled"
@@ -401,18 +430,24 @@ def test_schedule_period_management_real_behavior(test_data_dir):
             from tests.test_utilities import TestUserFactory
             from tests.conftest import materialize_user_minimal_via_public_apis
             
-            # Get the UUID for the basic user (robust to parallel execution)
-            basic_user_id = (
-                get_user_id_by_identifier(f"test-user-basic-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
-                or f"test-user-basic-{test_id}"
-            )
+            # Get the UUID for the basic user (robust to parallel execution) with retry logic
+            from tests.test_utilities import retry_with_backoff
             
-            # Materialize user to ensure data exists
-            materialize_user_minimal_via_public_apis(basic_user_id)
+            def _get_basic_user_id():
+                return (
+                    get_user_id_by_identifier(f"test-user-basic-{test_id}")
+                    or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-basic-{test_id}", test_data_dir)
+                    or f"test-user-basic-{test_id}"
+                )
             
-            # Test adding new schedule period
-            basic_data = get_user_data(basic_user_id, "all")
+            basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
+            
+            # Materialize user to ensure data exists with retry logic
+            def _materialize_and_load():
+                materialize_user_minimal_via_public_apis(basic_user_id)
+                return get_user_data(basic_user_id, "all")
+            
+            basic_data = retry_with_backoff(_materialize_and_load, max_retries=3, initial_delay=0.1)
             original_periods = len(basic_data["schedules"]["motivational"]["periods"])
             
             # Add evening period
@@ -496,14 +531,22 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             from core.user_data_handlers import save_user_data, get_user_data
             from core.user_management import get_user_id_by_identifier
 
-            # Get the UUID for the basic user
-            basic_user_id = get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            # Get the UUID for the basic user with retry logic
+            from tests.test_utilities import retry_with_backoff
+            
+            def _get_basic_user_id():
+                return get_user_id_by_identifier(f"test-user-basic-{test_id}")
+            
+            basic_user_id = retry_with_backoff(_get_basic_user_id, max_retries=3, initial_delay=0.1)
             assert basic_user_id is not None, "Should be able to get UUID for basic user"
 
             # Scenario 1: User opts into check-ins for the first time
             logging.getLogger("mhm_tests").debug("Testing: User opts into check-ins for the first time")
 
-            basic_data = get_user_data(basic_user_id, "all")
+            def _load_basic_data():
+                return get_user_data(basic_user_id, "all")
+            
+            basic_data = retry_with_backoff(_load_basic_data, max_retries=3, initial_delay=0.1)
             if "account" not in basic_data:
                 from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 _mat(basic_user_id)
@@ -562,16 +605,23 @@ def test_integration_scenarios_real_behavior(test_data_dir):
             # Scenario 2: User disables task management and re-enables it
             logging.getLogger("mhm_tests").debug("Testing: User disables task management and re-enables it")
             
-            # Get the UUID for the full user (robust to parallel execution)
-            from tests.test_utilities import TestUserFactory
-            full_user_id = (
-                get_user_id_by_identifier(f"test-user-full-{test_id}")
-                or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
-                or f"test-user-full-{test_id}"
-            )
+            # Get the UUID for the full user (robust to parallel execution) with retry logic
+            from tests.test_utilities import TestUserFactory, retry_with_backoff
+            
+            def _get_full_user_id():
+                return (
+                    get_user_id_by_identifier(f"test-user-full-{test_id}")
+                    or TestUserFactory.get_test_user_id_by_internal_username(f"test-user-full-{test_id}", test_data_dir)
+                    or f"test-user-full-{test_id}"
+                )
+            
+            full_user_id = retry_with_backoff(_get_full_user_id, max_retries=3, initial_delay=0.1)
             assert full_user_id is not None, "Should be able to get UUID for full user"
             
-            full_data = get_user_data(full_user_id, "all")
+            def _load_full_data():
+                return get_user_data(full_user_id, "all")
+            
+            full_data = retry_with_backoff(_load_full_data, max_retries=3, initial_delay=0.1)
             if "account" not in full_data:
                 from tests.conftest import materialize_user_minimal_via_public_apis as _mat
                 _mat(full_user_id)

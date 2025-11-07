@@ -19,7 +19,7 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 # Add project root to path for core module imports
 project_root = Path(__file__).parent.parent
@@ -150,51 +150,91 @@ class CoverageMetricsRegenerator:
             
             self._record_pytest_output(result)
             
-            # Enhanced error detection and reporting
-            if result.returncode != 0:
-                error_details = []
-                
-                # Check for common error patterns
-                stderr_lower = result.stderr.lower() if result.stderr else ''
-                stdout_lower = result.stdout.lower() if result.stdout else ''
-                
-                if 'unrecognized arguments' in stderr_lower or 'unrecognized arguments' in stdout_lower:
-                    error_details.append("Unrecognized arguments error detected")
-                    # Extract the problematic arguments from stderr
-                    if result.stderr:
-                        for line in result.stderr.split('\n'):
-                            if 'unrecognized arguments' in line.lower():
-                                error_details.append(f"  Problematic arguments: {line.strip()}")
-                
-                # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
-                if result.stderr and '--cov' in result.stderr:
-                    stderr_parts = result.stderr.split()
-                    for i in range(len(stderr_parts) - 1):
-                        if stderr_parts[i] == '--cov' and stderr_parts[i + 1] == '--cov':
-                            error_details.append("Detected empty --cov argument in pytest error output")
-                            break
-                
-                if 'error: usage' in stderr_lower:
-                    error_details.append("Pytest usage/argument error detected")
-                
-                error_msg = f"Coverage analysis failed (exit code {result.returncode})"
-                if error_details:
-                    error_msg += ":\n  - " + "\n  - ".join(error_details)
-                error_msg += f"\n  See {self.pytest_stderr_log} for full stderr output"
-                error_msg += f"\n  Command: {cmd_str}"
-                
-                if logger:
-                    logger.error(error_msg)
-                else:
-                    print(f"ERROR: {error_msg}")
+            # Parse test results to extract failures and random seed
+            test_results = self._parse_pytest_test_results(result.stdout)
             
+            # Check if coverage data was collected successfully
             coverage_data = self.parse_coverage_output(result.stdout)
+            coverage_collected = bool(coverage_data) or coverage_output.exists()
+            
             if not coverage_data and coverage_output.exists():
                 coverage_data = self._load_coverage_json(coverage_output)
+                coverage_collected = bool(coverage_data)
             
             overall_coverage = self.extract_overall_coverage(result.stdout)
             if not overall_coverage.get('overall_coverage') and coverage_output.exists():
                 overall_coverage = self._extract_overall_from_json(coverage_output)
+                coverage_collected = bool(overall_coverage.get('overall_coverage'))
+            
+            # Enhanced error detection and reporting
+            if result.returncode != 0:
+                # Distinguish between coverage collection failures and test failures
+                if coverage_collected:
+                    # Coverage was collected successfully, but tests failed
+                    if logger:
+                        logger.warning("Coverage data collected successfully, but some tests failed")
+                    
+                    # Report test failures separately
+                    if test_results['failed_count'] > 0:
+                        failure_msg = f"Test failures detected ({test_results['failed_count']} failed, {test_results['passed_count']} passed)"
+                        if test_results['random_seed']:
+                            failure_msg += f" (random seed: {test_results['random_seed']})"
+                        
+                        if logger:
+                            logger.warning(failure_msg)
+                            logger.warning(f"Test summary: {test_results['test_summary']}")
+                        
+                        if test_results['failed_tests']:
+                            if logger:
+                                logger.warning("Failed tests:")
+                                for test_name in test_results['failed_tests']:
+                                    logger.warning(f"  - {test_name}")
+                        else:
+                            if logger:
+                                logger.warning(f"  See {self.pytest_stdout_log} for detailed test failure information")
+                else:
+                    # Coverage collection failed
+                    error_details = []
+                    
+                    # Check for common error patterns
+                    stderr_lower = result.stderr.lower() if result.stderr else ''
+                    stdout_lower = result.stdout.lower() if result.stdout else ''
+                    
+                    if 'unrecognized arguments' in stderr_lower or 'unrecognized arguments' in stdout_lower:
+                        error_details.append("Unrecognized arguments error detected")
+                        # Extract the problematic arguments from stderr
+                        if result.stderr:
+                            for line in result.stderr.split('\n'):
+                                if 'unrecognized arguments' in line.lower():
+                                    error_details.append(f"  Problematic arguments: {line.strip()}")
+                    
+                    # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+                    if result.stderr and '--cov' in result.stderr:
+                        stderr_parts = result.stderr.split()
+                        for i in range(len(stderr_parts) - 1):
+                            if stderr_parts[i] == '--cov' and stderr_parts[i + 1] == '--cov':
+                                error_details.append("Detected empty --cov argument in pytest error output")
+                                break
+                    
+                    if 'error: usage' in stderr_lower:
+                        error_details.append("Pytest usage/argument error detected")
+                    
+                    error_msg = f"Coverage analysis failed (exit code {result.returncode})"
+                    if error_details:
+                        error_msg += ":\n  - " + "\n  - ".join(error_details)
+                    error_msg += f"\n  See {self.pytest_stderr_log} for full stderr output"
+                    error_msg += f"\n  Command: {cmd_str}"
+                    
+                    if logger:
+                        logger.error(error_msg)
+                    else:
+                        print(f"ERROR: {error_msg}")
+            else:
+                # All tests passed
+                if logger and test_results['test_summary']:
+                    logger.info(f"All tests passed: {test_results['test_summary']}")
+                    if test_results['random_seed']:
+                        logger.info(f"Random seed used: {test_results['random_seed']}")
             
             try:
                 self.finalize_coverage_outputs()
@@ -205,6 +245,8 @@ class CoverageMetricsRegenerator:
             return {
                 'modules': coverage_data,
                 'overall': overall_coverage,
+                'test_results': test_results,
+                'coverage_collected': coverage_collected,
                 'logs': {
                     'stdout': str(self.pytest_stdout_log) if self.pytest_stdout_log else None,
                     'stderr': str(self.pytest_stderr_log) if self.pytest_stderr_log else None,
@@ -220,6 +262,57 @@ class CoverageMetricsRegenerator:
                 print(f"Error running coverage analysis: {e}")
             return {}
 
+    def _parse_pytest_test_results(self, stdout: str) -> Dict[str, Any]:
+        """Parse pytest output to extract test results, failures, and random seed."""
+        results = {
+            'random_seed': None,
+            'test_summary': None,
+            'failed_tests': [],
+            'passed_count': 0,
+            'failed_count': 0,
+            'skipped_count': 0,
+            'warnings_count': 0,
+            'total_tests': 0
+        }
+        
+        if not stdout:
+            return results
+        
+        # Extract random seed if pytest-randomly is used
+        seed_pattern = r'--randomly-seed=(\d+)'
+        seed_match = re.search(seed_pattern, stdout)
+        if seed_match:
+            results['random_seed'] = seed_match.group(1)
+        
+        # Extract test summary (e.g., "4 failed, 2276 passed, 1 skipped, 4 warnings")
+        summary_pattern = r'(\d+)\s+failed[,\s]+(\d+)\s+passed[,\s]+(\d+)\s+skipped[,\s]+(\d+)\s+warnings'
+        summary_match = re.search(summary_pattern, stdout)
+        if summary_match:
+            results['failed_count'] = int(summary_match.group(1))
+            results['passed_count'] = int(summary_match.group(2))
+            results['skipped_count'] = int(summary_match.group(3))
+            results['warnings_count'] = int(summary_match.group(4))
+            results['total_tests'] = results['failed_count'] + results['passed_count'] + results['skipped_count']
+            results['test_summary'] = f"{results['failed_count']} failed, {results['passed_count']} passed, {results['skipped_count']} skipped, {results['warnings_count']} warnings"
+        
+        # Extract failed test names from "FAILED" section
+        failed_section_pattern = r'FAILED\s+(.+?)(?=\n\n|\n===|$)'
+        failed_matches = re.findall(failed_section_pattern, stdout, re.DOTALL)
+        
+        # Also look for "short test summary info" section
+        short_summary_pattern = r'short test summary info[^\n]*\n(.*?)(?=\n===|$)'
+        short_summary_match = re.search(short_summary_pattern, stdout, re.DOTALL)
+        if short_summary_match:
+            summary_lines = short_summary_match.group(1).strip().split('\n')
+            for line in summary_lines:
+                if line.strip().startswith('FAILED'):
+                    # Extract test path from "FAILED tests/path/to/test.py::test_function"
+                    test_match = re.search(r'FAILED\s+(.+)', line)
+                    if test_match:
+                        results['failed_tests'].append(test_match.group(1).strip())
+        
+        return results
+    
     def _record_pytest_output(self, result: subprocess.CompletedProcess) -> None:
         """Persist pytest stdout/stderr for troubleshooting."""
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")

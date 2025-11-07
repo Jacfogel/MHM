@@ -35,6 +35,40 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - Test Isolation Improvements and Coverage Regeneration Enhancements **COMPLETED**
+
+**Problem**: Several tests were flaky due to race conditions and incomplete test isolation. The coverage regeneration script also didn't clearly distinguish between test failures and coverage collection failures, making it difficult to understand why coverage generation "failed" when tests failed but coverage data was successfully collected.
+
+**Solution**: Improved test isolation across multiple test suites by adding complete log path mocks, unique tracker file paths, and retry logic for race conditions. Enhanced the coverage regeneration script to parse and report test failures separately from coverage collection status, including random seed information.
+
+**Technical Changes**:
+- **Test Utilities Enhancement**: Added `TestLogPathMocks.create_complete_log_paths_mock()` helper function in `tests/test_utilities.py` that generates complete log path mocks with all required keys including `ai_dev_tools_file`
+- **Logger Test Mock Updates**: Updated all logger test mocks in `tests/unit/test_logger_unit.py` to use the new helper function, ensuring all required keys are present and preventing `KeyError` failures
+- **Cleanup Test Isolation**: Modified `temp_tracker_file` fixture in `tests/behavior/test_auto_cleanup_behavior.py` to use unique filenames with UUID suffixes (e.g., `.last_cache_cleanup.e0139742`) to prevent race conditions in parallel test execution
+- **User Data Test Retry Logic**: Added `retry_with_backoff()` helper function in `tests/test_utilities.py` and applied it to user data tests in `tests/behavior/test_account_management_real_behavior.py` to handle race conditions and transient failures when accessing user data
+- **Coverage Regeneration Script**: Enhanced `ai_development_tools/regenerate_coverage_metrics.py` to:
+  - Parse pytest output to extract test failures, random seed information, and coverage collection status
+  - Distinguish between test failures and coverage collection failures
+  - Report test results separately with clear identification of which tests failed and whether a random seed was used
+  - Include test results in the returned data structure
+- **Operations Service Updates**: Updated `ai_development_tools/services/operations.py` to parse and report test failures separately from coverage collection status when running coverage regeneration
+
+**Files Modified**:
+- `tests/test_utilities.py` (added helper functions)
+- `tests/unit/test_logger_unit.py` (updated all mocks to use helper)
+- `tests/behavior/test_auto_cleanup_behavior.py` (improved fixture isolation, fixed test assertion)
+- `tests/behavior/test_account_management_real_behavior.py` (added retry logic)
+- `ai_development_tools/regenerate_coverage_metrics.py` (added test failure parsing)
+- `ai_development_tools/services/operations.py` (added test result parsing and reporting)
+
+**Testing**:
+- Full test suite passes: 2279 passed, 1 skipped, 0 failed
+- Fixed test assertion in `test_get_cleanup_status_invalid_timestamp_real_behavior` to account for UUID suffix in filename
+- Verified no files written outside `tests/` directory
+- Test isolation verified: unique tracker files prevent race conditions
+
+**Impact**: Tests are now more stable with better isolation and retry logic for race conditions. Coverage regeneration script provides clearer reporting, distinguishing between test failures and coverage collection failures, making it easier to understand why coverage generation reports failures.
+
 ### 2025-11-06 - AI Development Tools Component Logger Implementation **COMPLETED**
 
 **Problem**: AI development tools (`ai_development_tools/`) were logging to the main application logs, which was undesirable as they are development-aiding tools rather than core project components. This mixed development tooling logs with core system logs, making it harder to troubleshoot and maintain separation of concerns.

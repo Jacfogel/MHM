@@ -36,8 +36,11 @@ class TestAutoCleanupTimestampBehavior:
     
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
-        """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
+        """Create temporary tracker file for testing with unique path for isolation."""
+        import uuid
+        # Use unique filename to prevent race conditions in parallel test execution
+        unique_id = str(uuid.uuid4())[:8]
+        tracker_path = Path(test_data_dir) / f"{TRACKER_FILENAME}.{unique_id}"
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -111,8 +114,11 @@ class TestAutoCleanupLogicBehavior:
     
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
-        """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
+        """Create temporary tracker file for testing with unique path for isolation."""
+        import uuid
+        # Use unique filename to prevent race conditions in parallel test execution
+        unique_id = str(uuid.uuid4())[:8]
+        tracker_path = Path(test_data_dir) / f"{TRACKER_FILENAME}.{unique_id}"
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -511,8 +517,11 @@ class TestAutoCleanupStatusBehavior:
     
     @pytest.fixture
     def temp_tracker_file(self, test_data_dir):
-        """Create temporary tracker file for testing."""
-        tracker_path = Path(test_data_dir) / TRACKER_FILENAME
+        """Create temporary tracker file for testing with unique path for isolation."""
+        import uuid
+        # Use unique filename to prevent race conditions in parallel test execution
+        unique_id = str(uuid.uuid4())[:8]
+        tracker_path = Path(test_data_dir) / f"{TRACKER_FILENAME}.{unique_id}"
         # Ensure parent directory exists
         tracker_path.parent.mkdir(parents=True, exist_ok=True)
         yield tracker_path
@@ -782,7 +791,8 @@ class TestAutoCleanupStatusBehavior:
         """REAL BEHAVIOR TEST: Test status when tracker file contains invalid timestamp."""
         # ✅ SAFETY CHECK: Ensure we're creating files in the test directory, not root
         assert 'tests' in str(temp_tracker_file), "Test file should be in tests directory"
-        assert str(temp_tracker_file).endswith('.last_cache_cleanup'), "Test file should have correct name"
+        # Check that filename contains .last_cache_cleanup (may have UUID suffix for isolation)
+        assert '.last_cache_cleanup' in str(temp_tracker_file.name), "Test file should have correct name pattern"
         
         # ✅ VERIFY REAL BEHAVIOR: Create tracker file with invalid timestamp
         test_data = {

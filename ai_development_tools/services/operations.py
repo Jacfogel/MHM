@@ -1407,6 +1407,17 @@ class AIToolsService:
 
         result = self.run_script('regenerate_coverage_metrics', '--update-plan', timeout=900)
 
+        # Parse test results from output
+        output = result.get('output', '')
+        test_results = self._parse_test_results_from_output(output)
+        
+        # Check if coverage was collected successfully
+        coverage_collected = (
+            'TOTAL' in output or 
+            'coverage:' in output.lower() or
+            (self.project_root / "ai_development_tools" / "coverage.json").exists()
+        )
+
         if result['success']:
 
             # Store results for consolidated report
@@ -1414,46 +1425,112 @@ class AIToolsService:
             self.coverage_results = result
 
             logger.info("Coverage metrics regenerated and plan updated!")
+            
+            # Report test results if available
+            if test_results.get('test_summary'):
+                logger.info(f"Test results: {test_results['test_summary']}")
+                if test_results.get('random_seed'):
+                    logger.info(f"Random seed used: {test_results['random_seed']}")
 
         else:
 
-            # Enhanced error reporting for coverage regeneration failures
+            # Distinguish between coverage collection failures and test failures
+            if coverage_collected:
+                # Coverage was collected successfully, but tests may have failed
+                logger.warning("Coverage data collected successfully, but script exited with non-zero code")
+                
+                if test_results.get('failed_count', 0) > 0:
+                    failure_msg = f"Test failures detected ({test_results['failed_count']} failed, {test_results.get('passed_count', 0)} passed)"
+                    if test_results.get('random_seed'):
+                        failure_msg += f" (random seed: {test_results['random_seed']})"
+                    logger.warning(failure_msg)
+                    
+                    if test_results.get('failed_tests'):
+                        logger.warning("Failed tests:")
+                        for test_name in test_results['failed_tests']:
+                            logger.warning(f"  - {test_name}")
+                    else:
+                        logger.warning("  See ai_development_tools/logs/coverage_regeneration/ for detailed test failure information")
+            else:
+                # Coverage collection failed
+                error_msg = "Coverage regeneration failed"
 
-            error_msg = "Coverage regeneration failed"
+                if result.get('error'):
 
-            if result.get('error'):
+                    error_msg += f": {result['error']}"
 
-                error_msg += f": {result['error']}"
+                if result.get('returncode') is not None:
 
-            if result.get('returncode') is not None:
+                    error_msg += f" (exit code: {result['returncode']})"
 
-                error_msg += f" (exit code: {result['returncode']})"
+                # Check for common failure patterns in output
 
-            # Check for common failure patterns in output
+                if 'unrecognized arguments' in output.lower():
 
-            output = result.get('output', '')
+                    error_msg += "\n  - Detected pytest argument error (possibly empty --cov argument)"
 
-            if 'unrecognized arguments' in output.lower():
+                # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
+                if output and '--cov' in output:
+                    output_parts = output.split()
+                    for i in range(len(output_parts) - 1):
+                        if output_parts[i] == '--cov' and output_parts[i + 1] == '--cov':
+                            error_msg += "\n  - Detected empty --cov argument in error output"
+                            break
 
-                error_msg += "\n  - Detected pytest argument error (possibly empty --cov argument)"
+                logger.error(f"ERROR: {error_msg}")
 
-            # Check for empty --cov pattern: "--cov --cov" (two --cov in a row)
-            if output and '--cov' in output:
-                output_parts = output.split()
-                for i in range(len(output_parts) - 1):
-                    if output_parts[i] == '--cov' and output_parts[i + 1] == '--cov':
-                        error_msg += "\n  - Detected empty --cov argument in error output"
-                        break
+                if result.get('error'):
 
-            logger.error(f"ERROR: {error_msg}")
-
-            if result.get('error'):
-
-                logger.error(f"  Full error: {result['error'][:500]}")  # Limit error length
+                    logger.error(f"  Full error: {result['error'][:500]}")  # Limit error length
 
             logger.info("  Check ai_development_tools/logs/coverage_regeneration/ for detailed logs")
 
         return result['success']
+    
+    def _parse_test_results_from_output(self, output: str) -> Dict[str, Any]:
+        """Parse test results from pytest output."""
+        results = {
+            'random_seed': None,
+            'test_summary': None,
+            'failed_tests': [],
+            'passed_count': 0,
+            'failed_count': 0,
+            'skipped_count': 0,
+            'warnings_count': 0
+        }
+        
+        if not output:
+            return results
+        
+        # Extract random seed if pytest-randomly is used
+        seed_pattern = r'--randomly-seed=(\d+)'
+        seed_match = re.search(seed_pattern, output)
+        if seed_match:
+            results['random_seed'] = seed_match.group(1)
+        
+        # Extract test summary (e.g., "4 failed, 2276 passed, 1 skipped, 4 warnings")
+        summary_pattern = r'(\d+)\s+failed[,\s]+(\d+)\s+passed[,\s]+(\d+)\s+skipped[,\s]+(\d+)\s+warnings'
+        summary_match = re.search(summary_pattern, output)
+        if summary_match:
+            results['failed_count'] = int(summary_match.group(1))
+            results['passed_count'] = int(summary_match.group(2))
+            results['skipped_count'] = int(summary_match.group(3))
+            results['warnings_count'] = int(summary_match.group(4))
+            results['test_summary'] = f"{results['failed_count']} failed, {results['passed_count']} passed, {results['skipped_count']} skipped, {results['warnings_count']} warnings"
+        
+        # Extract failed test names from "short test summary info" section
+        short_summary_pattern = r'short test summary info[^\n]*\n(.*?)(?=\n===|$)'
+        short_summary_match = re.search(short_summary_pattern, output, re.DOTALL)
+        if short_summary_match:
+            summary_lines = short_summary_match.group(1).strip().split('\n')
+            for line in summary_lines:
+                if line.strip().startswith('FAILED'):
+                    # Extract test path from "FAILED tests/path/to/test.py::test_function"
+                    test_match = re.search(r'FAILED\s+(.+)', line)
+                    if test_match:
+                        results['failed_tests'].append(test_match.group(1).strip())
+        
+        return results
 
     def run_legacy_cleanup(self):
 

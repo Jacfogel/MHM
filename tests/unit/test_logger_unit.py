@@ -513,12 +513,11 @@ class TestEnsureLogsDirectory:
     @pytest.mark.unit
     def test_ensure_logs_directory_creates_directories(self, test_data_dir):
         """Test: ensure_logs_directory creates directories"""
+        from tests.test_utilities import TestLogPathMocks
+        
+        log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(Path(test_data_dir) / "logs"),
-                'backup_dir': str(Path(test_data_dir) / "logs" / "backups"),
-                'archive_dir': str(Path(test_data_dir) / "logs" / "archive")
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             ensure_logs_directory()
             
@@ -534,13 +533,11 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_creates_logger(self, test_data_dir):
         """Test: get_component_logger creates component logger"""
+        from tests.test_utilities import TestLogPathMocks
+        
+        log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(Path(test_data_dir) / "logs"),
-                'backup_dir': str(Path(test_data_dir) / "logs" / "backups"),
-                'discord_file': str(Path(test_data_dir) / "logs" / "discord.log"),
-                'main_file': str(Path(test_data_dir) / "logs" / "app.log")
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             with patch.dict(os.environ, {}, clear=True):
                 logger = get_component_logger("discord")
@@ -551,13 +548,11 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_returns_same_instance(self, test_data_dir):
         """Test: get_component_logger returns same instance for same name"""
+        from tests.test_utilities import TestLogPathMocks
+        
+        log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(Path(test_data_dir) / "logs"),
-                'backup_dir': str(Path(test_data_dir) / "logs" / "backups"),
-                'discord_file': str(Path(test_data_dir) / "logs" / "discord.log"),
-                'main_file': str(Path(test_data_dir) / "logs" / "app.log")
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             with patch.dict(os.environ, {}, clear=True):
                 logger1 = get_component_logger("discord")
@@ -568,26 +563,11 @@ class TestGetComponentLogger:
     @pytest.mark.unit
     def test_get_component_logger_handles_invalid_name(self, test_data_dir):
         """Test: get_component_logger handles invalid component name"""
+        from tests.test_utilities import TestLogPathMocks
+        
+        log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(Path(test_data_dir) / "logs"),
-                'backup_dir': str(Path(test_data_dir) / "logs" / "backups"),
-                'main_file': str(Path(test_data_dir) / "logs" / "app.log"),
-                'discord_file': str(Path(test_data_dir) / "logs" / "discord.log"),
-                'ai_file': str(Path(test_data_dir) / "logs" / "ai.log"),
-                'user_activity_file': str(Path(test_data_dir) / "logs" / "user_activity.log"),
-                'errors_file': str(Path(test_data_dir) / "logs" / "errors.log"),
-                'communication_manager_file': str(Path(test_data_dir) / "logs" / "communication_manager.log"),
-                'email_file': str(Path(test_data_dir) / "logs" / "email.log"),
-                'ui_file': str(Path(test_data_dir) / "logs" / "ui.log"),
-                'file_ops_file': str(Path(test_data_dir) / "logs" / "file_ops.log"),
-                'scheduler_file': str(Path(test_data_dir) / "logs" / "scheduler.log"),
-                'schedule_utilities_file': str(Path(test_data_dir) / "logs" / "schedule_utilities.log"),
-                'analytics_file': str(Path(test_data_dir) / "logs" / "analytics.log"),
-                'message_file': str(Path(test_data_dir) / "logs" / "message.log"),
-                'backup_file': str(Path(test_data_dir) / "logs" / "backup.log"),
-                'checkin_dynamic_file': str(Path(test_data_dir) / "logs" / "checkin_dynamic.log")
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             with patch.dict(os.environ, {}, clear=True):
                 logger = get_component_logger("")
@@ -602,12 +582,11 @@ class TestSetupThirdPartyErrorLogging:
     @pytest.mark.unit
     def test_setup_third_party_error_logging_creates_handlers(self, test_data_dir):
         """Test: setup_third_party_error_logging creates error handlers"""
+        from tests.test_utilities import TestLogPathMocks
+        
+        log_dir = Path(test_data_dir) / "logs"
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(Path(test_data_dir) / "logs"),
-                'backup_dir': str(Path(test_data_dir) / "logs" / "backups"),
-                'errors_file': str(Path(test_data_dir) / "logs" / "errors.log")
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             with patch.dict(os.environ, {}, clear=True):
                 setup_third_party_error_logging()
@@ -639,12 +618,10 @@ class TestCompressOldLogs:
         old_time = time.time() - (8 * 24 * 3600)
         os.utime(old_log, (old_time, old_time))
         
+        from tests.test_utilities import TestLogPathMocks
+        
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'base_dir': str(log_dir),
-                'backup_dir': str(backup_dir),
-                'archive_dir': str(archive_dir)
-            }
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             result = compress_old_logs()
             
@@ -671,10 +648,11 @@ class TestCleanupOldArchives:
         old_time = time.time() - (31 * 24 * 3600)
         os.utime(old_archive, (old_time, old_time))
         
+        from tests.test_utilities import TestLogPathMocks
+        
         with patch('core.logger._get_log_paths_for_environment') as mock_paths:
-            mock_paths.return_value = {
-                'archive_dir': str(archive_dir)
-            }
+            # Only archive_dir is needed for this test, but include all keys for safety
+            mock_paths.return_value = TestLogPathMocks.create_complete_log_paths_mock(str(log_dir))
             
             result = cleanup_old_archives(max_days=30)
             
