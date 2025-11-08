@@ -167,19 +167,18 @@ def get_data_type_info(data_type: str) -> Optional[Dict[str, Any]]:
 def get_all_user_ids():
     """Get all user IDs from the system."""
     from core.config import USER_INFO_DIR_PATH
-    users_dir = USER_INFO_DIR_PATH
-    if not os.path.exists(users_dir):
+    users_dir = Path(USER_INFO_DIR_PATH)
+    if not users_dir.exists():
         return []
     
     user_ids = []
-    for item in os.listdir(users_dir):
-        from pathlib import Path
-        item_path = os.path.join(users_dir, item)
-        if os.path.isdir(item_path):
+    for item in users_dir.iterdir():
+        item_path = users_dir / item
+        if item_path.is_dir():
             # Check if this directory has the new structure
-            account_file = os.path.join(item_path, 'account.json')
-            if os.path.exists(account_file):
-                user_ids.append(item)
+            account_file = item_path / 'account.json'
+            if account_file.exists():
+                user_ids.append(item.name)
     
     return user_ids
 
@@ -1167,7 +1166,7 @@ def _load_presets_json() -> Dict[str, List[str]]:
         return _PRESETS_CACHE
 
     import json, pkgutil, os
-    presets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "presets.json")
+    presets_path = Path(__file__).parent.parent / "resources" / "presets.json"
     try:
         with open(presets_path, "r", encoding="utf-8") as f:
             _PRESETS_CACHE = json.load(f)

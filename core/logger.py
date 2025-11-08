@@ -7,6 +7,7 @@ import time
 import json
 import gzip
 import sys
+from pathlib import Path
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from core.error_handling import handle_errors
 
@@ -71,34 +72,35 @@ def _get_log_paths_for_environment():
     """Get appropriate log paths based on the current environment."""
     if _is_testing_environment():
         # Use test-specific paths
-        base_dir = os.getenv('LOGS_DIR', 'tests/logs')
-        backup_dir = os.path.join(base_dir, 'backups')
-        archive_dir = os.path.join(base_dir, 'archive')
+        base_dir = Path(os.getenv('LOGS_DIR', 'tests/logs'))
+        backup_dir = base_dir / 'backups'
+        archive_dir = base_dir / 'archive'
         
         # Allow override of main file via environment variable in tests
-        main_file = os.getenv('LOG_MAIN_FILE', os.path.join(base_dir, 'app.log'))
+        main_file_env = os.getenv('LOG_MAIN_FILE')
+        main_file = Path(main_file_env) if main_file_env else base_dir / 'app.log'
 
         return {
-            'base_dir': base_dir,
-            'backup_dir': backup_dir,
-            'archive_dir': archive_dir,
-            'main_file': main_file,
-            'discord_file': os.path.join(base_dir, 'discord.log'),
-            'ai_file': os.path.join(base_dir, 'ai.log'),
-            'user_activity_file': os.path.join(base_dir, 'user_activity.log'),
-            'errors_file': os.path.join(base_dir, 'errors.log'),
-            'communication_manager_file': os.path.join(base_dir, 'communication_manager.log'),
-            'email_file': os.path.join(base_dir, 'email.log'),
-            'ui_file': os.path.join(base_dir, 'ui.log'),
-            'file_ops_file': os.path.join(base_dir, 'file_ops.log'),
-            'scheduler_file': os.path.join(base_dir, 'scheduler.log'),
+            'base_dir': str(base_dir),
+            'backup_dir': str(backup_dir),
+            'archive_dir': str(archive_dir),
+            'main_file': str(main_file),
+            'discord_file': str(base_dir / 'discord.log'),
+            'ai_file': str(base_dir / 'ai.log'),
+            'user_activity_file': str(base_dir / 'user_activity.log'),
+            'errors_file': str(base_dir / 'errors.log'),
+            'communication_manager_file': str(base_dir / 'communication_manager.log'),
+            'email_file': str(base_dir / 'email.log'),
+            'ui_file': str(base_dir / 'ui.log'),
+            'file_ops_file': str(base_dir / 'file_ops.log'),
+            'scheduler_file': str(base_dir / 'scheduler.log'),
             # Additional component loggers used in the codebase
-            'schedule_utilities_file': os.path.join(base_dir, 'schedule_utilities.log'),
-            'analytics_file': os.path.join(base_dir, 'analytics.log'),
-            'message_file': os.path.join(base_dir, 'message.log'),
-            'backup_file': os.path.join(base_dir, 'backup.log'),
-            'checkin_dynamic_file': os.path.join(base_dir, 'checkin_dynamic.log'),
-            'ai_dev_tools_file': os.path.join(base_dir, 'ai_dev_tools.log'),
+            'schedule_utilities_file': str(base_dir / 'schedule_utilities.log'),
+            'analytics_file': str(base_dir / 'analytics.log'),
+            'message_file': str(base_dir / 'message.log'),
+            'backup_file': str(base_dir / 'backup.log'),
+            'checkin_dynamic_file': str(base_dir / 'checkin_dynamic.log'),
+            'ai_dev_tools_file': str(base_dir / 'ai_dev_tools.log'),
         }
     else:
         # Use centralized paths from config - import locally to avoid circular import
@@ -118,11 +120,11 @@ def _get_log_paths_for_environment():
             'file_ops_file': config.LOG_FILE_OPS_FILE,
             'scheduler_file': config.LOG_SCHEDULER_FILE,
             # Additional component loggers used in the codebase
-            'schedule_utilities_file': os.path.join(config.LOGS_DIR, 'schedule_utilities.log'),
-            'analytics_file': os.path.join(config.LOGS_DIR, 'analytics.log'),
-            'message_file': os.path.join(config.LOGS_DIR, 'message.log'),
-            'backup_file': os.path.join(config.LOGS_DIR, 'backup.log'),
-            'checkin_dynamic_file': os.path.join(config.LOGS_DIR, 'checkin_dynamic.log'),
+            'schedule_utilities_file': str(Path(config.LOGS_DIR) / 'schedule_utilities.log'),
+            'analytics_file': str(Path(config.LOGS_DIR) / 'analytics.log'),
+            'message_file': str(Path(config.LOGS_DIR) / 'message.log'),
+            'backup_file': str(Path(config.LOGS_DIR) / 'backup.log'),
+            'checkin_dynamic_file': str(Path(config.LOGS_DIR) / 'checkin_dynamic.log'),
             'ai_dev_tools_file': config.LOG_AI_DEV_TOOLS_FILE,
         }
 
@@ -179,7 +181,7 @@ class ComponentLogger:
             try:
                 # Get environment-specific log paths
                 log_paths = _get_log_paths_for_environment()
-                consolidated_log_file = os.path.join(log_paths['base_dir'], 'test_consolidated.log')
+                consolidated_log_file = str(Path(log_paths['base_dir']) / 'test_consolidated.log')
                 
                 # Create consolidated handler
                 consolidated_handler = logging.FileHandler(consolidated_log_file, encoding='utf-8')
@@ -263,17 +265,17 @@ class ComponentLogger:
             errors_log_path = log_paths['errors_file']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
                 # Use configurable test logs directory
-                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
+                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))
                 try:
                     os.makedirs(tests_logs_dir, exist_ok=True)
-                    errors_log_path = os.path.join(tests_logs_dir, os.path.basename(log_paths['errors_file']))
+                    errors_log_path = str(Path(tests_logs_dir) / Path(log_paths['errors_file']).name)
                 except Exception:
                     pass
             errors_backup_dir = log_paths['backup_dir']
             if os.getenv('MHM_TESTING') == '1' and os.getenv('TEST_VERBOSE_LOGS') == '1':
                 # Use configurable test logs directory
-                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
-                errors_backup_dir = os.path.join(tests_logs_dir, 'backups')
+                tests_logs_dir = log_paths['base_dir'] or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))
+                errors_backup_dir = str(Path(tests_logs_dir) / 'backups')
                 try:
                     os.makedirs(errors_backup_dir, exist_ok=True)
                 except Exception:
@@ -366,8 +368,9 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 file_mtime = os.path.getmtime(self.baseFilename)
                 file_age_seconds = current_time - file_mtime
                 
-                # Minimum file size threshold (100 bytes) - prevents rollover of empty or tiny files
-                MIN_FILE_SIZE = 100
+                # Minimum file size threshold (5KB) - prevents rollover of files with minimal content
+                # A single log line can be 200-300 bytes, so we need a reasonable threshold
+                MIN_FILE_SIZE = 5 * 1024  # 5KB
                 # Minimum file age (1 hour) - prevents rollover of recently created files
                 MIN_FILE_AGE_SECONDS = 3600
                 
@@ -417,8 +420,9 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
         time_tuple = time.localtime(dst_time)
         dfn = self.rotation_filename(self.baseFilename + "." + time.strftime(self.suffix, time_tuple))
         
-        # Minimum file size threshold (100 bytes) - prevents rollover of empty or tiny files
-        MIN_FILE_SIZE = 100
+        # Minimum file size threshold (5KB) - prevents rollover of files with minimal content
+        # A single log line can be 200-300 bytes, so we need a reasonable threshold
+        MIN_FILE_SIZE = 5 * 1024  # 5KB
         # Minimum file age (1 hour) - prevents rollover of recently created files
         MIN_FILE_AGE_SECONDS = 3600
         
@@ -453,8 +457,8 @@ class BackupDirectoryRotatingFileHandler(TimedRotatingFileHandler):
                 # This is safer than blocking rollover on stat errors
                 pass
             
-            backup_name = f"{os.path.basename(self.baseFilename)}.{time.strftime(self.suffix, time_tuple)}"
-            backup_path = os.path.join(self.backup_dir, backup_name)
+            backup_name = f"{Path(self.baseFilename).name}.{time.strftime(self.suffix, time_tuple)}"
+            backup_path = str(Path(self.backup_dir) / backup_name)
             
             # Windows-safe file move with retry logic
             try:
@@ -719,7 +723,7 @@ def get_component_logger(component_name: str) -> ComponentLogger:
         if os.getenv('TEST_VERBOSE_LOGS') == '1':
             try:
                 # Use configurable test logs directory
-                tests_logs_dir = os.getenv('LOGS_DIR') or os.getenv('TEST_LOGS_DIR', os.path.join('tests', 'logs'))
+                tests_logs_dir = os.getenv('LOGS_DIR') or os.getenv('TEST_LOGS_DIR', str(Path('tests') / 'logs'))
                 os.makedirs(tests_logs_dir, exist_ok=True)
             except Exception:
                 pass
@@ -1099,7 +1103,7 @@ def get_log_file_info():
         backup_file_info = []
         backup_total_size = 0
         if os.path.exists(log_paths['backup_dir']):
-            backup_pattern = os.path.join(log_paths['backup_dir'], f"{os.path.basename(log_paths['main_file'])}*")
+            backup_pattern = str(Path(log_paths['backup_dir']) / f"{Path(log_paths['main_file']).name}*")
             backup_file_paths = glob.glob(backup_pattern)
             
             for backup_file in backup_file_paths:
@@ -1159,7 +1163,7 @@ def cleanup_old_logs(max_total_size_mb=50):
         backup_files = []
         log_paths = _get_log_paths_for_environment()
         if os.path.exists(log_paths['backup_dir']):
-            backup_pattern = os.path.join(log_paths['backup_dir'], f"{os.path.basename(log_paths['main_file'])}*")
+            backup_pattern = str(Path(log_paths['backup_dir']) / f"{Path(log_paths['main_file']).name}*")
             backup_files = glob.glob(backup_pattern)
         
         log_files_with_time = []
@@ -1216,8 +1220,8 @@ def compress_old_logs():
         
         # Get all log files in logs directory and backup directory
         log_patterns = [
-            os.path.join(log_paths['base_dir'], "*.log.*"),  # Rotated log files
-            os.path.join(log_paths['backup_dir'], "*.log*")  # Backup log files
+            str(Path(log_paths['base_dir']) / "*.log.*"),  # Rotated log files
+            str(Path(log_paths['backup_dir']) / "*.log*")  # Backup log files
         ]
         
         cutoff_time = time.time() - (7 * 24 * 3600)  # 7 days ago
@@ -1239,7 +1243,7 @@ def compress_old_logs():
                             with open(log_file, 'rb') as f_in:
                                 # Create archive filename
                                 filename = os.path.basename(log_file)
-                                archive_file = os.path.join(log_paths['archive_dir'], filename + '.gz')
+                                archive_file = str(Path(log_paths['archive_dir']) / f"{filename}.gz")
                                 
                                 with gzip.open(archive_file, 'wb') as f_out:
                                     shutil.copyfileobj(f_in, f_out)
@@ -1279,7 +1283,7 @@ def cleanup_old_archives(max_days=30):
         
         log_paths = _get_log_paths_for_environment()
         if os.path.exists(log_paths['archive_dir']):
-            archive_pattern = os.path.join(log_paths['archive_dir'], "*.gz")
+            archive_pattern = str(Path(log_paths['archive_dir']) / "*.gz")
             archive_files = glob.glob(archive_pattern)
             
             cutoff_time = time.time() - (max_days * 24 * 3600)

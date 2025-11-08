@@ -148,9 +148,9 @@ def find_trackable_files(scope="ai_docs"):
             dirs[:] = [d for d in dirs if not any(pattern.replace("/*", "") in d for pattern in EXCLUDE_PATTERNS)]
 
             for file in files:
-                file_path = os.path.join(root, file)
-                if should_track_file(file_path, scope):
-                    trackable_files.append(file_path)
+                file_path = Path(root) / file
+                if should_track_file(str(file_path), scope):
+                    trackable_files.append(str(file_path))
 
     return trackable_files
 

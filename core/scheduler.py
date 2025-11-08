@@ -963,6 +963,7 @@ class SchedulerManager:
         
         return "PROCEED"  # Signal to continue with normal processing
 
+    @handle_errors("calculating priority weight for task reminder")
     def _select_task_for_reminder__calculate_priority_weight(self, task):
         """Calculate priority-based weight for a task."""
         priority = task.get('priority', 'medium').lower()
@@ -1011,6 +1012,7 @@ class SchedulerManager:
             # Invalid date format, use base weight
             return 1.0
 
+    @handle_errors("calculating task weights for reminder selection")
     def _select_task_for_reminder__calculate_task_weights(self, incomplete_tasks, today):
         """Calculate weights for all tasks."""
         task_weights = []
@@ -1030,6 +1032,7 @@ class SchedulerManager:
         
         return task_weights
 
+    @handle_errors("building task key for reminder selection", default_return="")
     def _select_task_for_reminder__task_key(self, task: Dict[str, Any], index: int) -> str:
         """Build a stable key for tracking reminder selection state."""
         candidate_keys = [
@@ -1042,6 +1045,7 @@ class SchedulerManager:
         base_key = next((key for key in candidate_keys if key), f"idx-{index}")
         return f"{base_key}|{index}"
     
+    @handle_errors("selecting task by weight for reminder", default_return=None)
     def _select_task_for_reminder__select_task_by_weight(self, task_weights, incomplete_tasks):
         """Select a task based on calculated weights."""
         import random

@@ -81,8 +81,8 @@ def find_pycache_dirs(root_path):
     pycache_dirs = []
     for root, dirs, files in os.walk(root_path):
         if '__pycache__' in dirs:
-            pycache_path = os.path.join(root, '__pycache__')
-            pycache_dirs.append(pycache_path)
+            pycache_path = Path(root) / '__pycache__'
+            pycache_dirs.append(str(pycache_path))
     return pycache_dirs
 
 @handle_errors("finding pyc files", default_return=[])
@@ -92,7 +92,7 @@ def find_pyc_files(root_path):
     for root, dirs, files in os.walk(root_path):
         for file in files:
             if file.endswith('.pyc') or file.endswith('.pyo'):
-                pyc_files.append(os.path.join(root, file))
+                pyc_files.append(str(Path(root) / file))
     return pyc_files
 
 @handle_errors("calculating cache size", default_return=0)
@@ -105,7 +105,7 @@ def _calculate_cache_size__calculate_pycache_directories_size(pycache_dirs):
             if os.path.exists(pycache_dir):
                 for root, dirs, files in os.walk(pycache_dir):
                     for file in files:
-                        filepath = os.path.join(root, file)
+                        filepath = str(Path(root) / file)
                         if os.path.exists(filepath):
                             total_size += os.path.getsize(filepath)
         except Exception as e:

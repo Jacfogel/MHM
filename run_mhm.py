@@ -11,6 +11,7 @@ This launches the MHM Manager UI where you can:
 import sys
 import os
 import subprocess
+from pathlib import Path
 from core.error_handling import (
     error_handler, DataError, FileOperationError, handle_errors
 )
@@ -28,14 +29,15 @@ def resolve_python_interpreter(script_dir):
     Returns:
         str: Path to Python executable
     """
+    script_path = Path(script_dir)
     candidates = [
-        os.path.join(script_dir, '.venv', 'Scripts', 'python.exe'),
-        os.path.join(script_dir, '.venv', 'bin', 'python'),
+        script_path / '.venv' / 'Scripts' / 'python.exe',
+        script_path / '.venv' / 'bin' / 'python',
     ]
 
     for candidate in candidates:
-        if os.path.exists(candidate):
-            return candidate
+        if candidate.exists():
+            return str(candidate)
 
     return sys.executable
 
@@ -55,14 +57,15 @@ def prepare_launch_environment(script_dir):
     """
     env = os.environ.copy()
     path_entries = []
+    script_path = Path(script_dir)
 
-    venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
-    if os.path.exists(venv_scripts_dir):
-        path_entries.append(venv_scripts_dir)
+    venv_scripts_dir = script_path / '.venv' / 'Scripts'
+    if venv_scripts_dir.exists():
+        path_entries.append(str(venv_scripts_dir))
 
-    venv_bin_dir = os.path.join(script_dir, '.venv', 'bin')
-    if os.path.exists(venv_bin_dir):
-        path_entries.append(venv_bin_dir)
+    venv_bin_dir = script_path / '.venv' / 'bin'
+    if venv_bin_dir.exists():
+        path_entries.append(str(venv_bin_dir))
 
     if path_entries:
         existing_path = env.get('PATH', '')
@@ -89,8 +92,8 @@ def main():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Check if the UI app exists
-    ui_app_path = os.path.join(script_dir, 'ui', 'ui_app_qt.py')
-    if not os.path.exists(ui_app_path):
+    ui_app_path = Path(script_dir) / 'ui' / 'ui_app_qt.py'
+    if not ui_app_path.exists():
         print(f"Error: Could not find ui_app_qt.py at {ui_app_path}")
         return 1
     
@@ -105,7 +108,7 @@ def main():
     # Launch the UI directly
     try:
         process = subprocess.Popen(
-            [python_executable, ui_app_path],
+            [python_executable, str(ui_app_path)],
             env=env,
             cwd=script_dir,  # Set working directory to project root
             shell=False,     # Explicitly prevent shell interpretation

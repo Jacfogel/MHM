@@ -64,8 +64,8 @@ class BackupManager:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_name = f"mhm_backup_{timestamp}"
         
-        backup_path = os.path.join(self.backup_dir, f"{backup_name}.zip")
-        return backup_name, backup_path
+        backup_path = Path(self.backup_dir) / f"{backup_name}.zip"
+        return backup_name, str(backup_path)
     
     @handle_errors("creating zip file", default_return=None)
     def _create_backup__create_zip_file(self, backup_path: str, backup_name: str, 
@@ -159,14 +159,14 @@ class BackupManager:
     @handle_errors("backing up user data")
     def _backup_user_data(self, zipf: zipfile.ZipFile) -> None:
         """Backup all user data directories."""
-        if not os.path.exists(core.config.USER_INFO_DIR_PATH):
+        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
+        if not user_info_path.exists():
             logger.warning(f"User data directory does not exist: {core.config.USER_INFO_DIR_PATH}")
             return
         
-        for user_dir in os.listdir(core.config.USER_INFO_DIR_PATH):
-            user_path = os.path.join(core.config.USER_INFO_DIR_PATH, user_dir)
-            if os.path.isdir(user_path):
-                self._add_directory_to_zip(zipf, user_path, f"users/{user_dir}")
+        for user_dir in user_info_path.iterdir():
+            if user_dir.is_dir():
+                self._add_directory_to_zip(zipf, str(user_dir), f"users/{user_dir.name}")
         
         logger.debug("User data backed up successfully")
     
@@ -179,11 +179,12 @@ class BackupManager:
             "user_index.json"
         ]
         
+        base_data_path = Path(core.config.BASE_DATA_DIR)
         for config_file in config_files:
             # Use configurable base directory instead of hardcoded assumption
-            config_path = os.path.join(core.config.BASE_DATA_DIR, config_file)
-            if os.path.exists(config_path):
-                zipf.write(config_path, f"config/{config_file}")
+            config_path = base_data_path / config_file
+            if config_path.exists():
+                zipf.write(str(config_path), f"config/{config_file}")
         
         logger.debug("Configuration files backed up successfully")
     
@@ -235,11 +236,14 @@ class BackupManager:
     @handle_errors("adding directory to zip")
     def _add_directory_to_zip(self, zipf: zipfile.ZipFile, directory: str, zip_path: str) -> None:
         """Recursively add a directory to the zip file."""
+        directory_path = Path(directory)
+        zip_path_base = Path(zip_path)
         for root, dirs, files in os.walk(directory):
+            root_path = Path(root)
             for file in files:
-                file_path = os.path.join(root, file)
-                arc_path = os.path.join(zip_path, os.path.relpath(file_path, directory))
-                zipf.write(file_path, arc_path)
+                file_path = root_path / file
+                arc_path = zip_path_base / file_path.relative_to(directory_path)
+                zipf.write(str(file_path), str(arc_path))
     
     @handle_errors("cleaning up old backups")
     def _cleanup_old_backups(self) -> None:
@@ -248,12 +252,12 @@ class BackupManager:
             # Gather .zip backups with mtime
             backup_files: list[tuple[str, float]] = []
             now_ts = time.time()
-            for file in os.listdir(self.backup_dir):
-                if file.endswith('.zip'):
-                    file_path = os.path.join(self.backup_dir, file)
+            backup_dir_path = Path(self.backup_dir)
+            for file_path in backup_dir_path.iterdir():
+                if file_path.is_file() and file_path.suffix == '.zip':
                     try:
-                        mtime = os.path.getmtime(file_path)
-                        backup_files.append((file_path, mtime))
+                        mtime = file_path.stat().st_mtime
+                        backup_files.append((str(file_path), mtime))
                     except Exception:
                         continue
 
@@ -287,14 +291,14 @@ class BackupManager:
         """List all available backups with metadata."""
         backups = []
         
-        for file in os.listdir(self.backup_dir):
-            if file.endswith('.zip'):
-                file_path = os.path.join(self.backup_dir, file)
+        backup_dir_path = Path(self.backup_dir)
+        for file_path in backup_dir_path.iterdir():
+            if file_path.is_file() and file_path.suffix == '.zip':
                 try:
-                    backup_info = self._get_backup_info(file_path)
+                    backup_info = self._get_backup_info(str(file_path))
                     backups.append(backup_info)
                 except Exception as e:
-                    logger.warning(f"Failed to get info for backup {file}: {e}")
+                    logger.warning(f"Failed to get info for backup {file_path.name}: {e}")
         
         # Sort by creation time (newest first)
         backups.sort(key=lambda x: x.get('created_at', ''), reverse=True)
@@ -532,8 +536,8 @@ def create_automatic_backup(operation_name: str = "automatic") -> Optional[str]:
 @handle_errors("validating user index", default_return=False)
 def _validate_system_state__validate_user_index() -> bool:
     """Validate the user index file and corresponding user directories."""
-    user_index_path = os.path.join(core.config.BASE_DATA_DIR, "user_index.json")
-    if not os.path.exists(user_index_path):
+    user_index_path = Path(core.config.BASE_DATA_DIR) / "user_index.json"
+    if not user_index_path.exists():
         return True  # Missing index is not an error, just means no users yet
     
     try:
@@ -558,9 +562,10 @@ def _validate_system_state__validate_user_index() -> bool:
                 user_ids.add(value)
         
         # Verify each user ID has a directory
+        user_info_path = Path(core.config.USER_INFO_DIR_PATH)
         for user_id in user_ids:
-            user_dir = os.path.join(core.config.USER_INFO_DIR_PATH, user_id)
-            if not os.path.exists(user_dir):
+            user_dir = user_info_path / user_id
+            if not user_dir.exists():
                 logger.warning(f"User directory missing for indexed user: {user_id}")
         
         return True

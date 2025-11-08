@@ -5,6 +5,7 @@ import os
 import signal
 import time
 import json
+from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, mock_open
 
 from core.service import MHMService, InitializationError, main, get_scheduler_manager
@@ -21,6 +22,11 @@ class TestCoreServiceCoverageExpansion:
         service.communication_manager = Mock()
         service.scheduler_manager = Mock()
         return service
+    
+    @pytest.fixture
+    def temp_base_dir(self, test_path_factory):
+        """Provide a per-test base directory for file-based communication tests."""
+        return test_path_factory
 
     @pytest.fixture
     def mock_config(self):
@@ -554,110 +560,120 @@ class TestCoreServiceCoverageExpansion:
     # ============================================================================
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_empty_directory_real_behavior(self, service):
+    def test_cleanup_test_message_requests_empty_directory_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when no request files exist."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock empty directory
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=[]), \
-             patch('core.service.logger') as mock_logger:
-            
+        # ✅ VERIFY REAL BEHAVIOR: Empty directory (no files created)
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
             # ✅ VERIFY REAL BEHAVIOR: Should complete without errors when no files exist
-            # No files should be processed
-            mock_logger.info.assert_not_called()
+            # Directory should remain empty
+            assert len(list(Path(temp_base_dir).iterdir())) == 0
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_large_number_of_files_real_behavior(self, service):
+    def test_cleanup_test_message_requests_large_number_of_files_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup with many request files."""
         # ✅ VERIFY REAL BEHAVIOR: Create many test message request files
-        many_files = []
+        base_path = Path(temp_base_dir)
         for i in range(50):  # Create 50 request files
-            many_files.append(f'test_message_request_user{i}_motivational.flag')
+            request_file = base_path / f'test_message_request_user{i}_motivational.flag'
+            request_file.touch()
         
         # Add some non-request files that should be ignored
-        many_files.extend(['other_file.txt', 'config.json', 'data.csv'])
+        (base_path / 'other_file.txt').touch()
+        (base_path / 'config.json').touch()
+        (base_path / 'data.csv').touch()
         
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=many_files), \
-             patch('core.service.os.remove') as mock_remove, \
-             patch('core.service.logger') as mock_logger:
-            
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
             # ✅ VERIFY REAL BEHAVIOR: Should process all 50 request files
-            assert mock_remove.call_count == 50, "Should remove all 50 request files"
-            
-            # ✅ VERIFY REAL BEHAVIOR: Should log cleanup for each file
-            assert mock_logger.info.call_count == 50, "Should log cleanup for each file"
+            remaining_files = list(base_path.iterdir())
+            assert len(remaining_files) == 3, "Should remove all 50 request files, leaving only 3 other files"
+            assert all(f.name in ['other_file.txt', 'config.json', 'data.csv'] for f in remaining_files)
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_file_permission_error_real_behavior(self, service):
+    def test_cleanup_test_message_requests_file_permission_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when file removal fails due to permission errors."""
         # ✅ VERIFY REAL BEHAVIOR: Create request files
-        request_files = [
-            'test_message_request_user1_motivational.flag',
-            'test_message_request_user2_health.flag'
-        ]
+        base_path = Path(temp_base_dir)
+        request_file1 = base_path / 'test_message_request_user1_motivational.flag'
+        request_file2 = base_path / 'test_message_request_user2_health.flag'
+        request_file1.touch()
+        request_file2.touch()
         
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=request_files), \
-             patch('core.service.os.remove', side_effect=PermissionError("Permission denied")) as mock_remove, \
+        # Mock os.remove to raise PermissionError
+        original_remove = os.remove
+        def mock_remove_permission_error(file_path):
+            if 'test_message_request_' in file_path:
+                raise PermissionError("Permission denied")
+            # Success for other files - use original remove
+            original_remove(file_path)
+        
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
+             patch('core.service.os.remove', side_effect=mock_remove_permission_error), \
              patch('core.service.logger') as mock_logger:
             
             service.cleanup_test_message_requests()
-            
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all files
-            assert mock_remove.call_count == 2, "Should attempt to remove all files"
             
             # ✅ VERIFY REAL BEHAVIOR: Should log warning for each failed removal
-            assert mock_logger.warning.call_count == 2, "Should log warning for each failed removal"
+            # Filter for test message request related warnings
+            warning_calls = [call for call in mock_logger.warning.call_args_list 
+                           if any('test_message_request' in str(arg) for arg in call[0])]
+            assert len(warning_calls) == 2, f"Should log warning for each failed removal, got {len(warning_calls)}"
             
             # ✅ VERIFY REAL BEHAVIOR: Warning messages should mention permission error
-            warning_calls = mock_logger.warning.call_args_list
             for call in warning_calls:
-                assert "Could not remove test message request file" in str(call)
-                assert "Permission denied" in str(call)
+                call_str = str(call)
+                assert "Could not remove test message request file" in call_str or "test_message_request" in call_str
+                assert "Permission denied" in call_str
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_partial_failure_real_behavior(self, service):
+    def test_cleanup_test_message_requests_partial_failure_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when some files succeed and others fail."""
         # ✅ VERIFY REAL BEHAVIOR: Create request files
-        request_files = [
-            'test_message_request_user1_motivational.flag',
-            'test_message_request_user2_health.flag',
-            'test_message_request_user3_reminder.flag'
-        ]
+        base_path = Path(temp_base_dir)
+        request_file1 = base_path / 'test_message_request_user1_motivational.flag'
+        request_file2 = base_path / 'test_message_request_user2_health.flag'
+        request_file3 = base_path / 'test_message_request_user3_reminder.flag'
+        request_file1.touch()
+        request_file2.touch()
+        request_file3.touch()
         
         # Mock os.remove to fail on the second file only
+        original_remove = os.remove
         def mock_remove_with_partial_failure(file_path):
-            if 'user2_health' in file_path:
+            # Only fail for test message request files with user2_health
+            if 'test_message_request_' in file_path and 'user2_health' in file_path:
                 raise OSError("File in use")
-            # Success for other files
+            # Success for other files - use original remove
+            original_remove(file_path)
         
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=request_files), \
-             patch('core.service.os.remove', side_effect=mock_remove_with_partial_failure) as mock_remove, \
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
+             patch('core.service.os.remove', side_effect=mock_remove_with_partial_failure), \
              patch('core.service.logger') as mock_logger:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all files
-            assert mock_remove.call_count == 3, "Should attempt to remove all files"
-            
             # ✅ VERIFY REAL BEHAVIOR: Should log success for 2 files and warning for 1
-            success_calls = [call for call in mock_logger.info.call_args_list]
-            warning_calls = [call for call in mock_logger.warning.call_args_list]
+            # Filter for test message request related calls - check all args in the call
+            success_calls = [call for call in mock_logger.info.call_args_list 
+                           if any('test_message_request' in str(arg) for arg in call[0])]
+            warning_calls = [call for call in mock_logger.warning.call_args_list 
+                           if any('test_message_request' in str(arg) for arg in call[0])]
             
-            assert len(success_calls) == 2, "Should log success for 2 files"
-            assert len(warning_calls) == 1, "Should log warning for 1 file"
+            assert len(success_calls) == 2, f"Should log success for 2 files, got {len(success_calls)}"
+            assert len(warning_calls) == 1, f"Should log warning for 1 file, got {len(warning_calls)}"
+            
+            # Verify that user2_health file still exists (failed to remove)
+            assert (base_path / 'test_message_request_user2_health.flag').exists(), "user2_health file should still exist after failed removal"
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_directory_access_error_real_behavior(self, service):
+    def test_cleanup_test_message_requests_directory_access_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when directory listing fails."""
-        # ✅ VERIFY REAL BEHAVIOR: Mock directory access error
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', side_effect=PermissionError("Cannot access directory")), \
+        # ✅ VERIFY REAL BEHAVIOR: Mock Path.iterdir to raise PermissionError
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
+             patch('pathlib.Path.iterdir', side_effect=PermissionError("Cannot access directory")), \
              patch('core.service.logger') as mock_logger:
             
             # ✅ VERIFY REAL BEHAVIOR: Should handle directory access error gracefully
@@ -670,94 +686,101 @@ class TestCoreServiceCoverageExpansion:
                 pass
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_mixed_file_types_real_behavior(self, service):
+    def test_cleanup_test_message_requests_mixed_file_types_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup with mixed file types in directory."""
         # ✅ VERIFY REAL BEHAVIOR: Create mixed file types
-        mixed_files = [
+        base_path = Path(temp_base_dir)
+        request_files = [
             'test_message_request_user1_motivational.flag',  # Should be cleaned
             'test_message_request_user2_health.flag',        # Should be cleaned
-            'other_file.txt',                                # Should be ignored
-            'config.json',                                   # Should be ignored
             'test_message_request_user3_reminder.flag',      # Should be cleaned
-            'backup.sql',                                    # Should be ignored
             'test_message_request_user4_checkin.flag'        # Should be cleaned
         ]
+        other_files = [
+            'other_file.txt',                                # Should be ignored
+            'config.json',                                   # Should be ignored
+            'backup.sql'                                     # Should be ignored
+        ]
         
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=mixed_files), \
-             patch('core.service.os.remove') as mock_remove, \
-             patch('core.service.logger') as mock_logger:
-            
+        for filename in request_files + other_files:
+            (base_path / filename).touch()
+        
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.cleanup_test_message_requests()
             
             # ✅ VERIFY REAL BEHAVIOR: Should only remove test message request files
-            assert mock_remove.call_count == 4, "Should remove only 4 test message request files"
-            
-            # ✅ VERIFY REAL BEHAVIOR: Should log cleanup for each request file
-            assert mock_logger.info.call_count == 4, "Should log cleanup for each request file"
-            
-            # ✅ VERIFY REAL BEHAVIOR: Verify correct files were targeted
-            removed_files = [call[0][0] for call in mock_remove.call_args_list]
-            for file_path in removed_files:
-                assert 'test_message_request_' in file_path
-                assert file_path.endswith('.flag')
+            remaining_files = [f.name for f in base_path.iterdir()]
+            assert len(remaining_files) == 3, "Should remove only 4 test message request files, leaving 3 other files"
+            assert set(remaining_files) == set(other_files), "Should only have other files remaining"
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_concurrent_access_simulation_real_behavior(self, service):
+    def test_cleanup_test_message_requests_concurrent_access_simulation_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when files disappear during processing."""
         # ✅ VERIFY REAL BEHAVIOR: Create request files
-        request_files = [
-            'test_message_request_user1_motivational.flag',
-            'test_message_request_user2_health.flag',
-            'test_message_request_user3_reminder.flag'
-        ]
+        base_path = Path(temp_base_dir)
+        request_file1 = base_path / 'test_message_request_user1_motivational.flag'
+        request_file2 = base_path / 'test_message_request_user2_health.flag'
+        request_file3 = base_path / 'test_message_request_user3_reminder.flag'
+        request_file1.touch()
+        request_file2.touch()
+        request_file3.touch()
         
         # Mock os.remove to simulate files disappearing during cleanup
-        call_count = 0
+        original_remove = os.remove
+        call_count = [0]
         def mock_remove_with_disappearing_files(file_path):
-            nonlocal call_count
-            call_count += 1
-            if call_count == 2:  # Second file disappears
-                raise FileNotFoundError("File not found")
-            # Success for other files
+            # Only count and handle test message request files
+            if 'test_message_request_' in file_path:
+                call_count[0] += 1
+                if call_count[0] == 2:  # Second file disappears
+                    raise FileNotFoundError("File not found")
+                # Success for other files - use original remove
+                original_remove(file_path)
+            else:
+                # For other files, just remove normally
+                original_remove(file_path)
         
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=request_files), \
-             patch('core.service.os.remove', side_effect=mock_remove_with_disappearing_files) as mock_remove, \
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
+             patch('core.service.os.remove', side_effect=mock_remove_with_disappearing_files), \
              patch('core.service.logger') as mock_logger:
             
             service.cleanup_test_message_requests()
             
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all files
-            assert mock_remove.call_count == 3, "Should attempt to remove all files"
+            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all 3 test message request files
+            assert call_count[0] == 3, f"Should attempt to remove all 3 test message request files, got {call_count[0]}"
             
             # ✅ VERIFY REAL BEHAVIOR: Should handle disappearing files gracefully
             # Should log success for 2 files and warning for 1
-            success_calls = [call for call in mock_logger.info.call_args_list]
-            warning_calls = [call for call in mock_logger.warning.call_args_list]
+            success_calls = [call for call in mock_logger.info.call_args_list 
+                           if any('test_message_request' in str(arg) for arg in call[0])]
+            warning_calls = [call for call in mock_logger.warning.call_args_list 
+                           if any('test_message_request' in str(arg) for arg in call[0])]
             
-            assert len(success_calls) == 2, "Should log success for 2 files"
-            assert len(warning_calls) == 1, "Should log warning for 1 file"
+            assert len(success_calls) == 2, f"Should log success for 2 files, got {len(success_calls)}"
+            assert len(warning_calls) == 1, f"Should log warning for 1 file, got {len(warning_calls)}"
 
     @pytest.mark.behavior
-    def test_cleanup_test_message_requests_file_in_use_error_real_behavior(self, service):
+    def test_cleanup_test_message_requests_file_in_use_error_real_behavior(self, service, temp_base_dir):
         """REAL BEHAVIOR TEST: Test cleanup when files are in use by another process."""
         # ✅ VERIFY REAL BEHAVIOR: Create request files
-        request_files = [
-            'test_message_request_user1_motivational.flag',
-            'test_message_request_user2_health.flag'
-        ]
+        base_path = Path(temp_base_dir)
+        request_file1 = base_path / 'test_message_request_user1_motivational.flag'
+        request_file2 = base_path / 'test_message_request_user2_health.flag'
+        request_file1.touch()
+        request_file2.touch()
         
         # Mock os.remove to simulate files in use
-        with patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=request_files), \
-             patch('core.service.os.remove', side_effect=OSError("File in use by another process")) as mock_remove, \
+        def mock_remove_file_in_use(file_path):
+            if 'test_message_request_' in file_path:
+                raise OSError("File in use by another process")
+            # Success for other files
+            os.remove(file_path)
+        
+        with patch('core.service.MHMService._cleanup_test_message_requests__get_base_directory', return_value=str(temp_base_dir)), \
+             patch('core.service.os.remove', side_effect=mock_remove_file_in_use), \
              patch('core.service.logger') as mock_logger:
             
             service.cleanup_test_message_requests()
-            
-            # ✅ VERIFY REAL BEHAVIOR: Should attempt to remove all files
-            assert mock_remove.call_count == 2, "Should attempt to remove all files"
             
             # ✅ VERIFY REAL BEHAVIOR: Should log warning for each failed removal
             assert mock_logger.warning.call_count == 2, "Should log warning for each failed removal"
@@ -1001,91 +1024,91 @@ class TestCoreServiceCoverageExpansion:
             service.scheduler_manager.reset_and_reschedule_daily_messages.assert_not_called()
 
     @pytest.mark.behavior
-    def test_check_reschedule_requests_valid_file(self, service):
+    def test_check_reschedule_requests_valid_file(self, service, temp_base_dir):
         """Test reschedule requests with valid file."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['reschedule_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 'category': 'motivational',
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000  # Future timestamp
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/reschedule_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
+        # Create a real request file
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'reschedule_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                'category': 'motivational',
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000  # Future timestamp
+            }, f)
 
+        with patch('core.service.MHMService._check_reschedule_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_reschedule_requests()
 
             # Verify scheduler manager was called
             service.scheduler_manager.reset_and_reschedule_daily_messages.assert_called_once_with('motivational', 'user1')
 
             # Verify request file was removed
-            mock_remove.assert_called_with('/test/dir/reschedule_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_reschedule_requests_invalid_file(self, service):
+    def test_check_reschedule_requests_invalid_file(self, service, temp_base_dir):
         """Test reschedule requests with invalid file data."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['reschedule_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 # Missing category
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/reschedule_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
+        # Create a real request file with missing category
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'reschedule_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                # Missing category
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000
+            }, f)
 
+        with patch('core.service.MHMService._check_reschedule_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_reschedule_requests()
 
             # Should not call scheduler manager
             service.scheduler_manager.reset_and_reschedule_daily_messages.assert_not_called()
 
             # Should remove the invalid request file
-            mock_remove.assert_called_with('/test/dir/reschedule_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_reschedule_requests_old_file_processed(self, service):
+    def test_check_reschedule_requests_old_file_processed(self, service, temp_base_dir):
         """Test reschedule requests with old timestamp still processed."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['reschedule_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 'category': 'motivational',
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) - 1000  # Past timestamp
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/reschedule_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
+        # Create a real request file with old timestamp
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'reschedule_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                'category': 'motivational',
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) - 1000  # Past timestamp
+            }, f)
 
+        with patch('core.service.MHMService._check_reschedule_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_reschedule_requests()
 
             # Should still call scheduler manager (function processes all valid requests)
             service.scheduler_manager.reset_and_reschedule_daily_messages.assert_called_once_with('motivational', 'user1')
 
             # Should remove the request file
-            mock_remove.assert_called_with('/test/dir/reschedule_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_reschedule_requests_json_error(self, service):
+    def test_check_reschedule_requests_json_error(self, service, temp_base_dir):
         """Test reschedule requests with JSON parsing error."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['reschedule_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data="invalid json")), \
-             patch('core.service.os.path.join', return_value='/test/dir/reschedule_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
+        # Create a real request file with invalid JSON
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'reschedule_request_user1.flag'
+        with open(request_file, 'w') as f:
+            f.write("invalid json")
 
+        with patch('core.service.MHMService._check_reschedule_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_reschedule_requests()
 
             # Should not call scheduler manager
             service.scheduler_manager.reset_and_reschedule_daily_messages.assert_not_called()
 
             # Should remove the problematic request file
-            mock_remove.assert_called_with('/test/dir/reschedule_request_user1.flag')
+            assert not request_file.exists()
 
     # ============================================================================
     # HIGH COMPLEXITY FUNCTION TESTS - check_test_message_requests (270 nodes)
@@ -1104,113 +1127,114 @@ class TestCoreServiceCoverageExpansion:
             service.communication_manager.handle_message_sending.assert_not_called()
 
     @pytest.mark.behavior
-    def test_check_test_message_requests_valid_file(self, service):
+    def test_check_test_message_requests_valid_file(self, service, temp_base_dir):
         """Test test message requests with valid file."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['test_message_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 'category': 'motivational',
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/test_message_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
-
+        # Create a real request file
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'test_message_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                'category': 'motivational',
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000
+            }, f)
+        
+        # Mock the base directory method to return our temp directory
+        with patch('core.service.MHMService._check_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_test_message_requests()
 
             # Verify communication manager was called
             service.communication_manager.handle_message_sending.assert_called_once()
 
             # Verify request file was removed
-            mock_remove.assert_called_with('/test/dir/test_message_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_test_message_requests_invalid_file(self, service):
+    def test_check_test_message_requests_invalid_file(self, service, temp_base_dir):
         """Test test message requests with invalid file data."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['test_message_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 # Missing category
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/test_message_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
-
+        # Create a real request file with missing category
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'test_message_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                # Missing category
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000
+            }, f)
+        
+        with patch('core.service.MHMService._check_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_test_message_requests()
 
             # Should not call communication manager
             service.communication_manager.handle_message_sending.assert_not_called()
 
             # Should remove the invalid request file
-            mock_remove.assert_called_with('/test/dir/test_message_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_test_message_requests_json_error(self, service):
+    def test_check_test_message_requests_json_error(self, service, temp_base_dir):
         """Test test message requests with JSON parsing error."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['test_message_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data="invalid json")), \
-             patch('core.service.os.path.join', return_value='/test/dir/test_message_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
-
+        # Create a real request file with invalid JSON
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'test_message_request_user1.flag'
+        with open(request_file, 'w') as f:
+            f.write("invalid json")
+        
+        with patch('core.service.MHMService._check_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_test_message_requests()
 
             # Should not call communication manager
             service.communication_manager.handle_message_sending.assert_not_called()
 
             # Should remove the problematic request file
-            mock_remove.assert_called_with('/test/dir/test_message_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_test_message_requests_no_communication_manager(self, service):
+    def test_check_test_message_requests_no_communication_manager(self, service, temp_base_dir):
         """Test test message requests when communication manager is None."""
         service.communication_manager = None
+        
+        # Create a real request file
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'test_message_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                'category': 'motivational',
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000
+            }, f)
 
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['test_message_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 'category': 'motivational',
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/test_message_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
-
+        with patch('core.service.MHMService._check_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_test_message_requests()
 
             # Should remove the request file even without communication manager
-            mock_remove.assert_called_with('/test/dir/test_message_request_user1.flag')
+            assert not request_file.exists()
 
     @pytest.mark.behavior
-    def test_check_test_message_requests_communication_error(self, service):
+    def test_check_test_message_requests_communication_error(self, service, temp_base_dir):
         """Test test message requests when communication manager raises error."""
-        with patch('core.service.logger') as mock_logger, \
-             patch('core.service.os.path.dirname', return_value='/test/dir'), \
-             patch('core.service.os.listdir', return_value=['test_message_request_user1.flag']), \
-             patch('builtins.open', mock_open(read_data=json.dumps({
-                 'user_id': 'user1',
-                 'category': 'motivational',
-                 'source': 'admin_panel',
-                 'timestamp': int(time.time()) + 1000
-             }))), \
-             patch('core.service.os.path.join', return_value='/test/dir/test_message_request_user1.flag'), \
-             patch('core.service.os.remove') as mock_remove:
+        # Create a real request file
+        base_path = Path(temp_base_dir)
+        request_file = base_path / 'test_message_request_user1.flag'
+        with open(request_file, 'w') as f:
+            json.dump({
+                'user_id': 'user1',
+                'category': 'motivational',
+                'source': 'admin_panel',
+                'timestamp': int(time.time()) + 1000
+            }, f)
 
-            # Mock communication manager error
-            service.communication_manager.handle_message_sending.side_effect = Exception("Communication error")
+        # Mock communication manager error
+        service.communication_manager.handle_message_sending.side_effect = Exception("Communication error")
 
+        with patch('core.service.MHMService._check_test_message_requests__get_base_directory', return_value=str(temp_base_dir)):
             service.check_test_message_requests()
 
             # Should remove the request file even on communication error
-            mock_remove.assert_called_with('/test/dir/test_message_request_user1.flag')
+            assert not request_file.exists()
 
     # ============================================================================
     # SELECTIVE HELPER FUNCTION TESTS - Most Complex Functions

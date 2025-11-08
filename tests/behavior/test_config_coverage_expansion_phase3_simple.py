@@ -219,7 +219,9 @@ class TestConfigCoverageExpansionPhase3Simple:
         """Test get_user_data_dir function"""
         with patch('core.config.BASE_DATA_DIR', '/test/data'):
             result = core.config.get_user_data_dir('user123')
-            expected = os.path.join('/test/data', 'users', 'user123')
+            # Path normalizes paths, so compare normalized versions
+            from pathlib import Path
+            expected = str(Path('/test/data') / 'users' / 'user123')
             assert result == expected
 
     def test_get_backups_dir_testing_mode(self, tmp_path):
@@ -234,15 +236,18 @@ class TestConfigCoverageExpansionPhase3Simple:
         with patch.dict(os.environ, {'MHM_TESTING': '0'}, clear=True):
             with patch('core.config.BASE_DATA_DIR', '/test/data'):
                 result = core.config.get_backups_dir()
-                expected = os.path.join('/test/data', 'backups')
+                # Path normalizes paths, so compare normalized versions
+                from pathlib import Path
+                expected = str(Path('/test/data') / 'backups')
                 assert result == expected
 
     def test_get_user_file_path(self, tmp_path):
         """Test get_user_file_path function"""
         with patch('core.config.BASE_DATA_DIR', '/test/data'):
-            result = core.config.get_user_file_path('user123', 'account.json')
-            # The function adds .json extension automatically
-            expected = os.path.join('/test/data', 'users', 'user123', 'account.json.json')
+            result = core.config.get_user_file_path('user123', 'account')
+            # The function maps 'account' to 'account.json'
+            from pathlib import Path
+            expected = str(Path('/test/data') / 'users' / 'user123' / 'account.json')
             assert result == expected
 
     def test_ensure_user_directory_success(self, tmp_path):
@@ -323,16 +328,19 @@ class TestConfigCoverageExpansionPhase3Simple:
 
     def test_path_handling_functions(self, tmp_path):
         """Test path handling functions"""
+        from pathlib import Path
         # Test get_user_data_dir
         with patch('core.config.BASE_DATA_DIR', '/test/data'):
             result = core.config.get_user_data_dir('user123')
-            assert result == os.path.join('/test/data', 'users', 'user123')
+            expected = str(Path('/test/data') / 'users' / 'user123')
+            assert result == expected
         
         # Test get_user_file_path
         with patch('core.config.BASE_DATA_DIR', '/test/data'):
-            result = core.config.get_user_file_path('user123', 'preferences.json')
-            # The function adds .json extension automatically
-            assert result == os.path.join('/test/data', 'users', 'user123', 'preferences.json.json')
+            result = core.config.get_user_file_path('user123', 'preferences')
+            # The function maps 'preferences' to 'preferences.json'
+            expected = str(Path('/test/data') / 'users' / 'user123' / 'preferences.json')
+            assert result == expected
 
     def test_directory_creation_functions(self, tmp_path):
         """Test directory creation functions"""

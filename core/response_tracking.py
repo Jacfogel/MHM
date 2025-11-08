@@ -14,6 +14,7 @@ logger = get_component_logger('user_activity')
 tracking_logger = get_component_logger('user_activity')
 
 
+@handle_errors("getting response log filename", default_return="response_log.json")
 def _get_response_log_filename(response_type: str) -> str:
     """Get the filename for a response log type."""
     filename_mapping = {
