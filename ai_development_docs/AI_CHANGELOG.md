@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
+- **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% → 80%+, 30 tests), `rich_formatter.py` (22% → 80%+, 37 tests), `api_client.py` (28% → 80%+, 43 tests), `command_registry.py` (37% → 80%+, 30 tests), `event_handler.py` (39% → 80%+, 37 tests), `lm_studio_manager.py` (23% → 80%+, 31 tests), `admin_panel.py` (31% → 80%+, 17 tests), `checkin_management_dialog.py` (44% → 80%+, 21 tests), and `user_context.py` (48% → 80%+, 30 tests)
+- **Test Quality**: All 276 new tests follow Arrange-Act-Assert pattern, verify actual system behavior, maintain proper test isolation, and cover initialization, success paths, edge cases, error handling, async operations, and UI interactions
+- **Testing**: Full test suite passes - 2,452 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and user management modules
+- **Impact**: All modules now have 80%+ coverage, improving system reliability and change safety. Total test count increased from 2,176 to 2,452 tests.
+
 ### 2025-11-06 - Test Isolation Improvements and Coverage Regeneration Enhancements **COMPLETED**
 - **Test Isolation Improvements**: Added `TestLogPathMocks.create_complete_log_paths_mock()` helper and updated all logger test mocks to use it, ensuring all required keys including `ai_dev_tools_file` are present
 - **Race Condition Handling**: Improved cleanup test isolation with unique tracker file paths (UUID suffixes) and added `retry_with_backoff()` helper for user data tests to handle transient failures

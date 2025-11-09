@@ -35,6 +35,42 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
+
+**Problem**: Nine modules had low test coverage ranging from 20% to 48%: `message_formatter.py` (20%), `rich_formatter.py` (22%), `api_client.py` (28%), `command_registry.py` (37%), `event_handler.py` (39%), `lm_studio_manager.py` (23%), `admin_panel.py` (31%), `checkin_management_dialog.py` (44%), and `user_context.py` (48%). These modules needed comprehensive test coverage to reach 80%+ for improved reliability and change safety.
+
+**Solution**: Created comprehensive test suites for all nine modules, adding 276 new tests covering initialization, success paths, edge cases, error handling, async operations, UI interactions, and integration scenarios. All tests follow project testing guidelines and maintain proper isolation.
+
+**Technical Changes**:
+- **Message Formatter Tests**: Created `tests/unit/test_message_formatter.py` with 30 tests covering TextMessageFormatter, EmailMessageFormatter, MessageFormatterFactory, and error handling. Coverage increased from 20% to 80%+.
+- **Rich Formatter Tests**: Created `tests/unit/test_rich_formatter.py` with 37 tests covering DiscordRichFormatter, EmailRichFormatter, RichFormatterFactory, embed creation, interactive views, and color mapping. Coverage increased from 22% to 80%+.
+- **Discord API Client Tests**: Created `tests/unit/test_discord_api_client.py` with 43 tests covering message sending, DM handling, channel/user lookup, rate limiting, permissions, connection status, and factory functions. Coverage increased from 28% to 80%+.
+- **Command Registry Tests**: Created `tests/unit/test_command_registry.py` with 30 tests covering CommandDefinition, CommandRegistry base class, DiscordCommandRegistry, EmailCommandRegistry, and factory function. Coverage increased from 37% to 80%+.
+- **Event Handler Tests**: Created `tests/unit/test_discord_event_handler.py` with 37 tests covering EventType enum, EventContext, DiscordEventHandler initialization, event handling, message processing, response sending, and factory function. Coverage increased from 39% to 80%+.
+- **LM Studio Manager Tests**: Updated `tests/unit/test_lm_studio_manager.py` with 31 tests covering process detection, server status checking, model loading, automatic loading, readiness checking, and factory functions. Coverage increased from 23% to 80%+.
+- **Admin Panel Tests**: Created `tests/unit/test_admin_panel.py` with 17 tests covering AdminPanelDialog initialization, UI setup, data retrieval/setting, and error handling. Coverage increased from 31% to 80%+.
+- **Check-in Management Dialog Tests**: Created `tests/unit/test_checkin_management_dialog.py` with 21 tests covering initialization, enable/disable toggle, data loading/saving, validation, and error handling. Coverage increased from 44% to 80%+.
+- **User Context Tests**: Created `tests/unit/test_user_context.py` with 30 tests covering singleton pattern, thread safety, load/save operations, user_id management, internal_username, preferred_name, legacy preference methods, and get_instance_context. Coverage increased from 48% to 80%+.
+
+**Files Created**:
+- `tests/unit/test_message_formatter.py` (30 tests)
+- `tests/unit/test_rich_formatter.py` (37 tests)
+- `tests/unit/test_discord_api_client.py` (43 tests)
+- `tests/unit/test_command_registry.py` (30 tests)
+- `tests/unit/test_discord_event_handler.py` (37 tests)
+- `tests/unit/test_lm_studio_manager.py` (31 tests - updated)
+- `tests/unit/test_admin_panel.py` (17 tests)
+- `tests/unit/test_checkin_management_dialog.py` (21 tests)
+- `tests/unit/test_user_context.py` (30 tests)
+
+**Testing**:
+- Full test suite passes: 2,452 passed, 1 skipped, 0 failed
+- All 276 new tests pass with proper isolation
+- Verified no files written outside `tests/` directory
+- Tests follow Arrange-Act-Assert pattern and project testing guidelines
+
+**Impact**: Significantly improved test coverage for communication channels, UI dialogs, and user management modules. All modules now have 80%+ coverage, improving system reliability and change safety. Total test count increased from 2,176 to 2,452 tests.
+
 ### 2025-11-06 - Test Isolation Improvements and Coverage Regeneration Enhancements **COMPLETED**
 
 **Problem**: Several tests were flaky due to race conditions and incomplete test isolation. The coverage regeneration script also didn't clearly distinguish between test failures and coverage collection failures, making it difficult to understand why coverage generation "failed" when tests failed but coverage data was successfully collected.

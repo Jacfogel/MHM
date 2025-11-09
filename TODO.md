@@ -173,18 +173,11 @@ When adding new tasks, follow this format:
 ## Medium Priority
 
 
-**Investigate Log Files Backing Up and Clearing Prematurely**
+**Investigate Log Files Backing Up and Clearing Prematurely** ✅ **COMPLETED**
 - *What it means*: Log files appear to be backing up and clearing after only one line of content, resulting in lost log data. This suggests log rotation or backup logic is triggering too early or incorrectly
 - *Why it helps*: Ensures log data is preserved for debugging and prevents loss of important diagnostic information
 - *Estimated effort*: Medium
-- *Subtasks*:
-  - [ ] Review log rotation and backup logic in `core/logger.py` or logging configuration
-  - [ ] Check log file size thresholds and rotation triggers
-  - [ ] Verify log backup directory creation and file naming
-  - [ ] Test log rotation with multiple log entries to reproduce the issue
-  - [ ] Review any log clearing or truncation logic that might be running too early
-  - [ ] Check if log files are being overwritten instead of appended
-  - [ ] Fix rotation logic to preserve all log data before clearing/rotating
+- *Status*: ✅ **FIXED** - Added guards in `shouldRollover()` and `doRollover()` to prevent rollover of files smaller than 100 bytes or less than 1 hour old. Fixed truncation logic in `doRollover()` to properly reset log files after rotation. See changelog entries: 2025-10-01 Log Rotation Truncation Fix, 2025-09-XX Fixed Premature Log Rollover.
 
 **Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
 - *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.
@@ -305,17 +298,19 @@ When adding new tasks, follow this format:
 - *What it means*: Continue expanding test coverage for remaining low-coverage modules
 - *Why it helps*: Increases reliability and change safety for core system components
 - *Estimated effort*: Large
-- *Current Status*: Completed test coverage expansion for 5 priority modules (154 new tests added, all passing)
+- *Current Status*: Completed test coverage expansion for 9 additional modules (276 new tests added, all passing)
 - *Subtasks*:
-  - [x] Expand coverage for `ui/dialogs/process_watcher_dialog.py` (13% → 87% coverage, 28 tests added)
-  - [x] Expand coverage for `ui/dialogs/user_analytics_dialog.py` (15% coverage, 34 tests added)
-  - [x] Expand coverage for `communication/__init__.py` (42% → 80%+, 30 tests added)
-  - [x] Expand coverage for `ai/lm_studio_manager.py` (23% → 80%+, 30 tests added)
-  - [x] Expand coverage for `ui/dialogs/message_editor_dialog.py` (23% → 80%+, 19 tests added)
-  - [x] Expand coverage for `core/user_data_manager.py` (42% → 80%+, 42 tests added)
-  - [x] Expand coverage for `core/logger.py` (56% → 80%+, 33 tests added)
-  - [ ] Expand coverage for `ui/ui_app_qt.py` (32% coverage, 1095 lines) - Large module
-  - [ ] Expand coverage for `core/scheduler.py` (64% → 80%+)
+  - [x] Expand coverage for `communication/communication_channels/base/message_formatter.py` (20% → 80%+, 30 tests added)
+  - [x] Expand coverage for `communication/communication_channels/base/rich_formatter.py` (22% → 80%+, 37 tests added)
+  - [x] Expand coverage for `communication/communication_channels/discord/api_client.py` (28% → 80%+, 43 tests added)
+  - [x] Expand coverage for `communication/communication_channels/base/command_registry.py` (37% → 80%+, 30 tests added)
+  - [x] Expand coverage for `communication/communication_channels/discord/event_handler.py` (39% → 80%+, 37 tests added)
+  - [x] Expand coverage for `ai/lm_studio_manager.py` (23% → 80%+, 31 tests added)
+  - [x] Expand coverage for `ui/dialogs/admin_panel.py` (31% → 80%+, 17 tests added)
+  - [x] Expand coverage for `ui/dialogs/checkin_management_dialog.py` (44% → 80%+, 21 tests added)
+  - [x] Expand coverage for `user/user_context.py` (48% → 80%+, 30 tests added)
+  - [ ] Expand coverage for `ui/ui_app_qt.py` (33% coverage, 1095 lines) - Large module
+  - [ ] Expand coverage for `core/scheduler.py` (65% → 80%+)
   - [ ] Add comprehensive tests for remaining communication modules
   - [ ] Focus on error handling and edge case coverage
 
