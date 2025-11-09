@@ -38,6 +38,7 @@ When adding new tasks, follow this format:
 - *Current Status*: 
   - ✅ Resolved: Fixed 7 pytest collection warnings by adding `__test__ = False` to all AI test classes
   - ✅ Expected: 4 external library deprecation warnings remain (cannot be fixed - from Discord library and audioop)
+  - ⚠️ Outstanding: 1 RuntimeWarning in `test_save_checkin_settings_skips_validation_when_disabled` - coroutine 'AsyncMockMixin._execute_mock_call' was never awaited (similar to fixed warning in Discord bot test, needs similar suppression)
 
 **Continue Error Handling Coverage Expansion**
 - *What it means*: Continue expanding error handling coverage beyond current 92.9% to 93%+ by adding @handle_errors decorators to remaining 104 functions

@@ -583,7 +583,10 @@ class TestDiscordBotIntegration:
                 send_calls.append(payload)
                 return True
 
-            fake_channel.send = AsyncMock(side_effect=fake_send)
+            # Use regular async function instead of AsyncMock to avoid warnings
+            async def mock_send(*args, **kwargs):
+                return await fake_send(*args, **kwargs)
+            fake_channel.send = mock_send
 
             class FakeAuthor:
                 id = int("123456789012345678")
@@ -722,4 +725,428 @@ class TestDiscordBotIntegration:
             results.append(result)
         
         assert len(results) == 5, "All tasks should complete"
-        assert all(isinstance(r, bool) for r in results), "All results should be boolean" 
+        assert all(isinstance(r, bool) for r in results), "All results should be boolean"
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_network_connectivity_validation_handles_invalid_hostname(self, test_data_dir):
+        """Test that network connectivity validation handles invalid hostname"""
+        bot = DiscordBot()
+        
+        # Test with None hostname
+        result = bot._check_network_connectivity(None, 443)
+        assert result is False, "Should return False for None hostname"
+        
+        # Test with empty hostname
+        result = bot._check_network_connectivity("", 443)
+        assert result is False, "Should return False for empty hostname"
+        
+        # Test with non-string hostname
+        result = bot._check_network_connectivity(123, 443)
+        assert result is False, "Should return False for non-string hostname"
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_network_connectivity_validation_handles_invalid_port(self, test_data_dir):
+        """Test that network connectivity validation handles invalid port"""
+        bot = DiscordBot()
+        
+        # Test with invalid port (too low)
+        result = bot._check_network_connectivity("discord.com", 0)
+        assert result is False, "Should return False for port 0"
+        
+        # Test with invalid port (too high)
+        result = bot._check_network_connectivity("discord.com", 65536)
+        assert result is False, "Should return False for port > 65535"
+        
+        # Test with non-integer port
+        result = bot._check_network_connectivity("discord.com", "invalid")
+        assert result is False, "Should return False for non-integer port"
+
+    @pytest.mark.channels
+    @pytest.mark.network
+    def test_wait_for_network_recovery_handles_validation(self, test_data_dir):
+        """Test that wait for network recovery handles validation"""
+        bot = DiscordBot()
+        
+        # Test with invalid max_wait
+        result = bot._wait_for_network_recovery(-1)
+        assert result is False, "Should return False for negative max_wait"
+        
+        # Test with non-integer max_wait
+        result = bot._wait_for_network_recovery("invalid")
+        assert result is False, "Should return False for non-integer max_wait"
+
+    @pytest.mark.channels
+    @pytest.mark.network
+    def test_wait_for_network_recovery_waits_for_recovery(self, test_data_dir):
+        """Test that wait for network recovery actually waits for recovery"""
+        bot = DiscordBot()
+        
+        # Create a time counter that increments properly
+        time_counter = [0]
+        call_count = [0]
+        
+        def get_time():
+            call_count[0] += 1
+            if call_count[0] == 1:
+                return 0  # start_time
+            # Return current time (incremented by sleep)
+            # Make sure we don't exceed max_wait to avoid infinite loop
+            return min(time_counter[0], 25)  # Cap at 25 to ensure loop exits
+        
+        def mock_sleep(seconds):
+            # When sleep is called, increment time
+            time_counter[0] += seconds
+        
+        # Make network recovery happen on first check to avoid long waits
+        with patch.object(bot, '_check_dns_resolution', return_value=True):
+            with patch.object(bot, '_check_network_connectivity', return_value=True):
+                with patch('time.sleep', side_effect=mock_sleep):
+                    with patch('time.time', side_effect=get_time):
+                        result = bot._wait_for_network_recovery(20)
+                        assert result is True, "Should return True when network recovers"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_session_cleanup_context_manager_cleans_up_sessions(self, test_data_dir):
+        """Test that session cleanup context manager properly cleans up sessions"""
+        bot = DiscordBot()
+        
+        # Create mock sessions with proper attributes
+        # Track close calls manually to avoid AsyncMock warnings
+        close_calls1 = []
+        close_calls2 = []
+        
+        async def mock_close1():
+            close_calls1.append(1)
+        
+        async def mock_close2():
+            close_calls2.append(1)
+        
+        mock_session1 = MagicMock()
+        mock_session1.closed = False
+        mock_session1.close = mock_close1
+        
+        mock_session2 = MagicMock()
+        mock_session2.closed = False
+        mock_session2.close = mock_close2
+        
+        # Track if cleanup was called
+        cleanup_called = []
+        
+        # Mock _cleanup_session_with_timeout to track calls and call close
+        async def mock_cleanup_session(session):
+            cleanup_called.append(session)
+            if hasattr(session, 'close') and not session.closed:
+                await session.close()
+            return True
+        
+        # Mock asyncio.gather and wait_for to execute immediately
+        async def mock_gather(*args, **kwargs):
+            # Execute all coroutines passed as arguments
+            results = []
+            for coro in args:
+                if asyncio.iscoroutine(coro):
+                    results.append(await coro)
+                else:
+                    results.append(coro)
+            return results
+        
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
+        with patch.object(bot, '_cleanup_session_with_timeout', side_effect=mock_cleanup_session):
+            with patch('asyncio.gather', side_effect=mock_gather):
+                with patch('asyncio.wait_for', side_effect=mock_wait_for):
+                    # Test context manager
+                    async with bot.shutdown__session_cleanup_context() as sessions:
+                        sessions.append(mock_session1)
+                        sessions.append(mock_session2)
+                    
+                    # Verify cleanup was called for both sessions
+                    assert len(cleanup_called) == 2, f"Should call cleanup for both sessions, got {len(cleanup_called)}"
+                    assert mock_session1 in cleanup_called, "Session1 should be cleaned up"
+                    assert mock_session2 in cleanup_called, "Session2 should be cleaned up"
+                    # Verify sessions were closed
+                    assert len(close_calls1) == 1, "Session1 close should be called once"
+                    assert len(close_calls2) == 1, "Session2 close should be called once"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_cleanup_session_with_timeout_handles_timeout(self, test_data_dir):
+        """Test that cleanup session with timeout handles timeout correctly"""
+        bot = DiscordBot()
+        
+        # Create mock session - use AsyncMock which handles unawaited coroutines better
+        mock_session = MagicMock()
+        mock_session.close = AsyncMock()
+        
+        # Mock asyncio.wait_for to raise TimeoutError (simulating timeout)
+        # This prevents close() from being awaited, which is expected behavior
+        async def mock_wait_for(coro, timeout):
+            raise asyncio.TimeoutError()
+        
+        with patch('asyncio.wait_for', side_effect=mock_wait_for):
+            # Suppress the expected RuntimeWarning about unawaited coroutine
+            import warnings
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=RuntimeWarning, message=".*coroutine.*was never awaited")
+                result = await bot._cleanup_session_with_timeout(mock_session)
+            assert result is False, "Should return False on timeout"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_cleanup_event_loop_safely_cancels_tasks(self, test_data_dir):
+        """Test that cleanup event loop safely cancels tasks"""
+        bot = DiscordBot()
+        
+        # Create a mock loop with tasks
+        mock_loop = MagicMock()
+        mock_loop.is_closed.return_value = False
+        
+        # Create mock tasks
+        mock_task1 = MagicMock()
+        mock_task1.done.return_value = False
+        mock_task1.cancel = MagicMock()
+        
+        mock_task2 = MagicMock()
+        mock_task2.done.return_value = False
+        mock_task2.cancel = MagicMock()
+        
+        # Use a regular async function for gather to avoid AsyncMock warnings
+        async def mock_gather(*args, **kwargs):
+            # Return results for gather - tasks are cancelled so they'll raise CancelledError
+            return [None, None]
+        
+        async def mock_wait_for(coro, timeout):
+            return await coro
+        
+        with patch('asyncio.all_tasks', return_value=[mock_task1, mock_task2]):
+            with patch('asyncio.gather', side_effect=mock_gather):
+                with patch('asyncio.wait_for', side_effect=mock_wait_for):
+                    result = await bot._cleanup_event_loop_safely(mock_loop)
+                    assert result is True, "Should return True after cleanup"
+                    mock_task1.cancel.assert_called_once()
+                    mock_task2.cancel.assert_called_once()
+
+    @pytest.mark.channels
+    @pytest.mark.network
+    def test_check_network_health_checks_all_components(self, test_data_dir):
+        """Test that check network health checks all components"""
+        bot = DiscordBot()
+        
+        with patch.object(bot, '_check_dns_resolution', return_value=True):
+            with patch.object(bot, '_check_network_connectivity', return_value=True):
+                with patch.object(bot, 'bot', None):
+                    result = bot._check_network_health()
+                    assert result is True, "Should return True when all checks pass"
+        
+        # Test with DNS failure
+        with patch.object(bot, '_check_dns_resolution', return_value=False):
+            result = bot._check_network_health()
+            assert result is False, "Should return False when DNS fails"
+
+    @pytest.mark.channels
+    @pytest.mark.network
+    def test_check_network_health_checks_bot_latency(self, test_data_dir):
+        """Test that check network health checks bot latency"""
+        import warnings
+        
+        bot = DiscordBot()
+        
+        # Create mock bot with good latency - use spec to avoid AsyncMock issues
+        # Ensure latency is a simple property, not an async operation
+        mock_bot = MagicMock(spec=['latency'])
+        mock_bot.latency = 0.1
+        
+        bot.bot = mock_bot
+        
+        with patch.object(bot, '_check_dns_resolution', return_value=True):
+            with patch.object(bot, '_check_network_connectivity', return_value=True):
+                result = bot._check_network_health()
+                assert result is True, "Should return True with good latency"
+        
+        # Test with high latency
+        mock_bot.latency = 2.0
+        with patch.object(bot, '_check_dns_resolution', return_value=True):
+            with patch.object(bot, '_check_network_connectivity', return_value=True):
+                result = bot._check_network_health()
+                assert result is False, "Should return False with high latency"
+        
+        # Clean up to avoid warnings - ensure no async operations are triggered
+        # Suppress warnings from async cleanup that might happen after event loop closes
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            # Suppress PytestUnraisableExceptionWarning from async cleanup
+            try:
+                from _pytest.unraisableexception import PytestUnraisableExceptionWarning
+                warnings.simplefilter("ignore", PytestUnraisableExceptionWarning)
+            except ImportError:
+                # If pytest version doesn't have this, just ignore RuntimeWarning
+                pass
+            bot.bot = None
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_should_attempt_reconnection_checks_all_conditions(self, test_data_dir):
+        """Test that should attempt reconnection checks all conditions"""
+        bot = DiscordBot()
+        
+        # Test with max attempts exceeded
+        bot._reconnect_attempts = bot._max_reconnect_attempts
+        result = bot._should_attempt_reconnection()
+        assert result is False, "Should return False when max attempts exceeded"
+        
+        # Test with cooldown active
+        bot._reconnect_attempts = 0
+        bot._last_reconnect_time = time.time()
+        result = bot._should_attempt_reconnection()
+        assert result is False, "Should return False when cooldown is active"
+        
+        # Test with network health failure
+        bot._reconnect_attempts = 0
+        bot._last_reconnect_time = 0
+        with patch.object(bot, '_check_network_health', return_value=False):
+            result = bot._should_attempt_reconnection()
+            assert result is False, "Should return False when network health fails"
+        
+        # Test with all conditions met
+        bot._reconnect_attempts = 0
+        bot._last_reconnect_time = 0
+        with patch.object(bot, '_check_network_health', return_value=True):
+            result = bot._should_attempt_reconnection()
+            assert result is True, "Should return True when all conditions met"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_send_message_internal_validation_handles_invalid_recipient(self, test_data_dir):
+        """Test that send message internal validation handles invalid recipient"""
+        bot = DiscordBot()
+        bot.bot = MagicMock()
+        
+        # Test with None recipient
+        result = await bot._send_message_internal(None, "test message")
+        assert result is False, "Should return False for None recipient"
+        
+        # Test with empty recipient
+        result = await bot._send_message_internal("", "test message")
+        assert result is False, "Should return False for empty recipient"
+        
+        # Test with non-string recipient
+        result = await bot._send_message_internal(123, "test message")
+        assert result is False, "Should return False for non-string recipient"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_send_message_internal_validation_handles_invalid_message(self, test_data_dir):
+        """Test that send message internal validation handles invalid message"""
+        bot = DiscordBot()
+        bot.bot = MagicMock()
+        
+        # Test with None message
+        result = await bot._send_message_internal("123456789", None)
+        assert result is False, "Should return False for None message"
+        
+        # Test with empty message
+        result = await bot._send_message_internal("123456789", "")
+        assert result is False, "Should return False for empty message"
+        
+        # Test with non-string message
+        result = await bot._send_message_internal("123456789", 123)
+        assert result is False, "Should return False for non-string message"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_send_message_internal_validation_handles_invalid_rich_data(self, test_data_dir):
+        """Test that send message internal validation handles invalid rich_data"""
+        bot = DiscordBot()
+        bot.bot = MagicMock()
+        
+        # Test with non-dict rich_data
+        result = await bot._send_message_internal("123456789", "test message", rich_data="invalid")
+        assert result is False, "Should return False for non-dict rich_data"
+
+    @pytest.mark.channels
+    @pytest.mark.asyncio
+    async def test_send_message_internal_validation_handles_invalid_suggestions(self, test_data_dir):
+        """Test that send message internal validation handles invalid suggestions"""
+        bot = DiscordBot()
+        bot.bot = MagicMock()
+        
+        # Test with non-list suggestions
+        result = await bot._send_message_internal("123456789", "test message", suggestions="invalid")
+        assert result is False, "Should return False for non-list suggestions"
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_create_discord_embed_validation_handles_invalid_inputs(self, test_data_dir):
+        """Test that create Discord embed validation handles invalid inputs"""
+        bot = DiscordBot()
+        
+        # Test with None message
+        result = bot._create_discord_embed(None, {"title": "Test"})
+        assert result is None, "Should return None for None message"
+        
+        # Test with empty message
+        result = bot._create_discord_embed("", {"title": "Test"})
+        assert result is None, "Should return None for empty message"
+        
+        # Test with non-string message
+        result = bot._create_discord_embed(123, {"title": "Test"})
+        assert result is None, "Should return None for non-string message"
+        
+        # Test with None rich_data
+        result = bot._create_discord_embed("test message", None)
+        assert result is None, "Should return None for None rich_data"
+        
+        # Test with non-dict rich_data
+        result = bot._create_discord_embed("test message", "invalid")
+        assert result is None, "Should return None for non-dict rich_data"
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_create_discord_embed_creates_embed_with_rich_data(self, test_data_dir):
+        """Test that create Discord embed creates embed with rich data"""
+        bot = DiscordBot()
+        
+        rich_data = {
+            "title": "Test Title",
+            "description": "Test Description",
+            "color": 0x00ff00
+        }
+        
+        embed = bot._create_discord_embed("test message", rich_data)
+        assert embed is not None, "Should create embed"
+        assert embed.title == "Test Title", "Should set title"
+        assert embed.description == "Test Description", "Should set description"
+
+    @pytest.mark.channels
+    @pytest.mark.critical
+    def test_create_action_row_creates_view_with_suggestions(self, test_data_dir):
+        """Test that create action row creates view with suggestions"""
+        bot = DiscordBot()
+        
+        suggestions = ["Option 1", "Option 2", "Option 3"]
+        
+        # Create simple mock objects to avoid AsyncMock issues
+        class MockView:
+            def __init__(self):
+                self.children = []
+            
+            def add_item(self, item):
+                self.children.append(item)
+        
+        class MockButton:
+            def __init__(self, *args, **kwargs):
+                pass
+        
+        # Mock discord.ui.View to avoid event loop requirement and aiohttp cleanup issues
+        with patch('communication.communication_channels.discord.bot.discord.ui.View', MockView):
+            # Mock discord.ui.Button
+            with patch('communication.communication_channels.discord.bot.discord.ui.Button', MockButton):
+                view = bot._create_action_row(suggestions)
+                
+                assert view is not None, "Should create view"
+                assert isinstance(view, MockView), "Should create View instance"
+                assert len(view.children) == len(suggestions), f"Should have {len(suggestions)} buttons, got {len(view.children)}" 

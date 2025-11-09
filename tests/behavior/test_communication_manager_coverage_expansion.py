@@ -760,6 +760,118 @@ class TestCommunicationManagerCoverageExpansion:
     @pytest.mark.behavior
     @pytest.mark.communication
     @pytest.mark.critical
+    def test_get_active_channels_returns_active_channels(self, comm_manager, realistic_mock_channel):
+        """Test that get_active_channels returns list of active channels."""
+        # Arrange: Add a channel
+        comm_manager._channels_dict['test_channel'] = realistic_mock_channel
+        
+        # Act
+        active_channels = comm_manager.get_active_channels()
+        
+        # Assert
+        assert isinstance(active_channels, list), "Should return a list"
+        assert 'test_channel' in active_channels, "Should include active channel"
+    
+    def test_get_configured_channels_returns_configured_channels(self, comm_manager):
+        """Test that get_configured_channels returns list of configured channels."""
+        # Act
+        configured_channels = comm_manager.get_configured_channels()
+        
+        # Assert
+        assert isinstance(configured_channels, list), "Should return a list"
+        # May be empty if no channels are configured, which is valid
+    
+    def test_get_registered_channels_returns_registered_channels(self, comm_manager):
+        """Test that get_registered_channels returns list of registered channels."""
+        # Act
+        registered_channels = comm_manager.get_registered_channels()
+        
+        # Assert
+        assert isinstance(registered_channels, list), "Should return a list"
+        # May be empty if no channels are registered, which is valid
+    
+    def test_get_last_task_reminder_returns_last_reminder(self, comm_manager, test_data_dir):
+        """Test that get_last_task_reminder returns last task reminder for user."""
+        # Arrange
+        user_id = "test_user"
+        task_id = "test_task_123"
+        comm_manager._last_task_reminders[user_id] = task_id
+        
+        # Act
+        last_reminder = comm_manager.get_last_task_reminder(user_id)
+        
+        # Assert
+        assert last_reminder == task_id, "Should return last task reminder"
+        
+        # Test with user that has no reminder
+        no_reminder = comm_manager.get_last_task_reminder("nonexistent_user")
+        assert no_reminder is None, "Should return None for user with no reminder"
+    
+    def test_get_last_task_reminder_handles_invalid_user_id(self, comm_manager):
+        """Test that get_last_task_reminder handles invalid user_id."""
+        # Act & Assert - Test with None
+        result = comm_manager.get_last_task_reminder(None)
+        assert result is None, "Should return None for None user_id"
+        
+        # Test with empty string
+        result = comm_manager.get_last_task_reminder("")
+        assert result is None, "Should return None for empty user_id"
+        
+        # Test with non-string
+        result = comm_manager.get_last_task_reminder(123)
+        assert result is None, "Should return None for non-string user_id"
+    
+    def test_select_weighted_message_selects_specific_period_messages(self, comm_manager):
+        """Test that _select_weighted_message prioritizes specific period messages."""
+        # Arrange
+        available_messages = [
+            {'message': 'Morning message', 'time_periods': ['MORNING']},
+            {'message': 'All day message', 'time_periods': ['ALL']},
+            {'message': 'Evening message', 'time_periods': ['EVENING']},
+        ]
+        matching_periods = ['MORNING', 'ALL']
+        
+        # Act
+        selected = comm_manager._select_weighted_message(available_messages, matching_periods)
+        
+        # Assert
+        # The method returns a message dict, not just the message string
+        assert selected is not None, "Should return a message dict"
+        assert isinstance(selected, dict), "Should return a dictionary"
+        assert 'message' in selected, "Should have 'message' key"
+        assert selected['message'] in [msg['message'] for msg in available_messages], \
+            "Selected message should be from available messages"
+    
+    def test_select_weighted_message_handles_empty_messages(self, comm_manager):
+        """Test that _select_weighted_message handles empty message list."""
+        # Arrange
+        available_messages = []
+        matching_periods = ['MORNING']
+        
+        # Act
+        selected = comm_manager._select_weighted_message(available_messages, matching_periods)
+        
+        # Assert
+        assert selected == "", "Should return empty string for empty messages"
+    
+    def test_select_weighted_message_handles_invalid_inputs(self, comm_manager):
+        """Test that _select_weighted_message handles invalid inputs."""
+        # Act & Assert - Test with None messages
+        result = comm_manager._select_weighted_message(None, ['MORNING'])
+        assert result == "", "Should return empty string for None messages"
+        
+        # Test with None periods
+        result = comm_manager._select_weighted_message([{'message': 'Test'}], None)
+        assert result == "", "Should return empty string for None periods"
+        
+        # Test with non-list messages
+        result = comm_manager._select_weighted_message("not a list", ['MORNING'])
+        assert result == "", "Should return empty string for non-list messages"
+        
+        # Test with non-list periods
+        result = comm_manager._select_weighted_message([{'message': 'Test'}], "not a list")
+        assert result == "", "Should return empty string for non-list periods"
+    
     def test_stop_all_real_behavior(self, comm_manager, realistic_mock_channel):
         """Test stop all functionality."""
         # Add a channel

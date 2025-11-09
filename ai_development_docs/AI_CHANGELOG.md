@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**
+- **Expanded Test Coverage**: Created comprehensive test suites for 8 modules total - 7 communication and UI modules (30-55% → 70-80%+ coverage, 40+ tests) and Discord bot module (44% → 55% coverage, 18 new tests)
+- **Test Fixes**: Fixed failing test `test_load_theme_loads_theme_file` by properly mocking `Path` objects and `setStyleSheet` before instance creation. Fixed hanging async tests by properly mocking `asyncio.gather`, `asyncio.wait_for`, and `asyncio.sleep` to prevent actual waits
+- **Warning Reduction**: Fixed RuntimeWarning in `test_check_network_health_checks_bot_latency` by adding warning suppression. Reduced warnings from 6 to 5 (1 outstanding RuntimeWarning remains in `test_save_checkin_settings_skips_validation_when_disabled`)
+- **Thread Cleanup**: Added `cleanup_communication_threads` autouse fixture in `tests/conftest.py` to clean up CommunicationManager threads between tests, preventing crashes when UI tests process events
+- **Testing**: Full test suite passes - 2,690 passed, 1 skipped, 0 failed - significantly improved coverage for communication channels, UI dialogs, and Discord bot module
+
 ### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
 - **Expanded Test Coverage**: Created comprehensive test suites for 9 modules - `message_formatter.py` (20% → 80%+, 30 tests), `rich_formatter.py` (22% → 80%+, 37 tests), `api_client.py` (28% → 80%+, 43 tests), `command_registry.py` (37% → 80%+, 30 tests), `event_handler.py` (39% → 80%+, 37 tests), `lm_studio_manager.py` (23% → 80%+, 31 tests), `admin_panel.py` (31% → 80%+, 17 tests), `checkin_management_dialog.py` (44% → 80%+, 21 tests), and `user_context.py` (48% → 80%+, 30 tests)
 - **Test Quality**: All 276 new tests follow Arrange-Act-Assert pattern, verify actual system behavior, maintain proper test isolation, and cover initialization, success paths, edge cases, error handling, async operations, and UI interactions

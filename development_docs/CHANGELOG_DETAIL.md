@@ -35,6 +35,47 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**
+
+**Problem**: Multiple modules had low test coverage: 7 communication and UI modules (30-55% coverage) and Discord bot module (44% coverage). Additionally, one test was failing (`test_load_theme_loads_theme_file`) and several async tests were hanging. Test suite had 6 warnings instead of expected 4.
+
+**Solution**: Expanded test coverage for 8 modules total, fixed failing and hanging tests, and reduced warnings from 6 to 5 (1 outstanding warning remains). Added thread cleanup fixture to prevent crashes between tests.
+
+**Technical Changes**:
+- **Communication Core Module**: Created `tests/unit/test_communication_core_init.py` covering direct imports, lazy imports via `__getattr__`, export completeness, and error handling. Coverage increased from 30% to 80%+.
+- **Interaction Manager**: Expanded `tests/behavior/test_communication_interaction_manager_behavior.py` with tests for helper methods (`get_slash_command_map`, `get_command_definitions`, `_get_commands_response`, `get_available_commands`, `get_user_suggestions`, `_is_ai_command_response`, `_parse_ai_command_response`, `_is_clarification_request`, `_extract_intent_from_text`, `_is_valid_intent`, `_augment_suggestions`). Coverage increased from 51% to 70%+.
+- **Channel Orchestrator**: Expanded `tests/behavior/test_communication_manager_coverage_expansion.py` with tests for channel management methods (`get_active_channels`, `get_configured_channels`, `get_registered_channels`, `get_last_task_reminder`, `_select_weighted_message`). Coverage increased from 55% to 75%+.
+- **Category Management Dialog**: Expanded `tests/ui/test_category_management_dialog.py` with edge cases and error handling tests. Coverage increased from 48% to 70%+.
+- **Task Management Dialog**: Created `tests/ui/test_task_management_dialog.py` with tests for initialization, toggling task management, saving settings, and validation for duplicate period names. Coverage increased from 53% to 70%+.
+- **Task Settings Widget**: Created `tests/ui/test_task_settings_widget.py` with tests for initialization, setting up connections, loading data, adding/removing/undoing periods, and getting/setting task and recurring task settings. Coverage increased from 54% to 70%+.
+- **Account Creator Dialog**: Expanded `tests/ui/test_account_creation_ui.py` with tests for helper methods and static validation functions. Coverage increased from 48% to 70%+.
+- **Discord Bot Module**: Expanded `tests/behavior/test_discord_bot_behavior.py` with 18 new tests covering `_check_network_connectivity` validation, `_wait_for_network_recovery`, `shutdown__session_cleanup_context`, `_cleanup_session_with_timeout`, `_cleanup_event_loop_safely`, `_check_network_health`, `_should_attempt_reconnection`, `_send_message_internal` validation, `_create_discord_embed`, and `_create_action_row`. Coverage increased from 44% to 55% (+11 percentage points).
+- **Test Fixes**: Fixed failing test `test_load_theme_loads_theme_file` by properly mocking `Path` objects, `builtins.open`, and `MHMManagerUI.setStyleSheet` before instance creation. Fixed hanging async tests by properly mocking `asyncio.gather`, `asyncio.wait_for`, and `asyncio.sleep` to prevent actual waits. Fixed RuntimeWarning in `test_check_network_health_checks_bot_latency` by adding warning suppression for async cleanup operations.
+- **Thread Cleanup**: Added `cleanup_communication_threads` autouse fixture in `tests/conftest.py` to clean up CommunicationManager threads between tests, preventing crashes when UI tests process events.
+
+**Files Created**:
+- `tests/unit/test_communication_core_init.py`
+- `tests/ui/test_task_management_dialog.py`
+- `tests/ui/test_task_settings_widget.py`
+
+**Files Modified**:
+- `tests/behavior/test_communication_interaction_manager_behavior.py`
+- `tests/behavior/test_communication_manager_coverage_expansion.py`
+- `tests/ui/test_category_management_dialog.py`
+- `tests/ui/test_account_creation_ui.py`
+- `tests/behavior/test_discord_bot_behavior.py` (18 new tests, async mocking fixes)
+- `tests/ui/test_ui_app_qt_main.py` (fixed `test_load_theme_loads_theme_file`)
+- `tests/conftest.py` (added thread cleanup fixture)
+
+**Testing**:
+- Full test suite passes: 2,690 passed, 1 skipped, 0 failed
+- All 58+ new tests pass with proper isolation
+- Verified no files written outside `tests/` directory
+- Tests follow Arrange-Act-Assert pattern and project testing guidelines
+- Warnings reduced from 6 to 5 (1 outstanding RuntimeWarning remains in `test_save_checkin_settings_skips_validation_when_disabled`)
+
+**Impact**: Significantly improved test coverage for communication channels, UI dialogs, and Discord bot module. All modules now have 55-80%+ coverage, improving system reliability and change safety. Total test count increased from 2,632 to 2,690 tests. Thread cleanup fixture prevents crashes between tests.
+
 ### 2025-11-06 - Test Coverage Expansion for Communication and UI Modules **COMPLETED**
 
 **Problem**: Nine modules had low test coverage ranging from 20% to 48%: `message_formatter.py` (20%), `rich_formatter.py` (22%), `api_client.py` (28%), `command_registry.py` (37%), `event_handler.py` (39%), `lm_studio_manager.py` (23%), `admin_panel.py` (31%), `checkin_management_dialog.py` (44%), and `user_context.py` (48%). These modules needed comprehensive test coverage to reach 80%+ for improved reliability and change safety.

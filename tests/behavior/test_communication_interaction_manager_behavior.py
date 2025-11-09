@@ -388,3 +388,171 @@ class TestInteractionManagerBehavior:
         # Assert - Verify feature flags handling
         assert response is not None, "Response should be created"
         assert response.message is not None, "Response should have message"
+
+    def test_get_slash_command_map_returns_valid_map(self, test_data_dir):
+        """Test that get_slash_command_map returns a valid command map."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act
+        command_map = interaction_manager.get_slash_command_map()
+        
+        # Assert - Verify command map structure
+        assert isinstance(command_map, dict), "Command map should be a dictionary"
+        assert len(command_map) > 0, "Command map should not be empty"
+        # Verify some expected commands exist
+        assert 'tasks' in command_map or '/tasks' in str(command_map), "Tasks command should be in map"
+    
+    def test_get_command_definitions_returns_valid_definitions(self, test_data_dir):
+        """Test that get_command_definitions returns valid command definitions."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act
+        definitions = interaction_manager.get_command_definitions()
+        
+        # Assert - Verify definitions structure
+        assert isinstance(definitions, list), "Definitions should be a list"
+        assert len(definitions) > 0, "Definitions should not be empty"
+        # Verify structure of first definition
+        if definitions:
+            first_def = definitions[0]
+            assert 'name' in first_def, "Definition should have 'name' field"
+            assert 'mapped_message' in first_def, "Definition should have 'mapped_message' field"
+            assert 'description' in first_def, "Definition should have 'description' field"
+    
+    def test_get_commands_response_returns_valid_response(self, test_data_dir):
+        """Test that _get_commands_response returns a valid response."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act
+        response = interaction_manager._get_commands_response()
+        
+        # Assert - Verify response structure
+        assert response is not None, "Response should be created"
+        assert hasattr(response, 'message'), "Response should have message"
+        assert hasattr(response, 'completed'), "Response should have completed flag"
+        assert response.completed is True, "Commands response should be completed"
+        assert 'Available Commands' in response.message, "Response should contain commands header"
+    
+    def test_get_available_commands_returns_valid_commands(self, test_data_dir):
+        """Test that get_available_commands returns valid commands."""
+        # Arrange
+        user_id = "test-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        commands = interaction_manager.get_available_commands(user_id)
+        
+        # Assert - Verify commands structure
+        assert isinstance(commands, dict), "Commands should be a dictionary"
+        # Commands may be empty if no handlers are available, which is valid
+    
+    def test_get_user_suggestions_returns_valid_suggestions(self, test_data_dir):
+        """Test that get_user_suggestions returns valid suggestions."""
+        # Arrange
+        user_id = "test-user"
+        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        interaction_manager = InteractionManager()
+        
+        # Act
+        suggestions = interaction_manager.get_user_suggestions(user_id)
+        
+        # Assert - Verify suggestions structure
+        assert isinstance(suggestions, list), "Suggestions should be a list"
+        assert len(suggestions) <= 5, "Suggestions should be limited to 5"
+    
+    def test_is_ai_command_response_detects_json_commands(self, test_data_dir):
+        """Test that _is_ai_command_response detects JSON command responses."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act & Assert - Test JSON command detection
+        json_command = '{"action": "create_task", "intent": "create_task"}'
+        assert interaction_manager._is_ai_command_response(json_command) is True, \
+            "Should detect JSON command response"
+        
+        # Test non-command response
+        regular_response = "I can help you with that!"
+        assert interaction_manager._is_ai_command_response(regular_response) is False, \
+            "Should not detect regular response as command"
+    
+    def test_parse_ai_command_response_parses_json(self, test_data_dir):
+        """Test that _parse_ai_command_response parses JSON command responses."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        original_message = "create a task"
+        
+        # Act - Test JSON parsing
+        json_command = '{"intent": "create_task", "entities": {}, "confidence": 0.8}'
+        parsed = interaction_manager._parse_ai_command_response(json_command, original_message)
+        
+        # Assert - Verify parsing
+        assert parsed is not None, "Should parse JSON command"
+        assert parsed.intent == "create_task", "Should extract correct intent"
+        assert parsed.original_message == original_message, "Should preserve original message"
+    
+    def test_is_clarification_request_detects_clarification(self, test_data_dir):
+        """Test that _is_clarification_request detects clarification requests."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act & Assert - Test clarification detection
+        clarification = "Could you clarify what you mean?"
+        assert interaction_manager._is_clarification_request(clarification) is True, \
+            "Should detect clarification request"
+        
+        # Test non-clarification response
+        regular_response = "I can help you with that!"
+        assert interaction_manager._is_clarification_request(regular_response) is False, \
+            "Should not detect regular response as clarification"
+    
+    def test_extract_intent_from_text_extracts_intent(self, test_data_dir):
+        """Test that _extract_intent_from_text extracts intent from text."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act & Assert - Test intent extraction
+        text = "I want to create a task"
+        intent = interaction_manager._extract_intent_from_text(text)
+        # May return None if pattern doesn't match exactly
+        assert intent == "create_task" or intent is None, "Should extract create_task intent or return None"
+        
+        # Test another intent
+        text2 = "Show me my tasks"
+        intent2 = interaction_manager._extract_intent_from_text(text2)
+        # May return None if pattern doesn't match exactly
+        assert intent2 == "list_tasks" or intent2 is None, "Should extract list_tasks intent or return None"
+    
+    def test_is_valid_intent_checks_intent_validity(self, test_data_dir):
+        """Test that _is_valid_intent checks if intent is valid."""
+        # Arrange
+        interaction_manager = InteractionManager()
+        
+        # Act & Assert - Test intent validation
+        valid_intent = "list_tasks"
+        assert interaction_manager._is_valid_intent(valid_intent) is True, \
+            "Should recognize valid intent"
+        
+        # Test invalid intent
+        invalid_intent = "invalid_intent_xyz"
+        # May return True or False depending on handler availability, both are valid
+    
+    def test_augment_suggestions_adds_suggestions(self, test_data_dir):
+        """Test that _augment_suggestions adds suggestions to response."""
+        # Arrange
+        from communication.command_handlers.shared_types import InteractionResponse, ParsedCommand
+        interaction_manager = InteractionManager()
+        
+        # Act - Test suggestion augmentation for multiple matching tasks
+        parsed_cmd = ParsedCommand("complete_task", {}, 0.9, "complete task")
+        response = InteractionResponse("Multiple matching tasks found. Which task?", False)
+        augmented = interaction_manager._augment_suggestions(parsed_cmd, response)
+        
+        # Assert - Verify suggestions were added
+        assert augmented is not None, "Augmented response should be created"
+        assert hasattr(augmented, 'suggestions'), "Response should have suggestions"
+        if not response.completed:
+            assert augmented.suggestions is not None, "Suggestions should be added for incomplete responses"

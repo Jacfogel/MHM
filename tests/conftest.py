@@ -2666,3 +2666,24 @@ def cleanup_singletons():
                 cache_module._context_cache = None
         except (ImportError, AttributeError):
             pass
+
+@pytest.fixture(autouse=True)
+def cleanup_communication_threads():
+    """Clean up CommunicationManager threads between tests to prevent crashes."""
+    yield
+    
+    # Clean up CommunicationManager threads after each test
+    # Only stop channels that are running to avoid breaking tests that need the manager
+    try:
+        from communication.core.channel_orchestrator import CommunicationManager
+        if CommunicationManager._instance is not None:
+            # Stop all channels to clean up threads, but don't destroy the instance
+            # This prevents thread leaks while allowing the manager to persist
+            try:
+                # Only stop if there are active channels
+                if hasattr(CommunicationManager._instance, '_channels_dict') and CommunicationManager._instance._channels_dict:
+                    CommunicationManager._instance.stop_all()
+            except Exception:
+                pass  # Ignore errors during cleanup
+    except Exception:
+        pass  # Ignore import errors
