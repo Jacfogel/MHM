@@ -173,10 +173,11 @@ def get_all_user_ids():
     
     user_ids = []
     for item in users_dir.iterdir():
-        item_path = users_dir / item
-        if item_path.is_dir():
+        # item from iterdir() is already a Path object relative to users_dir
+        # Use it directly instead of combining with users_dir to avoid double paths
+        if item.is_dir():
             # Check if this directory has the new structure
-            account_file = item_path / 'account.json'
+            account_file = item / 'account.json'
             if account_file.exists():
                 user_ids.append(item.name)
     

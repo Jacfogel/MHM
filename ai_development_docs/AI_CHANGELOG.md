@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Critical Fix: Scheduler User Detection Bug **COMPLETED**
+- **Critical Bug Fix**: Fixed `get_all_user_ids()` in `core/user_management.py` that was preventing scheduler from finding users - bug was caused by double path creation (`users_dir / item` where `item` is already a Path object)
+- **Solution**: Use `item` directly from `iterdir()` instead of combining with `users_dir` - `iterdir()` already returns Path objects relative to parent directory
+- **Impact**: Scheduler can now find all users and schedule messages correctly - this was preventing all scheduled messages from being sent
+- **Testing**: All 2,690 tests pass - verified fix works correctly and no regressions introduced
+
 ### 2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**
 - **Expanded Test Coverage**: Created comprehensive test suites for 8 modules total - 7 communication and UI modules (30-55% → 70-80%+ coverage, 40+ tests) and Discord bot module (44% → 55% coverage, 18 new tests)
 - **Test Fixes**: Fixed failing test `test_load_theme_loads_theme_file` by properly mocking `Path` objects and `setStyleSheet` before instance creation. Fixed hanging async tests by properly mocking `asyncio.gather`, `asyncio.wait_for`, and `asyncio.sleep` to prevent actual waits

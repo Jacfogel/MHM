@@ -35,6 +35,28 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Critical Fix: Scheduler User Detection Bug **COMPLETED**
+
+**Problem**: The scheduler was unable to find any users, logging "No users found for scheduling" and preventing all scheduled messages from being sent. This was a critical bug that broke the core scheduling functionality.
+
+**Root Cause**: In `core/user_management.py`, the `get_all_user_ids()` function was incorrectly combining paths. The code did `item_path = users_dir / item` where `item` from `iterdir()` is already a Path object. On Windows, this created a double path (e.g., `data\users\data\users\...`), causing `is_dir()` to return `False` and preventing user directories from being detected.
+
+**Solution**: Fixed by using `item` directly from `iterdir()` instead of combining it with `users_dir`, since `iterdir()` already returns Path objects relative to the parent directory.
+
+**Technical Changes**:
+- **core/user_management.py**: Modified `get_all_user_ids()` to use `item` directly instead of `users_dir / item` when checking if items are directories and looking for `account.json` files
+- Added comment explaining that `item` from `iterdir()` is already a Path object relative to `users_dir`
+
+**Files Modified**:
+- `core/user_management.py` (lines 175-182)
+
+**Testing**:
+- Verified `get_all_user_ids()` now returns all 3 users correctly
+- Full test suite passes: 2,690 passed, 1 skipped, 0 failed
+- No regressions introduced
+
+**Impact**: Critical bug fix that restores scheduler functionality. The scheduler can now find all users and schedule messages as expected. This was preventing all scheduled messages from being sent since the bug was introduced.
+
 ### 2025-01-09 - Test Coverage Expansion Session: Communication, UI, and Discord Bot Modules **COMPLETED**
 
 **Problem**: Multiple modules had low test coverage: 7 communication and UI modules (30-55% coverage) and Discord bot module (44% coverage). Additionally, one test was failing (`test_load_theme_loads_theme_file`) and several async tests were hanging. Test suite had 6 warnings instead of expected 4.
