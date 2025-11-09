@@ -69,6 +69,9 @@ class TestUserContextSingleton:
     @pytest.mark.unit
     def test_singleton_initializes_preferences(self):
         """Test: UserContext initializes preferences as None"""
+        # Arrange: Reset singleton to ensure clean state
+        UserContext._instance = None
+        
         # Act
         instance = UserContext()
         
