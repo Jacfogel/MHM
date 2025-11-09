@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import subprocess
+from pathlib import Path
 from typing import Optional
 from core.logger import get_component_logger
 from core.error_handling import handle_errors
@@ -98,13 +99,13 @@ class HeadlessServiceManager:
         
         try:
             # Get the path to the service script
-            script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            service_path = os.path.join(script_dir, 'core', 'service.py')
+            script_dir = Path(__file__).parent.parent
+            service_path = script_dir / 'core' / 'service.py'
             
             # Ensure we use the venv Python explicitly
-            venv_python = os.path.join(script_dir, '.venv', 'Scripts', 'python.exe')
-            if os.path.exists(venv_python):
-                python_executable = venv_python
+            venv_python = script_dir / '.venv' / 'Scripts' / 'python.exe'
+            if venv_python.exists():
+                python_executable = str(venv_python)
             else:
                 python_executable = sys.executable
             
@@ -113,10 +114,10 @@ class HeadlessServiceManager:
             
             # Set up environment to ensure venv is used and prevent duplicate processes
             env = os.environ.copy()
-            venv_scripts_dir = os.path.join(script_dir, '.venv', 'Scripts')
-            if os.path.exists(venv_scripts_dir):
+            venv_scripts_dir = script_dir / '.venv' / 'Scripts'
+            if venv_scripts_dir.exists():
                 # Put venv first in PATH to ensure it's used
-                env['PATH'] = venv_scripts_dir + os.pathsep + env.get('PATH', '')
+                env['PATH'] = str(venv_scripts_dir) + os.pathsep + env.get('PATH', '')
                 # Add explicit marker to prevent duplicate service detection
                 env['MHM_HEADLESS_SERVICE'] = '1'
                 env['MHM_SERVICE_TYPE'] = 'headless'
@@ -158,7 +159,7 @@ class HeadlessServiceManager:
         """Stop UI-managed services using the service's built-in shutdown mechanism."""
         try:
             # Use the service's built-in shutdown file mechanism
-            shutdown_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'shutdown_request.flag')
+            shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
             with open(shutdown_file, 'w') as f:
                 f.write(f"UI_SHUTDOWN_REQUESTED_{time.time()}")
             
@@ -194,7 +195,7 @@ class HeadlessServiceManager:
         
         try:
             # Use the service's built-in shutdown file mechanism
-            shutdown_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'shutdown_request.flag')
+            shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
             with open(shutdown_file, 'w') as f:
                 f.write(f"HEADLESS_SHUTDOWN_REQUESTED_{time.time()}")
             
@@ -255,8 +256,8 @@ class HeadlessServiceManager:
         """Send a test message using the service's built-in test message system."""
         try:
             # Use the service's test message request file mechanism
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            request_file = os.path.join(base_dir, f'test_message_request_{int(time.time())}.flag')
+            base_dir = Path(__file__).parent.parent
+            request_file = base_dir / f'test_message_request_{int(time.time())}.flag'
             
             request_data = {
                 'user_id': user_id,
@@ -265,7 +266,7 @@ class HeadlessServiceManager:
                 'timestamp': time.time()
             }
             
-            with open(request_file, 'w') as f:
+            with open(str(request_file), 'w') as f:
                 import json
                 json.dump(request_data, f)
             
@@ -281,8 +282,8 @@ class HeadlessServiceManager:
         """Reschedule messages using the service's built-in reschedule system."""
         try:
             # Use the service's reschedule request file mechanism
-            base_dir = os.path.dirname(os.path.dirname(__file__))
-            request_file = os.path.join(base_dir, f'reschedule_request_{int(time.time())}.flag')
+            base_dir = Path(__file__).parent.parent
+            request_file = base_dir / f'reschedule_request_{int(time.time())}.flag'
             
             request_data = {
                 'user_id': user_id,
@@ -291,7 +292,7 @@ class HeadlessServiceManager:
                 'timestamp': time.time()
             }
             
-            with open(request_file, 'w') as f:
+            with open(str(request_file), 'w') as f:
                 import json
                 json.dump(request_data, f)
             

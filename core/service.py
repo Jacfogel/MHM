@@ -5,6 +5,7 @@ import time
 import os
 import atexit
 from datetime import datetime
+from pathlib import Path
 
 # Set up logging FIRST before any other imports
 from core.logger import setup_logging, get_component_logger
@@ -349,7 +350,7 @@ class MHMService:
     def run_service_loop(self):
         """Keep the service running until shutdown is requested"""
         logger.info("Service is now running. Press Ctrl+C to stop.")
-        shutdown_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'shutdown_request.flag')
+        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
         
         # Initialize loop counter outside the main loop
         loop_minutes = 0
@@ -501,10 +502,11 @@ class MHMService:
 
     def _check_test_message_requests__discover_request_files(self, base_dir):
         """Discover all test message request files in the base directory."""
+        base_path = Path(base_dir)
         request_files = []
-        for filename in os.listdir(base_dir):
-            if filename.startswith('test_message_request_') and filename.endswith('.flag'):
-                request_files.append(os.path.join(base_dir, filename))
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and file_path.name.startswith('test_message_request_') and file_path.name.endswith('.flag'):
+                request_files.append(str(file_path))
         return request_files
 
     def _check_test_message_requests__parse_request_file(self, request_file):
@@ -611,11 +613,11 @@ class MHMService:
     def cleanup_test_message_requests(self):
         """Clean up any remaining test message request files"""
         base_dir = self._cleanup_test_message_requests__get_base_directory()
+        base_path = Path(base_dir)
         
-        for filename in os.listdir(base_dir):
-            if self._cleanup_test_message_requests__is_test_message_request_file(filename):
-                request_file = os.path.join(base_dir, filename)
-                self._cleanup_test_message_requests__remove_request_file(request_file, filename)
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and self._cleanup_test_message_requests__is_test_message_request_file(file_path.name):
+                self._cleanup_test_message_requests__remove_request_file(str(file_path), file_path.name)
 
     @handle_errors("checking reschedule requests")
     def _check_reschedule_requests__get_base_directory(self):
@@ -624,10 +626,11 @@ class MHMService:
 
     def _check_reschedule_requests__discover_request_files(self, base_dir):
         """Discover all reschedule request files in the base directory."""
+        base_path = Path(base_dir)
         request_files = []
-        for filename in os.listdir(base_dir):
-            if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
-                request_files.append(os.path.join(base_dir, filename))
+        for file_path in base_path.iterdir():
+            if file_path.is_file() and file_path.name.startswith('reschedule_request_') and file_path.name.endswith('.flag'):
+                request_files.append(str(file_path))
         return request_files
 
     def _check_reschedule_requests__parse_request_file(self, request_file):
@@ -723,16 +726,15 @@ class MHMService:
     @handle_errors("cleaning up reschedule requests")
     def cleanup_reschedule_requests(self):
         """Clean up any remaining reschedule request files"""
-        base_dir = os.path.dirname(os.path.dirname(__file__))
+        base_dir = Path(__file__).parent.parent
         
-        for filename in os.listdir(base_dir):
-            if filename.startswith('reschedule_request_') and filename.endswith('.flag'):
-                request_file = os.path.join(base_dir, filename)
+        for file_path in base_dir.iterdir():
+            if file_path.is_file() and file_path.name.startswith('reschedule_request_') and file_path.name.endswith('.flag'):
                 try:
-                    os.remove(request_file)
-                    logger.info(f"Cleanup: Removed reschedule request file: {filename}")
+                    file_path.unlink()
+                    logger.info(f"Cleanup: Removed reschedule request file: {file_path.name}")
                 except Exception as e:
-                    logger.warning(f"Could not remove reschedule request file {filename}: {e}")
+                    logger.warning(f"Could not remove reschedule request file {file_path.name}: {e}")
 
     @handle_errors("shutting down service")
     def shutdown(self):
@@ -755,10 +757,10 @@ class MHMService:
             logger.error(f"Error stopping scheduler manager: {e}")
         
         # Clean up shutdown request file if it exists
-        shutdown_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'shutdown_request.flag')
+        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
         try:
-            if os.path.exists(shutdown_file):
-                os.remove(shutdown_file)
+            if shutdown_file.exists():
+                shutdown_file.unlink()
                 logger.info("Cleanup: Removed shutdown request file")
         except Exception as e:
             logger.warning(f"Could not remove shutdown file: {e}")

@@ -19,6 +19,7 @@ import pytest
 import os
 import json
 import time
+from pathlib import Path
 from unittest.mock import Mock, patch
 import signal
 
@@ -424,19 +425,34 @@ class TestMHMService:
         for file_path in created_files:
             assert os.path.exists(file_path)
         
-        # Mock file listing to return our test files
-        with patch('core.service.os.listdir', return_value=files_to_create), \
-             patch('core.service.os.path.dirname', return_value=temp_base_dir), \
-             patch('core.service.os.remove') as mock_remove:
-            
-            # Run cleanup - this will use real os.path.join and os.remove
+        # The cleanup_reschedule_requests function uses Path(__file__).parent.parent directly
+        # We need to patch Path(__file__) to return our temp directory
+        import core.service
+        original_file = core.service.__file__
+        
+        # Create a mock Path that returns our temp directory for __file__
+        # We need to make it work with Path(__file__).parent.parent
+        mock_parent = Mock()
+        mock_parent.parent = Path(temp_base_dir)
+        mock_file_path = Mock()
+        mock_file_path.parent = mock_parent
+        
+        # Patch Path to return our mock when called with __file__
+        def path_side_effect(path_arg):
+            if path_arg == original_file:
+                return mock_file_path
+            return Path(path_arg)
+        
+        with patch('core.service.Path', side_effect=path_side_effect):
+            # Run cleanup - this will use Path.iterdir() and Path.unlink()
             service.cleanup_reschedule_requests()
             
-            # Verify real behavior - only reschedule request files were marked for removal
-            assert mock_remove.call_count == 2
-            calls = [call[0][0] for call in mock_remove.call_args_list]
-            assert os.path.join(temp_base_dir, 'reschedule_request_user1.flag') in calls
-            assert os.path.join(temp_base_dir, 'reschedule_request_user2.flag') in calls
+            # Verify real behavior - only reschedule request files were removed
+            # Check that reschedule request files are gone
+            assert not os.path.exists(os.path.join(temp_base_dir, 'reschedule_request_user1.flag'))
+            assert not os.path.exists(os.path.join(temp_base_dir, 'reschedule_request_user2.flag'))
+            # But other files should still exist
+            assert os.path.exists(os.path.join(temp_base_dir, 'other_file.txt'))
 
     @pytest.mark.service
     @pytest.mark.regression

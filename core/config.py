@@ -60,7 +60,7 @@ else:
 
 # Paths - Updated for better organization
 # LOG_FILE_PATH environment variable removed - using LOG_MAIN_FILE directly
-USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', os.path.join(BASE_DATA_DIR, 'users')))
+USER_INFO_DIR_PATH = _normalize_path(os.getenv('USER_INFO_DIR_PATH', str(Path(BASE_DATA_DIR) / 'users')))
 # Fix: Use forward slashes for cross-platform compatibility and avoid path normalization issues
 DEFAULT_MESSAGES_DIR_PATH = os.getenv('DEFAULT_MESSAGES_DIR_PATH', 'resources/default_messages')
 if os.getenv('MHM_TESTING') == '1':
@@ -148,25 +148,25 @@ LOG_COMPRESS_BACKUPS = os.getenv('LOG_COMPRESS_BACKUPS', 'false').lower() == 'tr
 # New organized logging structure
 # In test mode, route all logs to tests/logs/ instead of logs/
 if os.getenv('MHM_TESTING') == '1':
-    _default_logs_dir = os.getenv('LOGS_DIR') or os.path.join('tests', 'logs')
+    _default_logs_dir = os.getenv('LOGS_DIR') or str(Path('tests') / 'logs')
 else:
     _default_logs_dir = 'logs'
 LOGS_DIR = _normalize_path(os.getenv('LOGS_DIR', _default_logs_dir))  # Main logs directory
-LOG_BACKUP_DIR = _normalize_path(os.getenv('LOG_BACKUP_DIR', os.path.join(LOGS_DIR, 'backups')))  # Backup directory for rotated logs
-LOG_ARCHIVE_DIR = _normalize_path(os.getenv('LOG_ARCHIVE_DIR', os.path.join(LOGS_DIR, 'archive')))  # Archive directory for old logs
+LOG_BACKUP_DIR = _normalize_path(os.getenv('LOG_BACKUP_DIR', str(Path(LOGS_DIR) / 'backups')))  # Backup directory for rotated logs
+LOG_ARCHIVE_DIR = _normalize_path(os.getenv('LOG_ARCHIVE_DIR', str(Path(LOGS_DIR) / 'archive')))  # Archive directory for old logs
 
 # Component-specific log files
-LOG_MAIN_FILE = _normalize_path(os.getenv('LOG_MAIN_FILE', os.path.join(LOGS_DIR, 'app.log')))  # Main application log
-LOG_DISCORD_FILE = _normalize_path(os.getenv('LOG_DISCORD_FILE', os.path.join(LOGS_DIR, 'discord.log')))  # Discord bot log
-LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', os.path.join(LOGS_DIR, 'ai.log')))  # AI interactions log
-LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', os.path.join(LOGS_DIR, 'user_activity.log')))  # User activity log
-LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', os.path.join(LOGS_DIR, 'errors.log')))  # Errors only log
-LOG_COMMUNICATION_MANAGER_FILE = _normalize_path(os.getenv('LOG_COMMUNICATION_MANAGER_FILE', os.path.join(LOGS_DIR, 'communication_manager.log')))  # Communication manager log
-LOG_EMAIL_FILE = _normalize_path(os.getenv('LOG_EMAIL_FILE', os.path.join(LOGS_DIR, 'email.log')))  # Email channel log
-LOG_UI_FILE = _normalize_path(os.getenv('LOG_UI_FILE', os.path.join(LOGS_DIR, 'ui.log')))  # UI interactions log
-LOG_FILE_OPS_FILE = _normalize_path(os.getenv('LOG_FILE_OPS_FILE', os.path.join(LOGS_DIR, 'file_ops.log')))  # File operations log
-LOG_SCHEDULER_FILE = _normalize_path(os.getenv('LOG_SCHEDULER_FILE', os.path.join(LOGS_DIR, 'scheduler.log')))  # Scheduler log
-LOG_AI_DEV_TOOLS_FILE = _normalize_path(os.getenv('LOG_AI_DEV_TOOLS_FILE', os.path.join(LOGS_DIR, 'ai_dev_tools.log')))  # AI development tools log
+LOG_MAIN_FILE = _normalize_path(os.getenv('LOG_MAIN_FILE', str(Path(LOGS_DIR) / 'app.log')))  # Main application log
+LOG_DISCORD_FILE = _normalize_path(os.getenv('LOG_DISCORD_FILE', str(Path(LOGS_DIR) / 'discord.log')))  # Discord bot log
+LOG_AI_FILE = _normalize_path(os.getenv('LOG_AI_FILE', str(Path(LOGS_DIR) / 'ai.log')))  # AI interactions log
+LOG_USER_ACTIVITY_FILE = _normalize_path(os.getenv('LOG_USER_ACTIVITY_FILE', str(Path(LOGS_DIR) / 'user_activity.log')))  # User activity log
+LOG_ERRORS_FILE = _normalize_path(os.getenv('LOG_ERRORS_FILE', str(Path(LOGS_DIR) / 'errors.log')))  # Errors only log
+LOG_COMMUNICATION_MANAGER_FILE = _normalize_path(os.getenv('LOG_COMMUNICATION_MANAGER_FILE', str(Path(LOGS_DIR) / 'communication_manager.log')))  # Communication manager log
+LOG_EMAIL_FILE = _normalize_path(os.getenv('LOG_EMAIL_FILE', str(Path(LOGS_DIR) / 'email.log')))  # Email channel log
+LOG_UI_FILE = _normalize_path(os.getenv('LOG_UI_FILE', str(Path(LOGS_DIR) / 'ui.log')))  # UI interactions log
+LOG_FILE_OPS_FILE = _normalize_path(os.getenv('LOG_FILE_OPS_FILE', str(Path(LOGS_DIR) / 'file_ops.log')))  # File operations log
+LOG_SCHEDULER_FILE = _normalize_path(os.getenv('LOG_SCHEDULER_FILE', str(Path(LOGS_DIR) / 'scheduler.log')))  # Scheduler log
+LOG_AI_DEV_TOOLS_FILE = _normalize_path(os.getenv('LOG_AI_DEV_TOOLS_FILE', str(Path(LOGS_DIR) / 'ai_dev_tools.log')))  # AI development tools log
 
 # Set up logger after path definitions to avoid circular imports
 from core.logger import get_component_logger
@@ -645,7 +645,7 @@ def get_user_data_dir(user_id: str) -> str:
             logger.error(f"Invalid user_id: {user_id}")
             # Return empty string to prevent creating files in root
             return ""
-        return os.path.join(BASE_DATA_DIR, 'users', user_id)
+        return str(Path(BASE_DATA_DIR) / 'users' / user_id)
     except Exception as e:
         logger.error(f"Error getting user data directory for user {user_id}: {e}")
         return ""
@@ -657,9 +657,9 @@ def get_backups_dir() -> str:
     """
     if os.getenv('MHM_TESTING') == '1':
         # Use configurable test data directory
-        test_data_dir = os.getenv('TEST_DATA_DIR', os.path.join('tests', 'data'))
-        return os.path.join(test_data_dir, 'backups')
-    return os.path.join(BASE_DATA_DIR, 'backups')
+        test_data_dir = os.getenv('TEST_DATA_DIR', str(Path('tests') / 'data'))
+        return str(Path(test_data_dir) / 'backups')
+    return str(Path(BASE_DATA_DIR) / 'backups')
 
 @handle_errors("getting user file path", default_return="")
 def get_user_file_path(user_id: str, file_type: str) -> str:
@@ -683,7 +683,7 @@ def get_user_file_path(user_id: str, file_type: str) -> str:
         'sent_messages': 'messages/sent_messages.json',
         'conversation_history': 'conversation_history.json'
     }
-    return os.path.join(user_dir, file_mapping.get(file_type, f'{file_type}.json'))
+    return str(Path(user_dir) / file_mapping.get(file_type, f'{file_type}.json'))
 
 @handle_errors("ensuring user directory exists", default_return=False)
 def ensure_user_directory(user_id: str) -> bool:

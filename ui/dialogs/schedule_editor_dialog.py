@@ -1,6 +1,7 @@
 # schedule_editor_dialog.py - Schedule editor dialog implementation using generated UI class (no QUiLoader)
 
 from typing import Dict, Any, Optional, Callable
+from pathlib import Path
 
 # PySide6 imports
 from PySide6.QtWidgets import (
@@ -356,16 +357,16 @@ class ScheduleEditorDialog(QDialog):
             import core.config
             if hasattr(core.config, 'BASE_DATA_DIR') and core.config.BASE_DATA_DIR != 'data':
                 # We're in a test environment (BASE_DATA_DIR is patched to tests/data), use test data directory
-                requests_dir = os.path.join(core.config.BASE_DATA_DIR, 'requests')
+                requests_dir = Path(core.config.BASE_DATA_DIR) / 'requests'
             else:
                 # Production environment, use standard data directory
-                requests_dir = 'data/requests'
-            os.makedirs(requests_dir, exist_ok=True)
+                requests_dir = Path('data') / 'requests'
+            requests_dir.mkdir(parents=True, exist_ok=True)
             
             # Create a unique filename
             timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
             filename = f"reschedule_{self.user_id}_{self.category}_{timestamp_str}.json"
-            request_file = os.path.join(requests_dir, filename)
+            request_file = requests_dir / filename
             
             # Write the request file
             with open(request_file, 'w') as f:

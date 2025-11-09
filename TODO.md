@@ -44,11 +44,13 @@ When adding new tasks, follow this format:
 - *Why it helps*: Improves system robustness and reliability by protecting more functions against errors
 - *Estimated effort*: Medium
 - *Current Status*: 92.9% coverage achieved (1,352 functions protected) - continue to 93%+
-- *Progress*: Added error handling to 28 functions in this session (AI chatbot, LM Studio manager, UI dialogs, core utilities, tasks, user data manager, config, logger)
+- *Progress*: Added error handling to 33 functions total (28 in previous session + 5 in this session: scheduler helper functions and response tracking)
 - *Next Steps*:
   - [ ] **Continue Expanding Beyond 92.9%**
-    - [ ] Add error handling to remaining 104 functions for 93%+ coverage (~2-3 more functions needed)
-    - [ ] Focus on UI modules and remaining utility functions
+    - [x] Added error handling to 5 helper functions in scheduler.py and response_tracking.py
+    - [ ] Verify coverage reached 93%+ (run audit to confirm)
+    - [ ] Add error handling to remaining functions for 93%+ coverage if needed
+    - [ ] Focus on UI modules and remaining utility functions (note: Pydantic validators cannot use @handle_errors decorator)
   - [ ] **Replace Basic Try-Except Blocks**
     - [ ] Replace remaining basic try-except blocks with @handle_errors decorator
     - [ ] Improve error handling quality from basic to excellent
@@ -209,6 +211,7 @@ When adding new tasks, follow this format:
   - Test `test_run_service_loop_shutdown_file_detection_real_behavior` was causing resource exhaustion and hanging
   - Path mocking in tests needs to be handled more carefully to prevent infinite loops
   - Need to ensure proper mocking of `pathlib.Path` operations in service loop tests
+  - **Note**: Remote pathlib code changes (13 modules, 60+ conversions) are being merged, but status remains ROLLED BACK until test issues are resolved
 - *Next Attempt*:
   - [ ] Sweep `core/` for remaining `os.path.join` not covered by helpers
   - [ ] Convert `os.path.*` operations to `pathlib.Path` equivalents

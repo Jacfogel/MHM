@@ -10,6 +10,7 @@ import time
 import socket
 import psutil
 from datetime import datetime
+from pathlib import Path
 import pytz
 from core.logger import get_component_logger
 try:
@@ -113,15 +114,15 @@ def create_reschedule_request(user_id: str, category: str) -> bool:
     if os.environ.get("MHM_TESTING") == "1":
         # Use configurable test data directory
         from core.config import get_backups_dir
-        base_dir = os.path.join(os.path.dirname(get_backups_dir()), "flags")
-        os.makedirs(base_dir, exist_ok=True)
+        base_dir = Path(get_backups_dir()).parent / "flags"
+        os.makedirs(str(base_dir), exist_ok=True)
     else:
         # Project root (service watches here) - use configurable approach
-        base_dir = os.getenv('MHM_FLAGS_DIR', os.path.dirname(os.path.dirname(__file__)))
-    request_file = os.path.join(base_dir, filename)
+        base_dir = os.getenv('MHM_FLAGS_DIR', str(Path(__file__).parent.parent))
+    request_file = Path(base_dir) / filename
 
     # Write the request file
-    with open(request_file, 'w', encoding='utf-8') as f:
+    with open(str(request_file), 'w', encoding='utf-8') as f:
         json.dump(request_data, f, indent=2)
 
     logger.info(f"Created reschedule request: {filename}")

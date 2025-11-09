@@ -3,6 +3,7 @@ import os
 import subprocess
 import psutil
 import time
+from pathlib import Path
 
 # Add parent directory to path so we can import from core
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -143,7 +144,7 @@ class ServiceManager:
             return True
         
         # Start the service - updated path
-        service_path = os.path.join(os.path.dirname(__file__), '..', 'core', 'service.py')
+        service_path = Path(__file__).parent.parent / 'core' / 'service.py'
         
         logger.debug(f"Service path: {service_path}")
         
@@ -200,7 +201,7 @@ class ServiceManager:
         logger.info(f"Stop service requested for PID: {pid}")
         
         # Create shutdown request file
-        shutdown_file = os.path.join(os.path.dirname(__file__), '..', 'shutdown_request.flag')
+        shutdown_file = Path(__file__).parent.parent / 'shutdown_request.flag'
         try:
             with open(shutdown_file, 'w') as f:
                 f.write(f"SHUTDOWN_REQUESTED_BY_UI_{time.time()}")
@@ -337,8 +338,8 @@ class MHMManagerUI(QMainWindow):
         
     def load_ui(self):
         """Load the UI from the .ui file"""
-        ui_file_path = os.path.join(os.path.dirname(__file__), 'designs', 'admin_panel.ui')
-        if not os.path.exists(ui_file_path):
+        ui_file_path = Path(__file__).parent / 'designs' / 'admin_panel.ui'
+        if not ui_file_path.exists():
             raise FileNotFoundError(f"UI file not found: {ui_file_path}")
 
         # Load and apply the QSS theme
@@ -348,9 +349,9 @@ class MHMManagerUI(QMainWindow):
         """Load and apply the QSS theme from the styles directory"""
         try:
             # Path to the QSS theme file
-            theme_path = os.path.join(os.path.dirname(__file__), '..', 'styles', 'admin_theme.qss')
+            theme_path = Path(__file__).parent.parent / 'styles' / 'admin_theme.qss'
             
-            if os.path.exists(theme_path):
+            if theme_path.exists():
                 with open(theme_path, 'r', encoding='utf-8') as f:
                     theme_content = f.read()
                 
@@ -1288,8 +1289,8 @@ class MHMManagerUI(QMainWindow):
         import json
         
         # Use the same directory structure as the shutdown flag
-        base_dir = os.path.dirname(os.path.dirname(__file__))  # Go up to MHM root
-        request_file = os.path.join(base_dir, f'test_message_request_{self.current_user}_{category}.flag')
+        base_dir = Path(__file__).parent.parent  # Go up to MHM root
+        request_file = base_dir / f'test_message_request_{self.current_user}_{category}.flag'
         
         test_request = {
             "user_id": self.current_user,

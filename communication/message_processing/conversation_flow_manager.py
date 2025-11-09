@@ -18,6 +18,7 @@ Usage:
 
 import os
 import json
+from pathlib import Path
 from ai.chatbot import get_ai_chatbot
 from core.logger import get_component_logger
 from core.user_data_handlers import get_user_data
@@ -80,7 +81,7 @@ class ConversationManager:
         self.user_states = {}
         # Use BASE_DATA_DIR from config to respect test environment
         from core.config import BASE_DATA_DIR
-        self._state_file = os.path.join(BASE_DATA_DIR, "conversation_states.json")
+        self._state_file = str(Path(BASE_DATA_DIR) / "conversation_states.json")
         self._load_user_states()
 
     def _load_user_states(self) -> None:
