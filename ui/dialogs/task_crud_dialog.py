@@ -46,6 +46,10 @@ class TaskCrudDialog(QDialog):
             "Title", "Description", "Due Date", "Priority", "Category", "Completed"
         ])
         
+        # Enable sorting on both tables
+        self.ui.tableWidget_active_tasks.setSortingEnabled(True)
+        self.ui.tableWidget_completed_tasks.setSortingEnabled(True)
+        
         # Set column widths
         for table in [self.ui.tableWidget_active_tasks, self.ui.tableWidget_completed_tasks]:
             header = table.horizontalHeader()
@@ -102,7 +106,14 @@ class TaskCrudDialog(QDialog):
     def refresh_active_tasks(self):
         """Refresh the active tasks table."""
         try:
+            # Save current sort state before refreshing
+            sort_column = self.ui.tableWidget_active_tasks.horizontalHeader().sortIndicatorSection()
+            sort_order = self.ui.tableWidget_active_tasks.horizontalHeader().sortIndicatorOrder()
+            
             self.active_tasks = load_active_tasks(self.user_id)
+            
+            # Temporarily disable sorting during population
+            self.ui.tableWidget_active_tasks.setSortingEnabled(False)
             self.ui.tableWidget_active_tasks.setRowCount(0)
             
             for task in self.active_tasks:
@@ -121,6 +132,11 @@ class TaskCrudDialog(QDialog):
                 # Store task ID in the first column for easy access
                 self.ui.tableWidget_active_tasks.item(row, 0).setData(Qt.ItemDataRole.UserRole, task.get('task_id'))
             
+            # Re-enable sorting and restore sort state
+            self.ui.tableWidget_active_tasks.setSortingEnabled(True)
+            if sort_column >= 0:
+                self.ui.tableWidget_active_tasks.horizontalHeader().setSortIndicator(sort_column, sort_order)
+            
             self.update_statistics()
             
         except Exception as e:
@@ -130,7 +146,14 @@ class TaskCrudDialog(QDialog):
     def refresh_completed_tasks(self):
         """Refresh the completed tasks table."""
         try:
+            # Save current sort state before refreshing
+            sort_column = self.ui.tableWidget_completed_tasks.horizontalHeader().sortIndicatorSection()
+            sort_order = self.ui.tableWidget_completed_tasks.horizontalHeader().sortIndicatorOrder()
+            
             self.completed_tasks = load_completed_tasks(self.user_id)
+            
+            # Temporarily disable sorting during population
+            self.ui.tableWidget_completed_tasks.setSortingEnabled(False)
             self.ui.tableWidget_completed_tasks.setRowCount(0)
             
             for task in self.completed_tasks:
@@ -147,6 +170,11 @@ class TaskCrudDialog(QDialog):
                 
                 # Store task ID in the first column for easy access
                 self.ui.tableWidget_completed_tasks.item(row, 0).setData(Qt.ItemDataRole.UserRole, task.get('task_id'))
+            
+            # Re-enable sorting and restore sort state
+            self.ui.tableWidget_completed_tasks.setSortingEnabled(True)
+            if sort_column >= 0:
+                self.ui.tableWidget_completed_tasks.horizontalHeader().setSortIndicator(sort_column, sort_order)
             
             self.update_statistics()
             

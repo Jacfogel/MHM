@@ -17,8 +17,8 @@ Talk to the bot naturally! It understands context and intent.
 - "Show me my tasks"
 
 ### Alternative Methods
-- **Slash Commands**: `/command` - Explicit Discord commands
-- **Bang Commands**: `!command` - Classic prefix commands
+- **Slash Commands**: `/command` - Discord-native commands (preferred, auto-complete in Discord)
+- **Bang Commands**: `!command` - Classic prefix commands (also supported)
 
 ## Available Commands
 
@@ -34,8 +34,8 @@ Talk to the bot naturally! It understands context and intent.
 - "how am I doing with my tasks this week?"
 
 **Explicit Commands:**
-- `/tasks` - Show all your tasks
-- `!tasks` - Show all your tasks
+- `/tasks` - Show all your tasks (preferred, Discord-native)
+- `!tasks` - Show all your tasks (also supported)
 - Natural: "task stats" - View task completion statistics
 
 **Available Intents:**
@@ -53,8 +53,8 @@ Talk to the bot naturally! It understands context and intent.
 - "let me check in"
 
 **Explicit Commands:**
-- `/checkin` - Start check-in flow
-- `!checkin` - Start check-in flow
+- `/checkin` - Start check-in flow (preferred, Discord-native)
+- `!checkin` - Start check-in flow (also supported)
 
 **Important**: Check-ins are conversational - the bot will ask you questions and wait for your responses. To cancel anytime, say "cancel" or "/cancel".
 
@@ -73,8 +73,8 @@ Talk to the bot naturally! It understands context and intent.
 - "show profile stats"
 
 **Explicit Commands:**
-- `/profile` - Show your profile
-- `!profile` - Show your profile
+- `/profile` - Show your profile (preferred, Discord-native)
+- `!profile` - Show your profile (also supported)
 
 **Available Intents:**
 - show_profile, update_profile, profile_stats
@@ -91,8 +91,8 @@ Talk to the bot naturally! It understands context and intent.
 - "what's my schedule status?"
 
 **Explicit Commands:**
-- `/schedule` - Show your schedules
-- `!schedule` - Show your schedules
+- `/schedule` - Show your schedules (preferred, Discord-native)
+- `!schedule` - Show your schedules (also supported)
 
 **Available Intents:**
 - show_schedule, update_schedule, schedule_status, add_schedule_period, edit_schedule_period
@@ -111,8 +111,8 @@ Talk to the bot naturally! It understands context and intent.
 - "what's my completion rate?"
 
 **Explicit Commands:**
-- `/analytics` - Show wellness analytics
-- `!analytics` - Show wellness analytics
+- `/analytics` - Show wellness analytics (preferred, Discord-native)
+- `!analytics` - Show wellness analytics (also supported)
 
 **Available Intents:**
 - show_analytics, mood_trends, habit_analysis, sleep_analysis, wellness_score, checkin_history, completion_rate, task_analytics, quant_summary

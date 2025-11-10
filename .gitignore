@@ -138,7 +138,7 @@ resources/default_messages/invalid.json
 # Test data and backups
 tests/data/user_index.json
 tests/data/backups/
-tests/logs/ 
+tests/logs/
 tests/ai/results/
 archive/
 

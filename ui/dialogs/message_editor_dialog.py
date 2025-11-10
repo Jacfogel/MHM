@@ -204,6 +204,9 @@ class MessageEditorDialog(QDialog):
             "Message Text", "Days", "Time Periods", "Actions"
         ])
         
+        # Enable sorting (but disable during population to avoid issues)
+        self.ui.tableWidget_messages.setSortingEnabled(True)
+        
         # Set column widths
         self.ui.tableWidget_messages.setColumnWidth(0, 300)  # Message text
         self.ui.tableWidget_messages.setColumnWidth(1, 150)  # Days
@@ -213,6 +216,10 @@ class MessageEditorDialog(QDialog):
     @handle_errors("loading messages")
     def load_messages(self):
         """Load messages for the category."""
+        # Save current sort state before refreshing
+        sort_column = self.ui.tableWidget_messages.horizontalHeader().sortIndicatorSection()
+        sort_order = self.ui.tableWidget_messages.horizontalHeader().sortIndicatorOrder()
+        
         # @handle_errors decorator handles exceptions
         self.messages = load_user_messages(self.user_id, self.category)
         
@@ -222,6 +229,11 @@ class MessageEditorDialog(QDialog):
             return
             
         self.populate_table()
+        
+        # Restore sort state after populating
+        if sort_column >= 0:
+            self.ui.tableWidget_messages.horizontalHeader().setSortIndicator(sort_column, sort_order)
+        
         self.update_message_count()
     
     @handle_errors("showing no messages state")
@@ -242,6 +254,9 @@ class MessageEditorDialog(QDialog):
     @handle_errors("populating table")
     def populate_table(self):
         """Populate the table with messages."""
+        # Temporarily disable sorting during population to avoid issues
+        self.ui.tableWidget_messages.setSortingEnabled(False)
+        
         self.ui.tableWidget_messages.setRowCount(len(self.messages))
         
         for row, message in enumerate(self.messages):
@@ -276,6 +291,9 @@ class MessageEditorDialog(QDialog):
             actions_layout.addWidget(delete_btn)
             
             self.ui.tableWidget_messages.setCellWidget(row, 3, actions_widget)
+        
+        # Re-enable sorting after population
+        self.ui.tableWidget_messages.setSortingEnabled(True)
     
     @handle_errors("updating message count")
     def update_message_count(self):

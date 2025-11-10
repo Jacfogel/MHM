@@ -192,14 +192,10 @@ When adding new tasks, follow this format:
   - [ ] Test incrementally with small groups of tests to catch issues early
   - [ ] Confirm all UI-related file paths still work as expected under tests
 
-**Legacy UserContext Bridge Removal (monitor then remove)**
+**Legacy UserContext Bridge Removal** ✅ **COMPLETED**
 - *What it means*: Remove legacy format conversion/extraction in `user/user_context.py` once confirmed no usage
 - *Why it helps*: Simplifies data access and reduces double-handling
-- *Estimated effort*: Small
-- Subtasks:
-  - [ ] Monitor logs for legacy warnings after recent change (now warns once per process)
-  - [ ] Grep code for legacy-format consumers and migrate if any are found
-  - [ ] Remove legacy bridge and update tests
+- *Status*: Legacy format conversion/extraction code has already been removed. Code now uses modern formats directly with comments confirming "no legacy conversion needed" and "no legacy extraction needed". All callers verified to use modern format.
 
 
 **Legacy Removal "Search-and-Close" Framework** - Tooling and checklist
@@ -212,10 +208,10 @@ When adding new tasks, follow this format:
 - *Why it helps*: Faster feedback while preserving isolation requirements.
 - *Estimated effort*: Small
 
-**Help/Docs: Prefer Slash Commands, keep Bang Commands**
+**Help/Docs: Prefer Slash Commands, keep Bang Commands** ✅ **COMPLETED**
 - *What it means*: Update help/UX text to prefer `/` commands with auto-suggested slash equivalents, while keeping `!` commands supported.
 - *Why it helps*: Better Discord-native discoverability without breaking habits.
-- *Estimated effort*: Small
+- *Status*: Updated help text in `interaction_handlers.py` and `DISCORD.md` to prefer slash commands. All command listings now show slash commands first with "(also !commands)" notation. Updated documentation to indicate slash commands are "preferred, Discord-native" while bang commands are "also supported". This improves Discord-native discoverability while maintaining backward compatibility.
 
 ### User Experience Improvements
 
@@ -303,25 +299,25 @@ When adding new tasks, follow this format:
 - *Why it helps*: Reduces confusion and keeps the codebase organized
 - *Estimated effort*: Medium
 
-**Gitignore Cleanup**
+**Gitignore Cleanup** ✅ **COMPLETED**
 - *What it means*: Review and clean up `.gitignore`
 - *Why it helps*: Ensures proper version control and prevents unnecessary files from being tracked
-- *Estimated effort*: Small
+- *Status*: Reviewed `.gitignore` file - found it to be comprehensive and well-organized. Fixed minor formatting issue (trailing space on `tests/logs/` entry). File properly excludes all necessary patterns including Python cache files, virtual environments, test artifacts, coverage files, IDE files, and project-specific temporary files.
 
 **Improve AI Terminal Interaction Reliability**
 - *What it means*: Investigate why AI assistants often misinterpret PowerShell output or make incorrect assumptions
 - *Why it helps*: Reduces confusion and improves the reliability of AI-assisted development
 - *Estimated effort*: Medium
 
-**Fix Treeview Refresh**
+**Fix Treeview Refresh** ✅ **COMPLETED**
 - *What it means*: Auto-refresh the message editing interface to reflect changes while maintaining current sorting
 - *Why it helps*: Better UX with immediate visual feedback
-- *Estimated effort*: Small
+- *Status*: Implemented sort preservation in message editor dialog and task CRUD dialog. Tables now preserve sort column and order when refreshing after add/edit/delete operations. Sorting is enabled on table widgets and sort state is saved before refresh and restored after repopulation. Applied to both message editor dialog (1 table) and task CRUD dialog (2 tables: active tasks and completed tasks).
 
-**Fix "process already stopped" notification issue**
+**Fix "process already stopped" notification issue** ✅ **OBSOLETE**
 - *What it means*: Investigate why shutdown attempts result in "process already stopped" messages
 - *Why it helps*: Cleaner service management and better user experience
-- *Estimated effort*: Small
+- *Status*: Issue has not been observed in many months. The improved shutdown mechanism appears to have resolved the original issue. No code changes needed - system is working correctly.
 
 **Add Performance Monitoring**
 - *What it means*: Track how long operations take across subsystems
