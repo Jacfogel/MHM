@@ -31,6 +31,13 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**
+- **Legacy Audit Complete**: Investigated `core/user_data_manager.py` and `user/user_context.py` - no legacy markers found, all code uses modern formats
+- **Function Rename**: Renamed `_save_user_data__legacy_preferences()` → `_save_user_data__preserve_preference_settings()` to clarify purpose (preserves settings, not legacy conversion)
+- **Integration Investigation**: Found `UserPreferences` initialized but unused, `UserContext` primarily used as singleton for user ID - documented gaps in PLANS.md
+- **Module Clarity Investigation**: Analyzed communication modules - found routing overlap and naming inconsistency, documented recommendations for future refactoring
+- **Windows Exception**: Marked investigation complete - fix already implemented via thread cleanup fixture
+
 ### 2025-11-09 - Analytics Scale Normalization and Conversion Helper Functions **COMPLETED**
 - **Scale Normalization**: Updated wellness score displays to show mood/energy on 1-5 scale (converted from internal 0-100) - users now see consistent 1-5 scale matching check-in input
 - **Missing Handler**: Added `_handle_energy_trends()` method to `interaction_handlers.py` AnalyticsHandler - energy trends now accessible through both handlers

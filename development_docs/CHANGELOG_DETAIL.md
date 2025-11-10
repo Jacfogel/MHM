@@ -35,6 +35,49 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**
+
+**Feature**: Completed legacy compatibility marker audit, investigated user context/preferences integration, and analyzed bot module naming clarity. Renamed misleading function, fixed docstrings, and documented findings for future improvements.
+
+**Technical Changes**:
+1. **Legacy Compatibility Marker Audit** (`core/user_data_manager.py`, `user/user_context.py`, `core/user_data_handlers.py`):
+   - Investigated referenced files for legacy compatibility markers - found none in target files
+   - Confirmed all code uses modern formats (new `questions` format, not legacy `enabled_fields`)
+   - Renamed `_save_user_data__legacy_preferences()` → `_save_user_data__preserve_preference_settings()` to clarify purpose
+   - Updated function documentation to reflect it preserves settings blocks, not legacy format conversion
+   - Updated comment in `user/user_preferences.py` to reflect actual state (initialized but unused)
+
+2. **User Context & Preferences Integration Investigation** (`user/user_context.py`, `user/user_preferences.py`):
+   - Audited usage across codebase - found `UserContext` primarily used as singleton for user ID/username
+   - Critical finding: `UserPreferences` is initialized but never actually used anywhere in codebase
+   - Documented integration gaps: direct data access bypasses context, limited context usage, redundant wrappers
+   - Updated `development_docs/PLANS.md` with investigation findings and recommendations
+
+3. **Bot Module Naming & Clarity Investigation** (`communication/` modules):
+   - Analyzed 6 communication modules and their purposes
+   - Identified overlapping functionality: routing overlap between `InteractionManager` and `MessageRouter`
+   - Found naming inconsistency: three "Manager" classes with different purposes
+   - Documented recommendations for clarifying routing hierarchy and standardizing naming
+   - Fixed docstring in `conversation_flow_manager.py` to match actual filename
+
+4. **Windows Fatal Exception Investigation** (`development_docs/PLANS.md`):
+   - Marked investigation as complete - fix already implemented via `cleanup_communication_threads` fixture
+   - Documented solution: thread cleanup fixture prevents crashes between tests
+
+**Files Modified**:
+- `core/user_data_handlers.py` - Renamed function and updated documentation
+- `user/user_preferences.py` - Updated comment to reflect actual state
+- `communication/message_processing/conversation_flow_manager.py` - Fixed docstring filename
+- `development_docs/PLANS.md` - Updated three investigation items with findings
+- `development_docs/LEGACY_REFERENCE_REPORT.md` - Added audit completion note
+- `TODO.md` - Removed completed legacy audit task
+
+**Testing**:
+- Full test suite passes: 2,789 passed, 1 skipped, 5 warnings (expected external library deprecations)
+- All changes validated - no regressions introduced
+
+**Impact**: Improved code clarity by renaming misleading function, documented integration gaps for future improvements, and completed three old investigation items from August 2025. Findings provide clear direction for future refactoring work.
+
 ### 2025-11-09 - Analytics Scale Normalization and Conversion Helper Functions **COMPLETED**
 
 **Feature**: Completed analytics scale normalization for mood/energy scores, added missing energy trends handler, extracted conversion helper functions, and added comprehensive unit tests. All mood and energy scores now consistently display on 1-5 scale across analytics outputs.

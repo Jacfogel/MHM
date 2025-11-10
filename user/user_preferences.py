@@ -1,5 +1,8 @@
 # user_preferences.py
-# module user_preferences code is not yet implemented or integrated into program
+# 
+# NOTE: This module is initialized in UserContext.set_user_id() but is currently unused.
+# The UserPreferences instance is created but never accessed in the codebase.
+# See development_docs/PLANS.md "User Context & Preferences Integration Investigation" for details.
 
 from core.user_data_handlers import get_user_data, update_user_preferences
 from core.schedule_management import set_schedule_period_active, is_schedule_period_active

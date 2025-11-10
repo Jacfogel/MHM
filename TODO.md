@@ -163,16 +163,6 @@ When adding new tasks, follow this format:
 
 ## Medium Priority
 
-**Legacy Compatibility Marker Audit** - Evaluate remaining backward-compatibility shims called out by the legacy cleanup report
-- *What it means*: Review the markers in `core/user_data_manager.py` and `user/user_context.py` and plan their retirement or documentation.
-- *Why it helps*: Reduces long-term maintenance burden while keeping compatibility decisions intentional.
-- *Estimated effort*: Medium
-- Next steps:
-  - [ ] Confirm no active clients rely on the legacy fields.
-  - [ ] Replace markers with clear TODO notes or remove them entirely.
-  - [ ] Add regression tests covering analytics handler flows and user data migrations before deleting markers.
-  - [ ] Rerun `python ai_development_tools/ai_tools_runner.py legacy --clean --dry-run` until the report returns zero issues.
-  - [ ] Update the legacy report and changelog once resolved.
 
 **Personalized User Suggestions Implementation** - Review and implement proper personalized suggestions
 - *What it means*: Review the current `get_user_suggestions()` function and implement proper personalized suggestion functionality

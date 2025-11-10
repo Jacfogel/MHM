@@ -1,7 +1,7 @@
 # communication/message_processing/conversation_flow_manager.py
 
 """
-conversation_manager.py
+conversation_flow_manager.py
 
 Provides a single place to handle 'conversation flows' that can be used
 by any platform: Discord, Email, etc.

@@ -557,30 +557,32 @@ def _save_user_data__validate_data(user_id: str, data_updates: Dict[str, Dict[st
 
 
 
-@handle_errors("handling legacy preferences", default_return=False)
-def _save_user_data__legacy_preferences(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> bool:
+@handle_errors("preserving preference settings", default_return=False)
+def _save_user_data__preserve_preference_settings(updated: Dict[str, Any], updates: Dict[str, Any], user_id: str) -> bool:
     """
-    Handle legacy preferences with validation.
+    Preserve preference settings blocks when saving preferences.
     
     Note: task_settings and checkin_settings blocks are preserved even when features are disabled.
     This allows users to re-enable features later and restore their previous settings.
     Feature enablement is controlled by account.features, not by the presence of settings blocks.
+    
+    Settings preservation happens automatically through the merge process (current.copy() + updates),
+    so this function primarily serves as a placeholder for any future preference-specific handling.
     
     Returns:
         bool: True if successful, False if failed
     """
     # Validate inputs
     if not user_id or not isinstance(user_id, str):
-        logger.error(f"Invalid user_id for legacy preferences: {user_id}")
+        logger.error(f"Invalid user_id for preference settings: {user_id}")
         return False
         
     if not isinstance(updated, dict):
         logger.error(f"Invalid updated data: {type(updated)}")
         return False
     
-    # Settings blocks are preserved even when features are disabled to allow re-enablement with
-    # previous settings intact. Feature enablement is controlled by account.features.
-    # No block removal logic needed - settings are preserved for future use.
+    # Settings blocks are preserved automatically through the merge process in _save_user_data__save_single_type.
+    # No additional logic needed - settings are preserved for future use when features are re-enabled.
     return True
 
 
@@ -667,13 +669,14 @@ def _save_user_data__save_single_type(user_id: str, dt: str, updates: Dict[str, 
             preserve_categories_order = list(updates["categories"])  # exact order from caller
         updated.update(updates)
         
-        # Handle legacy compatibility
+        # Handle field preservation and preference settings
         if dt == "account":
             # Preserve email field if provided in updates but not already in updated data
             if "email" in updates and not updated.get("email"):
                 updated["email"] = updates["email"]
         elif dt == "preferences":
-            _save_user_data__legacy_preferences(updated, updates, user_id)
+            # Preserve preference settings blocks (task_settings, checkin_settings) even when features are disabled
+            _save_user_data__preserve_preference_settings(updated, updates, user_id)
         
         # Apply Pydantic normalization
         _save_user_data__normalize_data(dt, updated)
