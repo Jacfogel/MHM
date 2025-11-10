@@ -267,7 +267,7 @@ class TestUserDataManagerExport:
     def test_user(self, test_data_dir):
         """Create test user."""
         user_id = "test_export_user"
-        TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -330,7 +330,7 @@ class TestUserDataManagerIndex:
     def test_user(self, test_data_dir):
         """Create test user."""
         user_id = "test_index_user"
-        TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -398,8 +398,8 @@ class TestUserDataManagerIndex:
         # Arrange: Create test users
         user1 = "test_rebuild_user1"
         user2 = "test_rebuild_user2"
-        TestUserFactory.create_basic_user(user1, enable_checkins=True, test_data_dir=test_data_dir)
-        TestUserFactory.create_basic_user(user2, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user2, test_data_dir=test_data_dir)
         
         # Act: Rebuild index
         result = manager.rebuild_full_index()
@@ -427,7 +427,7 @@ class TestUserDataManagerSearch:
     def test_user(self, test_data_dir):
         """Create test user."""
         user_id = "test_search_user"
-        TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -546,7 +546,7 @@ class TestUserDataManagerConvenienceFunctions:
     def test_user(self, test_data_dir):
         """Create test user."""
         user_id = "test_conv_user"
-        TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -615,7 +615,7 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: rebuild_user_index convenience function works"""
         # Arrange: Create test users
         user1 = "test_rebuild_conv_user1"
-        TestUserFactory.create_basic_user(user1, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
         
         # Act: Rebuild index
         result = rebuild_user_index()
@@ -653,7 +653,7 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: build_user_index convenience function works"""
         # Arrange: Create test users
         user1 = "test_build_index_user1"
-        TestUserFactory.create_basic_user(user1, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
         
         # Act: Build user index
         index_data = build_user_index()
@@ -678,7 +678,7 @@ class TestUserDataManagerConvenienceFunctions:
         """Test: get_all_user_summaries convenience function works"""
         # Arrange: Create test users
         user1 = "test_all_summaries_user1"
-        TestUserFactory.create_basic_user(user1, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user1, test_data_dir=test_data_dir)
         
         # Act: Get all user summaries
         summaries = get_all_user_summaries()
@@ -713,7 +713,7 @@ class TestUserDataManagerDeleteUser:
     def test_user(self, test_data_dir):
         """Create test user."""
         user_id = "test_delete_user"
-        TestUserFactory.create_basic_user(user_id, enable_checkins=True, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)

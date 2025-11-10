@@ -23,6 +23,7 @@ pytest>=7.0.0  # For testing
 pytest-mock>=3.14.0  # For mocking in tests
 pytest-asyncio>=0.24.0  # For async test support
 pytest-randomly>=3.15.0  # For order randomization to enforce determinism
+pytest-xdist>=3.5.0  # For parallel test execution
 
 # Optional but recommended for development
 black>=23.0.0  # For code formatting

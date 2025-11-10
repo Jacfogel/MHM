@@ -275,7 +275,7 @@ class TestUserContextLoadSave:
         """Test: load_user_data loads account data"""
         # Arrange
         user_id = "test_context_load"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -304,7 +304,7 @@ class TestUserContextLoadSave:
         """Test: save_user_data saves user data"""
         # Arrange
         user_id = "test_context_save"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -346,7 +346,7 @@ class TestUserContextGetInstanceContext:
         """Test: get_instance_context returns context with user_id"""
         # Arrange
         user_id = "test_context_instance"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -369,7 +369,7 @@ class TestUserContextGetInstanceContext:
         """Test: get_instance_context includes account_status"""
         # Arrange
         user_id = "test_context_status"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)
@@ -389,7 +389,7 @@ class TestUserContextGetInstanceContext:
         """Test: get_instance_context includes preferred_name"""
         # Arrange
         user_id = "test_context_name"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         from core.user_management import get_user_id_by_identifier
         actual_user_id = get_user_id_by_identifier(user_id)

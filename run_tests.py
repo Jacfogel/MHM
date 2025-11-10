@@ -62,14 +62,16 @@ def print_test_mode_info():
     print("  slow        - Slow tests only")
     print("\nOptions:")
     print("  --verbose   - Verbose output")
-    print("  --parallel  - Run tests in parallel")
+    print("  --no-parallel - Disable parallel execution (parallel enabled by default)")
+    print("  --workers N - Number of parallel workers (default: 2, or 'auto' for optimal)")
     print("  --coverage  - Run with coverage reporting")
     print("  --durations-all - Show timing for all tests")
     print("\nExamples:")
-    print("  python run_tests.py                    # Run all tests")
+    print("  python run_tests.py                    # Run all tests in parallel")
     print("  python run_tests.py --mode fast        # Quick unit tests only")
     print("  python run_tests.py --mode all --verbose # All tests with verbose output")
-    print("  python run_tests.py --parallel --workers 4 # Parallel execution")
+    print("  python run_tests.py --no-parallel      # Disable parallel execution")
+    print("  python run_tests.py --workers 4       # Use 4 parallel workers")
     print("="*60)
 
 def main():
@@ -90,15 +92,15 @@ def main():
         help="Test execution mode (default: all)"
     )
     parser.add_argument(
-        "--parallel", 
+        "--no-parallel", 
         action="store_true",
-        help="Run tests in parallel (uses pytest-xdist)"
+        help="Disable parallel test execution (parallel is enabled by default)"
     )
     parser.add_argument(
         "--workers", 
-        type=int, 
-        default=2,
-        help="Number of parallel workers (default: 2)"
+        type=str, 
+        default="2",
+        help="Number of parallel workers (default: 2, or 'auto' to let pytest-xdist decide, or specify a number)"
     )
     parser.add_argument(
         "--verbose", 
@@ -142,9 +144,24 @@ def main():
     # Base pytest command
     cmd = [sys.executable, "-m", "pytest"]
     
-    # Add parallel execution if requested
-    if args.parallel:
-        cmd.extend(["-n", str(args.workers)])
+    # Add parallel execution (enabled by default, can be disabled with --no-parallel)
+    if not args.no_parallel:
+        # Use 'auto' to let pytest-xdist determine optimal worker count, or use specified number
+        # Default to 2 workers for safety (some tests may have race conditions with more workers)
+        if args.workers == "auto":
+            cmd.extend(["-n", "auto"])
+        else:
+            try:
+                # Validate that workers is a valid number if not "auto"
+                num_workers = int(args.workers)
+                if num_workers < 1:
+                    print(f"[WARNING] Invalid worker count: {num_workers}. Using 2 instead.")
+                    cmd.extend(["-n", "2"])
+                else:
+                    cmd.extend(["-n", str(num_workers)])
+            except ValueError:
+                print(f"[WARNING] Invalid worker value: {args.workers}. Using 2 instead.")
+                cmd.extend(["-n", "2"])
     
     # Add verbose output
     if args.verbose:
@@ -209,8 +226,10 @@ def main():
     print(f"\nMHM Test Runner")
     print(f"Mode: {args.mode}")
     print(f"Description: {description}")
-    if args.parallel:
+    if not args.no_parallel:
         print(f"Parallel: Yes ({args.workers} workers)")
+    else:
+        print(f"Parallel: No (disabled)")
     if args.verbose:
         print(f"Verbose: Yes")
     if args.coverage:

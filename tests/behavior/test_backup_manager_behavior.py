@@ -43,7 +43,7 @@ class TestBackupManagerBehavior:
         # Create test config files
         self._create_test_config_files()
         
-        # Create user in the test data directory
+        # Create user in the test data directory (use create_basic_user for backup operations to ensure full structure)
         TestUserFactory.create_basic_user(self.test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=self.test_data_dir)
         
         # Apply configuration patches for backup manager

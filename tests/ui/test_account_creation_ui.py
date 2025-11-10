@@ -477,9 +477,9 @@ class TestAccountManagementRealBehavior:
         
         user_id = 'test-profile-integration'
         
-        # Create test user using centralized utilities
+        # Create test user using centralized utilities (minimal user since we only need account and context)
         from tests.test_utilities import TestUserFactory
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=False, enable_tasks=False, test_data_dir=test_data_dir)
+        success = TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         assert success, "Test user should be created successfully"
         
         # ✅ VERIFY REAL BEHAVIOR: Get the actual user ID from the test utilities

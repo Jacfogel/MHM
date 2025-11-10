@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Test Performance Optimization: Caching Bug Fixes and Extensions **COMPLETED**
+- **Caching Bug Fix**: Fixed test isolation issue by using `copy.deepcopy()` instead of `.copy()` - nested dictionaries were being shared between tests causing failures
+- **Extended Caching**: Added caching to all fixed-configuration user creation methods (health, task, complex_checkins, disability, limited_data, inconsistent) for improved test performance
+- **Limited Data Fix**: Fixed `create_user_with_limited_data__with_test_dir()` to preserve empty `preferred_name` when using cached data
+- **Test Results**: All 2789 tests pass with proper test isolation, parallel execution, and random test order
+
 ### 2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**
 - **Legacy Audit Complete**: Investigated `core/user_data_manager.py` and `user/user_context.py` - no legacy markers found, all code uses modern formats
 - **Function Rename**: Renamed `_save_user_data__legacy_preferences()` → `_save_user_data__preserve_preference_settings()` to clarify purpose (preserves settings, not legacy conversion)

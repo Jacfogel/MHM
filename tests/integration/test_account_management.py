@@ -131,9 +131,9 @@ def test_account_management_data_structures(test_data_dir, mock_config):
         from core.user_data_handlers import get_user_data, save_user_data
         from tests.test_utilities import TestUserFactory
         
-        # Create a test user first
+        # Create a test user first (minimal user since we only need basic structure for data structure testing)
         test_user_id = "test-user"
-        success = TestUserFactory.create_basic_user(test_user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
+        success = TestUserFactory.create_minimal_user(test_user_id, test_data_dir=test_data_dir)
         assert success, "Failed to create test user"
         
         # Get the actual UUID for the user

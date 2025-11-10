@@ -932,6 +932,17 @@ def _prune_old_files(target_dir: Path, patterns: list[str], older_than_days: int
 
 
 @pytest.fixture(scope="session", autouse=True)
+def clear_test_user_factory_cache():
+    """Clear test user factory cache at the end of the test session."""
+    yield
+    # Clear cache after all tests complete
+    try:
+        from tests.test_utilities import TestUserFactory
+        TestUserFactory.clear_cache()
+    except Exception:
+        pass  # Ignore errors during cleanup
+
+@pytest.fixture(scope="session", autouse=True)
 def prune_test_artifacts_before_and_after_session():
     """Prune old logs (tests/logs) and backups (tests/data/backups) before and after the session.
 
@@ -1529,15 +1540,25 @@ def env_guard_and_restore(monkeypatch):
             else:
                 monkeypatch.setenv(k, v)
 
+@pytest.fixture(scope="session", autouse=True)
+def ensure_tmp_base_directory():
+    """Ensure base tmp directory exists at session start (optimization: create once)."""
+    # Use the session-scoped test_data_dir directly to avoid scope mismatch
+    # with function-scoped test_data_dir fixtures in some test files
+    base_tmp = os.path.join(tests_data_dir, 'tmp')
+    os.makedirs(base_tmp, exist_ok=True)
+    yield
+
 @pytest.fixture(scope="function")
-def test_path_factory(test_data_dir):
+def test_path_factory(test_data_dir, ensure_tmp_base_directory):
     """Provide a per-test directory under tests/data/tmp/<uuid> for ad-hoc temp usage.
 
     Prefer this over raw tempfile.mkdtemp/TemporaryDirectory to keep paths within the repo.
+    Optimized: base tmp directory is created once at session start.
     """
     import uuid
     base_tmp = os.path.join(test_data_dir, 'tmp')
-    os.makedirs(base_tmp, exist_ok=True)
+    # Base directory already exists from session fixture, just create subdirectory
     path = os.path.join(base_tmp, uuid.uuid4().hex)
     os.makedirs(path, exist_ok=True)
     return path

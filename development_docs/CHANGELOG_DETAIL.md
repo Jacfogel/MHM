@@ -35,6 +35,40 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-10 - Test Performance Optimization: Caching Improvements and Bug Fixes **COMPLETED**
+
+**Feature**: Fixed critical caching bug in test user factory and extended caching to all fixed-configuration user creation methods. Improved test isolation by using `copy.deepcopy()` instead of `.copy()` to prevent shared nested dictionary references.
+
+**Technical Changes**:
+1. **Caching Bug Fix** (`tests/test_utilities.py`):
+   - Changed `_cache_user_data()` to use `copy.deepcopy()` instead of `.copy()` when caching templates
+   - Updated all user creation methods to use `copy.deepcopy()` when retrieving from cache
+   - Fixed test isolation issue where nested dictionaries (checkin_settings, task_settings, custom_fields, channel) were being shared between tests
+   - Added `import copy` to support deep copying
+
+2. **Extended Caching Coverage** (`tests/test_utilities.py`):
+   - Added caching to `create_user_with_health_focus__with_test_dir()`
+   - Added caching to `create_user_with_task_focus__with_test_dir()`
+   - Added caching to `create_user_with_complex_checkins__with_test_dir()`
+   - Added caching to `create_user_with_disabilities__with_test_dir()`
+   - Added caching to `create_user_with_limited_data__with_test_dir()`
+   - Added caching to `create_user_with_inconsistent_data__with_test_dir()`
+   - Updated `_get_cache_key()` to recognize all fixed-configuration user types
+
+3. **Limited Data User Fix** (`tests/test_utilities.py`):
+   - Fixed `create_user_with_limited_data__with_test_dir()` to preserve empty `preferred_name` when using cached data (was incorrectly setting to generated name)
+
+**Impact**: 
+- Resolved test isolation failures caused by shared nested dictionary references in cached user data
+- Improved test performance by extending caching to all fixed-configuration user types
+- Fixed test assertion failure in `test_real_user_scenarios` for limited data users
+- All 2789 tests now pass with proper test isolation
+
+**Testing**: 
+- Full test suite passes (2789 passed, 1 skipped, 7 warnings)
+- Tests pass with parallel execution (2 workers) and random test order
+- No files written outside `tests/` directory
+
 ### 2025-11-09 - Legacy Compatibility Audit and Module Investigation **COMPLETED**
 
 **Feature**: Completed legacy compatibility marker audit, investigated user context/preferences integration, and analyzed bot module naming clarity. Renamed misleading function, fixed docstrings, and documented findings for future improvements.

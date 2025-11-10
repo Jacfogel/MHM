@@ -219,8 +219,8 @@ class TestUserManagement:
             'categories': ['motivational', 'health']
         }
         
-        # Use TestUserFactory instead of create_user_files directly
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
+        # Use TestUserFactory instead of create_user_files directly (minimal user since we only check basic files)
+        success = TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         assert success is True, "Failed to create test user"
         
         # Verify files were created
@@ -302,8 +302,8 @@ class TestUserManagement:
         # Test creating a user with email and getting their account
         user_id = 'test-email-user'
 
-        # Create user using TestUserFactory
-        success = TestUserFactory.create_basic_user(user_id, enable_checkins=True, enable_tasks=True, test_data_dir=test_data_dir)
+        # Create user using TestUserFactory (minimal user since we only test account updates)
+        success = TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         assert success is True, "Failed to create test user"
 
         # Get the actual user ID (UUID) that was created
@@ -427,10 +427,11 @@ class TestUserManagementEdgeCases:
         assert success is True, "Failed to create test user"
         
         # ✅ VERIFY REAL BEHAVIOR: Check user directory was created
-        # Find the actual user directory (UUID-based)
-        user_dirs = [d for d in os.listdir(os.path.join(test_data_dir, 'users')) if os.path.isdir(os.path.join(test_data_dir, 'users', d))]
-        assert len(user_dirs) > 0, "No user directories found"
-        actual_user_dir = os.path.join(test_data_dir, 'users', user_dirs[0])
+        # Get the actual user ID (UUID) that was created to find the correct directory
+        from core.user_management import get_user_id_by_identifier
+        actual_user_id = get_user_id_by_identifier(user_id)
+        assert actual_user_id is not None, "Should be able to get UUID for created user"
+        actual_user_dir = os.path.join(test_data_dir, 'users', actual_user_id)
         
         assert os.path.exists(actual_user_dir), f"User directory should be created: {actual_user_dir}"
         assert os.path.isdir(actual_user_dir), f"User path should be a directory: {actual_user_dir}"
@@ -461,10 +462,7 @@ class TestUserManagementEdgeCases:
         
         # Step 2: Test data loading and verification
         # ✅ VERIFY REAL BEHAVIOR: Check data can be loaded using unified API
-        # Get the actual user ID (UUID) that was created
-        from core.user_management import get_user_id_by_identifier
-        actual_user_id = get_user_id_by_identifier(user_id)
-        assert actual_user_id is not None, "Should be able to get UUID for created user"
+        # actual_user_id already retrieved above
         
         user_data = get_user_data(actual_user_id, 'all')
         assert user_data is not None

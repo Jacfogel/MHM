@@ -429,9 +429,9 @@ class TestMHMManagerUI:
         from ui.ui_app_qt import MHMManagerUI
         from tests.test_utilities import TestUserFactory
         
-        # Create test user
+        # Create test user (minimal user since we only need basic structure for refresh)
         user_id = "test_user_refresh"
-        TestUserFactory.create_basic_user(user_id, test_data_dir=test_data_dir)
+        TestUserFactory.create_minimal_user(user_id, test_data_dir=test_data_dir)
         
         with patch('ui.ui_app_qt.Ui_ui_app_mainwindow') as mock_ui:
             with patch('ui.ui_app_qt.QTimer') as mock_timer:

@@ -9,6 +9,7 @@ import tempfile
 import shutil
 import json
 import logging
+import copy
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -25,6 +26,34 @@ logger = logging.getLogger(__name__)
 
 class TestUserFactory:
     """Factory for creating test users with different configurations"""
+    
+    # Cache for pre-created user data structures to avoid recreating identical data
+    _user_data_cache: Dict[str, Dict[str, Any]] = {}
+    
+    @staticmethod
+    def _get_cache_key(enable_checkins: bool = None, enable_tasks: bool = None, user_type: str = "basic", **kwargs) -> str:
+        """Generate a cache key for user data structures (configuration only, not user_id)."""
+        # For user types with fixed configurations, use just the type
+        if user_type in ("minimal", "full", "discord", "email", "health", "task", "complex_checkins", "disability", "limited_data", "inconsistent"):
+            return f"{user_type}"
+        # For basic users, include checkins and tasks in the key
+        return f"{user_type}:checkins={enable_checkins}:tasks={enable_tasks}"
+    
+    @staticmethod
+    def _get_cached_user_data(cache_key: str) -> Optional[Dict[str, Any]]:
+        """Get cached user data structure if available."""
+        return TestUserFactory._user_data_cache.get(cache_key)
+    
+    @staticmethod
+    def _cache_user_data(cache_key: str, user_data: Dict[str, Any]):
+        """Cache a user data structure for reuse."""
+        # Use deepcopy to ensure the cached template is independent
+        TestUserFactory._user_data_cache[cache_key] = copy.deepcopy(user_data)
+    
+    @staticmethod
+    def clear_cache():
+        """Clear the user data cache (useful for test cleanup)."""
+        TestUserFactory._user_data_cache.clear()
     
     @staticmethod
     def create_basic_user(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
@@ -244,43 +273,63 @@ class TestUserFactory:
     def create_basic_user__with_test_dir(user_id: str, enable_checkins: bool = True, enable_tasks: bool = True, test_data_dir: str = None) -> bool:
         """Create basic user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": enable_checkins,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": enable_tasks,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Test User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
+            # Check cache first to avoid recreating identical user data structures
+            # Cache key excludes user_id to allow reuse across tests with same configuration
+            cache_key = TestUserFactory._get_cache_key(enable_checkins, enable_tasks, "basic")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # AND ensure checkin/task settings match current parameters (for correctness)
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Test User {user_id}"
+                # Ensure checkin and task settings match current parameters
+                user_data["checkin_settings"]["enabled"] = enable_checkins
+                user_data["task_settings"]["enabled"] = enable_tasks
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "",
+                    "email": f"{user_id}@example.com",
+                    "discord_user_id": "",
+                    "timezone": "UTC",
+                    "categories": ["motivational", "health"],
+                    "channel": {
+                        "type": "discord"
+                    },
+                    "checkin_settings": {
+                        "enabled": enable_checkins,
+                        "frequency": "daily",
+                        "reminder_time": "09:00"
+                    },
+                    "task_settings": {
+                        "enabled": enable_tasks,
+                        "default_priority": "medium",
+                        "reminder_enabled": True
+                    },
+                    "preferred_name": f"Test User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "",
+                    "reminders_needed": [],
+                    "custom_fields": {
+                        "health_conditions": [],
+                        "medications_treatments": [],
+                        "allergies_sensitivities": []
+                    },
+                    "interests": ["Technology", "Gaming"],
+                    "goals": ["Improve mental health", "Stay organized"],
+                    "loved_ones": [],
+                    "activities_for_encouragement": [],
+                    "notes_for_ai": []
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -292,7 +341,50 @@ class TestUserFactory:
             logger.error(f"Error creating basic user with test dir {user_id}: {e}")
             return False
     
-
+    @staticmethod
+    def create_minimal_user(user_id: str, test_data_dir: str = None) -> bool:
+        """
+        Create a minimal test user with only essential data structures.
+        Use this for tests that don't need full user data (faster than create_basic_user).
+        
+        Args:
+            user_id: Unique identifier for the test user
+            test_data_dir: Test data directory to use (required)
+            
+        Returns:
+            bool: True if user was created successfully, False otherwise
+        """
+        try:
+            if not test_data_dir:
+                raise ValueError("test_data_dir parameter is required")
+            
+            # Create minimal user data - only essential fields
+            user_data = {
+                "internal_username": user_id,
+                "email": f"{user_id}@example.com",
+                "timezone": "UTC",
+                "categories": [],  # No categories for minimal user
+                "channel": {
+                    "type": "email"
+                },
+                "checkin_settings": {
+                    "enabled": False
+                },
+                "task_settings": {
+                    "enabled": False
+                },
+                "preferred_name": f"Minimal User {user_id}"
+            }
+            
+            # Use helper function to create files (will skip schedules and messages since no categories)
+            actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
+            
+            # Verify user creation with proper configuration patching
+            return TestUserFactory.create_basic_user__verify_creation(user_id, actual_user_id, test_data_dir)
+            
+        except Exception as e:
+            logger.error(f"Error creating minimal user {user_id}: {e}")
+            return False
     
     @staticmethod
     def create_discord_user(user_id: str, discord_user_id: str = None, test_data_dir: str = None) -> bool:
@@ -324,43 +416,59 @@ class TestUserFactory:
             if discord_user_id is None:
                 discord_user_id = user_id
             
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": discord_user_id,
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Discord User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Gaming"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="discord")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["discord_user_id"] = discord_user_id
+                user_data["preferred_name"] = f"Discord User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "",
+                    "email": f"{user_id}@example.com",
+                    "discord_user_id": discord_user_id,
+                    "timezone": "UTC",
+                    "categories": ["motivational", "health"],
+                    "channel": {
+                        "type": "discord"
+                    },
+                    "checkin_settings": {
+                        "enabled": True,
+                        "frequency": "daily",
+                        "reminder_time": "09:00"
+                    },
+                    "task_settings": {
+                        "enabled": True,
+                        "default_priority": "medium",
+                        "reminder_enabled": True
+                    },
+                    "preferred_name": f"Discord User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "",
+                    "reminders_needed": [],
+                    "custom_fields": {
+                        "health_conditions": [],
+                        "medications_treatments": [],
+                        "allergies_sensitivities": []
+                    },
+                    "interests": ["Technology", "Gaming"],
+                    "goals": ["Improve mental health", "Stay organized"],
+                    "loved_ones": [],
+                    "activities_for_encouragement": [],
+                    "notes_for_ai": []
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -404,45 +512,60 @@ class TestUserFactory:
     def create_full_featured_user__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create full featured user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "America/New_York",
-                "categories": ["motivational", "health", "fun_facts", "quotes_to_ponder", "word_of_the_day"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00",
-                    "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?"]
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "high",
-                    "reminder_enabled": True,
-                    "auto_escalation": True
-                },
-                "preferred_name": f"Full Featured User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "1990-01-01",
-                "reminders_needed": ["medication", "appointments", "exercise"],
-                "custom_fields": {
-                    "health_conditions": ["ADHD", "Depression"],
-                    "medications_treatments": ["Adderall", "Therapy"],
-                    "allergies_sensitivities": ["Peanuts"]
-                },
-                "interests": ["Technology", "Gaming", "Reading", "Cooking"],
-                "goals": ["Improve mental health", "Stay organized", "Build better habits"],
-                "loved_ones": ["Family", "Friends"],
-                "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
-                "notes_for_ai": ["Prefers gentle encouragement", "Responds well to humor"]
-            }
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="full")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Full Featured User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "",
+                    "email": f"{user_id}@example.com",
+                    "discord_user_id": "",
+                    "timezone": "America/New_York",
+                    "categories": ["motivational", "health", "fun_facts", "quotes_to_ponder", "word_of_the_day"],
+                    "channel": {
+                        "type": "discord"
+                    },
+                    "checkin_settings": {
+                        "enabled": True,
+                        "frequency": "daily",
+                        "reminder_time": "09:00",
+                        "custom_questions": ["How are you feeling?", "Did you eat today?", "Did you take your medication?"]
+                    },
+                    "task_settings": {
+                        "enabled": True,
+                        "default_priority": "high",
+                        "reminder_enabled": True,
+                        "auto_escalation": True
+                    },
+                    "preferred_name": f"Full Featured User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "1990-01-01",
+                    "reminders_needed": ["medication", "appointments", "exercise"],
+                    "custom_fields": {
+                        "health_conditions": ["ADHD", "Depression"],
+                        "medications_treatments": ["Adderall", "Therapy"],
+                        "allergies_sensitivities": ["Peanuts"]
+                    },
+                    "interests": ["Technology", "Gaming", "Reading", "Cooking"],
+                    "goals": ["Improve mental health", "Stay organized", "Build better habits"],
+                    "loved_ones": ["Family", "Friends"],
+                    "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
+                    "notes_for_ai": ["Prefers gentle encouragement", "Responds well to humor"]
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -545,43 +668,58 @@ class TestUserFactory:
             if email is None:
                 email = f"{user_id}@example.com"
             
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": email,
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational", "health"],
-                "channel": {
-                    "type": "email"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Email User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology", "Reading"],
-                "goals": ["Improve mental health", "Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="email")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = email
+                user_data["preferred_name"] = f"Email User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "",
+                    "email": email,
+                    "discord_user_id": "",
+                    "timezone": "UTC",
+                    "categories": ["motivational", "health"],
+                    "channel": {
+                        "type": "email"
+                    },
+                    "checkin_settings": {
+                        "enabled": True,
+                        "frequency": "daily",
+                        "reminder_time": "09:00"
+                    },
+                    "task_settings": {
+                        "enabled": True,
+                        "default_priority": "medium",
+                        "reminder_enabled": True
+                    },
+                    "preferred_name": f"Email User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "",
+                    "reminders_needed": [],
+                    "custom_fields": {
+                        "health_conditions": [],
+                        "medications_treatments": [],
+                        "allergies_sensitivities": []
+                    },
+                    "interests": ["Technology", "Reading"],
+                    "goals": ["Improve mental health", "Stay organized"],
+                    "loved_ones": [],
+                    "activities_for_encouragement": [],
+                    "notes_for_ai": []
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -924,43 +1062,58 @@ class TestUserFactory:
     def create_minimal_user__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create minimal user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "",
-                "email": f"{user_id}@example.com",
-                "discord_user_id": "",
-                "timezone": "UTC",
-                "categories": ["motivational"],
-                "channel": {
-                    "type": "email"
-                },
-                "checkin_settings": {
-                    "enabled": False,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": False,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Minimal User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": [],
-                "goals": [],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="minimal")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Minimal User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "",
+                    "email": f"{user_id}@example.com",
+                    "discord_user_id": "",
+                    "timezone": "UTC",
+                    "categories": ["motivational"],
+                    "channel": {
+                        "type": "email"
+                    },
+                    "checkin_settings": {
+                        "enabled": False,
+                        "frequency": "daily",
+                        "reminder_time": "09:00"
+                    },
+                    "task_settings": {
+                        "enabled": False,
+                        "default_priority": "medium",
+                        "reminder_enabled": True
+                    },
+                    "preferred_name": f"Minimal User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "",
+                    "reminders_needed": [],
+                    "custom_fields": {
+                        "health_conditions": [],
+                        "medications_treatments": [],
+                        "allergies_sensitivities": []
+                    },
+                    "interests": [],
+                    "goals": [],
+                    "loved_ones": [],
+                    "activities_for_encouragement": [],
+                    "notes_for_ai": []
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1110,8 +1263,20 @@ class TestUserFactory:
     def create_user_with_complex_checkins__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create complex checkins user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="complex_checkins")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Complex Checkins User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
                 "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
@@ -1147,7 +1312,10 @@ class TestUserFactory:
                 "loved_ones": ["Family", "Friends"],
                 "activities_for_encouragement": ["Exercise", "Socializing", "Creative projects"],
                 "notes_for_ai": ["Prefers detailed check-ins", "Health-focused approach"]
-            }
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1244,8 +1412,20 @@ class TestUserFactory:
     def create_user_with_health_focus__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create health focus user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="health")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Health Focus User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
                 "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
@@ -1281,7 +1461,10 @@ class TestUserFactory:
                 "loved_ones": ["Family", "Friends"],
                 "activities_for_encouragement": ["Exercise", "Meditation", "Socializing"],
                 "notes_for_ai": ["Prefers gentle encouragement", "Health-focused approach"]
-            }
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1378,8 +1561,20 @@ class TestUserFactory:
     def create_user_with_task_focus__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create task focus user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="task")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Task Focus User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
                 "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
@@ -1415,7 +1610,10 @@ class TestUserFactory:
                 "loved_ones": [],
                 "activities_for_encouragement": ["Planning", "Organization", "Time management"],
                 "notes_for_ai": ["Task-focused approach", "Prefers clear deadlines"]
-            }
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1512,8 +1710,20 @@ class TestUserFactory:
     def create_user_with_disabilities__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create disability user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="disability")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["email"] = f"{user_id}@example.com"
+                user_data["preferred_name"] = f"Disability User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
                 "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
@@ -1548,7 +1758,10 @@ class TestUserFactory:
                 "loved_ones": ["Family", "Friends"],
                 "activities_for_encouragement": ["Creative projects", "Socializing", "Exercise"],
                 "notes_for_ai": ["Prefers clear instructions", "Needs routine reminders"]
-            }
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1644,8 +1857,20 @@ class TestUserFactory:
     def create_user_with_limited_data__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create limited data user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="limited_data")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                # Limited data users should have empty preferred_name (not a generated name)
+                user_data["preferred_name"] = ""
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
                 "internal_username": user_id,
                 "chat_id": "",
                 "phone": "",
@@ -1680,7 +1905,10 @@ class TestUserFactory:
                 "loved_ones": [],
                 "activities_for_encouragement": [],
                 "notes_for_ai": []
-            }
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1776,43 +2004,57 @@ class TestUserFactory:
     def create_user_with_inconsistent_data__with_test_dir(user_id: str, test_data_dir: str = None) -> bool:
         """Create inconsistent data user with test directory by directly saving files"""
         try:
-            # Create user data in the format expected by create_new_user
-            user_data = {
-                "internal_username": user_id,
-                "chat_id": "",
-                "phone": "3062619228",
-                "email": "",
-                "discord_user_id": "",
-                "timezone": "America/Regina",
-                "categories": ["motivational"],
-                "channel": {
-                    "type": "discord"
-                },
-                "checkin_settings": {
-                    "enabled": True,
-                    "frequency": "daily",
-                    "reminder_time": "09:00"
-                },
-                "task_settings": {
-                    "enabled": True,
-                    "default_priority": "medium",
-                    "reminder_enabled": True
-                },
-                "preferred_name": f"Inconsistent User {user_id}",
-                "gender_identity": ["they/them"],
-                "date_of_birth": "",
-                "reminders_needed": [],
-                "custom_fields": {
-                    "health_conditions": [],
-                    "medications_treatments": [],
-                    "allergies_sensitivities": []
-                },
-                "interests": ["Technology"],
-                "goals": ["Stay organized"],
-                "loved_ones": [],
-                "activities_for_encouragement": [],
-                "notes_for_ai": []
-            }
+            # Check cache first to avoid recreating identical user data structures
+            cache_key = TestUserFactory._get_cache_key(user_type="inconsistent")
+            cached_data = TestUserFactory._get_cached_user_data(cache_key)
+            
+            if cached_data:
+                # Use cached data structure but update user_id-specific fields
+                # Use deepcopy to avoid modifying the cached template
+                user_data = copy.deepcopy(cached_data)
+                user_data["internal_username"] = user_id
+                user_data["preferred_name"] = f"Inconsistent User {user_id}"
+            else:
+                # Create user data in the format expected by create_new_user
+                user_data = {
+                    "internal_username": user_id,
+                    "chat_id": "",
+                    "phone": "3062619228",
+                    "email": "",
+                    "discord_user_id": "",
+                    "timezone": "America/Regina",
+                    "categories": ["motivational"],
+                    "channel": {
+                        "type": "discord"
+                    },
+                    "checkin_settings": {
+                        "enabled": True,
+                        "frequency": "daily",
+                        "reminder_time": "09:00"
+                    },
+                    "task_settings": {
+                        "enabled": True,
+                        "default_priority": "medium",
+                        "reminder_enabled": True
+                    },
+                    "preferred_name": f"Inconsistent User {user_id}",
+                    "gender_identity": ["they/them"],
+                    "date_of_birth": "",
+                    "reminders_needed": [],
+                    "custom_fields": {
+                        "health_conditions": [],
+                        "medications_treatments": [],
+                        "allergies_sensitivities": []
+                    },
+                    "interests": ["Technology"],
+                    "goals": ["Stay organized"],
+                    "loved_ones": [],
+                    "activities_for_encouragement": [],
+                    "notes_for_ai": []
+                }
+                # Cache the template (without user_id-specific fields) for reuse
+                template_data = user_data.copy()
+                TestUserFactory._cache_user_data(cache_key, template_data)
             
             # Use helper function to create files
             actual_user_id = TestUserFactory._create_user_files_directly(user_id, user_data, test_data_dir)
@@ -1995,7 +2237,8 @@ class TestDataManager:
     @staticmethod
     def setup_test_environment() -> tuple:
         """
-        Create isolated test environment with temporary directories
+        Create isolated test environment with temporary directories.
+        Optimized: Uses session-scoped base tmp directory (created once).
         
         Returns:
             tuple: (test_dir, test_data_dir, test_test_data_dir)
@@ -2005,17 +2248,22 @@ class TestDataManager:
         from tests.conftest import tests_data_dir  # reuse base
         import uuid, os
         base_tmp = os.path.join(tests_data_dir, 'tmp')
+        # Base tmp directory should already exist from session fixture, but ensure it exists
         os.makedirs(base_tmp, exist_ok=True)
         test_dir = os.path.join(base_tmp, f"mhm_test_{uuid.uuid4().hex}")
         os.makedirs(test_dir, exist_ok=True)
         test_data_dir = os.path.join(test_dir, "data")
         test_test_data_dir = os.path.join(test_dir, "tests", "data")
         
-        # Create directory structure
-        os.makedirs(test_data_dir, exist_ok=True)
-        os.makedirs(test_test_data_dir, exist_ok=True)
-        os.makedirs(os.path.join(test_data_dir, "users"), exist_ok=True)
-        os.makedirs(os.path.join(test_test_data_dir, "users"), exist_ok=True)
+        # Create directory structure (batch creation for efficiency)
+        dirs_to_create = [
+            test_data_dir,
+            test_test_data_dir,
+            os.path.join(test_data_dir, "users"),
+            os.path.join(test_test_data_dir, "users")
+        ]
+        for dir_path in dirs_to_create:
+            os.makedirs(dir_path, exist_ok=True)
         
         # Create test user index with flat lookup structure
         user_index = {
