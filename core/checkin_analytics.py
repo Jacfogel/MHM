@@ -73,10 +73,16 @@ class CheckinAnalytics:
         best_day = max(mood_data, key=lambda x: x['mood'])
         worst_day = min(mood_data, key=lambda x: x['mood'])
         
+        # Calculate min and max for range display
+        min_mood = min(moods)
+        max_mood = max(moods)
+        
         return {
             "period_days": days,
             "total_checkins": len(mood_data),
             "average_mood": round(avg_mood, 2),
+            "min_mood": min_mood,
+            "max_mood": max_mood,
             "mood_volatility": round(mood_std, 2),
             "trend": trend,
             "best_day": {
@@ -89,6 +95,76 @@ class CheckinAnalytics:
             },
             "mood_distribution": self._get_mood_distribution(moods),
             "recent_data": mood_data[:7]  # Last 7 days
+        }
+    
+    @handle_errors("analyzing energy trends", default_return={"error": "Analysis failed"})
+    def get_energy_trends(self, user_id: str, days: int = 30) -> Dict:
+        """Analyze energy trends over the specified period"""
+        checkins = get_checkins_by_days(user_id, days)
+        if not checkins:
+            return {"error": "No check-in data available"}
+        
+        # Extract energy data with timestamps
+        energy_data = []
+        for checkin in checkins:
+            if 'energy' in checkin and 'timestamp' in checkin:
+                try:
+                    timestamp = datetime.strptime(checkin['timestamp'], '%Y-%m-%d %H:%M:%S')
+                    energy_data.append({
+                        'date': timestamp.date(),
+                        'energy': checkin['energy'],
+                        'timestamp': checkin['timestamp']
+                    })
+                except (ValueError, TypeError):
+                    continue
+        
+        if not energy_data:
+            return {"error": "No valid energy data found"}
+        
+        # Calculate statistics
+        energies = [d['energy'] for d in energy_data]
+        avg_energy = statistics.mean(energies)
+        energy_std = statistics.stdev(energies) if len(energies) > 1 else 0
+        
+        # Identify trends
+        recent_energies = energies[:7] if len(energies) >= 7 else energies
+        older_energies = energies[7:14] if len(energies) >= 14 else []
+        
+        trend = "stable"
+        if len(older_energies) > 0:
+            recent_avg = statistics.mean(recent_energies)
+            older_avg = statistics.mean(older_energies)
+            if recent_avg > older_avg + 0.5:
+                trend = "improving"
+            elif recent_avg < older_avg + 0.5:
+                trend = "declining"
+        
+        # Find best and worst days
+        best_day = max(energy_data, key=lambda x: x['energy'])
+        worst_day = min(energy_data, key=lambda x: x['energy'])
+        
+        # Calculate min and max for range display
+        min_energy = min(energies)
+        max_energy = max(energies)
+        
+        return {
+            "period_days": days,
+            "total_checkins": len(energy_data),
+            "average_energy": round(avg_energy, 2),
+            "min_energy": min_energy,
+            "max_energy": max_energy,
+            "energy_volatility": round(energy_std, 2),
+            "trend": trend,
+            "best_day": {
+                "date": best_day['date'].strftime('%Y-%m-%d'),
+                "energy": best_day['energy']
+            },
+            "worst_day": {
+                "date": worst_day['date'].strftime('%Y-%m-%d'),
+                "energy": worst_day['energy']
+            },
+            "energy_distribution": self._get_energy_distribution(energies),
+            "recent_data": energy_data[:7]  # Last 7 days
         }
     
     @handle_errors("analyzing habits", default_return={"error": "Analysis failed"})
@@ -230,22 +306,24 @@ class CheckinAnalytics:
         
         # Calculate component scores
         mood_score = self._calculate_mood_score(checkins)
+        energy_score = self._calculate_energy_score(checkins)
         habit_score = self._calculate_habit_score(checkins)
         sleep_score = self._calculate_sleep_score(checkins)
         
-        # Calculate overall score (weighted average)
-        overall_score = (mood_score * 0.4) + (habit_score * 0.4) + (sleep_score * 0.2)
+        # Calculate overall score (weighted average: mood 30%, energy 20%, habits 30%, sleep 20%)
+        overall_score = (mood_score * 0.3) + (energy_score * 0.2) + (habit_score * 0.3) + (sleep_score * 0.2)
         
         return {
             "score": round(overall_score, 1),
             "level": self._get_score_level(overall_score),
             "components": {
                 "mood_score": round(mood_score, 1),
+                "energy_score": round(energy_score, 1),
                 "habit_score": round(habit_score, 1),
                 "sleep_score": round(sleep_score, 1)
             },
             "period_days": days,
-            "recommendations": self._get_wellness_recommendations(mood_score, habit_score, sleep_score)
+            "recommendations": self._get_wellness_recommendations(mood_score, energy_score, habit_score, sleep_score)
         }
     
     @handle_errors("getting check-in history", default_return={"error": "History retrieval failed"})
@@ -265,6 +343,7 @@ class CheckinAnalytics:
                     formatted_checkin = {
                         'date': formatted_date,
                         'mood': checkin.get('mood', 'No mood recorded'),
+                        'energy': checkin.get('energy', 'No energy recorded'),
                         'timestamp': checkin['timestamp']
                     }
                     
@@ -519,6 +598,15 @@ class CheckinAnalytics:
                 distribution[mood] += 1
         return distribution
     
+    @handle_errors("calculating energy distribution", default_return={1: 0, 2: 0, 3: 0, 4: 0, 5: 0})
+    def _get_energy_distribution(self, energies: List[int]) -> Dict:
+        """Calculate distribution of energy scores"""
+        distribution = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
+        for energy in energies:
+            if energy in distribution:
+                distribution[energy] += 1
+        return distribution
+    
     @handle_errors("calculating habit streak", default_return={"current": 0, "best": 0})
     def _calculate_streak(self, checkins: List[Dict], habit_key: str) -> Dict:
         """Calculate current and best streaks for a habit"""
@@ -601,6 +689,38 @@ class CheckinAnalytics:
         
         return recommendations
     
+    @staticmethod
+    @handle_errors("converting score from 0-100 to 1-5 scale", default_return=0.0)
+    def convert_score_100_to_5(score_100: float) -> float:
+        """
+        Convert a score from 0-100 scale to 1-5 scale for display.
+        
+        Args:
+            score_100: Score on 0-100 scale
+            
+        Returns:
+            Score on 1-5 scale, rounded to 1 decimal place
+        """
+        if score_100 <= 0:
+            return 0.0
+        return round((score_100 / 25) + 1, 1)
+    
+    @staticmethod
+    @handle_errors("converting score from 1-5 to 0-100 scale", default_return=0.0)
+    def convert_score_5_to_100(score_5: float) -> float:
+        """
+        Convert a score from 1-5 scale to 0-100 scale for calculations.
+        
+        Args:
+            score_5: Score on 1-5 scale
+            
+        Returns:
+            Score on 0-100 scale
+        """
+        if score_5 <= 0:
+            return 0.0
+        return (score_5 - 1) * 25
+    
     @handle_errors("calculating mood score", default_return=50.0)
     def _calculate_mood_score(self, checkins: List[Dict]) -> float:
         """Calculate mood score (0-100)"""
@@ -610,7 +730,18 @@ class CheckinAnalytics:
         
         # Convert 1-5 scale to 0-100
         avg_mood = statistics.mean(moods)
-        return (avg_mood - 1) * 25
+        return self.convert_score_5_to_100(avg_mood)
+    
+    @handle_errors("calculating energy score", default_return=50.0)
+    def _calculate_energy_score(self, checkins: List[Dict]) -> float:
+        """Calculate energy score (0-100)"""
+        energies = [c.get('energy', 3) for c in checkins if 'energy' in c]
+        if not energies:
+            return 50
+        
+        # Convert 1-5 scale to 0-100
+        avg_energy = statistics.mean(energies)
+        return self.convert_score_5_to_100(avg_energy)
     
     @handle_errors("calculating habit score", default_return=50.0)
     def _calculate_habit_score(self, checkins: List[Dict]) -> float:
@@ -672,12 +803,15 @@ class CheckinAnalytics:
             return "Needs Attention"
     
     @handle_errors("generating wellness recommendations", default_return=[])
-    def _get_wellness_recommendations(self, mood_score: float, habit_score: float, sleep_score: float) -> List[str]:
+    def _get_wellness_recommendations(self, mood_score: float, energy_score: float, habit_score: float, sleep_score: float) -> List[str]:
         """Generate wellness recommendations based on component scores"""
         recommendations = []
         
         if mood_score < 60:
             recommendations.append("Focus on activities that boost your mood")
+        
+        if energy_score < 60:
+            recommendations.append("Consider rest, nutrition, and gentle movement to boost energy")
         
         if habit_score < 60:
             recommendations.append("Work on building consistent daily habits")

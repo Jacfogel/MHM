@@ -105,7 +105,13 @@ class CheckinHandler(InteractionHandler):
         for checkin in recent_checkins[:5]:  # Show last 5
             date = checkin.get('date', 'Unknown date')
             mood = checkin.get('mood', 'No mood recorded')
-            response += f"📅 {date}: Mood {mood}/5\n"
+            energy = checkin.get('energy', 'No energy recorded')
+            
+            # Display mood and energy together if both are available
+            if energy != 'No energy recorded':
+                response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
+            else:
+                response += f"📅 {date}: 😊 Mood {mood}/5\n"
         
         if len(recent_checkins) > 5:
             response += f"... and {len(recent_checkins) - 5} more"

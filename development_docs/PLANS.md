@@ -146,20 +146,24 @@
 - [x] No regressions introduced
 - [x] System stability maintained
 
-### **Analytics Scale Normalization (Mood/Energy)** [WARNING] **PARTIAL**
+### **Analytics Scale Normalization (Mood/Energy)** [CHECKMARK] **COMPLETED**
 
-**Status**: [WARNING] **PARTIAL**  
+**Status**: [CHECKMARK] **COMPLETED**  
 **Priority**: High  
 **Effort**: Small/Medium  
-**Date**: 2025-09-12
+**Date**: 2025-09-12  
+**Completed**: 2025-11-09
 
 **Objective**: Align Mood (and Energy where shown) to 1-5 across analytics outputs.
 
 **Results**:
 - Updated `analytics_handler.py` to show Mood on a 1-5 scale; Energy adjusted in check-in history
-
-**Planned follow-up**:
-- Sweep `interaction_handlers.py` and `checkin_handler.py` for any remaining `/10` occurrences (tracked in TODO.md)
+- Updated `interaction_handlers.py` wellness score display to show mood/energy on 1-5 scale (converted from 0-100)
+- Added missing `_handle_energy_trends()` method to `interaction_handlers.py` AnalyticsHandler
+- Extracted conversion helper functions (`convert_score_100_to_5`, `convert_score_5_to_100`) to `CheckinAnalytics` class
+- Refactored `_calculate_mood_score()` and `_calculate_energy_score()` to use helper functions
+- Added comprehensive unit tests (21 tests) for conversion functions including non-integer value handling
+- Verified all mood/energy displays consistently use 1-5 scale across the codebase
 
 ---
 

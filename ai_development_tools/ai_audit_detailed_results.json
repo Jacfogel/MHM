@@ -1,9 +1,9 @@
 {
   "generated_by": "ai_tools_runner.py - AI Development Tools Runner",
-  "last_generated": "2025-11-09 19:11:34",
+  "last_generated": "2025-11-09 19:21:10",
   "source": "python ai_development_tools/ai_tools_runner.py audit",
   "note": "This file is auto-generated. Do not edit manually.",
-  "timestamp": "2025-11-09T19:11:34.750887",
+  "timestamp": "2025-11-09T19:21:10.174891",
   "successful": [
     "function_discovery",
     "decision_support",
@@ -3193,7 +3193,7 @@
     },
     "documentation_sync_checker": {
       "success": true,
-      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 23\n   Paired Doc Issues: 1\n   Path Drift Issues: 1\n   ASCII Compliance Issues: 4\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - development_docs/CHANGELOG_DETAIL.md has sections missing in ai_development_docs/AI_CHANGELOG.md: {'Overview'}\n     - ai_development_docs/AI_CHANGELOG.md has sections missing in development_docs/CHANGELOG_DETAIL.md: {'How to Update This File'}\n     - logs/LOGGING_GUIDE.md has sections missing in ai_development_docs/AI_LOGGING_GUIDE.md: {'Log Rotation and Archival', 'Log Analysis', 'Troubleshooting', 'Configuration', 'Overview', 'Migration from Old System', 'Component Loggers Reference', 'Quick Reference'}\n     - ai_development_docs/AI_LOGGING_GUIDE.md has sections missing in logs/LOGGING_GUIDE.md: {'Component Loggers', 'Common Scenarios', 'Handy PowerShell Snippets', 'Related References', 'Triage Workflow'}\n     - tests/TESTING_GUIDE.md has sections missing in ai_development_docs/AI_TESTING_GUIDE.md: {'Automation Coverage', 'Test Architecture', 'Debugging Tests', 'Test Utilities and Infrastructure', 'Test Categories & Markers', 'Test Commands', 'Writing Tests', 'Coverage Reports', 'Test Priorities & Roadmap', 'Test Organization Structure', 'Quick Start', 'Testing Philosophy & Priorities', 'Maintenance Guidelines'}\n     - ai_development_docs/AI_TESTING_GUIDE.md has sections missing in tests/TESTING_GUIDE.md: {'Test Coverage Patterns', 'Common Testing Patterns', 'Manual Testing Procedures', 'Best Practices', 'Troubleshooting Patterns', 'UI Test Automation', 'Resources', 'Test Data Patterns', 'Discord Test Automation'}\n     - core/ERROR_HANDLING_GUIDE.md has sections missing in ai_development_docs/AI_ERROR_HANDLING_GUIDE.md: {' **Migration Guide**', ' **Error Recovery Strategies**', ' **Enhanced Error Handling Patterns**', ' **Best Practices**', ' **Overview**', ' **Error Message Guidelines**', ' **Monitoring and Debugging**', ' Quick Reference', ' **Critical Error Scenarios**', ' **Testing Error Handling**', ' **Architecture**', ' **Future Enhancements**', ' **Configuration**', ' **Related Documentation**', ' **Usage Patterns**'}\n     - ai_development_docs/AI_ERROR_HANDLING_GUIDE.md has sections missing in core/ERROR_HANDLING_GUIDE.md: {'Error Handling Patterns', 'Troubleshooting Patterns', 'Common Error Types', 'Resources', 'Error Prevention', 'Error Recovery Strategies', 'Quick Reference', 'Error Logging Patterns'}\n\nPATH DRIFT ISSUES:\n   Total files with issues: 1\n   Total issues found: 1\n   Top files with most issues:\n     ai_development_docs\\AI_CHANGELOG.md: 1 issues\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 4\n   Total issues found: 14\n   Files with non-ASCII characters:\n     ai_development_docs/AI_CHANGELOG.md: 2 issues\n       - Non-ASCII character '' (U+2192) at positions: [1462, 1518, 2505, 2565, 2629]...\n       - Non-ASCII character '' (U+2265) at positions: [21234]\n     development_docs/CHANGELOG_DETAIL.md: 2 issues\n       - Non-ASCII character '' (U+2192) at positions: [35536, 35552, 35586, 35605, 57092]...\n       - Non-ASCII character '' (U+2265) at positions: [49516, 80445, 80855]\n     development_docs/PLANS.md: 6 issues\n       - Non-ASCII character '' (U+2705) at positions: [8052, 8161]\n       - Non-ASCII character '' (U+1F504) at positions: [8845, 8876, 10311, 19734, 19760]...\n       - Non-ASCII character '' (U+1F7E1) at positions: [30927, 30955, 31884, 31912]\n       ... and 3 more issues\n     TODO.md: 4 issues\n       - Non-ASCII character '' (U+2705) at positions: [9545, 9600, 9717, 9935, 10045]...\n       - Non-ASCII character '' (U+26A0) at positions: [10565, 10915, 13096]\n       - Non-ASCII character '' (U+FE0F) at positions: [10566, 10916, 13097]\n       ... and 1 more issues\n\nFound 23 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
+      "output": "\nSUMMARY:\n   Status: FAIL\n   Total Issues: 22\n   Paired Doc Issues: 1\n   Path Drift Issues: 0\n   ASCII Compliance Issues: 4\n\nPAIRED DOCUMENTATION ISSUES:\n   content_sync:\n     - development_docs/CHANGELOG_DETAIL.md has sections missing in ai_development_docs/AI_CHANGELOG.md: {'Overview'}\n     - ai_development_docs/AI_CHANGELOG.md has sections missing in development_docs/CHANGELOG_DETAIL.md: {'How to Update This File'}\n     - logs/LOGGING_GUIDE.md has sections missing in ai_development_docs/AI_LOGGING_GUIDE.md: {'Troubleshooting', 'Migration from Old System', 'Log Analysis', 'Quick Reference', 'Component Loggers Reference', 'Configuration', 'Log Rotation and Archival', 'Overview'}\n     - ai_development_docs/AI_LOGGING_GUIDE.md has sections missing in logs/LOGGING_GUIDE.md: {'Common Scenarios', 'Component Loggers', 'Triage Workflow', 'Handy PowerShell Snippets', 'Related References'}\n     - tests/TESTING_GUIDE.md has sections missing in ai_development_docs/AI_TESTING_GUIDE.md: {'Coverage Reports', 'Writing Tests', 'Test Commands', 'Maintenance Guidelines', 'Test Priorities & Roadmap', 'Quick Start', 'Automation Coverage', 'Test Organization Structure', 'Test Utilities and Infrastructure', 'Testing Philosophy & Priorities', 'Test Categories & Markers', 'Test Architecture', 'Debugging Tests'}\n     - ai_development_docs/AI_TESTING_GUIDE.md has sections missing in tests/TESTING_GUIDE.md: {'Troubleshooting Patterns', 'Test Data Patterns', 'Discord Test Automation', 'Common Testing Patterns', 'UI Test Automation', 'Test Coverage Patterns', 'Resources', 'Best Practices', 'Manual Testing Procedures'}\n     - core/ERROR_HANDLING_GUIDE.md has sections missing in ai_development_docs/AI_ERROR_HANDLING_GUIDE.md: {' Quick Reference', ' **Error Recovery Strategies**', ' **Overview**', ' **Configuration**', ' **Related Documentation**', ' **Enhanced Error Handling Patterns**', ' **Migration Guide**', ' **Future Enhancements**', ' **Monitoring and Debugging**', ' **Architecture**', ' **Usage Patterns**', ' **Error Message Guidelines**', ' **Critical Error Scenarios**', ' **Best Practices**', ' **Testing Error Handling**'}\n     - ai_development_docs/AI_ERROR_HANDLING_GUIDE.md has sections missing in core/ERROR_HANDLING_GUIDE.md: {'Error Recovery Strategies', 'Troubleshooting Patterns', 'Error Logging Patterns', 'Quick Reference', 'Error Handling Patterns', 'Resources', 'Common Error Types', 'Error Prevention'}\n\nASCII COMPLIANCE ISSUES:\n   Total files with non-ASCII characters: 4\n   Total issues found: 14\n   Files with non-ASCII characters:\n     ai_development_docs/AI_CHANGELOG.md: 2 issues\n       - Non-ASCII character '' (U+2192) at positions: [2230, 2286, 3273, 3333, 3397]...\n       - Non-ASCII character '' (U+2265) at positions: [21950]\n     development_docs/CHANGELOG_DETAIL.md: 2 issues\n       - Non-ASCII character '' (U+2192) at positions: [38194, 38210, 38244, 38263, 59750]...\n       - Non-ASCII character '' (U+2265) at positions: [52174, 83103, 83513]\n     development_docs/PLANS.md: 6 issues\n       - Non-ASCII character '' (U+2705) at positions: [8052, 8161]\n       - Non-ASCII character '' (U+1F504) at positions: [8845, 8876, 10311, 19734, 19760]...\n       - Non-ASCII character '' (U+1F7E1) at positions: [30927, 30955, 31884, 31912]\n       ... and 3 more issues\n     TODO.md: 4 issues\n       - Non-ASCII character '' (U+2705) at positions: [8791, 8846, 8963, 9181, 9291]...\n       - Non-ASCII character '' (U+26A0) at positions: [9811, 10161, 12342]\n       - Non-ASCII character '' (U+FE0F) at positions: [9812, 10162, 12343]\n       ... and 1 more issues\n\nFound 22 documentation synchronization issues.\n   Consider running with --fix to attempt automatic fixes.\n",
       "error": "",
       "returncode": 0,
       "data": {
@@ -3203,99 +3203,6 @@
         "path_drift_files": [],
         "status": "UNKNOWN"
       }
-    },
-    "legacy_reference_cleanup": {
-      "success": true,
-      "data": {
-        "files_with_issues": 5,
-        "legacy_markers": 1,
-        "report_path": "C:\\Users\\Julie\\projects\\MHM\\MHM\\development_docs\\LEGACY_REFERENCE_REPORT.md"
-      },
-      "timestamp": "2025-11-09T19:11:55.621916"
-    },
-    "validate_ai_work": {
-      "success": true,
-      "data": {
-        "success": true,
-        "output": "",
-        "error": "",
-        "returncode": 0
-      },
-      "timestamp": "2025-11-09T19:11:55.621916"
-    },
-    "system_signals": {
-      "success": true,
-      "data": {
-        "timestamp": "2025-11-09T19:11:53.691240",
-        "system_health": {
-          "overall_status": "OK",
-          "core_files": {
-            "run_mhm.py": "OK",
-            "run_headless_service.py": "OK",
-            "run_tests.py": "OK",
-            "core/service.py": "OK",
-            "core/config.py": "OK",
-            "core/logger.py": "OK",
-            "requirements.txt": "OK",
-            "pyproject.toml": "OK"
-          },
-          "key_directories": {
-            ".": "OK",
-            "ai": "OK",
-            "communication": "OK",
-            "core": "OK",
-            "tasks": "OK",
-            "ui": "OK",
-            "user": "OK",
-            "tests": "OK"
-          },
-          "last_audit": "2025-11-09T19:11:34.759595",
-          "warnings": [],
-          "errors": []
-        },
-        "recent_activity": {
-          "recent_changes": [
-            "TODO.md",
-            "ai_development_docs\\AI_CHANGELOG.md",
-            "ai_development_docs\\AI_TESTING_GUIDE.md",
-            "ai_development_tools\\config_validation_results.json",
-            "ai_development_tools\\documentation_sync_checker.py",
-            "ai_development_tools\\logs\\coverage_regeneration\\coverage_combine.latest.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\coverage_combine_20251109-155008.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\coverage_html.latest.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\coverage_html_20251109-155008.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\pytest_stderr.latest.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\pytest_stderr_20251109-155008.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\pytest_stdout.latest.log",
-            "ai_development_tools\\logs\\coverage_regeneration\\pytest_stdout_20251109-155008.log",
-            "communication\\command_handlers\\analytics_handler.py",
-            "communication\\command_handlers\\interaction_handlers.py"
-          ],
-          "git_status": "Modified",
-          "last_commit": null,
-          "uncommitted_changes": true
-        },
-        "critical_alerts": [],
-        "performance_indicators": {
-          "log_file_sizes": {
-            "ai.log": "0.0MB",
-            "ai_dev_tools.log": "0.2MB",
-            "app.log": "0.0MB",
-            "communication_manager.log": "0.0MB",
-            "discord.log": "0.0MB",
-            "email.log": "0.0MB",
-            "errors.log": "0.0MB",
-            "file_ops.log": "0.0MB",
-            "message.log": "0.0MB",
-            "scheduler.log": "0.0MB",
-            "ui.log": "0.0MB",
-            "user_activity.log": "0.0MB"
-          },
-          "cache_status": "Unknown",
-          "memory_usage": "Unknown"
-        }
-      },
-      "timestamp": "2025-11-09T19:11:55.621916"
     }
   }
 }

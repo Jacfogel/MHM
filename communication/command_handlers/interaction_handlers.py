@@ -1085,7 +1085,13 @@ class CheckinHandler(InteractionHandler):
         for checkin in recent_checkins[:5]:  # Show last 5
             date = checkin.get('date', 'Unknown date')
             mood = checkin.get('mood', 'No mood recorded')
-            response += f"📅 {date}: Mood {mood}/5\n"
+            energy = checkin.get('energy', 'No energy recorded')
+            
+            # Display mood and energy together if both are available
+            if energy != 'No energy recorded':
+                response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
+            else:
+                response += f"📅 {date}: 😊 Mood {mood}/5\n"
         
         if len(recent_checkins) > 5:
             response += f"... and {len(recent_checkins) - 5} more"
@@ -2292,7 +2298,7 @@ class AnalyticsHandler(InteractionHandler):
     
     @handle_errors("checking if can handle analytics intent", default_return=False)
     def can_handle(self, intent: str) -> bool:
-        return intent in ['show_analytics', 'mood_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'completion_rate', 'quant_summary']
+        return intent in ['show_analytics', 'mood_trends', 'energy_trends', 'habit_analysis', 'sleep_analysis', 'wellness_score', 'checkin_history', 'completion_rate', 'quant_summary']
     
     @handle_errors("handling analytics interaction", default_return=InteractionResponse("I'm having trouble with analytics right now. Please try again.", True))
     def handle(self, user_id: str, parsed_command: ParsedCommand) -> InteractionResponse:
@@ -2303,6 +2309,8 @@ class AnalyticsHandler(InteractionHandler):
             return self._handle_show_analytics(user_id, entities)
         elif intent == 'mood_trends':
             return self._handle_mood_trends(user_id, entities)
+        elif intent == 'energy_trends':
+            return self._handle_energy_trends(user_id, entities)
         elif intent == 'habit_analysis':
             return self._handle_habit_analysis(user_id, entities)
         elif intent == 'sleep_analysis':
@@ -2397,7 +2405,11 @@ class AnalyticsHandler(InteractionHandler):
 
             response = f"**Per-field Quantitative Summaries (Last {days} days):**\n\n"
             for field, stats in summaries.items():
-                response += f"• {field.title()}: avg {stats['average']} (min {stats['min']}, max {stats['max']}) over {int(stats['count'])} days\n"
+                # Determine scale for field
+                scale = self._get_field_scale(field)
+                scale_suffix = f"/{scale}" if scale else ""
+                
+                response += f"• {field.title()}: avg {stats['average']}{scale_suffix} (min {stats['min']}{scale_suffix}, max {stats['max']}{scale_suffix}) over {int(stats['count'])} days\n"
             return InteractionResponse(response, True)
         except Exception as e:
             logger.error(f"Error computing quantitative summaries for user {user_id}: {e}")
@@ -2440,6 +2452,44 @@ class AnalyticsHandler(InteractionHandler):
         except Exception as e:
             logger.error(f"Error showing mood trends for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble showing your mood trends right now. Please try again.", True)
+    
+    @handle_errors("showing energy trends", default_return=InteractionResponse("I'm having trouble showing your energy trends. Please try again.", True))
+    def _handle_energy_trends(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
+        """Show energy trends analysis"""
+        days = entities.get('days', 30)
+        
+        try:
+            from core.checkin_analytics import CheckinAnalytics
+            analytics = CheckinAnalytics()
+            
+            energy_data = analytics.get_energy_trends(user_id, days)
+            if 'error' in energy_data:
+                return InteractionResponse("You don't have enough energy data for analysis yet. Try completing some check-ins first!", True)
+            
+            response = f"**⚡ Energy Trends (Last {days} days):**\n\n"
+            response += f"📈 **Average Energy:** {energy_data.get('average_energy', 0)}/5\n"
+            response += f"📊 **Energy Range:** {energy_data.get('min_energy', 0)} - {energy_data.get('max_energy', 0)}/5\n"
+            response += f"📉 **Trend:** {energy_data.get('trend', 'Stable')}\n\n"
+            
+            # Show energy distribution
+            distribution = energy_data.get('energy_distribution', {})
+            if distribution:
+                response += "**Energy Distribution:**\n"
+                for energy_level, count in distribution.items():
+                    response += f"• {energy_level}: {count} days\n"
+            
+            # Add insights
+            avg_energy = energy_data.get('average_energy', 0)
+            if avg_energy >= 4:
+                response += "\n💡 **Insight:** Your energy levels have been consistently high!\n"
+            elif avg_energy <= 2:
+                response += "\n💡 **Insight:** Your energy levels have been low - consider rest and self-care.\n"
+            
+            return InteractionResponse(response, True)
+            
+        except Exception as e:
+            logger.error(f"Error showing energy trends for user {user_id}: {e}")
+            return InteractionResponse("I'm having trouble showing your energy trends right now. Please try again.", True)
     
     @handle_errors("showing habit analysis", default_return=InteractionResponse("I'm having trouble showing your habit analysis. Please try again.", True))
     def _handle_habit_analysis(self, user_id: str, entities: Dict[str, Any]) -> InteractionResponse:
@@ -2538,7 +2588,12 @@ class AnalyticsHandler(InteractionHandler):
             components = wellness_data.get('components', {})
             if components:
                 response += "**Component Scores:**\n"
-                response += f"😊 **Mood Score:** {components.get('mood_score', 0)}/100\n"
+                # Convert mood and energy from 0-100 back to 1-5 scale for display
+                from core.checkin_analytics import CheckinAnalytics
+                mood_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('mood_score', 0))
+                energy_score_5 = CheckinAnalytics.convert_score_100_to_5(components.get('energy_score', 0))
+                response += f"😊 **Mood Score:** {mood_score_5}/5\n"
+                response += f"⚡ **Energy Score:** {energy_score_5}/5\n"
                 response += f"✅ **Habit Score:** {components.get('habit_score', 0)}/100\n"
                 response += f"😴 **Sleep Score:** {components.get('sleep_score', 0)}/100\n\n"
             
@@ -2572,7 +2627,13 @@ class AnalyticsHandler(InteractionHandler):
             for checkin in checkin_history[:5]:  # Show last 5 check-ins
                 date = checkin.get('date', 'Unknown date')
                 mood = checkin.get('mood', 'No mood recorded')
-                response += f"📅 {date}: Mood {mood}/5\n"
+                energy = checkin.get('energy', 'No energy recorded')
+                
+                # Display mood and energy together if both are available
+                if energy != 'No energy recorded':
+                    response += f"📅 {date}: 😊 Mood {mood}/5 | ⚡ Energy {energy}/5\n"
+                else:
+                    response += f"📅 {date}: 😊 Mood {mood}/5\n"
             
             if len(checkin_history) > 5:
                 response += f"... and {len(checkin_history) - 5} more check-ins\n"
@@ -2608,6 +2669,25 @@ class AnalyticsHandler(InteractionHandler):
             logger.error(f"Error showing completion rate for user {user_id}: {e}")
             return InteractionResponse("I'm having trouble calculating your completion rate right now. Please try again.", True)
     
+    @handle_errors("getting field scale", default_return=None)
+    def _get_field_scale(self, field: str) -> int:
+        """Determine the scale for a field (1-5 scale, or None for other types)
+        
+        Returns:
+            int: Scale value (5 for 1-5 scale fields, None for other types)
+        """
+        # Fields that use 1-5 scale
+        scale_1_5_fields = [
+            'mood', 'energy', 'stress_level', 'sleep_quality', 'anxiety_level', 
+            'focus_level'
+        ]
+        
+        if field in scale_1_5_fields:
+            return 5
+        
+        # Other fields (sleep_hours, yes/no fields) don't have a scale
+        return None
+
     @handle_errors("getting analytics help", default_return="Help with analytics - view analytics and insights about your wellness patterns")
     def get_help(self) -> str:
         return "Help with analytics - view analytics and insights about your wellness patterns"
@@ -2617,6 +2697,7 @@ class AnalyticsHandler(InteractionHandler):
         return [
             "show analytics",
             "mood trends",
+            "energy trends",
             "habit analysis",
             "sleep analysis",
             "wellness score",

@@ -31,6 +31,12 @@ Guidelines:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Analytics Scale Normalization and Conversion Helper Functions **COMPLETED**
+- **Scale Normalization**: Updated wellness score displays to show mood/energy on 1-5 scale (converted from internal 0-100) - users now see consistent 1-5 scale matching check-in input
+- **Missing Handler**: Added `_handle_energy_trends()` method to `interaction_handlers.py` AnalyticsHandler - energy trends now accessible through both handlers
+- **Helper Functions**: Extracted conversion logic to `convert_score_100_to_5()` and `convert_score_5_to_100()` static methods in `CheckinAnalytics` - centralized, reusable, tested
+- **Unit Tests**: Added 21 comprehensive unit tests for conversion functions including non-integer value handling - all tests pass, functions handle edge cases correctly
+
 ### 2025-11-09 - Critical Fix: Test Users Creating Real Windows Scheduled Tasks **COMPLETED**
 - **Test Mode Check**: Added test mode detection in `set_wake_timer` to prevent creating Windows tasks during tests - checks `MHM_TESTING` environment variable and user data directory location
 - **Enhanced Cleanup Script**: Improved `scripts/cleanup_windows_tasks.py` to intelligently identify test user tasks by checking if user_id exists in test data but not in real data, with UUID pattern matching heuristic

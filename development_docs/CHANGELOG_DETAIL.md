@@ -35,6 +35,41 @@ When adding new changes, follow this format:
 
 ## Recent Changes (Most Recent First)
 
+### 2025-11-09 - Analytics Scale Normalization and Conversion Helper Functions **COMPLETED**
+
+**Feature**: Completed analytics scale normalization for mood/energy scores, added missing energy trends handler, extracted conversion helper functions, and added comprehensive unit tests. All mood and energy scores now consistently display on 1-5 scale across analytics outputs.
+
+**Technical Changes**:
+1. **Wellness Score Display Normalization** (`communication/command_handlers/interaction_handlers.py`, `communication/command_handlers/analytics_handler.py`):
+   - Updated wellness score component displays to show mood and energy on 1-5 scale instead of 0-100
+   - Added conversion from internal 0-100 calculation back to 1-5 for user-facing display
+   - Maintains overall wellness score as 0-100 (composite score) while individual mood/energy components show on 1-5
+
+2. **Missing Energy Trends Handler** (`communication/command_handlers/interaction_handlers.py`):
+   - Added `_handle_energy_trends()` method to AnalyticsHandler class (was listed in `can_handle()` but missing implementation)
+   - Added handler case in `handle()` method for `'energy_trends'` intent
+   - Updated `get_examples()` to include "energy trends" for consistency with `analytics_handler.py`
+
+3. **Conversion Helper Functions** (`core/checkin_analytics.py`):
+   - Added `convert_score_100_to_5()` static method: converts 0-100 scale to 1-5 scale for display
+   - Added `convert_score_5_to_100()` static method: converts 1-5 scale to 0-100 scale for calculations
+   - Both functions handle edge cases (scores <= 0) and are protected with `@handle_errors` decorator
+   - Refactored `_calculate_mood_score()` and `_calculate_energy_score()` to use `convert_score_5_to_100()` helper
+
+4. **Unit Tests** (`tests/unit/test_checkin_analytics_conversion.py`):
+   - Created comprehensive unit test suite with 21 tests covering both conversion functions
+   - Tests cover edge cases, key values, decimal values, rounding, and round-trip conversions
+   - Includes tests for non-integer value handling (1.1, 2.3, 3.7, 4.9, etc.)
+   - All tests pass with proper handling of floating-point precision
+
+**Impact**: 
+- Users now see mood and energy scores on consistent 1-5 scale matching their check-in input, improving clarity and reducing confusion
+- Energy trends are now accessible through both analytics handlers
+- Code is more maintainable with centralized conversion logic
+- Conversion functions are fully tested and documented
+
+**Testing**: All 2,789 tests pass (1 skipped, 5 expected warnings). New unit tests verify conversion functions work correctly with integer and non-integer values.
+
 ### 2025-11-09 - Critical Fix: Test Users Creating Real Windows Scheduled Tasks **COMPLETED**
 
 **Problem**: Test users were creating real Windows scheduled tasks during test execution, polluting the Windows Task Scheduler with 498+ test user tasks. The `set_wake_timer` function in `core/scheduler.py` was creating Windows scheduled tasks without checking if it was running in test mode.
